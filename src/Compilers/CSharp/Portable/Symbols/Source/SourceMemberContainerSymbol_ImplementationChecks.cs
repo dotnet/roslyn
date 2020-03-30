@@ -8,12 +8,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal delegate void ReportMismatchinReturnType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, TArg arg);
+    internal delegate void ReportMismatchInParameterType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool topLevel, TArg arg);
+
     internal partial class SourceMemberContainerTypeSymbol
     {
         /// <summary>
@@ -1050,30 +1052,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool checkParameters)
             {
                 CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
-                                                 checkReturnType ?
-                                                    (diagnostics, overriddenMethod, overridingMethod, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, location) :
-                                                    (Action<DiagnosticBag, MethodSymbol, MethodSymbol, Location>)null,
-                                                 checkParameters ?
-                                                     (diagnostics, overriddenMethod, overridingMethod, overridingParameter, location) =>
-                                                     {
-                                                         diagnostics.Add(
-                                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
-                                                             location,
-                                                             new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
-                                                     }
-                :
-                                                     (Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, Location>)null,
+                                                 checkReturnType ? ReportBadReturn : null,
+                                                 checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
             }
         }
+
+        static readonly ReportMismatchinReturnType<Location> ReportBadReturn =
+            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, Location location)
+            => diagnostics.Add(topLevel ?
+                ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride :
+                ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
+                location);
+
+        static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
+            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool topLevel, Location location)
+            => diagnostics.Add(
+                topLevel ? ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
+                location,
+                new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
 
         internal static void CheckValidNullableMethodOverride<TArg>(
             CSharpCompilation compilation,
             MethodSymbol overriddenMethod,
             MethodSymbol overridingMethod,
             DiagnosticBag diagnostics,
-            Action<DiagnosticBag, MethodSymbol, MethodSymbol, TArg> reportMismatchInReturnType,
-            Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, TArg> reportMismatchInParameterType,
+            ReportMismatchinReturnType<TArg> reportMismatchInReturnType,
+            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument)
         {
             if (!PerformValidNullableOverrideCheck(compilation, overriddenMethod, overridingMethod))
@@ -1081,16 +1086,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var conversions = compilation.Conversions.WithNullability(true);
-            if (reportMismatchInReturnType != null &&
-                !isValidNullableConversion(
-                    conversions,
-                    overridingMethod.RefKind,
-                    overridingMethod.ReturnTypeWithAnnotations,
-                    overriddenMethod.ReturnTypeWithAnnotations))
+            if ((overriddenMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
+                (overridingMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
             {
-                reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, extraArgument);
-                return;
+                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overridingMethod.Locations[0], new FormattedSymbol(overridingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+
+            var conversions = compilation.Conversions.WithNullability(true);
+            if (reportMismatchInReturnType != null)
+            {
+                // check nested nullability
+                if (!isValidNullableConversion(
+                        conversions,
+                        overridingMethod.RefKind,
+                        overridingMethod.ReturnTypeWithAnnotations.Type,
+                        overriddenMethod.ReturnTypeWithAnnotations.Type))
+                {
+                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
+                    return;
+                }
+
+                // check top-level nullability including flow analysis annotations
+                if (!NullableWalker.AreParameterAnnotationsCompatible(
+                        overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
+                        overriddenMethod.ReturnTypeWithAnnotations,
+                        overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
+                        overridingMethod.ReturnTypeWithAnnotations,
+                        overridingMethod.ReturnTypeFlowAnalysisAnnotations))
+                {
+                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, true, extraArgument);
+                    return;
+                }
             }
 
             if (reportMismatchInParameterType == null)
@@ -1103,23 +1129,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < overriddenMethod.ParameterCount; i++)
             {
-                var overriddenParameterType = overriddenParameters[i].TypeWithAnnotations;
-                var overridingParameterType = overridingParameters[i].TypeWithAnnotations;
+                var overriddenParameter = overriddenParameters[i];
+                var overriddenParameterType = overriddenParameter.TypeWithAnnotations;
+                var overridingParameter = overridingParameters[i];
+                var overridingParameterType = overridingParameter.TypeWithAnnotations;
+                // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
-                        overridingParameters[i].RefKind,
-                        overriddenParameterType,
-                        overridingParameterType))
+                        overridingParameter.RefKind,
+                        overriddenParameterType.Type,
+                        overridingParameterType.Type))
                 {
-                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameters[i], extraArgument);
+                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, false, extraArgument);
+                }
+                // check top-level nullability including flow analysis annotations
+                else if (!NullableWalker.AreParameterAnnotationsCompatible(
+                        overridingParameter.RefKind,
+                        overriddenParameterType,
+                        overriddenParameter.FlowAnalysisAnnotations,
+                        overridingParameterType,
+                        overridingParameter.FlowAnalysisAnnotations))
+                {
+                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, true, extraArgument);
                 }
             }
 
             static bool isValidNullableConversion(
                 ConversionsBase conversions,
                 RefKind refKind,
-                TypeWithAnnotations sourceType,
-                TypeWithAnnotations targetType)
+                TypeSymbol sourceType,
+                TypeSymbol targetType)
             {
                 switch (refKind)
                 {
@@ -1137,7 +1176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         break;
                 }
-                return conversions.HasAnyNullabilityImplicitConversion(sourceType, targetType);
+
+                Debug.Assert(conversions.IncludeNullability);
+                HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                return conversions.ClassifyImplicitConversionFromType(sourceType, targetType, ref discardedDiagnostics).Kind != ConversionKind.NoConversion;
             }
         }
 

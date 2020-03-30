@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal CodeFix(Project project, CodeAction action, ImmutableArray<Diagnostic> diagnostics)
         {
-            Debug.Assert(!diagnostics.IsDefault);
+            Debug.Assert(!diagnostics.IsDefaultOrEmpty);
             Project = project;
             Action = action;
             Diagnostics = diagnostics;

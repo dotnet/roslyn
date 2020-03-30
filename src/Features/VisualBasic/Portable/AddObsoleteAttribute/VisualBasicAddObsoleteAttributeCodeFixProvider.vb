@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddObsoleteAttribute
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddObsoleteAttribute
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddObsoleteAttributeCodeFixProvider)), [Shared]>
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddObsoleteAttribute
 
         <ImportingConstructor>
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance, VBFeaturesResources.Add_Obsolete)
+            MyBase.New(VisualBasicSyntaxFacts.Instance, VBFeaturesResources.Add_Obsolete)
         End Sub
     End Class
 End Namespace

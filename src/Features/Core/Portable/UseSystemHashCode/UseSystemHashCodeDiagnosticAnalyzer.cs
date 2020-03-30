@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
     {
         public UseSystemHashCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSystemHashCode,
-                   CodeStyleOptions.PreferSystemHashCode,
+                   CodeStyleOptions2.PreferSystemHashCode,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_System_HashCode), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.GetHashCode_implementation_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -51,14 +51,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return;
             }
 
+            var syntaxTree = operation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(operation.Syntax.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferSystemHashCode, operation.Language);
+            var option = context.Options.GetOption(CodeStyleOptions2.PreferSystemHashCode, operation.Language, syntaxTree, cancellationToken);
             if (option?.Value != true)
             {
                 return;
@@ -67,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             var operationLocation = operation.Syntax.GetLocation();
             var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                this.Descriptor,
+                Descriptor,
                 owningSymbol.Locations[0],
                 option.Notification.Severity,
                 new[] { operationLocation, declarationLocation },

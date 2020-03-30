@@ -13,5 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveDeclarationNearReference
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.InlineTemporary)]
     class CSharpMoveDeclarationNearReferenceCodeRefactoringProvider : AbstractMoveDeclarationNearReferenceCodeRefactoringProvider<LocalDeclarationStatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpMoveDeclarationNearReferenceCodeRefactoringProvider()
+        {
+        }
     }
 }

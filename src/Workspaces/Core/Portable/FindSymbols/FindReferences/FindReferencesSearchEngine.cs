@@ -24,19 +24,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly Solution _solution;
         private readonly IImmutableSet<Document> _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
-        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
         private readonly FindReferencesSearchOptions _options;
-
-        /// <summary>
-        /// Mapping from a document to the list of reference locations found in it.  Kept around so
-        /// we only notify the callback once when a location is found for a reference (in case
-        /// multiple finders find the same reference location for a symbol).
-        /// </summary>
-        private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> _documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> s_createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -54,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _dependencyGraph = solution.GetProjectDependencyGraph();
             _options = options;
 
-            _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
+            _progressTracker = progress.ProgressTracker;
         }
 
         public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)

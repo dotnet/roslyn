@@ -488,9 +488,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public static SpecialType GetSpecialTypeSafe(this TypeSymbol type)
+        public static SpecialType GetSpecialTypeSafe(this TypeSymbol? type)
         {
-            return (object)type != null ? type.SpecialType : SpecialType.None;
+            return type is object ? type.SpecialType : SpecialType.None;
         }
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)

@@ -562,5 +562,19 @@ class Program
     }
 }", "System.String");
         }
+
+        [WorkItem(36001, "https://github.com/dotnet/roslyn/issues/36001")]
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNameof()
+        {
+            await Test_KeywordAsync(
+@"class C
+{
+    void goo()
+    {
+        var v = [||]nameof(goo);
+    }
+}", "nameof");
+        }
     }
 }

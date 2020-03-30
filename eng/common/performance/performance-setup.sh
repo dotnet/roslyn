@@ -3,7 +3,7 @@
 source_directory=$BUILD_SOURCESDIRECTORY
 core_root_directory=
 baseline_core_root_directory=
-architecture=$archType
+architecture=x64
 framework=netcoreapp5.0
 compilation_mode=tiered
 repository=$BUILD_REPOSITORY_NAME
@@ -164,7 +164,7 @@ if [[ "$internal" == true ]]; then
     fi
 fi
 
-common_setup_arguments="--channel master --queue $queue --build-number $build_number --build-configs $configurations"
+common_setup_arguments="--channel master --queue $queue --build-number $build_number --build-configs $configurations --architecture $architecture"
 setup_arguments="--repository https://github.com/$repository --branch $branch --get-perf-hash --commit-sha $commit_sha $common_setup_arguments"
 
 if [[ "$run_from_perf_repo" = true ]]; then

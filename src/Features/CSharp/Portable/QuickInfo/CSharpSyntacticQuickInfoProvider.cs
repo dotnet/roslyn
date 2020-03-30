@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -38,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             // Don't show for interpolations
-            if (token.Parent.IsKind(SyntaxKind.Interpolation) &&
-                ((InterpolationSyntax)token.Parent).CloseBraceToken == token)
+            if (token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax? interpolation) &&
+                interpolation.CloseBraceToken == token)
             {
                 return null;
             }

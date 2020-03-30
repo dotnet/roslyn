@@ -12,11 +12,18 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
+    using Workspace = CodeAnalysis.Workspace;
+
     [Shared]
     [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), WorkspaceKind.Test)]
     [PartNotDiscoverable]
     internal class MockDocumentNavigationServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public MockDocumentNavigationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new MockDocumentNavigationService();

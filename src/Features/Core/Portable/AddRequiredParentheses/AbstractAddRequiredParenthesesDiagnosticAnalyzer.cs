@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
@@ -27,8 +30,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         {
             var options = new[]
             {
-                CodeStyleOptions.ArithmeticBinaryParentheses, CodeStyleOptions.OtherBinaryParentheses,
-                CodeStyleOptions.OtherParentheses, CodeStyleOptions.RelationalBinaryParentheses
+                CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses,
+                CodeStyleOptions2.OtherParentheses, CodeStyleOptions2.RelationalBinaryParentheses
             };
 
             var includeArray = new[] { false, true };
@@ -50,14 +53,14 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             }
         }
 
-        private static string GetEquivalenceKey(Options.PerLanguageOption<CodeStyleOption<ParenthesesPreference>> parentPrecedence)
+        private static string GetEquivalenceKey(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> parentPrecedence)
             => parentPrecedence.Name;
 
         private static ImmutableDictionary<string, string> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
         protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
-        protected abstract TExpressionSyntax TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
+        protected abstract TExpressionSyntax? TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract bool IsBinaryLike(TExpressionSyntax node);
         protected abstract (TExpressionSyntax, SyntaxToken, TExpressionSyntax) GetPartsOfBinaryLike(TBinaryLikeExpressionSyntax binaryLike);
 
@@ -79,14 +82,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
             var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
             var parent = TryGetParentExpression(binaryLike);
             if (parent == null || !IsBinaryLike(parent))
@@ -109,7 +104,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var preference = optionSet.GetOption(parentPrecedence, binaryLike.Language);
+            var preference = context.GetOption(parentPrecedence, binaryLike.Language);
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;
@@ -126,8 +121,9 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 context, binaryLike, precedence, preference.Notification.Severity,
                 additionalLocations, equivalenceKey, includeInFixAll: true);
         }
+
         private void AddDiagnostics(
-            SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt, int precedence,
+            SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax? binaryLikeOpt, int precedence,
             ReportDiagnostic severity, ImmutableArray<Location> additionalLocations,
             string equivalenceKey, bool includeInFixAll)
         {

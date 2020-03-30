@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         // Current solution.
         private Solution _latestSolution;
 
-        private readonly IWorkspaceTaskScheduler _taskQueue;
+        private readonly TaskQueue _taskQueue;
 
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -79,13 +81,18 @@ namespace Microsoft.CodeAnalysis
             _optionService.RegisterWorkspace(this);
 
             // queue used for sending events
-            var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
+            var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
+            var listenerProvider = _services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
-            var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService, serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty);
+            var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService,
+                serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty,
+                changedOptionKeys: ImmutableHashSet<OptionKey>.Empty);
             _latestSolution = CreateSolution(info, emptyOptions);
+
+            _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create(this));
         }
 
         internal void LogTestMessage(string message)
@@ -189,13 +196,56 @@ namespace Microsoft.CodeAnalysis
             while (true)
             {
                 var newSolution = solution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
-                var replacedSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
-                if (replacedSolution == currentSolution)
+                var oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
+                if (oldSolution == currentSolution)
                 {
                     return newSolution;
                 }
 
-                currentSolution = replacedSolution;
+                currentSolution = oldSolution;
+            }
+        }
+
+        /// <summary>
+        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to the new value and raises a workspace change event of the specified kind.
+        /// </summary>
+        /// <param name="transformation">Solution transformation.</param>
+        /// <param name="kind">The kind of workspace change event to raise.</param>
+        /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
+        /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
+        /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the transformation did not change the solution.</returns>
+        internal bool SetCurrentSolution(Func<Solution, Solution> transformation, WorkspaceChangeKind kind, ProjectId? projectId = null, DocumentId? documentId = null)
+        {
+            Contract.ThrowIfNull(transformation);
+
+            var currentSolution = Volatile.Read(ref _latestSolution);
+
+            while (true)
+            {
+                var transformedSolution = transformation(currentSolution);
+                if (transformedSolution == currentSolution)
+                {
+                    return false;
+                }
+
+                var newSolution = transformedSolution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
+
+                Solution oldSolution;
+                using (_serializationLock.DisposableWait())
+                {
+                    oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
+                    if (oldSolution == currentSolution)
+                    {
+                        // Queue the event but don't execute its handlers on this thread.
+                        // Doing so under the serialization lock guarantees the same ordering of the events
+                        // as the order of the changes made to the solution.
+                        RaiseWorkspaceChangedEventAsync(kind, oldSolution, newSolution, projectId, documentId);
+
+                        return true;
+                    }
+                }
+
+                currentSolution = oldSolution;
             }
         }
 
@@ -233,17 +283,19 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Executes an action as a background task, as part of a sequential queue of tasks.
         /// </summary>
-        protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+        protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(action, taskName);
+            return _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
         }
 
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
-        protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
+        protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
         {
-            return _taskQueue.ScheduleTask(func, taskName);
+            return _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
         }
 
         /// <summary>
@@ -480,42 +532,23 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private void HandleProjectChange(ProjectId projectId, Func<Solution, Solution> getSolutionWithChangedProject)
-        {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(getSolutionWithChangedProject(oldSolution));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
-        }
-
         /// <summary>
         /// Call this method when a project's assembly name is changed in the host environment.
         /// </summary>
         protected internal void OnAssemblyNameChanged(ProjectId projectId, string assemblyName)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectAssemblyName(projectId, assemblyName));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectAssemblyName(projectId, assemblyName), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's output file path is changed in the host environment.
         /// </summary>
         protected internal void OnOutputFilePathChanged(ProjectId projectId, string? outputFilePath)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectOutputFilePath(projectId, outputFilePath));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectOutputFilePath(projectId, outputFilePath), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's output ref file path is changed in the host environment.
         /// </summary>
         protected internal void OnOutputRefFilePathChanged(ProjectId projectId, string? outputFilePath)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's name is changed in the host environment.
@@ -525,40 +558,32 @@ namespace Microsoft.CodeAnalysis
         // I'm leaving this marked as "non-null" so as not to say we actually support that behavior. The underlying
         // requirement is ProjectInfo.ProjectAttributes holds a non-null name, so you can't get a null into this even if you tried.
         protected internal void OnProjectNameChanged(ProjectId projectId, string name, string? filePath)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectName(projectId, name).WithProjectFilePath(projectId, filePath), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's default namespace is changed in the host environment.
         /// </summary>
         internal void OnDefaultNamespaceChanged(ProjectId projectId, string? defaultNamespace)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectDefaultNamespace(projectId, defaultNamespace));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectDefaultNamespace(projectId, defaultNamespace), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's compilation options are changed in the host environment.
         /// </summary>
         protected internal void OnCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectCompilationOptions(projectId, options));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectCompilationOptions(projectId, options), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's parse options are changed in the host environment.
         /// </summary>
         protected internal void OnParseOptionsChanged(ProjectId projectId, ParseOptions options)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectParseOptions(projectId, options));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithProjectParseOptions(projectId, options), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project reference is added to a project in the host environment.
         /// </summary>
         protected internal void OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
         {
-            this.HandleProjectChange(projectId, oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
                 CheckProjectDoesNotHaveProjectReference(projectId, projectReference);
@@ -567,7 +592,7 @@ namespace Microsoft.CodeAnalysis
                 CheckProjectDoesNotHaveTransitiveProjectReference(projectId, projectReference.ProjectId);
 
                 return oldSolution.AddProjectReference(projectId, projectReference);
-            });
+            }, WorkspaceChangeKind.ProjectChanged, projectId);
         }
 
         /// <summary>
@@ -575,13 +600,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
         {
-            this.HandleProjectChange(projectId, oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectIsInCurrentSolution(projectReference.ProjectId);
                 CheckProjectHasProjectReference(projectId, projectReference);
 
                 return oldSolution.RemoveProjectReference(projectId, projectReference);
-            });
+            }, WorkspaceChangeKind.ProjectChanged, projectId);
         }
 
         /// <summary>
@@ -589,11 +614,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
         {
-            this.HandleProjectChange(projectId, oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectDoesNotHaveMetadataReference(projectId, metadataReference);
                 return oldSolution.AddMetadataReference(projectId, metadataReference);
-            });
+            }, WorkspaceChangeKind.ProjectChanged, projectId);
         }
 
         /// <summary>
@@ -601,11 +626,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
         {
-            this.HandleProjectChange(projectId, oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectHasMetadataReference(projectId, metadataReference);
                 return oldSolution.RemoveMetadataReference(projectId, metadataReference);
-            });
+            }, WorkspaceChangeKind.ProjectChanged, projectId);
         }
 
         /// <summary>
@@ -613,11 +638,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            this.HandleProjectChange(projectId, oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectDoesNotHaveAnalyzerReference(projectId, analyzerReference);
                 return oldSolution.AddAnalyzerReference(projectId, analyzerReference);
-            });
+            }, WorkspaceChangeKind.ProjectChanged, projectId);
         }
 
         /// <summary>
@@ -625,11 +650,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
-            this.HandleProjectChange(projectId, oldSolution =>
+            SetCurrentSolution(oldSolution =>
             {
                 CheckProjectHasAnalyzerReference(projectId, analyzerReference);
                 return oldSolution.RemoveAnalyzerReference(projectId, analyzerReference);
-            });
+            }, WorkspaceChangeKind.ProjectChanged, projectId);
         }
 
         /// <summary>
@@ -638,17 +663,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         // TODO: make it public
         internal void OnHasAllInformationChanged(ProjectId projectId, bool hasAllInformation)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithHasAllInformation(projectId, hasAllInformation));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithHasAllInformation(projectId, hasAllInformation), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a project's RunAnalyzers property is changed in the host environment.
         /// </summary>
         internal void OnRunAnalyzersChanged(ProjectId projectId, bool runAnalyzers)
-        {
-            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithRunAnalyzers(projectId, runAnalyzers));
-        }
+            => SetCurrentSolution(oldSolution => oldSolution.WithRunAnalyzers(projectId, runAnalyzers), WorkspaceChangeKind.ProjectChanged, projectId);
 
         /// <summary>
         /// Call this method when a document is added to a project in the host environment.
@@ -1089,11 +1110,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (meta is PortableExecutableReference pemeta)
                     {
-
                         // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if
                         // the metadata reference is shadow copied.
-                        if ((!string.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
-                            (!string.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
+                        if ((!RoslynString.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
+                            (!RoslynString.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
                         {
                             var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
 

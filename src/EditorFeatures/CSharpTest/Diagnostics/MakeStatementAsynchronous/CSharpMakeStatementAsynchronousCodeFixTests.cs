@@ -20,34 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeStateme
 
         private static readonly TestParameters s_asyncStreamsFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
 
-        private readonly string AsyncStreams = @"
-namespace System.Collections.Generic
-{
-    public interface IAsyncEnumerable<out T>
-    {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
-    }
-
-    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
-        T Current { get; }
-    }
-}
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}
-";
-
         [Fact]
         public async Task FixAllForeach()
         {
             await TestInRegularAndScript1Async(
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
@@ -56,7 +33,7 @@ class Program
         foreach (var j in collection) { }
     }
 }",
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
@@ -71,7 +48,7 @@ class Program
         public async Task FixAllForeachDeconstruction()
         {
             await TestInRegularAndScript1Async(
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
@@ -80,7 +57,7 @@ class Program
         foreach (var (k, l) in collection) { }
     }
 }",
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
@@ -95,7 +72,7 @@ class Program
         public async Task FixAllUsingStatement()
         {
             await TestInRegularAndScript1Async(
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.IAsyncDisposable disposable)
@@ -104,7 +81,7 @@ class Program
         using (var j = disposable) { }
     }
 }",
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.IAsyncDisposable disposable)
@@ -119,7 +96,7 @@ class Program
         public async Task FixAllUsingDeclaration()
         {
             await TestInRegularAndScript1Async(
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.IAsyncDisposable disposable)
@@ -128,7 +105,7 @@ class Program
         using var j = disposable;
     }
 }",
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.IAsyncDisposable disposable)
@@ -143,7 +120,7 @@ class Program
         public async Task FixForeach()
         {
             await TestInRegularAndScript1Async(
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
@@ -153,7 +130,7 @@ class Program
         }
     }
 }",
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.Collections.Generic.IAsyncEnumerable<int> collection)
@@ -169,7 +146,7 @@ class Program
         public async Task FixForeachDeconstruction()
         {
             await TestInRegularAndScript1Async(
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
@@ -179,7 +156,7 @@ class Program
         }
     }
 }",
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.Collections.Generic.IAsyncEnumerable<(int, int)> collection)
@@ -195,7 +172,7 @@ class Program
         public async Task FixUsingStatement()
         {
             await TestInRegularAndScript1Async(
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.IAsyncDisposable disposable)
@@ -205,7 +182,7 @@ class Program
         }
     }
 }",
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.IAsyncDisposable disposable)
@@ -221,7 +198,7 @@ class Program
         public async Task FixUsingDeclaration()
         {
             await TestInRegularAndScript1Async(
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.IAsyncDisposable disposable)
@@ -229,7 +206,7 @@ class Program
         using var i = disposable[||];
     }
 }",
-AsyncStreams + @"
+IAsyncEnumerable + @"
 class Program
 {
     void M(System.IAsyncDisposable disposable)

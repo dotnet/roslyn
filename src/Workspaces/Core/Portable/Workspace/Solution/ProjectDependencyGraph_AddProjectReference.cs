@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -12,9 +14,20 @@ namespace Microsoft.CodeAnalysis
 {
     partial class ProjectDependencyGraph
     {
-        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyList<ProjectId> referencedProjectIds)
+        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+
+            if (projectReferences.Count == 0)
+            {
+                return this;
+            }
+
+            // only add references to projects that are contained in the solution/graph
+            var referencedProjectIds = projectReferences
+                .Where(r => _projectIds.Contains(r.ProjectId))
+                .Select(r => r.ProjectId)
+                .ToList();
 
             if (referencedProjectIds.Count == 0)
             {
@@ -76,14 +89,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var referencedProject in referencedProjectIds)
             {
-                if (builder.TryGetValue(referencedProject, out var reverseReferences))
-                {
-                    builder[referencedProject] = reverseReferences.Add(projectId);
-                }
-                else
-                {
-                    builder[referencedProject] = ImmutableHashSet.Create(projectId);
-                }
+                builder.MultiAdd(referencedProject, projectId);
             }
 
             return builder.ToImmutable();

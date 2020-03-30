@@ -34,6 +34,19 @@
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
+    },
+    {
+        "label": "build directory skip analyzers",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "msbuild",
+          "-p:UseRoslynAnalyzers=false",
+          "-p:GenerateFullPaths=true",
+          "${fileDirname}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
     }
   ]
 }

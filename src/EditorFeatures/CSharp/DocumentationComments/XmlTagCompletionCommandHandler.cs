@@ -67,14 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 // We need to check for non-trivia XML text tokens after $$ that match the expected end tag text.
 
                 if (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) &&
-                    token.Parent.IsParentKind(SyntaxKind.XmlElement))
+                    token.Parent.IsParentKind(SyntaxKind.XmlElement, out XmlElementSyntax parentElement) &&
+                    !HasFollowingEndTagTrivia(parentElement, token))
                 {
-                    var parentElement = token.Parent.Parent as XmlElementSyntax;
-
-                    if (!HasFollowingEndTagTrivia(parentElement, token))
-                    {
-                        CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
-                    }
+                    CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
                 }
             }
         }

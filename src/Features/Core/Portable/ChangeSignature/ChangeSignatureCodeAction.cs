@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
-            return _changeSignatureService.GetChangeSignatureOptions(_context);
+            return _changeSignatureService.GetChangeSignatureOptions(_context)
+                ?? new ChangeSignatureOptionsResult(null!, false);
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 if (changeSignatureResult.Succeeded)
                 {
-                    return Task.FromResult<IEnumerable<CodeActionOperation>>(new CodeActionOperation[] { new ApplyChangesOperation(changeSignatureResult.UpdatedSolution) });
+                    return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(changeSignatureResult.UpdatedSolution!)));
                 }
             }
 

@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -461,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             string name = null,
-            ImmutableArray<IParameterSymbol>? parameters = default,
+            ImmutableArray<IParameterSymbol>? parameters = null,
             ImmutableArray<SyntaxNode> statements = default,
             INamedTypeSymbol containingType = null,
             ITypeSymbol returnType = null,
@@ -485,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal static IPropertySymbol CreatePropertySymbol(
             IPropertySymbol property,
             ImmutableArray<AttributeData> attributes = default,
-            ImmutableArray<IParameterSymbol>? parameters = default,
+            ImmutableArray<IParameterSymbol>? parameters = null,
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,

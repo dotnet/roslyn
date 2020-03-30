@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 
@@ -11,6 +10,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.MiscellaneousFiles), Shared]
     internal class MiscSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
+        [ImportingConstructor]
+        public MiscSolutionCrawlerWorkspaceEventListener()
+        {
+        }
+
         public void StartListening(Workspace workspace, object serviceOpt)
         {
             // misc workspace will enable syntax errors and semantic errors for script files for

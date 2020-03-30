@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
 
-        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
         public abstract Task<SyntaxNode> ChangeSignatureAsync(
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             // This should be called after the metadata check above to avoid looking for nodes in metadata.
             var declarationLocation = symbol.Locations.FirstOrDefault();
-            if (declarationLocation == default)
+            if (declarationLocation == null)
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
             }
@@ -214,8 +214,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             using (Logger.LogBlock(FunctionId.FindReference_ChangeSignature, cancellationToken))
             {
-                var streamingProgress = new StreamingProgressCollector(
-                    StreamingFindReferencesProgress.Instance);
+                var streamingProgress = new StreamingProgressCollector();
 
                 var engine = new FindReferencesSearchEngine(
                     solution,

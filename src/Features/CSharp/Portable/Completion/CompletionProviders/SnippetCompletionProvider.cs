@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,22 +24,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal sealed class SnippetCompletionProvider : CommonCompletionProvider
+    [ExportCompletionProvider(nameof(SnippetCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(CrefCompletionProvider))]
+    [Shared]
+    internal sealed class SnippetCompletionProvider : LSPCompletionProvider
     {
-        // If null, the document's language service will be used.
-        private readonly ISnippetInfoService _snippetInfoService;
-
         internal override bool IsSnippetProvider => true;
 
-        public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
+        [ImportingConstructor]
+        public SnippetCompletionProvider()
         {
-            _snippetInfoService = snippetInfoService;
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -141,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(
             Workspace workspace, SemanticModel semanticModel, bool isPreProcessorContext, bool isTupleContext, CancellationToken cancellationToken)
         {
-            var service = _snippetInfoService ?? workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
+            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
             {
                 return SpecializedCollections.EmptyEnumerable<CompletionItem>();

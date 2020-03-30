@@ -30,17 +30,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return FindReferencesAsync(new SymbolAndProjectId(symbol, projectId: null), solution, cancellationToken);
         }
 
+        internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
+            => FindReferencesAsync(symbolAndProjectId, solution, FindReferencesSearchOptions.Default, cancellationToken);
+
         internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,
-            CancellationToken cancellationToken = default)
+            FindReferencesSearchOptions options,
+            CancellationToken cancellationToken)
         {
-            var progressCollector = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progressCollector = new StreamingProgressCollector();
             await FindReferencesAsync(
-                symbolAndProjectId,
-                solution, progress: progressCollector, documents: null,
-                options: FindReferencesSearchOptions.Default,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                symbolAndProjectId, solution, progressCollector,
+                documents: null, options, cancellationToken).ConfigureAwait(false);
             return progressCollector.GetReferencedSymbols();
         }
 
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            progress ??= FindReferencesProgress.Instance;
+            progress ??= NoOpFindReferencesProgress.Instance;
             var streamingProgress = new StreamingProgressCollector(
                 new StreamingFindReferencesProgressAdapter(progress));
             await FindReferencesAsync(

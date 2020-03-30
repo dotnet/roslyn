@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
@@ -303,6 +304,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
                 f();
                 return 2;
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(40909, "https://github.com/dotnet/roslyn/issues/40909")]
+        public async Task IfWithoutElse_MoveIfBodyToElseClause8()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Diagnostics;
+class C
+{
+    private static bool IsFalse(bool val)
+    {
+        {
+            [|if|] (!val)
+            {
+                return true;
+            }
+            Debug.Assert(val);
+        }
+        return false;
+    }
+}",
+@"using System.Diagnostics;
+class C
+{
+    private static bool IsFalse(bool val)
+    {
+        {
+            if (val)
+            {
+            }
+            else
+            {
+                return true;
+            }
+            Debug.Assert(val);
+        }
+        return false;
     }
 }");
         }

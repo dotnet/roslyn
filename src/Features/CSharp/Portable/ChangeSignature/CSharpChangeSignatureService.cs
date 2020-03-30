@@ -131,18 +131,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return (symbol, selectedIndex);
             }
 
-            if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
+                token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
             {
-                var objectCreation = matchingNode as ObjectCreationExpressionSyntax;
-
-                if (token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
+                var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
+                if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
                 {
-                    var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
-
-                    if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
-                    {
-                        return (typeSymbol, 0);
-                    }
+                    return (typeSymbol, 0);
                 }
             }
 
@@ -413,10 +408,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer) ||
-                updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer))
+            if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax constructorInit) ||
+                updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer, out constructorInit))
             {
-                var constructorInit = (ConstructorInitializerSyntax)updatedNode;
                 var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
                 return constructorInit.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
@@ -635,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return permutedParams.ToImmutableAndFree();
         }
 
-        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
+        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Document document,
             CancellationToken cancellationToken)

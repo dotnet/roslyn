@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private readonly Solution _solution;
         private readonly IStreamingFindLiteralReferencesProgress _progress;
-        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingProgressTracker _progressTracker;
         private readonly CancellationToken _cancellationToken;
 
         private readonly object _value;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             _solution = solution;
             _progress = progress;
-            _progressTracker = new StreamingProgressTracker(_progress.ReportProgressAsync);
+            _progressTracker = progress.ProgressTracker;
             _value = value;
             _cancellationToken = cancellationToken;
 

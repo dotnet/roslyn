@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -374,7 +376,7 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
             SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
             : this(
-                default(SymbolDisplayCompilerInternalOptions),
+                compilerInternalOptions: default,
                 globalNamespaceStyle,
                 typeQualificationStyle,
                 genericsOptions,

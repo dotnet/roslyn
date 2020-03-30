@@ -210,12 +210,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var returnType = delegateMethod.GenerateReturnTypeSyntax();
 
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
-            var typeParameterList = default(TypeParameterListSyntax);
+            var typeParameterList = (TypeParameterListSyntax)null;
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block)
-                ? (BlockSyntax)anonymousFunction.Body
+            var body = anonymousFunction.Body.IsKind(SyntaxKind.Block, out BlockSyntax block)
+                ? block
                 : null;
 
             var expressionBody = anonymousFunction.Body is ExpressionSyntax expression
