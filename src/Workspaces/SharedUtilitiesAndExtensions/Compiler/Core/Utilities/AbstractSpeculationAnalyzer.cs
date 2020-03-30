@@ -770,7 +770,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             if (symbol.IsImplementableMember() &&
-                IsCompatibleInterfaceMemberImplementation(symbol, newSymbol, expression, newExpression, this.SpeculativeSemanticModel))
+                IsCompatibleInterfaceMemberImplementation(
+                    symbol, newSymbol, expression, newExpression, this.SpeculativeSemanticModel))
             {
                 return false;
             }
@@ -820,32 +821,27 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             TExpressionSyntax newExpression,
             SemanticModel speculativeSemanticModel)
         {
-            // If this is an interface member, we have to be careful. In general, we have to treat an interface member
-            // as incompatible with the new member due to virtual dispatch. I.e. A member in a derived class may be
-            // preferred at runtime and we have no way of knowing that at compile-time.
+            // In general, we don't want to remove casts to interfaces.  It may have subtle changes in behavior,
+            // especially if the types in question change in the future.  For example, if a type becomes non-sealed or a
+            // new interface impl is introduced, we may subtly break things.
             //
-            // However, there are special circumstances where we can be sure that the interface member won't result in
-            // virtual dispatch:
+            // The only cases where we feel confident enough to elide the cast are:
             //
-            //     * The new member is on an effectively sealed class, i.e. at least one of the following is true for the containing type:
-            //          (a) It is a sealed class.
-            //          (b) It has no nested classes and no accessible instance constructors.
-            //          (c) It is a private class with no nested or sibling classes.
-            //     * The new member is on System.Array.
-            //     * The new member is on System.Delegate.
-            //     * The new member is on System.Enum.
-            //     * The member is on a struct that we are sure we have a unique copy
-            //       of (for example, if it's returned to us by an invocation,
-            //       object-creation, element-access or member-access expression.
+            // 1. When we have an Array/Delegate/Enum. These are such core types, and cannot be changed by teh user,
+            //    that we can trust their impls to not change.
+            // 2. We have one of the builtin structs (like int). These are such core types, and cannot be changed by teh
+            //    user, that we can trust their impls to not change.
+            // 3. if we have a struct and we know we have a fresh copy of it.  In that case, boxing the struct to the
+            //    interface doesn't serve any purpose.
 
             var newSymbolContainingType = newSymbol.ContainingType;
             if (newSymbolContainingType == null)
                 return false;
 
             var newReceiver = GetReceiver(newExpression);
-            var newReceiverType = newReceiver != null ?
-                speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType :
-                newSymbolContainingType;
+            var newReceiverType = newReceiver != null
+                ? speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType
+                : newSymbolContainingType;
 
             if (newReceiverType == null)
                 return false;
@@ -860,54 +856,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (!SymbolsHaveCompatibleParameterLists(symbol, implementationMember, originalExpression))
                 return false;
 
-            // it at least looks possible that we could get rid of the interface cast.
-
-            if (newReceiverType.IsReferenceType)
+            if (newReceiverType.IsValueType)
             {
-                return IsEffectivelySealedClass(newReceiverType) ||
-                       newSymbolContainingType.SpecialType == SpecialType.System_Array ||
-                       newSymbolContainingType.SpecialType == SpecialType.System_Delegate ||
-                       newSymbolContainingType.SpecialType == SpecialType.System_Enum;
-            }
-
-            if (newReceiverType.IsValueType && newReceiverType.SpecialType == SpecialType.None)
-            {
-                if (newReceiver == null ||
-                    !IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static bool IsEffectivelySealedClass(ITypeSymbol type)
-        {
-            if (!(type is INamedTypeSymbol namedType))
-                return false;
-
-            if (namedType.IsSealed)
-                return true;
-
-            if (!namedType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class))
-            {
-                // No nested classes.
-
-                // A class with no nested classes and no accessible instance constructors is effectively sealed.
-                if (namedType.InstanceConstructors.All(ctor => ctor.DeclaredAccessibility == Accessibility.Private))
+                if (newReceiverType.SpecialType != SpecialType.None)
                     return true;
 
-                // A private class with no nested or sibling classes is effectively sealed.
-                if (namedType.DeclaredAccessibility == Accessibility.Private &&
-                    namedType.ContainingType != null &&
-                    !namedType.ContainingType.GetTypeMembers().Any(nestedType => nestedType.TypeKind == TypeKind.Class && !Equals(namedType, nestedType)))
-                {
-                    return true;
-                }
+                return newReceiver != null && IsReceiverUniqueInstance(newReceiver, speculativeSemanticModel);
             }
 
-            return false;
+            return newSymbolContainingType.SpecialType == SpecialType.System_Array ||
+                   newSymbolContainingType.SpecialType == SpecialType.System_Delegate ||
+                   newSymbolContainingType.SpecialType == SpecialType.System_Enum;
         }
 
         private bool IsReceiverNonUniquePossibleValueTypeParam(TExpressionSyntax invocation, SemanticModel semanticModel)
@@ -925,21 +884,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
-        // Returns true if the given receiver expression for an invocation represents a unique copy of the underlying object
-        // that is not referenced by any other variable.
-        // For example, if the receiver expression is an invocation, object-creation, element-access or member-access expression.
+        // Returns true if the given receiver expression for an invocation represents a unique copy of the underlying
+        // object that is not referenced by any other variable. For example, if the receiver expression is produced by a
+        // method call, property, or indexer, then it will be a fresh receiver in the case of value types.
         private static bool IsReceiverUniqueInstance(TExpressionSyntax receiver, SemanticModel semanticModel)
         {
-            var receiverSymbol = semanticModel.GetSymbolInfo(receiver).Symbol;
+            var receiverSymbol = semanticModel.GetSymbolInfo(receiver).GetAnySymbol();
 
             if (receiverSymbol == null)
-            {
                 return false;
-            }
 
             return receiverSymbol.IsKind(SymbolKind.Method) ||
-                receiverSymbol.IsIndexer() ||
-                (receiverSymbol.IsKind(SymbolKind.Field) && ((IFieldSymbol)receiverSymbol).IsReadOnly);
+                   receiverSymbol.IsIndexer() ||
+                   receiverSymbol.IsKind(SymbolKind.Property);
         }
 
         protected abstract ImmutableArray<TArgumentSyntax> GetArguments(TExpressionSyntax expression);

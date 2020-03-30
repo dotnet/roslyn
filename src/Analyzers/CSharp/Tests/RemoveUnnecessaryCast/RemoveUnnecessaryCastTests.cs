@@ -2162,15 +2162,12 @@ class Y : X, IDisposable
 }");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType1()
+        public async Task DoNotRemoveCastToInterfaceForSealedType1()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // unspecified optional parameters of I.Goo() and C.Goo() have the
-            // same default values.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2191,39 +2188,15 @@ sealed class C : I
         ([|(I)new C()|]).Goo();
     }
 }
-",
-
-@"
-using System;
-
-interface I
-{
-    void Goo(int x = 0);
-}
-
-sealed class C : I
-{
-    public void Goo(int x = 0)
-    {
-        Console.WriteLine(x);
-    }
-
-    static void Main()
-    {
-        new C().Goo();
-    }
-}
 ");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType2()
+        public async Task DoNotRemoveCastToInterfaceForSealedType2()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // interface member has no parameters.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2247,42 +2220,15 @@ sealed class C : I
         Console.WriteLine(([|(I)new C()|]).Goo);
     }
 }
-",
-
-@"
-using System;
-
-interface I
-{
-    string Goo { get; }
-}
-
-sealed class C : I
-{
-    public string Goo
-    {
-        get
-        {
-            return ""Nikov Rules"";
-        }
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(new C().Goo);
-    }
-}
 ");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType3()
+        public async Task DoNotRemoveCastToInterfaceForSealedType3()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // interface member has no parameters.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2308,33 +2254,6 @@ sealed class C : I
         Console.WriteLine(([|(I)Instance|]).Goo);
     }
 }
-",
-
-@"
-using System;
-
-interface I
-{
-    string Goo { get; }
-}
-
-sealed class C : I
-{
-    public C Instance { get { return new C(); } }
-
-    public string Goo
-    {
-        get
-        {
-            return ""Nikov Rules"";
-        }
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(Instance.Goo);
-    }
-}
 ");
         }
 
@@ -2342,9 +2261,6 @@ sealed class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToInterfaceForSealedType4()
         {
-            // Note: The cast below can't be removed (even though C is sealed)
-            // because the unspecified optional parameter default values differ.
-
             await TestMissingInRegularAndScriptAsync(
 @"using System;
 
@@ -2367,15 +2283,12 @@ sealed class C : I
 }");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType5()
+        public async Task DoNotRemoveCastToInterfaceForSealedType5()
         {
-            // Note: The cast below can be removed (even though C is sealed)
-            // because the optional parameters whose default values differ are
-            // specified.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2394,28 +2307,6 @@ sealed class C : I
     static void Main()
     {
         ([|(I)new C()|]).Goo(2);
-    }
-}
-",
-
-@"
-using System;
-
-interface I
-{
-    void Goo(int x = 0);
-}
-
-sealed class C : I
-{
-    public void Goo(int x = 1)
-    {
-        Console.WriteLine(x);
-    }
-
-    static void Main()
-    {
-        new C().Goo(2);
     }
 }
 ");
@@ -2451,11 +2342,12 @@ sealed class C : I
 }");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType7()
+        public async Task DoNotRemoveCastToInterfaceForSealedType7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2477,31 +2369,6 @@ sealed class C : I
     static void Main()
     {
         Console.WriteLine(([|(I)new C()|])[x: 1]);
-    }
-}
-",
-
-@"
-using System;
-
-interface I
-{
-    int this[int x = 0, int y = 0] { get; }
-}
-
-sealed class C : I
-{
-    public int this[int x = 0, int y = 0]
-    {
-        get
-        {
-            return x * 2;
-        }
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(new C()[x: 1]);
     }
 }
 ");
@@ -2602,14 +2469,12 @@ struct S : IIncrementable
 }");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545834")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToInterfaceForStruct2()
         {
-            // Note: The cast below can be removed because we are sure to have
-            // a fresh copy of the struct from the GetEnumerator() method.
-
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
             @"
 using System;
 using System.Collections.Generic;
@@ -2628,7 +2493,6 @@ class Program
     }
 }
 ",
-
 @"
 using System;
 using System.Collections.Generic;
@@ -5210,9 +5074,12 @@ class C
 
         [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestOnInterfaceCallOnReadOnlyStruct()
+        public async Task TestMissingOnInterfaceCallOnReadOnlyStruct()
         {
-            await TestInRegularAndScript1Async(
+            // We technically could support this.  But we choose not to for simplicity. While semantics could be
+            // preserved, the semantics around interfaces are subtle and we don't want to make a change that might
+            // negatively impact the user if they make other code changes.
+            await TestMissingAsync(
 @"
 using System;
 
@@ -5232,37 +5099,19 @@ class C
     static void Main()
     {
         ([|(IDisposable)_dbContext|]).Dispose();
-    }
-}",
-
-@"
-using System;
-
-public struct DbContext : IDisposable
-{
-    public int DisposeCount;
-    public void Dispose()
-    {
-        DisposeCount++'
-    }
-}
-
-class C
-{
-    private readonly DbContext _dbContext = new MyContext();
-
-    static void Main()
-    {
-        _dbContext.Dispose();
     }
 }");
         }
 
         [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task TestOnInterfaceCallOnSealedClass()
+        public async Task TestMissingOnInterfaceCallOnSealedClass()
         {
-            await TestInRegularAndScript1Async(
+            // While we could offer this, we choose not to because things might change in the future in subtle ways. For
+            // example, if the user makes the type unsealed and later adds a subclass that reimplements the interface
+            // this will break.
+
+            await TestMissingAsync(
 @"
 using System;
 
@@ -5281,27 +5130,6 @@ class C
     static void Main()
     {
         ([|(IDisposable)_dbContext|]).Dispose();
-    }
-}",
-
-@"
-using System;
-
-public sealed class DbContext : IDisposable
-{
-    public void Dispose()
-    {
-        Console.WriteLine(""Base called"");
-    }
-}
-
-class C
-{
-    private readonly DbContext _dbContext = new MyContext();
-
-    static void Main()
-    {
-        _dbContext.Dispose();
     }
 }");
         }
