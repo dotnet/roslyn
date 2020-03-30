@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis
         public bool EmbedInteropTypes => _embedInteropTypes;
 
         public override bool Equals(object obj)
-        {
-            return this.Equals(obj as ProjectReference);
-        }
+            => this.Equals(obj as ProjectReference);
 
         public bool Equals(ProjectReference reference)
         {
@@ -51,30 +49,22 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            return !ReferenceEquals(reference, null) &&
+            return reference is object &&
                    _projectId == reference._projectId &&
                    _aliases.SequenceEqual(reference._aliases) &&
                    _embedInteropTypes == reference._embedInteropTypes;
         }
 
         public static bool operator ==(ProjectReference left, ProjectReference right)
-        {
-            return EqualityComparer<ProjectReference>.Default.Equals(left, right);
-        }
+            => EqualityComparer<ProjectReference>.Default.Equals(left, right);
 
         public static bool operator !=(ProjectReference left, ProjectReference right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public override int GetHashCode()
-        {
-            return Hash.CombineValues(_aliases, Hash.Combine(_projectId, _embedInteropTypes.GetHashCode()));
-        }
+            => Hash.CombineValues(_aliases, Hash.Combine(_projectId, _embedInteropTypes.GetHashCode()));
 
         private string GetDebuggerDisplay()
-        {
-            return _projectId.ToString();
-        }
+            => _projectId.ToString();
     }
 }

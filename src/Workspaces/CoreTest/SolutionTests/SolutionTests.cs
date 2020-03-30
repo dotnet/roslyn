@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
         private Solution CreateSolution()
-        {
-            return new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
-        }
+            => new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
 
         private Solution CreateSolutionWithProjectAndDocuments()
         {
@@ -2192,6 +2190,7 @@ End Class";
         private class TestLanguageServiceA : ITestLanguageService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestLanguageServiceA()
             {
             }
@@ -2201,6 +2200,7 @@ End Class";
         private class TestLanguageServiceB : ITestLanguageService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestLanguageServiceB()
             {
             }

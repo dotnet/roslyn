@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -34,29 +35,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// 'a' this will map to actual '\a' char (the bell character).  However, for something like
         /// '(' this will just map to '(' as that's all that \( does in a regex.
         /// </summary>
-        public static char MapEscapeChar(char ch)
-        {
-            switch (ch)
+        public static VirtualChar MapEscapeChar(VirtualChar ch)
+            => ch.Value switch
             {
-                default:
-                    return ch;
-
-                case 'a': return '\u0007';  // bell
-                case 'b': return '\b';      // backspace
-                case 'e': return '\u001B';  // escape
-                case 'f': return '\f';      // form feed
-                case 'n': return '\n';      // new line
-                case 'r': return '\r';      // carriage return
-                case 't': return '\t';      // tab
-                case 'v': return '\u000B';  // vertical tab
-            }
-        }
+                'a' => VirtualChar.Create(new Rune('\u0007'), ch.Span),    // bell
+                'b' => VirtualChar.Create(new Rune('\b'), ch.Span),        // backspace
+                'e' => VirtualChar.Create(new Rune('\u001B'), ch.Span),    // escape
+                'f' => VirtualChar.Create(new Rune('\f'), ch.Span),        // form feed
+                'n' => VirtualChar.Create(new Rune('\n'), ch.Span),        // new line
+                'r' => VirtualChar.Create(new Rune('\r'), ch.Span),        // carriage return
+                't' => VirtualChar.Create(new Rune('\t'), ch.Span),        // tab
+                'v' => VirtualChar.Create(new Rune('\u000B'), ch.Span),    // vertical tab
+                _ => ch,
+            };
 
         public static bool IsSelfEscape(this RegexSimpleEscapeNode node)
         {
             if (node.TypeToken.VirtualChars.Length > 0)
             {
-                var ch = node.TypeToken.VirtualChars[0].Char;
+                var ch = node.TypeToken.VirtualChars[0];
                 return MapEscapeChar(ch) == ch;
             }
 

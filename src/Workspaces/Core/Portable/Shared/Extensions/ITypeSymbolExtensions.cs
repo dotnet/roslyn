@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // Now we need to walk the base type chain, but we start at the first type that actually
                 // has the interface directly in its interface hierarchy.
                 var seenTypeDeclaringInterface = false;
-                for (ITypeSymbol? currentType = typeSymbol; currentType != null; currentType = currentType.BaseType)
+                for (var currentType = typeSymbol; currentType != null; currentType = currentType.BaseType)
                 {
                     seenTypeDeclaringInterface = seenTypeDeclaringInterface ||
                                                  currentType.GetOriginalInterfacesAndTheirBaseInterfaces().Contains(interfaceType.OriginalDefinition);
@@ -155,20 +155,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
 
-        public static ISymbol? FindImplementations(
-            this ITypeSymbol typeSymbol,
-            ISymbol constructedInterfaceMember,
-            Workspace workspace)
-        {
-            switch (constructedInterfaceMember)
+        public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, Workspace workspace)
+            => constructedInterfaceMember switch
             {
-                case IEventSymbol eventSymbol: return typeSymbol.FindImplementations(eventSymbol, workspace);
-                case IMethodSymbol methodSymbol: return typeSymbol.FindImplementations(methodSymbol, workspace);
-                case IPropertySymbol propertySymbol: return typeSymbol.FindImplementations(propertySymbol, workspace);
-            }
-
-            return null;
-        }
+                IEventSymbol eventSymbol => typeSymbol.FindImplementations(eventSymbol, workspace),
+                IMethodSymbol methodSymbol => typeSymbol.FindImplementations(methodSymbol, workspace),
+                IPropertySymbol propertySymbol => typeSymbol.FindImplementations(propertySymbol, workspace),
+                _ => null,
+            };
 
         private static ISymbol? FindImplementations<TSymbol>(
             this ITypeSymbol typeSymbol,

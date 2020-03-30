@@ -48,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected abstract bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false);
 
         protected virtual bool TryInvokeSnippetPickerOnQuestionMark(ITextView textView, ITextBuffer textBuffer)
-        {
-            return false;
-        }
+            => false;
 
         public bool ExecuteCommand(TabKeyCommandArgs args, CommandExecutionContext context)
         {

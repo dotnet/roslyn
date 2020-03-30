@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DiagnosticService(
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()

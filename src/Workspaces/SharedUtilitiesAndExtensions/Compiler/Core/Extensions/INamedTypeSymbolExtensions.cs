@@ -77,21 +77,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         internal static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IMethodSymbol method: return method.OverriddenMethod;
-                case IPropertySymbol property: return property.OverriddenProperty;
-                case IEventSymbol @event: return @event.OverriddenEvent;
-            }
-
-            return null;
-        }
+                IMethodSymbol method => method.OverriddenMethod,
+                IPropertySymbol property => property.OverriddenProperty,
+                IEventSymbol @event => @event.OverriddenEvent,
+                _ => null,
+            };
 
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
-        {
-            return classOrStructType.FindImplementationForInterfaceMember(member) != null;
-        }
+            => classOrStructType.FindImplementationForInterfaceMember(member) != null;
 
         private static bool IsImplemented(
             this INamedTypeSymbol classOrStructType,
@@ -179,13 +174,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            switch (implementation)
+            return implementation switch
             {
-                case IEventSymbol @event: return @event.ExplicitInterfaceImplementations.Length > 0;
-                case IMethodSymbol method: return method.ExplicitInterfaceImplementations.Length > 0;
-                case IPropertySymbol property: return property.ExplicitInterfaceImplementations.Length > 0;
-                default: return false;
-            }
+                IEventSymbol @event => @event.ExplicitInterfaceImplementations.Length > 0,
+                IMethodSymbol method => method.ExplicitInterfaceImplementations.Length > 0,
+                IPropertySymbol property => property.ExplicitInterfaceImplementations.Length > 0,
+                _ => false,
+            };
         }
 
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
@@ -245,9 +240,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsImplementable(ISymbol m)
-        {
-            return m.IsVirtual || m.IsAbstract;
-        }
+            => m.IsVirtual || m.IsAbstract;
 
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
             this INamedTypeSymbol classOrStructType,
@@ -325,9 +318,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool IsInaccessibleImplementableAccessor(IMethodSymbol? accessor, ISymbol within)
-        {
-            return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
-        }
+            => accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
 
         private static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(
             this INamedTypeSymbol classOrStructType,
@@ -496,9 +487,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static ImmutableArray<ISymbol> GetMembers(INamedTypeSymbol type, ISymbol within)
-        {
-            return type.GetMembers();
-        }
+            => type.GetMembers();
 
         /// <summary>
         /// Gets the set of members in the inheritance chain of <paramref name="containingType"/> that
@@ -605,8 +594,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
-        {
-            return typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
-        }
+            => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
     }
 }

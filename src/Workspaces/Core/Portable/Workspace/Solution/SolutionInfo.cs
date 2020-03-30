@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -99,9 +98,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public SolutionAttributes WithVersion(VersionStamp versionStamp)
-            {
-                return new SolutionAttributes(Id, versionStamp, FilePath);
-            }
+                => new SolutionAttributes(Id, versionStamp, FilePath);
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
 

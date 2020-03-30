@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -64,19 +63,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public virtual void Dispose()
-        {
-            OnStatusChanged(started: false);
-        }
+            => OnStatusChanged(started: false);
 
         private void OnStatusChanged(bool started)
-        {
-            StatusChanged?.Invoke(this, started);
-        }
+            => StatusChanged?.Invoke(this, started);
 
         public static string CreateClientId(string prefix)
-        {
-            return $"VS ({prefix}) ({Guid.NewGuid()})";
-        }
+            => $"VS ({prefix}) ({Guid.NewGuid()})";
 
         public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
         {
@@ -201,9 +194,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public override bool IsRemoteHost64Bit => false;
 
             public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Null<Connection>();
-            }
+                => SpecializedTasks.Null<Connection>();
 
             protected override void OnStarted()
             {

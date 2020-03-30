@@ -12,9 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly Queue<CodeModelEvent> _eventQueue;
 
         public CodeModelEventQueue(Queue<CodeModelEvent> eventQueue)
-        {
-            _eventQueue = eventQueue;
-        }
+            => _eventQueue = eventQueue;
 
         private void EnqueueEvent(CodeModelEvent @event)
         {
@@ -50,24 +48,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public void EnqueueAddEvent(SyntaxNode node, SyntaxNode parent)
-        {
-            EnqueueEvent(new CodeModelEvent(node, parent, CodeModelEventType.Add));
-        }
+            => EnqueueEvent(new CodeModelEvent(node, parent, CodeModelEventType.Add));
 
         public void EnqueueRemoveEvent(SyntaxNode node, SyntaxNode parent)
-        {
-            EnqueueEvent(new CodeModelEvent(node, parent, CodeModelEventType.Remove));
-        }
+            => EnqueueEvent(new CodeModelEvent(node, parent, CodeModelEventType.Remove));
 
         public void EnqueueChangeEvent(SyntaxNode node, SyntaxNode parent, CodeModelEventType eventType)
-        {
-            EnqueueEvent(new CodeModelEvent(node, parent, eventType));
-        }
+            => EnqueueEvent(new CodeModelEvent(node, parent, eventType));
 
         public void Discard()
-        {
-            _eventQueue.Dequeue();
-        }
+            => _eventQueue.Dequeue();
 
         public int Count
         {

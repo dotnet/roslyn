@@ -167,9 +167,7 @@ class C
             public bool OpenFileOnly(OptionSet options) => false;
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            {
-                return DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
-            }
+                => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
         }
 
         [Fact]
@@ -203,21 +201,15 @@ class C
             }
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
-            }
+                => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
 
             public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
-            {
-                context.RegisterSyntaxTreeAction(new SyntaxTreeAnalyzer().AnalyzeSyntaxTree);
-            }
+                => context.RegisterSyntaxTreeAction(new SyntaxTreeAnalyzer().AnalyzeSyntaxTree);
 
             private class SyntaxTreeAnalyzer
             {
                 public void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(s_syntaxDiagnosticDescriptor, context.Tree.GetRoot().GetFirstToken().GetLocation()));
-                }
+                    => context.ReportDiagnostic(Diagnostic.Create(s_syntaxDiagnosticDescriptor, context.Tree.GetRoot().GetFirstToken().GetLocation()));
             }
         }
 
@@ -277,9 +269,7 @@ class C
             }
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCodeBlockStartAction<SyntaxKind>(CreateAnalyzerWithinCodeBlock);
-            }
+                => context.RegisterCodeBlockStartAction<SyntaxKind>(CreateAnalyzerWithinCodeBlock);
 
             public void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<SyntaxKind> context)
             {
@@ -648,9 +638,7 @@ class C
         private abstract class AbstractNuGetOrVsixAnalyzer : DiagnosticAnalyzer
         {
             protected AbstractNuGetOrVsixAnalyzer(string analyzerName, params string[] reportedIds)
-            {
-                SupportedDiagnostics = CreateSupportedDiagnostics(analyzerName, reportedIds);
-            }
+                => SupportedDiagnostics = CreateSupportedDiagnostics(analyzerName, reportedIds);
 
             private static ImmutableArray<DiagnosticDescriptor> CreateSupportedDiagnostics(string analyzerName, string[] reportedIds)
             {
@@ -667,9 +655,7 @@ class C
             public bool SymbolActionInvoked { get; set; }
             public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
             public sealed override void Initialize(AnalysisContext context)
-            {
-                context.RegisterSymbolAction(OnSymbol, SymbolKind.NamedType);
-            }
+                => context.RegisterSymbolAction(OnSymbol, SymbolKind.NamedType);
 
             private void OnSymbol(SymbolAnalysisContext context)
             {

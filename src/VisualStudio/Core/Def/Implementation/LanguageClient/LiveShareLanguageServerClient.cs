@@ -83,9 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// To start the server, invoke the <see cref="StartAsync"/> event;
         /// </summary>
         public async Task OnLoadedAsync()
-        {
-            await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
-        }
+            => await StartAsync.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
 
         /// <summary>
         /// Signals the extension that the language server has been successfully initialized.

@@ -8,6 +8,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger;
@@ -21,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     internal sealed partial class VisualStudioActiveStatementProvider : IActiveStatementProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioActiveStatementProvider()
         {
         }

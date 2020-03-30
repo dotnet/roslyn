@@ -94,9 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
 
         protected override VisualStudioWorkspaceImpl CreateWorkspace()
-        {
-            return this.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
-        }
+            => this.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
 
         protected override async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
@@ -158,9 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
 
         protected override CSharpLanguageService CreateLanguageService()
-        {
-            return new CSharpLanguageService(this);
-        }
+            => new CSharpLanguageService(this);
 
         protected override void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace)
         {

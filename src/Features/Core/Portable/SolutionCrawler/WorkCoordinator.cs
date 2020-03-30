@@ -5,14 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -277,9 +275,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             private bool NotOurShutdownToken(OperationCanceledException oce)
-            {
-                return oce.CancellationToken == _shutdownToken;
-            }
+                => oce.CancellationToken == _shutdownToken;
 
             private void ProcessEvent(WorkspaceChangeEventArgs args, string eventName)
             {
@@ -663,9 +659,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             internal void WaitUntilCompletion_ForTestingPurposesOnly()
-            {
-                _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
-            }
+                => _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
         }
 
         private readonly struct ReanalyzeScope

@@ -12,13 +12,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public string Namespace { get; }
 
         private MoveToNamespaceOptionsResult()
-        {
-            IsCancelled = true;
-        }
+            => IsCancelled = true;
 
         public MoveToNamespaceOptionsResult(string @namespace)
-        {
-            Namespace = @namespace;
-        }
+            => Namespace = @namespace;
     }
 }

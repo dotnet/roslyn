@@ -49,9 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         }
 
         private ITextUndoHistory GetUndoHistory(ITextView textView)
-        {
-            return _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
-        }
+            => _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
 
         public override void AfterReturn(IBraceCompletionSession session, CancellationToken cancellationToken)
         {
@@ -207,9 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             private readonly FormattingOptions.IndentStyle _indentStyle;
 
             private BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle)
-            {
-                _indentStyle = indentStyle;
-            }
+                => _indentStyle = indentStyle;
 
             public static AbstractFormattingRule ForIndentStyle(FormattingOptions.IndentStyle indentStyle)
             {

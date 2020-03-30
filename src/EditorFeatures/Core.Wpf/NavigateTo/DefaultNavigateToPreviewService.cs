@@ -9,14 +9,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     internal sealed class DefaultNavigateToPreviewService : INavigateToPreviewService
     {
         public int GetProvisionalViewingStatus(Document document)
-        {
-            return 0;
-        }
+            => 0;
 
         public bool CanPreview(Document document)
-        {
-            return true;
-        }
+            => true;
 
         public void PreviewItem(INavigateToItemDisplay itemDisplay)
         {

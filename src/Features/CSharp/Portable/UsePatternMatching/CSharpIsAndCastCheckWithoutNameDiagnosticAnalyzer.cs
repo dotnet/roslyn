@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    this.Descriptor, isExpression.GetLocation(),
+                    Descriptor, isExpression.GetLocation(),
                     styleOption.Notification.Severity,
                     SpecializedCollections.EmptyCollection<Location>(),
                     ImmutableDictionary<string, string>.Empty));

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         private int _lastProcessedTimeInMS;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ForegroundNotificationService(IThreadingContext threadingContext)
             : base(threadingContext)
         {
@@ -46,14 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         }
 
         public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
-        {
-            RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
-        }
+            => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
         public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
-        {
-            RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
-        }
+            => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
         public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
@@ -252,9 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             public PendingWork UpdateToCurrentTime()
-            {
-                return new PendingWork(Environment.TickCount, DoWorkAction, DoWorkFunc, AsyncToken, CancellationToken);
-            }
+                => new PendingWork(Environment.TickCount, DoWorkAction, DoWorkFunc, AsyncToken, CancellationToken);
         }
 
         private class PriorityQueue
@@ -381,9 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             private bool ContainsMoreWork_NoLock(int currentTime)
-            {
-                return _list.Count > 0 && _list.First.Value.MinimumRunPointInMS <= currentTime;
-            }
+                => _list.Count > 0 && _list.First.Value.MinimumRunPointInMS <= currentTime;
 
             private PendingWork Dequeue_NoLock()
             {
