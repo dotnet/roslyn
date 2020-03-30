@@ -81,14 +81,10 @@ namespace Roslyn.Test.Utilities.Remote
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
         public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
-        {
-            _inprocServices.RegisterService(name, serviceCreator);
-        }
+            => _inprocServices.RegisterService(name, serviceCreator);
 
         public Task<Stream> RequestServiceAsync(string serviceName)
-        {
-            return _inprocServices.RequestServiceAsync(serviceName);
-        }
+            => _inprocServices.RequestServiceAsync(serviceName);
 
         public override string ClientId { get; }
         public override bool IsRemoteHost64Bit => IntPtr.Size == 8;
@@ -118,9 +114,7 @@ namespace Roslyn.Test.Utilities.Remote
         }
 
         private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            Dispose();
-        }
+            => Dispose();
 
         public class ServiceProvider : IServiceProvider
         {
@@ -177,9 +171,7 @@ namespace Roslyn.Test.Utilities.Remote
             public TraceSource Logger { get; } = new TraceSource("Default");
 
             public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
-            {
-                _creatorMap.Add(name, serviceCreator);
-            }
+                => _creatorMap.Add(name, serviceCreator);
 
             public Task<Stream> RequestServiceAsync(string serviceName)
             {
@@ -252,14 +244,10 @@ namespace Roslyn.Test.Utilities.Remote
                 public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
 
                 public override object InitializeLifetimeService()
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public override ObjRef CreateObjRef(Type requestedType)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public override void Close()
                 {

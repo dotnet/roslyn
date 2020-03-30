@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
-        {
-            DiagnosticsUpdated?.Invoke(this, state);
-        }
+            => DiagnosticsUpdated?.Invoke(this, state);
 
         private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
         {
@@ -206,9 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return DocumentResetAsync(document, cancellationToken);
-            }
+                => DocumentResetAsync(document, cancellationToken);
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
@@ -217,33 +213,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate
             {
                 private readonly string _workspaceKind;
 
                 public DefaultUpdateArgsId(string workspaceKind, AnalysisKind kind, DocumentId documentId) : base((int)kind, documentId)
-                {
-                    _workspaceKind = workspaceKind;
-                }
+                    => _workspaceKind = workspaceKind;
 
                 public override string BuildTool => PredefinedBuildTools.Live;
 
@@ -258,9 +244,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 public override int GetHashCode()
-                {
-                    return Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
-                }
+                    => Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
             }
         }
     }

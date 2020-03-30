@@ -37,9 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
         }
 
         public IContentType GetContentType(string filePath)
-        {
-            return _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpLspContentTypeName);
-        }
+            => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpLspContentTypeName);
 
         public IVsContainedLanguage GetLanguage(string filePath, IVsTextBufferCoordinator bufferCoordinator)
         {

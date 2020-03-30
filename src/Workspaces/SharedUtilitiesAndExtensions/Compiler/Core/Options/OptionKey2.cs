@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public bool Equals(OptionKey2 other)
-        {
-            return Option.Equals(other.Option) && Language == other.Language;
-        }
+            => Option.Equals(other.Option) && Language == other.Language;
 
         public override int GetHashCode()
         {
@@ -72,13 +70,9 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public static bool operator ==(OptionKey2 left, OptionKey2 right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(OptionKey2 left, OptionKey2 right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

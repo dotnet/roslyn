@@ -198,9 +198,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             };
 
         public static bool IsEscapeCategory(string value)
-        {
-            return EscapeCategories.ContainsKey(value);
-        }
+            => EscapeCategories.ContainsKey(value);
 
         public static bool IsWordChar(VirtualChar r)
         {
@@ -218,9 +216,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         internal static bool CharInClass(char ch, string set)
-        {
-            return CharInClassRecursive(ch, set, 0);
-        }
+            => CharInClassRecursive(ch, set, 0);
 
         internal static bool CharInClassRecursive(char ch, string set, int start)
         {

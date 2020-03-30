@@ -29,14 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             }
 
             public bool SupportsCodeFixes(ITextBuffer textBuffer)
-            {
-                return SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
-            }
+                => SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
 
             public bool SupportsRefactorings(ITextBuffer textBuffer)
-            {
-                return SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
-            }
+                => SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
 
             public bool SupportsRename(ITextBuffer textBuffer)
             {
@@ -50,9 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             }
 
             public bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer)
-            {
-                return SupportsNavigationToAnyPositionWorker(GetContainedDocumentId(textBuffer));
-            }
+                => SupportsNavigationToAnyPositionWorker(GetContainedDocumentId(textBuffer));
 
             private static DocumentId GetContainedDocumentId(ITextBuffer textBuffer)
             {
@@ -77,35 +71,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             }
 
             public bool SupportsCodeFixes(Document document)
-            {
-                return SupportsCodeFixesWorker(document.Id);
-            }
+                => SupportsCodeFixesWorker(document.Id);
 
             public bool SupportsRefactorings(Document document)
-            {
-                return SupportsRefactoringsWorker(document.Id);
-            }
+                => SupportsRefactoringsWorker(document.Id);
 
             public bool SupportsRename(Document document)
-            {
-                return SupportsRenameWorker(document.Project.Solution.GetRelatedDocumentIds(document.Id));
-            }
+                => SupportsRenameWorker(document.Project.Solution.GetRelatedDocumentIds(document.Id));
 
             public bool SupportsNavigationToAnyPosition(Document document)
-            {
-                return SupportsNavigationToAnyPositionWorker(document.Id);
-            }
+                => SupportsNavigationToAnyPositionWorker(document.Id);
         }
 
         private static bool SupportsCodeFixesWorker(DocumentId id)
-        {
-            return ContainedDocument.TryGetContainedDocument(id) == null;
-        }
+            => ContainedDocument.TryGetContainedDocument(id) == null;
 
         private static bool SupportsRefactoringsWorker(DocumentId id)
-        {
-            return ContainedDocument.TryGetContainedDocument(id) == null;
-        }
+            => ContainedDocument.TryGetContainedDocument(id) == null;
 
         private static bool SupportsRenameWorker(ImmutableArray<DocumentId> ids)
         {
@@ -114,8 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         }
 
         private static bool SupportsNavigationToAnyPositionWorker(DocumentId id)
-        {
-            return ContainedDocument.TryGetContainedDocument(id) == null;
-        }
+            => ContainedDocument.TryGetContainedDocument(id) == null;
     }
 }

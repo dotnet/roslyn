@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public int Position;
 
         public RegexLexer(VirtualCharSequence text) : this()
-        {
-            Text = text;
-        }
+            => Text = text;
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
 

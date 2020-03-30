@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly BloomFilter _literalsFilter;
 
             public LiteralInfo(BloomFilter literalsFilter)
-            {
-                _literalsFilter = literalsFilter ?? throw new ArgumentNullException(nameof(literalsFilter));
-            }
+                => _literalsFilter = literalsFilter ?? throw new ArgumentNullException(nameof(literalsFilter));
 
             /// <summary>
             /// Returns true when the identifier is probably (but not guaranteed) to be within the

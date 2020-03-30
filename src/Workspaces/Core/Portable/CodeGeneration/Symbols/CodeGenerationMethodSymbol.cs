@@ -95,14 +95,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol ReducedFrom => null;
 
         public override ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
-        {
-            throw new InvalidOperationException();
-        }
+            => throw new InvalidOperationException();
 
         public override IMethodSymbol ReduceExtensionMethod(ITypeSymbol receiverType)
-        {
-            return null;
-        }
+            => null;
 
         public override IMethodSymbol PartialImplementationPart => null;
 

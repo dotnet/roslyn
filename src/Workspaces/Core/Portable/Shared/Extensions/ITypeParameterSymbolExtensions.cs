@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class ITypeParameterSymbolExtensions
     {
         public static INamedTypeSymbol? GetNamedTypeSymbolConstraint(this ITypeParameterSymbol typeParameter)
-        {
-            return typeParameter.ConstraintTypes.Select(GetNamedTypeSymbol).WhereNotNull().FirstOrDefault();
-        }
+            => typeParameter.ConstraintTypes.Select(GetNamedTypeSymbol).WhereNotNull().FirstOrDefault();
 
         private static INamedTypeSymbol? GetNamedTypeSymbol(ITypeSymbol type)
         {

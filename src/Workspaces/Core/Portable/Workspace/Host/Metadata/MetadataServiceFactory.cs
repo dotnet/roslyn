@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(workspaceServices.GetService<IDocumentationProviderService>());
-        }
+            => new Service(workspaceServices.GetService<IDocumentationProviderService>());
 
         private sealed class Service : IMetadataService
         {
@@ -33,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            {
-                return (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
-            }
+                => (PortableExecutableReference)_metadataCache.GetReference(resolvedPath, properties);
         }
     }
 }

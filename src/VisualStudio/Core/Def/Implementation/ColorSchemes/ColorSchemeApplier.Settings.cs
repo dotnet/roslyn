@@ -167,9 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 private readonly VisualStudioWorkspace _workspace;
 
                 public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace visualStudioWorkspace)
-                {
-                    _workspace = visualStudioWorkspace;
-                }
+                    => _workspace = visualStudioWorkspace;
 
                 public bool this[Guid themeId]
                 {

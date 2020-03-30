@@ -87,22 +87,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         internal static TextSpan GetSignatureHelpSpan(BaseArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getBaseArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getBaseArgumentListCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(TypeArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(InitializerExpressionSyntax initializer)
             => CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, initializer.SpanStart, s_getInitializerExpressionCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(AttributeArgumentListSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getAttributeArgumentListCloseToken);
-        }
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getAttributeArgumentListCloseToken);
 
         internal static bool IsTriggerParenOrComma<TSyntaxNode>(SyntaxToken token, Func<char, bool> isTriggerCharacter) where TSyntaxNode : SyntaxNode
         {

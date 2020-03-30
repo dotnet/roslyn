@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new ActiveStatementTrackingService();
-        }
+            => new ActiveStatementTrackingService();
     }
 }

@@ -154,9 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         }
 
         private static bool IsConstantField(MemberDeclarationSyntax member)
-        {
-            return member is FieldDeclarationSyntax field && field.Modifiers.Any(SyntaxKind.ConstKeyword);
-        }
+            => member is FieldDeclarationSyntax field && field.Modifiers.Any(SyntaxKind.ConstKeyword);
 
         protected static int DetermineFirstChange(SyntaxList<MemberDeclarationSyntax> oldMembers, SyntaxList<MemberDeclarationSyntax> newMembers)
         {

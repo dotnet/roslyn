@@ -511,9 +511,7 @@ namespace Microsoft.CodeAnalysis
             private readonly ProjectDependencyGraph _instance;
 
             public TestAccessor(ProjectDependencyGraph instance)
-            {
-                _instance = instance;
-            }
+                => _instance = instance;
 
             /// <summary>
             /// Gets the list of projects that directly or transitively depend on this project, if it has already been

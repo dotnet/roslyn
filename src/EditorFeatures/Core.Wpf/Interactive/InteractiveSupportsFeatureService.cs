@@ -43,19 +43,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             }
 
             public bool SupportsRefactorings(ITextBuffer textBuffer)
-            {
-                return false;
-            }
+                => false;
 
             public bool SupportsRename(ITextBuffer textBuffer)
-            {
-                return false;
-            }
+                => false;
 
             public bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer)
-            {
-                return true;
-            }
+                => true;
         }
 
         [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), WorkspaceKind.Interactive), Shared]
@@ -74,19 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             }
 
             public bool SupportsRefactorings(Document document)
-            {
-                return false;
-            }
+                => false;
 
             public bool SupportsRename(Document document)
-            {
-                return false;
-            }
+                => false;
 
             public bool SupportsNavigationToAnyPosition(Document document)
-            {
-                return true;
-            }
+                => true;
         }
     }
 }

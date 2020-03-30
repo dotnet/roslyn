@@ -35,14 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             ImmutableArray.Create(CS4032, CS4033, CS4034);
 
         protected override string GetMakeAsyncTaskFunctionResource()
-        {
-            return CSharpFeaturesResources.Make_method_async;
-        }
+            => CSharpFeaturesResources.Make_method_async;
 
         protected override string GetMakeAsyncVoidFunctionResource()
-        {
-            return CSharpFeaturesResources.Make_method_async_remain_void;
-        }
+            => CSharpFeaturesResources.Make_method_async_remain_void;
 
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();

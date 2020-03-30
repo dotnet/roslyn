@@ -19,8 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         internal override void SetOptionAndUpdatePreview(AbstractOptionPreviewViewModel info, string preview)
-        {
-            info.SetOptionAndUpdatePreview(_value, _option, preview);
-        }
+            => info.SetOptionAndUpdatePreview(_value, _option, preview);
     }
 }

@@ -48,14 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         }
 
         public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
-        {
-            RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
-        }
+            => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
         public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
-        {
-            RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
-        }
+            => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
         public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
@@ -254,9 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             public PendingWork UpdateToCurrentTime()
-            {
-                return new PendingWork(Environment.TickCount, DoWorkAction, DoWorkFunc, AsyncToken, CancellationToken);
-            }
+                => new PendingWork(Environment.TickCount, DoWorkAction, DoWorkFunc, AsyncToken, CancellationToken);
         }
 
         private class PriorityQueue
@@ -383,9 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             private bool ContainsMoreWork_NoLock(int currentTime)
-            {
-                return _list.Count > 0 && _list.First.Value.MinimumRunPointInMS <= currentTime;
-            }
+                => _list.Count > 0 && _list.First.Value.MinimumRunPointInMS <= currentTime;
 
             private PendingWork Dequeue_NoLock()
             {

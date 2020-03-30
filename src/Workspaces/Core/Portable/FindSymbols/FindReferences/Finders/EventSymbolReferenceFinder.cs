@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IEventSymbol>
     {
         protected override bool CanFind(IEventSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IEventSymbol> symbolAndProjectId,

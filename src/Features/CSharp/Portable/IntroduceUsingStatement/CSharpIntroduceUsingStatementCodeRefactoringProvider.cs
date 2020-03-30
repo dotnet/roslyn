@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
         protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
         protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)
-        {
-            return parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
-        }
+            => parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
 
         protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround)
         {

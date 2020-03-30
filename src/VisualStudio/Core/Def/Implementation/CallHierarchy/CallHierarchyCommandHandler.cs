@@ -94,8 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         }
 
         public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
-        {
-            return CommandState.Available;
-        }
+            => CommandState.Available;
     }
 }

@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(_metadataService, Hash.Combine(PathResolver, 0));
-        }
+            => Hash.Combine(_metadataService, Hash.Combine(PathResolver, 0));
 
         public override bool Equals(object other) => Equals(other as WorkspaceMetadataFileReferenceResolver);
     }

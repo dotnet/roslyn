@@ -114,14 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly VisualStudioAnalyzer _analyzer;
 
             public AnalyzerAssemblyLoaderThatEnsuresFileBeingWatched(VisualStudioAnalyzer analyzer)
-            {
-                _analyzer = analyzer;
-            }
+                => _analyzer = analyzer;
 
             public void AddDependencyLocation(string fullPath)
-            {
-                _analyzer._analyzerAssemblyLoader.AddDependencyLocation(fullPath);
-            }
+                => _analyzer._analyzerAssemblyLoader.AddDependencyLocation(fullPath);
 
             public Assembly LoadFromPath(string fullPath)
             {

@@ -33,14 +33,10 @@ namespace Microsoft.CodeAnalysis.PasteTracking
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService)
-        {
-            _pasteTrackingService = pasteTrackingService;
-        }
+            => _pasteTrackingService = pasteTrackingService;
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
-        {
-            return nextCommandHandler();
-        }
+            => nextCommandHandler();
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {

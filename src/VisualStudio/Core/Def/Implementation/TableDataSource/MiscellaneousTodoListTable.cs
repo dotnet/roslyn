@@ -22,14 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousTodoListTableWorkspaceEventListener(ITableManagerProvider tableManagerProvider)
-        {
-            _tableManagerProvider = tableManagerProvider;
-        }
+            => _tableManagerProvider = tableManagerProvider;
 
         public void StartListening(Workspace workspace, ITodoListProvider service)
-        {
-            new MiscellaneousTodoListTable(workspace, service, _tableManagerProvider);
-        }
+            => new MiscellaneousTodoListTable(workspace, service, _tableManagerProvider);
 
         private sealed class MiscellaneousTodoListTable : VisualStudioBaseTodoListTable
         {

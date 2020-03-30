@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
-        }
+            => context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
 
         private void AnalyzeInterpolation(OperationAnalysisContext context)
         {

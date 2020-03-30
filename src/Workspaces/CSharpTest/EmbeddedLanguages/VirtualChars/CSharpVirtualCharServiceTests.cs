@@ -62,195 +62,131 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         [Fact]
         public void TestEmptyString()
-        {
-            Test("\"\"", "");
-        }
+            => Test("\"\"", "");
 
         [Fact]
         public void TestEmptyVerbatimString()
-        {
-            Test("@\"\"", "");
-        }
+            => Test("@\"\"", "");
 
         [Fact]
         public void TestSimpleString()
-        {
-            Test("\"a\"", "['a',[1,2]]");
-        }
+            => Test("\"a\"", "['a',[1,2]]");
 
         [Fact]
         public void TestSimpleMultiCharString()
-        {
-            Test("\"abc\"", "['a',[1,2]]['b',[2,3]]['c',[3,4]]");
-        }
+            => Test("\"abc\"", "['a',[1,2]]['b',[2,3]]['c',[3,4]]");
 
         [Fact]
         public void TestBracesInSimpleString()
-        {
-            Test("\"{{\"", "['{',[1,2]]['{',[2,3]]");
-        }
+            => Test("\"{{\"", "['{',[1,2]]['{',[2,3]]");
 
         [Fact]
         public void TestBracesInInterpolatedSimpleString()
-        {
-            Test("$\"{{\"", "['{',[2,4]]");
-        }
+            => Test("$\"{{\"", "['{',[2,4]]");
 
         [Fact]
         public void TestBracesInInterpolatedVerbatimSimpleString()
-        {
-            Test("$@\"{{\"", "['{',[3,5]]");
-        }
+            => Test("$@\"{{\"", "['{',[3,5]]");
 
         [Fact]
         public void TestBracesInReverseInterpolatedVerbatimSimpleString()
-        {
-            Test("@$\"{{\"", "['{',[3,5]]");
-        }
+            => Test("@$\"{{\"", "['{',[3,5]]");
 
         [Fact]
         public void TestEscapeInInterpolatedSimpleString()
-        {
-            Test("$\"\\n\"", @"['\u000A',[2,4]]");
-        }
+            => Test("$\"\\n\"", @"['\u000A',[2,4]]");
 
         [Fact]
         public void TestEscapeInInterpolatedVerbatimSimpleString()
-        {
-            Test("$@\"\\n\"", @"['\u005C',[3,4]]['n',[4,5]]");
-        }
+            => Test("$@\"\\n\"", @"['\u005C',[3,4]]['n',[4,5]]");
 
         [Fact]
         public void TestSimpleVerbatimString()
-        {
-            Test("@\"a\"", "['a',[2,3]]");
-        }
+            => Test("@\"a\"", "['a',[2,3]]");
 
         [Fact]
         public void TestUnterminatedString()
-        {
-            TestFailure("\"");
-        }
+            => TestFailure("\"");
 
         [Fact]
         public void TestUnterminatedVerbatimString()
-        {
-            TestFailure("@\"");
-        }
+            => TestFailure("@\"");
 
         [Fact]
         public void TestSimpleEscape()
-        {
-            Test(@"""a\ta""", "['a',[1,2]]['\\u0009',[2,4]]['a',[4,5]]");
-        }
+            => Test(@"""a\ta""", "['a',[1,2]]['\\u0009',[2,4]]['a',[4,5]]");
 
         [Fact]
         public void TestMultipleSimpleEscape()
-        {
-            Test(@"""a\t\ta""", "['a',[1,2]]['\\u0009',[2,4]]['\\u0009',[4,6]]['a',[6,7]]");
-        }
+            => Test(@"""a\t\ta""", "['a',[1,2]]['\\u0009',[2,4]]['\\u0009',[4,6]]['a',[6,7]]");
 
         [Fact]
         public void TestNonEscapeInVerbatim()
-        {
-            Test(@"@""a\ta""", "['a',[2,3]]['\\u005C',[3,4]]['t',[4,5]]['a',[5,6]]");
-        }
+            => Test(@"@""a\ta""", "['a',[2,3]]['\\u005C',[3,4]]['t',[4,5]]['a',[5,6]]");
 
         [Fact]
         public void TestInvalidHexEscape()
-        {
-            TestFailure(@"""\xZ""");
-        }
+            => TestFailure(@"""\xZ""");
 
         [Fact]
         public void TestValidHex1Escape()
-        {
-            Test(@"""\xa""", @"['\u000A',[1,4]]");
-        }
+            => Test(@"""\xa""", @"['\u000A',[1,4]]");
 
         [Fact]
         public void TestValidHex1EscapeInInterpolatedString()
-        {
-            Test(@"$""\xa""", @"['\u000A',[2,5]]");
-        }
+            => Test(@"$""\xa""", @"['\u000A',[2,5]]");
 
         [Fact]
         public void TestValidHex2Escape()
-        {
-            Test(@"""\xaa""", @"['\u00AA',[1,5]]");
-        }
+            => Test(@"""\xaa""", @"['\u00AA',[1,5]]");
 
         [Fact]
         public void TestValidHex3Escape()
-        {
-            Test(@"""\xaaa""", @"['\u0AAA',[1,6]]");
-        }
+            => Test(@"""\xaaa""", @"['\u0AAA',[1,6]]");
 
         [Fact]
         public void TestValidHex4Escape()
-        {
-            Test(@"""\xaaaa""", @"['\uAAAA',[1,7]]");
-        }
+            => Test(@"""\xaaaa""", @"['\uAAAA',[1,7]]");
 
         [Fact]
         public void TestValidHex5Escape()
-        {
-            Test(@"""\xaaaaa""", @"['\uAAAA',[1,7]]['a',[7,8]]");
-        }
+            => Test(@"""\xaaaaa""", @"['\uAAAA',[1,7]]['a',[7,8]]");
 
         [Fact]
         public void TestValidHex6Escape()
-        {
-            Test(@"""a\xaaaaa""", @"['a',[1,2]]['\uAAAA',[2,8]]['a',[8,9]]");
-        }
+            => Test(@"""a\xaaaaa""", @"['a',[1,2]]['\uAAAA',[2,8]]['a',[8,9]]");
 
         [Fact]
         public void TestInvalidUnicodeEscape()
-        {
-            TestFailure(@"""\u000""");
-        }
+            => TestFailure(@"""\u000""");
 
         [Fact]
         public void TestValidUnicodeEscape1()
-        {
-            Test(@"""\u0000""", @"['\u0000',[1,7]]");
-        }
+            => Test(@"""\u0000""", @"['\u0000',[1,7]]");
 
         [Fact]
         public void TestValidUnicodeEscape2()
-        {
-            Test(@"""a\u0000a""", @"['a',[1,2]]['\u0000',[2,8]]['a',[8,9]]");
-        }
+            => Test(@"""a\u0000a""", @"['a',[1,2]]['\u0000',[2,8]]['a',[8,9]]");
 
         [Fact]
         public void TestInvalidLongUnicodeEscape1()
-        {
-            TestFailure(@"""\U0000""");
-        }
+            => TestFailure(@"""\U0000""");
 
         [Fact]
         public void TestInvalidLongUnicodeEscape2()
-        {
-            TestFailure(@"""\U10000000""");
-        }
+            => TestFailure(@"""\U10000000""");
 
         [Fact]
         public void TestValidLongEscape1_InCharRange()
-        {
-            Test(@"""\U00000000""", @"['\u0000',[1,11]]");
-        }
+            => Test(@"""\U00000000""", @"['\u0000',[1,11]]");
 
         [Fact]
         public void TestValidLongEscape2_InCharRange()
-        {
-            Test(@"""\U0000ffff""", @"['\uFFFF',[1,11]]");
-        }
+            => Test(@"""\U0000ffff""", @"['\uFFFF',[1,11]]");
 
         [Fact]
         public void TestValidLongEscape3_InCharRange()
-        {
-            Test(@"""a\U00000000a""", @"['a',[1,2]]['\u0000',[2,12]]['a',[12,13]]");
-        }
+            => Test(@"""a\U00000000a""", @"['a',[1,2]]['\u0000',[2,12]]['a',[12,13]]");
 
         [Fact]
         public void TestValidLongEscape1_NotInCharRange()
@@ -326,9 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         [Fact]
         public void TestEscapedQuoteInVerbatimString()
-        {
-            Test("@\"a\"\"a\"", @"['a',[2,3]]['\u0022',[3,5]]['a',[5,6]]");
-        }
+            => Test("@\"a\"\"a\"", @"['a',[2,3]]['\u0022',[3,5]]['a',[5,6]]");
 
         private string ConvertToString(VirtualCharSequence virtualChars)
         {

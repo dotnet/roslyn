@@ -29,9 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
         public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService)
-        {
-            this._metadataAsSourceService = metadataAsSourceService;
-        }
+            => this._metadataAsSourceService = metadataAsSourceService;
 
         public async Task<object> HandleAsync(LSP.TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {

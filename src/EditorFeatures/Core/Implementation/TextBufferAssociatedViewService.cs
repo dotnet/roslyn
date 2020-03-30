@@ -100,14 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         public IEnumerable<ITextView> GetAssociatedTextViews(ITextBuffer textBuffer)
-        {
-            return GetTextViews(textBuffer);
-        }
+            => GetTextViews(textBuffer);
 
         private static bool HasFocus(ITextView textView)
-        {
-            return textView.HasAggregateFocus;
-        }
+            => textView.HasAggregateFocus;
 
         public static bool AnyAssociatedViewHasFocus(ITextBuffer textBuffer)
         {

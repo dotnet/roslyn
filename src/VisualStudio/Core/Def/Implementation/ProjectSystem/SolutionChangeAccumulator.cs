@@ -25,9 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly List<DocumentId> _documentIdsRemoved = new List<DocumentId>();
 
         public SolutionChangeAccumulator(Solution startingSolution)
-        {
-            Solution = startingSolution;
-        }
+            => Solution = startingSolution;
 
         public Solution Solution { get; private set; }
         public IEnumerable<DocumentId> DocumentIdsRemoved => _documentIdsRemoved;

@@ -242,9 +242,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static DocumentationComment GetDocumentationComment(this ISymbol symbol, Compilation compilation, CultureInfo? preferredCulture = null, bool expandIncludes = false, bool expandInheritdoc = false, CancellationToken cancellationToken = default)
-        {
-            return GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
-        }
+            => GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
 
         private static DocumentationComment GetDocumentationComment(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, CultureInfo? preferredCulture, bool expandIncludes, bool expandInheritdoc, CancellationToken cancellationToken)
         {
@@ -629,9 +627,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool ElementNameIs(XElement element, string name)
-        {
-            return string.IsNullOrEmpty(element.Name.NamespaceName) && DocumentationCommentXmlNames.ElementEquals(element.Name.LocalName, name);
-        }
+            => string.IsNullOrEmpty(element.Name.NamespaceName) && DocumentationCommentXmlNames.ElementEquals(element.Name.LocalName, name);
 
         /// <summary>
         /// First, remove symbols from the set if they are overridden by other symbols in the set.

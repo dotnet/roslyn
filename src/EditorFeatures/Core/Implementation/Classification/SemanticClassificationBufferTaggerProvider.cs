@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
 
         ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
-        {
-            return CreateTagger<T>(buffer);
-        }
+            => CreateTagger<T>(buffer);
     }
 }
