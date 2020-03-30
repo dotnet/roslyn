@@ -74,8 +74,8 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
-                CodeFixIndex = 0,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -108,8 +108,8 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
-                CodeFixIndex = 2,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
             }.RunAsync();
         }
 
@@ -165,8 +165,8 @@ End Class
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithVBAttribute } },
-                CodeFixIndex = 1,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -197,8 +197,8 @@ End Class
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
-                CodeFixIndex = 2,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
             }.RunAsync();
         }
 

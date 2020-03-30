@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-HANS" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
+        <source>Defaultable types should have defaultable fields</source>
+        <target state="translated">可默认类型应具有可默认字段。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
+        <source>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</source>
+        <target state="translated">可默认类型“{0}”具有不可默认字段或自动属性“{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
+        <source>Defaultable types should have defaultable fields</source>
+        <target state="translated">可默认类型应具有可默认字段。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
         <source>Explicitly define the importing constructor</source>
         <target state="translated">显式定义导入构造函数</target>
@@ -75,6 +90,31 @@
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
         <source>Importing constructor should be [Obsolete]</source>
         <target state="translated">导入构造函数应为 [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralCodeFix">
+        <source>Use 'null' instead of 'default'</source>
+        <target state="translated">使用 "null" 而不是“默认”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralDescription">
+        <source>Use 'null' instead of 'default' for reference types.</source>
+        <target state="translated">对引用类型使用 "null" 而不是“默认”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralMessage">
+        <source>Use 'null' instead of 'default' for reference types</source>
+        <target state="translated">对引用类型使用 "null" 而不是“默认”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreferNullLiteralTitle">
+        <source>Prefer null literal</source>
+        <target state="translated">首选 null 文本</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RelaxTestNamingSuppressorJustification">
+        <source>Asynchronous test methods do not require the 'Async' suffix.</source>
+        <target state="translated">异步测试方法不需要 "Async" 后缀。</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">

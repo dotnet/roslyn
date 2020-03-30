@@ -49,7 +49,7 @@ namespace Test.Utilities
         public static ReferenceAssemblies DefaultWithNUnit { get; } = Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("NUnit", "3.12.0")));
 
-        public static ReferenceAssemblies DefaultWithxunit { get; } = Default
+        public static ReferenceAssemblies DefaultWithXUnit { get; } = Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("xunit", "2.4.1")));
 
         public static ReferenceAssemblies DefaultWithMSTest { get; } = Default
