@@ -8155,7 +8155,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c ?? 1").WithArguments("Convertible.implicit operator int(Convertible)", "To int"));
         }
 
-        const string ObsoleteAttributeSource = @"
+        private const string ObsoleteAttributeSource = @"
 #nullable enable
 namespace System
 {

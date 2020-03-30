@@ -1146,7 +1146,7 @@ End Class
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "a.b.c2(Of Integer).E(Of Integer)").WithArguments("A.B.C2(Of Integer).E(Of Integer)"))
         End Sub
 
-        ReadOnly ObsoleteAttributeSource As XElement = <file name="ObsoleteAttribute.vb"><![CDATA[
+        Private ReadOnly ObsoleteAttributeSource As XElement = <file name="ObsoleteAttribute.vb"><![CDATA[
 Namespace System
     Public Class ObsoleteAttribute
         Inherits Attribute
