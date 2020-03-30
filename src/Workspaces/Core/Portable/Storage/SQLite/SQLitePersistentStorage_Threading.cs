@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
@@ -37,70 +35,29 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// </summary>
         private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new ConcurrentExclusiveSchedulerPair();
 
-        // Inner class used so that we can generically create and pool StrongBox<TArg> instances. We
-        // use those to provide an allocation-free means of calling
-        // <c>Task.Factory.StartNew(func<object>, object, ...)</c>.
-        private static class Threading<TArg, TResult>
-            where TArg : struct
+        private async Task<TResult> PerformTaskAsync<TArg, TResult>(
+            Func<TArg, TResult> func, TArg arg,
+            TaskScheduler scheduler, CancellationToken cancellationToken) where TArg : struct
         {
-            private static readonly Stack<StrongBox<(Func<TArg, TResult> func, TArg arg)>> s_boxes =
-                 new Stack<StrongBox<(Func<TArg, TResult> func, TArg arg)>>();
+            // Get a pooled delegate that can be used to prevent having to alloc a new lambda that calls 'func' while
+            // capturing 'arg'.  This is needed as Task.Factory.StartNew has no way to pass extra data around with it
+            // except by boxing it as an object.
+            using var _ = PooledDelegates.GetPooledFunction(func, arg, out var boundFunction);
 
-            private static StrongBox<(Func<TArg, TResult> func, TArg arg)> GetBox()
-            {
-                lock (s_boxes)
-                {
-                    if (s_boxes.Count > 0)
-                    {
-                        return s_boxes.Pop();
-                    }
+            var task = Task.Factory.StartNew(
+                boundFunction, cancellationToken, TaskCreationOptions.None, scheduler);
 
-                    return new StrongBox<(Func<TArg, TResult> func, TArg arg)>();
-                }
-            }
-
-            private static void ReturnBox(StrongBox<(Func<TArg, TResult> func, TArg arg)> box)
-            {
-                // Clear out the box so it doesn't keep things alive longer than necessary.
-                box.Value = default;
-                lock (s_boxes)
-                {
-                    s_boxes.Push(box);
-                }
-            }
-
-            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public static Task<TResult> PerformTaskAsync(Func<TArg, TResult> func, TArg arg, TaskScheduler scheduler, CancellationToken cancellationToken)
-            {
-                // Use a pooled strongbox so we don't box the provided arg.
-                var box = GetBox();
-                box.Value = (func, arg);
-
-                return Task.Factory.StartNew(s_callback, box, cancellationToken, TaskCreationOptions.None, scheduler);
-            }
-
-            // Non-allocating/capturing callback for our task scheduler to execute. uses a
-            // pooled strongbox to pass in data safely through the 'arg' parameter of StartNew.
-            private static readonly Func<object, TResult> s_callback = sb =>
-            {
-                // Grab the func and arg we want to execute from the StrongBox passed in. Then
-                // return the StrongBox back to the pool as we have no more need for it.
-                var innerBox = (StrongBox<(Func<TArg, TResult> func, TArg arg)>)sb;
-                var (func, arg) = innerBox.Value;
-                ReturnBox(innerBox);
-
-                return func(arg);
-            };
+            return await task.ConfigureAwait(false);
         }
 
         // Read tasks go to the concurrent-scheduler where they can run concurrently with other read
         // tasks.
         private Task<TResult> PerformReadAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
-            => Threading<TArg, TResult>.PerformTaskAsync(func, arg, _readerWriterLock.ConcurrentScheduler, cancellationToken);
+            => PerformTaskAsync(func, arg, _readerWriterLock.ConcurrentScheduler, cancellationToken);
 
         // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
         // tasks we need to do.
         public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
-            => Threading<TArg, bool>.PerformTaskAsync(func, arg, _readerWriterLock.ExclusiveScheduler, cancellationToken);
+            => PerformTaskAsync(func, arg, _readerWriterLock.ExclusiveScheduler, cancellationToken);
     }
 }
