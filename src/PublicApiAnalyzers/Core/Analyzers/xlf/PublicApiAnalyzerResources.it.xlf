@@ -104,17 +104,17 @@
       </trans-unit>
       <trans-unit id="ObliviousPublicApiDescription">
         <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
-        <target state="new">All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</target>
+        <target state="translated">Tutti i membri pubblici devono usare tipi riferimento nullable o non nullable, ma non tipi riferimento oblivious.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types.</source>
-        <target state="new">Symbol '{0}' uses some oblivious reference types.</target>
+        <target state="translated">Il simbolo '{0}' usa alcuni tipi di riferimento oblivious.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
         <source>Public members should not use oblivious types</source>
-        <target state="new">Public members should not use oblivious types</target>
+        <target state="translated">I membri pubblici non devono usare tipi oblivious</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
