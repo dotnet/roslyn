@@ -15,8 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         public TSymbol ResolveTypedSymbol(Compilation compilation)
-        {
-            return (TSymbol)ResolveSymbol(compilation);
-        }
+            => (TSymbol)ResolveSymbol(compilation);
     }
 }

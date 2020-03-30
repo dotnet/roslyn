@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override ExpressionSyntax DefaultVisit(ISymbol symbol)
-            {
-                return symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
-            }
+                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
 
             private TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
                 where TExpressionSyntax : ExpressionSyntax

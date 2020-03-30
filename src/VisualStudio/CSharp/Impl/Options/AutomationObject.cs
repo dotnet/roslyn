@@ -28,9 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private readonly Workspace _workspace;
 
         internal AutomationObject(Workspace workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         /// <summary>
         /// Unused.  But kept around for back compat.  Note this option is not about
@@ -762,19 +760,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         private int GetBooleanOption(Option2<bool> key)
-        {
-            return _workspace.Options.GetOption(key) ? 1 : 0;
-        }
+            => _workspace.Options.GetOption(key) ? 1 : 0;
 
         private int GetBooleanOption(PerLanguageOption2<bool> key)
-        {
-            return _workspace.Options.GetOption(key, LanguageNames.CSharp) ? 1 : 0;
-        }
+            => _workspace.Options.GetOption(key, LanguageNames.CSharp) ? 1 : 0;
 
         private T GetOption<T>(PerLanguageOption2<T> key)
-        {
-            return _workspace.Options.GetOption(key, LanguageNames.CSharp);
-        }
+            => _workspace.Options.GetOption(key, LanguageNames.CSharp);
 
         private void SetBooleanOption(Option2<bool> key, int value)
         {
@@ -806,9 +798,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         private string GetXmlOption<T>(Option2<CodeStyleOption2<T>> option)
-        {
-            return _workspace.Options.GetOption(option).ToXElement().ToString();
-        }
+            => _workspace.Options.GetOption(option).ToXElement().ToString();
 
         private void SetBooleanOption(PerLanguageOption2<bool?> key, int value)
         {
@@ -818,9 +808,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         private string GetXmlOption(PerLanguageOption2<CodeStyleOption2<bool>> option)
-        {
-            return _workspace.Options.GetOption(option, LanguageNames.CSharp).ToXElement().ToString();
-        }
+            => _workspace.Options.GetOption(option, LanguageNames.CSharp).ToXElement().ToString();
 
         private void SetXmlOption<T>(Option2<CodeStyleOption2<T>> option, string value)
         {

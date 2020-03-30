@@ -135,9 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         }
 
         public void GetPreferredLanguage(out uint pLanguage)
-        {
-            pLanguage = (uint)_factory.LibraryService.PreferredLanguage;
-        }
+            => pLanguage = (uint)_factory.LibraryService.PreferredLanguage;
 
         public int GetSymbolType(out uint pdwType)
         {

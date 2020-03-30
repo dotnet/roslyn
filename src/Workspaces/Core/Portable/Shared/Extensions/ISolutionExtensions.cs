@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -40,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static TextDocumentKind? GetDocumentKind(this Solution solution, DocumentId documentId)
-        {
-            return solution.GetTextDocument(documentId)?.Kind;
-        }
+            => solution.GetTextDocument(documentId)?.Kind;
 
         public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
         {

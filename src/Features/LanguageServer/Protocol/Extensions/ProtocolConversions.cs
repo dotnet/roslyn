@@ -69,19 +69,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(Document document)
-        {
-            return new LSP.TextDocumentIdentifier() { Uri = document.GetURI() };
-        }
+            => new LSP.TextDocumentIdentifier() { Uri = document.GetURI() };
 
         public static LinePosition PositionToLinePosition(LSP.Position position)
-        {
-            return new LinePosition(position.Line, position.Character);
-        }
+            => new LinePosition(position.Line, position.Character);
 
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
-        {
-            return new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
-        }
+            => new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
         public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
         {
@@ -99,14 +93,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.Position LinePositionToPosition(LinePosition linePosition)
-        {
-            return new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
-        }
+            => new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
 
         public static LSP.Range LinePositionToRange(LinePositionSpan linePositionSpan)
-        {
-            return new LSP.Range { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
-        }
+            => new LSP.Range { Start = LinePositionToPosition(linePositionSpan.Start), End = LinePositionToPosition(linePositionSpan.End) };
 
         public static LSP.Range TextSpanToRange(TextSpan textSpan, SourceText text)
         {
@@ -115,9 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static Task<LSP.Location> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
-        {
-            return TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken);
-        }
+            => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken);
 
         public static async Task<LSP.LocationWithText> DocumentSpanToLocationWithTextAsync(DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
         {

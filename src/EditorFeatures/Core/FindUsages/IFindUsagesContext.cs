@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         Task OnDefinitionFoundAsync(DefinitionItem definition);
         Task OnReferenceFoundAsync(SourceReferenceItem reference);
+        Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference);
 
         [Obsolete("Use ProgressTracker instead", error: false)]
         Task ReportProgressAsync(int current, int maximum);

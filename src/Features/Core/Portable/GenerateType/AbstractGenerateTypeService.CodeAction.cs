@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 bool inNewFile,
                 bool isNested)
             {
-                var finalName = GetTypeName(state);
-
                 if (inNewFile)
                 {
                     return string.Format(FeaturesResources.Generate_0_1_in_new_file,
@@ -73,20 +71,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             public override string Title
-            {
-                get
-                {
-                    if (_intoNamespace)
-                    {
-                        var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.Global_Namespace : _state.NamespaceToGenerateInOpt;
-                        return FormatDisplayText(_state, _inNewFile, isNested: false);
-                    }
-                    else
-                    {
-                        return FormatDisplayText(_state, inNewFile: false, isNested: true);
-                    }
-                }
-            }
+                => _intoNamespace
+                    ? FormatDisplayText(_state, _inNewFile, isNested: false)
+                    : FormatDisplayText(_state, inNewFile: false, isNested: true);
 
             public override string EquivalenceKey => _equivalenceKey;
         }
@@ -126,9 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private bool IsPublicOnlyAccessibility(State state, Project project)
-            {
-                return _service.IsPublicOnlyAccessibility(state.NameOrMemberAccessExpression, project) || _service.IsPublicOnlyAccessibility(state.SimpleName, project);
-            }
+                => _service.IsPublicOnlyAccessibility(state.NameOrMemberAccessExpression, project) || _service.IsPublicOnlyAccessibility(state.SimpleName, project);
 
             private TypeKindOptions GetTypeKindOption(State state)
             {
@@ -153,8 +138,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return true;
                 }
 
-                var typeKindValue = TypeKindOptions.None;
-                if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out typeKindValue) || _service.TryGetBaseList(state.SimpleName, out typeKindValue))
+                if (_service.TryGetBaseList(state.NameOrMemberAccessExpression, out var typeKindValue) ||
+                    _service.TryGetBaseList(state.SimpleName, out typeKindValue))
                 {
                     typeKindValueFinal = typeKindValue;
                     return true;

@@ -30,18 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         }
 
         public override IPeekResultSource GetOrCreateResultSource(string relationshipName)
-        {
-            return new ResultSource(this);
-        }
+            => new ResultSource(this);
 
         private sealed class ResultSource : IPeekResultSource
         {
             private readonly ExternalFilePeekableItem _peekableItem;
 
             public ResultSource(ExternalFilePeekableItem peekableItem)
-            {
-                _peekableItem = peekableItem;
-            }
+                => _peekableItem = peekableItem;
 
             public void FindResults(string relationshipName, IPeekResultCollection resultCollection, CancellationToken cancellationToken, IFindPeekResultsCallback callback)
             {

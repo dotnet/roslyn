@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact]
         [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestAfterNullable()
-        {
-            await VerifyKeywordAsync(@"#nullable $$");
-        }
+            => await VerifyKeywordAsync(@"#nullable $$");
 
         [Fact]
         [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
@@ -32,15 +30,11 @@ $$
         [Fact]
         [WorkItem(31130, "https://github.com/dotnet/roslyn/issues/31130")]
         public async Task TestNotAfterHash()
-        {
-            await VerifyAbsenceAsync(@"#$$");
-        }
+            => await VerifyAbsenceAsync(@"#$$");
 
         [Fact]
         public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script, @"$$");
-        }
+            => await VerifyAbsenceAsync(SourceCodeKind.Script, @"$$");
 
         [Fact]
         public async Task TestNotAfterClass_Interactive()
@@ -68,32 +62,22 @@ $$");
 
         [Fact]
         public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(@"using Goo = $$");
-        }
+            => await VerifyAbsenceAsync(@"using Goo = $$");
 
         [Fact]
         public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(@"$$"));
-        }
+            => await VerifyAbsenceAsync(AddInsideMethod(@"$$"));
 
         [Fact]
         public async Task TestNotAfterPragma()
-        {
-            await VerifyAbsenceAsync(@"#pragma $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma $$");
 
         [Fact]
         public async Task TestAfterPragmaWarning()
-        {
-            await VerifyKeywordAsync(@"#pragma warning $$");
-        }
+            => await VerifyKeywordAsync(@"#pragma warning $$");
 
         [Fact]
         public async Task TestNotAfterPragmaWarningEnable()
-        {
-            await VerifyAbsenceAsync(@"#pragma warning enable $$");
-        }
+            => await VerifyAbsenceAsync(@"#pragma warning enable $$");
     }
 }

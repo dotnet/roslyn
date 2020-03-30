@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         }
 
         private static ObjectPool<T> Default<T>() where T : class, new()
-        {
-            return DefaultNormalPool<T>.Instance;
-        }
+            => DefaultNormalPool<T>.Instance;
 
         private static class DefaultNormalPool<T> where T : class, new()
         {

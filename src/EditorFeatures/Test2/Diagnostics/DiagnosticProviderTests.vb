@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
@@ -38,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
                                         class Goo { }
-                                    </Document>
+                               </Document>
                            </Project>
                        </Workspace>
 
@@ -51,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
                                         class Goo { dontcompile }
-                                    </Document>
+                               </Document>
                            </Project>
                        </Workspace>
             Dim diagnostics = <Diagnostics>
@@ -72,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                         class Goo2 { dontcompile }
                                         #line default
                                         class Goo4 { dontcompile }
-                                    </Document>
+                               </Document>
                            </Project>
                        </Workspace>
             Dim diagnostics = <Diagnostics>
@@ -93,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
                                         class Goo { int a = "test"; }
-                                    </Document>
+                               </Document>
                            </Project>
                        </Workspace>
 
@@ -114,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                         class Goo2 { as; }
                                         class Goo3 { long q = 1l; }
                                         #pragma disable 9999999"
-                                    </Document>
+                               </Document>
                            </Project>
                        </Workspace>
 
@@ -142,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
                                         class Program { void Main() { - } }
-                                    </Document>
+                               </Document>
                            </Project>
                        </Workspace>
 
@@ -170,14 +169,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                                 int a = 5 - "2";
                                             }
                                         }
-                                    </Document>
+                               </Document>
                            </Project>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document FilePath="Test.vb">
                                         Class GooClass
                                             Sub Blah() End Sub
                                         End Class
-                                   </Document>
+                               </Document>
                            </Project>
                        </Workspace>
 
@@ -208,14 +207,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                                 int a = 5 - "2";
                                             }
                                         }
-                                    </Document>
+                               </Document>
                            </Project>
                            <Project Language="Visual Basic" CommonReferences="true">
                                <Document FilePath="Test.vb">
                                         Class GooClass
                                             Sub Blah() End Sub
                                         End Class
-                                   </Document>
+                               </Document>
                            </Project>
                        </Workspace>
 
@@ -310,8 +309,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         Private Function GetDiagnosticProvider(workspace As TestWorkspace) As DiagnosticAnalyzerService
             Dim snapshot = workspace.CurrentSolution
-
-            Dim notificationService = New TestForegroundNotificationService()
 
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New NoCompilationDocumentDiagnosticAnalyzer()))

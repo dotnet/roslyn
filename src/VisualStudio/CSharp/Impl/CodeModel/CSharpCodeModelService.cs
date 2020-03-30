@@ -415,9 +415,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         private static bool NodeIsSupported(bool test, SyntaxNode node)
-        {
-            return !test || IsNameableNode(node);
-        }
+            => !test || IsNameableNode(node);
 
         /// <summary>
         /// Retrieves the members of a specified <paramref name="container"/> node. The members that are
@@ -625,9 +623,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override EnvDTE.CodeElement CreateUnknownRootNamespaceCodeElement(CodeModelState state, FileCodeModel fileCodeModel)
-        {
-            return (EnvDTE.CodeElement)CodeNamespace.CreateUnknown(state, fileCodeModel, (int)SyntaxKind.NamespaceDeclaration, string.Empty);
-        }
+            => (EnvDTE.CodeElement)CodeNamespace.CreateUnknown(state, fileCodeModel, (int)SyntaxKind.NamespaceDeclaration, string.Empty);
 
         public override EnvDTE.CodeTypeRef CreateCodeTypeRef(CodeModelState state, ProjectId projectId, object type)
         {
@@ -753,29 +749,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string GetAsFullNameForCodeTypeRef(ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.ToDisplayString(s_codeTypeRefAsFullNameFormat);
-        }
+            => typeSymbol.ToDisplayString(s_codeTypeRefAsFullNameFormat);
 
         public override string GetAsStringForCodeTypeRef(ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.ToDisplayString(s_codeTypeRefAsStringFormat);
-        }
+            => typeSymbol.ToDisplayString(s_codeTypeRefAsStringFormat);
 
         public override bool IsParameterNode(SyntaxNode node)
-        {
-            return node is ParameterSyntax;
-        }
+            => node is ParameterSyntax;
 
         public override bool IsAttributeNode(SyntaxNode node)
-        {
-            return node is AttributeSyntax;
-        }
+            => node is AttributeSyntax;
 
         public override bool IsAttributeArgumentNode(SyntaxNode node)
-        {
-            return node is AttributeArgumentSyntax;
-        }
+            => node is AttributeArgumentSyntax;
 
         public override bool IsOptionNode(SyntaxNode node)
         {
@@ -784,9 +770,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override bool IsImportNode(SyntaxNode node)
-        {
-            return node is UsingDirectiveSyntax;
-        }
+            => node is UsingDirectiveSyntax;
 
         public override string GetUnescapedName(string name)
         {
@@ -1098,9 +1082,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override SyntaxNode GetNodeWithInitializer(SyntaxNode node)
-        {
-            return node;
-        }
+            => node;
 
         private EnvDTE.vsCMAccess GetDefaultAccessibility(SyntaxNode node)
         {
@@ -1807,9 +1789,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override SyntaxNode CreateParameterNode(string name, string type)
-        {
-            return SyntaxFactory.Parameter(SyntaxFactory.Identifier(name)).WithType(SyntaxFactory.ParseTypeName(type));
-        }
+            => SyntaxFactory.Parameter(SyntaxFactory.Identifier(name)).WithType(SyntaxFactory.ParseTypeName(type));
 
         public override string GetAttributeArgumentValue(SyntaxNode attributeArgumentNode)
         {
@@ -2979,9 +2959,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
-        {
-            return CSharpCodeGenerationHelpers.GetDestination(node);
-        }
+            => CSharpCodeGenerationHelpers.GetDestination(node);
 
         protected override Accessibility GetDefaultAccessibility(SymbolKind targetSymbolKind, CodeGenerationDestination destination)
         {
@@ -3521,9 +3499,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override bool IsNamespace(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.NamespaceDeclaration);
-        }
+            => node.IsKind(SyntaxKind.NamespaceDeclaration);
 
         public override bool IsType(SyntaxNode node)
         {
@@ -3603,14 +3579,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         private static bool IsPartialMethod(MethodDeclarationSyntax methodDeclaration)
-        {
-            return methodDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
-        }
+            => methodDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
 
         public override string[] GetFunctionExtenderNames()
-        {
-            return new[] { ExtenderNames.ExtensionMethod, ExtenderNames.PartialMethod };
-        }
+            => new[] { ExtenderNames.ExtensionMethod, ExtenderNames.PartialMethod };
 
         public override object GetFunctionExtender(string name, SyntaxNode node, ISymbol symbol)
         {
@@ -3650,9 +3622,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetPropertyExtenderNames()
-        {
-            return new[] { ExtenderNames.AutoImplementedProperty };
-        }
+            => new[] { ExtenderNames.AutoImplementedProperty };
 
         public override object GetPropertyExtender(string name, SyntaxNode node, ISymbol symbol)
         {
@@ -3674,9 +3644,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetExternalTypeExtenderNames()
-        {
-            return new[] { ExtenderNames.ExternalLocation };
-        }
+            => new[] { ExtenderNames.ExternalLocation };
 
         public override object GetExternalTypeExtender(string name, string externalLocation)
         {
@@ -3691,14 +3659,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetTypeExtenderNames()
-        {
-            return Array.Empty<string>();
-        }
+            => Array.Empty<string>();
 
         public override object GetTypeExtender(string name, AbstractCodeType symbol)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         protected override bool AddBlankLineToMethodBody(SyntaxNode node, SyntaxNode newNode)
         {

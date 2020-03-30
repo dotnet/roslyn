@@ -208,9 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         private void UpdateDocument(string text)
-        {
-            UpdatePreview(text);
-        }
+            => UpdatePreview(text);
 
         protected void AddParenthesesOption(
             string language, OptionStore optionStore,

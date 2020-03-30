@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         private ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestExtensionErrorHandler()
         {
         }

@@ -565,5 +565,118 @@ End Class",
     End Function
 End Class")
         End Function
+
+        <Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")>
+        Public Async Function FormatComponentSimplificationIsNotOfferedOnNonIFormattableType() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Function M(value As TypeNotImplementingIFormattable) As String
+        Return $""Test: {value[||].ToString(""a"")}""
+    End Function
+End Class
+
+Structure TypeNotImplementingIFormattable
+    Public Overloads Function ToString(format As String) As String
+        Return ""A""
+    End Function
+End Structure")
+        End Function
+
+        <Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")>
+        Public Async Function FormatComponentSimplificationIsOfferedIFormattableType() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+
+Class C
+    Function M(value As TypeImplementingIFormattable) As String
+        Return $""Test: {value[||].ToString(""a"")}""
+    End Function
+End Class
+
+Structure TypeImplementingIFormattable
+    Implements IFormattable
+
+    Public Overloads Function ToString(format As String) As String
+        Return ""A""
+    End Function
+
+    Private Function ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
+        Return ""B""
+    End Function
+End Structure",
+"Imports System
+
+Class C
+    Function M(value As TypeImplementingIFormattable) As String
+        Return $""Test: {value:a}""
+    End Function
+End Class
+
+Structure TypeImplementingIFormattable
+    Implements IFormattable
+
+    Public Overloads Function ToString(format As String) As String
+        Return ""A""
+    End Function
+
+    Private Function ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
+        Return ""B""
+    End Function
+End Structure")
+        End Function
+
+        <Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")>
+        Public Async Function ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Function M(value As TypeNotImplementingIFormattable) As String
+        Return $""Test: {value[||].ToString()}""
+    End Function
+End Class
+
+Structure TypeNotImplementingIFormattable
+    Public Overloads Function ToString(format As String) As String
+        Return ""A""
+    End Function
+End Structure",
+"Class C
+    Function M(value As TypeNotImplementingIFormattable) As String
+        Return $""Test: {value}""
+    End Function
+End Class
+
+Structure TypeNotImplementingIFormattable
+    Public Overloads Function ToString(format As String) As String
+        Return ""A""
+    End Function
+End Structure")
+        End Function
+
+        <Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")>
+        Public Async Function PadLeftSimplificationIsStillOfferedOnNonIFormattableType() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Function M(value As TypeNotImplementingIFormattable) As String
+        Return $""Test: {value.ToString(""a"")[||].PadLeft(10)}""
+    End Function
+End Class
+
+Structure TypeNotImplementingIFormattable
+    Public Overloads Function ToString(format As String) As String
+        Return ""A""
+    End Function
+End Structure",
+"Class C
+    Function M(value As TypeNotImplementingIFormattable) As String
+        Return $""Test: {value.ToString(""a""),10}""
+    End Function
+End Class
+
+Structure TypeNotImplementingIFormattable
+    Public Overloads Function ToString(format As String) As String
+        Return ""A""
+    End Function
+End Structure")
+        End Function
     End Class
 End Namespace

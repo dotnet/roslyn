@@ -478,9 +478,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private static bool NotNull(SymbolReference reference)
-        {
-            return reference.SymbolResult.Symbol != null;
-        }
+            => reference.SymbolResult.Symbol != null;
 
         public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
             Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,

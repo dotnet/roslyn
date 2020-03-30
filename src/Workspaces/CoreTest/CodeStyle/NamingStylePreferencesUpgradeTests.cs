@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         }
 
         private static void AssertTrimmedEqual(string expected, string actual)
-        {
-            Assert.Equal(expected.Trim(), actual.Trim());
-        }
+            => Assert.Equal(expected.Trim(), actual.Trim());
 
         [Fact(Skip = "PROTOTYPE(func-ptr): Adding a typekind is changing Struct to it's other value, Structure"), Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public void TestPreserveDefaultPreferences()

@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.ExpandNullable);
 
         public static string GetShortName(this INamespaceOrTypeSymbol symbol)
-        {
-            return symbol.ToDisplayString(s_shortNameFormat);
-        }
+            => symbol.ToDisplayString(s_shortNameFormat);
 
         public static IEnumerable<IPropertySymbol> GetIndexers(this INamespaceOrTypeSymbol? symbol)
         {

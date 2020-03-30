@@ -4,7 +4,6 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
@@ -29,9 +28,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
 
             public void Free()
-            {
-                MatchedSpansInReverse?.Free();
-            }
+                => MatchedSpansInReverse?.Free();
 
             public CamelCaseResult WithFromStart(bool fromStart)
                 => new CamelCaseResult(fromStart, Contiguous, MatchCount, MatchedSpansInReverse);

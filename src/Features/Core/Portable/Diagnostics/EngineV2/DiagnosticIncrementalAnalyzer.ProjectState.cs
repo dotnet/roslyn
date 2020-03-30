@@ -4,14 +4,11 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -40,19 +37,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool FromBuild => _lastResult.FromBuild;
 
             public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
-            {
-                return _lastResult.DocumentIdsOrEmpty;
-            }
+                => _lastResult.DocumentIdsOrEmpty;
 
             public bool IsEmpty()
-            {
-                return _lastResult.IsEmpty;
-            }
+                => _lastResult.IsEmpty;
 
             public bool IsEmpty(DocumentId documentId)
-            {
-                return IsEmpty(_lastResult, documentId);
-            }
+                => IsEmpty(_lastResult, documentId);
 
             /// <summary>
             /// Return all diagnostics for the given project stored in this state
@@ -455,9 +446,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
-            {
-                return !result.DocumentIdsOrEmpty.Contains(documentId);
-            }
+                => !result.DocumentIdsOrEmpty.Contains(documentId);
 
             // we have this builder to avoid allocating collections unnecessarily.
             private sealed class Builder
@@ -479,24 +468,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 public void AddSyntaxLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _syntaxLocals, documentId, diagnostics);
-                }
+                    => Add(ref _syntaxLocals, documentId, diagnostics);
 
                 public void AddSemanticLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _semanticLocals, documentId, diagnostics);
-                }
+                    => Add(ref _semanticLocals, documentId, diagnostics);
 
                 public void AddNonLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _nonLocals, documentId, diagnostics);
-                }
+                    => Add(ref _nonLocals, documentId, diagnostics);
 
                 public void AddOthers(ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    _others = diagnostics;
-                }
+                    => _others = diagnostics;
 
                 private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                 {

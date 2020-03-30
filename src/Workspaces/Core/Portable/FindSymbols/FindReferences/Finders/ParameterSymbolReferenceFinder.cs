@@ -11,16 +11,13 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class ParameterSymbolReferenceFinder : AbstractReferenceFinder<IParameterSymbol>
     {
         protected override bool CanFind(IParameterSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IParameterSymbol symbol,

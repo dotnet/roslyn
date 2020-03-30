@@ -22,9 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly string _searchPattern;
 
         public SearchGraphQuery(string searchPattern)
-        {
-            _searchPattern = searchPattern;
-        }
+            => _searchPattern = searchPattern;
 
         public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
