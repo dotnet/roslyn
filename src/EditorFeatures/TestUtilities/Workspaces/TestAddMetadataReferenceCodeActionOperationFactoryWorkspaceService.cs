@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
-        {
-            return new Operation(projectId, assemblyIdentity);
-        }
+            => new Operation(projectId, assemblyIdentity);
 
         public class Operation : CodeActionOperation
         {

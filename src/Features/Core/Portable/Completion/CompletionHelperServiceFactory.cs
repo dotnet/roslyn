@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(workspaceServices.Workspace);
-        }
+            => new Service(workspaceServices.Workspace);
 
         private class Service : ICompletionHelperService, IWorkspaceService
         {
@@ -33,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion
             private CompletionHelper _caseInsensitiveInstance;
 
             public Service(Workspace workspace)
-            {
-                workspace.WorkspaceChanged += OnWorkspaceChanged;
-            }
+                => workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             public CompletionHelper GetCompletionHelper(Document document)
             {

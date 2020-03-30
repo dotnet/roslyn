@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static TextDocument? GetTextDocument(this Solution solution, DocumentId? documentId)
-        {
-            return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId) ?? solution.GetAnalyzerConfigDocument(documentId);
-        }
+            => solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId) ?? solution.GetAnalyzerConfigDocument(documentId);
 
         public static Document GetRequiredDocument(this Solution solution, SyntaxTree syntaxTree)
             => solution.GetDocument(syntaxTree) ?? throw new InvalidOperationException();

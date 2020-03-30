@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             public string BaseDirectory => _workspace.Evaluator.WorkingDirectory;
 
             public Service(InteractiveWorkspace workspace)
-            {
-                _workspace = workspace;
-            }
+                => _workspace = workspace;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

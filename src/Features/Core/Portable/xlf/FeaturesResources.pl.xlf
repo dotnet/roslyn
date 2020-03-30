@@ -2230,16 +2230,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Implementuj {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">Ciąg formatu zawiera nieprawidłowy symbol zastępczy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Nieprawidłowy ciąg formatu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Użyj nazwy wywnioskowanego elementu członkowskiego</target>
@@ -2305,16 +2295,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Przełączanie między wyrażeniem lambda a funkcją lokalną uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Zdekonstruuj deklarację zmiennej</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Deklaracja zmiennej może zostać zdekonstruowana</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Dodaj nazwę argumentu „{0}” (w tym końcowe argumenty)</target>
@@ -2368,11 +2348,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Ostrzeżenie: kolekcja mogła zostać zmodyfikowana podczas iteracji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Konwertuj na wyrażenie warunkowe</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return Instance;
-        }
+            => Instance;
     }
 }

@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             public override bool ContainingScopeHasAsyncKeyword()
-            {
-                return false;
-            }
+                => false;
 
             public override SyntaxNode? GetContainingScope()
             {

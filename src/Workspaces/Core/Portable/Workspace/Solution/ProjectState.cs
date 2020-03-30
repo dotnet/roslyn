@@ -291,14 +291,10 @@ namespace Microsoft.CodeAnalysis
             private readonly ProjectState _projectState;
 
             public WorkspaceAnalyzerConfigOptionsProvider(ProjectState projectState)
-            {
-                _projectState = projectState;
-            }
+                => _projectState = projectState;
 
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
-            {
-                return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath));
-            }
+                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(tree.FilePath));
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             {
@@ -312,9 +308,7 @@ namespace Microsoft.CodeAnalysis
                 private readonly ImmutableDictionary<string, string> _backing;
 
                 public WorkspaceAnalyzerConfigOptions(AnalyzerConfigOptionsResult analyzerConfigOptions)
-                {
-                    _backing = analyzerConfigOptions.AnalyzerOptions;
-                }
+                    => _backing = analyzerConfigOptions.AnalyzerOptions;
 
                 public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
             }
@@ -341,14 +335,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
-        {
-            return _lazyLatestDocumentVersion.GetValueAsync(cancellationToken);
-        }
+            => _lazyLatestDocumentVersion.GetValueAsync(cancellationToken);
 
         public Task<VersionStamp> GetLatestDocumentTopLevelChangeVersionAsync(CancellationToken cancellationToken)
-        {
-            return _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken);
-        }
+            => _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken);
 
         public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
@@ -446,19 +436,13 @@ namespace Microsoft.CodeAnalysis
         public ImmutableSortedDictionary<DocumentId, AnalyzerConfigDocumentState> AnalyzerConfigDocumentStates => _analyzerConfigDocumentStates;
 
         public bool ContainsDocument(DocumentId documentId)
-        {
-            return _documentStates.ContainsKey(documentId);
-        }
+            => _documentStates.ContainsKey(documentId);
 
         public bool ContainsAdditionalDocument(DocumentId documentId)
-        {
-            return _additionalDocumentStates.ContainsKey(documentId);
-        }
+            => _additionalDocumentStates.ContainsKey(documentId);
 
         public bool ContainsAnalyzerConfigDocument(DocumentId documentId)
-        {
-            return _analyzerConfigDocumentStates.ContainsKey(documentId);
-        }
+            => _analyzerConfigDocumentStates.ContainsKey(documentId);
 
         public DocumentState? GetDocumentState(DocumentId documentId)
         {
@@ -565,9 +549,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)
-        {
-            return project1.LanguageServices == project2.LanguageServices;
-        }
+            => project1.LanguageServices == project2.LanguageServices;
 
         /// <summary>
         /// Determines whether <see cref="ProjectReferences"/> contains a reference to a specified project.

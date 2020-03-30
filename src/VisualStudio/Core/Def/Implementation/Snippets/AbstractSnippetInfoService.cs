@@ -79,9 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         public int OnAfterSnippetsKeyBindingChange([ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")]uint dwCmdGuid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")]uint dwCmdId, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")]int fBound)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
         {
@@ -109,9 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         public virtual bool ShouldFormatSnippet(SnippetInfo snippetInfo)
-        {
-            return false;
-        }
+            => false;
 
         private void PopulateSnippetCaches()
         {

@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _effectiveSeverityOpt = includeEffectiveSeverity ? d.Severity : (DiagnosticSeverity?)null;
 
             DiagnosticWithInfo dinfo = null;
-            if (d.Code == 0)
+            if (d.Code == 0 || d.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomObsolete))
             {
                 _code = d.Id;
                 _errorCodeType = typeof(string);
@@ -421,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             const int CSharp = 1;
             const int VisualBasic = 2;
-            var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
+            var language = actual.Any() && actual.First() is CSDiagnostic ? CSharp : VisualBasic;
             var includeDiagnosticMessagesAsComments = (language == CSharp);
             int indentDepth = (language == CSharp) ? 4 : 1;
             var includeDefaultSeverity = expected.Any() && expected.All(d => d.DefaultSeverity != null);

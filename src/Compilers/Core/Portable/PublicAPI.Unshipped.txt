@@ -26,3 +26,4 @@ Microsoft.CodeAnalysis.SourceGeneratorContext.SyntaxReceiver.get -> Microsoft.Co
 Microsoft.CodeAnalysis.SyntaxReceiverCreator
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>
+const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CustomObsolete = "CustomObsolete" -> string

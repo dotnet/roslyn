@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public ProgressTracker(Action<string, int, int> updateActionOpt)
-        {
-            _updateActionOpt = updateActionOpt;
-        }
+            => _updateActionOpt = updateActionOpt;
 
         public string Description
         {
@@ -63,8 +61,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private void Update()
-        {
-            _updateActionOpt?.Invoke(_description, _completedItems, _totalItems);
-        }
+            => _updateActionOpt?.Invoke(_description, _completedItems, _totalItems);
     }
 }

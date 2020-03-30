@@ -79,9 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         public CommandState GetCommandState(PasteCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
 
         [MethodImpl(MethodImplOptions.NoInlining)]  // Avoid loading InteractiveWindow unless necessary
         private void PasteInteractiveFormat(ITextView textView)
@@ -165,19 +163,13 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private class SystemClipboardWrapper : IRoslynClipboard
         {
             public bool ContainsData(string format)
-            {
-                return Clipboard.ContainsData(format);
-            }
+                => Clipboard.ContainsData(format);
 
             public object GetData(string format)
-            {
-                return Clipboard.GetData(format);
-            }
+                => Clipboard.GetData(format);
 
             public IDataObject GetDataObject()
-            {
-                return Clipboard.GetDataObject();
-            }
+                => Clipboard.GetDataObject();
         }
     }
 }

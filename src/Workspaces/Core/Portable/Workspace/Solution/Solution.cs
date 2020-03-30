@@ -212,9 +212,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
         public Document? GetDocument(SyntaxTree? syntaxTree)
-        {
-            return this.GetDocument(syntaxTree, projectId: null);
-        }
+            => this.GetDocument(syntaxTree, projectId: null);
 
         internal Document? GetDocument(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
@@ -254,9 +252,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance that includes a project with the specified language and names.
         /// </summary>
         public Solution AddProject(ProjectId projectId, string name, string assemblyName, string language)
-        {
-            return this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
-        }
+            => this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
 
         /// <summary>
         /// Create a new solution instance that includes a project with the specified project information.
@@ -818,18 +814,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static SourceCodeKind GetSourceCodeKind(ProjectState project)
-        {
-            return project.ParseOptions != null ? project.ParseOptions.Kind : SourceCodeKind.Regular;
-        }
+            => project.ParseOptions != null ? project.ParseOptions.Kind : SourceCodeKind.Regular;
 
         /// <summary>
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// document instance defined by its name and text.
         /// </summary>
         public Solution AddDocument(DocumentId documentId, string name, string text, IEnumerable<string>? folders = null, string? filePath = null)
-        {
-            return this.AddDocument(documentId, name, SourceText.From(text), folders, filePath);
-        }
+            => this.AddDocument(documentId, name, SourceText.From(text), folders, filePath);
 
         /// <summary>
         /// Creates a new solution instance with the corresponding project updated to include a new
@@ -879,9 +871,7 @@ namespace Microsoft.CodeAnalysis
         /// document instance defined by its name and root <see cref="SyntaxNode"/>.
         /// </summary>
         public Solution AddDocument(DocumentId documentId, string name, SyntaxNode syntaxRoot, IEnumerable<string>? folders = null, string? filePath = null, bool isGenerated = false, PreservationMode preservationMode = PreservationMode.PreserveValue)
-        {
-            return this.AddDocument(documentId, name, SourceText.From(string.Empty), folders, filePath, isGenerated).WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
-        }
+            => this.AddDocument(documentId, name, SourceText.From(string.Empty), folders, filePath, isGenerated).WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
 
         /// <summary>
         /// Creates a new solution instance with the project updated to include a new document with
@@ -926,9 +916,7 @@ namespace Microsoft.CodeAnalysis
         /// document instanced defined by the document info.
         /// </summary>
         public Solution AddDocument(DocumentInfo documentInfo)
-        {
-            return AddDocuments(ImmutableArray.Create(documentInfo));
-        }
+            => AddDocuments(ImmutableArray.Create(documentInfo));
 
         /// <summary>
         /// Create a new <see cref="Solution"/> instance with the corresponding <see cref="Project"/>s updated to include
@@ -951,9 +939,7 @@ namespace Microsoft.CodeAnalysis
         /// additional document instance defined by its name and text.
         /// </summary>
         public Solution AddAdditionalDocument(DocumentId documentId, string name, string text, IEnumerable<string>? folders = null, string? filePath = null)
-        {
-            return this.AddAdditionalDocument(documentId, name, SourceText.From(text), folders, filePath);
-        }
+            => this.AddAdditionalDocument(documentId, name, SourceText.From(text), folders, filePath);
 
         /// <summary>
         /// Creates a new solution instance with the corresponding project updated to include a new
@@ -981,9 +967,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Solution AddAdditionalDocument(DocumentInfo documentInfo)
-        {
-            return AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
-        }
+            => AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {

@@ -35,9 +35,7 @@ namespace Microsoft.CodeAnalysis.Execution
         }
 
         protected override Assembly LoadImpl(string fullPath)
-        {
-            return base.LoadImpl(GetAssemblyPath(fullPath));
-        }
+            => base.LoadImpl(GetAssemblyPath(fullPath));
 
         private string GetAssemblyPath(string fullPath)
         {

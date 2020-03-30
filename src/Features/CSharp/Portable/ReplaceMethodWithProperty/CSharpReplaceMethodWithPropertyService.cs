@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         }
 
         public void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration)
-        {
-            editor.RemoveNode(setMethodDeclaration);
-        }
+            => editor.RemoveNode(setMethodDeclaration);
 
         public void ReplaceGetMethodWithProperty(
             DocumentOptionSet documentOptions,

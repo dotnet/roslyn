@@ -29,24 +29,16 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         public TraceLogger(Func<FunctionId, bool> loggingChecker)
-        {
-            _loggingChecker = loggingChecker;
-        }
+            => _loggingChecker = loggingChecker;
 
         public bool IsEnabled(FunctionId functionId)
-        {
-            return _loggingChecker == null || _loggingChecker(functionId);
-        }
+            => _loggingChecker == null || _loggingChecker(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
-        {
-            Trace.WriteLine(string.Format("[{0}] {1} - {2}", Thread.CurrentThread.ManagedThreadId, functionId.ToString(), logMessage.GetMessage()));
-        }
+            => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Thread.CurrentThread.ManagedThreadId, functionId.ToString(), logMessage.GetMessage()));
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-        {
-            Trace.WriteLine(string.Format("[{0}] Start({1}) : {2} - {3}", Thread.CurrentThread.ManagedThreadId, uniquePairId, functionId.ToString(), logMessage.GetMessage()));
-        }
+            => Trace.WriteLine(string.Format("[{0}] Start({1}) : {2} - {3}", Thread.CurrentThread.ManagedThreadId, uniquePairId, functionId.ToString(), logMessage.GetMessage()));
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {

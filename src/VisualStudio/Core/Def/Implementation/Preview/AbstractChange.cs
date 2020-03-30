@@ -36,9 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public IVsPreviewChangesList GetChildren()
-        {
-            return Children;
-        }
+            => Children;
 
         internal abstract void GetDisplayData(VSTREEDISPLAYDATA[] pData);
 

@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
 
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         public GenerateOverridesCodeRefactoringProvider(IPickMembersService pickMembersService)
-        {
-            _pickMembersService_forTestingPurposes = pickMembersService;
-        }
+            => _pickMembersService_forTestingPurposes = pickMembersService;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

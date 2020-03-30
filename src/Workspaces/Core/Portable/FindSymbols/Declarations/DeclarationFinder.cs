@@ -143,8 +143,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool IsOn(SymbolFilter filter, SymbolFilter flag)
-        {
-            return (filter & flag) == flag;
-        }
+            => (filter & flag) == flag;
     }
 }

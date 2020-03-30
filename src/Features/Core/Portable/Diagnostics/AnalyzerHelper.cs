@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
-            => analyzer.GetType().Assembly.GetName().Name;
+            => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable;
 
         public static OptionSet GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
@@ -248,9 +248,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
-        {
-            return analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
-        }
+            => analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
 
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             Project project,
@@ -498,9 +496,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
-        {
-            return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
-        }
+            => (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
 
         private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)
         {

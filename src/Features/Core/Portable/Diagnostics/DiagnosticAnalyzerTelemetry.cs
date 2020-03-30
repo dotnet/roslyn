@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<Type, Data> _analyzerInfoMap;
 
         public DiagnosticAnalyzerTelemetry()
-        {
-            _analyzerInfoMap = ImmutableDictionary<Type, Data>.Empty;
-        }
+            => _analyzerInfoMap = ImmutableDictionary<Type, Data>.Empty;
 
         public void UpdateAnalyzerActionsTelemetry(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, bool isTelemetryCollectionAllowed)
         {

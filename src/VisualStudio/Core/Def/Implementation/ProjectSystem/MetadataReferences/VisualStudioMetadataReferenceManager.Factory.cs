@@ -23,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioMetadataReferenceManagerFactory(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
+            => _serviceProvider = serviceProvider;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {

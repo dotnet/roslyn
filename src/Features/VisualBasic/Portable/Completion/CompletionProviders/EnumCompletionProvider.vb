@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If Not Equals(_cachedDisplayAndInsertionTextContainingType, symbol.ContainingType) OrElse _cachedDisplayAndInsertionTextContext IsNot context Then
                     Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithLocalOptions(SymbolDisplayLocalOptions.None)
                     Dim displayService = context.GetLanguageService(Of ISymbolDisplayService)()
-                    _cachedDisplayAndInsertionTextContainingTypeText = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol.ContainingType, displayFormat)
+                    _cachedDisplayAndInsertionTextContainingTypeText = symbol.ContainingType.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat)
                     _cachedDisplayAndInsertionTextContainingType = symbol.ContainingType
                     _cachedDisplayAndInsertionTextContext = context
                 End If

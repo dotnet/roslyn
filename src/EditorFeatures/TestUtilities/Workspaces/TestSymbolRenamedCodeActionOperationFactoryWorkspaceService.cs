@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public CodeActionOperation CreateSymbolRenamedOperation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution)
-        {
-            return new Operation(symbol, newName, startingSolution, updatedSolution);
-        }
+            => new Operation(symbol, newName, startingSolution, updatedSolution);
 
         public class Operation : CodeActionOperation
         {

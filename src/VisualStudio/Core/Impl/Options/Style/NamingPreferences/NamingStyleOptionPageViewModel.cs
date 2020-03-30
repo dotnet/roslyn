@@ -285,9 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             public string RemoveAutomationText => ServicesVSResources.Remove;
 
             public bool IsComplete()
-            {
-                return SelectedSpecification != null && SelectedStyle != null && SelectedNotificationPreference != null;
-            }
+                => SelectedSpecification != null && SelectedStyle != null && SelectedNotificationPreference != null;
 
             // For screen readers
             public override string ToString() => ServicesVSResources.Naming_Rule;

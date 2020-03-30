@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
-        {
-            return s_defaultOptions;
-        }
+            => s_defaultOptions;
 
         GeneratorDriver? ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts)
         {

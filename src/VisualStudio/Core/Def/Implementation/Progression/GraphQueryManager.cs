@@ -90,9 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-        {
-            EnqueueUpdate();
-        }
+            => EnqueueUpdate();
 
         private void EnqueueUpdate()
         {

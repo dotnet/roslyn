@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
-        {
-            _refactorNotifyServices = refactorNotifyServices;
-        }
+            => _refactorNotifyServices = refactorNotifyServices;
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {

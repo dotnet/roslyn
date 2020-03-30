@@ -291,9 +291,7 @@ namespace M
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public CodeCleanupAnalyzerProviderService()
-            {
-                _info = new HostDiagnosticAnalyzerPackage("CodeCleanup", GetCompilerAnalyzerAssemblies().Distinct().ToImmutableArray());
-            }
+                => _info = new HostDiagnosticAnalyzerPackage("CodeCleanup", GetCompilerAnalyzerAssemblies().Distinct().ToImmutableArray());
 
             private static IEnumerable<string> GetCompilerAnalyzerAssemblies()
             {
@@ -302,14 +300,10 @@ namespace M
             }
 
             public IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader()
-            {
-                return FromFileLoader.Instance;
-            }
+                => FromFileLoader.Instance;
 
             public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
-            {
-                return ImmutableArray.Create(_info);
-            }
+                => ImmutableArray.Create(_info);
 
             public class FromFileLoader : IAnalyzerAssemblyLoader
             {
@@ -320,9 +314,7 @@ namespace M
                 }
 
                 public Assembly LoadFromPath(string fullPath)
-                {
-                    return Assembly.LoadFrom(fullPath);
-                }
+                    => Assembly.LoadFrom(fullPath);
             }
         }
     }

@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         }
 
         public IClassifier GetClassifier(ITextBuffer textBuffer)
-        {
-            return new InertClassifier(textBuffer);
-        }
+            => new InertClassifier(textBuffer);
 
         internal static void CaptureExistingClassificationSpans(
             IViewClassifierAggregatorService classifierAggregator, ITextView textView, ITextBuffer textBuffer)

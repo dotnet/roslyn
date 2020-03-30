@@ -47,6 +47,11 @@
         <target state="new">Changes to expression trees may result in behavior changes at runtime</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="new">Convert to conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="new">Expression value is never used</target>
@@ -55,6 +60,16 @@
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
         <target state="new">Collection initialization can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_string_contains_invalid_placeholder">
+        <source>Format string contains invalid placeholder</source>
+        <target state="new">Format string contains invalid placeholder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_format_string">
+        <source>Invalid format string</source>
+        <target state="new">Invalid format string</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">

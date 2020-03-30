@@ -23,14 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UndoManagerServiceFactory(InlineRenameService inlineRenameService)
-        {
-            _inlineRenameService = inlineRenameService;
-        }
+            => _inlineRenameService = inlineRenameService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new InlineRenameUndoManager(_inlineRenameService);
-        }
+            => new InlineRenameUndoManager(_inlineRenameService);
 
         internal class InlineRenameUndoManager : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>, IInlineRenameUndoManager
         {
@@ -87,9 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             public void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect)
-            {
-                UndoTemporaryEdits(subjectBuffer, disconnect, true);
-            }
+                => UndoTemporaryEdits(subjectBuffer, disconnect, true);
 
             protected override void UndoTemporaryEdits(ITextBuffer subjectBuffer, bool disconnect, bool undoConflictResolution)
             {

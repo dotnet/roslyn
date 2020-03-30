@@ -2230,16 +2230,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Implémenter {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">La chaîne de format contient un espace réservé non valide</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Chaîne de format non valide</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Utiliser un nom de membre déduit</target>
@@ -2305,16 +2295,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Le passage d'une expression lambda à une fonction locale empêche la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Déconstruire la déclaration de variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">La déclaration de variable peut être déconstruite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Ajouter le nom d'argument '{0}' (ainsi que les arguments de fin)</target>
@@ -2368,11 +2348,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Avertissement : La collection risque d'être modifiée durant l'itération.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Convertir en expression conditionnelle</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

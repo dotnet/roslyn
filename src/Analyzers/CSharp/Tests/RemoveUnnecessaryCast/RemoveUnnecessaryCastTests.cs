@@ -2162,15 +2162,12 @@ class Y : X, IDisposable
 }");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType1()
+        public async Task DoNotRemoveCastToInterfaceForSealedType1()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // unspecified optional parameters of I.Goo() and C.Goo() have the
-            // same default values.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2191,39 +2188,15 @@ sealed class C : I
         ([|(I)new C()|]).Goo();
     }
 }
-",
-
-@"
-using System;
-
-interface I
-{
-    void Goo(int x = 0);
-}
-
-sealed class C : I
-{
-    public void Goo(int x = 0)
-    {
-        Console.WriteLine(x);
-    }
-
-    static void Main()
-    {
-        new C().Goo();
-    }
-}
 ");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType2()
+        public async Task DoNotRemoveCastToInterfaceForSealedType2()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // interface member has no parameters.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2247,42 +2220,15 @@ sealed class C : I
         Console.WriteLine(([|(I)new C()|]).Goo);
     }
 }
-",
-
-@"
-using System;
-
-interface I
-{
-    string Goo { get; }
-}
-
-sealed class C : I
-{
-    public string Goo
-    {
-        get
-        {
-            return ""Nikov Rules"";
-        }
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(new C().Goo);
-    }
-}
 ");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType3()
+        public async Task DoNotRemoveCastToInterfaceForSealedType3()
         {
-            // Note: The cast below can be removed because C is sealed and the
-            // interface member has no parameters.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2308,33 +2254,6 @@ sealed class C : I
         Console.WriteLine(([|(I)Instance|]).Goo);
     }
 }
-",
-
-@"
-using System;
-
-interface I
-{
-    string Goo { get; }
-}
-
-sealed class C : I
-{
-    public C Instance { get { return new C(); } }
-
-    public string Goo
-    {
-        get
-        {
-            return ""Nikov Rules"";
-        }
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(Instance.Goo);
-    }
-}
 ");
         }
 
@@ -2342,9 +2261,6 @@ sealed class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveCastToInterfaceForSealedType4()
         {
-            // Note: The cast below can't be removed (even though C is sealed)
-            // because the unspecified optional parameter default values differ.
-
             await TestMissingInRegularAndScriptAsync(
 @"using System;
 
@@ -2367,15 +2283,12 @@ sealed class C : I
 }");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType5()
+        public async Task DoNotRemoveCastToInterfaceForSealedType5()
         {
-            // Note: The cast below can be removed (even though C is sealed)
-            // because the optional parameters whose default values differ are
-            // specified.
-
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2394,28 +2307,6 @@ sealed class C : I
     static void Main()
     {
         ([|(I)new C()|]).Goo(2);
-    }
-}
-",
-
-@"
-using System;
-
-interface I
-{
-    void Goo(int x = 0);
-}
-
-sealed class C : I
-{
-    public void Goo(int x = 1)
-    {
-        Console.WriteLine(x);
-    }
-
-    static void Main()
-    {
-        new C().Goo(2);
     }
 }
 ");
@@ -2451,11 +2342,12 @@ sealed class C : I
 }");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task RemoveCastToInterfaceForSealedType7()
+        public async Task DoNotRemoveCastToInterfaceForSealedType7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 using System;
 
@@ -2477,31 +2369,6 @@ sealed class C : I
     static void Main()
     {
         Console.WriteLine(([|(I)new C()|])[x: 1]);
-    }
-}
-",
-
-@"
-using System;
-
-interface I
-{
-    int this[int x = 0, int y = 0] { get; }
-}
-
-sealed class C : I
-{
-    public int this[int x = 0, int y = 0]
-    {
-        get
-        {
-            return x * 2;
-        }
-    }
-
-    static void Main()
-    {
-        Console.WriteLine(new C()[x: 1]);
     }
 }
 ");
@@ -2602,14 +2469,12 @@ struct S : IIncrementable
 }");
         }
 
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [WorkItem(545834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545834")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToInterfaceForStruct2()
         {
-            // Note: The cast below can be removed because we are sure to have
-            // a fresh copy of the struct from the GetEnumerator() method.
-
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
             @"
 using System;
 using System.Collections.Generic;
@@ -2628,7 +2493,6 @@ class Program
     }
 }
 ",
-
 @"
 using System;
 using System.Collections.Generic;
@@ -2714,6 +2578,37 @@ class C
     {
         var a = new[] { 1, 2, 3 };
         var c = a.Clone(); 
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastToInterfaceForString()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string s)
+    {
+        IEnumerable<char> i = [|(IEnumerable<char>)s|];
+    }
+}
+",
+
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string s)
+    {
+        IEnumerable<char> i = s;
     }
 }
 ");
@@ -4837,6 +4732,789 @@ class C
         int?[] position = new int?[2];
         numbers[[|(int)position[1]|]] = 'x';
     }
+}");
+        }
+
+        [WorkItem(41433, "https://github.com/dotnet/roslyn/issues/41433")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntPtrToPointer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    unsafe int Test(IntPtr safePointer)
+    {
+        return ([|(int*)safePointer|])[0];
+    }
+}");
+        }
+
+        [WorkItem(38599, "https://github.com/dotnet/roslyn/issues/38599")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntPtrToPointerInReturn()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class Program
+{
+    public static unsafe int Read(IntPtr pointer, int offset)
+    {
+        return ([|(int*)pointer|])[offset];
+    }
+}");
+        }
+
+        [WorkItem(32491, "https://github.com/dotnet/roslyn/issues/32491")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntPtrToPointerWithTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+struct Block<T>
+    where T : unmanaged
+{
+    IntPtr m_ptr;
+    unsafe ref T GetRef( int index )
+    {
+        return ref ([|(T*)m_ptr|])[index];
+    }
+}");
+        }
+
+        [WorkItem(25021, "https://github.com/dotnet/roslyn/issues/25021")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveCastFromIntPtrToPointerWithAddressAndCast()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private unsafe void goo()
+    {
+        var address = IntPtr.Zero;
+        var bar = (int*)&([|(long*)address|])[10];
+    }
+}");
+        }
+
+        [WorkItem(38347, "https://github.com/dotnet/roslyn/issues/38347")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestArgToLocalFunction1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            long a = 0, b = 0;
+
+            SameScope([|(decimal)a|] + (decimal)b);
+
+            static void SameScope(decimal sum) { }
+        }
+    }
+}",
+@"
+class Program
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            long a = 0, b = 0;
+
+            SameScope(a + (decimal)b);
+
+            static void SameScope(decimal sum) { }
+        }
+    }
+}");
+        }
+
+        [WorkItem(38347, "https://github.com/dotnet/roslyn/issues/38347")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestArgToLocalFunction2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            long a = 0, b = 0;
+
+            SameScope((decimal)a + [|(decimal)b|]);
+
+            static void SameScope(decimal sum) { }
+        }
+    }
+}",
+@"
+class Program
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+            long a = 0, b = 0;
+
+            SameScope((decimal)a + b);
+
+            static void SameScope(decimal sum) { }
+        }
+    }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object x = [|(IFormattable)$""""|];
+    }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object x = [|(FormattableString)$""""|];
+    }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar([|(FormattableString)$""""|]);
+    }
+
+    private void bar(string s) { }
+    private void bar(FormattableString s) { }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString4()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar([|(FormattableString)$""""|]);
+    }
+
+    private void bar(FormattableString s) { }
+}",
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar($"""");
+    }
+
+    private void bar(FormattableString s) { }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString5()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object o = [|(string)$""""|];
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object o = $"""";
+    }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString6()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar([|(IFormattable)$""""|]);
+    }
+
+    private void bar(IFormattable s) { }
+}",
+@"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        bar($"""");
+    }
+
+    private void bar(IFormattable s) { }
+}");
+        }
+
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString7()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object x = [|(IFormattable)$@""""|];
+    }
+}");
+        }
+
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestMissingOnInterfaceCallOnNonSealedClass()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class DbContext : IDisposable
+{
+    public void Dispose()
+    {
+        Console.WriteLine(""Base called"");
+    }
+}
+
+public class MyContext : DbContext, IDisposable
+{
+    void IDisposable.Dispose()
+    {
+        Console.WriteLine(""Derived called"");
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        ([|(IDisposable)_dbContext|]).Dispose();
+    }
+}");
+        }
+
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestMissingOnInterfaceCallOnNonReadOnlyStruct()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public struct DbContext : IDisposable
+{
+    public int DisposeCount;
+    public void Dispose()
+    {
+        DisposeCount++'
+    }
+}
+
+class C
+{
+    private DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        ([|(IDisposable)_dbContext|]).Dispose();
+    }
+}");
+        }
+
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestMissingOnInterfaceCallOnReadOnlyStruct()
+        {
+            // We technically could support this.  But we choose not to for simplicity. While semantics could be
+            // preserved, the semantics around interfaces are subtle and we don't want to make a change that might
+            // negatively impact the user if they make other code changes.
+            await TestMissingAsync(
+@"
+using System;
+
+public struct DbContext : IDisposable
+{
+    public int DisposeCount;
+    public void Dispose()
+    {
+        DisposeCount++'
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        ([|(IDisposable)_dbContext|]).Dispose();
+    }
+}");
+        }
+
+        [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestMissingOnInterfaceCallOnSealedClass()
+        {
+            // While we could offer this, we choose not to because things might change in the future in subtle ways. For
+            // example, if the user makes the type unsealed and later adds a subclass that reimplements the interface
+            // this will break.
+
+            await TestMissingAsync(
+@"
+using System;
+
+public sealed class DbContext : IDisposable
+{
+    public void Dispose()
+    {
+        Console.WriteLine(""Base called"");
+    }
+}
+
+class C
+{
+    private readonly DbContext _dbContext = new MyContext();
+
+    static void Main()
+    {
+        ([|(IDisposable)_dbContext|]).Dispose();
+    }
+}");
+        }
+
+        [WorkItem(29726, "https://github.com/dotnet/roslyn/issues/29726")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestDefaultLiteralWithNullableCastInCoalesce()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class C
+{
+    public void Goo()
+    {
+        int x = (int?)[|(int)default|] ?? 42;
+    }
+}");
+        }
+
+        [WorkItem(6309, "https://github.com/dotnet/roslyn/issues/6309")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFPIdentityThatMustRemain1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class C
+{
+    float X() => 2 / [|(float)X()|];
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFPIdentityThatMustRemain2()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class C
+{
+    void M()
+    {
+        float f1 = 0.00000000002f;
+        float f2 = 1 / f1;
+        double d = [|(float)f2|];
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFPIdentityThatMustRemain3()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+public class C
+{
+    void M()
+    {
+        float f1 = 0.00000000002f;
+        float f2 = 1 / f1;
+        float f3 = [|(float)f2|];
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnFieldRead()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    float f;
+
+    void M()
+    {
+        var v = [|(float)f|];
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    float f;
+
+    void M()
+    {
+        var v = f;
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnFieldWrite()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    float f;
+
+    void M(float f1)
+    {
+        f = [|(float)f1|];
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    float f;
+
+    void M(float f1)
+    {
+        f = f1;
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityInFieldInitializer()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    static float f1;
+    static float f2 = [|(float)f1|];
+}",
+@"
+using System;
+
+public class C
+{
+    static float f1;
+    static float f2 = f1;
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnArrayRead()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    float[] f;
+
+    void M()
+    {
+        var v = [|(float)f[0]|];
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    float[] f;
+
+    void M()
+    {
+        var v = f[0];
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnArrayWrite()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    float[] f;
+
+    void M(float f2)
+    {
+        f[0] = [|(float)f2|];
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    float[] f;
+
+    void M(float f2)
+    {
+        f[0] = f2;
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnArrayInitializer1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = { [|(float)f2|] };
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = { f2 };
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnArrayInitializer2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = new float[] { [|(float)f2|] };
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = new float[] { f2 };
+    }
+}");
+        }
+
+        [WorkItem(34873, "https://github.com/dotnet/roslyn/issues/34873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFPIdentityOnImplicitArrayInitializer()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = new[] { [|(float)f2|] };
+    }
+}",
+@"
+using System;
+
+public class C
+{
+    void M(float f2)
+    {
+        float[] f = new[] { f2 };
+    }
+}");
+        }
+
+        [WorkItem(37953, "https://github.com/dotnet/roslyn/issues/37953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestCanRemoveFromUnnecessarySwitchExpressionCast1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class Program
+{
+    public static void Main() { }
+
+    public static string GetValue(DayOfWeek value)
+        => [|(DayOfWeek)value|] switch
+        {
+            DayOfWeek.Monday => ""Monday"",
+            _ => ""Other"",
+        };
+}",
+@"
+using System;
+
+class Program
+{
+    public static void Main() { }
+
+    public static string GetValue(DayOfWeek value)
+        => value switch
+        {
+            DayOfWeek.Monday => ""Monday"",
+            _ => ""Other"",
+        };
+}");
+        }
+
+        [WorkItem(37953, "https://github.com/dotnet/roslyn/issues/37953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestLeaveNecessarySwitchExpressionCast1()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class Program
+{
+    public static void Main() { }
+
+    public static string GetValue(int value)
+        => [|(DayOfWeek)value|] switch
+        {
+            DayOfWeek.Monday => ""Monday"",
+            _ => ""Other"",
+        };
 }");
         }
     }

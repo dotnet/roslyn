@@ -29,14 +29,10 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly IProjectCacheHostService _hostService;
 
             public Service(IProjectCacheHostService hostService)
-            {
-                _hostService = hostService;
-            }
+                => _hostService = hostService;
 
             public IDisposable EnableCaching(ProjectId key)
-            {
-                return _hostService?.EnableCaching(key);
-            }
+                => _hostService?.EnableCaching(key);
         }
     }
 }

@@ -42,11 +42,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public int Position;
 
         public RegexLexer(VirtualCharSequence text) : this()
-        {
-            Text = text;
-        }
+            => Text = text;
 
-        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
+        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;
 
         public VirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
@@ -68,8 +66,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
         }
 
-        private static RegexKind GetKind(char ch)
-            => ch switch
+        private static RegexKind GetKind(VirtualChar ch)
+            => ch.Value switch
             {
                 '|' => RegexKind.BarToken,
                 '*' => RegexKind.AsteriskToken,
@@ -155,7 +153,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 var start = Position;
                 while (Position < Text.Length &&
-                        Text[Position] != ')')
+                       Text[Position] != ')')
                 {
                     Position++;
                 }
@@ -214,10 +212,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        private bool IsBlank(char ch)
+        private bool IsBlank(VirtualChar ch)
         {
             // List taken from the native regex parser.
-            switch (ch)
+            switch (ch.Value)
             {
                 case '\u0009':
                 case '\u000A':
@@ -281,7 +279,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
                 unchecked
                 {
-                    var charVal = ch - '0';
+                    var charVal = ch.Value - '0';
                     if (value > MaxValueDiv10 || (value == MaxValueDiv10 && charVal > MaxValueMod10))
                     {
                         error = true;
@@ -349,9 +347,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
-        private bool IsOptionChar(char ch)
+        private bool IsOptionChar(VirtualChar ch)
         {
-            switch (ch)
+            switch (ch.Value)
             {
                 case '+':
                 case '-':
@@ -377,8 +375,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var beforeSlash = start - 2;
 
             // Make sure we're right after the \x or \u.
-            Debug.Assert(Text[beforeSlash].Char == '\\');
-            Debug.Assert(Text[beforeSlash + 1].Char == 'x' || Text[beforeSlash + 1].Char == 'u');
+            Debug.Assert(Text[beforeSlash] == '\\');
+            Debug.Assert(Text[beforeSlash + 1] == 'x' || Text[beforeSlash + 1] == 'u');
 
             for (var i = 0; i < count; i++)
             {
@@ -402,15 +400,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return result;
         }
 
-        public static bool IsHexChar(char ch)
+        public static bool IsHexChar(VirtualChar ch)
             => IsDecimalDigit(ch) ||
                (ch >= 'a' && ch <= 'f') ||
                (ch >= 'A' && ch <= 'F');
 
-        private static bool IsDecimalDigit(char ch)
+        private static bool IsDecimalDigit(VirtualChar ch)
             => ch >= '0' && ch <= '9';
 
-        private static bool IsOctalDigit(char ch)
+        private static bool IsOctalDigit(VirtualChar ch)
             => ch >= '0' && ch <= '7';
 
         public RegexToken ScanOctalCharacters(RegexOptions options)
@@ -420,8 +418,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             // Make sure we're right after the \
             // And we only should have been called if we were \octal-char 
-            Debug.Assert(Text[beforeSlash].Char == '\\');
-            Debug.Assert(IsOctalDigit(Text[start].Char));
+            Debug.Assert(Text[beforeSlash] == '\\');
+            Debug.Assert(IsOctalDigit(Text[start]));
 
             const int maxChars = 3;
             var currentVal = 0;
@@ -430,7 +428,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {
-                    var octalVal = this.CurrentChar - '0';
+                    var octalVal = this.CurrentChar.Value - '0';
                     Debug.Assert(octalVal >= 0 && octalVal <= 7);
                     currentVal *= 8;
                     currentVal += octalVal;

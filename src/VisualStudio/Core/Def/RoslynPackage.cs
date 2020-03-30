@@ -294,9 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         }
 
         private void UnregisterAnalyzerTracker()
-        {
-            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
-        }
+            => this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
 
         private void UnregisterRuleSetEventHandler()
         {
