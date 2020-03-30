@@ -282,6 +282,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<T>)other);
 
+            /// <summary>
+            /// Produce a random value set for testing purposes.
+            /// </summary>
             internal static IValueSet<T> Random(int expectedSize, Random random)
             {
                 TTC tc = default;

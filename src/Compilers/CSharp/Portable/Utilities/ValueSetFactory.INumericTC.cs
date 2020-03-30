@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             T Prev(T value);
 
             /// <summary>
-            /// Produce a randomly-selected value.
+            /// Produce a randomly-selected value for testing purposes.
             /// </summary>
             T Random(Random random);
 

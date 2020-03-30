@@ -15,15 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct DoubleTC : FloatingTC<double>, INumericTC<double>
         {
-            double INumericTC<double>.MinValue => double.MinValue;
+            double INumericTC<double>.MinValue => double.NegativeInfinity;
 
-            double INumericTC<double>.MaxValue => double.MaxValue;
+            double INumericTC<double>.MaxValue => double.PositiveInfinity;
 
             double FloatingTC<double>.NaN => double.NaN;
-
-            double FloatingTC<double>.MinusInf => double.NegativeInfinity;
-
-            double FloatingTC<double>.PlusInf => double.PositiveInfinity;
 
             /// <summary>
             /// The implementation of Next depends critically on the internal representation of an IEEE floating-point
@@ -33,14 +29,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             public double Next(double value)
             {
                 Debug.Assert(!double.IsNaN(value));
-                Debug.Assert(!double.IsInfinity(value));
-                Debug.Assert(value != double.MaxValue);
+                Debug.Assert(value != double.PositiveInfinity);
+
+                if (value == 0)
+                    return double.Epsilon;
                 if (value < 0)
                 {
                     if (value == -double.Epsilon)
                         return 0.0; // skip negative zero
+                    if (value == double.NegativeInfinity)
+                        return double.MinValue;
                     return -ULongAsDouble(DoubleAsULong(-value) - 1);
                 }
+                if (value == double.MaxValue)
+                    return double.PositiveInfinity;
 
                 return ULongAsDouble(DoubleAsULong(value) + 1);
             }
@@ -81,7 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// Produce a string for testing purposes that is likely to be the same independent of platform and locale.
             /// </summary>
-            string INumericTC<double>.ToString(double value) => FormattableString.Invariant($"{value:G17}");
+            string INumericTC<double>.ToString(double value) =>
+                double.IsNaN(value) ? "NaN" :
+                value == double.NegativeInfinity ? "-Inf" :
+                value == double.PositiveInfinity ? "Inf" :
+                FormattableString.Invariant($"{value:G17}");
+
 
             double INumericTC<double>.Prev(double value)
             {
