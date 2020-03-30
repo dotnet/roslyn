@@ -142,6 +142,11 @@
         <target state="new">'default' expression can be simplified</target>
         <note />
       </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">
         <source>use 'var' instead of explicit type</source>
         <target state="new">use 'var' instead of explicit type</target>

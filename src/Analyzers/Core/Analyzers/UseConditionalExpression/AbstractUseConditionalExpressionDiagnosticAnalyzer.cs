@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             PerLanguageOption2<CodeStyleOption2<bool>> option)
             : base(descriptorId,
                    option,
-                   new LocalizableResourceString(nameof(FeaturesResources.Convert_to_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    message)
         {
             _option = option;

@@ -202,11 +202,6 @@
         <target state="translated">비동기 using 선언</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">'if' 문을 간단하게 줄일 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;람다 식&gt;</target>

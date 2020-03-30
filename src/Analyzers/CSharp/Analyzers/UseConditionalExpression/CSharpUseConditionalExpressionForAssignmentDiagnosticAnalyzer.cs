@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         : AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<IfStatementSyntax>
     {
         public CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer()
-            : base(new LocalizableResourceString(nameof(CSharpFeaturesResources.if_statement_can_be_simplified), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
+            : base(new LocalizableResourceString(nameof(CSharpAnalyzersResources.if_statement_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

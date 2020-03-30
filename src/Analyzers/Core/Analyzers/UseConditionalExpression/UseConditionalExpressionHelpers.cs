@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal static class UseConditionalExpressionHelpers
+    internal static partial class UseConditionalExpressionHelpers
     {
-        public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
-
         public static bool CanConvert(
             ISyntaxFacts syntaxFacts, IConditionalOperation ifOperation,
             IOperation whenTrue, IOperation whenFalse)
@@ -61,28 +58,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 ? conversion.Operand
                 : value;
 
-        public static SyntaxRemoveOptions GetRemoveOptions(
-            ISyntaxFactsService syntaxFacts, SyntaxNode syntax)
-        {
-            var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
-            if (HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia()))
-            {
-                removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
-            }
-
-            if (HasRegularCommentTrivia(syntaxFacts, syntax.GetTrailingTrivia()))
-            {
-                removeOptions |= SyntaxRemoveOptions.KeepTrailingTrivia;
-            }
-
-            return removeOptions;
-        }
-
-        private static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)
+        internal static bool HasRegularComments(ISyntaxFacts syntaxFacts, SyntaxNode syntax)
             => HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia()) ||
                HasRegularCommentTrivia(syntaxFacts, syntax.GetTrailingTrivia());
 
-        private static bool HasRegularCommentTrivia(ISyntaxFacts syntaxFacts, SyntaxTriviaList triviaList)
+        internal static bool HasRegularCommentTrivia(ISyntaxFacts syntaxFacts, SyntaxTriviaList triviaList)
         {
             foreach (var trivia in triviaList)
             {

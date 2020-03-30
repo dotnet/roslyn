@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
+using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -232,10 +233,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return false;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId)
+                : base(AnalyzersResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId)
             {
             }
         }

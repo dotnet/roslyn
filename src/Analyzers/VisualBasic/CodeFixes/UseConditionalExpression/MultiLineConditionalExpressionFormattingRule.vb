@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     ''' <summary>
     ''' Special formatting rule that will convert a conditional expression into the following form
-    ''' if it has the <see cref="UseConditionalExpressionHelpers.SpecializedFormattingAnnotation"/>
+    ''' if it has the <see cref="UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation"/>
     ''' on it:
     '''
     ''' <code>
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Private Function IsCommaOfNewConditional(token As SyntaxToken) As Boolean
             If token.Kind() = SyntaxKind.CommaToken Then
                 Return token.Parent.HasAnnotation(
-                        UseConditionalExpressionHelpers.SpecializedFormattingAnnotation)
+                        UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation)
             End If
 
             Return False
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Public Overrides Sub AddIndentBlockOperationsSlow(
                 list As List(Of IndentBlockOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextIndentBlockOperationAction)
 
-            If node.HasAnnotation(UseConditionalExpressionHelpers.SpecializedFormattingAnnotation) AndAlso
+            If node.HasAnnotation(UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation) AndAlso
                TypeOf node Is TernaryConditionalExpressionSyntax Then
 
                 Dim conditional = TryCast(node, TernaryConditionalExpressionSyntax)

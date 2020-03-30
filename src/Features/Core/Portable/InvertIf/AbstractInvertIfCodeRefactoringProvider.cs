@@ -259,6 +259,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     invertIfStyle,
                     subsequentSingleExitPointOpt,
                     negatedExpression: generator.Negate(
+                        generator.SyntaxGeneratorInternal,
                         GetCondition(ifNode),
                         semanticModel,
                         cancellationToken)));

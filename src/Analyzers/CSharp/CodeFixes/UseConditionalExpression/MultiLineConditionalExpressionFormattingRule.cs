@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
+using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {

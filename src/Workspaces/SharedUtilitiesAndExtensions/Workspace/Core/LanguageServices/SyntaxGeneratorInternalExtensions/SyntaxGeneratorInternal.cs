@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Editing
     /// </summary>
     internal abstract class SyntaxGeneratorInternal : ILanguageService
     {
+        internal abstract ISyntaxFacts SyntaxFacts { get; }
+
         /// <summary>
         /// Creates a statement that declares a single local variable with an optional initializer.
         /// </summary>
@@ -36,5 +39,18 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
 
         internal abstract SyntaxNode MemberBindingExpression(SyntaxNode name);
+
+        internal abstract SyntaxNode RefExpression(SyntaxNode expression);
+
+        /// <summary>
+        /// Wraps with parens.
+        /// </summary>
+        internal abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
+
+        /// <summary>
+        /// Creates a statement that can be used to yield a value from an iterator method.
+        /// </summary>
+        /// <param name="expression">An expression that can be yielded.</param>
+        internal abstract SyntaxNode YieldReturnStatement(SyntaxNode expression);
     }
 }

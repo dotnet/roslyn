@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseConditionalExpr
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseConditionalExpressionForReturnDiagnosticAnalyzer(),
-                New VisualBasicUseConditionalExpressionForReturnCodeRefactoringProvider())
+                New VisualBasicUseConditionalExpressionForReturnCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>

@@ -18,6 +18,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\RemoveUnreachableCodeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForAssignmentTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForReturnTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\UseDeconstructionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\UseDefaultLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForAccessorsAnalyzerTests.cs" />

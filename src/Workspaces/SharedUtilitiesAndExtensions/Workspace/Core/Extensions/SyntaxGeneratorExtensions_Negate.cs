@@ -33,25 +33,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SyntaxNode Negate(
             this SyntaxGenerator generator,
+            SyntaxGeneratorInternal generatorInternal,
             SyntaxNode expression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            return Negate(generator, expression, semanticModel, negateBinary: true, cancellationToken);
+            return Negate(generator, generatorInternal, expression, semanticModel, negateBinary: true, cancellationToken);
         }
 
         public static SyntaxNode Negate(
             this SyntaxGenerator generator,
+            SyntaxGeneratorInternal generatorInternal,
             SyntaxNode expression,
             SemanticModel semanticModel,
             bool negateBinary,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = generator.SyntaxFacts;
+            var syntaxFacts = generatorInternal.SyntaxFacts;
             if (syntaxFacts.IsParenthesizedExpression(expression))
             {
-                return generator.AddParentheses(
+                return generatorInternal.AddParentheses(
                     generator.Negate(
+                        generatorInternal,
                         syntaxFacts.GetExpressionOfParenthesizedExpression(expression),
                         semanticModel,
                         negateBinary,
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             if (negateBinary && syntaxFacts.IsBinaryExpression(expression))
             {
-                return GetNegationOfBinaryExpression(expression, generator, semanticModel, cancellationToken);
+                return GetNegationOfBinaryExpression(expression, generator, generatorInternal, semanticModel, cancellationToken);
             }
             else if (syntaxFacts.IsLiteralExpression(expression))
             {
@@ -77,10 +80,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static SyntaxNode GetNegationOfBinaryExpression(
             SyntaxNode expressionNode,
             SyntaxGenerator generator,
+            SyntaxGeneratorInternal generatorInternal,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = generator.SyntaxFacts;
+            var syntaxFacts = generatorInternal.SyntaxFacts;
             syntaxFacts.GetPartsOfBinaryExpression(expressionNode, out var leftOperand, out var operatorToken, out var rightOperand);
 
             var binaryOperation = semanticModel.GetOperation(expressionNode, cancellationToken) as IBinaryOperation;
@@ -122,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var newRightOperand = rightOperand;
                 if (negateOperands)
                 {
-                    newLeftOperand = generator.Negate(leftOperand, semanticModel, cancellationToken);
-                    newRightOperand = generator.Negate(rightOperand, semanticModel, cancellationToken);
+                    newLeftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
+                    newRightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
                 }
 
                 var newBinaryExpressionSyntax = NewBinaryOperation(binaryOperation, newLeftOperand, negatedKind, newRightOperand, generator, cancellationToken)
@@ -134,7 +138,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
             }
         }
-
 
         private static SyntaxNode NewBinaryOperation(
             IBinaryOperation binaryOperation,

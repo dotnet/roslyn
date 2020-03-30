@@ -7,13 +7,15 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
+using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -30,6 +32,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
+
+#if CODE_STYLE
+        protected abstract ISyntaxFormattingService GetSyntaxFormattingService();
+#endif
+
         protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
 
         protected abstract Task FixOneAsync(
@@ -54,17 +61,28 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             var changedRoot = nestedEditor.GetChangedRoot();
+
             // Get the language specific rule for formatting this construct and call into the
             // formatted to explicitly format things.  Note: all we will format is the new
             // conditional expression as that's the only node that has the appropriate
             // annotation on it.
             var rules = new List<AbstractFormattingRule> { GetMultiLineFormattingRule() };
 
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken);
+
+#if CODE_STYLE
+            var formattedRoot = FormatterHelper.Format(changedRoot,
+                GetSyntaxFormattingService(),
+                SpecializedFormattingAnnotation,
+                options,
+                rules, cancellationToken);
+#else
             var formattedRoot = Formatter.Format(changedRoot,
                 SpecializedFormattingAnnotation,
                 document.Project.Solution.Workspace,
-                await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                options,
                 rules, cancellationToken);
+#endif
             changedRoot = formattedRoot;
 
             editor.ReplaceNode(root, changedRoot);
@@ -83,6 +101,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             bool isRef, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var condition = ifOperation.Condition.Syntax;
@@ -99,15 +118,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 // instead.
                 if (IsBooleanLiteral(trueValue, false) && IsBooleanLiteral(falseValue, true))
                 {
-                    return (TExpressionSyntax)generator.Negate(
+                    return (TExpressionSyntax)generator.Negate(generatorInternal,
                         condition, semanticModel, cancellationToken).WithoutTrivia();
                 }
             }
 
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
                 condition.WithoutTrivia(),
-                MakeRef(generator, isRef, CastValueIfNecessary(generator, trueValue)),
-                MakeRef(generator, isRef, CastValueIfNecessary(generator, falseValue)));
+                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueValue)),
+                MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, falseValue)));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
             var makeMultiLine = await MakeMultiLineAsync(
@@ -119,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     SpecializedFormattingAnnotation);
             }
 
-            return MakeRef(generator, isRef, conditionalExpression);
+            return MakeRef(generatorInternal, isRef, conditionalExpression);
         }
 
         private static bool IsBooleanLiteral(IOperation trueValue, bool val)
@@ -133,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return false;
         }
 
-        private TExpressionSyntax MakeRef(SyntaxGenerator generator, bool isRef, TExpressionSyntax syntaxNode)
+        private TExpressionSyntax MakeRef(SyntaxGeneratorInternal generator, bool isRef, TExpressionSyntax syntaxNode)
             => isRef ? (TExpressionSyntax)generator.RefExpression(syntaxNode) : syntaxNode;
 
         /// <summary>
@@ -151,8 +170,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return true;
             }
 
+#if CODE_STYLE
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var wrappingLength = document.Project.AnalyzerOptions.GetOption(UseConditionalExpressionOptions.ConditionalExpressionWrappingLength, document.Project.Language, tree, cancellationToken);
+#else
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var wrappingLength = options.GetOption(UseConditionalExpressionOptions.ConditionalExpressionWrappingLength);
+#endif
+
             if (condition.Span.Length + trueSyntax.Span.Length + falseSyntax.Span.Length > wrappingLength)
             {
                 return true;

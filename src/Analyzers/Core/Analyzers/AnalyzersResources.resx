@@ -238,6 +238,9 @@
   <data name="Accessibility_modifiers_required" xml:space="preserve">
     <value>Accessibility modifiers required</value>
   </data>
+  <data name="Convert_to_conditional_expression" xml:space="preserve">
+    <value>Convert to conditional expression</value>
+  </data>
   <data name="Use_coalesce_expression" xml:space="preserve">
     <value>Use coalesce expression</value>
   </data>

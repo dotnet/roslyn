@@ -2360,11 +2360,6 @@ This version used in: {2}</source>
         <target state="translated">警告: 反復処理中にコレクションが変更される可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">条件式に変換します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
         <target state="translated">それを含むメンバーの使用の更新</target>
