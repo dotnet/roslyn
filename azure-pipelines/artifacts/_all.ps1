@@ -1,4 +1,4 @@
-#!/usr/bin/pwsh
+#!/usr/bin/env pwsh
 
 # This script returns all the artifacts that should be collected after a build.
 #
