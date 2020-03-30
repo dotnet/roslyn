@@ -215,6 +215,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             bool forceCacheCreation,
             IDictionary<TKey, CacheEntry> cache,
             CancellationToken cancellationToken)
+            where TKey : notnull
         {
             var language = syntaxContext.SemanticModel.Language;
 

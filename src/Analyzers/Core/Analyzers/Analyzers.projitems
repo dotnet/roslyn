@@ -47,6 +47,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\ObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\AbstractUseConditionalExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForAssignment\AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForAssignment\UseConditionalExpressionForAssignmentHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\UseConditionalExpressionForReturnHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\AbstractUseIsNullForReferenceEqualsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
@@ -54,8 +61,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\ObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\AbstractValidateFormatStringDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringOption.cs" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

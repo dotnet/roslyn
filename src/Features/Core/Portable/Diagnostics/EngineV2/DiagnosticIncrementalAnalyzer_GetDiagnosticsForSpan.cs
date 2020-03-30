@@ -440,15 +440,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return set.SetEquals(diagnosticsB);
         }
 
-        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic>
+        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic?>
         {
             internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
 
-            public bool Equals(Diagnostic x, Diagnostic y)
-                => x.Id == y.Id && x.Location == y.Location;
+            public bool Equals(Diagnostic? x, Diagnostic? y)
+            {
+                if (x is null)
+                    return y is null;
+                else if (y is null)
+                    return false;
 
-            public int GetHashCode(Diagnostic obj)
-                => Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
+                return x.Id == y.Id && x.Location == y.Location;
+            }
+
+            public int GetHashCode(Diagnostic? obj)
+            {
+                if (obj is null)
+                    return 0;
+
+                return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
+            }
         }
 #endif
     }

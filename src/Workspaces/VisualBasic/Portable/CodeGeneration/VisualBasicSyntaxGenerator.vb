@@ -31,8 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
 
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
-
         Friend Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
         Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
@@ -73,12 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AddressOf AsSimpleArgument)))
         End Function
 
-        Friend Overrides Function AddParentheses(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode
-            Return Parenthesize(expression, addSimplifierAnnotation)
-        End Function
-
         Private Function Parenthesize(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ParenthesizedExpressionSyntax
-            Return DirectCast(expression, ExpressionSyntax).Parenthesize(addSimplifierAnnotation)
+            Return VisualBasicSyntaxGeneratorInternal.Parenthesize(expression, addSimplifierAnnotation)
         End Function
 
         Public Overrides Function AddExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
@@ -377,10 +371,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ReturnStatement(DirectCast(expressionOpt, ExpressionSyntax))
         End Function
 
-        Friend Overrides Function YieldReturnStatement(expression As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.YieldStatement(DirectCast(expression, ExpressionSyntax))
-        End Function
-
         Public Overrides Function ThisExpression() As SyntaxNode
             Return SyntaxFactory.MeExpression()
         End Function
@@ -677,10 +667,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function ScopeBlock(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Throw New NotSupportedException()
-        End Function
-
-        Friend Overrides Function RefExpression(expression As SyntaxNode) As SyntaxNode
-            Return expression
         End Function
 
 #End Region

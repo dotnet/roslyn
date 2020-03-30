@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -42,8 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
 
         internal override bool RequiresExplicitImplementationForInterfaceMembers => false;
-
-        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         internal override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
 
@@ -2940,9 +2937,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
             => SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);
 
-        internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
-            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);
-
         public override SyntaxNode ThrowStatement(SyntaxNode expressionOpt = null)
             => SyntaxFactory.ThrowStatement((ExpressionSyntax)expressionOpt);
 
@@ -3134,11 +3128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return DefaultExpression(type.GenerateTypeSyntax());
         }
 
-        internal override SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
-            => Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
-
         private static ExpressionSyntax Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
-            => ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia, addSimplifierAnnotation);
+            => CSharpSyntaxGeneratorInternal.Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
 
         public override SyntaxNode IsTypeExpression(SyntaxNode expression, SyntaxNode type)
             => SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, Parenthesize(expression), (TypeSyntax)type);
@@ -3478,9 +3469,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxFactory.NameEquals((IdentifierNameSyntax)identifier),
                 (ExpressionSyntax)expression);
         }
-
-        internal override SyntaxNode RefExpression(SyntaxNode expression)
-            => SyntaxFactory.RefExpression((ExpressionSyntax)expression);
 
         public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));

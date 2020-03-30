@@ -195,6 +195,9 @@
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
   </data>
+  <data name="if_statement_can_be_simplified" xml:space="preserve">
+    <value>'if' statement can be simplified</value>
+  </data>
   <data name="Simplify_default_expression" xml:space="preserve">
     <value>Simplify 'default' expression</value>
   </data>

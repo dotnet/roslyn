@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                                         attribute.Languages.Length == 0 ||
                                         attribute.Languages.Contains(language))
                                     {
-                                        builder.Add((CodeRefactoringProvider)Activator.CreateInstance(typeInfo.AsType()));
+                                        builder.Add((CodeRefactoringProvider)Activator.CreateInstance(typeInfo.AsType())!);
                                     }
                                 }
                             }
