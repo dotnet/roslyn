@@ -2583,6 +2583,37 @@ class C
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastToInterfaceForString()
+        {
+            await TestInRegularAndScriptAsync(
+            @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string s)
+    {
+        IEnumerable<char> i = [|(IEnumerable<char>)s|];
+    }
+}
+",
+
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string s)
+    {
+        IEnumerable<char> i = s;
+    }
+}
+");
+        }
+
         [WorkItem(529897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastToIConvertibleForEnum()

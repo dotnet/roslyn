@@ -866,7 +866,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             return newSymbolContainingType.SpecialType == SpecialType.System_Array ||
                    newSymbolContainingType.SpecialType == SpecialType.System_Delegate ||
-                   newSymbolContainingType.SpecialType == SpecialType.System_Enum;
+                   newSymbolContainingType.SpecialType == SpecialType.System_Enum ||
+                   newSymbolContainingType.SpecialType == SpecialType.System_String;
         }
 
         private bool IsReceiverNonUniquePossibleValueTypeParam(TExpressionSyntax invocation, SemanticModel semanticModel)
