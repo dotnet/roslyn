@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         protected AbstractRegexDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
                    RegularExpressionsOptions.ReportInvalidRegexPatterns,
-                   new LocalizableResourceString(nameof(FeaturesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Regex_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Regex_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _info = info;
         }
