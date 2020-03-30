@@ -62,7 +62,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

@@ -55,7 +55,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\ObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>
