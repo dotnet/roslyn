@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var currentSolution = context.Solution;
             var declaredSymbol = context.Symbol;
 
-            var nodesToUpdate = new Dictionary<DocumentId, ImmutableArray<SyntaxNode>>();
+            var nodesToUpdate = new Dictionary<DocumentId, List<SyntaxNode>>();
             var definitionToUse = new Dictionary<SyntaxNode, ISymbol>();
 
             var hasLocationsInMetadata = false;
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                         if (!nodesToUpdate.ContainsKey(documentId))
                         {
-                            nodesToUpdate.Add(documentId, ImmutableArray<SyntaxNode>.Empty);
+                            nodesToUpdate.Add(documentId, new List<SyntaxNode>());
                         }
 
                         AddUpdatableNodeToDictionaries(nodesToUpdate, documentId, nodeToUpdate, definitionToUse, symbolWithSemanticParameters);
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                     if (!nodesToUpdate.ContainsKey(documentId2))
                     {
-                        nodesToUpdate.Add(documentId2, ImmutableArray<SyntaxNode>.Empty);
+                        nodesToUpdate.Add(documentId2, new List<SyntaxNode>());
                     }
 
                     AddUpdatableNodeToDictionaries(nodesToUpdate, documentId2, nodeToUpdate2, definitionToUse, symbolWithSemanticParameters);
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
 #nullable restore
 
-        private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, ImmutableArray<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
+        private void AddUpdatableNodeToDictionaries(Dictionary<DocumentId, List<SyntaxNode>> nodesToUpdate, DocumentId documentId, SyntaxNode nodeToUpdate, Dictionary<SyntaxNode, ISymbol> definitionToUse, ISymbol symbolWithSemanticParameters)
         {
             nodesToUpdate[documentId].Add(nodeToUpdate);
             if (definitionToUse.TryGetValue(nodeToUpdate, out var sym) && sym != symbolWithSemanticParameters)
