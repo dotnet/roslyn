@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.Related(relation, DecimalTC.Normalize(value));
             }
 
-            //IValueSet<decimal> IValueSetFactory<decimal>.Related(BinaryOperatorKind relation, decimal value) => Related(relation, value);
-
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? NumericValueSet<decimal, DecimalTC>.AllValues : Related(relation, default(DecimalTC).FromConstantValue(value));
         }
