@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // except by boxing it as an object.
             using var _ = PooledDelegates.GetPooledFunction(func, arg, out var boundFunction);
 
-            var task = Task.Factory.StartNew(
-                boundFunction, cancellationToken, TaskCreationOptions.None, scheduler);
+            var task = Task.Factory.StartNew(boundFunction, cancellationToken, TaskCreationOptions.None, scheduler);
 
             return await task.ConfigureAwait(false);
         }
