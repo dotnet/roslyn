@@ -2190,6 +2190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitWithExpression(BoundWithExpression expr)
         {
+            // PROTOTYPE: This is wrong
             SetResultType(expr,
                 expr.WithMethod?.ReturnTypeWithAnnotations.ToTypeWithState()
                     ?? TypeWithState.Create(expr.Type, NullableFlowState.NotNull));

@@ -1095,5 +1095,228 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(9, 26)
             );
         }
+
+        [Fact]
+        public void WithExprPropertyInaccessibleGet()
+        {
+            var src = @"
+class C
+{
+    public int X { private get; set; }
+    public C With(int X) => null;
+}
+class D
+{
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { X = 0 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (12,22): error CS1061: 'C' does not contain a definition for 'X' and no accessible extension method 'X' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         c = c with { X = 0 };
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "X").WithArguments("C", "X").WithLocation(12, 22)
+            );
+        }
+
+        [Fact]
+        public void WithExprSideEffects1()
+        {
+            var src = @"
+using System;
+class C
+{
+    public int X { get; }
+    public int Y { get; }
+    public int Z { get; }
+    public C With(int X, int Y, int Z) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { Y = W(""Y""), X = W(""X"") };
+    }
+
+    public static int W(string s)
+    {
+        Console.WriteLine(s);
+        return 0;
+    }
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+Y
+X");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  4
+  .locals init (C V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""Y""
+  IL_000b:  call       ""int C.W(string)""
+  IL_0010:  stloc.1
+  IL_0011:  ldstr      ""X""
+  IL_0016:  call       ""int C.W(string)""
+  IL_001b:  stloc.2
+  IL_001c:  ldloc.0
+  IL_001d:  ldloc.2
+  IL_001e:  ldloc.1
+  IL_001f:  ldloc.0
+  IL_0020:  callvirt   ""int C.Z.get""
+  IL_0025:  callvirt   ""C C.With(int, int, int)""
+  IL_002a:  pop
+  IL_002b:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprSideEffects2()
+        {
+            var src = @"
+using System;
+class C
+{
+    public int X { get { Console.WriteLine(""X""); return 0; } }
+    public int Y { get; }
+    public int Z { get; }
+    public C With(int X, int Y, int Z) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { Z = W(""Z""), Y = W(""Y"") };
+    }
+
+    public static int W(string s)
+    {
+        Console.WriteLine(s);
+        return 0;
+    }
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+Z
+Y
+X");
+        }
+
+        [Fact]
+        public void WithExprConversions1()
+        {
+            var src = @"
+using System;
+data class C(long X)
+{
+    public C With(long X) => new C(X);
+    public static void Main()
+    {
+        var c = new C(0);
+        Console.WriteLine((c with { X = 11 }).X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: "11");
+        }
+
+        [Fact]
+        public void WithExprConversions2()
+        {
+            var src = @"
+using System;
+struct S
+{
+    private int _i;
+    public S(int i)
+    {
+        _i = i;
+    }
+    public static implicit operator long(S s) => s._i;
+}
+data class C(long X)
+{
+    public C With(long X) => new C(X);
+    public static void Main()
+    {
+        var c = new C(0);
+        var s = new S(11);
+        Console.WriteLine((c with { X = s }).X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: "11");
+        }
+
+        [Fact]
+        public void WithExprConversions3()
+        {
+            var src = @"
+using System;
+struct S
+{
+    private int _i;
+    public S(int i)
+    {
+        _i = i;
+    }
+    public static explicit operator long(S s) => s._i;
+}
+data class C(long X)
+{
+    public C With(long X) => new C(X);
+    public static void Main()
+    {
+        var c = new C(0);
+        var s = new S(11);
+        Console.WriteLine((c with { X = s }).X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: "11");
+        }
+
+        [Fact]
+        public void WithExprConversions4()
+        {
+            var src = @"
+using System;
+struct S
+{
+    private int _i;
+    public S(int i)
+    {
+        _i = i;
+    }
+    public static explicit operator long(S s) => s._i;
+}
+data class C(long X)
+{
+    public C With(long X) => new C(X);
+    public static void Main()
+    {
+        var c = new C(0);
+        var s = new S(11);
+        Console.WriteLine((c with { X = s }).X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: "11");
+        }
+ 
+        [Fact]
+        public void WithExprConversions5()
+        {
+            var src = @"
+using System;
+data class C(object X)
+{
+    public C With(object X) => new C(X);
+    public static void Main()
+    {
+        var c = new C(0);
+        Console.WriteLine((c with { X = ""abc"" }).X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: "abc");
+        }   
     }
 }

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindWithExpression(WithExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
+            // PROTOTYPE: this entire method is likely to change
             var receiver = BindRValueWithoutTargetType(syntax.Receiver, diagnostics);
             var receiverType = receiver.Type;
 
@@ -41,15 +42,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propName,
                         arity: 0,
                         basesBeingResolved: null,
-                        options: LookupOptions.MustBeInstance, // properties are not invocable - their accessors are
+                        options: LookupOptions.MustBeInstance,
                         originalBinder: this,
                         diagnose: false,
                         useSiteDiagnostics: ref useSiteDiagnostics);
                     if (lookupResult.IsSingleViable &&
-                        lookupResult.SingleSymbolOrDefault is var sym &&
-                        (sym.Kind == SymbolKind.Field || sym.Kind == SymbolKind.Property))
+                        lookupResult.SingleSymbolOrDefault is var sym)
                     {
-                        member = lookupResult.SingleSymbolOrDefault;
+                        switch (sym.Kind)
+                        {
+                            case SymbolKind.Property:
+                                var prop = (PropertySymbol)sym;
+                                var getter = prop.GetOwnOrInheritedGetMethod();
+                                if (IsAccessible(getter, ref useSiteDiagnostics, receiverType))
+                                {
+                                    goto case SymbolKind.Field;
+                                }
+                                break;
+
+                            case SymbolKind.Field:
+                                member = sym;
+                                break;
+                        }
                     }
 
                     if (member is null)
@@ -71,12 +85,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverType is null || receiverType.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Receiver.Location);
-                return BadExpression(syntax, receiver);
+                receiverType = CreateErrorType();
             }
 
             if (receiverType.IsErrorType())
             {
-                return BadExpression(syntax, receiver);
+                lookupResult.Free();
+                return new BoundWithExpression(
+                    syntax,
+                    receiver,
+                    withMethod: null,
+                    withMembers: ImmutableArray<Symbol?>.Empty,
+                    args.ToImmutableAndFree(),
+                    receiverType);
             }
 
             // PROTOTYPE: The receiver type must have a single declared instance method called 'With'

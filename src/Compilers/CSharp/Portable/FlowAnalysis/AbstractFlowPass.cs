@@ -2026,6 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitWithExpression(BoundWithExpression node)
         {
+            // PROTOTYPE: This is wrong
             return null;
         }
 
