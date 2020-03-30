@@ -2230,16 +2230,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Implementovat {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">Formátovací řetězec obsahuje neplatný zástupný symbol.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Neplatný formátovací řetězec</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Použít odvozený název člena</target>

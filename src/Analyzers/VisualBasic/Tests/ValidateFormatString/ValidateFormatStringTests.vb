@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ValidateFormatString
@@ -18,24 +19,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
         End Function
 
-        Private Function VBOptionOnCSharpOptionOff() As IDictionary(Of OptionKey2, Object)
-            Dim optionsSet = New Dictionary(Of OptionKey2, Object) From
-            {
-                {New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False},
-                {New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True}
-            }
-
-            Return optionsSet
+        Private Function VBOptionOnCSharpOptionOff() As IOptionsCollection
+            Return OptionsSet(
+                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False),
+                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True))
         End Function
 
-        Private Function VBOptionOffCSharpOptionOn() As IDictionary(Of OptionKey2, Object)
-            Dim optionsSet = New Dictionary(Of OptionKey2, Object) From
-            {
-                {New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True},
-                {New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False}
-            }
-
-            Return optionsSet
+        Private Function VBOptionOffCSharpOptionOn() As IOptionsCollection
+            Return OptionsSet(
+                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True),
+                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -81,7 +74,7 @@ End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
+        diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -95,7 +88,7 @@ End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
+        diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -111,7 +104,7 @@ End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
+        diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -135,7 +128,7 @@ End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
+        diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -291,28 +284,33 @@ End Class")
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function WarningTurnedOff() As Task
-            Await TestDiagnosticMissingAsync("
-Class C
-     Sub Main 
-        string.Format(""This {0} {1} {[||]2} works"", New Object  { ""test"", ""test2"", ""test3"" })
-    End Sub
-End Class", New TestParameters(options:=VBOptionOffCSharpOptionOn))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function WarningTurnedOn() As Task
-            Await TestDiagnosticInfoAsync("
+#If CODE_STYLE Then
+        <InlineData(False, True)>   ' Option has no effect on CodeStyle layer CI execution as it is not an editorconfig option.
+        <InlineData(True, True)>
+        <Theory, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function TestOption(optionOn As Boolean, expectDiagnostic As Boolean) As Task
+#Else
+        <InlineData(False, False)>
+        <InlineData(True, True)>
+        <Theory, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function TestOption(optionOn As Boolean, expectDiagnostic As Boolean) As Task
+#End If
+            Dim source = "
 Class C
      Sub Main 
         string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
     End Sub
-End Class",
-        options:=VBOptionOnCSharpOptionOff,
-        diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
+End Class"
+            Dim options = If(optionOn, VBOptionOnCSharpOptionOff(), VBOptionOffCSharpOptionOn())
+            If Not expectDiagnostic Then
+                Await TestDiagnosticMissingAsync(source, New TestParameters(options:=options))
+            Else
+                Await TestDiagnosticInfoAsync(source,
+                    options,
+                    diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
+                    diagnosticSeverity:=DiagnosticSeverity.Warning,
+                    diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
+            End If
         End Function
     End Class
 End Namespace

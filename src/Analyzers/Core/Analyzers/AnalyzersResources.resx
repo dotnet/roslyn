@@ -256,4 +256,10 @@
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
   </data>
+  <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
+    <value>Format string contains invalid placeholder</value>
+  </data>
+  <data name="Invalid_format_string" xml:space="preserve">
+    <value>Invalid format string</value>
+  </data>
 </root>
