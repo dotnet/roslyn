@@ -154,10 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
                 // if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
                 // (force space basically means remove all line breaks)
-                if (spaceOperation != null && spaceOperation.Value.Option == AdjustSpacesOption.ForceSpaces)
-                {
-                    return FormattingOperations.CreateAdjustSpacesOperation(spaceOperation.Value.Space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
+                if (spaceOperation is { Option: AdjustSpacesOption.ForceSpaces, Space: var space })
+                    return FormattingOperations.CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
 
                 return spaceOperation;
             }
