@@ -29,7 +29,7 @@
   
   <!-- CPS doesn't show these items by default, but we want to show them. -->
   <ItemGroup>
-    <None Include="@(VSCTCompile)" />
+    <AvailableItemName Include="VSCTCompile" />
   </ItemGroup>
 
   <Target Name="IncludeVsixLocalOnlyItems">
@@ -127,6 +127,10 @@
                              or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
         <EmbedInteropTypes>false</EmbedInteropTypes>
       </ReferencePath>
+
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.StaticReviews.Embeddable'">
+        <EmbedInteropTypes>true</EmbedInteropTypes>
+      </ReferencePath>      
     </ItemGroup>
   </Target>
 

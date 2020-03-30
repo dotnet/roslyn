@@ -733,9 +733,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
             protected override Assembly LoadFromPathImpl(string fullPath)
-            {
-                throw new FileNotFoundException(fullPath);
-            }
+                => throw new FileNotFoundException(fullPath);
         }
 
         private class MissingMetadataReference : PortableExecutableReference
@@ -746,19 +744,13 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             }
 
             protected override DocumentationProvider CreateDocumentationProvider()
-            {
-                return null;
-            }
+                => null;
 
             protected override Metadata GetMetadataImpl()
-            {
-                throw new FileNotFoundException("can't find");
-            }
+                => throw new FileNotFoundException("can't find");
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return this;
-            }
+                => this;
         }
 
         private class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
@@ -766,18 +758,14 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             private readonly ImmutableDictionary<string, string> _map;
 
             public MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string> map)
-            {
-                _map = map;
-            }
+                => _map = map;
 
             public void AddDependencyLocation(string fullPath)
             {
             }
 
             public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(_map[fullPath]);
-            }
+                => Assembly.LoadFrom(_map[fullPath]);
         }
 
         private class NotSerializableEncoding : Encoding

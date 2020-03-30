@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         internal static readonly SyntaxAnnotation ExpressionToInlineAnnotation = new SyntaxAnnotation();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public InlineTemporaryCodeRefactoringProvider()
         {
         }
@@ -158,9 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         }
 
         private static SyntaxAnnotation CreateConflictAnnotation()
-        {
-            return ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
-        }
+            => ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
 
         private async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
         {
@@ -261,14 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         }
 
         private static async Task<VariableDeclaratorSyntax> FindDeclaratorAsync(Document document, CancellationToken cancellationToken)
-        {
-            return await FindNodeWithAnnotationAsync<VariableDeclaratorSyntax>(document, DefinitionAnnotation, cancellationToken).ConfigureAwait(false);
-        }
+            => await FindNodeWithAnnotationAsync<VariableDeclaratorSyntax>(document, DefinitionAnnotation, cancellationToken).ConfigureAwait(false);
 
         private static async Task<ExpressionSyntax> FindInitializerAsync(Document document, CancellationToken cancellationToken)
-        {
-            return await FindNodeWithAnnotationAsync<ExpressionSyntax>(document, InitializerAnnotation, cancellationToken).ConfigureAwait(false);
-        }
+            => await FindNodeWithAnnotationAsync<ExpressionSyntax>(document, InitializerAnnotation, cancellationToken).ConfigureAwait(false);
 
         private static async Task<T> FindNodeWithAnnotationAsync<T>(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)
             where T : SyntaxNode
@@ -471,9 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         }
 
         private static SyntaxNode GetTopMostParentingExpression(ExpressionSyntax expression)
-        {
-            return expression.AncestorsAndSelf().OfType<ExpressionSyntax>().Last();
-        }
+            => expression.AncestorsAndSelf().OfType<ExpressionSyntax>().Last();
 
         private static async Task<Document> DetectSemanticConflictsAsync(
             Document inlinedDocument,

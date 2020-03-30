@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
-        {
-            return new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
-        }
+            => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
     }
 }

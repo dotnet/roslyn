@@ -27,40 +27,28 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public override object? GetOption(OptionKey optionKey)
-        {
-            return _backingOptionSet.GetOption(optionKey);
-        }
+            => _backingOptionSet.GetOption(optionKey);
 
         public T GetOption<T>(PerLanguageOption<T> option)
-        {
-            return _backingOptionSet.GetOption(option, _language);
-        }
+            => _backingOptionSet.GetOption(option, _language);
 
         internal T GetOption<T>(PerLanguageOption2<T> option)
-        {
-            return _backingOptionSet.GetOption(option, _language);
-        }
+            => _backingOptionSet.GetOption(option, _language);
 
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-        {
-            return new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
-        }
+            => new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
 
         /// <summary>
         /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
         /// </summary>
         public DocumentOptionSet WithChangedOption<T>(PerLanguageOption<T> option, T value)
-        {
-            return (DocumentOptionSet)WithChangedOption(option, _language, value);
-        }
+            => (DocumentOptionSet)WithChangedOption(option, _language, value);
 
         /// <summary>
         /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
         /// </summary>
         internal DocumentOptionSet WithChangedOption<T>(PerLanguageOption2<T> option, T value)
-        {
-            return (DocumentOptionSet)WithChangedOption(option, _language, value);
-        }
+            => (DocumentOptionSet)WithChangedOption(option, _language, value);
 
         private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
         {
@@ -69,8 +57,6 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-        {
-            return _backingOptionSet.GetChangedOptions(optionSet);
-        }
+            => _backingOptionSet.GetChangedOptions(optionSet);
     }
 }

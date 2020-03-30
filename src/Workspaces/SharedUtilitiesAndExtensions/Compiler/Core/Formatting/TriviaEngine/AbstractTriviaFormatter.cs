@@ -581,9 +581,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// one new line at the end of the trivia
         /// </summary>
         private int GetTrailingLinesAtEndOfTrivia1(LineColumn lineColumnAfterTrivia1)
-        {
-            return (lineColumnAfterTrivia1.Column == 0 && lineColumnAfterTrivia1.Line > 0) ? 1 : 0;
-        }
+            => (lineColumnAfterTrivia1.Column == 0 && lineColumnAfterTrivia1.Line > 0) ? 1 : 0;
 
         private void AddExtraLines(int linesBetweenTokens, ArrayBuilder<SyntaxTrivia> changes)
         {
@@ -790,9 +788,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private TextChange GetWhitespaceTextChange(LineColumn lineColumn, LineColumnDelta delta, TextSpan span)
-        {
-            return new TextChange(span, GetWhitespaceString(lineColumn, delta));
-        }
+            => new TextChange(span, GetWhitespaceString(lineColumn, delta));
 
         private void AddWhitespaceTextChange(LineColumn lineColumn, LineColumnDelta delta, TextSpan span, ArrayBuilder<TextChange> changes)
         {
@@ -816,9 +812,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         private bool IsWhitespaceOrEndOfLine(SyntaxTrivia trivia)
-        {
-            return IsWhitespace(trivia) || IsEndOfLine(trivia);
-        }
+            => IsWhitespace(trivia) || IsEndOfLine(trivia);
 
         private LineColumnDelta GetLineColumnOfWhitespace(
             LineColumn lineColumn,

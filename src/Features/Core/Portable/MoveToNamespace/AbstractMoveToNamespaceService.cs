@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public IMoveToNamespaceOptionsService OptionsService { get; }
 
         protected AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
-        {
-            OptionsService = moveToNamespaceOptionsService;
-        }
+            => OptionsService = moveToNamespaceOptionsService;
 
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,

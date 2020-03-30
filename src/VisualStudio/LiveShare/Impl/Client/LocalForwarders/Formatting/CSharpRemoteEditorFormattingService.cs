@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Editor;
 using System.Composition;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
 {
@@ -13,13 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     internal class CSharpLspEditorFormattingServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspEditorFormattingServiceFactory()
         {
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return languageServices.GetOriginalLanguageService<IEditorFormattingService>();
-        }
+            => languageServices.GetOriginalLanguageService<IEditorFormattingService>();
     }
 }

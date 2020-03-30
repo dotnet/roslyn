@@ -257,9 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
-                {
-                    return _workspace.CreateTrackingPoints(_documentId, items);
-                }
+                    => _workspace.CreateTrackingPoints(_documentId, items);
             }
 
             private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>, IWpfTableEntriesSnapshot

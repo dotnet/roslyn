@@ -15,9 +15,7 @@ namespace Roslyn.Test.Utilities
         private readonly string _text;
 
         public TestTextLoader(string text = "test")
-        {
-            _text = text;
-        }
+            => _text = text;
 
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => Task.FromResult(TextAndVersion.Create(SourceText.From(_text), VersionStamp.Create()));

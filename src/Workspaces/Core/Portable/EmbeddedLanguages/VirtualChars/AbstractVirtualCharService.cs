@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,13 +11,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
-        public abstract bool TryGetEscapeCharacter(char ch, out char escapedChar);
+        public abstract bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar);
 
         protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
-        protected static bool TryAddBraceEscape(
-            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+        /// <summary>
+        /// Returns <see langword="true"/> if the next two characters at <c>tokenText[index]</c> are <c>{{</c> or
+        /// <c>}}</c>.  If so, <paramref name="span"/> will contain the span of those two characters (based on <paramref
+        /// name="tokenText"/> starting at <paramref name="offset"/>).
+        /// </summary>
+        protected static bool IsLegalBraceEscape(
+            string tokenText, int index, int offset, out TextSpan span)
         {
             if (index + 1 < tokenText.Length)
             {
@@ -25,11 +31,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 if ((ch == '{' && next == '{') ||
                     (ch == '}' && next == '}'))
                 {
-                    result.Add(new VirtualChar(ch, new TextSpan(offset + index, 2)));
+                    span = new TextSpan(offset + index, 2);
                     return true;
                 }
             }
 
+            span = default;
             return false;
         }
 
@@ -138,26 +145,38 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                if (tokenText[index] == '"' &&
-                    tokenText[index + 1] == '"')
+                if (tokenText[index] == '"' && tokenText[index + 1] == '"')
                 {
-                    result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
+                    result.Add(VirtualChar.Create(new Rune('"'), new TextSpan(offset + index, 2)));
                     index += 2;
                 }
-                else if (escapeBraces &&
-                            (tokenText[index] == '{' || tokenText[index] == '}'))
+                else if (escapeBraces && IsOpenOrCloseBrace(tokenText[index]))
                 {
-                    if (!TryAddBraceEscape(result, tokenText, offset, index))
-                    {
+                    if (!IsLegalBraceEscape(tokenText, index, offset, out var span))
                         return default;
-                    }
 
+                    result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));
                     index += result.Last().Span.Length;
+                }
+                else if (Rune.TryCreate(tokenText[index], out var rune))
+                {
+                    // First, see if this was a single char that can become a rune (the common case).
+                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
+                    index += 1;
+                }
+                else if (index + 1 < tokenText.Length &&
+                         Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
+                {
+                    // Otherwise, see if we have a surrogate pair (less common, but possible).
+                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
+                    index += 2;
                 }
                 else
                 {
-                    result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
-                    index++;
+                    // Something that couldn't be encoded as runes.
+                    Debug.Assert(char.IsSurrogate(tokenText[index]));
+                    result.Add(VirtualChar.Create(tokenText[index], new TextSpan(offset + index, 1)));
+                    index += 1;
                 }
             }
 
@@ -165,8 +184,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
+        protected static bool IsOpenOrCloseBrace(char ch)
+            => ch == '{' || ch == '}';
+
         protected static VirtualCharSequence CreateVirtualCharSequence(
-            string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result)
+            string tokenText, int offset,
+            int startIndexInclusive, int endIndexExclusive,
+            ArrayBuilder<VirtualChar> result)
         {
             // Check if we actually needed to create any special virtual chars.
             // if not, we can avoid the entire array allocation and just wrap

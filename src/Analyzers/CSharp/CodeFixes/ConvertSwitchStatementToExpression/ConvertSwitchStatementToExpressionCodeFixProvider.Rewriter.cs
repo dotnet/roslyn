@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             private readonly bool _isAllThrowStatements;
 
             private Rewriter(bool isAllThrowStatements)
-            {
-                _isAllThrowStatements = isAllThrowStatements;
-            }
+                => _isAllThrowStatements = isAllThrowStatements;
 
             public static StatementSyntax Rewrite(
                 SwitchStatementSyntax switchStatement,
@@ -145,9 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             }
 
             public override ExpressionSyntax VisitSwitchStatement(SwitchStatementSyntax node)
-            {
-                return RewriteSwitchStatement(node);
-            }
+                => RewriteSwitchStatement(node);
 
             private static SwitchLabelSyntax SingleOrDefaultSwitchLabel(SyntaxList<SwitchLabelSyntax> labels)
             {
@@ -204,14 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             }
 
             public override ExpressionSyntax VisitExpressionStatement(ExpressionStatementSyntax node)
-            {
-                return Visit(node.Expression);
-            }
+                => Visit(node.Expression);
 
             public override ExpressionSyntax DefaultVisit(SyntaxNode node)
-            {
-                throw ExceptionUtilities.UnexpectedValue(node.Kind());
-            }
+                => throw ExceptionUtilities.UnexpectedValue(node.Kind());
         }
     }
 }

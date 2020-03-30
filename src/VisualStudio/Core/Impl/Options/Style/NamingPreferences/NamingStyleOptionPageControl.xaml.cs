@@ -66,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.AddItem(CreateItemWithNoSelections());
-        }
+            => _viewModel.AddItem(CreateItemWithNoSelections());
 
         private void ManageSpecificationsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -196,13 +194,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         }
 
         internal bool ContainsErrors()
-        {
-            return _viewModel.CodeStyleItems.Any(i => !i.IsComplete());
-        }
+            => _viewModel.CodeStyleItems.Any(i => !i.IsComplete());
 
         private void CodeStyleMembers_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            _viewModel.SelectedIndex = CodeStyleMembers.SelectedIndex;
-        }
+            => _viewModel.SelectedIndex = CodeStyleMembers.SelectedIndex;
     }
 }

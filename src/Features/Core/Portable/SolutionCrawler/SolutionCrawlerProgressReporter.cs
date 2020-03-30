@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             /// actually revert back to the paused state where no work proceeds.
             /// </summary>
             public IDisposable GetEvaluatingScope()
-            {
-                return new ProgressStatusRAII(this);
-            }
+                => new ProgressStatusRAII(this);
 
             private void ChangeProgressStatus(ref int referenceCount, ProgressStatus status)
             {
@@ -77,9 +75,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             private void OnProgressChanged(ProgressData progressData)
-            {
-                ProgressChanged?.Invoke(this, progressData);
-            }
+                => ProgressChanged?.Invoke(this, progressData);
 
             private struct ProgressStatusRAII : IDisposable
             {
@@ -92,9 +88,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public void Dispose()
-                {
-                    _owner.Pause();
-                }
+                    => _owner.Pause();
             }
         }
 

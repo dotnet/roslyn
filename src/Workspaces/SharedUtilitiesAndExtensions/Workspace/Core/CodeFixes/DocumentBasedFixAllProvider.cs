@@ -122,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext, Project project)
-        {
-            return GetSolutionFixesAsync(fixAllContext, project.Documents.ToImmutableArray());
-        }
+            => GetSolutionFixesAsync(fixAllContext, project.Documents.ToImmutableArray());
 
         private Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
         {

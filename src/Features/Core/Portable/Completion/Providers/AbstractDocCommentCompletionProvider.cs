@@ -111,9 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
-        {
-            return new[] { GetCDataItem(), GetCommentItem(), GetItem(InheritdocElementName), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
-        }
+            => new[] { GetCDataItem(), GetCommentItem(), GetItem(InheritdocElementName), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
 
         private CompletionItem GetCommentItem()
         {
@@ -240,19 +238,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected IEnumerable<CompletionItem> GetItemTagItems()
-        {
-            return new[] { TermElementName, DescriptionElementName }.Select(GetItem);
-        }
+            => new[] { TermElementName, DescriptionElementName }.Select(GetItem);
 
         protected IEnumerable<CompletionItem> GetListItems()
-        {
-            return s_listTagNames.Select(GetItem);
-        }
+            => s_listTagNames.Select(GetItem);
 
         protected IEnumerable<CompletionItem> GetListHeaderItems()
-        {
-            return s_listHeaderTagNames.Select(GetItem);
-        }
+            => s_listHeaderTagNames.Select(GetItem);
 
         private IEnumerable<CompletionItem> GetParameterItems<TSymbol>(ImmutableArray<TSymbol> symbols, TSyntax syntax, string tagName) where TSymbol : ISymbol
         {
@@ -262,14 +254,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private string FormatParameter(string kind, string name)
-        {
-            return $"{kind} {NameAttributeName}=\"{name}\"";
-        }
+            => $"{kind} {NameAttributeName}=\"{name}\"";
 
         private string FormatParameterRefTag(string kind, string name)
-        {
-            return $"<{kind} {NameAttributeName}=\"{name}\"/>";
-        }
+            => $"<{kind} {NameAttributeName}=\"{name}\"/>";
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = null, CancellationToken cancellationToken = default)
         {

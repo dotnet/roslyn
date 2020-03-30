@@ -64,14 +64,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         private void SolutionBuildingContextChanged(object sender, UIContextChangedEventArgs e)
-        {
-            ContextChanged(e.Activated, SolutionBuilding);
-        }
+            => ContextChanged(e.Activated, SolutionBuilding);
 
         private void SolutionOpeningContextChanged(object sender, UIContextChangedEventArgs e)
-        {
-            ContextChanged(e.Activated, SolutionOpening);
-        }
+            => ContextChanged(e.Activated, SolutionOpening);
 
         private void ContextChanged(bool active, string operation)
         {

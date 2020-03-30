@@ -6,6 +6,8 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
@@ -15,14 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private readonly IContentTypeRegistryService _contentTypeRegistry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveCommandContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-        {
-            _contentTypeRegistry = contentTypeRegistry;
-        }
+            => _contentTypeRegistry = contentTypeRegistry;
 
         public IContentType GetDefaultContentType()
-        {
-            return _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-        }
+            => _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
     }
 }

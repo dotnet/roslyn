@@ -26,7 +26,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             : base(languageServerProtocol, workspace, diagnosticService, diagnosticsClientName: null)
         {
         }
-
-        public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
     }
 }
