@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
-        [InlineData(@"""Id1""", null, null)]
+        [InlineData(@"{|RS2008:""Id1""|}", null, null)]
         [InlineData(@"""Id1""", "", null)]
         [InlineData(@"""Id1""", null, "")]
         [InlineData(@"{|RS2000:""Id1""|}", "", "")]
@@ -53,6 +53,50 @@ class MyAnalyzer : DiagnosticAnalyzer
 }}";
 
             await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public async Task TestCodeFixToEnableAnalyzerReleaseTracking()
+        {
+            var source = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new DiagnosticDescriptor({|RS2008:""Id1""|}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+    public override void Initialize(AnalysisContext context) { }
+}";
+
+            var test = new CSharpCodeFixVerifier<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix>.Test()
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.Default,
+                NumberOfIncrementalIterations = 2,
+                NumberOfFixAllIterations = 2,
+                TestState =
+                {
+                    Sources = { source },
+                },
+                FixedState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = {
+                        (DiagnosticDescriptorCreationAnalyzer.ShippedFileName,
+                            AnalyzerReleaseTrackingFix.ShippedAnalyzerReleaseTrackingFileDefaultContent),
+                        (DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                            AnalyzerReleaseTrackingFix.UnshippedAnalyzerReleaseTrackingFileDefaultContent + DefaultUnshippedHeader + "Id1 | Category1 | Warning | MyAnalyzer")
+                    }
+                },
+            };
+
+            test.SolutionTransforms.Add(DisableNonReleaseTrackingWarnings);
+            await test.RunAsync();
         }
 
         // Unshipped release with existing new rules table.

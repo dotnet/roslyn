@@ -4,6 +4,7 @@
     <TargetFrameworks>net472</TargetFrameworks>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <IsShipping>true</IsShipping>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Utilities\Compiler\Extensions\ReportDiagnosticExtensions.cs" Link="ReportDiagnosticExtensions.cs" />

@@ -494,4 +494,13 @@
   <data name="InvalidEntryInAnalyzerReleasesFileRuleDescription" xml:space="preserve">
     <value>Invalid entry in analyzer release file.</value>
   </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleTitle" xml:space="preserve">
+    <value>Enable analyzer release tracking</value>
+  </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleMessage" xml:space="preserve">
+    <value>Enable analyzer release tracking for the analyzer project containing rule '{0}'</value>
+  </data>
+  <data name="EnableAnalyzerReleaseTrackingRuleDescription" xml:space="preserve">
+    <value>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</value>
+  </data>
 </root>

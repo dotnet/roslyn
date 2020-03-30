@@ -1,5 +1,6 @@
 # Release tracking analyzer
 
+## Overview
 Release tracking analyzer enables third party analyzer packages to define analyzer releases with associated versions. Each release can track the following changes:
 1. Additions: Set of new analyzer rules that shipped for the first time in this release.
 2. Removals: Set of old analyzer rules that shipped in an earlier release, but are removed starting this release.
@@ -18,6 +19,7 @@ Release tracking analyzer provides the diagnostics and code fixes to enable anal
 1. Create these two files and pass mark them as additional files for their analyzer project (steps explained in next section), and
 2. Move all the entries from unshipped file to the shipped file after each release.
 
+## Example
 Consider the following example:
 
 1. `AnalyzerReleases.Shipped.md`:
@@ -112,16 +114,23 @@ CA6000  |  Design  |  Warning | CA6000_AnalyzerName
 ```
 
 
-# How to enable Release Tracking analyzer
+## How to enable Release Tracking analyzer
 
-The following files have to be added to any project referencing this package to enable analysis:
+The following additional files have to be added to any project referencing this package to enable analysis:
 
 - `AnalyzerReleases.Shipped.md`
 - `AnalyzerReleases.Unshipped.md`
 
+This can be done in couple of ways, which is detailed in below sections.
+
+### Using the light bulb
+
+![Enable analyzer release tracking](./enable-analyzer-release-tracking.png)
+
+### Manual steps
 This can be done by:
 
-- In Visual Studio, right click project in Solution Explorer, and choose "Add -> New Items", then select "Text File" in "Add new item" dialog.
+- In Visual Studio, right-click the project in Solution Explorer, choose "Add -> New Item...", and then select "Text File" in the "Add New Item" dialog. Then right-click each file, select "Properties", and choose "C# analyzer additional file" for "Build Action" in the "Properties" window.
 - Or, create these two files at the location you desire, then add the following text to your project/target file (replace file path with its actual location):
 
 ```xml

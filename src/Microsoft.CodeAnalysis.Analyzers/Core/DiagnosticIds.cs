@@ -44,5 +44,6 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string RemoveDuplicateEntriesForAnalyzerReleaseRuleId = "RS2005";
         public const string RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleId = "RS2006";
         public const string InvalidEntryInAnalyzerReleasesFileRuleId = "RS2007";
+        public const string EnableAnalyzerReleaseTrackingRuleId = "RS2008";
     }
 }
