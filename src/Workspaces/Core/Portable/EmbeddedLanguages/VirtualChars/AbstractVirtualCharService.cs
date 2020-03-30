@@ -4,7 +4,6 @@
 
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 

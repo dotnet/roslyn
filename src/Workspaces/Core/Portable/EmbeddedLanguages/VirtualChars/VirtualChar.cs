@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         #region string operations
 
         public override string ToString()
-            => Rune.ToString();
+            => SurrogateChar != 0 ? SurrogateChar.ToString() : Rune.ToString();
 
         public void AppendTo(StringBuilder builder)
         {
