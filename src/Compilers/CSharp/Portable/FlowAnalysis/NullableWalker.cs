@@ -4098,20 +4098,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T), SymbolEqualityComparer.ConsiderEverything.CompareKind);
         }
 
-        private class CompareExchangeInfo
+        private readonly struct CompareExchangeInfo
         {
-            public ImmutableArray<BoundExpression> arguments;
-            public ImmutableArray<VisitArgumentResult> results;
+            public readonly ImmutableArray<BoundExpression> Arguments;
+            public readonly ImmutableArray<VisitArgumentResult> Results;
 
             public CompareExchangeInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> results)
             {
-                this.arguments = arguments;
-                this.results = results;
+                Arguments = arguments;
+                Results = results;
             }
+
+            public bool IsDefault => Arguments.IsDefault || Results.IsDefault;
         }
 
-        private NullableFlowState LearnFromCompareExchangeMethod(CompareExchangeInfo compareExchangeInfo, NullableFlowState state)
+        private NullableFlowState LearnFromCompareExchangeMethod(in CompareExchangeInfo compareExchangeInfo, NullableFlowState state)
         {
+            Debug.Assert(!compareExchangeInfo.IsDefault);
+
             // In general a call to CompareExchange of the form:
             //
             // Interlocked.CompareExchange(ref location, value, comparand);
@@ -4123,15 +4127,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            var comparand = compareExchangeInfo.arguments[2];
-            var valueFlowState = compareExchangeInfo.results[1].RValueType.State;
+            var comparand = compareExchangeInfo.Arguments[2];
+            var valueFlowState = compareExchangeInfo.Results[1].RValueType.State;
             if (comparand.ConstantValue?.IsNull == true)
             {
                 // If location contained a null, then the write `location = value` definitely occurred
             }
             else
             {
-                var locationFlowState = compareExchangeInfo.results[0].RValueType.State;
+                var locationFlowState = compareExchangeInfo.Results[0].RValueType.State;
                 // A write may have occurred
                 valueFlowState = valueFlowState.Join(locationFlowState);
             }
@@ -4408,7 +4412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.HasErrors && !parametersOpt.IsDefault)
             {
                 // For CompareExchange method we need more context to determine the state of outbound assignment
-                CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results) : null;
+                CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results) : default;
 
                 // Visit outbound assignments and post-conditions
                 // Note: the state may get split in this step
@@ -4428,7 +4432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterAnnotations,
                         results[i],
                         notNullParametersBuilder,
-                        (compareExchangeInfo is object && i == 0) ? compareExchangeInfo : null);
+                        (!compareExchangeInfo.IsDefault && i == 0) ? compareExchangeInfo : default);
                 }
             }
             else
@@ -4812,9 +4816,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // assign from a fictional value from the parameter to the argument.
                         parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParametersOpt, parameter);
                         var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
-                        if (compareExchangeInfoOpt is object)
+                        if (!compareExchangeInfoOpt.IsDefault)
                         {
-                            var adjustedState = LearnFromCompareExchangeMethod(compareExchangeInfoOpt, parameterWithState.State);
+                            var adjustedState = LearnFromCompareExchangeMethod(in compareExchangeInfoOpt, parameterWithState.State);
                             parameterWithState = TypeWithState.Create(parameterType.Type, adjustedState);
                         }
 
@@ -7137,7 +7141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitArgumentOutboundAssignmentsAndPostConditions(
                             variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
                             new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
-                            notNullParametersOpt: null, compareExchangeInfoOpt: null);
+                            notNullParametersOpt: null, compareExchangeInfoOpt: default);
                     }
                 }
             }
