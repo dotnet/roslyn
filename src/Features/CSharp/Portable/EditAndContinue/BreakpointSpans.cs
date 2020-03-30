@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             position >= switchExpression.OpenBraceToken.Span.End &&
                             position <= switchExpression.CloseBraceToken.Span.Start:
                     // This can occur if the cursor is on a separator. Find the nearest switch arm.
-                    switchArm = switchExpression.Arms[switchExpression.Arms.LastIndexOf(arm => position >= arm.FullSpan.Start) is int found && found >= 0 ? found : 0];
+                    switchArm = switchExpression.Arms.LastOrDefault(arm => position >= arm.FullSpan.Start) ?? switchExpression.Arms.First();
                     return createSpanForSwitchArm(switchArm);
 
                 case SyntaxKind.WhenClause:
@@ -702,6 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// 2) The expression is a breakable expression inside a query expression.
         /// 3) The expression is in a for statement initializer, condition or incrementor.
         /// 4) The expression is a foreach initializer.
+        /// 5) The expression is the value of an arm of a switch expression
         /// </summary>
         private static bool IsBreakableExpression(ExpressionSyntax expression)
         {
