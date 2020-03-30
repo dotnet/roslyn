@@ -8,6 +8,7 @@
     -->
     <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
     <MicrosoftCodeAnalysisVersion>1.2.1</MicrosoftCodeAnalysisVersion>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
   </PropertyGroup>
 
   <Choose>

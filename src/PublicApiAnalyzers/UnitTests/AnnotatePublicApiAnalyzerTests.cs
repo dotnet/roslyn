@@ -306,6 +306,50 @@ C.C() -> void
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
         }
 
+        [Fact]
+        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNullable()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0036:Field|};
+}
+";
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+C
+C.C() -> void
+~C.Field -> string";
+            var unshippedText = @"";
+            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+C
+C.C() -> void
+C.Field -> string?";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+        }
+
+        [Fact]
+        public async Task LegacyAPIWithObliviousMarkerGetsAnnotatedAsNotNullable()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string {|RS0036:Field|};
+}
+";
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+C
+C.C() -> void
+~C.Field -> string";
+            var unshippedText = @"";
+            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+C
+C.C() -> void
+C.Field -> string!";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedShippedText, newUnshippedApiText: unshippedText);
+        }
+
         #endregion
     }
 }
