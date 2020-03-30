@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.CSharp.Analyzers.PreferNullLiteral,
@@ -35,6 +36,180 @@ class Type
 ";
 
             await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Fact]
+        public async Task UnresolvedType()
+        {
+            var source = @"
+class Type
+{
+    void Method()
+    {
+        {|CS0411:Method2|}(default);
+    }
+
+    void Method2<T>(T value)
+    {
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Theory]
+        [InlineData("default", "null")]
+        [InlineData("default(object)", "((object?)null)")]
+        [InlineData("default(object?)", "((object?)null)")]
+        public async Task ReturnFromNullableContext(string defaultValueExpression, string fixedExpression)
+        {
+            var source = $@"
+#nullable enable
+
+class Type
+{{
+    object Method()
+    {{
+        return [|{defaultValueExpression}|]!;
+    }}
+}}
+";
+            var fixedSource = $@"
+#nullable enable
+
+class Type
+{{
+    object Method()
+    {{
+        return {fixedExpression}!;
+    }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("[|default(object)|]!", "((object?)null)!")]
+        [InlineData("[|default(object?)|]!", "((object?)null)!")]
+        [InlineData("[|default(object)|]", "(object?)null")]
+        [InlineData("[|default(object?)|]", "(object?)null")]
+        public async Task InvocationInNullableContext(string defaultValueExpression, string fixedExpression)
+        {
+            var source = $@"
+#nullable enable
+
+class Type
+{{
+    void Method()
+    {{
+        Method2({defaultValueExpression});
+    }}
+
+    void Method2<T>(T value)
+    {{
+    }}
+}}
+";
+            var fixedSource = $@"
+#nullable enable
+
+class Type
+{{
+    void Method()
+    {{
+        Method2({fixedExpression});
+    }}
+
+    void Method2<T>(T value)
+    {{
+    }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task NullPointer()
+        {
+            var source = @"
+unsafe class Type
+{
+    void Method()
+    {
+        Method2([|default(int*)|]);
+    }
+
+    void Method2(int* value) { }
+    void Method2(byte* value) { }
+}
+";
+            var fixedSource = @"
+unsafe class Type
+{
+    void Method()
+    {
+        Method2((int*)null);
+    }
+
+    void Method2(int* value) { }
+    void Method2(byte* value) { }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Fact]
+        public async Task PointerInNullableContext()
+        {
+            var source = @"
+#nullable enable
+
+unsafe class Type
+{
+    void Method()
+    {
+        Method2([|default(int*)|]);
+    }
+
+    void Method2(int* value) { }
+    void Method2(byte* value) { }
+}
+";
+            var fixedSource = @"
+#nullable enable
+
+unsafe class Type
+{
+    void Method()
+    {
+        Method2((int*)null);
+    }
+
+    void Method2(int* value) { }
+    void Method2(byte* value) { }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
         }
 
         [Theory]

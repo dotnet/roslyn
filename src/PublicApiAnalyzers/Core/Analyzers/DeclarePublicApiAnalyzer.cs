@@ -51,6 +51,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        internal static readonly DiagnosticDescriptor ObliviousApiRule = new DiagnosticDescriptor(
+            id: DiagnosticIds.ObliviousPublicApiRuleId,
+            title: PublicApiAnalyzerResources.ObliviousPublicApiTitle,
+            messageFormat: PublicApiAnalyzerResources.ObliviousPublicApiMessage,
+            category: "ApiDesign",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: PublicApiAnalyzerResources.ObliviousPublicApiDescription,
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         internal static readonly DiagnosticDescriptor RemoveDeletedApiRule = new DiagnosticDescriptor(
             id: DiagnosticIds.RemoveDeletedApiRuleId,
             title: PublicApiAnalyzerResources.RemoveDeletedApiTitle,
@@ -167,7 +178,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 (SymbolDisplayMiscellaneousOptions)IncludeNonNullableReferenceTypeModifier);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(DeclareNewApiRule, AnnotateApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType,
+            ImmutableArray.Create(DeclareNewApiRule, AnnotateApiRule, ObliviousApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType,
                 PublicApiFilesInvalid, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
                 OverloadWithOptionalParametersShouldHaveMostParameters, ShouldAnnotateApiFilesRule);
 

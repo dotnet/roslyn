@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
-        <target state="needs-review-translation">Это место вызова направляет в функцию вызов с параметром "params". Это приводит к выделению массива, даже если для параметра params не передается никакое значение</target>
+        <target state="translated">Это место вызова направляет в функцию вызов с параметром "params". Это приводит к выделению массива.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

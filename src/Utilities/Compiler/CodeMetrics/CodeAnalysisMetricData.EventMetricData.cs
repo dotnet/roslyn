@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
 
@@ -28,18 +27,18 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal async static Task<EventMetricData> ComputeAsync(IEventSymbol @event, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+            internal async static Task<EventMetricData> ComputeAsync(IEventSymbol @event, CodeMetricsAnalysisContext context)
             {
-                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(semanticModelProvider.Compilation);
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
 
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = @event.DeclaringSyntaxReferences;
-                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, @event, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                long linesOfCode = await MetricsHelper.GetLinesOfCodeAsync(declarations, @event, context).ConfigureAwait(false);
                 (int cyclomaticComplexity, ComputationalComplexityMetrics computationalComplexityMetrics) =
-                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, @event, coupledTypesBuilder, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                    await MetricsHelper.ComputeCoupledTypesAndComplexityExcludingMemberDeclsAsync(declarations, @event, coupledTypesBuilder, context).ConfigureAwait(false);
                 MetricsHelper.AddCoupledNamedTypes(coupledTypesBuilder, wellKnownTypeProvider, @event.Type);
 
-                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(@event), semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(GetAccessors(@event), context).ConfigureAwait(false);
                 int maintainabilityIndexTotal = 0;
                 foreach (CodeAnalysisMetricData child in children)
                 {

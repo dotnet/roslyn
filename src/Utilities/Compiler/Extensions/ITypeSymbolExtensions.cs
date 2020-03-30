@@ -58,10 +58,11 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol type)
+        public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol type, Func<INamedTypeSymbol, bool>? takeWilePredicate = null)
         {
             INamedTypeSymbol current = type.BaseType;
-            while (current != null)
+            while (current != null &&
+                (takeWilePredicate == null || takeWilePredicate(current)))
             {
                 yield return current;
                 current = current.BaseType;
