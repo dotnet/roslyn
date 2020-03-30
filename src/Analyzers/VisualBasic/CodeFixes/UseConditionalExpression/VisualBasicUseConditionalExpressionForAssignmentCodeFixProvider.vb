@@ -5,16 +5,18 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicUseConditionalExpressionForAssignmentCodeRefactoringProvider
+    Friend Class VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
 
@@ -44,5 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Protected Overrides Function WrapWithBlockIfAppropriate(ifStatement As MultiLineIfBlockSyntax, statement As StatementSyntax) As StatementSyntax
             Return statement
         End Function
+
+#If CODE_STYLE Then
+        Protected Overrides Function GetSyntaxFormattingService() As ISyntaxFormattingService
+            Return VisualBasicSyntaxFormattingService.Instance
+        End Function
+#End If
     End Class
 End Namespace

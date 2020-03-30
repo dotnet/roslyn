@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Inherits AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer(Of MultiLineIfBlockSyntax)
 
         Public Sub New()
-            MyBase.New(New LocalizableResourceString(NameOf(VBFeaturesResources.If_statement_can_be_simplified), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources)))
+            MyBase.New(New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.If_statement_can_be_simplified), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
 
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts

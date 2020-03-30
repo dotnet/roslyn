@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer(),
-                new CSharpUseConditionalExpressionForReturnCodeRefactoringProvider());
+                new CSharpUseConditionalExpressionForReturnCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleReturn()

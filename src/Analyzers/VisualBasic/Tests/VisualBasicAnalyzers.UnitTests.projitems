@@ -30,6 +30,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForAssignmentTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForReturnTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckForReferenceEqualsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.vb" />

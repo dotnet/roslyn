@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
+using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -65,8 +65,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueReturn.ReturnedValue, falseReturn.ReturnedValue,
                 IsRef(trueReturn), cancellationToken).ConfigureAwait(false);
 
+            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var returnStatement = trueReturn.Kind == OperationKind.YieldReturn
-                ? (TStatementSyntax)editor.Generator.YieldReturnStatement(conditionalExpression)
+                ? (TStatementSyntax)generatorInternal.YieldReturnStatement(conditionalExpression)
                 : (TStatementSyntax)editor.Generator.ReturnStatement(conditionalExpression);
 
             returnStatement = returnStatement.WithTriviaFrom(ifStatement);
@@ -83,10 +84,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId)
+                : base(AnalyzersResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId)
             {
             }
         }
