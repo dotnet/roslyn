@@ -22,15 +22,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
         Private Function VBOptionOnCSharpOptionOff() As IOptionsCollection
             Return OptionsSet(
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False),
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True)
-            )
+                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True))
         End Function
 
         Private Function VBOptionOffCSharpOptionOn() As IOptionsCollection
             Return OptionsSet(
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True),
-                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False)
-            )
+                (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
