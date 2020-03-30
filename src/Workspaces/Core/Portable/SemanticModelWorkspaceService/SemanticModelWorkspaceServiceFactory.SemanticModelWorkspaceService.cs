@@ -153,14 +153,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             }
 
             private bool IsPrimaryBranch(Document document)
-            {
-                return document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
-            }
+                => document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
 
             private Task AddVersionCacheAsync(Project project, VersionStamp version, CancellationToken cancellationToken)
-            {
-                return UpdateVersionCacheAsync(project, version, primarySet: null, cancellationToken: cancellationToken);
-            }
+                => UpdateVersionCacheAsync(project, version, primarySet: null, cancellationToken: cancellationToken);
 
             private async Task UpdateVersionCacheAsync(Project project, VersionStamp version, CompilationSet? primarySet, CancellationToken cancellationToken)
             {
@@ -279,9 +275,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
             }
 
             private void OnDocumentClosed(object? sender, DocumentEventArgs e)
-            {
-                ClearVersionMap(e.Document.Project.Solution.Workspace, e.Document.Id);
-            }
+                => ClearVersionMap(e.Document.Project.Solution.Workspace, e.Document.Id);
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
             {

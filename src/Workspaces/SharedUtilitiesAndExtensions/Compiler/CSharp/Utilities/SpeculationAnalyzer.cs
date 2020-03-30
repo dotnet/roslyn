@@ -94,9 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override SemanticModel CreateSpeculativeSemanticModel(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel)
-        {
-            return CreateSpeculativeSemanticModelForNode(originalNode, nodeToSpeculate, semanticModel);
-        }
+            => CreateSpeculativeSemanticModelForNode(originalNode, nodeToSpeculate, semanticModel);
 
         public static SemanticModel CreateSpeculativeSemanticModelForNode(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel)
         {
@@ -603,39 +601,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool IsInNamespaceOrTypeContext(ExpressionSyntax node)
-        {
-            return SyntaxFacts.IsInNamespaceOrTypeContext(node);
-        }
+            => SyntaxFacts.IsInNamespaceOrTypeContext(node);
 
         protected override ExpressionSyntax GetForEachStatementExpression(CommonForEachStatementSyntax forEachStatement)
-        {
-            return forEachStatement.Expression;
-        }
+            => forEachStatement.Expression;
 
         protected override ExpressionSyntax GetThrowStatementExpression(ThrowStatementSyntax throwStatement)
-        {
-            return throwStatement.Expression;
-        }
+            => throwStatement.Expression;
 
         protected override bool IsForEachTypeInferred(CommonForEachStatementSyntax forEachStatement, SemanticModel semanticModel)
-        {
-            return forEachStatement.IsTypeInferred(semanticModel);
-        }
+            => forEachStatement.IsTypeInferred(semanticModel);
 
         protected override bool IsParenthesizedExpression(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.ParenthesizedExpression);
-        }
+            => node.IsKind(SyntaxKind.ParenthesizedExpression);
 
         protected override bool IsNamedArgument(ArgumentSyntax argument)
-        {
-            return argument.NameColon != null && !argument.NameColon.IsMissing;
-        }
+            => argument.NameColon != null && !argument.NameColon.IsMissing;
 
         protected override string GetNamedArgumentIdentifierValueText(ArgumentSyntax argument)
-        {
-            return argument.NameColon.Name.Identifier.ValueText;
-        }
+            => argument.NameColon.Name.Identifier.ValueText;
 
         private bool ReplacementBreaksBinaryExpression(BinaryExpressionSyntax binaryExpression, BinaryExpressionSyntax newBinaryExpression)
         {
@@ -660,9 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
-        {
-            return !TypesAreCompatible(interpolation.Expression, newInterpolation.Expression);
-        }
+            => !TypesAreCompatible(interpolation.Expression, newInterpolation.Expression);
 
         private bool ReplacementBreaksIsOrAsExpression(BinaryExpressionSyntax originalIsOrAsExpression, BinaryExpressionSyntax newIsOrAsExpression)
         {
@@ -715,9 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
-        {
-            return ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
-        }
+            => ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
@@ -771,9 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool IsReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType, targetType).IsReference;
-        }
+            => compilation.ClassifyConversion(sourceType, targetType).IsReference;
 
         protected override Conversion ClassifyConversion(SemanticModel model, ExpressionSyntax expression, ITypeSymbol targetType) =>
             model.ClassifyConversion(expression, targetType);

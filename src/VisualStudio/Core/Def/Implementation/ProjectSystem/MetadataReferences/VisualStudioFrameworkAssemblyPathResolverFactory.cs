@@ -32,9 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
-        }
+            => new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
 
         private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
         {

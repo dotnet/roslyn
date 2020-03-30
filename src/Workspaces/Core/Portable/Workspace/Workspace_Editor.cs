@@ -105,57 +105,43 @@ namespace Microsoft.CodeAnalysis
 
         [Obsolete("The isSolutionClosing parameter is now obsolete. Please call the overload without that parameter.")]
         protected void ClearOpenDocument(DocumentId documentId, bool isSolutionClosing)
-        {
-            ClearOpenDocument(documentId);
-        }
+            => ClearOpenDocument(documentId);
 
         /// <summary>
         /// Open the specified document in the host environment.
         /// </summary>
         public virtual void OpenDocument(DocumentId documentId, bool activate = true)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Close the specified document in the host environment.
         /// </summary>
         public virtual void CloseDocument(DocumentId documentId)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Open the specified additional document in the host environment.
         /// </summary>
         public virtual void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Close the specified additional document in the host environment.
         /// </summary>
         public virtual void CloseAdditionalDocument(DocumentId documentId)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Open the specified analyzer config document in the host environment.
         /// </summary>
         public virtual void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         /// <summary>
         /// Close the specified analyzer config document in the host environment.
         /// </summary>
         public virtual void CloseAnalyzerConfigDocument(DocumentId documentId)
-        {
-            this.CheckCanOpenDocuments();
-        }
+            => this.CheckCanOpenDocuments();
 
         protected void CheckCanOpenDocuments()
         {
@@ -310,9 +296,7 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="CanChangeActiveContextDocument"/> returns true.
         /// </summary>
         internal virtual void SetDocumentContext(DocumentId documentId)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         /// <summary>
         /// Call this method when a document has been made the active context in the host environment.

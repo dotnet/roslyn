@@ -93,9 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
 
         public Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Document document, TextSpan? filterSpan)
-        {
-            return GetDiagnosticsAsync(document.Project, document, filterSpan, getDocumentDiagnostics: true, getProjectDiagnostics: true);
-        }
+            => GetDiagnosticsAsync(document.Project, document, filterSpan, getDocumentDiagnostics: true, getProjectDiagnostics: true);
 
         public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project)
         {
@@ -113,14 +111,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
 
         public Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, TextSpan span)
-        {
-            return GetDiagnosticsAsync(document.Project, document, span, getDocumentDiagnostics: true, getProjectDiagnostics: false);
-        }
+            => GetDiagnosticsAsync(document.Project, document, span, getDocumentDiagnostics: true, getProjectDiagnostics: false);
 
         public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
-        {
-            return GetDiagnosticsAsync(project, document: null, filterSpan: null, getDocumentDiagnostics: false, getProjectDiagnostics: true);
-        }
+            => GetDiagnosticsAsync(project, document: null, filterSpan: null, getDocumentDiagnostics: false, getProjectDiagnostics: true);
 
         private async Task SynchronizeGlobalAssetToRemoteHostIfNeededAsync(Workspace workspace)
         {

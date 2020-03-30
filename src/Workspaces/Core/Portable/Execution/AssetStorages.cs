@@ -61,9 +61,7 @@ namespace Microsoft.CodeAnalysis.Execution
         }
 
         public Storage CreateStorage(SolutionState solutionState)
-        {
-            return new Storage(solutionState);
-        }
+            => new Storage(solutionState);
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {

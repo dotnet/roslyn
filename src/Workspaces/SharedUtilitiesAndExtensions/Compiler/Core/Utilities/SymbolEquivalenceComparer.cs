@@ -203,14 +203,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private static bool IsPartialMethodDefinitionPart(IMethodSymbol symbol)
-        {
-            return symbol.PartialImplementationPart != null;
-        }
+            => symbol.PartialImplementationPart != null;
 
         private static bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
-        {
-            return symbol.PartialDefinitionPart != null;
-        }
+            => symbol.PartialDefinitionPart != null;
 
         private static TypeKind GetTypeKind(INamedTypeSymbol x)
         {

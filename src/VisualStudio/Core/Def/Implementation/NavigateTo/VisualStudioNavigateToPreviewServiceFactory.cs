@@ -24,8 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton.Value;
-        }
+            => _singleton.Value;
     }
 }

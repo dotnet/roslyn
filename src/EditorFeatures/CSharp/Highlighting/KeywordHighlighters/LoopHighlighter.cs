@@ -56,19 +56,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         }
 
         private void HighlightForStatement(ForStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.ForKeyword.Span);
-        }
+            => spans.Add(statement.ForKeyword.Span);
 
         private void HighlightForEachStatement(CommonForEachStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.ForEachKeyword.Span);
-        }
+            => spans.Add(statement.ForEachKeyword.Span);
 
         private void HighlightWhileStatement(WhileStatementSyntax statement, List<TextSpan> spans)
-        {
-            spans.Add(statement.WhileKeyword.Span);
-        }
+            => spans.Add(statement.WhileKeyword.Span);
 
         /// <summary>
         /// Finds all breaks and continues that are a child of this node, and adds the appropriate spans to the spans list.

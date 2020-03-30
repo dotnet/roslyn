@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new NoCompilationLanguageService();
-        }
+            => new NoCompilationLanguageService();
 
         private class NoCompilationLanguageService : INoCompilationLanguageService
         {

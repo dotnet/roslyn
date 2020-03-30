@@ -155,21 +155,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterAtSignDollarSign()
-        {
-            TestNotHandled(@"@$[||]");
-        }
+            => TestNotHandled(@"@$[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFileAfterDollarSign()
-        {
-            TestNotHandled(@"$[||]");
-        }
+            => TestNotHandled(@"$[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestMissingInEmptyFile()
-        {
-            TestNotHandled(@"[||]");
-        }
+            => TestNotHandled(@"[||]");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
         public void TestAfterAtSignDollarSignEndOfFile()

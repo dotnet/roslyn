@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
         public static Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, CancellationToken cancellationToken)
-        {
-            return FormatAsync(syntaxTree, syntaxFormattingService, spans, options, rules: null, cancellationToken);
-        }
+            => FormatAsync(syntaxTree, syntaxFormattingService, spans, options, rules: null, cancellationToken);
 
         internal static async Task<SyntaxTree> FormatAsync(SyntaxTree syntaxTree, ISyntaxFormattingService syntaxFormattingService, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {

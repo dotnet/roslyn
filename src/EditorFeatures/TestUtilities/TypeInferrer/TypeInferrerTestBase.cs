@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
         protected readonly TWorkspaceFixture fixture;
 
         protected TypeInferrerTestBase(TWorkspaceFixture workspaceFixture)
-        {
-            this.fixture = workspaceFixture;
-        }
+            => this.fixture = workspaceFixture;
 
         public override void Dispose()
         {

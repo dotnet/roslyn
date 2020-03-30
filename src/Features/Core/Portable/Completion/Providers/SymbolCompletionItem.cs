@@ -55,9 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static CompletionItem AddSymbolEncoding(IReadOnlyList<ISymbol> symbols, CompletionItem item)
-        {
-            return item.AddProperty("Symbols", EncodeSymbols(symbols));
-        }
+            => item.AddProperty("Symbols", EncodeSymbols(symbols));
 
         public static CompletionItem AddSymbolInfo(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
@@ -88,14 +86,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static string EncodeSymbol(ISymbol symbol)
-        {
-            return SymbolKey.CreateString(symbol);
-        }
+            => SymbolKey.CreateString(symbol);
 
         public static bool HasSymbols(CompletionItem item)
-        {
-            return item.Properties.ContainsKey("Symbols");
-        }
+            => item.Properties.ContainsKey("Symbols");
 
         private static readonly char[] s_symbolSplitters = new[] { '|' };
 
@@ -149,9 +143,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static ISymbol DecodeSymbol(string id, Compilation compilation)
-        {
-            return SymbolKey.ResolveString(id, compilation).GetAnySymbol();
-        }
+            => SymbolKey.ResolveString(id, compilation).GetAnySymbol();
 
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, Document document, CancellationToken cancellationToken)

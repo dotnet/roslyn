@@ -13,17 +13,13 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         /// Convert a <see cref="TextSpan"/> instance to a <see cref="TextSpan"/>.
         /// </summary>
         public static Span ToSpan(this TextSpan textSpan)
-        {
-            return new Span(textSpan.Start, textSpan.Length);
-        }
+            => new Span(textSpan.Start, textSpan.Length);
 
         /// <summary>
         /// Add an offset to a <see cref="TextSpan"/>.
         /// </summary>
         public static TextSpan MoveTo(this TextSpan textSpan, int offset)
-        {
-            return new TextSpan(textSpan.Start + offset, textSpan.Length);
-        }
+            => new TextSpan(textSpan.Start + offset, textSpan.Length);
 
         /// <summary>
         /// Convert a <see cref="TextSpan"/> to a <see cref="SnapshotSpan"/> on the given <see cref="ITextSnapshot"/> instance

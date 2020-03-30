@@ -144,9 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
         }
 
         private bool CanEncapsulate(FieldDeclarationSyntax field)
-        {
-            return field.Parent is TypeDeclarationSyntax;
-        }
+            => field.Parent is TypeDeclarationSyntax;
 
         protected override Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field)
         {
@@ -183,9 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
         }
 
         private bool IsNew(IFieldSymbol field)
-        {
-            return field.DeclaringSyntaxReferences.Any(d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
-        }
+            => field.DeclaringSyntaxReferences.Any(d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
 
         private string GenerateFieldName(string correspondingPropertyName)
             => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);
@@ -197,8 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
         }
 
         internal override IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType)
-        {
-            return containingType.Constructors.SelectMany(c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()));
-        }
+            => containingType.Constructors.SelectMany(c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()));
     }
 }

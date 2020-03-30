@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly RegexEmbeddedLanguage _language;
 
         public RegexBraceMatcher(RegexEmbeddedLanguage language)
-        {
-            _language = language;
-        }
+            => _language = language;
 
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)

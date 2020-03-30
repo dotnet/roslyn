@@ -39,8 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private void OnDebugModeChanged()
-        {
-            this.LanguageDebugInfo.OnDebugModeChanged(_debugMode);
-        }
+            => this.LanguageDebugInfo.OnDebugModeChanged(_debugMode);
     }
 }

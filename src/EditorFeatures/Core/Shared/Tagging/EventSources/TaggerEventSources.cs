@@ -27,14 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public static ITaggerEventSource Compose(IEnumerable<ITaggerEventSource> eventSources)
-        {
-            return new CompositionEventSource(eventSources.ToArray());
-        }
+            => new CompositionEventSource(eventSources.ToArray());
 
         public static ITaggerEventSource OnCaretPositionChanged(ITextView textView, ITextBuffer subjectBuffer, TaggerDelay delay)
-        {
-            return new CaretPositionChangedEventSource(textView, subjectBuffer, delay);
-        }
+            => new CaretPositionChangedEventSource(textView, subjectBuffer, delay);
 
         public static ITaggerEventSource OnCompletionClosed(
             IIntellisenseSessionStack sessionStack,
@@ -60,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public static ITaggerEventSource OnDocumentActiveContextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
-        {
-            return new DocumentActiveContextChangedEventSource(subjectBuffer, delay);
-        }
+            => new DocumentActiveContextChangedEventSource(subjectBuffer, delay);
 
         public static ITaggerEventSource OnSelectionChanged(
             ITextView textView,
@@ -102,13 +96,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public static ITaggerEventSource OnWorkspaceRegistrationChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
-        {
-            return new WorkspaceRegistrationChangedEventSource(subjectBuffer, delay);
-        }
+            => new WorkspaceRegistrationChangedEventSource(subjectBuffer, delay);
 
         public static ITaggerEventSource OnViewSpanChanged(IThreadingContext threadingContext, ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
-        {
-            return new ViewSpanChangedEventSource(threadingContext, textView, textChangeDelay, scrollChangeDelay);
-        }
+            => new ViewSpanChangedEventSource(threadingContext, textView, textChangeDelay, scrollChangeDelay);
     }
 }

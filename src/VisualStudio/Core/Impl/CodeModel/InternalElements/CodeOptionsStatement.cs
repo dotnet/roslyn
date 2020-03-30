@@ -95,13 +95,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         protected override void SetName(string value)
-        {
-            throw Exceptions.ThrowENotImpl();
-        }
+            => throw Exceptions.ThrowENotImpl();
 
         public override void RenameSymbol(string newName)
-        {
-            throw Exceptions.ThrowENotImpl();
-        }
+            => throw Exceptions.ThrowENotImpl();
     }
 }

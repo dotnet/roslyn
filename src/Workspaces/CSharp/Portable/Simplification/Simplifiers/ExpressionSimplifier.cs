@@ -258,9 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             public int GetHashCode(ISymbol obj)
-            {
-                return obj?.OriginalDefinition.GetHashCode() ?? 0;
-            }
+                => obj?.OriginalDefinition.GetHashCode() ?? 0;
         }
 
         private static bool TrySimplify(

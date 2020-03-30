@@ -54,14 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MetadataAsSourceFileService()
-        {
-            _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
-        }
+            => _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
 
         private static string CreateMutexName(string directoryName)
-        {
-            return "MetadataAsSource-" + directoryName;
-        }
+            => "MetadataAsSource-" + directoryName;
 
         private string GetRootPathWithGuid_NoLock()
         {
@@ -483,9 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             }
 
             public override bool Equals(object? obj)
-            {
-                return Equals(obj as UniqueDocumentKey);
-            }
+                => Equals(obj as UniqueDocumentKey);
 
             public override int GetHashCode()
             {

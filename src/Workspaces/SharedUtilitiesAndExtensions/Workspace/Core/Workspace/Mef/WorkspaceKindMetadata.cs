@@ -15,13 +15,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         public IReadOnlyCollection<string> WorkspaceKinds { get; }
 
         public WorkspaceKindMetadata(IDictionary<string, object> data)
-        {
-            this.WorkspaceKinds = (string[])data.GetValueOrDefault(nameof(WorkspaceKinds));
-        }
+            => this.WorkspaceKinds = (string[])data.GetValueOrDefault(nameof(WorkspaceKinds));
 
         public WorkspaceKindMetadata(params string[] workspaceKinds)
-        {
-            this.WorkspaceKinds = workspaceKinds;
-        }
+            => this.WorkspaceKinds = workspaceKinds;
     }
 }

@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SignatureHelpClassifierProvider(ClassificationTypeMap typeMap)
-        {
-            _typeMap = typeMap;
-        }
+            => _typeMap = typeMap;
 
         public IClassifier GetClassifier(ITextBuffer subjectBuffer)
         {

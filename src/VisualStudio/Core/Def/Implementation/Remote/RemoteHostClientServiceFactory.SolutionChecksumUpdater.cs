@@ -76,9 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             protected override Task WaitAsync(CancellationToken cancellationToken)
-            {
-                return _event.WaitAsync(cancellationToken);
-            }
+                => _event.WaitAsync(cancellationToken);
 
             public override void Shutdown()
             {

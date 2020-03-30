@@ -84,13 +84,9 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public static bool operator ==(OptionKey left, OptionKey right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(OptionKey left, OptionKey right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

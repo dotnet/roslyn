@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            return new TypeInferrer(semanticModel, cancellationToken);
-        }
+            => new TypeInferrer(semanticModel, cancellationToken);
     }
 }

@@ -57,9 +57,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         internal void UpdateCurrentSolution(Solution solution)
-        {
-            _newSolution = solution;
-        }
+            => _newSolution = solution;
 
         internal async Task RemoveAllRenameAnnotationsAsync(IEnumerable<DocumentId> documentWithRenameAnnotations, AnnotationTable<RenameAnnotation> annotationSet, CancellationToken cancellationToken)
         {
@@ -139,9 +137,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         internal void AddRelatedLocation(RelatedLocation location)
-        {
-            _relatedLocations.Add(location);
-        }
+            => _relatedLocations.Add(location);
 
         internal void AddOrReplaceRelatedLocation(RelatedLocation location)
         {
@@ -183,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly ConflictResolution _conflictResolution;
 
             public TestAccessor(ConflictResolution conflictResolution)
-            {
-                _conflictResolution = conflictResolution;
-            }
+                => _conflictResolution = conflictResolution;
 
             internal TextSpan GetResolutionTextSpan(
                 TextSpan originalSpan,

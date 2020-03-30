@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public ISymbol GetAnySymbol(bool includeType)
-        {
-            return GetSymbols(includeType).FirstOrDefault();
-        }
+            => GetSymbols(includeType).FirstOrDefault();
     }
 }

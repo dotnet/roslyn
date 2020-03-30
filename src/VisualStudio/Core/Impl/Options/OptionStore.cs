@@ -68,23 +68,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public IEnumerable<IOption> GetRegisteredOptions()
-        {
-            return _registeredOptions;
-        }
+            => _registeredOptions;
 
         public void SetOptions(OptionSet optionSet)
-        {
-            _optionSet = optionSet;
-        }
+            => _optionSet = optionSet;
 
         public void SetRegisteredOptions(IEnumerable<IOption> registeredOptions)
-        {
-            _registeredOptions = registeredOptions;
-        }
+            => _registeredOptions = registeredOptions;
 
         private void OnOptionChanged(OptionKey optionKey)
-        {
-            OptionChanged?.Invoke(this, optionKey);
-        }
+            => OptionChanged?.Invoke(this, optionKey);
     }
 }
