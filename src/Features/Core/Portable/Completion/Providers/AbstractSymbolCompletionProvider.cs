@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var symbolGroup in symbolGroups)
             {
                 var arbitraryFirstContext = contextLookup(symbolGroup.First());
-                var item = this.CreateItem(
+                var item = CreateItem(
                     completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
                     symbolGroup.ToList(), arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
 
