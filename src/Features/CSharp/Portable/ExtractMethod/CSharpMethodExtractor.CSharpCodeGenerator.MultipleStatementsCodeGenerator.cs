@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
                     var firstSeen = false;
-                    var firstStatementUnderContainer = this.CSharpSelectionResult.GetFirstStatementUnderContainer();
-                    var lastStatementUnderContainer = this.CSharpSelectionResult.GetLastStatementUnderContainer();
+                    var firstStatementUnderContainer = CSharpSelectionResult.GetFirstStatementUnderContainer();
+                    var lastStatementUnderContainer = CSharpSelectionResult.GetLastStatementUnderContainer();
 
                     var list = new List<StatementSyntax>();
                     foreach (var statement in GetStatementsFromContainer(firstStatementUnderContainer.Parent))
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                     else
                     {
-                        var firstStatement = this.CSharpSelectionResult.GetFirstStatementUnderContainer();
+                        var firstStatement = CSharpSelectionResult.GetFirstStatementUnderContainer();
                         return firstStatement.Parent;
                     }
                 }
@@ -109,12 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
                 {
-                    return this.CSharpSelectionResult.GetFirstStatementUnderContainer();
+                    return CSharpSelectionResult.GetFirstStatementUnderContainer();
                 }
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                 {
-                    return this.CSharpSelectionResult.GetLastStatementUnderContainer();
+                    return CSharpSelectionResult.GetLastStatementUnderContainer();
                 }
 
                 protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(

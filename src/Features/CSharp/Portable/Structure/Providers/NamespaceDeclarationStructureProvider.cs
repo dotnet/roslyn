@@ -16,11 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             NamespaceDeclarationSyntax namespaceDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
             // add leading comments
-            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans, isMetadataAsSource);
 
             if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
                 !namespaceDeclaration.CloseBraceToken.IsMissing)
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // add any leading comments before the extern aliases and usings
             if (externsAndUsings.Count > 0)
             {
-                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans, isMetadataAsSource);
             }
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
@@ -54,11 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 CSharpStructureHelpers.CollectCommentBlockSpans(
                     namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
             }
-        }
-
-        protected override bool SupportedInWorkspaceKind(string kind)
-        {
-            return true;
         }
     }
 }

@@ -25,11 +25,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   CancellationToken As CancellationToken)
             Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(CancellationToken)
             If matchingDirective IsNot Nothing Then
-                Dim autoCollapse = options.GetOption(
+                ' Always auto-collapse regions for Metadata As Source. These generated files only have one region at the
+                ' top of the file, which has content like the following:
+                '
+                '   #Region "Assembly System.Runtime, Version=4.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
+                '   ' C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\3.1.0\ref\netcoreapp3.1\System.Runtime.dll
+                '   #End Region
+                '
+                ' For other files, auto-collapse regions based on the user option.
+                Dim autoCollapse = isMetadataAsSource OrElse options.GetOption(
                     BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic)
 
                 Dim span = TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End)
@@ -37,14 +46,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     span, span,
                     GetBannerText(regionDirective),
                     autoCollapse:=autoCollapse,
-                    isDefaultCollapsed:=True,
+                    isDefaultCollapsed:=Not isMetadataAsSource,
                     type:=BlockTypes.PreprocessorRegion,
                     isCollapsible:=True))
             End If
         End Sub
-
-        Protected Overrides Function SupportedInWorkspaceKind(kind As String) As Boolean
-            Return kind <> WorkspaceKind.MetadataAsSource
-        End Function
     End Class
 End Namespace

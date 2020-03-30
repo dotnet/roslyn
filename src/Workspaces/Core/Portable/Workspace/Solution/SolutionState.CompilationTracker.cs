@@ -244,9 +244,6 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation = compilation;
                 }
 
-                // first remove all project from the project and compilation.
-                inProgressProject = inProgressProject.WithProjectReferences(ImmutableArray.Create<ProjectReference>());
-
                 // Now add in back a consistent set of project references.  For project references
                 // try to get either a CompilationReference or a SkeletonReference. This ensures
                 // that the in-progress project only reports a reference to another project if it
@@ -294,7 +291,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                inProgressProject = inProgressProject.AddProjectReferences(newProjectReferences);
+                inProgressProject = inProgressProject.WithProjectReferences(newProjectReferences);
                 inProgressCompilation = UpdateCompilationWithNewReferencesAndRecordAssemblySymbols(inProgressCompilation, metadataReferences, metadataReferenceToProjectId);
 
                 SolutionLogger.CreatePartialProjectState();

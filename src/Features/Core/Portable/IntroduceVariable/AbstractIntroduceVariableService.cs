@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -205,7 +203,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 ? DetermineConstantInsertPosition(oldType, newType)
                 : DetermineFieldInsertPosition(oldType, newType);
 
-            var legalInsertionIndices = this.GetInsertionIndices(oldType, cancellationToken);
+            var legalInsertionIndices = GetInsertionIndices(oldType, cancellationToken);
             if (legalInsertionIndices[preferredInsertionIndex])
             {
                 return preferredInsertionIndex;
