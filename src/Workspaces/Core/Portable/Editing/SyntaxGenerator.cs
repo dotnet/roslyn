@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
-        internal abstract ISyntaxFacts SyntaxFacts { get; }
+        internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
         internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
@@ -1353,7 +1353,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that can be used to yield a value from an iterator method.
         /// </summary>
         /// <param name="expression">An expression that can be yielded.</param>
-        internal abstract SyntaxNode YieldReturnStatement(SyntaxNode expression);
+        internal SyntaxNode YieldReturnStatement(SyntaxNode expression)
+            => SyntaxGeneratorInternal.YieldReturnStatement(expression);
 
         /// <summary>
         /// Creates a statement that can be used to throw an exception.
@@ -1924,7 +1925,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode memberName);
 
-        internal abstract SyntaxNode RefExpression(SyntaxNode expression);
+        internal SyntaxNode RefExpression(SyntaxNode expression)
+            => SyntaxGeneratorInternal.RefExpression(expression);
 
         /// <summary>
         /// Creates a member access expression.
@@ -2140,7 +2142,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Wraps with parens.
         /// </summary>
-        internal abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
+        internal SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+            => SyntaxGeneratorInternal.AddParentheses(expression, includeElasticTrivia, addSimplifierAnnotation);
 
         /// <summary>
         /// Creates an nameof expression.
