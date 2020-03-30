@@ -5128,6 +5128,23 @@ class C
 }");
         }
 
+        [WorkItem(36631, "https://github.com/dotnet/roslyn/issues/36631")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestFormattableString7()
+        {
+            await TestMissingInRegularAndScriptAsync(
+            @"
+using System;
+
+class C
+{
+    private void goo()
+    {
+        object x = [|(IFormattable)$@""""|];
+    }
+}");
+        }
+
         [WorkItem(34326, "https://github.com/dotnet/roslyn/issues/34326")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task TestMissingOnInterfaceCallOnNonSealedClass()
