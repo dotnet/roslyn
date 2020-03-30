@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(request);
             Contract.ThrowIfTrue(string.IsNullOrEmpty(methodName), "Invalid method name");
 
-            var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName]?.Value;
+            var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
             return handler.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken);
@@ -78,8 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the location(s) of the implementations of the symbol.</returns>
-        public Task<object> FindImplementationsAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentImplementationName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.SumType<LSP.Location, LSP.Location[]>?> FindImplementationsAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SumType<LSP.Location, LSP.Location[]>?>(LSP.Methods.TextDocumentImplementationName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a format document request to format the entire document.
@@ -126,8 +128,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of commands representing code actions.</returns>
-        public Task<object[]> GetCodeActionsAsync(Solution solution, LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.CodeActionParams, object[]>(LSP.Methods.TextDocumentCodeActionName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.SumType<LSP.Command, LSP.CodeAction>[]> GetCodeActionsAsync(Solution solution, LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>(LSP.Methods.TextDocumentCodeActionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a completion request by returning the valid completions at the location.
@@ -138,8 +140,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of completions.</returns>
-        public Task<object> GetCompletionsAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.CompletionParams, object>(LSP.Methods.TextDocumentCompletionName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?> GetCompletionsAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CompletionParams, LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?>(LSP.Methods.TextDocumentCompletionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a document highlights request by returning the highlights for a given document location.
@@ -222,8 +224,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the location(s) of a given symbol.</returns>
-        public Task<object> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.SumType<LSP.Location, LSP.Location[]>?> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SumType<LSP.Location, LSP.Location[]>?>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a rename request by returning the workspace edit for a given symbol.

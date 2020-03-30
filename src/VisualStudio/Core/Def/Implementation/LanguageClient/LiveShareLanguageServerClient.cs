@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -22,6 +21,9 @@ using Nerdbank.Streams;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
+    // The C#_LSP and VB_LSP ILanguageClient should not activate on the host. When LiveShare mirrors the C#_LSP ILC to the guest, they will not copy the DisableUserExperience attribute,
+    // so guests will still use the C#_LSP ILC.
+    [DisableUserExperience(true)]
     [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
     [ContentType(ContentTypeNames.VBLspContentTypeName)]
     [Export(typeof(ILanguageClient))]
