@@ -1143,9 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         /// <param name="token">The token to get the complexification target for.</param>
         /// <returns></returns>
         public SyntaxNode GetExpansionTargetForLocation(SyntaxToken token)
-        {
-            return GetExpansionTarget(token);
-        }
+            => GetExpansionTarget(token);
 
         private static SyntaxNode GetExpansionTarget(SyntaxToken token)
         {

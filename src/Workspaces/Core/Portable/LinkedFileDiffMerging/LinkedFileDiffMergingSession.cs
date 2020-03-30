@@ -332,9 +332,7 @@ namespace Microsoft.CodeAnalysis
             public readonly List<LinkedFileGroupSessionInfo> LinkedFileGroups = new List<LinkedFileGroupSessionInfo>();
 
             public void LogLinkedFileResult(LinkedFileGroupSessionInfo info)
-            {
-                LinkedFileGroups.Add(info);
-            }
+                => LinkedFileGroups.Add(info);
         }
 
         internal class LinkedFileGroupSessionInfo

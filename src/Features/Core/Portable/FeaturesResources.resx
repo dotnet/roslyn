@@ -1198,9 +1198,6 @@ This version used in: {2}</value>
   <data name="Warning_colon_Collection_may_be_modified_during_iteration" xml:space="preserve">
     <value>Warning: Collection may be modified during iteration.</value>
   </data>
-  <data name="Convert_to_conditional_expression" xml:space="preserve">
-    <value>Convert to conditional expression</value>
-  </data>
   <data name="Convert_to_linq" xml:space="preserve">
     <value>Convert to LINQ</value>
   </data>

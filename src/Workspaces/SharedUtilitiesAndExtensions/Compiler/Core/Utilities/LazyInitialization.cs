@@ -13,9 +13,7 @@ namespace Roslyn.Utilities
     internal static class LazyInitialization
     {
         internal static T InterlockedStore<T>([NotNull]ref T? target, T value) where T : class
-        {
-            return Interlocked.CompareExchange(ref target, value, null) ?? value;
-        }
+            => Interlocked.CompareExchange(ref target, value, null) ?? value;
 
         /// <summary>
         /// Ensure that the given target value is initialized (not null) in a thread-safe manner.
@@ -26,9 +24,7 @@ namespace Roslyn.Utilities
         /// more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
         /// <returns>The target value.</returns>
         public static T EnsureInitialized<T>([NotNull]ref T? target, Func<T> valueFactory) where T : class
-        {
-            return Volatile.Read(ref target) ?? InterlockedStore(ref target, valueFactory());
-        }
+            => Volatile.Read(ref target) ?? InterlockedStore(ref target, valueFactory());
 
         /// <summary>
         /// Ensure that the given target value is initialized (not null) in a thread-safe manner.

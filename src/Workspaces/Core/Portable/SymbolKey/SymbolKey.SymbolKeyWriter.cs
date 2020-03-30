@@ -100,9 +100,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private void Initialize(CancellationToken cancellationToken)
-            {
-                CancellationToken = cancellationToken;
-            }
+                => CancellationToken = cancellationToken;
 
             public string CreateKey()
             {
@@ -117,9 +115,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private void WriteType(SymbolKeyType type)
-            {
-                _stringBuilder.Append((char)type);
-            }
+                => _stringBuilder.Append((char)type);
 
             private void EndKey()
             {
@@ -199,9 +195,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private void WriteSpace()
-            {
-                _stringBuilder.Append(' ');
-            }
+                => _stringBuilder.Append(' ');
 
             internal void WriteFormatVersion(int version)
                 => WriteIntegerRaw_DoNotCallDirectly(version);
@@ -216,9 +210,7 @@ namespace Microsoft.CodeAnalysis
                 => _stringBuilder.Append(value.ToString(CultureInfo.InvariantCulture));
 
             internal void WriteBoolean(bool value)
-            {
-                WriteInteger(value ? 1 : 0);
-            }
+                => WriteInteger(value ? 1 : 0);
 
             internal void WriteString(string value)
             {
@@ -274,29 +266,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             internal void WriteParameterTypesArray(ImmutableArray<IParameterSymbol> symbols)
-            {
-                WriteArray(symbols, _writeParameterType);
-            }
+                => WriteArray(symbols, _writeParameterType);
 
             internal void WriteStringArray(ImmutableArray<string> strings)
-            {
-                WriteArray(strings, _writeString);
-            }
+                => WriteArray(strings, _writeString);
 
             internal void WriteBooleanArray(ImmutableArray<bool> array)
-            {
-                WriteArray(array, _writeBoolean);
-            }
+                => WriteArray(array, _writeBoolean);
 
             internal void WriteLocationArray(ImmutableArray<Location> array)
-            {
-                WriteArray(array, _writeLocation);
-            }
+                => WriteArray(array, _writeLocation);
 
             internal void WriteRefKindArray(ImmutableArray<IParameterSymbol> values)
-            {
-                WriteArray(values, _writeRefKind);
-            }
+                => WriteArray(values, _writeRefKind);
 
             private void WriteArray<T, U>(ImmutableArray<T> array, Action<U> writeValue)
                 where T : U

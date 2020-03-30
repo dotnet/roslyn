@@ -2350,11 +2350,6 @@ This version used in: {2}</source>
         <target state="translated">Внимание! Коллекция может быть изменена во время итерации.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Преобразовать в условное выражение</target>
-        <note />
-      </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
         <target state="translated">обновление директив usage во вложенном элементе</target>

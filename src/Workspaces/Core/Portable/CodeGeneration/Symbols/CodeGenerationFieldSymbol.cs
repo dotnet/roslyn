@@ -50,14 +50,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override SymbolKind Kind => SymbolKind.Field;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitField(this);
-        }
+            => visitor.VisitField(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitField(this);
-        }
+            => visitor.VisitField(this);
 
         public bool IsConst
         {

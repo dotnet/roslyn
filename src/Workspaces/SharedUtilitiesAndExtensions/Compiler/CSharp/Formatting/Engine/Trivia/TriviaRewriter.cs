@@ -49,9 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public SyntaxNode Transform()
-        {
-            return Visit(_node);
-        }
+            => Visit(_node);
 
         private void PreprocessTriviaListMap(
             Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map,
@@ -214,8 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
-        {
-            return token.With(leadingTrivia, trailingTrivia);
-        }
+            => token.With(leadingTrivia, trailingTrivia);
     }
 }

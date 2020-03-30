@@ -183,14 +183,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         }
 
         private static string GetFixTitle(bool isAddSuppression)
-        {
-            return isAddSuppression ? ServicesVSResources.Suppress_diagnostics : ServicesVSResources.Remove_suppressions;
-        }
+            => isAddSuppression ? ServicesVSResources.Suppress_diagnostics : ServicesVSResources.Remove_suppressions;
 
         private static string GetWaitDialogMessage(bool isAddSuppression)
-        {
-            return isAddSuppression ? ServicesVSResources.Computing_suppressions_fix : ServicesVSResources.Computing_remove_suppressions_fix;
-        }
+            => isAddSuppression ? ServicesVSResources.Computing_suppressions_fix : ServicesVSResources.Computing_remove_suppressions_fix;
 
         private IEnumerable<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
         {

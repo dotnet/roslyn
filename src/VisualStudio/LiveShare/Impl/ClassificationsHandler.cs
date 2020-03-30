@@ -25,9 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class ClassificationsHandler : AbstractClassificationsHandler
     {
         protected override async Task AddClassificationsAsync(IClassificationService classificationService, Document document, TextSpan textSpan, List<ClassifiedSpan> spans, CancellationToken cancellationToken)
-        {
-            await classificationService.AddSemanticClassificationsAsync(document, textSpan, spans, cancellationToken).ConfigureAwait(false);
-        }
+            => await classificationService.AddSemanticClassificationsAsync(document, textSpan, spans, cancellationToken).ConfigureAwait(false);
     }
 
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.ClassificationsName)]

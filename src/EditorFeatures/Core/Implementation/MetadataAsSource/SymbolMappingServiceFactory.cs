@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new SymbolMappingService();
-        }
+            => new SymbolMappingService();
 
         private sealed class SymbolMappingService : ISymbolMappingService
         {

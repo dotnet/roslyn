@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class SolutionExtensions
     {
         public static void WriteTo(this IObjectWritable @object, ObjectWriter writer)
-        {
-            @object.WriteTo(writer);
-        }
+            => @object.WriteTo(writer);
     }
 }

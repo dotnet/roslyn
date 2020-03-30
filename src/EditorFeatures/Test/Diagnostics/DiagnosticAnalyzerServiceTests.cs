@@ -683,19 +683,13 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule);
 
             public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(s_syntaxRule, c.Tree.GetRoot().GetLocation())));
-            }
+                => context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(s_syntaxRule, c.Tree.GetRoot().GetLocation())));
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            {
-                return DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
-            }
+                => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
             public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options)
-            {
-                return true;
-            }
+                => true;
         }
 
         private class NoNameAnalyzer : DocumentDiagnosticAnalyzer
@@ -705,14 +699,10 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule);
 
             public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0))))));
-            }
+                => Task.FromResult(ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0))))));
 
             public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
-            }
+                => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
         }
 
         private class Priority20Analyzer : PriorityTestDocumentDiagnosticAnalyzer
@@ -743,9 +733,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         private class PriorityTestDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
         {
             protected PriorityTestDocumentDiagnosticAnalyzer(int priority)
-            {
-                Priority = priority;
-            }
+                => Priority = priority;
 
             public override int Priority { get; }
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
@@ -758,9 +746,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         private class PriorityTestProjectDiagnosticAnalyzer : ProjectDiagnosticAnalyzer
         {
             protected PriorityTestProjectDiagnosticAnalyzer(int priority)
-            {
-                Priority = priority;
-            }
+                => Priority = priority;
 
             public override int Priority { get; }
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
@@ -781,9 +767,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             }
 
             public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
-            }
+                => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
         }
 
         private class LeakProjectAnalyzer : ProjectDiagnosticAnalyzer
@@ -800,9 +784,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
 
             public NamedTypeAnalyzer(DiagnosticSeverity defaultSeverity = DiagnosticSeverity.Warning)
-            {
-                _supportedDiagnostics = ImmutableArray.Create(new DiagnosticDescriptor(DiagnosticId, "test", "test", "test", defaultSeverity, isEnabledByDefault: true));
-            }
+                => _supportedDiagnostics = ImmutableArray.Create(new DiagnosticDescriptor(DiagnosticId, "test", "test", "test", defaultSeverity, isEnabledByDefault: true));
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
 

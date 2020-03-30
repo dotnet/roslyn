@@ -47,6 +47,11 @@
         <target state="new">Changes to expression trees may result in behavior changes at runtime</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="new">Convert to conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="new">Expression value is never used</target>

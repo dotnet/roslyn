@@ -22,14 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTodoListTableWorkspaceEventListener(ITableManagerProvider tableManagerProvider)
-        {
-            _tableManagerProvider = tableManagerProvider;
-        }
+            => _tableManagerProvider = tableManagerProvider;
 
         public void StartListening(Workspace workspace, ITodoListProvider service)
-        {
-            new VisualStudioTodoListTable(workspace, service, _tableManagerProvider);
-        }
+            => new VisualStudioTodoListTable(workspace, service, _tableManagerProvider);
 
         internal class VisualStudioTodoListTable : VisualStudioBaseTodoListTable
         {

@@ -140,9 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                objectCreation.Type == node;
 
         public bool IsAttributeName(SyntaxNode node)
-        {
-            return SyntaxFacts.IsAttributeName(node);
-        }
+            => SyntaxFacts.IsAttributeName(node);
 
         public bool IsAnonymousFunction(SyntaxNode node)
         {
@@ -654,9 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsElementAccessExpression(SyntaxNode node)
-        {
-            return node.Kind() == SyntaxKind.ElementAccessExpression;
-        }
+            => node.Kind() == SyntaxKind.ElementAccessExpression;
 
         public SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false)
             => node.ConvertToSingleLine(useElasticTrivia);
@@ -956,9 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         private TextSpan GetBlockBodySpan(BlockSyntax body)
-        {
-            return TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
-        }
+            => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
         public int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node)
         {
@@ -1191,9 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsLeftSideOfDot(SyntaxNode node)
-        {
-            return (node as ExpressionSyntax).IsLeftSideOfDot();
-        }
+            => (node as ExpressionSyntax).IsLeftSideOfDot();
 
         public SyntaxNode GetRightSideOfDot(SyntaxNode node)
         {
@@ -1235,14 +1227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                node.IsParentKind(SyntaxKind.PreDecrementExpression);
 
         public bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node)
-        {
-            return IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
-        }
+            => IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
 
         public SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString)
-        {
-            return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
-        }
+            => ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
 
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
@@ -1337,9 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsDeclaration(SyntaxNode node)
-        {
-            return SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
-        }
+            => SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
 
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
@@ -1993,18 +1979,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         internal static bool ParentIsFieldDeclaration(SyntaxNode node)
-        {
-            return node?.Parent.IsKind(SyntaxKind.FieldDeclaration) ?? false;
-        }
+            => node?.Parent.IsKind(SyntaxKind.FieldDeclaration) ?? false;
 
         internal static bool ParentIsEventFieldDeclaration(SyntaxNode node)
-        {
-            return node?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) ?? false;
-        }
+            => node?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) ?? false;
 
         internal static bool ParentIsLocalDeclarationStatement(SyntaxNode node)
-        {
-            return node?.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ?? false;
-        }
+            => node?.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ?? false;
     }
 }

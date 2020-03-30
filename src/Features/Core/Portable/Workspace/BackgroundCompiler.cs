@@ -53,14 +53,10 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
-        {
-            Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
-        }
+            => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
         private void OnDocumentClosed(object sender, DocumentEventArgs args)
-        {
-            Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
-        }
+            => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
         {

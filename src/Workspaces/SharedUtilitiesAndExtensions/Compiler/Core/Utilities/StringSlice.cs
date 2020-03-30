@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         public char this[int index] => _underlyingString[_span.Start + index];
 
         public Enumerator GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
+            => new Enumerator(this);
 
         public override bool Equals(object obj) => Equals((StringSlice)obj);
 
@@ -93,14 +91,10 @@ namespace Microsoft.CodeAnalysis.Utilities
         public override int GetHashCode() => GetHashCodeOrdinal();
 
         internal int GetHashCodeOrdinal()
-        {
-            return Hash.GetFNVHashCode(this._underlyingString, this._span.Start, this._span.Length);
-        }
+            => Hash.GetFNVHashCode(this._underlyingString, this._span.Start, this._span.Length);
 
         internal int GetHashCodeOrdinalIgnoreCase()
-        {
-            return Hash.GetCaseInsensitiveFNVHashCode(this._underlyingString, this._span.Start, this._span.Length);
-        }
+            => Hash.GetCaseInsensitiveFNVHashCode(this._underlyingString, this._span.Start, this._span.Length);
 
         internal int CompareToOrdinal(StringSlice other)
         {

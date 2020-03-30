@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
-        internal abstract ISyntaxFacts SyntaxFacts { get; }
+        internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
         internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
@@ -47,25 +47,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Workspace workspace, string language)
-        {
-            return workspace.Services.GetLanguageServices(language).GetService<SyntaxGenerator>();
-        }
+            => workspace.Services.GetLanguageServices(language).GetService<SyntaxGenerator>();
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the document.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Document document)
-        {
-            return GetGenerator(document.Project);
-        }
+            => GetGenerator(document.Project);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the project.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Project project)
-        {
-            return project.LanguageServices.GetService<SyntaxGenerator>();
-        }
+            => project.LanguageServices.GetService<SyntaxGenerator>();
 
         #region Declarations
 
@@ -161,9 +155,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a method declaration matching an existing method symbol.
         /// </summary>
         public SyntaxNode MethodDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode> statements = null)
-        {
-            return MethodDeclaration(method, method.Name, statements);
-        }
+            => MethodDeclaration(method, method.Name, statements);
 
         internal SyntaxNode MethodDeclaration(IMethodSymbol method, string name, IEnumerable<SyntaxNode> statements = null)
         {
@@ -453,9 +445,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// This is equivalent to an implicit C# interface implementation (you can access it via the interface or directly via the named member.)
         /// </summary>
         public SyntaxNode AsPublicInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceType)
-        {
-            return this.AsPublicInterfaceImplementation(declaration, interfaceType, null);
-        }
+            => this.AsPublicInterfaceImplementation(declaration, interfaceType, null);
 
         /// <summary>
         /// Converts method, property and indexer declarations into public interface implementations.
@@ -468,9 +458,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// This is equivalent to a C# explicit interface implementation (you can declare it for access via the interface, but cannot call it directly).
         /// </summary>
         public SyntaxNode AsPrivateInterfaceImplementation(SyntaxNode declaration, SyntaxNode interfaceType)
-        {
-            return this.AsPrivateInterfaceImplementation(declaration, interfaceType, null);
-        }
+            => this.AsPrivateInterfaceImplementation(declaration, interfaceType, null);
 
         /// <summary>
         /// Converts method, property and indexer declarations into private interface implementations.
@@ -710,9 +698,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
         /// </summary>
         public SyntaxNode WithTypeParameters(SyntaxNode declaration, params string[] typeParameters)
-        {
-            return WithTypeParameters(declaration, (IEnumerable<string>)typeParameters);
-        }
+            => WithTypeParameters(declaration, (IEnumerable<string>)typeParameters);
 
         /// <summary>
         /// Adds a type constraint to a type parameter of a declaration.
@@ -723,17 +709,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds a type constraint to a type parameter of a declaration.
         /// </summary>
         public SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, params SyntaxNode[] types)
-        {
-            return WithTypeConstraint(declaration, typeParameterName, kinds, (IEnumerable<SyntaxNode>)types);
-        }
+            => WithTypeConstraint(declaration, typeParameterName, kinds, (IEnumerable<SyntaxNode>)types);
 
         /// <summary>
         /// Adds a type constraint to a type parameter of a declaration.
         /// </summary>
         public SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, params SyntaxNode[] types)
-        {
-            return WithTypeConstraint(declaration, typeParameterName, SpecialTypeConstraintKind.None, (IEnumerable<SyntaxNode>)types);
-        }
+            => WithTypeConstraint(declaration, typeParameterName, SpecialTypeConstraintKind.None, (IEnumerable<SyntaxNode>)types);
 
         /// <summary>
         /// Creates a namespace declaration.
@@ -748,9 +730,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="name">The name of the namespace.</param>
         /// <param name="declarations">Zero or more namespace or type declarations.</param>
         public SyntaxNode NamespaceDeclaration(SyntaxNode name, params SyntaxNode[] declarations)
-        {
-            return NamespaceDeclaration(name, (IEnumerable<SyntaxNode>)declarations);
-        }
+            => NamespaceDeclaration(name, (IEnumerable<SyntaxNode>)declarations);
 
         /// <summary>
         /// Creates a namespace declaration.
@@ -758,9 +738,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="name">The name of the namespace.</param>
         /// <param name="declarations">Zero or more namespace or type declarations.</param>
         public SyntaxNode NamespaceDeclaration(string name, IEnumerable<SyntaxNode> declarations)
-        {
-            return NamespaceDeclaration(DottedName(name), declarations);
-        }
+            => NamespaceDeclaration(DottedName(name), declarations);
 
         /// <summary>
         /// Creates a namespace declaration.
@@ -768,9 +746,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="name">The name of the namespace.</param>
         /// <param name="declarations">Zero or more namespace or type declarations.</param>
         public SyntaxNode NamespaceDeclaration(string name, params SyntaxNode[] declarations)
-        {
-            return NamespaceDeclaration(DottedName(name), (IEnumerable<SyntaxNode>)declarations);
-        }
+            => NamespaceDeclaration(DottedName(name), (IEnumerable<SyntaxNode>)declarations);
 
         /// <summary>
         /// Creates a compilation unit declaration
@@ -783,9 +759,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="declarations">Zero or more namespace import, namespace or type declarations.</param>
         public SyntaxNode CompilationUnit(params SyntaxNode[] declarations)
-        {
-            return CompilationUnit((IEnumerable<SyntaxNode>)declarations);
-        }
+            => CompilationUnit((IEnumerable<SyntaxNode>)declarations);
 
         /// <summary>
         /// Creates a namespace import declaration.
@@ -798,9 +772,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="name">The name of the namespace being imported.</param>
         public SyntaxNode NamespaceImportDeclaration(string name)
-        {
-            return NamespaceImportDeclaration(DottedName(name));
-        }
+            => NamespaceImportDeclaration(DottedName(name));
 
         /// <summary>
         /// Creates an alias import declaration.
@@ -826,17 +798,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an attribute.
         /// </summary>
         public SyntaxNode Attribute(string name, IEnumerable<SyntaxNode> attributeArguments = null)
-        {
-            return Attribute(DottedName(name), attributeArguments);
-        }
+            => Attribute(DottedName(name), attributeArguments);
 
         /// <summary>
         /// Creates an attribute.
         /// </summary>
         public SyntaxNode Attribute(string name, params SyntaxNode[] attributeArguments)
-        {
-            return Attribute(name, (IEnumerable<SyntaxNode>)attributeArguments);
-        }
+            => Attribute(name, (IEnumerable<SyntaxNode>)attributeArguments);
 
         /// <summary>
         /// Creates an attribute matching existing attribute data.
@@ -861,9 +829,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an attribute argument.
         /// </summary>
         public SyntaxNode AttributeArgument(SyntaxNode expression)
-        {
-            return AttributeArgument(null, expression);
-        }
+            => AttributeArgument(null, expression);
 
         /// <summary>
         /// Removes all attributes from the declaration, including return attributes.
@@ -912,25 +878,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a new instance of the declaration with the attributes inserted.
         /// </summary>
         public SyntaxNode InsertAttributes(SyntaxNode declaration, int index, params SyntaxNode[] attributes)
-        {
-            return this.InsertAttributes(declaration, index, (IEnumerable<SyntaxNode>)attributes);
-        }
+            => this.InsertAttributes(declaration, index, (IEnumerable<SyntaxNode>)attributes);
 
         /// <summary>
         /// Creates a new instance of a declaration with the specified attributes added.
         /// </summary>
         public SyntaxNode AddAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
-        {
-            return this.InsertAttributes(declaration, this.GetAttributes(declaration).Count, attributes);
-        }
+            => this.InsertAttributes(declaration, this.GetAttributes(declaration).Count, attributes);
 
         /// <summary>
         /// Creates a new instance of a declaration with the specified attributes added.
         /// </summary>
         public SyntaxNode AddAttributes(SyntaxNode declaration, params SyntaxNode[] attributes)
-        {
-            return AddAttributes(declaration, (IEnumerable<SyntaxNode>)attributes);
-        }
+            => AddAttributes(declaration, (IEnumerable<SyntaxNode>)attributes);
 
         /// <summary>
         /// Gets the return attributes from the declaration.
@@ -946,25 +906,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a new instance of a method declaration with return attributes inserted.
         /// </summary>
         public SyntaxNode InsertReturnAttributes(SyntaxNode declaration, int index, params SyntaxNode[] attributes)
-        {
-            return this.InsertReturnAttributes(declaration, index, (IEnumerable<SyntaxNode>)attributes);
-        }
+            => this.InsertReturnAttributes(declaration, index, (IEnumerable<SyntaxNode>)attributes);
 
         /// <summary>
         /// Creates a new instance of a method declaration with return attributes added.
         /// </summary>
         public SyntaxNode AddReturnAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
-        {
-            return this.InsertReturnAttributes(declaration, this.GetReturnAttributes(declaration).Count, attributes);
-        }
+            => this.InsertReturnAttributes(declaration, this.GetReturnAttributes(declaration).Count, attributes);
 
         /// <summary>
         /// Creates a new instance of a method declaration node with return attributes added.
         /// </summary>
         public SyntaxNode AddReturnAttributes(SyntaxNode declaration, params SyntaxNode[] attributes)
-        {
-            return AddReturnAttributes(declaration, (IEnumerable<SyntaxNode>)attributes);
-        }
+            => AddReturnAttributes(declaration, (IEnumerable<SyntaxNode>)attributes);
 
         /// <summary>
         /// Gets the attribute arguments for the attribute declaration.
@@ -980,9 +934,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a new instance of the attribute with the arguments added.
         /// </summary>
         public SyntaxNode AddAttributeArguments(SyntaxNode attributeDeclaration, IEnumerable<SyntaxNode> attributeArguments)
-        {
-            return this.InsertAttributeArguments(attributeDeclaration, this.GetAttributeArguments(attributeDeclaration).Count, attributeArguments);
-        }
+            => this.InsertAttributeArguments(attributeDeclaration, this.GetAttributeArguments(attributeDeclaration).Count, attributeArguments);
 
         /// <summary>
         /// Gets the namespace imports that are part of the declaration.
@@ -998,25 +950,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a new instance of the declaration with the namespace imports inserted.
         /// </summary>
         public SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, params SyntaxNode[] imports)
-        {
-            return this.InsertNamespaceImports(declaration, index, (IEnumerable<SyntaxNode>)imports);
-        }
+            => this.InsertNamespaceImports(declaration, index, (IEnumerable<SyntaxNode>)imports);
 
         /// <summary>
         /// Creates a new instance of the declaration with the namespace imports added.
         /// </summary>
         public SyntaxNode AddNamespaceImports(SyntaxNode declaration, IEnumerable<SyntaxNode> imports)
-        {
-            return this.InsertNamespaceImports(declaration, this.GetNamespaceImports(declaration).Count, imports);
-        }
+            => this.InsertNamespaceImports(declaration, this.GetNamespaceImports(declaration).Count, imports);
 
         /// <summary>
         /// Creates a new instance of the declaration with the namespace imports added.
         /// </summary>
         public SyntaxNode AddNamespaceImports(SyntaxNode declaration, params SyntaxNode[] imports)
-        {
-            return this.AddNamespaceImports(declaration, (IEnumerable<SyntaxNode>)imports);
-        }
+            => this.AddNamespaceImports(declaration, (IEnumerable<SyntaxNode>)imports);
 
         /// <summary>
         /// Gets the current members of the declaration.
@@ -1032,25 +978,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a new instance of the declaration with the members inserted.
         /// </summary>
         public SyntaxNode InsertMembers(SyntaxNode declaration, int index, params SyntaxNode[] members)
-        {
-            return this.InsertMembers(declaration, index, (IEnumerable<SyntaxNode>)members);
-        }
+            => this.InsertMembers(declaration, index, (IEnumerable<SyntaxNode>)members);
 
         /// <summary>
         /// Creates a new instance of the declaration with the members added to the end.
         /// </summary>
         public SyntaxNode AddMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
-        {
-            return this.InsertMembers(declaration, this.GetMembers(declaration).Count, members);
-        }
+            => this.InsertMembers(declaration, this.GetMembers(declaration).Count, members);
 
         /// <summary>
         /// Creates a new instance of the declaration with the members added to the end.
         /// </summary>
         public SyntaxNode AddMembers(SyntaxNode declaration, params SyntaxNode[] members)
-        {
-            return this.AddMembers(declaration, (IEnumerable<SyntaxNode>)members);
-        }
+            => this.AddMembers(declaration, (IEnumerable<SyntaxNode>)members);
 
         /// <summary>
         /// Gets the accessibility of the declaration.
@@ -1113,9 +1053,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds the parameters to the declaration.
         /// </summary>
         public SyntaxNode AddParameters(SyntaxNode declaration, IEnumerable<SyntaxNode> parameters)
-        {
-            return this.InsertParameters(declaration, this.GetParameters(declaration).Count, parameters);
-        }
+            => this.InsertParameters(declaration, this.GetParameters(declaration).Count, parameters);
 
         /// <summary>
         /// Gets the list of switch sections for the statement.
@@ -1131,9 +1069,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds the switch sections to the statement.
         /// </summary>
         public SyntaxNode AddSwitchSections(SyntaxNode switchStatement, IEnumerable<SyntaxNode> switchSections)
-        {
-            return this.InsertSwitchSections(switchStatement, this.GetSwitchSections(switchStatement).Count, switchSections);
-        }
+            => this.InsertSwitchSections(switchStatement, this.GetSwitchSections(switchStatement).Count, switchSections);
 
         /// <summary>
         /// Gets the expression associated with the declaration.
@@ -1164,9 +1100,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the accessor of the specified kind for the declaration.
         /// </summary>
         public SyntaxNode GetAccessor(SyntaxNode declaration, DeclarationKind kind)
-        {
-            return this.GetAccessors(declaration).FirstOrDefault(a => GetDeclarationKind(a) == kind);
-        }
+            => this.GetAccessors(declaration).FirstOrDefault(a => GetDeclarationKind(a) == kind);
 
         /// <summary>
         /// Creates a new instance of the declaration with the accessors inserted.
@@ -1177,9 +1111,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a new instance of the declaration with the accessors added.
         /// </summary>
         public SyntaxNode AddAccessors(SyntaxNode declaration, IEnumerable<SyntaxNode> accessors)
-        {
-            return this.InsertAccessors(declaration, this.GetAccessors(declaration).Count, accessors);
-        }
+            => this.InsertAccessors(declaration, this.GetAccessors(declaration).Count, accessors);
 
         /// <summary>
         /// Gets the statements for the body of the get-accessor of the declaration.
@@ -1243,33 +1175,25 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Inserts the new node before the specified declaration.
         /// </summary>
         public virtual SyntaxNode InsertNodesBefore(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
-        {
-            return root.InsertNodesBefore(node, newDeclarations);
-        }
+            => root.InsertNodesBefore(node, newDeclarations);
 
         /// <summary>
         /// Inserts the new node before the specified declaration.
         /// </summary>
         public virtual SyntaxNode InsertNodesAfter(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
-        {
-            return root.InsertNodesAfter(node, newDeclarations);
-        }
+            => root.InsertNodesAfter(node, newDeclarations);
 
         /// <summary>
         /// Removes the node from the sub tree starting at the root.
         /// </summary>
         public virtual SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
-        {
-            return RemoveNode(root, node, DefaultRemoveOptions);
-        }
+            => RemoveNode(root, node, DefaultRemoveOptions);
 
         /// <summary>
         /// Removes the node from the sub tree starting at the root.
         /// </summary>
         public virtual SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
-        {
-            return root.RemoveNode(node, options);
-        }
+            => root.RemoveNode(node, options);
 
         /// <summary>
         /// Removes all the declarations from the sub tree starting at the root.
@@ -1429,7 +1353,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that can be used to yield a value from an iterator method.
         /// </summary>
         /// <param name="expression">An expression that can be yielded.</param>
-        internal abstract SyntaxNode YieldReturnStatement(SyntaxNode expression);
+        internal SyntaxNode YieldReturnStatement(SyntaxNode expression)
+            => SyntaxGeneratorInternal.YieldReturnStatement(expression);
 
         /// <summary>
         /// Creates a statement that can be used to throw an exception.
@@ -1505,9 +1430,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="trueStatements">The statements that are executed if the condition is true.</param>
         /// <param name="falseStatement">A single statement that is executed if the condition is false.</param>
         public SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, SyntaxNode falseStatement)
-        {
-            return IfStatement(condition, trueStatements, new[] { falseStatement });
-        }
+            => IfStatement(condition, trueStatements, new[] { falseStatement });
 
         /// <summary>
         /// Creates a switch statement that branches to individual sections based on the value of the specified expression.
@@ -1518,9 +1441,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a switch statement that branches to individual sections based on the value of the specified expression.
         /// </summary>
         public SyntaxNode SwitchStatement(SyntaxNode expression, params SyntaxNode[] sections)
-        {
-            return SwitchStatement(expression, (IEnumerable<SyntaxNode>)sections);
-        }
+            => SwitchStatement(expression, (IEnumerable<SyntaxNode>)sections);
 
         /// <summary>
         /// Creates a section for a switch statement.
@@ -1533,9 +1454,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a single-case section a switch statement.
         /// </summary>
         public SyntaxNode SwitchSection(SyntaxNode caseExpression, IEnumerable<SyntaxNode> statements)
-        {
-            return SwitchSection(new[] { caseExpression }, statements);
-        }
+            => SwitchSection(new[] { caseExpression }, statements);
 
         /// <summary>
         /// Creates a default section for a switch statement.
@@ -1556,9 +1475,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that represents a using-block pattern.
         /// </summary>
         public SyntaxNode UsingStatement(string name, SyntaxNode expression, IEnumerable<SyntaxNode> statements)
-        {
-            return UsingStatement(null, name, expression, statements);
-        }
+            => UsingStatement(null, name, expression, statements);
 
         /// <summary>
         /// Creates a statement that represents a using-block pattern.
@@ -1579,17 +1496,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a try-catch or try-catch-finally statement.
         /// </summary>
         public SyntaxNode TryCatchStatement(IEnumerable<SyntaxNode> tryStatements, params SyntaxNode[] catchClauses)
-        {
-            return TryCatchStatement(tryStatements, (IEnumerable<SyntaxNode>)catchClauses);
-        }
+            => TryCatchStatement(tryStatements, (IEnumerable<SyntaxNode>)catchClauses);
 
         /// <summary>
         /// Creates a try-finally statement.
         /// </summary>
         public SyntaxNode TryFinallyStatement(IEnumerable<SyntaxNode> tryStatements, IEnumerable<SyntaxNode> finallyStatements)
-        {
-            return TryCatchStatement(tryStatements, catchClauses: null, finallyStatements: finallyStatements);
-        }
+            => TryCatchStatement(tryStatements, catchClauses: null, finallyStatements: finallyStatements);
 
         /// <summary>
         /// Creates a catch-clause.
@@ -1600,9 +1513,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a catch-clause.
         /// </summary>
         public SyntaxNode CatchClause(ITypeSymbol type, string identifier, IEnumerable<SyntaxNode> statements)
-        {
-            return CatchClause(TypeExpression(type), identifier, statements);
-        }
+            => CatchClause(TypeExpression(type), identifier, statements);
 
         /// <summary>
         /// Creates a while-loop statement
@@ -1658,25 +1569,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes the boolean false literal.
         /// </summary>
         public SyntaxNode FalseLiteralExpression()
-        {
-            return LiteralExpression(false);
-        }
+            => LiteralExpression(false);
 
         /// <summary>
         /// Creates an expression that denotes the boolean true literal.
         /// </summary>
         public SyntaxNode TrueLiteralExpression()
-        {
-            return LiteralExpression(true);
-        }
+            => LiteralExpression(true);
 
         /// <summary>
         /// Creates an expression that denotes the null literal.
         /// </summary>
         public SyntaxNode NullLiteralExpression()
-        {
-            return LiteralExpression(null);
-        }
+            => LiteralExpression(null);
 
         /// <summary>
         /// Creates an expression that denotes a simple identifier name.
@@ -1700,25 +1605,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a generic identifier name.
         /// </summary>
         public SyntaxNode GenericName(string identifier, IEnumerable<ITypeSymbol> typeArguments)
-        {
-            return GenericName(identifier, typeArguments.Select(ta => TypeExpression(ta)));
-        }
+            => GenericName(identifier, typeArguments.Select(ta => TypeExpression(ta)));
 
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.
         /// </summary>
         public SyntaxNode GenericName(string identifier, params SyntaxNode[] typeArguments)
-        {
-            return GenericName(identifier, (IEnumerable<SyntaxNode>)typeArguments);
-        }
+            => GenericName(identifier, (IEnumerable<SyntaxNode>)typeArguments);
 
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.
         /// </summary>
         public SyntaxNode GenericName(string identifier, params ITypeSymbol[] typeArguments)
-        {
-            return GenericName(identifier, (IEnumerable<ITypeSymbol>)typeArguments);
-        }
+            => GenericName(identifier, (IEnumerable<ITypeSymbol>)typeArguments);
 
         /// <summary>
         /// Converts an expression that ends in a name into an expression that ends in a generic name.
@@ -1731,9 +1630,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// If the expression already ends in a generic name, the new type arguments are used instead.
         /// </summary>
         public SyntaxNode WithTypeArguments(SyntaxNode expression, params SyntaxNode[] typeArguments)
-        {
-            return WithTypeArguments(expression, (IEnumerable<SyntaxNode>)typeArguments);
-        }
+            => WithTypeArguments(expression, (IEnumerable<SyntaxNode>)typeArguments);
 
         /// <summary>
         /// Creates a name expression that denotes a qualified name. 
@@ -2028,15 +1925,14 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode memberName);
 
-        internal abstract SyntaxNode RefExpression(SyntaxNode expression);
+        internal SyntaxNode RefExpression(SyntaxNode expression)
+            => SyntaxGeneratorInternal.RefExpression(expression);
 
         /// <summary>
         /// Creates a member access expression.
         /// </summary>
         public SyntaxNode MemberAccessExpression(SyntaxNode expression, string memberName)
-        {
-            return MemberAccessExpression(expression, IdentifierName(memberName));
-        }
+            => MemberAccessExpression(expression, IdentifierName(memberName));
 
         /// <summary>
         /// Creates an array creation expression for a single dimensional array of specified size.
@@ -2057,25 +1953,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an object creation expression.
         /// </summary>
         public SyntaxNode ObjectCreationExpression(ITypeSymbol type, IEnumerable<SyntaxNode> arguments)
-        {
-            return ObjectCreationExpression(TypeExpression(type), arguments);
-        }
+            => ObjectCreationExpression(TypeExpression(type), arguments);
 
         /// <summary>
         /// Creates an object creation expression.
         /// </summary>
         public SyntaxNode ObjectCreationExpression(SyntaxNode type, params SyntaxNode[] arguments)
-        {
-            return ObjectCreationExpression(type, (IEnumerable<SyntaxNode>)arguments);
-        }
+            => ObjectCreationExpression(type, (IEnumerable<SyntaxNode>)arguments);
 
         /// <summary>
         /// Creates an object creation expression.
         /// </summary>
         public SyntaxNode ObjectCreationExpression(ITypeSymbol type, params SyntaxNode[] arguments)
-        {
-            return ObjectCreationExpression(type, (IEnumerable<SyntaxNode>)arguments);
-        }
+            => ObjectCreationExpression(type, (IEnumerable<SyntaxNode>)arguments);
 
         /// <summary>
         /// Creates a invocation expression.
@@ -2086,9 +1976,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a invocation expression
         /// </summary>
         public SyntaxNode InvocationExpression(SyntaxNode expression, params SyntaxNode[] arguments)
-        {
-            return InvocationExpression(expression, (IEnumerable<SyntaxNode>)arguments);
-        }
+            => InvocationExpression(expression, (IEnumerable<SyntaxNode>)arguments);
 
         /// <summary>
         /// Creates a node that is an argument to an invocation.
@@ -2099,17 +1987,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a node that is an argument to an invocation.
         /// </summary>
         public SyntaxNode Argument(RefKind refKind, SyntaxNode expression)
-        {
-            return Argument(null, refKind, expression);
-        }
+            => Argument(null, refKind, expression);
 
         /// <summary>
         /// Creates a node that is an argument to an invocation.
         /// </summary>
         public SyntaxNode Argument(SyntaxNode expression)
-        {
-            return Argument(null, RefKind.None, expression);
-        }
+            => Argument(null, RefKind.None, expression);
 
         /// <summary>
         /// Creates an expression that access an element of an array or indexer.
@@ -2120,9 +2004,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that access an element of an array or indexer.
         /// </summary>
         public SyntaxNode ElementAccessExpression(SyntaxNode expression, params SyntaxNode[] arguments)
-        {
-            return ElementAccessExpression(expression, (IEnumerable<SyntaxNode>)arguments);
-        }
+            => ElementAccessExpression(expression, (IEnumerable<SyntaxNode>)arguments);
 
         /// <summary>
         /// Creates an expression that evaluates to the type at runtime.
@@ -2138,9 +2020,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes an is-type-check operation.
         /// </summary>
         public SyntaxNode IsTypeExpression(SyntaxNode expression, ITypeSymbol type)
-        {
-            return IsTypeExpression(expression, TypeExpression(type));
-        }
+            => IsTypeExpression(expression, TypeExpression(type));
 
         /// <summary>
         /// Creates an expression that denotes an try-cast operation.
@@ -2151,9 +2031,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes an try-cast operation.
         /// </summary>
         public SyntaxNode TryCastExpression(SyntaxNode expression, ITypeSymbol type)
-        {
-            return TryCastExpression(expression, TypeExpression(type));
-        }
+            => TryCastExpression(expression, TypeExpression(type));
 
         /// <summary>
         /// Creates an expression that denotes a type cast operation.
@@ -2164,9 +2042,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a type cast operation.
         /// </summary>
         public SyntaxNode CastExpression(ITypeSymbol type, SyntaxNode expression)
-        {
-            return CastExpression(TypeExpression(type), expression);
-        }
+            => CastExpression(TypeExpression(type), expression);
 
         /// <summary>
         /// Creates an expression that denotes a type conversion operation.
@@ -2177,9 +2053,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a type conversion operation.
         /// </summary>
         public SyntaxNode ConvertExpression(ITypeSymbol type, SyntaxNode expression)
-        {
-            return ConvertExpression(TypeExpression(type), expression);
-        }
+            => ConvertExpression(TypeExpression(type), expression);
 
         /// <summary>
         /// Creates an expression that declares a value returning lambda expression.
@@ -2205,65 +2079,49 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that declares a single parameter value returning lambda expression.
         /// </summary>
         public SyntaxNode ValueReturningLambdaExpression(string parameterName, SyntaxNode expression)
-        {
-            return ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
-        }
+            => ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
 
         /// <summary>
         /// Creates an expression that declares a single parameter void returning lambda expression.
         /// </summary>
         public SyntaxNode VoidReturningLambdaExpression(string parameterName, SyntaxNode expression)
-        {
-            return VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
-        }
+            => VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, expression);
 
         /// <summary>
         /// Creates an expression that declares a single parameter value returning lambda expression.
         /// </summary>
         public SyntaxNode ValueReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
-        {
-            return ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
-        }
+            => ValueReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
 
         /// <summary>
         /// Creates an expression that declares a single parameter void returning lambda expression.
         /// </summary>
         public SyntaxNode VoidReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
-        {
-            return VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
-        }
+            => VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
 
         /// <summary>
         /// Creates an expression that declares a zero parameter value returning lambda expression.
         /// </summary>
         public SyntaxNode ValueReturningLambdaExpression(SyntaxNode expression)
-        {
-            return ValueReturningLambdaExpression((IEnumerable<SyntaxNode>)null, expression);
-        }
+            => ValueReturningLambdaExpression((IEnumerable<SyntaxNode>)null, expression);
 
         /// <summary>
         /// Creates an expression that declares a zero parameter void returning lambda expression.
         /// </summary>
         public SyntaxNode VoidReturningLambdaExpression(SyntaxNode expression)
-        {
-            return VoidReturningLambdaExpression((IEnumerable<SyntaxNode>)null, expression);
-        }
+            => VoidReturningLambdaExpression((IEnumerable<SyntaxNode>)null, expression);
 
         /// <summary>
         /// Creates an expression that declares a zero parameter value returning lambda expression.
         /// </summary>
         public SyntaxNode ValueReturningLambdaExpression(IEnumerable<SyntaxNode> statements)
-        {
-            return ValueReturningLambdaExpression((IEnumerable<SyntaxNode>)null, statements);
-        }
+            => ValueReturningLambdaExpression((IEnumerable<SyntaxNode>)null, statements);
 
         /// <summary>
         /// Creates an expression that declares a zero parameter void returning lambda expression.
         /// </summary>
         public SyntaxNode VoidReturningLambdaExpression(IEnumerable<SyntaxNode> statements)
-        {
-            return VoidReturningLambdaExpression((IEnumerable<SyntaxNode>)null, statements);
-        }
+            => VoidReturningLambdaExpression((IEnumerable<SyntaxNode>)null, statements);
 
         /// <summary>
         /// Creates a lambda parameter.
@@ -2274,9 +2132,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a lambda parameter.
         /// </summary>
         public SyntaxNode LambdaParameter(string identifier, ITypeSymbol type)
-        {
-            return LambdaParameter(identifier, TypeExpression(type));
-        }
+            => LambdaParameter(identifier, TypeExpression(type));
 
         /// <summary>
         /// Creates an await expression.
@@ -2286,7 +2142,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Wraps with parens.
         /// </summary>
-        internal abstract SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true);
+        internal SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+            => SyntaxGeneratorInternal.AddParentheses(expression, includeElasticTrivia, addSimplifierAnnotation);
 
         /// <summary>
         /// Creates an nameof expression.

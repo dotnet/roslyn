@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
             context.RegisterCompilationStartAction(startContext =>
             {
-                var formatProviderType = startContext.Compilation.GetTypeByMetadataName(typeof(System.IFormatProvider).FullName);
+                var formatProviderType = startContext.Compilation.GetTypeByMetadataName(typeof(System.IFormatProvider).FullName!);
                 if (formatProviderType == null)
                 {
                     return;
@@ -343,8 +343,10 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             var formatStringWithEscapedBracketsChangedToSpaces = RemoveEscapedBrackets(formatString);
 
             var matches = s_extractPlaceholdersRegex.Matches(formatStringWithEscapedBracketsChangedToSpaces);
-            foreach (Match match in matches)
+            foreach (Match? match in matches)
             {
+                RoslynDebug.AssertNotNull(match);
+
                 var textInsideBrackets = match.Groups[1].Value;
 
                 if (!PlaceholderIndexIsValid(textInsideBrackets, numberOfPlaceholderArguments))

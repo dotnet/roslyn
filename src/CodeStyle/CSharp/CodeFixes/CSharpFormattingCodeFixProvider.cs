@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
         }
 
-        protected override ISyntaxFormattingService SyntaxFormattingService => new CSharpSyntaxFormattingService();
+        protected override ISyntaxFormattingService SyntaxFormattingService => CSharpSyntaxFormattingService.Instance;
     }
 }

@@ -36,8 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         }
 
         public override bool ShouldFormatSnippet(SnippetInfo snippetInfo)
-        {
-            return _formatTriggeringSnippets.Contains(snippetInfo.Shortcut);
-        }
+            => _formatTriggeringSnippets.Contains(snippetInfo.Shortcut);
     }
 }

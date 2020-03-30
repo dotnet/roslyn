@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
         }
 
         protected override bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia)
-        {
-            return trivia.IsRegularOrDocComment();
-        }
+            => trivia.IsRegularOrDocComment();
 
         protected override bool IsWithinNaturalLanguage(SyntaxToken token, int position)
         {

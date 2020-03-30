@@ -23,8 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public UIContext GetUIContext()
-        {
-            return UIContext.FromUIContextGuid(Guids.CSharpProjectExistsInWorkspaceUIContext);
-        }
+            => UIContext.FromUIContextGuid(Guids.CSharpProjectExistsInWorkspaceUIContext);
     }
 }

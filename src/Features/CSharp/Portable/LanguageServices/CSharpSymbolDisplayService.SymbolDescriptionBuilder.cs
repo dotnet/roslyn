@@ -34,13 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
 
             public SymbolDescriptionBuilder(
-                ISymbolDisplayService displayService,
                 SemanticModel semanticModel,
                 int position,
                 Workspace workspace,
                 IAnonymousTypeDisplayService anonymousTypeDisplayService,
                 CancellationToken cancellationToken)
-                : base(displayService, semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                : base(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
             {
             }
 

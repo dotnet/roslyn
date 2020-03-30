@@ -185,9 +185,7 @@ namespace Microsoft.CodeAnalysis
 
         [Obsolete("This member is obsolete. Use the RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer, DocumentId, DocumentId) overload instead.", error: true)]
         protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
         {
