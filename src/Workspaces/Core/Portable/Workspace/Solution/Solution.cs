@@ -1779,8 +1779,8 @@ namespace Microsoft.CodeAnalysis
             foreach (var projectReference in projectReferences)
             {
                 // Note: need to handle reference to a project that's not included in the solution:
-                var state = _state.GetProjectState(projectReference.ProjectId);
-                if (state != null && state.IsSubmission)
+                var referencedProjectState = _state.GetProjectState(projectReference.ProjectId);
+                if (referencedProjectState != null && referencedProjectState.IsSubmission)
                 {
                     if (!isSubmission)
                     {
