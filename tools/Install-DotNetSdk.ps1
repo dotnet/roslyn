@@ -83,25 +83,6 @@ Function Install-DotNet($Version, [switch]$Runtime) {
     }
 }
 
-if ($InstallLocality -eq 'machine') {
-    if ($IsMacOS -or $IsLinux) {
-        Write-Error "Installing the .NET Core SDK or runtime at a machine-wide location is only supported by this script on Windows."
-        exit 1
-    }
-
-    if ($PSCmdlet.ShouldProcess(".NET Core SDK $sdkVersion", "Install")) {
-        Install-DotNet -Version $sdkVersion
-    }
-
-    $runtimeVersions | Get-Unique |% {
-        if ($PSCmdlet.ShouldProcess(".NET Core runtime $_", "Install")) {
-            Install-DotNet -Version $_ -Runtime
-        }
-    }
-
-    return
-}
-
 $switches = @(
     '-Architecture','x64'
 )
@@ -110,7 +91,23 @@ $envVars = @{
     'DOTNET_SKIP_FIRST_TIME_EXPERIENCE' = 'true';
 }
 
-if ($InstallLocality -eq 'repo') {
+if ($InstallLocality -eq 'machine') {
+    if ($IsWindows) {
+        if ($PSCmdlet.ShouldProcess(".NET Core SDK $sdkVersion", "Install")) {
+            Install-DotNet -Version $sdkVersion
+        }
+
+        $runtimeVersions | Get-Unique |% {
+            if ($PSCmdlet.ShouldProcess(".NET Core runtime $_", "Install")) {
+                Install-DotNet -Version $_ -Runtime
+            }
+        }
+
+        return
+    } else {
+        $DotNetInstallDir = '/usr/share/dotnet'
+    }
+} elseif ($InstallLocality -eq 'repo') {
     $DotNetInstallDir = "$DotNetInstallScriptRoot/.dotnet"
 } elseif ($env:AGENT_TOOLSDIRECTORY) {
     $DotNetInstallDir = "$env:AGENT_TOOLSDIRECTORY/dotnet"
