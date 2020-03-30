@@ -102,6 +102,21 @@
         <target state="translated">建構函式可將無法繼承的基底類別變成為可繼承</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">所有公開成員都應使用可為 Null 或不可為 Null 的參考型別，但不可使用無警示的參考型別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">符號 '{0}' 使用了部分無警示的參考型別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">公開成員不應使用無警示類型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">符號 '{0}' 違反回溯相容性需求:「具有選擇性參數的公用 API，大部分的參數應位於其公用多載之間。」。請參閱 '{1}' 以取得詳細資料。</target>

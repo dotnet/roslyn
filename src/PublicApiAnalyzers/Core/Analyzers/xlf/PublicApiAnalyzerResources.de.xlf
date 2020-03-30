@@ -102,6 +102,21 @@
         <target state="translated">Konstruktor macht nicht vererbbare Basisklasse vererbbar</target>
         <note />
       </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Alle öffentlichen Member sollten Verweistypen, die NULL-Werte zulassen oder nicht zulassen, aber keine nicht beachtenden Verweistypen verwenden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">Das Symbol "{0}" verwendet einige nicht beachtende Verweistypen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">Öffentliche Member dürfen keine nicht beachtenden Typen verwenden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
         <target state="translated">Das Symbol "{0}" verletzt die backcompat-Anforderung: Öffentliche API mit optionalen Parametern muss die meisten Parameter bei den öffentlichen Überladungen aufweisen. Details finden Sie unter "{1}".</target>

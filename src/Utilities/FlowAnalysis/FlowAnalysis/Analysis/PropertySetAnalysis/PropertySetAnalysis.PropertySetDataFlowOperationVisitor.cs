@@ -531,7 +531,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <param name="visitedArguments">IArgumentOperations of this invocation.</param>
             /// <param name="evaluator">Target evaluator.</param>
             /// <param name="instance">The tracked argument.</param>
-            bool TryFindNonTrackedTypeHazardousUsageEvaluator(
+            private bool TryFindNonTrackedTypeHazardousUsageEvaluator(
                 IMethodSymbol method,
                 ImmutableArray<IArgumentOperation> visitedArguments,
                 [NotNullWhen(returnValue: true)] out HazardousUsageEvaluator? evaluator,
