@@ -1,3 +1,5 @@
+#!/usr/bin/pwsh
+
 <#
 .SYNOPSIS
 Installs dependencies required to build and test the projects in this repository.

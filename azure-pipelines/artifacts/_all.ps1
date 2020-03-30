@@ -1,3 +1,5 @@
+#!/usr/bin/pwsh
+
 # This script returns all the artifacts that should be collected after a build.
 #
 # Each powershell artifact is expressed as an object with these properties:

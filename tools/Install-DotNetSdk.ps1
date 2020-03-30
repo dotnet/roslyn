@@ -1,3 +1,5 @@
+#!/usr/bin/pwsh
+
 <#
 .SYNOPSIS
 Installs the .NET SDK specified in the global.json file at the root of this repository,
