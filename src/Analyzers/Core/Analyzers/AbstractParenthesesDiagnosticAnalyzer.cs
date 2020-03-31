@@ -4,8 +4,8 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Precedence;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses

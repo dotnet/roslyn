@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var generator = SyntaxGenerator.GetGenerator(document);
+            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
             foreach (var diagnostic in diagnostics)
             {
@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(FeaturesResources.Add_parentheses_for_clarity, createChangedDocument, equivalenceKey)
+                : base(AnalyzersResources.Add_parentheses_for_clarity, createChangedDocument, equivalenceKey)
             {
             }
         }

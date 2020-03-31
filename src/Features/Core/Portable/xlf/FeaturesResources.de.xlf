@@ -2310,26 +2310,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Indexer</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parentheses_can_be_removed">
-        <source>Parentheses can be removed</source>
-        <target state="translated">Klammern können entfernt werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_parentheses">
-        <source>Remove unnecessary parentheses</source>
-        <target state="translated">Unnötige Klammern entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_for_clarity">
-        <source>Add parentheses for clarity</source>
-        <target state="translated">Zur besseren Unterscheidung Klammern hinzufügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_should_be_added_for_clarity">
-        <source>Parentheses should be added for clarity</source>
-        <target state="translated">Zur besseren Unterscheidung sollten Klammern hinzugefügt werden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
         <target state="translated">Nicht eindeutiger Aliastyp "{0}"</target>

@@ -5,17 +5,17 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Precedence;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpAddRequiredParenthesesDiagnosticAnalyzer :
         AbstractAddRequiredParenthesesDiagnosticAnalyzer<
             ExpressionSyntax, ExpressionSyntax, SyntaxKind>

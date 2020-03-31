@@ -3,10 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
+Imports Microsoft.CodeAnalysis.VisualBasic.Precedence
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
+Imports Microsoft.CodeAnalysis.Precedence
+Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

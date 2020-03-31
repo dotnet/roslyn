@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         protected AbstractAddRequiredParenthesesDiagnosticAnalyzer(IPrecedenceService precedenceService)
             : base(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Add_parentheses_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Parentheses_should_be_added_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Add_parentheses_for_clarity), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_should_be_added_for_clarity), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _precedenceService = precedenceService;
         }

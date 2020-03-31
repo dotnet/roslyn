@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Host;
-
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.Precedence
 {
-    interface IPrecedenceService : ILanguageService
+    interface IPrecedenceService
     {
         /// <summary>
         /// Returns the precedence of the given expression, mapped down to one of the 
