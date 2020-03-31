@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis
         /// Override this method if you want to do additional work when a solution is cleared.
         /// Call the base method at the end of your method.
         /// </summary>
-        [Obsolete]
+        [Obsolete("Override Dispose instead")]
         protected virtual void ClearSolutionData()
         {
             // clear any open documents
@@ -412,7 +412,10 @@ namespace Microsoft.CodeAnalysis
         {
             if (!finalize)
             {
-                ClearSolutionInternal();
+                ClearOpenDocuments();
+
+                // remove solution snapshot without raising an event:
+                SetCurrentSolution(CreateSolution(CurrentSolution.Id));
 
                 Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
