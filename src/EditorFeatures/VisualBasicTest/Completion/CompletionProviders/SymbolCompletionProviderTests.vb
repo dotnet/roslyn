@@ -8116,6 +8116,7 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
         Public Async Function CompletionForLambdaWithOverloads2() As Task
             Dim source =
                 <code><![CDATA[
@@ -8141,6 +8142,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
         Public Async Function CompletionForLambdaWithOverloads3() As Task
             Dim source =
                 <code><![CDATA[

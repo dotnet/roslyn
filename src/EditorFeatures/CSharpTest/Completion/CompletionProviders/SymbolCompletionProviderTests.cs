@@ -10110,6 +10110,7 @@ namespace ClassLibrary1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")]
         public async Task CompletionForLambdaWithOverloads2()
         {
             var markup = @"
@@ -10131,6 +10132,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")]
         public async Task CompletionForLambdaWithOverloads3()
         {
             var markup = @"
