@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -94,29 +95,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<SymbolInformation>> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
-            // When progress reporting is supported, report incrementally per project and return an empty result at the end.
-            // Otherwise aggregate and return the results for all projects at the end.
-            if (args.Progress != null)
-            {
-                var tasks = solution.Projects.Select(p => SearchProjectAndReportSymbolsAsync(p, args, cancellationToken));
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-                return ImmutableArray<SymbolInformation>.Empty;
-            }
-            else
-            {
-                var tasks = solution.Projects.Select(p => SearchProjectAsync(p, args.Query, cancellationToken));
-                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-                return results.SelectMany(a => a).ToImmutableArray();
-            }
+            Contract.ThrowIfNull(args.Progress);
+
+            var tasks = solution.Projects.SelectMany(p => p.Documents).Select(d => SearchDocumentAndReportSymbolsAsync(d, args, cancellationToken));
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            return ImmutableArray<SymbolInformation>.Empty;
         }
 
-        private static async Task<ImmutableArray<SymbolInformation>> SearchProjectAsync(Project project, string query, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<SymbolInformation>> SearchDocumentAsync(Document document, string query, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var results = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                project,
-                ImmutableArray<Document>.Empty,
+            var results = await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                document,
                 query,
                 s_supportedKinds,
                 cancellationToken).ConfigureAwait(false);
@@ -125,12 +116,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Search the project and report the results back using <see cref="IProgress{T}"/>
+        /// Search the document and report the results back using <see cref="IProgress{T}"/>
         /// <see cref="IProgress{T}.Report(T)"/> implementation for symbol search is threadsafe.
         /// </summary>
-        private static async Task SearchProjectAndReportSymbolsAsync(Project project, WorkspaceSymbolParams args, CancellationToken cancellationToken)
+        private static async Task SearchDocumentAndReportSymbolsAsync(Document document, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
-            var convertedResults = await SearchProjectAsync(project, args.Query, cancellationToken).ConfigureAwait(false);
+            var convertedResults = await SearchDocumentAsync(document, args.Query, cancellationToken).ConfigureAwait(false);
             args.Progress.Report(convertedResults.ToArray());
         }
 
