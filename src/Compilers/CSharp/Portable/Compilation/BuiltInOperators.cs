@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetSimpleBuiltInOperators(UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
+        internal void GetSimpleBuiltInOperators(UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators, bool skipNativeIntegerOperators)
         {
             if (_builtInUnaryOperators == null)
             {
@@ -236,7 +236,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Interlocked.CompareExchange(ref _builtInUnaryOperators, allOperators, null);
             }
 
-            operators.AddRange(_builtInUnaryOperators[kind.OperatorIndex()]);
+            foreach (var op in _builtInUnaryOperators[kind.OperatorIndex()])
+            {
+                if (skipNativeIntegerOperators)
+                {
+                    switch (op.Kind.OperandTypes())
+                    {
+                        case UnaryOperatorKind.NInt:
+                        case UnaryOperatorKind.NUInt:
+                            continue;
+                    }
+                }
+                operators.Add(op);
+            }
         }
 
         internal UnaryOperatorSignature GetSignature(UnaryOperatorKind kind)
@@ -283,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetSimpleBuiltInOperators(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
+        internal void GetSimpleBuiltInOperators(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators, bool skipNativeIntegerOperators)
         {
             if (_builtInOperators == null)
             {
@@ -639,7 +651,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Interlocked.CompareExchange(ref _builtInOperators, allOperators, null);
             }
 
-            operators.AddRange(_builtInOperators[kind.IsLogical() ? 1 : 0][kind.OperatorIndex()]);
+            foreach (var op in _builtInOperators[kind.IsLogical() ? 1 : 0][kind.OperatorIndex()])
+            {
+                if (skipNativeIntegerOperators)
+                {
+                    switch (op.Kind.OperandTypes())
+                    {
+                        case BinaryOperatorKind.NInt:
+                        case BinaryOperatorKind.NUInt:
+                            continue;
+                    }
+                }
+                operators.Add(op);
+            }
         }
 
         internal BinaryOperatorSignature GetSignature(BinaryOperatorKind kind)

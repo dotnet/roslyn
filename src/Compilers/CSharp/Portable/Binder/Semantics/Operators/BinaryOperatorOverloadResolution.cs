@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators);
+                this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !left.Type.IsNativeIntegerOrNullableNativeIntegerType() && !right.Type.IsNativeIntegerOrNullableNativeIntegerType());
 
                 // SPEC 7.3.4: For predefined enum and delegate operators, the only operators
                 // considered are those defined by an enum or delegate type that is the binding

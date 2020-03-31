@@ -825,6 +825,27 @@ public class C : IA, IB<(nint, object, nuint[], object, nint, object, (nint, nui
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void EmitAttribute_PartialMethods()
+        {
+            var source =
+@"public partial class Program
+{
+    static partial void F1(System.IntPtr x);
+    static partial void F2(System.UIntPtr x) { }
+    static partial void F1(nint x) { }
+    static partial void F2(nuint x);
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.RegularPreview);
+            // Ideally should not emit any attributes. Compare with dynamic/object.
+            var expected =
+@"Program
+    void F2(System.UIntPtr x)
+        [NativeInteger] System.UIntPtr x
+";
+            AssertNativeIntegerAttributes(comp, expected);
+        }
+
         // Shouldn't depend on [NullablePublicOnly].
         [Fact]
         public void NoPublicMembers()

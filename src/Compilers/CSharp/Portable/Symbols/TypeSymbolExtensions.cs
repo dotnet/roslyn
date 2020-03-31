@@ -152,6 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetEnumUnderlyingType() ?? type;
         }
 
+        public static bool IsNativeIntegerOrNullableNativeIntegerType(this TypeSymbol? type)
+        {
+            return type?.StrippedType().IsNativeIntegerType == true;
+        }
+
         public static bool IsObjectType(this TypeSymbol type)
         {
             return type.SpecialType == SpecialType.System_Object;
