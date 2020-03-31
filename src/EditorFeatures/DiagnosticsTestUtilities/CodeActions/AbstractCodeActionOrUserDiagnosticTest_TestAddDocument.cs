@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedDocumentName,
             TestParameters parameters = default)
         {
-            await TestAddDocument(
+            await TestAddDocumentAsync(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
                 WithRegularOptions(parameters));
-            await TestAddDocument(
+            await TestAddDocumentAsync(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
                 WithScriptOptions(parameters));
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<string> expectedContainers)
         {
             var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-            return await TestAddDocument(
+            return await TestAddDocumentAsync(
                 workspace, expectedMarkup, expectedContainers,
                 expectedDocumentName, action);
         }
 
-        protected async Task TestAddDocument(
+        protected async Task TestAddDocumentAsync(
             string initialMarkup,
             string expectedMarkup,
             ImmutableArray<string> expectedContainers,
@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                await TestAddDocument(
+                await TestAddDocumentAsync(
                     workspace, expectedMarkup, expectedContainers,
                     expectedDocumentName, action);
             }
         }
 
-        private async Task<Tuple<Solution, Solution>> TestAddDocument(
+        private async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
             TestWorkspace workspace,
             string expectedMarkup,
             ImmutableArray<string> expectedFolders,
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeAction action)
         {
             var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
-            return await TestAddDocument(
+            return await TestAddDocumentAsync(
                 workspace,
                 expectedMarkup,
                 operations,
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 expectedDocumentName: expectedDocumentName);
         }
 
-        protected async Task<Tuple<Solution, Solution>> TestAddDocument(
+        protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
             TestWorkspace workspace,
             string expected,
             ImmutableArray<CodeActionOperation> operations,

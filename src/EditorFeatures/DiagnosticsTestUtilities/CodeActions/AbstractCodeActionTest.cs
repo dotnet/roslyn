@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return result;
         }
 
-        protected async Task TestActionOnLinkedFiles(
+        protected async Task TestActionOnLinkedFilesAsync(
             TestWorkspace workspace,
             string expectedText,
             CodeAction action,
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
 
-            await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
+            await VerifyPreviewContentsAsync(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
             applyChangesOperation.TryApply(workspace, new ProgressTracker(), CancellationToken.None);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        private static async Task VerifyPreviewContents(
+        private static async Task VerifyPreviewContentsAsync(
             TestWorkspace workspace, string expectedPreviewContents,
             ImmutableArray<CodeActionOperation> operations)
         {

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
 
             var expectedCode = "private class D { }";
 
-            await TestActionOnLinkedFiles(
+            await TestActionOnLinkedFilesAsync(
                 workspace,
                 expectedText: expectedCode,
                 action: codeIssueOrRefactoring.CodeActions[0].action,
