@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 
-            EmitBaseline baseline;
+            EmitBaseline? baseline;
             lock (_projectEmitBaselinesGuard)
             {
                 if (_projectEmitBaselines.TryGetValue(projectId, out baseline))

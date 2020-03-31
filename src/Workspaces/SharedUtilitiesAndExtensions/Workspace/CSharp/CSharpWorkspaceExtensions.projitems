@@ -65,7 +65,7 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" GenerateSource="true" Link="CSharpWorkspaceExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

@@ -649,9 +649,6 @@ Do you want to continue?</value>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
   </data>
-  <data name="This_signature_does_not_contain_parameters_that_can_be_changed" xml:space="preserve">
-    <value>This signature does not contain parameters that can be changed.</value>
-  </data>
   <data name="Unknown_error_occurred" xml:space="preserve">
     <value>Unknown error occurred</value>
   </data>
@@ -1105,11 +1102,11 @@ This version used in: {2}</value>
   <data name="Add_string_IsNullOrWhiteSpace_check" xml:space="preserve">
     <value>Add 'string.IsNullOrWhiteSpace' check</value>
   </data>
-  <data name="Create_and_initialize_field_0" xml:space="preserve">
-    <value>Create and initialize field '{0}'</value>
+  <data name="Create_and_assign_field_0" xml:space="preserve">
+    <value>Create and assign field '{0}'</value>
   </data>
-  <data name="Create_and_initialize_property_0" xml:space="preserve">
-    <value>Create and initialize property '{0}'</value>
+  <data name="Create_and_assign_property_0" xml:space="preserve">
+    <value>Create and assign property '{0}'</value>
   </data>
   <data name="Initialize_field_0" xml:space="preserve">
     <value>Initialize field '{0}'</value>
@@ -1125,12 +1122,6 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
-  </data>
-  <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
-    <value>Format string contains invalid placeholder</value>
-  </data>
-  <data name="Invalid_format_string" xml:space="preserve">
-    <value>Invalid format string</value>
   </data>
   <data name="Use_inferred_member_name" xml:space="preserve">
     <value>Use inferred member name</value>
@@ -1203,9 +1194,6 @@ This version used in: {2}</value>
   </data>
   <data name="Warning_colon_Collection_may_be_modified_during_iteration" xml:space="preserve">
     <value>Warning: Collection may be modified during iteration.</value>
-  </data>
-  <data name="Convert_to_conditional_expression" xml:space="preserve">
-    <value>Convert to conditional expression</value>
   </data>
   <data name="Convert_to_linq" xml:space="preserve">
     <value>Convert to LINQ</value>
@@ -1561,6 +1549,10 @@ This version used in: {2}</value>
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
   </data>
+  <data name="Add_DebuggerDisplay_attribute" xml:space="preserve">
+    <value>Add 'DebuggerDisplay' attribute</value>
+    <comment>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</comment>
+  </data>
   <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
     <value>Do not change this code. Put cleanup code in '{0}' method</value>
   </data>
@@ -1578,5 +1570,17 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_remaining_members_explicitly" xml:space="preserve">
     <value>Implement remaining members explicitly</value>
+  </data>
+  <data name="Generate_for_0" xml:space="preserve">
+    <value>Generate for '{0}'</value>
+  </data>
+  <data name="Generate_comparison_operators" xml:space="preserve">
+    <value>Generate comparison operators</value>
+  </data>
+  <data name="Create_and_assign_remaining_as_fields" xml:space="preserve">
+    <value>Create and assign remaining as fields</value>
+  </data>
+  <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
+    <value>Create and assign remaining as properties</value>
   </data>
 </root>

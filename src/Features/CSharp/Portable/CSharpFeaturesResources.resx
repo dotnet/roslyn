@@ -508,9 +508,6 @@
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
   </data>
-  <data name="if_statement_can_be_simplified" xml:space="preserve">
-    <value>'if' statement can be simplified</value>
-  </data>
   <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
     <value>Allow unsafe code in this project</value>
   </data>
@@ -636,5 +633,11 @@
   </data>
   <data name="Convert_to_verbatim_string" xml:space="preserve">
     <value>Convert to verbatim string</value>
+  </data>
+  <data name="Assign_to_0" xml:space="preserve">
+    <value>Assign to '{0}'</value>
+  </data>
+  <data name="Compare_to_0" xml:space="preserve">
+    <value>Compare to '{0}'</value>
   </data>
 </root>

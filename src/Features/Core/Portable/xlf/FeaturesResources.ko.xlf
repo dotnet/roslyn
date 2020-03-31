@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_DebuggerDisplay_attribute">
+        <source>Add 'DebuggerDisplay' attribute</source>
+        <target state="new">Add 'DebuggerDisplay' attribute</target>
+        <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">멤버 이름 추가</target>
@@ -177,6 +182,26 @@
         <target state="translated">튜플로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_assign_field_0">
+        <source>Create and assign field '{0}'</source>
+        <target state="new">Create and assign field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_property_0">
+        <source>Create and assign property '{0}'</source>
+        <target state="new">Create and assign property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_fields">
+        <source>Create and assign remaining as fields</source>
+        <target state="new">Create and assign remaining as fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_properties">
+        <source>Create and assign remaining as properties</source>
+        <target state="new">Create and assign remaining as properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">System.IDisposable을 구현하는 형식은 IDisposable도 구현하는 형식의 필드를 선언합니다. 필드의 Dispose 메서드는 선언 형식의 Dispose 메서드에 의해 호출되지 않습니다. 이 규칙 위반 문제를 해결하려면 필드에 포함되는 비관리형 리소스를 할당 및 해제해야 하는 경우 IDisposable을 구현하는 형식의 필드에서 Dispose를 호출합니다.</target>
@@ -265,6 +290,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">문서 서식을 지정하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_comparison_operators">
+        <source>Generate comparison operators</source>
+        <target state="new">Generate comparison operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_for_0">
+        <source>Generate for '{0}'</source>
+        <target state="new">Generate for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -1553,11 +1588,6 @@ Do you want to continue?</source>
         <target state="translated">한정자 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
-        <source>This signature does not contain parameters that can be changed.</source>
-        <target state="translated">이 시그니처에는 변경할 수 있는 매개 변수가 포함되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_error_occurred">
         <source>Unknown error occurred</source>
         <target state="translated">알 수 없는 오류 발생</target>
@@ -2195,16 +2225,6 @@ This version used in: {2}</source>
         <target state="translated">string.IsNullOrWhiteSpace' 검사 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Create_and_initialize_field_0">
-        <source>Create and initialize field '{0}'</source>
-        <target state="translated">{0}' 필드 만들기 및 초기화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_property_0">
-        <source>Create and initialize property '{0}'</source>
-        <target state="translated">{0}' 속성 만들기 및 초기화</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Initialize_field_0">
         <source>Initialize field '{0}'</source>
         <target state="translated">{0}' 필드 초기화</target>
@@ -2228,16 +2248,6 @@ This version used in: {2}</source>
       <trans-unit id="Implement_0">
         <source>Implement {0}</source>
         <target state="translated">{0} 구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">형식 문자열에 잘못된 자리 표시자가 포함되어 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">잘못된 형식 문자열</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">
@@ -2358,11 +2368,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">경고: 반복 계산 중 컬렉션이 수정될 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">조건식으로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

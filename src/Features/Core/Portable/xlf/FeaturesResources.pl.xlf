@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_DebuggerDisplay_attribute">
+        <source>Add 'DebuggerDisplay' attribute</source>
+        <target state="new">Add 'DebuggerDisplay' attribute</target>
+        <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Dodaj nazwę składowej</target>
@@ -177,6 +182,26 @@
         <target state="translated">Konwertuj na spójną kolekcję</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_assign_field_0">
+        <source>Create and assign field '{0}'</source>
+        <target state="new">Create and assign field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_property_0">
+        <source>Create and assign property '{0}'</source>
+        <target state="new">Create and assign property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_fields">
+        <source>Create and assign remaining as fields</source>
+        <target state="new">Create and assign remaining as fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_properties">
+        <source>Create and assign remaining as properties</source>
+        <target state="new">Create and assign remaining as properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Typ zawierający implementację interfejsu System.IDisposable deklaruje pola, których typy także zawierają implementację interfejsu IDisposable. Metoda Dispose pola nie jest wywoływana przez metodę Dispose typu deklarującego. Aby naprawić naruszenie tej reguły, wywołaj metodę Dispose dla pól, których typy zawierają implementację interfejsu IDisposable, jeśli odpowiadasz za przydzielanie i zwalnianie niezarządzanych zasobów wstrzymywanych przez pole.</target>
@@ -265,6 +290,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">Trwa formatowanie dokumentu...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_comparison_operators">
+        <source>Generate comparison operators</source>
+        <target state="new">Generate comparison operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_for_0">
+        <source>Generate for '{0}'</source>
+        <target state="new">Generate for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -1553,11 +1588,6 @@ Czy chcesz kontynuować?</target>
         <target state="translated">Usuń kwalifikacje</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
-        <source>This signature does not contain parameters that can be changed.</source>
-        <target state="translated">Ta sygnatura nie zawiera parametrów, które można zmienić.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_error_occurred">
         <source>Unknown error occurred</source>
         <target state="translated">Wystąpił nieznany błąd</target>
@@ -2195,16 +2225,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">Dodaj sprawdzenie elementu „string.IsNullOrWhiteSpace”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Create_and_initialize_field_0">
-        <source>Create and initialize field '{0}'</source>
-        <target state="translated">Utwórz i zainicjuj pole „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_property_0">
-        <source>Create and initialize property '{0}'</source>
-        <target state="translated">Utwórz i zainicjuj właściwość „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Initialize_field_0">
         <source>Initialize field '{0}'</source>
         <target state="translated">Inicjuj pole „{0}”</target>
@@ -2228,16 +2248,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="Implement_0">
         <source>Implement {0}</source>
         <target state="translated">Implementuj {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">Ciąg formatu zawiera nieprawidłowy symbol zastępczy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Nieprawidłowy ciąg formatu</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">
@@ -2358,11 +2368,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Ostrzeżenie: kolekcja mogła zostać zmodyfikowana podczas iteracji.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Konwertuj na wyrażenie warunkowe</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

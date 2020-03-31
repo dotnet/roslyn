@@ -24,12 +24,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\VisualBasicRemoveUnusedValuesCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\VisualBasicUseConditionalExpressionForReturnCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\VisualBasicUseNullPropagationCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\UseInitializerHelpers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\VisualBasicUseObjectInitializerCodeFixProvider.vb" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

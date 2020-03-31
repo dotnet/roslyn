@@ -19,7 +19,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AttributeArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BlockSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CastExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DefaultExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
@@ -99,7 +98,7 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" GenerateSource="true" Link="CSharpCompilerExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

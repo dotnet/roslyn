@@ -26,7 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         private readonly ImmutableList<AbstractFormattingRule> _rules;
 
-#if !CODE_STYLE
+#if CODE_STYLE
+        public static readonly CSharpSyntaxFormattingService Instance = new CSharpSyntaxFormattingService();
+
+#else
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 #endif

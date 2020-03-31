@@ -238,6 +238,9 @@
   <data name="Accessibility_modifiers_required" xml:space="preserve">
     <value>Accessibility modifiers required</value>
   </data>
+  <data name="Convert_to_conditional_expression" xml:space="preserve">
+    <value>Convert to conditional expression</value>
+  </data>
   <data name="Use_coalesce_expression" xml:space="preserve">
     <value>Use coalesce expression</value>
   </data>
@@ -252,5 +255,11 @@
   </data>
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
+  </data>
+  <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
+    <value>Format string contains invalid placeholder</value>
+  </data>
+  <data name="Invalid_format_string" xml:space="preserve">
+    <value>Invalid format string</value>
   </data>
 </root>

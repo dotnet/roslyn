@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
-            => analyzer.GetType().Assembly.GetName().Name;
+            => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable;
 
         public static OptionSet GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {

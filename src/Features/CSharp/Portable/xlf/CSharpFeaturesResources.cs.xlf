@@ -72,6 +72,16 @@
         <target state="translated">Přiřadit parametry out (při spuštění)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="new">Assign to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="new">Compare to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Převést na metodu</target>
@@ -201,11 +211,6 @@
         <source>asynchronous using declaration</source>
         <target state="translated">asynchronní deklarace using</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">Příkaz if lze zjednodušit.</target>
-        <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>

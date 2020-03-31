@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="Add_DebuggerDisplay_attribute">
+        <source>Add 'DebuggerDisplay' attribute</source>
+        <target state="new">Add 'DebuggerDisplay' attribute</target>
+        <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">添加成员名称</target>
@@ -177,6 +182,26 @@
         <target state="translated">转换为元组</target>
         <note />
       </trans-unit>
+      <trans-unit id="Create_and_assign_field_0">
+        <source>Create and assign field '{0}'</source>
+        <target state="new">Create and assign field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_property_0">
+        <source>Create and assign property '{0}'</source>
+        <target state="new">Create and assign property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_fields">
+        <source>Create and assign remaining as fields</source>
+        <target state="new">Create and assign remaining as fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_properties">
+        <source>Create and assign remaining as properties</source>
+        <target state="new">Create and assign remaining as properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">实现 System.IDisposable 的类型将声明一些字段，这些字段所属的类型还实现 IDisposable。字段的 Dispose 方法不由声明类型的 Dispose 方法调用。若要修复此规则的违规行为，如果你负责分配和释放该字段持有的非托管资源，请在其所属类型实现 IDisposable 的字段上调用 Dispose。</target>
@@ -265,6 +290,16 @@
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">设置文档格式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_comparison_operators">
+        <source>Generate comparison operators</source>
+        <target state="new">Generate comparison operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_for_0">
+        <source>Generate for '{0}'</source>
+        <target state="new">Generate for '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -1553,11 +1588,6 @@ Do you want to continue?</source>
         <target state="translated">删除限定</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
-        <source>This signature does not contain parameters that can be changed.</source>
-        <target state="translated">此签名不含可更改的参数。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_error_occurred">
         <source>Unknown error occurred</source>
         <target state="translated">发生未知错误</target>
@@ -2195,16 +2225,6 @@ This version used in: {2}</source>
         <target state="translated">添加 "string.IsNullOrWhiteSpace" 检查</target>
         <note />
       </trans-unit>
-      <trans-unit id="Create_and_initialize_field_0">
-        <source>Create and initialize field '{0}'</source>
-        <target state="translated">创建并初始化字段“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_property_0">
-        <source>Create and initialize property '{0}'</source>
-        <target state="translated">创建并初始化属性“{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Initialize_field_0">
         <source>Initialize field '{0}'</source>
         <target state="translated">初始化字段“{0}”</target>
@@ -2228,16 +2248,6 @@ This version used in: {2}</source>
       <trans-unit id="Implement_0">
         <source>Implement {0}</source>
         <target state="translated">实现 {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">格式字符串包含无效的占位符</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">无效的格式字符串</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">
@@ -2358,11 +2368,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">警告: 迭代期间可能修改集合。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">转换为条件表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
