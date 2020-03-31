@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Options
             => OptionsHelpers.GetOption<object?>(optionKey, GetOptionCore);
 
         /// <summary>
-        /// Gets the value of the option, or the default value if not otherwise set.
+        /// Gets the value of the option cast to type <typeparamref name="T"/>, or the default value if not otherwise set.
         /// </summary>
         internal T GetOption<T>(OptionKey2 optionKey)
             => OptionsHelpers.GetOption<T>(optionKey, GetOptionCore);
