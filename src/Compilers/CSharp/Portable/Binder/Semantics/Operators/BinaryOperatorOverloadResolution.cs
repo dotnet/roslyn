@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators);
+                this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !left.Type.IsNativeIntegerOrNullableNativeIntegerType() && !right.Type.IsNativeIntegerOrNullableNativeIntegerType());
 
                 // SPEC 7.3.4: For predefined enum and delegate operators, the only operators
                 // considered are those defined by an enum or delegate type that is the binding
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetPointerOperators(kind, left, right, operators);
             }
 
-            CandidateOperators(operators, left, right, results, ref useSiteDiagnostics, skipNativeIntegerOperators: !left.Type.IsNativeIntegerOrNullableNativeIntegerType() && !right.Type.IsNativeIntegerOrNullableNativeIntegerType());
+            CandidateOperators(operators, left, right, results, ref useSiteDiagnostics);
             operators.Free();
 
             static bool useOnlyReferenceEquality(Conversions conversions, BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -723,17 +723,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left,
             BoundExpression right,
             ArrayBuilder<BinaryOperatorAnalysisResult> results,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool skipNativeIntegerOperators = false)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             bool hadApplicableCandidate = false;
             foreach (var op in operators)
             {
-                if (skipNativeIntegerOperators &&
-                    op.Kind.OperandTypes() switch { BinaryOperatorKind.NInt => true, BinaryOperatorKind.NUInt => true, _ => false })
-                {
-                    continue;
-                }
                 var convLeft = Conversions.ClassifyConversionFromExpression(left, op.LeftType, ref useSiteDiagnostics);
                 var convRight = Conversions.ClassifyConversionFromExpression(right, op.RightType, ref useSiteDiagnostics);
                 if (convLeft.IsImplicit && convRight.IsImplicit)

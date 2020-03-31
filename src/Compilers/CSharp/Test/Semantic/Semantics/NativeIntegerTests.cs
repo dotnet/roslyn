@@ -2404,21 +2404,35 @@ False
 
                 foreach (var operatorKind in unaryOperators)
                 {
-                    var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder);
-                    var operators = builder.ToImmutableAndFree();
-                    int expectedUnsigned = (operatorKind == UnaryOperatorKind.UnaryMinus) ? 0 : 1;
-                    verifyOperators(operators, (op, signed) => isNativeInt(op.OperandType, signed), 1, expectedUnsigned);
-                    verifyOperators(operators, (op, signed) => isNullableNativeInt(op.OperandType, signed), 1, expectedUnsigned);
+                    verifyUnaryOperators(comp, operatorKind, skipNativeIntegerOperators: true);
+                    verifyUnaryOperators(comp, operatorKind, skipNativeIntegerOperators: false);
                 }
 
                 foreach (var operatorKind in binaryOperators)
                 {
-                    var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder);
+                    verifyBinaryOperators(comp, operatorKind, skipNativeIntegerOperators: true);
+                    verifyBinaryOperators(comp, operatorKind, skipNativeIntegerOperators: false);
+                }
+
+                static void verifyUnaryOperators(CSharpCompilation comp, UnaryOperatorKind operatorKind, bool skipNativeIntegerOperators)
+                {
+                    var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
+                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
                     var operators = builder.ToImmutableAndFree();
-                    verifyOperators(operators, (op, signed) => isNativeInt(op.LeftType, signed), 1, 1);
-                    verifyOperators(operators, (op, signed) => isNullableNativeInt(op.LeftType, signed), 1, 1);
+                    int expectedSigned = skipNativeIntegerOperators ? 0 : 1;
+                    int expectedUnsigned = skipNativeIntegerOperators ? 0 : (operatorKind == UnaryOperatorKind.UnaryMinus) ? 0 : 1;
+                    verifyOperators(operators, (op, signed) => isNativeInt(op.OperandType, signed), expectedSigned, expectedUnsigned);
+                    verifyOperators(operators, (op, signed) => isNullableNativeInt(op.OperandType, signed), expectedSigned, expectedUnsigned);
+                }
+
+                static void verifyBinaryOperators(CSharpCompilation comp, BinaryOperatorKind operatorKind, bool skipNativeIntegerOperators)
+                {
+                    var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
+                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
+                    var operators = builder.ToImmutableAndFree();
+                    int expected = skipNativeIntegerOperators ? 0 : 1;
+                    verifyOperators(operators, (op, signed) => isNativeInt(op.LeftType, signed), expected, expected);
+                    verifyOperators(operators, (op, signed) => isNullableNativeInt(op.LeftType, signed), expected, expected);
                 }
 
                 static void verifyOperators<T>(ImmutableArray<T> operators, Func<T, bool, bool> predicate, int expectedSigned, int expectedUnsigned)

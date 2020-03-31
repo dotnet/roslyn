@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // specification to match the previous implementation.
 
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-            this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators);
+            this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !operand.Type.IsNativeIntegerOrNullableNativeIntegerType());
 
             GetEnumOperations(kind, operand, operators);
 
@@ -260,26 +260,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operators.Add(pointerOperator.Value);
             }
 
-            CandidateOperators(operators, operand, results, ref useSiteDiagnostics, skipNativeIntegerOperators: !operand.Type.IsNativeIntegerOrNullableNativeIntegerType());
+            CandidateOperators(operators, operand, results, ref useSiteDiagnostics);
             operators.Free();
         }
 
         // Returns true if there were any applicable candidates.
-        private bool CandidateOperators(
-            ArrayBuilder<UnaryOperatorSignature> operators,
-            BoundExpression operand,
-            ArrayBuilder<UnaryOperatorAnalysisResult> results,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool skipNativeIntegerOperators = false)
+        private bool CandidateOperators(ArrayBuilder<UnaryOperatorSignature> operators, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             bool anyApplicable = false;
             foreach (var op in operators)
             {
-                if (skipNativeIntegerOperators &&
-                    op.Kind.OperandTypes() switch { UnaryOperatorKind.NInt => true, UnaryOperatorKind.NUInt => true, _ => false })
-                {
-                    continue;
-                }
                 var conversion = Conversions.ClassifyConversionFromExpression(operand, op.OperandType, ref useSiteDiagnostics);
                 if (conversion.IsImplicit)
                 {
