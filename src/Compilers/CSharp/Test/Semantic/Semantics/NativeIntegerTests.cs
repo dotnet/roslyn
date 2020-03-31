@@ -2664,7 +2664,7 @@ False
         }
 
         [Fact]
-        public void BuiltInConversions_UnderlyingTypes_CSharp8()
+        public void BuiltInConversions_UnderlyingTypes()
         {
             var source =
 @"class A
@@ -2688,8 +2688,8 @@ False
         F4 = w;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
+            var diagnostics = new[]
+            {
                 // (9,18): error CS0266: Cannot implicitly convert type 'System.IntPtr' to 'long'. An explicit conversion exists (are you missing a cast?)
                 //         long x = F1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "F1").WithArguments("System.IntPtr", "long").WithLocation(9, 18),
@@ -2713,12 +2713,19 @@ False
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "z").WithArguments("int?", "System.IntPtr?").WithLocation(18, 14),
                 // (19,14): error CS0266: Cannot implicitly convert type 'uint?' to 'System.UIntPtr?'. An explicit conversion exists (are you missing a cast?)
                 //         F4 = w;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("uint?", "System.UIntPtr?").WithLocation(19, 14));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("uint?", "System.UIntPtr?").WithLocation(19, 14)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
         }
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
         [Fact]
-        public void BuiltInOperators_UnderlyingTypes_CSharp8()
+        public void BuiltInOperators_UnderlyingTypes()
         {
             var source =
 @"#pragma warning disable 649
@@ -2740,8 +2747,8 @@ class A
         F4 = F4 / F2;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
+            var diagnostics = new[]
+            {
                 // (10,14): error CS0023: Operator '-' cannot be applied to operand of type 'IntPtr'
                 //         F1 = -F1;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "-F1").WithArguments("-", "System.IntPtr").WithLocation(10, 14),
@@ -2765,14 +2772,23 @@ class A
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "F3 * F1").WithArguments("*", "System.IntPtr?", "System.IntPtr").WithLocation(16, 14),
                 // (17,14): error CS0019: Operator '/' cannot be applied to operands of type 'UIntPtr?' and 'UIntPtr'
                 //         F4 = F4 / F2;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F4 / F2").WithArguments("/", "System.UIntPtr?", "System.UIntPtr").WithLocation(17, 14));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F4 / F2").WithArguments("/", "System.UIntPtr?", "System.UIntPtr").WithLocation(17, 14)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(diagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(diagnostics);
         }
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void BuiltInConversions_NativeIntegers_CSharp8(bool useCompilationReference)
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(true, true)]
+        public void BuiltInConversions_NativeIntegers(bool useCompilationReference, bool useLatest)
         {
             var sourceA =
 @"public class A
@@ -2803,7 +2819,7 @@ class A
         F4 = w;
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: useLatest ? TestOptions.RegularPreview : TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.M1",
@@ -2882,9 +2898,11 @@ class A
 
         [WorkItem(3259, "https://github.com/dotnet/csharplang/issues/3259")]
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void BuiltInOperators_NativeIntegers_CSharp8(bool useCompilationReference)
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(true, true)]
+        public void BuiltInOperators_NativeIntegers(bool useCompilationReference, bool useLatest)
         {
             var sourceA =
 @"public class A
@@ -2912,7 +2930,9 @@ class A
         F4 = F4 / F2;
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: TestOptions.Regular8);
+            // https://github.com/dotnet/csharplang/blob/master/meetings/2020/LDM-2020-03-25.md: Errors should
+            // be reported for uses of native integer operators with -langversion:8.
+            comp = CreateCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference) }, parseOptions: useLatest ? TestOptions.RegularPreview : TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
