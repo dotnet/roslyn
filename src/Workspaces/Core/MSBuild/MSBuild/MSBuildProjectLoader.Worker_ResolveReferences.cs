@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     // Compilation with it.
 
                     var outputRefFilePath = projectReferenceInfo.OutputRefFilePath;
-                    if (!File.Exists(projectReferenceInfo.OutputRefFilePath) && outputRefFilePath != null)
+                    if (outputRefFilePath != null && !File.Exists(outputRefFilePath))
                     {
                         builder.Remove(outputRefFilePath);
                     }
