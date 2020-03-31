@@ -46,7 +46,7 @@ namespace Roslyn.Utilities
         }
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods (Task wrappers, not asynchronous methods)
-#pragma warning disable CS0618 // Type or member is obsolete (https://github.com/dotnet/roslyn/issues/42742)
+
         /// <summary>
         /// Enqueue specified <paramref name="operation"/> and notify <see cref="Listener"/> of its start and completion.
         /// </summary>
@@ -72,8 +72,7 @@ namespace Roslyn.Utilities
         /// </summary>
         /// <returns>The <see cref="Task"/> that executes the operation.</returns>
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        [Obsolete("Should be private: https://github.com/dotnet/roslyn/issues/42742")]
-        public Task ScheduleTaskInProgress(Action operation, CancellationToken cancellationToken)
+        private Task ScheduleTaskInProgress(Action operation, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -85,8 +84,7 @@ namespace Roslyn.Utilities
 
         /// <inheritdoc cref="ScheduleTaskInProgress(Action, CancellationToken)"/>
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        [Obsolete("Should be private: https://github.com/dotnet/roslyn/issues/42742")]
-        public Task<T> ScheduleTaskInProgress<T>(Func<T> operation, CancellationToken cancellationToken)
+        private Task<T> ScheduleTaskInProgress<T>(Func<T> operation, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -98,8 +96,7 @@ namespace Roslyn.Utilities
 
         /// <inheritdoc cref="ScheduleTaskInProgress(Action, CancellationToken)"/>
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        [Obsolete("Should be private: https://github.com/dotnet/roslyn/issues/42742")]
-        public Task ScheduleTaskInProgress(Func<Task> operation, CancellationToken cancellationToken)
+        private Task ScheduleTaskInProgress(Func<Task> operation, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -111,8 +108,7 @@ namespace Roslyn.Utilities
 
         /// <inheritdoc cref="ScheduleTaskInProgress(Action, CancellationToken)"/>
         [PerformanceSensitive("https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html", AllowCaptures = false)]
-        [Obsolete("Should be private: https://github.com/dotnet/roslyn/issues/42742")]
-        public Task<T> ScheduleTaskInProgress<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
+        private Task<T> ScheduleTaskInProgress<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
@@ -121,6 +117,7 @@ namespace Roslyn.Utilities
                 return task;
             }
         }
+
 #pragma warning restore
     }
 }

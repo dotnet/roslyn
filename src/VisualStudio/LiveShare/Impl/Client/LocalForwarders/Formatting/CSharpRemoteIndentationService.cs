@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using System;
 using System.Composition;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
@@ -13,6 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     internal class CSharpLspIndentationServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspIndentationServiceFactory()
         {
         }

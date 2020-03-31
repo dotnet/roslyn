@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ClassificationTypeMap _classificationTypeMap;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioChangeSignatureOptionsService(IClassificationFormatMapService classificationFormatMapService, ClassificationTypeMap classificationTypeMap)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");

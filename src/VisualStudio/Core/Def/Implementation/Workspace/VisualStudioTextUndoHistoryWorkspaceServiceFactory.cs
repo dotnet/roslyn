@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -22,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextUndoHistoryWorkspaceService _serviceSingleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             _serviceSingleton = new TextUndoHistoryWorkspaceService(undoHistoryRegistry);

@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     public class TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService()
         {
         }
