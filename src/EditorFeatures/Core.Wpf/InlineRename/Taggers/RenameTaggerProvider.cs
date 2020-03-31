@@ -22,13 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RenameTaggerProvider(InlineRenameService renameService)
-        {
-            _renameService = renameService;
-        }
+            => _renameService = renameService;
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-        {
-            return new RenameTagger(buffer, _renameService) as ITagger<T>;
-        }
+            => new RenameTagger(buffer, _renameService) as ITagger<T>;
     }
 }

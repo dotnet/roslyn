@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            return new CSharpCodeCleanerService();
-        }
+            => new CSharpCodeCleanerService();
     }
 }

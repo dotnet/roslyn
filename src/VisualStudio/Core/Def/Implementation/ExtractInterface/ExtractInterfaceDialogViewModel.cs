@@ -97,9 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
         }
 
         private void SendFailureNotification(string message)
-        {
-            _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
-        }
+            => _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
 
         internal void DeselectAll()
         {

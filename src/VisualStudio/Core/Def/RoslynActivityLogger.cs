@@ -65,9 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             public TraceSourceLogger(TraceSource traceSource)
-            {
-                TraceSource = traceSource;
-            }
+                => TraceSource = traceSource;
 
             public bool IsEnabled(FunctionId functionId)
             {
@@ -76,19 +74,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             public void Log(FunctionId functionId, LogMessage logMessage)
-            {
-                TraceSource.TraceData(TraceEventType.Verbose, LogEventId, s_functionIdCache[functionId], logMessage.GetMessage());
-            }
+                => TraceSource.TraceData(TraceEventType.Verbose, LogEventId, s_functionIdCache[functionId], logMessage.GetMessage());
 
             public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-            {
-                TraceSource.TraceData(TraceEventType.Verbose, StartEventId, s_functionIdCache[functionId], uniquePairId);
-            }
+                => TraceSource.TraceData(TraceEventType.Verbose, StartEventId, s_functionIdCache[functionId], uniquePairId);
 
             public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
-            {
-                TraceSource.TraceData(TraceEventType.Verbose, EndEventId, s_functionIdCache[functionId], uniquePairId, cancellationToken.IsCancellationRequested, delta, logMessage.GetMessage());
-            }
+                => TraceSource.TraceData(TraceEventType.Verbose, EndEventId, s_functionIdCache[functionId], uniquePairId, cancellationToken.IsCancellationRequested, delta, logMessage.GetMessage());
         }
     }
 }

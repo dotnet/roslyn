@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
 
         private class NoOpGlobalUndoService : IGlobalUndoService
         {
@@ -45,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
             }
 
             public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
-            {
-                return Transaction;
-            }
+                => Transaction;
         }
 
         /// <summary>

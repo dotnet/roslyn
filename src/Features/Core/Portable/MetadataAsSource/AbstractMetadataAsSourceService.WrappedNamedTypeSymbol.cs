@@ -84,76 +84,48 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public ImmutableArray<IFieldSymbol> TupleElements => _symbol.TupleElements;
 
             public ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
-            {
-                return _symbol.GetTypeArgumentCustomModifiers(ordinal);
-            }
+                => _symbol.GetTypeArgumentCustomModifiers(ordinal);
 
             public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
-            {
-                return _symbol.Construct(typeArguments);
-            }
+                => _symbol.Construct(typeArguments);
 
             public INamedTypeSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
-            {
-                return _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
-            }
+                => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public INamedTypeSymbol ConstructUnboundGenericType()
-            {
-                return _symbol.ConstructUnboundGenericType();
-            }
+                => _symbol.ConstructUnboundGenericType();
 
             public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
-            {
-                return _symbol.FindImplementationForInterfaceMember(interfaceMember);
-            }
+                => _symbol.FindImplementationForInterfaceMember(interfaceMember);
 
             public override ImmutableArray<ISymbol> GetMembers()
-            {
-                return _members;
-            }
+                => _members;
 
             public IEnumerable<string> MemberNames => throw new NotImplementedException();
 
             public override ImmutableArray<ISymbol> GetMembers(string name)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             ITypeSymbol ITypeSymbol.OriginalDefinition => _symbol.OriginalDefinition;
             public new INamedTypeSymbol OriginalDefinition => this;
@@ -169,9 +141,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             NullableAnnotation ITypeSymbol.NullableAnnotation => throw new System.NotImplementedException();
 
             ITypeSymbol ITypeSymbol.WithNullableAnnotation(NullableAnnotation nullableAnnotation)
-            {
-                throw new System.NotImplementedException();
-            }
+                => throw new System.NotImplementedException();
         }
     }
 }

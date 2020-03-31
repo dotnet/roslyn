@@ -60,18 +60,12 @@ namespace Microsoft.CodeAnalysis.Utilities
         }
 
         public override bool Equals(object obj)
-        {
-            return Equals((ParameterName)obj);
-        }
+            => Equals((ParameterName)obj);
 
         public bool Equals(ParameterName other)
-        {
-            return NameBasedOnArgument.Equals(other.NameBasedOnArgument);
-        }
+            => NameBasedOnArgument.Equals(other.NameBasedOnArgument);
 
         public override int GetHashCode()
-        {
-            return NameBasedOnArgument.GetHashCode();
-        }
+            => NameBasedOnArgument.GetHashCode();
     }
 }

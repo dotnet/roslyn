@@ -48,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
-        {
-            return triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
-        }
+            => triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
 
         private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
         {

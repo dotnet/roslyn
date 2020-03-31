@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
         private Solution CreateSolution()
-        {
-            return new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
-        }
+            => new AdhocWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly))).CurrentSolution;
 
         private Solution CreateSolutionWithProjectAndDocuments()
         {

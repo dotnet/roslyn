@@ -137,15 +137,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             public override SynchronizationContext CreateCopy()
-            {
-                return new DenyExecutionSynchronizationContext(UnderlyingContext.CreateCopy(), MainThread, _failedTransfer);
-            }
+                => new DenyExecutionSynchronizationContext(UnderlyingContext.CreateCopy(), MainThread, _failedTransfer);
 
             [MethodImpl(MethodImplOptions.NoInlining)]
             private void ThrowFailedTransferExceptionForCapture()
-            {
-                throw new InvalidOperationException($"Code cannot switch to the main thread without configuring the {nameof(IThreadingContext)}.");
-            }
+                => throw new InvalidOperationException($"Code cannot switch to the main thread without configuring the {nameof(IThreadingContext)}.");
         }
     }
 }

@@ -79,9 +79,7 @@ namespace Roslyn.Utilities
         }
 
         public static int GetEditDistance(char[] source, char[] target, int threshold = int.MaxValue)
-        {
-            return GetEditDistance(source.AsSpan(), target.AsSpan(), threshold);
-        }
+            => GetEditDistance(source.AsSpan(), target.AsSpan(), threshold);
 
         public int GetEditDistance(string target, int threshold = int.MaxValue)
         {
@@ -574,9 +572,7 @@ namespace Roslyn.Utilities
         }
 
         private static int GetValue(Dictionary<char, int> da, char c)
-        {
-            return da.TryGetValue(c, out var value) ? value : 0;
-        }
+            => da.TryGetValue(c, out var value) ? value : 0;
 
         private static int Min(int v1, int v2, int v3, int v4)
         {
@@ -620,9 +616,7 @@ namespace Roslyn.Utilities
         private readonly Func<T> _allocate;
 
         public SimplePool(Func<T> allocate)
-        {
-            _allocate = allocate;
-        }
+            => _allocate = allocate;
 
         public T Allocate()
         {

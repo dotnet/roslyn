@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             };
 
         public bool Equals(LineSpan other)
-        {
-            return this.Start == other.Start && this.End == other.End;
-        }
+            => this.Start == other.Start && this.End == other.End;
 
         public override bool Equals(object? obj)
         {
@@ -37,8 +35,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(this.Start, this.End);
-        }
+            => Hash.Combine(this.Start, this.End);
     }
 }

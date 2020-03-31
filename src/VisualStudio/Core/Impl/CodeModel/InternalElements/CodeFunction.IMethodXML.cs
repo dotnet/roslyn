@@ -27,13 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         public int GetBodyPoint(out object ppUnk)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         object IMethodXML2.GetXML()
-        {
-            return new StringReader(GetXML());
-        }
+            => new StringReader(GetXML());
     }
 }

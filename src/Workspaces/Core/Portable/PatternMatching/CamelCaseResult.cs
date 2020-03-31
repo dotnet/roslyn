@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
 
             public void Free()
-            {
-                MatchedSpansInReverse?.Free();
-            }
+                => MatchedSpansInReverse?.Free();
 
             public CamelCaseResult WithFromStart(bool fromStart)
                 => new CamelCaseResult(fromStart, Contiguous, MatchCount, MatchedSpansInReverse);

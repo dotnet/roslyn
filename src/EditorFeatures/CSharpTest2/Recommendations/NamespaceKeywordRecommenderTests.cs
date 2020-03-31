@@ -64,9 +64,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNamespaceKeyword()
-        {
-            await VerifyAbsenceAsync(@"namespace $$");
-        }
+            => await VerifyAbsenceAsync(@"namespace $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPreviousNamespace()

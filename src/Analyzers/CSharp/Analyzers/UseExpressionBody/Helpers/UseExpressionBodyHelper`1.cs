@@ -295,8 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected virtual TDeclaration WithAccessorList(TDeclaration declaration, AccessorListSyntax accessorListSyntax)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

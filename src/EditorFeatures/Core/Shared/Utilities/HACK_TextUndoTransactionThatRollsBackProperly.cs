@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         public IList<ITextUndoPrimitive> UndoPrimitives => _innerTransaction.UndoPrimitives;
 
         public void AddUndo(ITextUndoPrimitive undo)
-        {
-            _innerTransaction.AddUndo(undo);
-        }
+            => _innerTransaction.AddUndo(undo);
 
         public void Cancel()
         {
@@ -114,14 +112,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public void Do()
-        {
-            _innerTransaction.Do();
-        }
+            => _innerTransaction.Do();
 
         public void Undo()
-        {
-            _innerTransaction.Undo();
-        }
+            => _innerTransaction.Undo();
 
         private class RollbackDetectingUndoPrimitive : ITextUndoPrimitive
         {
@@ -134,23 +128,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             public ITextUndoTransaction Parent { get; set; }
 
             public bool CanMerge(ITextUndoPrimitive older)
-            {
-                return false;
-            }
+                => false;
 
             public void Do()
             {
             }
 
             public ITextUndoPrimitive Merge(ITextUndoPrimitive older)
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
 
             public void Undo()
-            {
-                UndoCalled = true;
-            }
+                => UndoCalled = true;
         }
     }
 }

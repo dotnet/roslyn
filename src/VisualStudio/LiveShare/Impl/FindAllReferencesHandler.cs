@@ -34,9 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IThreadingContext _threadingContext;
 
         public FindAllReferencesHandler(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         // TODO - When FAR moves to ILanguageClient, we should switch from using ReferenceGroup (now obsolete) to ReferenceItem.
         // https://github.com/dotnet/roslyn/issues/42581

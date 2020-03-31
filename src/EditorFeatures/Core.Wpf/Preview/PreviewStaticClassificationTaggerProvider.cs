@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewStaticClassificationTaggerProvider(ClassificationTypeMap typeMap)
-        {
-            _typeMap = typeMap;
-        }
+            => _typeMap = typeMap;
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer)
             where T : ITag

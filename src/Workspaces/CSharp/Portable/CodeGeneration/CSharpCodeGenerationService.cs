@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
-        {
-            return CSharpCodeGenerationHelpers.GetDestination(node);
-        }
+            => CSharpCodeGenerationHelpers.GetDestination(node);
 
         protected override IComparer<SyntaxNode> GetMemberComparer()
             => CSharpDeclarationComparer.WithoutNamesInstance;
@@ -50,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
-        {
-            return destination.GetInsertionIndices(cancellationToken);
-        }
+            => destination.GetInsertionIndices(cancellationToken);
 
         public override async Task<Document> AddEventAsync(
             Solution solution, INamedTypeSymbol destination, IEventSymbol @event,

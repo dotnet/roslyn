@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         public static DeclarationModifiers GetModifiers(CompletionItem item)
         {

@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static readonly SymbolDisplayFormat s_globalNamespaceFormat = new SymbolDisplayFormat(SymbolDisplayGlobalNamespaceStyle.Included);
 
         protected override bool CanFind(INamespaceSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamespaceSymbol symbol,

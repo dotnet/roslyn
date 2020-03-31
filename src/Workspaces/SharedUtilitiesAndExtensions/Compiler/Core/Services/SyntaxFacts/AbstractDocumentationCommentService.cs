@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private readonly ISyntaxFacts _syntaxFacts;
 
         protected AbstractDocumentationCommentService(ISyntaxFacts syntaxFacts)
-        {
-            _syntaxFacts = syntaxFacts;
-        }
+            => _syntaxFacts = syntaxFacts;
 
         private static void AddSpaceIfNotAlreadyThere(StringBuilder sb)
         {

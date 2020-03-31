@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestClass()
-        {
-            await TestAsync("class G$$oo { }", "Goo", 0);
-        }
+            => await TestAsync("class G$$oo { }", "Goo", 0);
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668"), WorkItem(538415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538415")]

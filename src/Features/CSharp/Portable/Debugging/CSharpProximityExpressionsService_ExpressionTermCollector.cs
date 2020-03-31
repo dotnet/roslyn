@@ -44,14 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
         }
 
         private static bool IsValidTerm(ExpressionType type)
-        {
-            return (type & ExpressionType.ValidTerm) == ExpressionType.ValidTerm;
-        }
+            => (type & ExpressionType.ValidTerm) == ExpressionType.ValidTerm;
 
         private static bool IsValidExpression(ExpressionType type)
-        {
-            return (type & ExpressionType.ValidExpression) == ExpressionType.ValidExpression;
-        }
+            => (type & ExpressionType.ValidExpression) == ExpressionType.ValidExpression;
 
         private static void AddSubExpressionTerms(ExpressionSyntax expression, IList<string> terms, ref ExpressionType expressionType)
         {

@@ -31,9 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         internal override Snapshot CreateSnapshot()
-        {
-            return s_snapshot;
-        }
+            => s_snapshot;
 
         protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
         {

@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -333,6 +334,24 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
         }
 
+        [Fact]
+        public void TestLoadGenerators()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+            var generators = reference.GetGenerators();
+            Assert.Equal(5, generators.Count());
+
+            var typeNames = generators.Select(g => g.GetType().FullName);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", typeNames);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", typeNames);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestGenerator", typeNames);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.BaseGenerator", typeNames);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", typeNames);
+            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
+            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
+            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.NotAGenerator", typeNames);
+        }
+
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
         public class TestAnalyzer : DiagnosticAnalyzer
         {
@@ -354,6 +373,13 @@ public class TestAnalyzer : DiagnosticAnalyzer
             public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
         }
 
+        [Generator]
+        public class TestGenerator : ISourceGenerator
+        {
+            public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+            public void Initialize(InitializationContext context) => throw new NotImplementedException();
+        }
+
         public class SomeType
         {
             [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -361,6 +387,13 @@ public class TestAnalyzer : DiagnosticAnalyzer
             {
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
                 public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
+            }
+
+            [Generator]
+            public class NestedGenerator : ISourceGenerator
+            {
+                public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+                public void Initialize(InitializationContext context) => throw new NotImplementedException();
             }
         }
     }
@@ -373,6 +406,13 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
         [Test.DiagnosticAnalyzer]
         public class NotAnAnalyzer { }
+
+        public class Generator : Attribute
+        {
+        }
+
+        [Test.Generator]
+        public class NotAGenerator { }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -398,6 +438,35 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
         public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
     }
+
+    [Generator]
+    public class TestGenerator : ISourceGenerator
+    {
+        public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+    }
+
+    public class TestGeneratorNoAttrib : ISourceGenerator
+    {
+        public void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+    }
+
+    [Generator]
+    public class BaseGenerator : ISourceGenerator
+    {
+        public virtual void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+        public void Initialize(InitializationContext context) => throw new NotImplementedException();
+    }
+
+    [Generator]
+    public class SubClassedGenerator : BaseGenerator
+    {
+        public override void Execute(SourceGeneratorContext context) => throw new NotImplementedException();
+    }
+
+    [Generator]
+    public class NotAGenerator { }
 }
 
 #endif

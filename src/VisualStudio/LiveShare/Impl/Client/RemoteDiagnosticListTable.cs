@@ -38,9 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         public void UpdateWorkspaceDiagnosticsPresent(bool diagnosticsPresent)
-        {
-            _workspaceDiagnosticsPresent = diagnosticsPresent;
-        }
+            => _workspaceDiagnosticsPresent = diagnosticsPresent;
 
         protected override void AddTableSourceIfNecessary(Solution solution)
         {
@@ -68,8 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         protected override void ShutdownSource()
-        {
-            _source.Shutdown();
-        }
+            => _source.Shutdown();
     }
 }

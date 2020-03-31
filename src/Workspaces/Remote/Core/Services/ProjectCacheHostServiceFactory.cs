@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
-        }
+            => new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
     }
 }

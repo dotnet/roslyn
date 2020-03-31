@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private ConflictingSignatureComparer() { }
 
             public bool Equals(ImmutableArray<ITypeSymbol> x, ImmutableArray<ITypeSymbol> y)
-            {
-                return x.SequenceEqual(y);
-            }
+                => x.SequenceEqual(y);
 
             public int GetHashCode(ImmutableArray<ITypeSymbol> obj)
             {

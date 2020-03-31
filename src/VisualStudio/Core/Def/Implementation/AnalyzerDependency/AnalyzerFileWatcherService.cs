@@ -59,9 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
         }
         internal void RemoveAnalyzerAlreadyLoadedDiagnostics(ProjectId projectId, string analyzerPath)
-        {
-            _updateSource.ClearDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath));
-        }
+            => _updateSource.ClearDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath));
 
         private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
         {

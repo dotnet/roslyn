@@ -127,9 +127,7 @@ namespace Roslyn.Utilities
             private readonly AsyncLazy<T> _asyncLazy;
 
             public WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy)
-            {
-                _asyncLazy = asyncLazy;
-            }
+                => _asyncLazy = asyncLazy;
 
             public void Dispose()
             {
@@ -587,9 +585,7 @@ namespace Roslyn.Utilities
             }
 
             public void Cancel()
-            {
-                this.TrySetCanceled(_cancellationToken);
-            }
+                => this.TrySetCanceled(_cancellationToken);
         }
     }
 }

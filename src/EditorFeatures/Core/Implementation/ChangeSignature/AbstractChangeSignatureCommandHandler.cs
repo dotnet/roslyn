@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public string DisplayName => EditorFeaturesResources.Change_Signature;
 

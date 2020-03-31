@@ -11,9 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal class EntryPointFinder : AbstractEntryPointFinder
     {
         protected override bool MatchesMainMethodName(string name)
-        {
-            return name == "Main";
-        }
+            => name == "Main";
 
         public static IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol)
         {

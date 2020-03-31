@@ -34,14 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             public override void Connect()
-            {
-                _service.DiagnosticsUpdated += OnDiagnosticsUpdated;
-            }
+                => _service.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
             public override void Disconnect()
-            {
-                _service.DiagnosticsUpdated -= OnDiagnosticsUpdated;
-            }
+                => _service.DiagnosticsUpdated -= OnDiagnosticsUpdated;
         }
     }
 }

@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         public static KeyValueLogMessage Create(LogType kind)
-        {
-            return Create(kind, propertySetter: null);
-        }
+            => Create(kind, propertySetter: null);
 
         public static KeyValueLogMessage Create(LogType kind, Action<Dictionary<string, object>> propertySetter)
         {

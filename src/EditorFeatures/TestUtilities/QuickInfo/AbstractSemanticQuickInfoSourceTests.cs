@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             => FormattedClassifications.Text(text);
 
         protected string Lines(params string[] lines)
-        {
-            return string.Join("\r\n", lines);
-        }
+            => string.Join("\r\n", lines);
 
         protected FormattedClassification[] ExpectedClassifications(
             params FormattedClassification[] expectedClassifications)
@@ -34,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         }
 
         protected Tuple<string, string>[] NoClassifications()
-        {
-            return null;
-        }
+            => null;
 
         internal Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
         {
@@ -47,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         }
 
         internal Action<QuickInfoItem> WarningGlyph(Glyph expectedGlyph)
-        {
-            return SymbolGlyph(expectedGlyph);
-        }
+            => SymbolGlyph(expectedGlyph);
 
         internal void AssertSection(
             string expectedText,
@@ -153,14 +147,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         }
 
         protected Action<QuickInfoItem> Exceptions(string expectedText)
-        {
-            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Exception);
-        }
+            => item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Exception);
 
         protected Action<QuickInfoItem> Captures(string capturesText)
-        {
-            return item => AssertSection(capturesText, item.Sections, QuickInfoSectionKinds.Captures);
-        }
+            => item => AssertSection(capturesText, item.Sections, QuickInfoSectionKinds.Captures);
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
