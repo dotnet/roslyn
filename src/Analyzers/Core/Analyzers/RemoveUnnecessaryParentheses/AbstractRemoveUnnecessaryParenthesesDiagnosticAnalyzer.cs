@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Precedence;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
@@ -29,8 +30,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         /// </summary>
         private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
-                new LocalizableResourceString(nameof(FeaturesResources.Remove_unnecessary_parentheses), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                new LocalizableResourceString(nameof(FeaturesResources.Parentheses_can_be_removed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                 isUnnecessary: true);
 
         /// <summary>

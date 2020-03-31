@@ -3,13 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddRequiredParentheses
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.Precedence
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
-    <DiagnosticAnalyzer(LanguageNames.VisualBasic), [Shared]>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer
         Inherits AbstractAddRequiredParenthesesDiagnosticAnalyzer(Of
             ExpressionSyntax, BinaryExpressionSyntax, SyntaxKind)

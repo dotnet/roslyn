@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 cancellationToken);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Remove_unnecessary_parentheses, createChangedDocument, FeaturesResources.Remove_unnecessary_parentheses)
+                : base(AnalyzersResources.Remove_unnecessary_parentheses, createChangedDocument, AnalyzersResources.Remove_unnecessary_parentheses)
             {
             }
         }

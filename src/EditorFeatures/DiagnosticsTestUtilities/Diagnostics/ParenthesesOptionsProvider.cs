@@ -8,15 +8,19 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-{
 #if !CODE_STYLE
-    using IOptionsCollection = IDictionary<OptionKey2, object>;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest;
 #endif
 
-    public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+{
+    public sealed class ParenthesesOptionsProvider
     {
-        #region Parentheses options
+        private readonly string _language;
+        public ParenthesesOptionsProvider(string language)
+        {
+            _language = language;
+        }
 
         private static readonly CodeStyleOption2<ParenthesesPreference> IgnorePreference =
             new CodeStyleOption2<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption2.None);
@@ -34,27 +38,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             yield return CodeStyleOptions2.OtherBinaryParentheses;
         }
 
-        private protected IOptionsCollection RequireArithmeticBinaryParenthesesForClarity
+        internal IOptionsCollection RequireArithmeticBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.ArithmeticBinaryParentheses);
 
-        private protected IOptionsCollection RequireRelationalBinaryParenthesesForClarity
+        internal IOptionsCollection RequireRelationalBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.RelationalBinaryParentheses);
 
-        private protected IOptionsCollection RequireOtherBinaryParenthesesForClarity
+        internal IOptionsCollection RequireOtherBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.OtherBinaryParentheses);
 
         private IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
             => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions2.OtherParentheses);
 
-        private protected IOptionsCollection IgnoreAllParentheses
+        internal IOptionsCollection IgnoreAllParentheses
             => OptionsSet(GetAllParenthesesOptions().Select(
                 o => SingleOption(o, IgnorePreference)).ToArray());
 
-        private protected IOptionsCollection RemoveAllUnnecessaryParentheses
+        internal IOptionsCollection RemoveAllUnnecessaryParentheses
             => OptionsSet(GetAllParenthesesOptions().Select(
                 o => SingleOption(o, RemoveIfUnnecessaryPreference)).ToArray());
 
-        private protected IOptionsCollection RequireAllParenthesesForClarity
+        internal IOptionsCollection RequireAllParenthesesForClarity
             => OptionsSet(GetAllExceptOtherParenthesesOptions()
                     .Select(o => SingleOption(o, RequireForPrecedenceClarityPreference))
                     .Concat(SingleOption(CodeStyleOptions2.OtherParentheses, RemoveIfUnnecessaryPreference)).ToArray());
@@ -65,6 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     .Select(o => SingleOption(o, RemoveIfUnnecessaryPreference))
                     .Concat(SingleOption(option, RequireForPrecedenceClarityPreference)).ToArray());
 
-        #endregion
+        private (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+            => (new OptionKey2(option, _language), codeStyle);
+
+        internal IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
+#if CODE_STYLE
+            => new OptionsCollection(_language, options);
+#else
+            => new OptionsDictionary(options);
+#endif
     }
 }
