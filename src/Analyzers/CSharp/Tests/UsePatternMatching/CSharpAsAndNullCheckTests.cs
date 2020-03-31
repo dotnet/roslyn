@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [InlineData("(x = o as string) is null", "!(o is string x)")]
         public async Task InlineTypeCheck1(string input, string output)
         {
-            await TestStatement($"if ({input}) {{ }}", $"if ({output}) {{ }}");
-            await TestStatement($"var y = {input};", $"var y = {output};");
-            await TestStatement($"return {input};", $"return {output};");
+            await TestStatementAsync($"if ({input}) {{ }}", $"if ({output}) {{ }}");
+            await TestStatementAsync($"var y = {input};", $"var y = {output};");
+            await TestStatementAsync($"return {input};", $"return {output};");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         [InlineData("(x = o as string) == null", "!(o is string x)")]
         [InlineData("null == (x = o as string)", "!(o is string x)")]
         public async Task InlineTypeCheck2(string input, string output)
-            => await TestStatement($"while ({input}) {{ }}", $"while ({output}) {{ }}");
+            => await TestStatementAsync($"while ({input}) {{ }}", $"while ({output}) {{ }}");
 
-        private async Task TestStatement(string input, string output)
+        private async Task TestStatementAsync(string input, string output)
         {
             await TestInRegularAndScriptAsync(
 $@"class C
