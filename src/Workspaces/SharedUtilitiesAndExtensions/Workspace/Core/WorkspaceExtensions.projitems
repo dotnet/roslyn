@@ -35,8 +35,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceService.State.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\IMoveDeclarationNearReferenceService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Precedence\IPrecedenceService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\ReplaceDiscardDeclarationsWithAssignments\IReplaceDiscardDeclarationsWithAssignmentsService.cs" />
