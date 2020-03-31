@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     internal sealed class DiagnosticTagProducer<TProvider>
         where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        internal Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpans(
+        internal Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpansAsync(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider>(workspace, analyzerMap);
         }
 
-        internal async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
+        internal async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSourceAsync(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
             using (var wrapper = new DiagnosticTaggerWrapper<TProvider>(workspace, source))

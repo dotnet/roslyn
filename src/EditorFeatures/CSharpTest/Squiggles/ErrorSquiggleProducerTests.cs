@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml);
-            var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+            var spans = (await _producer.GetDiagnosticsAndErrorSpansAsync(workspace)).Item2;
 
             Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
@@ -125,7 +125,7 @@ class Program
                 };
 
             var spans =
-                (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
+                (await _producer.GetDiagnosticsAndErrorSpansAsync(workspace, analyzerMap)).Item2
                     .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 
             Assert.Equal(3, spans.Length);
@@ -243,7 +243,7 @@ class Program
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-            var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
+            var spans = await _producer.GetErrorsFromUpdateSourceAsync(workspace, document, updateArgs);
 
             Assert.Equal(1, spans.Count());
             var first = spans.First();
@@ -274,7 +274,7 @@ class Program
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-            var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
+            var spans = await _producer.GetErrorsFromUpdateSourceAsync(workspace, document, updateArgs);
 
             Assert.Equal(2, spans.Count());
             var first = spans.First();
@@ -294,7 +294,7 @@ class Program
         private async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content);
-            return (await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2;
+            return (await _producer.GetDiagnosticsAndErrorSpansAsync(workspace)).Item2;
         }
     }
 }

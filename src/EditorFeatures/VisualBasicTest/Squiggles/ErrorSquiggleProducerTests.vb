@@ -24,13 +24,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
 
         Private Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2
+                Return (Await _producer.GetDiagnosticsAndErrorSpansAsync(workspace)).Item2
             End Using
         End Function
 
         Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
+                Return (Await _producer.GetDiagnosticsAndErrorSpansAsync(workspace, analyzerMap)).Item2
             End Using
         End Function
 
@@ -111,7 +111,7 @@ End Class"
                 options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
                 workspace.ApplyOptions(options)
 
-                Dim spans = (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2.OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
+                Dim spans = (Await _producer.GetDiagnosticsAndErrorSpansAsync(workspace, analyzerMap)).Item2.OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(2, spans.Length)
                 Dim first = spans(0)
