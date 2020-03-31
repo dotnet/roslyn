@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
     internal abstract class AbstractUseTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
         protected abstract string Title { get; }
-        protected abstract Task HandleDeclarationAsync(Document document, SyntaxEditor editor, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax type, CancellationToken cancellationToken);
         protected abstract TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
@@ -91,9 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 
             // `ref var` is a bit of an interesting construct.  'ref' looks like a modifier, but is actually a
             // type-syntax.  Ensure the user can get the feature anywhere on this construct
-            var identifier = await context.TryGetRelevantNodeAsync<IdentifierNameSyntax>().ConfigureAwait(false);
-            if (identifier?.IsVar == true && identifier.Parent is RefTypeSyntax && identifier.Parent.Parent is VariableDeclarationSyntax)
-                return identifier.Parent.Parent;
+            var type = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
+            if (type?.Parent is RefTypeSyntax)
+                type = (TypeSyntax)type.Parent;
+
+            if (type?.Parent is VariableDeclarationSyntax)
+                return type.Parent;
 
             var foreachStatement = await context.TryGetRelevantNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
             if (foreachStatement != null)
@@ -113,12 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             return null;
         }
 
-        private async Task<Document> UpdateDocumentAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        private async Task<Document> UpdateDocumentAsync(Document document, TypeSyntax type, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            await HandleDeclarationAsync(document, editor, node, cancellationToken).ConfigureAwait(false);
+            await HandleDeclarationAsync(document, editor, type, cancellationToken).ConfigureAwait(false);
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
