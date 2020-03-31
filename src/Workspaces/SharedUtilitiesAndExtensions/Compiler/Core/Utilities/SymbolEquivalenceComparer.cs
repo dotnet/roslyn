@@ -12,21 +12,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// Provides a way to test two symbols for equivalence.  While there are ways to ask for
     /// different sorts of equivalence, the following must hold for two symbols to be considered
     /// equivalent.
-    /// 
-    /// 1) The kinds of the two symbols must match.
-    /// 
-    /// 2) The names of the two symbols must match.
-    /// 
-    /// 3) The arity of the two symbols must match.
-    /// 
-    /// 4) If the symbols are methods or parameterized properties, then the signatures of the two
-    /// symbols must match.
-    /// 
-    /// 5) Both symbols must be definitions or must be instantiations.  If they are instantiations,
-    /// then they must be instantiated in the same manner.
-    /// 
-    /// 6) The containing symbols of the two symbols must be equivalent.
-    /// 
+    /// <list type="number">
+    /// <item>The kinds of the two symbols must match.</item>
+    /// <item>The names of the two symbols must match.</item>
+    /// <item>The arity of the two symbols must match.</item>
+    /// <item>If the symbols are methods or parameterized properties, then the signatures of the two
+    /// symbols must match.</item>
+    /// <item>Both symbols must be definitions or must be instantiations.  If they are instantiations,
+    /// then they must be instantiated in the same manner.</item>
+    /// <item>The containing symbols of the two symbols must be equivalent.</item>
+    /// <item>Nullability of symbols is not involved in the comparison.</item>
+    /// </list>
     /// Note: equivalence does not concern itself with whole symbols.  Two types are considered
     /// equivalent if the above hold, even if one type has different members than the other.  Note:
     /// type parameters, and signature parameters are not considered 'children' when comparing

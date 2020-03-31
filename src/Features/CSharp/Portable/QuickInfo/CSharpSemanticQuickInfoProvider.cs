@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using System.Diagnostics.CodeAnalysis;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -18,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSemanticQuickInfoProvider()
         {
         }

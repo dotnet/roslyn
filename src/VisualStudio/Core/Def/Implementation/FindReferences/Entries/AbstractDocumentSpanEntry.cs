@@ -45,25 +45,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             protected override object GetValueWorker(string keyName)
-            {
-                switch (keyName)
+                => keyName switch
                 {
-                    case StandardTableKeyNames.DocumentName:
-                        return _mappedSpanResult.FilePath;
-                    case StandardTableKeyNames.Line:
-                        return _mappedSpanResult.LinePositionSpan.Start.Line;
-                    case StandardTableKeyNames.Column:
-                        return _mappedSpanResult.LinePositionSpan.Start.Character;
-                    case StandardTableKeyNames.ProjectName:
-                        return _projectName;
-                    case StandardTableKeyNames.ProjectGuid:
-                        return _boxedProjectGuid;
-                    case StandardTableKeyNames.Text:
-                        return _lineText.ToString().Trim();
-                }
-
-                return null;
-            }
+                    StandardTableKeyNames.DocumentName => _mappedSpanResult.FilePath,
+                    StandardTableKeyNames.Line => _mappedSpanResult.LinePositionSpan.Start.Line,
+                    StandardTableKeyNames.Column => _mappedSpanResult.LinePositionSpan.Start.Character,
+                    StandardTableKeyNames.ProjectName => _projectName,
+                    StandardTableKeyNames.ProjectGuid => _boxedProjectGuid,
+                    StandardTableKeyNames.Text => _lineText.ToString().Trim(),
+                    _ => null,
+                };
 
             public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
             {

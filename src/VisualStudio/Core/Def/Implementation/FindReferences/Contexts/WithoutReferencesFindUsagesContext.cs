@@ -37,6 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
                 => throw new InvalidOperationException();
 
+            // We should never be called in a context where we get references.
+            protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
+                => throw new InvalidOperationException();
+
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync()
                 => Task.CompletedTask;

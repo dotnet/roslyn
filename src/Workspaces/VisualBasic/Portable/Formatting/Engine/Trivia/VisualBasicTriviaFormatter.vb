@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -117,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' comment before a Case Statement case
             If trivia2.Kind = SyntaxKind.CommentTrivia AndAlso
                Token2.Kind = SyntaxKind.CaseKeyword AndAlso Token2.Parent.IsKind(SyntaxKind.CaseStatement) Then
-                Return LineColumnRule.Preserve()
+                Return LineColumnRule.Preserve
             End If
 
             ' comment case
@@ -145,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 _succeeded = False
             End If
 
-            Return LineColumnRule.Preserve()
+            Return LineColumnRule.Preserve
         End Function
 
         Protected Overrides Function ContainsImplicitLineBreak(syntaxTrivia As SyntaxTrivia) As Boolean
@@ -158,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overloads Overrides Function Format(lineColumn As LineColumn,
                                                       trivia As SyntaxTrivia,
-                                                      changes As List(Of SyntaxTrivia),
+                                                      changes As ArrayBuilder(Of SyntaxTrivia),
                                                       cancellationToken As CancellationToken) As LineColumnDelta
             If trivia.HasStructure Then
                 Return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken)
@@ -174,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overloads Overrides Function Format(lineColumn As LineColumn,
                                                       trivia As SyntaxTrivia,
-                                                      changes As List(Of TextChange),
+                                                      changes As ArrayBuilder(Of TextChange),
                                                       cancellationToken As CancellationToken) As LineColumnDelta
             If trivia.HasStructure Then
                 Return FormatStructuredTrivia(lineColumn, trivia, changes, cancellationToken)
@@ -203,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Function FormatStructuredTrivia(lineColumn As LineColumn,
                                                 trivia As SyntaxTrivia,
-                                                changes As List(Of SyntaxTrivia),
+                                                changes As ArrayBuilder(Of SyntaxTrivia),
                                                 cancellationToken As CancellationToken) As LineColumnDelta
             If trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                 ' don't touch anything if it contains skipped tokens
@@ -230,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Function FormatStructuredTrivia(lineColumn As LineColumn,
                                                 trivia As SyntaxTrivia,
-                                                changes As List(Of TextChange),
+                                                changes As ArrayBuilder(Of TextChange),
                                                 cancellationToken As CancellationToken) As LineColumnDelta
             If trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                 ' don't touch anything if it contains skipped tokens

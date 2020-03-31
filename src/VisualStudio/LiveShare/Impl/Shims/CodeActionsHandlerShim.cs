@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -19,11 +20,12 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    internal class CodeActionsHandlerShim : CodeActionsHandler, ILspRequestHandler<CodeActionParams, SumType<Command, CodeAction>[], Solution>
+    internal abstract class CodeActionsHandlerShim : CodeActionsHandler, ILspRequestHandler<CodeActionParams, SumType<Command, CodeAction>[], Solution>
     {
         public const string RemoteCommandNamePrefix = "_liveshare.remotecommand";
         protected const string ProviderName = "Roslyn";
 
+        [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public CodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
         {
         }
@@ -68,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynCodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
             : base(codeFixService, codeRefactoringService)
         {
@@ -78,6 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
             : base(codeFixService, codeRefactoringService)
         {
@@ -88,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicCodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
             : base(codeFixService, codeRefactoringService)
         {
@@ -98,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptCodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
             : base(codeFixService, codeRefactoringService)
         {

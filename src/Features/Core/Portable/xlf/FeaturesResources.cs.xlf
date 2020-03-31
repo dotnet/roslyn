@@ -2080,16 +2080,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Deklaraci proměnné je možné vložit do řádku.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Preferovat výslovně zadaný název prvku řazené kolekce členů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Použít výslovně zadaný název řazené kolekce členů</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">Odebrat dokument {0}</target>

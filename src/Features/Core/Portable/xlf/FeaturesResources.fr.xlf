@@ -2080,16 +2080,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">La déclaration de variable peut être inlined</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Préférer le nom d'élément tuple fourni explicitement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Utiliser le nom de tuple fourni explicitement</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">Supprimer le document '{0}'</target>
