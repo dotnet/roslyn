@@ -20,23 +20,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpQualifyMemberAccessDiagnosticAnalyzer(), new CSharpQualifyMemberAccessCodeFixProvider());
 
-        private Task TestAsyncWithOption(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option)
-            => TestAsyncWithOptionAndNotificationOption(code, expected, option, NotificationOption2.Error);
+        private Task TestWithOptionAsync(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option)
+            => TestWithOptionAndNotificationOptionAsync(code, expected, option, NotificationOption2.Error);
 
-        private Task TestAsyncWithOptionAndNotificationOption(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
+        private Task TestWithOptionAndNotificationOptionAsync(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
             => TestInRegularAndScriptAsync(code, expected, options: Option(option, true, notification));
 
-        private Task TestMissingAsyncWithOption(string code, PerLanguageOption2<CodeStyleOption2<bool>> option)
-            => TestMissingAsyncWithOptionAndNotificationOption(code, option, NotificationOption2.Error);
+        private Task TestMissingWithOptionAsync(string code, PerLanguageOption2<CodeStyleOption2<bool>> option)
+            => TestMissingWithOptionAndNotificationOptionAsync(code, option, NotificationOption2.Error);
 
-        private Task TestMissingAsyncWithOptionAndNotificationOption(string code, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
+        private Task TestMissingWithOptionAndNotificationOptionAsync(string code, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
             => TestMissingInRegularAndScriptAsync(code, new TestParameters(options: Option(option, true, notification)));
 
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_LHS()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i;
@@ -62,7 +62,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_RHS()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i;
@@ -88,7 +88,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_MethodArgument()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i;
@@ -114,7 +114,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_ChainedAccess()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i;
@@ -140,7 +140,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_ConditionalAccess()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     string s;
@@ -166,7 +166,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_OnBase()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Base
 {
     protected int i;
@@ -198,7 +198,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_InObjectInitializer()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class C
 {
     int i = 1;
@@ -222,7 +222,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_InCollectionInitializer()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class C
 {
     int i = 1;
@@ -246,7 +246,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_NotSuggestedOnInstance()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i;
@@ -264,7 +264,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_NotSuggestedOnStatic()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     static int i;
@@ -281,7 +281,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInObjectInitializer()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     void M()
@@ -297,7 +297,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInCollectionInitializer()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     void M()
@@ -314,7 +314,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_NotSuggestedOnLocalVarInDictionaryInitializer()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     void M()
@@ -330,7 +330,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_Subpattern1()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i;
@@ -349,7 +349,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_Subpattern2()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i;
@@ -370,7 +370,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyFieldAccess_Subpattern3()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i;
@@ -391,7 +391,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_LHS()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -417,7 +417,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_RHS()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -443,7 +443,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_PropertySubpattern1()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -462,7 +462,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_PropertySubpattern2()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -483,7 +483,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_PropertySubpattern3()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -505,7 +505,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         public async Task QualifyPropertyAccess_PropertySubpattern4()
         {
             //  it's ok that we qualify here because it's not a legal pattern (because it is not const).
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -539,7 +539,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_FieldSubpattern1()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i;
@@ -558,7 +558,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_FieldSubpattern2()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i;
@@ -579,7 +579,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_FieldSubpattern3()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i;
@@ -601,7 +601,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         public async Task QualifyPropertyAccess_FieldSubpattern4()
         {
             //  it's ok that we qualify here because it's not a legal pattern (because it is not const).
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i;
@@ -635,7 +635,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_MethodArgument()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -661,7 +661,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_ChainedAccess()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -687,7 +687,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_ConditionalAccess()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     string s { get; set; }
@@ -713,7 +713,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_OnBase()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Base
 {
     protected int i { get; set; }
@@ -745,7 +745,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_NotSuggestedOnInstance()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     int i { get; set; }
@@ -762,7 +762,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_NotSuggestedOnStatic()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     static int i { get; set; }
@@ -779,7 +779,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_VoidCallWithArguments()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     void M(int i)
@@ -801,7 +801,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_AsReturn()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     int M()
@@ -821,7 +821,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_ChainedAccess()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     string M()
@@ -841,7 +841,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_ConditionalAccess()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Class
 {
     string M()
@@ -861,7 +861,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_EventSubscription1()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class C
@@ -891,7 +891,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_EventSubscription2()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class C
@@ -921,7 +921,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_OnBase()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class Base
 {
     protected void Method()
@@ -957,7 +957,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_NotSuggestedOnInstance()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Class
 {
     void M(Class c)
@@ -972,7 +972,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_NotSuggestedOnStatic()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     static void Method()
@@ -991,7 +991,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_NotSuggestedOnObjectInitializer()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     void M()
@@ -1007,7 +1007,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyLocalMethodAccess_NotSuggestedOnObjectInitializer()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     void M()
@@ -1023,7 +1023,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMethodAccess_NotSuggestedOnCollectionInitializer()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     void M()
@@ -1039,7 +1039,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyLocalMethodAccess_NotSuggestedOnCollectionInitializer()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     void M()
@@ -1055,7 +1055,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyLocalMethodAccess_NotSuggestedInMethodCall()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class C
 {
     void M()
@@ -1071,7 +1071,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyLocalMethodAccess_NotSuggestedInNestedMethodCall()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"using System;
 
 class C
@@ -1093,7 +1093,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyLocalMethodAccess_NotSuggestedInCollectionInitializer()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -1112,7 +1112,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyLocalMethodAccess_NotSuggestedInObjectMethodInvocation()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"using System;
 
 class C
@@ -1130,7 +1130,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_EventSubscription()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class C
@@ -1160,7 +1160,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccessAsProperty_EventSubscription()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class C
@@ -1208,7 +1208,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_InvokeEvent1()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class C
@@ -1238,7 +1238,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_InvokeEvent2()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class C
@@ -1268,7 +1268,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_InvokeEvent3()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class C
@@ -1298,7 +1298,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_OnBase()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class Base
@@ -1334,7 +1334,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_NotSuggestedOnInstance()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"using System;
 
 class Class
@@ -1357,7 +1357,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_NotSuggestedOnStatic()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"using System;
 
 class C
@@ -1375,7 +1375,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMemberAccessOnNotificationOptionSilent()
         {
-            await TestAsyncWithOptionAndNotificationOption(
+            await TestWithOptionAndNotificationOptionAsync(
 @"class Class
 {
     int Property { get; set; };
@@ -1400,7 +1400,7 @@ CodeStyleOptions2.QualifyPropertyAccess, NotificationOption2.Silent);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMemberAccessOnNotificationOptionInfo()
         {
-            await TestAsyncWithOptionAndNotificationOption(
+            await TestWithOptionAndNotificationOptionAsync(
 @"class Class
 {
     int Property { get; set; };
@@ -1425,7 +1425,7 @@ CodeStyleOptions2.QualifyPropertyAccess, NotificationOption2.Suggestion);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMemberAccessOnNotificationOptionWarning()
         {
-            await TestAsyncWithOptionAndNotificationOption(
+            await TestWithOptionAndNotificationOptionAsync(
 @"class Class
 {
     int Property { get; set; };
@@ -1450,7 +1450,7 @@ CodeStyleOptions2.QualifyPropertyAccess, NotificationOption2.Warning);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyMemberAccessOnNotificationOptionError()
         {
-            await TestAsyncWithOptionAndNotificationOption(
+            await TestWithOptionAndNotificationOptionAsync(
 @"class Class
 {
     int Property { get; set; };
@@ -1476,7 +1476,7 @@ CodeStyleOptions2.QualifyPropertyAccess, NotificationOption2.Error);
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18839"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyInstanceMethodInDelegateCreation()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"using System;
 
 class A
@@ -1508,7 +1508,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotQualifyStaticMethodInDelegateCreation()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"using System;
 
 class A
@@ -1528,7 +1528,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfBaseQualificationOnField()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Base
 {
     protected int field;
@@ -1544,7 +1544,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfBaseQualificationOnProperty()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Base
 {
     protected virtual int Property { get; }
@@ -1560,7 +1560,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfBaseQualificationOnMethod()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Base
 {
     protected virtual void M() { }
@@ -1576,7 +1576,7 @@ CodeStyleOptions2.QualifyMethodAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfBaseQualificationOnEvent()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Base
 {
     protected virtual event EventHandler Event;
@@ -1596,7 +1596,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInStaticContext1()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Program
 {
     public int Foo { get; set; }
@@ -1609,7 +1609,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInStaticContext2()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Program
 {
     public int Foo { get; set; }
@@ -1622,7 +1622,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInStaticContext3()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Program
 {
     public int Foo { get; set; }
@@ -1638,7 +1638,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInStaticContext4()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Program
 {
     public int Foo;
@@ -1654,7 +1654,7 @@ CodeStyleOptions2.QualifyFieldAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInStaticContext5()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"class Program
 {
     public int Foo { get; set; }
@@ -1672,7 +1672,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInStaticContext6()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"public class Foo
 {
     public event EventHandler Bar;
@@ -1686,7 +1686,7 @@ CodeStyleOptions2.QualifyEventAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInBaseConstructor()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"public class Base
 {
     public string Foo { get; }
@@ -1706,7 +1706,7 @@ public class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_InAccessorExpressionBody()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"public class C
 {
     public string Foo { get; set; }
@@ -1724,7 +1724,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_InAccessorWithBodyAndExpressionBody1()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"public class C
 {
     public string Foo { get; set; }
@@ -1742,7 +1742,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_InAccessorWithBodyAndExpressionBody2()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"public class C
 {
     public string Foo { get; set; }
@@ -1760,7 +1760,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_InObjectInitializer()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class C
 {
     public int Foo { get; set }
@@ -1784,7 +1784,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_InCollectionInitializer()
         {
-            await TestAsyncWithOption(
+            await TestWithOptionAsync(
 @"class C
 {
     public int Foo { get; set }
@@ -1808,7 +1808,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_InObjectInitializer1()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"public class C
 {
     public string Foo { get; set; }
@@ -1827,7 +1827,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_InObjectInitializer2()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"public class C
 {
     public string Foo;
@@ -1846,7 +1846,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInAttribute1()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"
 using System;
 
@@ -1867,7 +1867,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInAttribute2()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"
 using System;
 
@@ -1888,7 +1888,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInAttribute3()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"
 using System;
 
@@ -1910,7 +1910,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInAttribute4()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"
 using System;
 
@@ -1930,7 +1930,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfInAttribute5()
         {
-            await TestMissingAsyncWithOption(
+            await TestMissingWithOptionAsync(
 @"
 using System;
 
