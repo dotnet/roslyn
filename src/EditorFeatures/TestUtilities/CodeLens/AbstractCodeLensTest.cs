@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
     [UseExportProvider]
     public abstract class AbstractCodeLensTest
     {
-        protected static async Task RunCountTest(XElement input, int cap = 0)
+        protected static async Task RunCountTestAsync(XElement input, int cap = 0)
         {
             using (var workspace = TestWorkspace.Create(input))
             {
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
             }
         }
 
-        protected static Task RunCountTest(string input, int cap = 0)
-            => RunCountTest(XElement.Parse(input), cap);
+        protected static Task RunCountTestAsync(string input, int cap = 0)
+            => RunCountTestAsync(XElement.Parse(input), cap);
 
-        protected static async Task RunReferenceTest(XElement input)
+        protected static async Task RunReferenceTestAsync(XElement input)
         {
             using (var workspace = TestWorkspace.Create(input))
             {
@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
             }
         }
 
-        protected static Task RunReferenceTest(string input)
-            => RunReferenceTest(XElement.Parse(input));
+        protected static Task RunReferenceTestAsync(string input)
+            => RunReferenceTestAsync(XElement.Parse(input));
 
-        protected static async Task RunMethodReferenceTest(XElement input)
+        protected static async Task RunMethodReferenceTestAsync(XElement input)
         {
             using (var workspace = TestWorkspace.Create(input))
             {
@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
             }
         }
 
-        protected static Task RunMethodReferenceTest(string input)
-            => RunMethodReferenceTest(XElement.Parse(input));
+        protected static Task RunMethodReferenceTestAsync(string input)
+            => RunMethodReferenceTestAsync(XElement.Parse(input));
 
-        protected static async Task RunFullyQualifiedNameTest(XElement input)
+        protected static async Task RunFullyQualifiedNameTestAsync(XElement input)
         {
             using (var workspace = TestWorkspace.Create(input))
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
             }
         }
 
-        protected static Task RunFullyQualifiedNameTest(string input)
-            => RunFullyQualifiedNameTest(XElement.Parse(input));
+        protected static Task RunFullyQualifiedNameTestAsync(string input)
+            => RunFullyQualifiedNameTestAsync(XElement.Parse(input));
     }
 }

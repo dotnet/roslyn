@@ -31,7 +31,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await RunCountTest(input)
+            Await RunCountTestAsync(input)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
@@ -57,7 +57,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await RunCountTest(input, 1)
+            Await RunCountTestAsync(input, 1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
@@ -83,7 +83,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await RunReferenceTest(input)
+            Await RunReferenceTestAsync(input)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
@@ -109,7 +109,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await RunMethodReferenceTest(input)
+            Await RunMethodReferenceTestAsync(input)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeLens)>
@@ -139,7 +139,7 @@ Class A
         </Document>
     </Project>
 </Workspace>
-            Await RunMethodReferenceTest(input)
+            Await RunMethodReferenceTestAsync(input)
         End Function
     End Class
 End Namespace
