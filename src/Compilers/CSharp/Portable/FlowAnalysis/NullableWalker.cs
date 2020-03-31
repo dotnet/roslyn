@@ -3954,11 +3954,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isObjectEqualsMethodOrOverride = method.GetLeastOverriddenMethod(accessingTypeOpt: null)
                 .Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__Equals));
-            if (isObjectEqualsMethodOrOverride ||
-                isWellKnownEqualityMethodOrImplementation(compilation, method, receiverType.Type, WellKnownMember.System_IEquatable_T__Equals))
+            if (node.ReceiverOpt is BoundExpression receiver &&
+                    (isObjectEqualsMethodOrOverride ||
+                     isWellKnownEqualityMethodOrImplementation(compilation, method, receiverType.Type, WellKnownMember.System_IEquatable_T__Equals)))
             {
                 Debug.Assert(arguments.Length == 1);
-                learnFromEqualsMethodArguments(node.ReceiverOpt, receiverType, arguments[0], results[0].RValueType);
+                learnFromEqualsMethodArguments(receiver, receiverType, arguments[0], results[0].RValueType);
                 return;
             }
 
