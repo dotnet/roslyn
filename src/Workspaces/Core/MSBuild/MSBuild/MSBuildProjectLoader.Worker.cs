@@ -495,18 +495,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var paths = new HashSet<string>(PathUtilities.Comparer);
                 foreach (var doc in documents)
                 {
-                    if (doc.FilePath != null)
+                    if (doc.FilePath is null)
+                        continue;
+
+                    if (paths.Contains(doc.FilePath))
                     {
-                        if (paths.Contains(doc.FilePath))
-                        {
-                            var message = string.Format(WorkspacesResources.Duplicate_source_file_0_in_project_1, doc.FilePath, projectFilePath);
-                            var diagnostic = new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, message, projectId);
+                        var message = string.Format(WorkspacesResources.Duplicate_source_file_0_in_project_1, doc.FilePath, projectFilePath);
+                        var diagnostic = new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, message, projectId);
 
-                            _diagnosticReporter.Report(diagnostic);
-                        }
-
-                        paths.Add(doc.FilePath);
+                        _diagnosticReporter.Report(diagnostic);
                     }
+
+                    paths.Add(doc.FilePath);
                 }
             }
 
