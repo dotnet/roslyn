@@ -316,25 +316,32 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var optionKey = new OptionKey(option, language);
             var optionKey2 = new OptionKey2(option, language);
 
+            // Value return from "object GetOption(OptionKey)" should always be public CodeStyleOption type.
+            var newPublicValue = newValue.AsPublicCodeStyleOption();
+
             //  1. WithChangedOption(OptionKey), GetOption(OptionKey)
             var newOptionSet = originalOptionSet.WithChangedOption(optionKey, newValue);
-            Assert.Equal(newValue, newOptionSet.GetOption(optionKey));
+            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey));
+            // Value returned from public API should always be castable to public CodeStyleOption type.
+            Assert.NotNull((CodeStyleOption<bool>)newOptionSet.GetOption(optionKey)!);
 
             //  2. WithChangedOption(OptionKey), GetOption(OptionKey2)
             newOptionSet = originalOptionSet.WithChangedOption(optionKey, newValue);
-            Assert.Equal(newValue, newOptionSet.GetOption(optionKey2));
+            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey2));
 
             //  3. WithChangedOption(OptionKey2), GetOption(OptionKey)
             newOptionSet = originalOptionSet.WithChangedOption(optionKey2, newValue);
-            Assert.Equal(newValue, newOptionSet.GetOption(optionKey));
+            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey));
+            // Value returned from public API should always be castable to public CodeStyleOption type.
+            Assert.NotNull((CodeStyleOption<bool>)newOptionSet.GetOption(optionKey)!);
 
             //  4. WithChangedOption(OptionKey2), GetOption(OptionKey2)
             newOptionSet = originalOptionSet.WithChangedOption(optionKey2, newValue);
-            Assert.Equal(newValue, newOptionSet.GetOption(optionKey2));
+            Assert.Equal(newPublicValue, newOptionSet.GetOption(optionKey2));
 
             //  5. IOptionService.GetOption(OptionKey)
             optionService.SetOptions(newOptionSet);
-            Assert.Equal(newValue, optionService.GetOption(optionKey));
+            Assert.Equal(newPublicValue, optionService.GetOption(optionKey));
         }
     }
 }

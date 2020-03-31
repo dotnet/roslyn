@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption WithValue(object value);
         ICodeStyleOption WithNotification(NotificationOption2 notification);
         ICodeStyleOption AsCodeStyleOption<TCodeStyleOption>();
+        ICodeStyleOption AsPublicCodeStyleOption();
     }
 
     /// <summary>
@@ -59,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 #else
             => this is TCodeStyleOption ? this : (ICodeStyleOption)new CodeStyleOption<T>(this);
 #endif
+
+        ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
 
         private int EnumValueAsInt32 => (int)(object)Value;
 
