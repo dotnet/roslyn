@@ -159,7 +159,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 var references = provider.GetAnalyzerReferencesInExtensions();
                 LogWorkspaceAnalyzerCount(references.Length);
-                _workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
+
+                _workspace.ApplyChangeToWorkspace(w =>
+                    w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
             }
             catch (Exception e) when (FatalError.Report(e))
             {
