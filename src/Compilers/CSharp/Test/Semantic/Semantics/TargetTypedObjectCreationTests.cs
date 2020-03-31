@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -4069,6 +4070,137 @@ class C
             var typeInfo = speculativeModel.GetTypeInfo(newExpression);
             Assert.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestInOverloadWithIllegalConversion()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(new());
+        M(array: new());
+    }
+    static void M(int[] array) { }
+    static void M(int i) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(int[])' and 'C.M(int)'
+                //         M(new());
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(int[])", "C.M(int)").WithLocation(6, 9),
+                // (7,18): error CS8752: The type 'int[]' may not be used as the target type of new()
+                //         M(array: new());
+                Diagnostic(ErrorCode.ERR_TypelessNewIllegalTargetType, "new()").WithArguments("int[]").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void TestInOverloadWithUseSiteError()
+        {
+            var missing = @"public class Missing { }";
+            var missingComp = CreateCompilation(missing, assemblyName: "missing");
+
+            var lib = @"
+public class C
+{
+    public void M(Missing m) { }
+    public void M(C c) { }
+}";
+            var libComp = CreateCompilation(lib, references: new[] { missingComp.EmitToImageReference() });
+
+            var source = @"
+class D
+{
+    public void M2(C c)
+    {
+        c.M(new());
+        c.M(default);
+        c.M(null);
+    }
+}
+";
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         c.M(new());
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
+                // (7,9): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         c.M(default);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
+                // (8,9): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         c.M(null);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void UseSiteWarning()
+        {
+            var signedDll = TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
+
+            var libBTemplate = @"
+[assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
+public class B {{ }}
+";
+
+            var libBv1 = CreateCompilation(string.Format(libBTemplate, "1"), assemblyName: "B", options: signedDll);
+            var libBv2 = CreateCompilation(string.Format(libBTemplate, "2"), assemblyName: "B", options: signedDll);
+
+            var libASource = @"
+[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+
+public class A
+{
+    public void M(B b) { }
+    public void M(string s) { }
+}
+";
+
+            var libAv1 = CreateCompilation(
+                libASource,
+                new[] { new CSharpCompilationReference(libBv1) },
+                assemblyName: "A",
+                options: signedDll);
+
+            var source = @"
+public class Source
+{
+    public void Test(A a)
+    {
+        a.M(new());
+        a.M(default);
+        a.M(null);
+    }
+}
+";
+
+            var comp = CreateCompilation(source, new[] { new CSharpCompilationReference(libAv1), new CSharpCompilationReference(libBv2) },
+                parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                //         a.M(new());
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(6, 9),
+                // (6,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
+                //         a.M(new());
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(6, 11),
+                // (7,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                //         a.M(default);
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(7, 9),
+                // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
+                //         a.M(default);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(7, 11),
+                // (8,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                //         a.M(null);
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(8, 9),
+                // (8,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
+                //         a.M(null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(8, 11)
+                );
         }
     }
 }
