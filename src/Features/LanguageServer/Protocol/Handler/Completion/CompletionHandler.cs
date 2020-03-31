@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler()
         {
         }

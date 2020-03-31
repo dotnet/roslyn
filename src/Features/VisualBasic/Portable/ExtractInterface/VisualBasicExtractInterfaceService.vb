@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
         Inherits AbstractExtractInterfaceService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

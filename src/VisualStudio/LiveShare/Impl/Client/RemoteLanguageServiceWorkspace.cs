@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -76,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// Initializes a new instance of the <see cref="RemoteLanguageServiceWorkspace"/> class.
         /// </summary>
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteLanguageServiceWorkspace(ExportProvider exportProvider,
                                               IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
                                               IVsFolderWorkspaceService vsFolderWorkspaceService,

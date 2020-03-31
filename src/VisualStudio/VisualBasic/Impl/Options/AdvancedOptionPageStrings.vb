@@ -110,6 +110,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_ShowRemarksInQuickInfo As String
+            Get
+                Return BasicVSResources.Show_remarks_in_Quick_Info
+            End Get
+        End Property
+
         Public ReadOnly Property Option_GoToDefinition As String
             Get
                 Return BasicVSResources.Go_to_Definition

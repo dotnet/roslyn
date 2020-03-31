@@ -38,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService, textUndoHistoryRegistry As ITextUndoHistoryRegistry)
             _editorOperationsFactoryService = editorOperationsFactoryService
             _textUndoHistoryRegistry = textUndoHistoryRegistry

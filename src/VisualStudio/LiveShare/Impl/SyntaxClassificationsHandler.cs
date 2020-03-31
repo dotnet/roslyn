@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
@@ -31,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpSyntaxClassificationsHandler : SyntaxClassificationsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSyntaxClassificationsHandler()
         {
         }
@@ -40,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicSyntaxClassificationsHandler : SyntaxClassificationsHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicSyntaxClassificationsHandler()
         {
         }

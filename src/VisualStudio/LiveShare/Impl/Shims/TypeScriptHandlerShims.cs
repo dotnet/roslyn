@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, object?, Solution>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptCompletionHandlerShim()
         {
         }
@@ -56,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptCompletionResolverHandlerShim : CompletionResolveHandler, ILspRequestHandler<LanguageServer.Protocol.CompletionItem, LanguageServer.Protocol.CompletionItem, Solution>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptCompletionResolverHandlerShim()
         {
         }
@@ -68,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptDocumentHighlightHandlerShim : DocumentHighlightsHandler, ILspRequestHandler<TextDocumentPositionParams, DocumentHighlight[], Solution>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptDocumentHighlightHandlerShim()
         {
         }
@@ -80,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptDocumentSymbolsHandlerShim : DocumentSymbolsHandler, ILspRequestHandler<DocumentSymbolParams, SymbolInformation[], Solution>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptDocumentSymbolsHandlerShim()
         {
         }
@@ -106,6 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFormatDocumentHandlerShim(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
@@ -128,6 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFormatDocumentRangeHandlerShim(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
@@ -150,6 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFormatDocumentOnTypeHandlerShim(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
@@ -179,6 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptFindImplementationsHandlerShim(IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
@@ -206,6 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptInitializeHandlerShim : InitializeHandler, ILspRequestHandler<InitializeParams, InitializeResult, Solution>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptInitializeHandlerShim([ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders) : base(completionProviders)
         {
         }
@@ -222,6 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptSignatureHelpHandlerShim : SignatureHelpHandler, ILspRequestHandler<TextDocumentPositionParams, SignatureHelp, Solution>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptSignatureHelpHandlerShim([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders) : base(allProviders)
         {
         }
@@ -247,6 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<object, SymbolInformation[], Solution>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptWorkspaceSymbolsHandlerShim()
         {
         }

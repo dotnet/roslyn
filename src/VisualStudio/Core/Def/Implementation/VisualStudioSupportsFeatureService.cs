@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         private class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public VisualStudioTextBufferSupportsFeatureService()
             {
             }
@@ -69,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         private class VisualStudioDocumentSupportsFeatureService : IDocumentSupportsFeatureService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public VisualStudioDocumentSupportsFeatureService()
             {
             }

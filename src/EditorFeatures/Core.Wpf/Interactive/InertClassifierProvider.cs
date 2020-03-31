@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private static readonly object s_classificationsKey = new object();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InertClassifierProvider()
         {
         }

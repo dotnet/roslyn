@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -56,6 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTodoCommentsService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,

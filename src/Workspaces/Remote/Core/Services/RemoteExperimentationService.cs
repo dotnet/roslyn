@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Experiments;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
     internal sealed class RemoteExperimentationService : IExperimentationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteExperimentationService()
         {
         }

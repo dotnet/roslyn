@@ -47,6 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractObjectCreationExpressionAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\ObjectCreationExpressionAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\AbstractUseObjectInitializerDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\ObjectCreationExpressionAnalyzer.cs" />

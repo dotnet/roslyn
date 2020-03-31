@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticAnalyzerService(
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,

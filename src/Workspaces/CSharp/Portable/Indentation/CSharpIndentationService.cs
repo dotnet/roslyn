@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpIndentationService()
         {
         }
