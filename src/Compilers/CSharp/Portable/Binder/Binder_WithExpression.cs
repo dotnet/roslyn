@@ -227,8 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Verify that the member name exists in the 'With' method parameter list
-            // and that there is an implicit conversion from the expression to the
-            // property type
             for (int i = 0; i < args.Count; i++)
             {
                 var (member, expr) = args[i];
