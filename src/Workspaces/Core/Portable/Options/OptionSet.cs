@@ -31,10 +31,22 @@ namespace Microsoft.CodeAnalysis.Options
             => OptionsHelpers.GetPublicOption(optionKey, GetOptionCore);
 
         /// <summary>
+        /// Gets the value of the option cast to type <typeparamref name="T"/>, or the default value if not otherwise set.
+        /// </summary>
+        public T GetOption<T>(OptionKey optionKey)
+            => OptionsHelpers.GetOption<T>(optionKey, GetOptionCore);
+
+        /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         internal object? GetOption(OptionKey2 optionKey)
             => OptionsHelpers.GetOption<object?>(optionKey, GetOptionCore);
+
+        /// <summary>
+        /// Gets the value of the option, or the default value if not otherwise set.
+        /// </summary>
+        internal T GetOption<T>(OptionKey2 optionKey)
+            => OptionsHelpers.GetOption<T>(optionKey, GetOptionCore);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
