@@ -498,6 +498,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         return !semanticModel.Compilation.HasImplicitConversion(fromType.Type, toType);
                     }
                 }
+                else
+                {
+                    return false;
+                }
             }
 
             throw new ArgumentException("Unexpected symbol", nameof(symbolInfo));

@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                     newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
                                     fullList.Add(newArgument);
                                 }
-                                else
+                                else if (indexInListOfPreexistingArguments < newArguments.Count)
                                 {
                                     var newArgument = newArguments[indexInListOfPreexistingArguments];
                                     newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
