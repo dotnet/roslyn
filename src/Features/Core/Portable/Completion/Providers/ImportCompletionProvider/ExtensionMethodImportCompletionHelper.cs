@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Also, this check is called for a method symbol only when the container was checked and is accessible.
             static bool IsAccessible(ISymbol symbol, bool internalsVisible) =>
                 symbol.DeclaredAccessibility == Accessibility.Public ||
-                symbol.DeclaredAccessibility == Accessibility.Internal && internalsVisible;
+                (symbol.DeclaredAccessibility == Accessibility.Internal && internalsVisible);
         }
 
         private static async Task<GetIndicesResult> TryGetIndicesAsync(
