@@ -425,7 +425,24 @@ class C
         }
 
         [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
-        public async Task TestRefLocal()
+        public async Task TestRefLocal1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        [||]ref var rStr1 = ref str;
+    }
+}";
+
+            await TestMissingAsync(code);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal2()
         {
             var code = @"
 class C
@@ -453,7 +470,35 @@ class C
         }
 
         [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
-        public async Task TestRefReadonlyLocal()
+        public async Task TestRefLocal3()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref var [||]rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref string rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefReadonlyLocal1()
         {
             var code = @"
 class C
@@ -463,6 +508,34 @@ class C
         string str = """";
 
         ref readonly [||]var rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly string rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefReadonlyLocal2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly var[||] rStr1 = ref str;
     }
 }";
 

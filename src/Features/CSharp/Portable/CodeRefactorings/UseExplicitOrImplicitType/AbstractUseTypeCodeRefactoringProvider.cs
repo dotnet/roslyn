@@ -83,21 +83,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
 
             var declNode = await context.TryGetRelevantNodeAsync<DeclarationExpressionSyntax>().ConfigureAwait(false);
             if (declNode != null)
-            {
                 return declNode;
-            }
 
             var variableNode = await context.TryGetRelevantNodeAsync<VariableDeclarationSyntax>().ConfigureAwait(false);
             if (variableNode != null)
-            {
                 return variableNode;
-            }
+
+            // `ref var` is a bit of an interesting construct.  'ref' looks like a modifier, but is actually a
+            // type-syntax.  Ensure the user can get the feature anywhere on this construct
+            var identifier = await context.TryGetRelevantNodeAsync<IdentifierNameSyntax>().ConfigureAwait(false);
+            if (identifier?.IsVar == true && identifier.Parent is RefTypeSyntax && identifier.Parent.Parent is VariableDeclarationSyntax)
+                return identifier.Parent.Parent;
 
             var foreachStatement = await context.TryGetRelevantNodeAsync<ForEachStatementSyntax>().ConfigureAwait(false);
             if (foreachStatement != null)
-            {
                 return foreachStatement;
-            }
 
             var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
 
