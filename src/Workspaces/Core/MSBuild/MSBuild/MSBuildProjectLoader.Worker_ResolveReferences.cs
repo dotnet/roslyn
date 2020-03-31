@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
 
                     var outputFilePath = projectReferenceInfo.OutputFilePath;
-                    if (!File.Exists(projectReferenceInfo.OutputFilePath) && outputFilePath != null)
+                    if (outputFilePath != null && !File.Exists(outputFilePath))
                     {
                         builder.Remove(outputFilePath);
                     }
