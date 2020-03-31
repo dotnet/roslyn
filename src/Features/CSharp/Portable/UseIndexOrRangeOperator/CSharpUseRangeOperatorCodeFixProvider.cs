@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 if (resultOpt != null)
                 {
                     var result = resultOpt.Value;
-                    var updatedNode = FixOne(result, cancellationToken);
+                    var updatedNode = FixOne(result);
                     if (updatedNode != null)
                     {
                         return currentRoot.ReplaceNode(result.Invocation, updatedNode);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static InvocationExpressionSyntax GetInvocationExpression(Diagnostic d, CancellationToken cancellationToken)
             => (InvocationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-        private ExpressionSyntax FixOne(Result result, CancellationToken cancellationToken)
+        private ExpressionSyntax FixOne(Result result)
         {
             var invocation = result.Invocation;
             var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TIfStatementSyntax : SyntaxNode
     {
-        private readonly PerLanguageOption<CodeStyleOption<bool>> _option;
+        private readonly PerLanguageOption2<CodeStyleOption2<bool>> _option;
 
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected AbstractUseConditionalExpressionDiagnosticAnalyzer(
             string descriptorId,
             LocalizableResourceString message,
-            PerLanguageOption<CodeStyleOption<bool>> option)
+            PerLanguageOption2<CodeStyleOption2<bool>> option)
             : base(descriptorId,
                    option,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),

@@ -27,21 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => GetNestedActions(actions);
 
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
+        private IDictionary<OptionKey2, object> ImplicitTypingEverywhere() =>
             OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
                 SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
                 SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
-
-        internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
-            return options;
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestEmptySpan1()

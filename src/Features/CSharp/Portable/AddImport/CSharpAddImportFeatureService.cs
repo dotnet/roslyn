@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;

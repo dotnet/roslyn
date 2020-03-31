@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
-            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions.PreferAutoProperties, s_title, s_title)
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)
         {
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var semanticModel = context.SemanticModel;
 
             // Don't even bother doing the analysis if the user doesn't even want auto-props.
-            var option = context.GetOption(CodeStyleOptions.PreferAutoProperties, semanticModel.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferAutoProperties, semanticModel.Language);
             if (!option.Value)
             {
                 return;
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var additionalLocations = ImmutableArray.Create(
                 propertyDeclaration.GetLocation(), variableDeclarator.GetLocation());
 
-            var option = context.GetOption(CodeStyleOptions.PreferAutoProperties, propertyDeclaration.Language);
+            var option = context.GetOption(CodeStyleOptions2.PreferAutoProperties, propertyDeclaration.Language);
             if (option.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden

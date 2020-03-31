@@ -33,9 +33,9 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First());
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
         }
 
@@ -61,9 +61,9 @@ class B
 }"
             };
 
-            var (solution, locations) = CreateTestSolution(markups);
+            using var workspace = CreateTestWorkspace(markups, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First());
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
         }
 
@@ -75,9 +75,9 @@ class B
 {
     {|caret:|}
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, ranges["caret"].First());
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             Assert.Empty(results);
         }
 

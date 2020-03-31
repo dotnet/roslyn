@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             ParenthesizedLambdaExpressionSyntax lambdaExpression,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {

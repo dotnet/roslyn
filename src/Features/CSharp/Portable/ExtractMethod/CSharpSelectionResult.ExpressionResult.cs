@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override SyntaxNode? GetContainingScope()
             {
-                Contract.ThrowIfNull(this.SemanticDocument);
-                Contract.ThrowIfFalse(this.SelectionInExpression);
+                Contract.ThrowIfNull(SemanticDocument);
+                Contract.ThrowIfFalse(SelectionInExpression);
 
-                var firstToken = this.GetFirstTokenInSelection();
-                var lastToken = this.GetLastTokenInSelection();
+                var firstToken = GetFirstTokenInSelection();
+                var lastToken = GetLastTokenInSelection();
                 return firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
             }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     throw ExceptionUtilities.Unreachable;
                 }
 
-                var model = this.SemanticDocument.SemanticModel;
+                var model = SemanticDocument.SemanticModel;
 
                 // special case for array initializer and explicit cast
                 if (node.IsArrayInitializer())

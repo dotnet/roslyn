@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
@@ -24,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
-        public static readonly Option<bool> UseLegacyEditorConfigSupport =
-            new Option<bool>(nameof(EditorConfigDocumentOptionsProviderFactory), nameof(UseLegacyEditorConfigSupport), defaultValue: false,
+        public static readonly Option2<bool> UseLegacyEditorConfigSupport =
+            new Option2<bool>(nameof(EditorConfigDocumentOptionsProviderFactory), nameof(UseLegacyEditorConfigSupport), defaultValue: false,
                 storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "UseLegacySupport"));
 
         public static bool ShouldUseNativeEditorConfigSupport(Workspace workspace)

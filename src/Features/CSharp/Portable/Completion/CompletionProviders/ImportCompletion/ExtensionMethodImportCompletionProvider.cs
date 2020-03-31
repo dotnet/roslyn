@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SyntaxNode location,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
-            => ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel, cancellationToken);
+            => ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel);
 
         protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
             => ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken);

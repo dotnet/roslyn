@@ -85,7 +85,7 @@ class C
         [|this|].SomeProperty = 1;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning),
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Warning),
                 diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning);
         }
@@ -420,8 +420,8 @@ class D
 </Workspace>";
 
             var options = OptionsSet(
-                SingleOption(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Suggestion),
-                SingleOption(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Suggestion));
+                SingleOption(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion),
+                SingleOption(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion));
 
             await TestInRegularAndScriptAsync(
                 initialMarkup: input,

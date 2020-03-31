@@ -19,12 +19,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public int End { get; private set; }
 
         public static LineSpan FromBounds(int start, int end)
-        {
-            var result = new LineSpan();
-            result.Start = start;
-            result.End = end;
-            return result;
-        }
+            => new LineSpan
+            {
+                Start = start,
+                End = end
+            };
 
         public bool Equals(LineSpan other)
         {

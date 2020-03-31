@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -37,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Options
             return _backingOptionSet.GetOption(option, _language);
         }
 
+        internal T GetOption<T>(PerLanguageOption2<T> option)
+        {
+            return _backingOptionSet.GetOption(option, _language);
+        }
+
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
         {
             return new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
@@ -46,6 +50,14 @@ namespace Microsoft.CodeAnalysis.Options
         /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
         /// </summary>
         public DocumentOptionSet WithChangedOption<T>(PerLanguageOption<T> option, T value)
+        {
+            return (DocumentOptionSet)WithChangedOption(option, _language, value);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
+        /// </summary>
+        internal DocumentOptionSet WithChangedOption<T>(PerLanguageOption2<T> option, T value)
         {
             return (DocumentOptionSet)WithChangedOption(option, _language, value);
         }

@@ -8,13 +8,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
@@ -53,7 +48,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
     ///        Currently, we do not provide any code fix for removing unused parameters as it needs fixing the
     ///        call sites and any automated fix can lead to subtle overload resolution differences,
     ///        though this may change in future.
-    ///        This diagnostic configuration is controlled by <see cref="CodeStyleOptions.UnusedParameters"/> option.
+    ///        This diagnostic configuration is controlled by <see cref="CodeStyleOptions2.UnusedParameters"/> option.
     /// </summary>
     internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
@@ -90,14 +85,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
         protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
-            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
-            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
+            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            Option2<CodeStyleOption2<UnusedValuePreference>> unusedValueAssignmentOption,
             string language)
             : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
                         .Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption)
                         .Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption),
                    ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption>.Empty
-                        .Add(s_unusedParameterRule, CodeStyleOptions.UnusedParameters),
+                        .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
                    language)
         {
             UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
@@ -108,8 +103,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
         protected abstract bool IsIfConditionalDirective(SyntaxNode node);
-        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
-        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
+        private Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
+        private Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 
         /// <summary>
         /// Indicates if we should bail from removable assignment analysis for the given
@@ -203,7 +198,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             options = null;
 
-            var unusedParametersOption = analyzerOptions.GetOption(CodeStyleOptions.UnusedParameters, language, syntaxTree, cancellationToken);
+            var unusedParametersOption = analyzerOptions.GetOption(CodeStyleOptions2.UnusedParameters, language, syntaxTree, cancellationToken);
             var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(UnusedValueExpressionStatementOption);
             var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(UnusedValueAssignmentOption);
             if (unusedParametersOption.Notification.Severity == ReportDiagnostic.Suppress &&
@@ -220,7 +215,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
             // Local functions.
             (UnusedValuePreference preference, ReportDiagnostic severity) GetPreferenceAndSeverity(
-                Option<CodeStyleOption<UnusedValuePreference>> codeStyleOption)
+                Option2<CodeStyleOption2<UnusedValuePreference>> codeStyleOption)
             {
                 var option = analyzerOptions.GetOption(codeStyleOption, syntaxTree, cancellationToken);
                 var preferenceOpt = option?.Value;

@@ -4,6 +4,8 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,14 +15,6 @@ using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionCodeFixProvider>;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementToExpression
 {
@@ -729,7 +723,7 @@ class Program
                 },
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferSwitchExpression, true, NotificationOption.Warning },
+                    { CSharpCodeStyleOptions.PreferSwitchExpression, true, NotificationOption2.Warning },
                 },
             }.RunAsync();
         }
@@ -1070,7 +1064,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1138,7 +1132,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1206,7 +1200,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1282,7 +1276,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1350,7 +1344,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1418,7 +1412,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1486,7 +1480,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1533,7 +1527,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1578,7 +1572,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1624,7 +1618,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1670,7 +1664,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarForBuiltInTypes, false, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, false, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }
@@ -1716,7 +1710,7 @@ class Program
                 FixedCode = expected,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption.Silent },
+                    { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Silent },
                 },
             }.RunAsync();
         }

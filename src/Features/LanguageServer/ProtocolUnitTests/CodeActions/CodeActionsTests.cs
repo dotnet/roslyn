@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {|caret:|}int i = 1;
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = CreateCommand(CSharpAnalyzersResources.Use_implicit_type, locations["caret"].Single());
             var clientCapabilities = CreateClientCapabilitiesWithExperimentalValue("supportsWorkspaceEdits", JToken.FromObject(false));
 
-            var results = await RunGetCodeActionsAsync(solution, locations["caret"].Single(), clientCapabilities);
+            var results = await RunGetCodeActionsAsync(workspace.CurrentSolution, locations["caret"].Single(), clientCapabilities);
             var useImplicitTypeResult = results.Single(r => r.Title == CSharpAnalyzersResources.Use_implicit_type);
             AssertJsonEquals(expected, useImplicitTypeResult);
         }

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -23,12 +24,6 @@ using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-#endif
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {

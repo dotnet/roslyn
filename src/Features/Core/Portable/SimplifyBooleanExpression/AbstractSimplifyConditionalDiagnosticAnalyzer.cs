@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
         protected AbstractSimplifyConditionalDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId,
-                   CodeStyleOptions.PreferSimplifiedBooleanExpressions,
+                   CodeStyleOptions2.PreferSimplifiedBooleanExpressions,
                    new LocalizableResourceString(nameof(FeaturesResources.Simplify_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Conditional_expression_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
         protected sealed override void InitializeWorker(AnalysisContext context)
         {
-            var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
+            var syntaxKinds = SyntaxFacts.SyntaxKinds;
             context.RegisterSyntaxNodeAction(
                 AnalyzeConditionalExpression, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ConditionalExpression));
         }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
             var cancellationToken = context.CancellationToken;
 
             var styleOption = options.GetOption(
-                CodeStyleOptions.PreferSimplifiedBooleanExpressions,
+                CodeStyleOptions2.PreferSimplifiedBooleanExpressions,
                 semanticModel.Language, syntaxTree, cancellationToken);
             if (!styleOption.Value)
             {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
             }
 
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
-            this.SyntaxFacts.GetPartsOfConditionalExpression(
+            SyntaxFacts.GetPartsOfConditionalExpression(
                 conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
             var condition = (TExpressionSyntax)conditionNode;
             var whenTrue = (TExpressionSyntax)whenTrueNode;
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
             void ReportDiagnostic(ImmutableDictionary<string, string> properties)
                 => context.ReportDiagnostic(DiagnosticHelper.Create(
-                    this.Descriptor,
+                    Descriptor,
                     conditionalExpression.GetLocation(),
                     styleOption.Notification.Severity,
                     additionalLocations: null,

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMember;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -42,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         }
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
-            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive();
 
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
-            => CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol();
 
         protected override bool TryInitializeExplicitInterfaceState(
             SemanticDocument document,
