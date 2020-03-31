@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <returns>the return value of <paramref name="action"/></returns>
         public static Task<T> RetryAsync<T>(Func<Task<T>> action, TimeSpan delay)
         {
-            return RetryAsyncHelper(async () =>
+            return RetryHelperAsync(async () =>
             {
                 try
                 {
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private static async Task<T> RetryAsyncHelper<T>(Func<Task<T>> action, TimeSpan delay)
+        private static async Task<T> RetryHelperAsync<T>(Func<Task<T>> action, TimeSpan delay)
         {
             while (true)
             {
