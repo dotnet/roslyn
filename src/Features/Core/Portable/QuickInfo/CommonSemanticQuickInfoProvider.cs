@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
             }
 
-            var documentedSymbol = symbols.FirstOrDefault()?.OriginalDefinition;
+            var documentedSymbol = symbols.FirstOrDefault();
 
             // if generating quick info for an attribute, bind to the class instead of the constructor
             if (syntaxFactsService.IsAttributeName(token.Parent) &&

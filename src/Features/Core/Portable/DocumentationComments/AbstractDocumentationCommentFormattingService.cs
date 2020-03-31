@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -76,6 +78,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             internal SemanticModel SemanticModel { get; set; }
+            internal ISymbol TypeResolutionSymbol { get; set; }
             internal int Position { get; set; }
 
             public bool AtBeginning
@@ -257,6 +260,59 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
         }
 
+        private static string GetDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+            => symbol switch
+            {
+                IParameterSymbol parameter => GetParameterDocumentation(parameter, compilation, cancellationToken),
+                ITypeParameterSymbol typeParam => typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name),
+                IMethodSymbol method => GetMethodDocumentation(method, compilation, cancellationToken),
+                IAliasSymbol alias => alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
+                _ => symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText,
+            };
+
+        private static string GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
+        {
+            var containingSymbol = parameter.ContainingSymbol;
+            if (containingSymbol.ContainingSymbol.IsDelegateType() && containingSymbol is IMethodSymbol methodSymbol)
+            {
+                // There are two ways to invoke a delegate that we care about here: the Invoke()/BeginInvoke() methods. (Direct invocation is equivalent to an Invoke() call.)
+                // DynamicInvoke() takes an object array, and EndInvoke() takes a System.IAsyncResult, so we can (and should) ignore those here.
+
+                var symbolName = methodSymbol.Name;
+                if (symbolName == WellKnownMemberNames.DelegateBeginInvokeName && parameter.Ordinal >= (methodSymbol.Parameters.Length - 2))
+                {
+                    // Return null (similar to DocumentationComment.GetParameterText()) for the last two implicit parameters (usually called "callback" and "@object").
+                    // We can't rely on those names because they might be renamed to avoid collision with a user-defined delegate parameter of the same name,
+                    // and we have to treat them separately, because a user might add e.g. a '<param name="callback">' tag to the delegate, which would be displayed in Signature Help for that implicit parameter.
+                    return null;
+                }
+
+                if (symbolName == WellKnownMemberNames.DelegateInvokeName || symbolName == WellKnownMemberNames.DelegateBeginInvokeName)
+                {
+                    // We know that containingSymbol is the [Begin]Invoke() method of a delegate type, so we need to go up a level and take the method's containing symbol (i.e. the delegate), which contains the documentation.
+                    containingSymbol = containingSymbol.ContainingSymbol;
+                }
+            }
+
+            // Get the comments from the original definition of the containing symbol.
+            return containingSymbol.OriginalDefinition.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).GetParameterText(parameter.Name);
+        }
+
+        private static string GetMethodDocumentation(IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.EventAdd:
+                case MethodKind.EventRaise:
+                case MethodKind.EventRemove:
+                case MethodKind.PropertyGet:
+                case MethodKind.PropertySet:
+                    return method.AssociatedSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
+                default:
+                    return method.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
+            }
+        }
+
         public string Format(string rawXmlText, Compilation compilation = null)
         {
             if (rawXmlText == null)
@@ -277,14 +333,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return state.GetText();
         }
 
-        public IEnumerable<TaggedText> Format(string rawXmlText, SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
+        public IEnumerable<TaggedText> Format(string rawXmlText, ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format, CancellationToken cancellationToken)
         {
-            if (rawXmlText == null)
+            if (rawXmlText is null)
             {
-                return null;
+                return SpecializedCollections.EmptyEnumerable<TaggedText>();
             }
+            //symbol = symbol.OriginalDefinition;
 
-            var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format };
+            var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format, TypeResolutionSymbol = symbol };
 
             // In case the XML is a fragment (that is, a series of elements without a parent)
             // wrap it up in a single tag. This makes parsing it much, much easier.
@@ -460,8 +517,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var attributeName = attribute.Name.LocalName;
             if (attributeNameToParse == attributeName)
             {
-                state.AppendParts(
-                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
+                if (kind == SymbolDisplayPartKind.TypeParameterName)
+                {
+                    state.AppendParts(
+                        TypeParameterRefToSymbolDisplayParts(attribute.Value, state.TypeResolutionSymbol, state.Position, state.SemanticModel, state.Format).ToTaggedText(state.Style));
+                }
+                else
+                {
+                    state.AppendParts(
+                        CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
+                }
             }
             else
             {
@@ -500,6 +565,27 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             // if any of that fails fall back to just displaying the raw text
             return SpecializedCollections.SingletonEnumerable(
                 new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue)));
+        }
+
+        internal static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
+            string crefValue, ISymbol typeResolutionSymbol, int position, SemanticModel semanticModel, SymbolDisplayFormat format)
+        {
+            if (semanticModel != null)
+            {
+                var typeParameterIndex = typeResolutionSymbol.OriginalDefinition.GetAllTypeParameters().IndexOf(tp => tp.Name == crefValue);
+                if (typeParameterIndex >= 0)
+                {
+                    var typeArgs = typeResolutionSymbol.GetAllTypeArguments();
+                    if (typeArgs.Length > typeParameterIndex)
+                    {
+                        return typeArgs[typeParameterIndex].ToMinimalDisplayParts(semanticModel, position, format);
+                    }
+                }
+            }
+
+            // if any of that fails fall back to just displaying the raw text
+            return SpecializedCollections.SingletonEnumerable(
+                new SymbolDisplayPart(SymbolDisplayPartKind.TypeParameterName, symbol: null, text: TrimCrefPrefix(crefValue)));
         }
 
         private static string TrimCrefPrefix(string value)
