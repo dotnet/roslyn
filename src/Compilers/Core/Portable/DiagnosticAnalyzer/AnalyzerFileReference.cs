@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return other is object &&
                 ReferenceEquals(_assemblyLoader, other._assemblyLoader) &&
-               FullPath == other.FullPath;
+                FullPath == other.FullPath;
         }
 
         // legacy, for backwards compat:
