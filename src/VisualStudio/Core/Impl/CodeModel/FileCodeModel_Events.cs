@@ -20,11 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public bool FireEvents()
         {
-            var needMoreTime = false;
-
             _codeElementTable.CleanUpDeadObjects();
-            needMoreTime = _codeElementTable.NeedsCleanUp;
 
+            var needMoreTime = _codeElementTable.NeedsCleanUp;
             if (this.IsZombied)
             {
                 // file is removed from the solution. this can happen if a fireevent is enqueued to foreground notification service
