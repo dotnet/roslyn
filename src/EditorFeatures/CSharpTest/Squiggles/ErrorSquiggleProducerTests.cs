@@ -174,7 +174,7 @@ class Program
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace);
             var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
 
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -186,7 +186,7 @@ class Program
             // Now remove the document.
             workspace.CloseDocument(workspace.Documents.First().Id);
             workspace.OnDocumentRemoved(workspace.Documents.First().Id);
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
             // And we should have no errors for this document.
@@ -200,7 +200,7 @@ class Program
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace);
             var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
 
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -213,7 +213,7 @@ class Program
             workspace.CloseDocument(workspace.Documents.First().Id);
             workspace.OnDocumentRemoved(workspace.Documents.First().Id);
             workspace.OnProjectRemoved(workspace.Projects.First().Id);
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
             spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
             // And we should have no errors for this document.

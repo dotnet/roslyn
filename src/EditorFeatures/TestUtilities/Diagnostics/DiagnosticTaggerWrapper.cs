@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public void Dispose()
             => _registrationService.Unregister(_workspace);
 
-        public async Task WaitForTags()
+        public async Task WaitForTagsAsync()
         {
             if (_solutionCrawlerService != null)
             {
