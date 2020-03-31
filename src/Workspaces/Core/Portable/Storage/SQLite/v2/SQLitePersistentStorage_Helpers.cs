@@ -9,7 +9,7 @@ using System.Threading;
 using Roslyn.Utilities;
 using static System.FormattableString;
 
-namespace Microsoft.CodeAnalysis.SQLite
+namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {

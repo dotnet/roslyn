@@ -4,7 +4,7 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SQLite
+namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal enum Database
     {

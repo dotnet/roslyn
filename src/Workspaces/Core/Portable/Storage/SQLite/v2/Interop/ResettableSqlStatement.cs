@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.SQLite.Interop
+namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
     /// <summary>
     /// Simple wrapper struct for a <see cref="SqlStatement"/> that helps ensure that the statement

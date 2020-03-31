@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -34,7 +35,13 @@ namespace Microsoft.CodeAnalysis.Storage
                 case StorageDatabase.SQLite:
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
                     if (locationService != null)
-                        return new SQLitePersistentStorageService(locationService);
+                    {
+                        var experimentationService = workspaceServices.GetRequiredService<IExperimentationService>();
+                        if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SQLiteInMemoryWriteCache))
+                        {
+                            return new SQLite.v2.SQLitePersistentStorageService(locationService);
+                        }
+                    }
 
                     break;
             }

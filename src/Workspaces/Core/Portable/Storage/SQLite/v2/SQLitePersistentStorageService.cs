@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SQLite
+namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService
     {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         protected override string GetDatabaseFilePath(string workingFolderPath)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
-            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
+            return Path.Combine(workingFolderPath, StorageExtension, nameof(v2), PersistentStorageFileName);
         }
 
         protected override IChecksummedPersistentStorage? TryOpenDatabase(
