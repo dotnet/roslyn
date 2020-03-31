@@ -22,16 +22,25 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Host), Shared]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly TrivialTemporaryStorageService _trivialStorageService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TemporaryStorageServiceFactory()
+        public TemporaryStorageServiceFactory(TrivialTemporaryStorageService trivialStorageService)
         {
+            _trivialStorageService = trivialStorageService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var textFactory = workspaceServices.GetService<ITextFactoryService>();
-            return new TemporaryStorageService(textFactory);
+
+            // MemoryMapped files which are used by the TemporaryStorageService are not present
+            // on non-Windows platforms. As a workaround, we can return the TrivialTemporaryStorageService
+            // until https://github.com/dotnet/roslyn/issues/42178 is fixed.
+            return PlatformInformation.IsWindows
+                ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
+                : _trivialStorageService;
         }
 
         /// <summary>

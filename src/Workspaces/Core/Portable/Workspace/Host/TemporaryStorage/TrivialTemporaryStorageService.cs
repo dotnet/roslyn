@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
     [ExportWorkspaceService(typeof(ITemporaryStorageService)), Shared]
+    [Export(typeof(TrivialTemporaryStorageService))]
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
         [ImportingConstructor]
