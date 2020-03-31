@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of implicit conversions is extended to include...
             // SPEC: ... from the null literal to any pointer type.
 
-            if (destination is PointerTypeSymbol)
+            if (destination.IsPointerOrFunctionPointer())
             {
                 return Conversion.NullToPointer;
             }
@@ -2927,9 +2927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of implicit conversions is extended to include...
             // SPEC: ... from any pointer type to the type void*.
 
-            PointerTypeSymbol pd = destination as PointerTypeSymbol;
-            PointerTypeSymbol ps = source as PointerTypeSymbol;
-            return (object)pd != null && (object)ps != null && pd.PointedAtType.IsVoidType();
+            return source.IsPointerOrFunctionPointer() && destination is PointerTypeSymbol { PointedAtType: { SpecialType: SpecialType.System_Void } };
         }
 
         private bool HasIdentityOrReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -3376,7 +3374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            return source is PointerTypeSymbol && destination is PointerTypeSymbol;
+            return source.IsPointerOrFunctionPointer() && destination.IsPointerOrFunctionPointer();
         }
 
         private static bool HasPointerToIntegerConversion(TypeSymbol source, TypeSymbol destination)
@@ -3384,7 +3382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (!(source is PointerTypeSymbol))
+            if (!source.IsPointerOrFunctionPointer())
             {
                 return false;
             }
@@ -3415,7 +3413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (!(destination is PointerTypeSymbol))
+            if (!destination.IsPointerOrFunctionPointer())
             {
                 return false;
             }

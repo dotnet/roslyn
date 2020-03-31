@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                             Debug.Assert(toPredefTypeKind.IsNumeric());
                             break;
                         default:
@@ -128,7 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             Debug.Assert(
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr ||
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer);
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
                             break;
                     }
 #endif
