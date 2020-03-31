@@ -269,8 +269,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     var outputFilePath = info.OutputFilePath;
                     var outputRefFilePath = info.OutputRefFilePath;
-                    if (outputFilePath != null && outputRefFilePath != null &&
-                        (builder.Contains(outputFilePath) || builder.Contains(outputFilePath)))
+                    if (outputFilePath != null &&
+                        outputRefFilePath != null &&
+                        (builder.Contains(outputFilePath) || builder.Contains(outputRefFilePath)))
                     {
                         projectReferenceInfo = info;
                         break;
