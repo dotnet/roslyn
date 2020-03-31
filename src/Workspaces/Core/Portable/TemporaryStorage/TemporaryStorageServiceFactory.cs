@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Host
         {
             var textFactory = workspaceServices.GetService<ITextFactoryService>();
 
-            // MemoryMapped files which are used by the TemporaryStorageService are not present
-            // on non-Windows platforms. As a workaround, we can return the TrivialTemporaryStorageService
+            // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
+            // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
             // until https://github.com/dotnet/roslyn/issues/42178 is fixed.
-            return PlatformInformation.IsWindows
+            return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
                 ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
                 : TrivialTemporaryStorageService.Instance;
         }
