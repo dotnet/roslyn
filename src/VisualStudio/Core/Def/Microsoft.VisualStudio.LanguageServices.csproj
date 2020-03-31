@@ -198,5 +198,8 @@
   <ItemGroup>
     <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Implementation\FindReferences\Scopes\" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>
