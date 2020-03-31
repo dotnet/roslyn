@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Programmatic suppression of a <see cref="Diagnostic"/> by a <see cref="DiagnosticSuppressor"/>.
     /// </summary>
-    public struct Suppression
+    public struct Suppression : IEquatable<Suppression>
     {
         private Suppression(SuppressionDescriptor descriptor, Diagnostic suppressedDiagnostic)
         {
@@ -48,5 +49,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Diagnostic suppressed by this suppression.
         /// </summary>
         public Diagnostic SuppressedDiagnostic { get; }
+
+        public static bool operator ==(Suppression left, Suppression right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Suppression left, Suppression right)
+        {
+            return !(left == right);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Suppression suppression
+                && Equals(suppression);
+        }
+
+        public bool Equals(Suppression other)
+        {
+            return EqualityComparer<SuppressionDescriptor>.Default.Equals(Descriptor, other.Descriptor)
+                && EqualityComparer<Diagnostic>.Default.Equals(SuppressedDiagnostic, other.SuppressedDiagnostic);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1755072348;
+            hashCode = hashCode * -1521134295 + EqualityComparer<SuppressionDescriptor>.Default.GetHashCode(Descriptor);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Diagnostic>.Default.GetHashCode(SuppressedDiagnostic);
+            return hashCode;
+        }
     }
 }
