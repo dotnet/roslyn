@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             If parameters.Count > ordinalInLambda Then
                 Dim parameterSyntax = parameters(ordinalInLambda)
                 If parameterSyntax.AsClause IsNot Nothing Then
-                    explicitLambdaParameterType = _context.SemanticModel.GetTypeInfo(parameterSyntax.AsClause.Type).Type
+                    explicitLambdaParameterType = _context.SemanticModel.GetTypeInfo(parameterSyntax.AsClause.Type, _cancellationToken).Type
                     Return explicitLambdaParameterType IsNot Nothing
                 End If
             End If
