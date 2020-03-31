@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     [Export(typeof(IExtensionErrorHandler))]
-    [Export(typeof(TestExtensionErrorHandler))]
+    [Export(typeof(ITestErrorHandler))]
     internal class TestExtensionErrorHandler : IExtensionErrorHandler
     {
         private ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;
