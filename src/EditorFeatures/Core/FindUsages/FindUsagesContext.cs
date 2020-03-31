@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         public virtual CancellationToken CancellationToken { get; }
 
+        public virtual FindUsagesScope Scope => FindUsagesScope.Default;
+
         public IStreamingProgressTracker ProgressTracker { get; }
 
         protected FindUsagesContext()

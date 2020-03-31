@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         CancellationToken CancellationToken { get; }
 
+        FindUsagesScope Scope { get; }
+
         /// <summary>
         /// Used for clients that are finding usages to push information about how far along they
         /// are in their search.

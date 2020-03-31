@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var first = true;
             await foreach (var referenceItem in monikerUsagesService.FindReferencesByMoniker(
-                definitionItem, monikers, context.ProgressTracker, cancellationToken))
+                definitionItem, monikers, context.ProgressTracker, FindUsagesScope.Default, cancellationToken))
             {
                 if (first)
                 {

@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public CancellationToken CancellationToken
                 => _underlyingContext.CancellationToken;
 
+            public FindUsagesScope Scope
+                => _underlyingContext.Scope;
+
             public IStreamingProgressTracker ProgressTracker
                 => _underlyingContext.ProgressTracker;
 

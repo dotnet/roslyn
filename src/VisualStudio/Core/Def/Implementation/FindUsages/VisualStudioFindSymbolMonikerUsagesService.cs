@@ -44,7 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
         public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMoniker(
             DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers,
-            IStreamingProgressTracker progress, [EnumeratorCancellation] CancellationToken cancellationToken)
+            IStreamingProgressTracker progress, FindUsagesScope scope,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (_codeIndexProvider == null)
                 yield break;
@@ -54,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             while (true)
             {
                 var referenceItems = await FindReferencesByMonikerAsync(
-                    _codeIndexProvider, definition, convertedMonikers, progress, currentPage, cancellationToken).ConfigureAwait(false);
+                    _codeIndexProvider, definition, convertedMonikers, progress, scope, currentPage, cancellationToken).ConfigureAwait(false);
 
                 // If we got no items, we're done.
                 if (referenceItems.Length == 0)
@@ -71,13 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
         private async Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(
             ICodeIndexProvider codeIndexProvider, DefinitionItem definition, ImmutableArray<ISymbolMoniker> monikers,
-            IStreamingProgressTracker progress, int pageIndex, CancellationToken cancellationToken)
+            IStreamingProgressTracker progress, FindUsagesScope scope, int pageIndex, CancellationToken cancellationToken)
         {
             // Let the find-refs window know we have outstanding work
             await using var _1 = await progress.AddSingleItemAsync().ConfigureAwait(false);
 
             var results = await FindReferencesByMonikerAsync(
-                codeIndexProvider, monikers, pageIndex, cancellationToken).ConfigureAwait(false);
+                codeIndexProvider, monikers, scope, pageIndex, cancellationToken).ConfigureAwait(false);
 
             using var _2 = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
 
@@ -87,18 +88,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             return referenceItems.ToImmutable();
         }
 
-        private static async Task<ICollection<JObject>> FindReferencesByMonikerAsync(ICodeIndexProvider codeIndexProvider, ImmutableArray<ISymbolMoniker> monikers, int pageIndex, CancellationToken cancellationToken)
+        private static async Task<ICollection<JObject>> FindReferencesByMonikerAsync(
+            ICodeIndexProvider codeIndexProvider, ImmutableArray<ISymbolMoniker> monikers,
+            FindUsagesScope scope, int pageIndex, CancellationToken cancellationToken)
         {
             try
             {
                 return await codeIndexProvider.FindReferencesByMonikerAsync(
-                    monikers, includeDeclaration: false, pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    monikers, includeDeclaration: false, GetScope(scope), pageIndex: pageIndex, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
                 return SpecializedCollections.EmptyCollection<JObject>();
             }
         }
+
+        private static CodeIndexScope GetScope(FindUsagesScope scope)
+            => scope switch
+            {
+                FindUsagesScope.Repository => CodeIndexScope.Repository,
+                FindUsagesScope.Organization => CodeIndexScope.Organization,
+                FindUsagesScope.Global => CodeIndexScope.Global,
+                _ => CodeIndexScope.Default,
+            };
 
         private ExternalReferenceItem ConvertResult(DefinitionItem definition, JObject obj)
         {
