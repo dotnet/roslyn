@@ -133,6 +133,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         synchronizationContext.ThrowIfSwitchOccurred();
                     }
+
+                    foreach (var testErrorHandler in exportProvider.GetExportedValues<ITestErrorHandler>())
+                    {
+                        var exceptions = testErrorHandler.Exceptions;
+                        if (exceptions.Count > 0)
+                        {
+                            throw new AggregateException("Tests threw unexpected exceptions", exceptions);
+                        }
+                    }
                 }
             }
             finally
