@@ -34,7 +34,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs" Link="InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" Link="InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs" Link="InternalUtilities\StringExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\InternalSyntaxNodeExtensions.cs" Link="Syntax\InternalSyntaxNodeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs" Link="Syntax\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\BitVector.cs" Link="Collections\BitVector.cs" />

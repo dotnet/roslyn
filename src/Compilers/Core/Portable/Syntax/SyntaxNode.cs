@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -716,6 +717,24 @@ namespace Microsoft.CodeAnalysis
             {
                 var tnode = node as TNode;
                 if (tnode != null && (predicate == null || predicate(tnode)))
+                {
+                    return tnode;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the first node of type TNode that matches the predicate.
+        /// </summary>
+        [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "Required for consistent API usage patterns.")]
+        public TNode? FirstAncestorOrSelf<TNode, TArg>(Func<TNode, TArg, bool> predicate, TArg argument, bool ascendOutOfTrivia = true)
+            where TNode : SyntaxNode
+        {
+            for (var node = this; node != null; node = GetParent(node, ascendOutOfTrivia))
+            {
+                if (node is TNode tnode && predicate(tnode, argument))
                 {
                     return tnode;
                 }
