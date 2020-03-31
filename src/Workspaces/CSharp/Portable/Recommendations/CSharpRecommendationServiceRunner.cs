@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     var parameter = parameters[ordinalInLambda];
                     if (parameter.Type != null)
                     {
-                        explicitLambdaParameterType = _context.SemanticModel.GetTypeInfo(parameter.Type, CancellationToken.None).Type;
+                        explicitLambdaParameterType = _context.SemanticModel.GetTypeInfo(parameter.Type, _cancellationToken).Type;
                         return explicitLambdaParameterType != null;
                     }
                 }
