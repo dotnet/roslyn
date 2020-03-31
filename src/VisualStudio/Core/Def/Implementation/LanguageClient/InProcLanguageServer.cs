@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName)]
-        public Task<object[]> GetTextDocumentReferencesAsync(JToken input, CancellationToken cancellationToken)
+        public Task<VSReferenceItem[]> GetTextDocumentReferencesAsync(JToken input, CancellationToken cancellationToken)
         {
             var referencesParams = input.ToObject<ReferenceParams>(JsonSerializer);
             return _protocol.GetDocumentReferencesAsync(_workspace.CurrentSolution, referencesParams, _clientCapabilities, cancellationToken);

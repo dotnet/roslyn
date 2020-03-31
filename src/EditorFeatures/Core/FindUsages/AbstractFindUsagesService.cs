@@ -91,6 +91,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         async Task IFindUsagesLSPService.FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
+            // We don't need to get third party definitions when finding references in LSP.
+            // Currently, 3rd party definitions = XAML definitions, and XAML will provide
+            // references via LSP instead of hooking into Roslyn.
+            // This also means that we don't need to be on the UI thread.
             var definitionTrackingContext = new DefinitionTrackingContext(context);
             await FindLiteralOrSymbolReferencesAsync(
                 document, position, definitionTrackingContext).ConfigureAwait(false);

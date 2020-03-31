@@ -375,6 +375,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
+        // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
         public static LSP.ReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
         {
             var referenceKinds = ArrayBuilder<LSP.ReferenceKind>.GetInstance();
@@ -439,11 +440,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 {
                     referenceKinds.Add(LSP.ReferenceKind.Declaration);
                 }
-            }
-
-            if (referenceKinds.IsEmpty())
-            {
-                referenceKinds.Add(LSP.ReferenceKind.Inactive);
             }
 
             return referenceKinds.ToArrayAndFree();

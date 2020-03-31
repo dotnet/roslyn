@@ -8,18 +8,18 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
-    internal interface IFindUsagesLSPService : IFindUsagesService
+    internal interface IFindUsagesLSPService : ILanguageService
     {
         /// <summary>
         /// Finds the references for the symbol at the specific position in the document,
         /// pushing the results into the context instance.
         /// </summary>
-        new Task FindReferencesAsync(Document document, int position, IFindUsagesContext context);
+        Task FindReferencesAsync(Document document, int position, IFindUsagesContext context);
 
         /// <summary>
         /// Finds the implementations for the symbol at the specific position in the document,
         /// pushing the results into the context instance.
         /// </summary>
-        new Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context);
+        Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context);
     }
 }

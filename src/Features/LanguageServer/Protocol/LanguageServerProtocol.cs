@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>references information associated with the symbol at the given document location.</returns>
-        public Task<object[]> GetDocumentReferencesAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.ReferenceParams, object[]>(LSP.Methods.TextDocumentReferencesName, solution, request, clientCapabilities, cancellationToken);
+        public Task<LSP.VSReferenceItem[]> GetDocumentReferencesAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a document symbols request by returning a list of symbols in the document.
