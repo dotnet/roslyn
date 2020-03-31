@@ -179,6 +179,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedParametersPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedValuePreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IIntervalIntrospector.cs" />
