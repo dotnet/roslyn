@@ -33,12 +33,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal NumericValueSet(T first, T last) : this(ImmutableArray.Create((first, last)))
             {
-                TTC tc = default;
-                Debug.Assert(tc.Related(LessThanOrEqual, first, last));
+                Debug.Assert(default(TTC).Related(LessThanOrEqual, first, last));
             }
 
             internal NumericValueSet(ImmutableArray<(T first, T last)> intervals)
             {
+#if DEBUG
+                TTC tc = default;
+                for (int i = 0, n = intervals.Length; i < n; i++)
+                {
+                    Debug.Assert(tc.Related(LessThanOrEqual, intervals[i].first, intervals[i].last));
+                    if (i != 0)
+                    {
+                        // intervals are in increasing order with a gap between them
+                        Debug.Assert(tc.Related(LessThan, tc.Next(intervals[i - 1].last), intervals[i].first));
+                    }
+                }
+#endif
                 _intervals = intervals;
             }
 
@@ -65,35 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     while (true)
                     {
-                        if ((lastIntervalIndex - firstIntervalIndex + 1) < 4)
-                        {
-                            for (int i = firstIntervalIndex; i <= lastIntervalIndex; i++)
-                            {
-                                var interval = _intervals[i];
-                                if (tc.Related(GreaterThanOrEqual, value, interval.first) && tc.Related(LessThanOrEqual, value, interval.last))
-                                    return true;
-                            }
-
+                        if (lastIntervalIndex < firstIntervalIndex)
                             return false;
-                        }
+
+                        if (lastIntervalIndex == firstIntervalIndex)
+                            return tc.Related(GreaterThanOrEqual, value, _intervals[lastIntervalIndex].first) && tc.Related(LessThanOrEqual, value, _intervals[lastIntervalIndex].last);
+
+                        int midIndex = firstIntervalIndex + (lastIntervalIndex - firstIntervalIndex) / 2;
+                        if (tc.Related(LessThanOrEqual, value, _intervals[midIndex].last))
+                            lastIntervalIndex = midIndex;
                         else
-                        {
-                            int midIndex = firstIntervalIndex + (lastIntervalIndex - firstIntervalIndex) / 2;
-                            if (tc.Related(LessThanOrEqual, value, _intervals[midIndex].last))
-                            {
-                                lastIntervalIndex = midIndex;
-                                continue;
-                            }
-                            else if (tc.Related(GreaterThanOrEqual, value, _intervals[midIndex + 1].first))
-                            {
-                                firstIntervalIndex = midIndex + 1;
-                                continue;
-                            }
-                            else
-                            {
-                                return false;
-                            }
-                        }
+                            firstIntervalIndex = midIndex + 1;
                     }
                 }
             }
@@ -102,18 +95,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool All(BinaryOperatorKind relation, T value)
             {
+                if (_intervals.Length == 0)
+                    return true;
+
                 TTC tc = default;
                 switch (relation)
                 {
                     case LessThan:
                     case LessThanOrEqual:
-                        return _intervals.Length == 0 || tc.Related(relation, _intervals[_intervals.Length - 1].last, value);
+                        return tc.Related(relation, _intervals[_intervals.Length - 1].last, value);
                     case GreaterThan:
                     case GreaterThanOrEqual:
-                        return _intervals.Length == 0 || tc.Related(relation, _intervals[0].first, value);
+                        return tc.Related(relation, _intervals[0].first, value);
                     case Equal:
-                        return _intervals.Length == 0 ||
-                            _intervals.Length == 1 && tc.Related(Equal, _intervals[0].first, value) && tc.Related(Equal, _intervals[0].last, value);
+                        return _intervals.Length == 1 && tc.Related(Equal, _intervals[0].first, value) && tc.Related(Equal, _intervals[0].last, value);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(relation);
                 }
@@ -123,29 +118,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IValueSet<T> Complement()
             {
+                if (_intervals.Length == 0)
+                    return AllValues;
+
                 TTC tc = default;
                 var builder = ArrayBuilder<(T first, T last)>.GetInstance();
-                if (_intervals.Length == 0)
+
+                // add a prefix if apropos.
+                if (tc.Related(LessThan, tc.MinValue, _intervals[0].first))
                 {
-                    builder.Add((tc.MinValue, tc.MaxValue));
+                    builder.Add((tc.MinValue, tc.Prev(_intervals[0].first)));
                 }
-                else
+
+                // add the in-between intervals
+                int lastIndex = _intervals.Length - 1;
+                for (int i = 0; i < lastIndex; i++)
                 {
-                    // add a prefix if apropos.
-                    if (tc.Related(LessThan, tc.MinValue, _intervals[0].first))
-                    {
-                        builder.Add((tc.MinValue, tc.Prev(_intervals[0].first)));
-                    }
-                    // add the in-between intervals
-                    for (int i = 0, n = _intervals.Length - 1; i < n; i++)
-                    {
-                        builder.Add((tc.Next(_intervals[i].last), tc.Prev(_intervals[i + 1].first)));
-                    }
-                    // add a suffix if apropos
-                    if (tc.Related(LessThan, _intervals[_intervals.Length - 1].last, tc.MaxValue))
-                    {
-                        builder.Add((tc.Next(_intervals[_intervals.Length - 1].last), tc.MaxValue));
-                    }
+                    builder.Add((tc.Next(_intervals[i].last), tc.Prev(_intervals[i + 1].first)));
+                }
+
+                // add a suffix if apropos
+                if (tc.Related(LessThan, _intervals[lastIndex].last, tc.MaxValue))
+                {
+                    builder.Add((tc.Next(_intervals[lastIndex].last), tc.MaxValue));
                 }
 
                 return new NumericValueSet<T, TTC>(builder.ToImmutableAndFree());
@@ -320,13 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override int GetHashCode()
             {
-                int result = _intervals.Length;
-                for (int i = 0, n = result; i < n; i++)
-                {
-                    result = Hash.Combine(_intervals[i].GetHashCode(), result);
-                }
-
-                return result;
+                return Hash.Combine(Hash.CombineValues(_intervals), _intervals.Length);
             }
         }
     }
