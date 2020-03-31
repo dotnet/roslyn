@@ -2072,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return previousFactory;
                 }
 
-                if (Interlocked.CompareExchange(ref slot, newWeakReference, previousWeakReference) == previousWeakReference)
+                if (Interlocked.CompareExchange(ref slot!, newWeakReference, previousWeakReference) == previousWeakReference)
                 {
                     return newFactory;
                 }
