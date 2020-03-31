@@ -177,7 +177,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s => s.WithDocumentText(s.Projects.First().DocumentIds.First(), SourceText.From(code + " ")));
+            await VerifySolutionUpdateAsync(code, s => s.WithDocumentText(s.Projects.First().DocumentIds.First(), SourceText.From(code + " ")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -185,7 +185,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s => s.Projects.First().WithAssemblyName("test2").Solution);
+            await VerifySolutionUpdateAsync(code, s => s.Projects.First().WithAssemblyName("test2").Solution);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -193,7 +193,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s => s.WithProjectOutputFilePath(s.ProjectIds[0], "test.dll"));
+            await VerifySolutionUpdateAsync(code, s => s.WithProjectOutputFilePath(s.ProjectIds[0], "test.dll"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -201,7 +201,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s => s.WithProjectOutputRefFilePath(s.ProjectIds[0], "test.dll"));
+            await VerifySolutionUpdateAsync(code, s => s.WithProjectOutputRefFilePath(s.ProjectIds[0], "test.dll"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -209,7 +209,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s => s.WithProjectDefaultNamespace(s.ProjectIds[0], "TestClassLibrary"));
+            await VerifySolutionUpdateAsync(code, s => s.WithProjectDefaultNamespace(s.ProjectIds[0], "TestClassLibrary"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -217,7 +217,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
+            await VerifySolutionUpdateAsync(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -225,7 +225,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s => s.WithHasAllInformation(s.ProjectIds.First(), false));
+            await VerifySolutionUpdateAsync(code, s => s.WithHasAllInformation(s.ProjectIds.First(), false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -233,7 +233,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var code = @"class Test { void Method() { } }";
 
-            await VerifySolutionUpdate(code, s =>
+            await VerifySolutionUpdateAsync(code, s =>
             {
                 var existingProjectId = s.ProjectIds.First();
 
@@ -266,19 +266,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     additionalDocumentId, "additionalFile",
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From("test"), VersionStamp.Create())));
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.AddAdditionalDocument(additionalDocumentInfo);
                 });
 
                 workspace.OnAdditionalDocumentAdded(additionalDocumentInfo);
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.WithAdditionalDocumentText(additionalDocumentId, SourceText.From("changed"));
                 });
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.RemoveAdditionalDocument(additionalDocumentId);
                 });
@@ -297,19 +297,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     analyzerConfigDocumentId, ".editorconfig",
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())));
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.AddAnalyzerConfigDocuments(ImmutableArray.Create(analyzerConfigDocumentInfo));
                 });
 
                 workspace.OnAnalyzerConfigDocumentAdded(analyzerConfigDocumentInfo);
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.WithAnalyzerConfigDocumentText(analyzerConfigDocumentId, SourceText.From("root = false"));
                 });
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.RemoveAnalyzerConfigDocument(analyzerConfigDocumentId);
                 });
@@ -329,19 +329,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     documentId, "sourceFile",
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A { }"), VersionStamp.Create())));
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.AddDocument(documentInfo);
                 });
 
                 workspace.OnDocumentAdded(documentInfo);
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.WithDocumentText(documentId, SourceText.From("class Changed { }"));
                 });
 
-                await VerifySolutionUpdate(workspace, s =>
+                await VerifySolutionUpdateAsync(workspace, s =>
                 {
                     return s.RemoveDocument(documentId);
                 });
@@ -455,15 +455,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
+        private static async Task VerifySolutionUpdateAsync(string code, Func<Solution, Solution> newSolutionGetter)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
-                await VerifySolutionUpdate(workspace, newSolutionGetter);
+                await VerifySolutionUpdateAsync(workspace, newSolutionGetter);
             }
         }
 
-        private static async Task VerifySolutionUpdate(TestWorkspace workspace, Func<Solution, Solution> newSolutionGetter)
+        private static async Task VerifySolutionUpdateAsync(TestWorkspace workspace, Func<Solution, Solution> newSolutionGetter)
         {
             var map = new Dictionary<Checksum, object>();
 

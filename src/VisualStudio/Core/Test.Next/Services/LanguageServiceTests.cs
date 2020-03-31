@@ -91,7 +91,7 @@ End Class";
             var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(solution.Workspace, runCacheCleanup: false));
 
             var document = solution.Projects.First().Documents.First();
-            await UpdatePrimaryWorkspace(client, solution.WithDocumentFilePath(document.Id, @"c:\" + document.FilePath));
+            await UpdatePrimaryWorkspaceAsync(client, solution.WithDocumentFilePath(document.Id, @"c:\" + document.FilePath));
 
             var callback = new Callback();
             using (var jsonRpc = JsonRpc.Attach(await client.RequestServiceAsync(server), callback))
@@ -115,7 +115,7 @@ End Class";
         // make sure we always move remote workspace forward
         private int _solutionVersion = 0;
 
-        private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
+        private async Task UpdatePrimaryWorkspaceAsync(InProcRemoteHostClient client, Solution solution)
         {
             Assert.True(await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
@@ -131,7 +131,7 @@ End Class";
             public List<VSPublishSymbolParams> Results = new List<VSPublishSymbolParams>();
 
             [JsonRpcMethod(VSSymbolMethods.WorkspacePublishSymbolName)]
-            public Task WorkspacePublishSymbol(VSPublishSymbolParams symbols)
+            public Task WorkspacePublishSymbolAsync(VSPublishSymbolParams symbols)
             {
                 Results.Add(symbols);
 
