@@ -14,9 +14,9 @@ namespace RunTests.Cache
     {
         string Name { get; }
 
-        Task<CachedTestResult?> TryGetCachedTestResult(string checksum);
+        Task<CachedTestResult?> TryGetCachedTestResultAsync(string checksum);
 
-        Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile conentFile, CachedTestResult testResult);
+        Task AddCachedTestResultAsync(AssemblyInfo assemblyInfo, ContentFile conentFile, CachedTestResult testResult);
     }
 
     internal struct CachedTestResult

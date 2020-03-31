@@ -16,14 +16,14 @@ namespace RunTests.Cache
 
         public string Name => "none";
 
-        public Task AddCachedTestResult(AssemblyInfo assemblyInfo, ContentFile conentFile, CachedTestResult testResult)
+        public Task AddCachedTestResultAsync(AssemblyInfo assemblyInfo, ContentFile conentFile, CachedTestResult testResult)
         {
             var source = new TaskCompletionSource<bool>();
             source.SetResult(true);
             return source.Task;
         }
 
-        public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
+        public Task<CachedTestResult?> TryGetCachedTestResultAsync(string checksum)
         {
             return Task.FromResult<CachedTestResult?>(null);
         }

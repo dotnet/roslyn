@@ -51,21 +51,21 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            var result = Run(options, cts.Token).GetAwaiter().GetResult();
+            var result = RunAsync(options, cts.Token).GetAwaiter().GetResult();
             CheckTotalDumpFilesSize();
             return result;
         }
 
-        private static async Task<int> Run(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
             if (options.Timeout == null)
             {
-                return await RunCore(options, cancellationToken);
+                return await RunCoreAsync(options, cancellationToken);
             }
 
             var timeoutTask = Task.Delay(options.Timeout.Value);
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runTask = RunCore(options, cts.Token);
+            var runTask = RunCoreAsync(options, cts.Token);
 
             if (cancellationToken.IsCancellationRequested)
             {
@@ -75,7 +75,7 @@ namespace RunTests
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
             {
-                await HandleTimeout(options, cancellationToken);
+                await HandleTimeoutAsync(options, cancellationToken);
                 cts.Cancel();
 
                 try
@@ -95,7 +95,7 @@ namespace RunTests
             return await runTask;
         }
 
-        private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
         {
             if (!CheckAssemblyList(options))
             {
@@ -122,7 +122,7 @@ namespace RunTests
 
             if (CanUseWebStorage() && options.UseCachedResults)
             {
-                await SendRunStats(options, testExecutor.DataStorage, elapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
+                await SendRunStatsAsync(options, testExecutor.DataStorage, elapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
             }
 
             if (!result.Succeeded)
@@ -184,7 +184,7 @@ namespace RunTests
         /// Invoked when a timeout occurs and we need to dump all of the test processes and shut down 
         /// the runnner.
         /// </summary>
-        private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
+        private static async Task HandleTimeoutAsync(Options options, CancellationToken cancellationToken)
         {
             async Task DumpProcess(Process targetProcess, string procDumpExeFilePath, string dumpFilePath)
             {
@@ -395,7 +395,7 @@ namespace RunTests
             return list.OrderByDescending((assemblyName) => new FileInfo(assemblyName).Length);
         }
 
-        private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int partitionCount, CancellationToken cancellationToken)
+        private static async Task SendRunStatsAsync(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int partitionCount, CancellationToken cancellationToken)
         {
             var testRunData = new TestRunData()
             {

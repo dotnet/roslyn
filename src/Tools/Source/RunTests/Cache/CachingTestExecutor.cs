@@ -68,7 +68,7 @@ namespace RunTests.Cache
 
             try
             {
-                var cachedTestResult = await _dataStorage.TryGetCachedTestResult(contentFile.Checksum);
+                var cachedTestResult = await _dataStorage.TryGetCachedTestResultAsync(contentFile.Checksum);
                 if (cachedTestResult.HasValue)
                 {
                     Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
@@ -82,7 +82,7 @@ namespace RunTests.Cache
 
             Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
             var testResult = await _testExecutor.RunTestAsync(assemblyInfo, cancellationToken);
-            await CacheTestResult(contentFile, testResult).ConfigureAwait(true);
+            await CacheTestResultAsync(contentFile, testResult).ConfigureAwait(true);
             return testResult;
         }
 
@@ -113,7 +113,7 @@ namespace RunTests.Cache
                 isFromCache: true);
         }
 
-        private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)
+        private async Task CacheTestResultAsync(ContentFile contentFile, TestResult testResult)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace RunTests.Cache
                     errorOutput: testResult.ErrorOutput,
                     resultsFileContent: resultFileContent,
                     elapsed: testResult.Elapsed);
-                await _dataStorage.AddCachedTestResult(testResult.AssemblyInfo, contentFile, cachedTestResult).ConfigureAwait(true);
+                await _dataStorage.AddCachedTestResultAsync(testResult.AssemblyInfo, contentFile, cachedTestResult).ConfigureAwait(true);
             }
             catch (Exception ex)
             {
