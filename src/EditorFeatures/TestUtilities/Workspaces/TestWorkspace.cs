@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly TestExtensionErrorHandler _testExtensionErrorHandler;
 
         private readonly Dictionary<string, ITextBuffer> _createdTextBuffers = new Dictionary<string, ITextBuffer>();
 
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundParser.Start();
 
             _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
+            _testExtensionErrorHandler = exportProvider.GetExportedValue<TestExtensionErrorHandler>();
 
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
@@ -140,6 +142,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (_backgroundParser != null)
             {
                 _backgroundParser.CancelAllParses();
+            }
+
+            var exceptions = _testExtensionErrorHandler.Exceptions;
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException("Extensions threw unexpected exceptions", exceptions);
             }
 
             base.Dispose(finalize);
