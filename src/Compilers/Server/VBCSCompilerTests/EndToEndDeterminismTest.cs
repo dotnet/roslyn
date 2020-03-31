@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// </summary>
         /// <param name="source"> The source code for the program that will be compiled </param>
         /// <returns> An array of bytes that were read from the compiled DLL</returns>
-        private async Task<(byte[] assemblyBytes, string finalFlags)> CompileAndGetBytes(string source)
+        private async Task<(byte[] assemblyBytes, string finalFlags)> CompileAndGetBytesAsync(string source)
         {
             // Setup
             var tempDir = Temp.CreateDirectory();
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             try
             {
                 string finalFlags = null;
-                using (var serverData = await ServerUtil.CreateServer())
+                using (var serverData = await ServerUtil.CreateServerAsync())
                 {
                     finalFlags = $"{ _flags } /shared:{ serverData.PipeName } /pathmap:{tempDir.Path}=/ /out:{ outFile } { srcFile }";
                     var result = CompilerServerUnitTests.RunCommandLineCompiler(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     {
                         AssertEx.Fail($"Deterministic compile failed \n stdout:  { result.Output }");
                     }
-                    await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
+                    await serverData.VerifyAsync(connections: 1, completed: 1).ConfigureAwait(true);
                 }
                 var bytes = File.ReadAllBytes(outFile);
                 AssertEx.NotNull(bytes);
@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// Runs CompileAndGetBytes twice and compares the output. 
         /// </summary>
         /// <param name="source"> The source of the program that will be compiled </param>
-        private async Task RunDeterministicTest(string source)
+        private async Task RunDeterministicTestAsync(string source)
         {
-            var (first, finalFlags1) = await CompileAndGetBytes(source);
-            var (second, finalFlags2) = await CompileAndGetBytes(source);
+            var (first, finalFlags1) = await CompileAndGetBytesAsync(source);
+            var (second, finalFlags2) = await CompileAndGetBytesAsync(source);
             Assert.Equal(first.Length, second.Length);
             for (int i = 0; i < first.Length; i++)
             {
@@ -88,7 +88,7 @@ class Hello
     }
 }";
 
-            await RunDeterministicTest(source);
+            await RunDeterministicTestAsync(source);
         }
 
         [Fact]
@@ -114,7 +114,7 @@ class CallerInfo {
         DoProcessing();
     }
 }";
-            await RunDeterministicTest(source);
+            await RunDeterministicTestAsync(source);
         }
 
         [Fact]
@@ -132,7 +132,7 @@ class AnonType {
         Console.WriteLine(color);
     }
 }";
-            await RunDeterministicTest(source);
+            await RunDeterministicTestAsync(source);
         }
 
         [Fact]
@@ -158,7 +158,7 @@ class CallerInfo {
         TraceMessage(""back in main"");
     }
 }";
-            await RunDeterministicTest(source);
+            await RunDeterministicTestAsync(source);
         }
     }
 }

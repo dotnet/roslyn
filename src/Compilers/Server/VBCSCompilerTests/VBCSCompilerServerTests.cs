@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public async Task Standard()
             {
-                using (var serverData = await ServerUtil.CreateServer())
+                using (var serverData = await ServerUtil.CreateServerAsync())
                 {
                     // Make sure the server is listening for this particular test. 
                     await serverData.ListenTask;
                     var exitCode = await RunShutdownAsync(serverData.PipeName, waitForProcess: false).ConfigureAwait(false);
                     Assert.Equal(CommonCompiler.Succeeded, exitCode);
-                    await serverData.Verify(connections: 1, completed: 1);
+                    await serverData.VerifyAsync(connections: 1, completed: 1);
                 }
             }
 
@@ -168,13 +168,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 string pipeName = BuildServerConnection.GetPipeNameForPathOpt(Guid.NewGuid().ToString());
                 string tempPath = new string('a', 100);
-                using (var serverData = await ServerUtil.CreateServer(pipeName, tempPath: tempPath))
+                using (var serverData = await ServerUtil.CreateServerAsync(pipeName, tempPath: tempPath))
                 {
                     // Make sure the server is listening for this particular test.
                     await serverData.ListenTask;
                     var exitCode = await RunShutdownAsync(serverData.PipeName, waitForProcess: false).ConfigureAwait(false);
                     Assert.Equal(CommonCompiler.Succeeded, exitCode);
-                    await serverData.Verify(connections: 1, completed: 1);
+                    await serverData.VerifyAsync(connections: 1, completed: 1);
                 }
             }
         }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal static class Extensions
     {
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a type conversion, not an asynchronous method.")]
         public static Task ToTask(this WaitHandle handle, int? timeoutMilliseconds)
         {
             RegisteredWaitHandle registeredHandle = null;

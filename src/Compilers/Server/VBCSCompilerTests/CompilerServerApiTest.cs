@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -43,11 +44,13 @@ class Hello
     }
 }";
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Name chosed to match BCL.")]
         private static Task TaskFromException(Exception e)
         {
             return TaskFromException<bool>(e);
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Name chosed to match BCL.")]
         private static Task<T> TaskFromException<T>(Exception e)
         {
             var source = new TaskCompletionSource<T>();
@@ -81,7 +84,7 @@ class Hello
             return host.Object;
         }
 
-        private async Task<BuildRequest> CreateBuildRequest(string sourceText, TimeSpan? keepAlive = null)
+        private async Task<BuildRequest> CreateBuildRequestAsync(string sourceText, TimeSpan? keepAlive = null)
         {
             var directory = Temp.CreateDirectory();
             var file = directory.CreateFile("temp.cs");
@@ -106,11 +109,11 @@ class Hello
         /// <summary>
         /// Run a C# compilation against the given source text using the provided named pipe name.
         /// </summary>
-        private async Task<BuildResponse> RunCSharpCompile(string pipeName, string sourceText, TimeSpan? keepAlive = null)
+        private async Task<BuildResponse> RunCSharpCompileAsync(string pipeName, string sourceText, TimeSpan? keepAlive = null)
         {
             using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
             {
-                var buildRequest = await CreateBuildRequest(sourceText, keepAlive).ConfigureAwait(false);
+                var buildRequest = await CreateBuildRequestAsync(sourceText, keepAlive).ConfigureAwait(false);
                 namedPipe.Connect(Timeout.Infinite);
                 await buildRequest.WriteAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
                 return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
@@ -126,6 +129,7 @@ class Hello
             return host;
         }
 
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Name chosed to match BCL.")]
         private static Task<T> FromException<T>(Exception ex)
         {
             var source = new TaskCompletionSource<T>();
@@ -316,7 +320,7 @@ class Hello
                 return new CompletedBuildResponse(0, utf8output: false, "");
             });
 
-            using var serverData = await ServerUtil.CreateServer(compilerServerHost: host).ConfigureAwait(false);
+            using var serverData = await ServerUtil.CreateServerAsync(compilerServerHost: host).ConfigureAwait(false);
 
             // Create a short lived client that send a request but does not wait for the 
             using (var client = await BuildServerConnection.TryConnectToServerAsync(serverData.PipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
@@ -406,11 +410,11 @@ class Hello
         [Fact]
         public async Task ShutdownRequestDirect()
         {
-            using (var serverData = await ServerUtil.CreateServer())
+            using (var serverData = await ServerUtil.CreateServerAsync())
             {
-                var serverProcessId = await ServerUtil.SendShutdown(serverData.PipeName);
+                var serverProcessId = await ServerUtil.SendShutdownAsync(serverData.PipeName);
                 Assert.Equal(Process.GetCurrentProcess().Id, serverProcessId);
-                await serverData.Verify(connections: 1, completed: 1);
+                await serverData.VerifyAsync(connections: 1, completed: 1);
             }
         }
 
@@ -425,7 +429,7 @@ class Hello
 
             using (var startedMre = new ManualResetEvent(initialState: false))
             using (var finishedMre = new ManualResetEvent(initialState: false))
-            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = await ServerUtil.CreateServerAsync(compilerServerHost: host))
             {
                 // Create a compilation that is guaranteed to complete after the shutdown is seen. 
                 host.RunCompilation = (request, cancellationToken) =>
@@ -435,11 +439,11 @@ class Hello
                     return s_emptyBuildResponse;
                 };
 
-                var compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                var compileTask = ServerUtil.SendAsync(serverData.PipeName, s_emptyCSharpBuildRequest);
                 startedMre.WaitOne();
 
                 // The compilation is now in progress, send the shutdown.
-                await ServerUtil.SendShutdown(serverData.PipeName);
+                await ServerUtil.SendShutdownAsync(serverData.PipeName);
                 Assert.False(compileTask.IsCompleted);
                 finishedMre.Set();
 
@@ -447,7 +451,7 @@ class Hello
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
                 Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
 
-                await serverData.Verify(connections: 2, completed: 2);
+                await serverData.VerifyAsync(connections: 2, completed: 2);
             }
         }
 
@@ -462,7 +466,7 @@ class Hello
 
             using (var startedMre = new ManualResetEvent(initialState: false))
             using (var finishedMre = new ManualResetEvent(initialState: false))
-            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = await ServerUtil.CreateServerAsync(compilerServerHost: host))
             {
                 // Create a compilation that is guaranteed to complete after the shutdown is seen. 
                 host.RunCompilation = (request, cancellationToken) =>
@@ -472,13 +476,13 @@ class Hello
                     return s_emptyBuildResponse;
                 };
 
-                var compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                var compileTask = ServerUtil.SendAsync(serverData.PipeName, s_emptyCSharpBuildRequest);
                 startedMre.WaitOne();
 
                 for (var i = 0; i < 10; i++)
                 {
                     // The compilation is now in progress, send the shutdown.
-                    var processId = await ServerUtil.SendShutdown(serverData.PipeName);
+                    var processId = await ServerUtil.SendShutdownAsync(serverData.PipeName);
                     Assert.Equal(Process.GetCurrentProcess().Id, processId);
                     Assert.False(compileTask.IsCompleted);
                 }
@@ -489,7 +493,7 @@ class Hello
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
                 Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
 
-                await serverData.Verify(connections: 11, completed: 11);
+                await serverData.VerifyAsync(connections: 11, completed: 11);
             }
         }
 
@@ -498,7 +502,7 @@ class Hello
         {
             var host = new TestableCompilerServerHost();
 
-            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = await ServerUtil.CreateServerAsync(compilerServerHost: host))
             using (var mre = new ManualResetEvent(initialState: false))
             {
                 const int requestCount = 5;
@@ -518,7 +522,7 @@ class Hello
                 var list = new List<Task<BuildResponse>>();
                 for (var i = 0; i < requestCount; i++)
                 {
-                    var task = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                    var task = ServerUtil.SendAsync(serverData.PipeName, s_emptyCSharpBuildRequest);
                     list.Add(task);
                 }
 
@@ -526,7 +530,7 @@ class Hello
                 mre.WaitOne();
                 serverData.CancellationTokenSource.Cancel();
 
-                var stats = await serverData.Complete();
+                var stats = await serverData.CompleteAsync();
                 Assert.Equal(requestCount, stats.Connections);
                 Assert.Equal(requestCount, count);
 
@@ -552,18 +556,18 @@ class Hello
         public async Task RejectEmptyTempPath()
         {
             using var temp = new TempRoot();
-            using var serverData = await ServerUtil.CreateServer();
+            using var serverData = await ServerUtil.CreateServerAsync();
             var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
-            var response = await ServerUtil.Send(serverData.PipeName, request);
+            var response = await ServerUtil.SendAsync(serverData.PipeName, request);
             Assert.Equal(ResponseType.Rejected, response.Type);
         }
 
         [Fact]
         public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
         {
-            using (var serverData = await ServerUtil.CreateServer())
+            using (var serverData = await ServerUtil.CreateServerAsync())
             {
-                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                var buildResponse = await ServerUtil.SendAsync(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
                 Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
             }
         }
@@ -571,9 +575,9 @@ class Hello
         [Fact]
         public async Task IncorrectServerHashReturnsIncorrectHashResponse()
         {
-            using (var serverData = await ServerUtil.CreateServer())
+            using (var serverData = await ServerUtil.CreateServerAsync())
             {
-                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                var buildResponse = await ServerUtil.SendAsync(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
                 Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
             }
         }
