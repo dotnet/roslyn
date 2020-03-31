@@ -247,6 +247,18 @@
   <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
     <value>Changes to expression trees may result in behavior changes at runtime</value>
   </data>
+  <data name="Parentheses_can_be_removed" xml:space="preserve">
+    <value>Parentheses can be removed</value>
+  </data>
+  <data name="Remove_unnecessary_parentheses" xml:space="preserve">
+    <value>Remove unnecessary parentheses</value>
+  </data>
+  <data name="Add_parentheses_for_clarity" xml:space="preserve">
+    <value>Add parentheses for clarity</value>
+  </data>
+  <data name="Parentheses_should_be_added_for_clarity" xml:space="preserve">
+    <value>Parentheses should be added for clarity</value>
+  </data>
   <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
     <value>Prefer explicitly provided tuple element name</value>
   </data>
