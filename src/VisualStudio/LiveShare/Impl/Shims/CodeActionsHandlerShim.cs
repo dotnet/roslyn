@@ -20,11 +20,12 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    internal class CodeActionsHandlerShim : CodeActionsHandler, ILspRequestHandler<CodeActionParams, SumType<Command, CodeAction>[], Solution>
+    internal abstract class CodeActionsHandlerShim : CodeActionsHandler, ILspRequestHandler<CodeActionParams, SumType<Command, CodeAction>[], Solution>
     {
         public const string RemoteCommandNamePrefix = "_liveshare.remotecommand";
         protected const string ProviderName = "Roslyn";
 
+        [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public CodeActionsHandlerShim(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
         {
         }
