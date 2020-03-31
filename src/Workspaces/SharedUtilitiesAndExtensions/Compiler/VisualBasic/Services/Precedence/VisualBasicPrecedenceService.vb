@@ -2,22 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Precedence
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic
-    <ExportLanguageService(GetType(IPrecedenceService), LanguageNames.VisualBasic), [Shared]>
+Namespace Microsoft.CodeAnalysis.VisualBasic.Precedence
     Friend Class VisualBasicPrecedenceService
         Inherits AbstractPrecedenceService(Of ExpressionSyntax, OperatorPrecedence)
 
         Public Shared ReadOnly Instance As New VisualBasicPrecedenceService()
 
-        <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
-        Public Sub New()
+        Private Sub New()
         End Sub
 
         Public Overrides Function GetOperatorPrecedence(expression As ExpressionSyntax) As OperatorPrecedence
