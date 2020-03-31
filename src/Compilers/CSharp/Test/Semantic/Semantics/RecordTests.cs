@@ -1356,7 +1356,7 @@ data class C(long X)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "s").WithArguments("S", "long").WithLocation(19, 41)
             );
         }
- 
+
         [Fact]
         public void WithExprConversions5()
         {
@@ -1372,6 +1372,6 @@ data class C(object X)
     }
 }";
             var verifier = CompileAndVerify(src, expectedOutput: "abc");
-        }   
+        }
     }
 }
