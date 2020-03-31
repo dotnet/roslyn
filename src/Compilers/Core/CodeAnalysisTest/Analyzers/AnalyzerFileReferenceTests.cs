@@ -48,6 +48,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void AnalyzerFileReference_Errors()
+        {
+            Assert.Throws<ArgumentNullException>("fullPath", () => new AnalyzerFileReference(null!, s_analyzerLoader));
+            Assert.Throws<ArgumentNullException>("assemblyLoader", () => new AnalyzerFileReference(TempRoot.Root, null!));
+
+            // path must be absolute
+            Assert.Throws<ArgumentException>("fullPath", () => new AnalyzerFileReference("a.dll", s_analyzerLoader));
+        }
+
+        [Fact]
         public void TestMetadataParse()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);

@@ -53,17 +53,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="assemblyLoader">Loader for obtaining the <see cref="Assembly"/> from the <paramref name="fullPath"/></param>
         public AnalyzerFileReference(string fullPath, IAnalyzerAssemblyLoader assemblyLoader)
         {
-            _fullPath = fullPath ?? throw new ArgumentNullException(nameof(fullPath));
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+
+            _fullPath = fullPath;
+            _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
+
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages);
             _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages);
-            _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
-            if (PathUtilities.IsAbsolute(fullPath))
-            {
-                assemblyLoader.AddDependencyLocation(fullPath);
-            }
+            assemblyLoader.AddDependencyLocation(fullPath);
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
