@@ -58,6 +58,46 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void DisplayAndId_BadPath()
+        {
+            var loader = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new Exception());
+            var refBadPath = new AnalyzerFileReference(PathUtilities.CombinePathsUnchecked(TempRoot.Root, "\0<>|*.xyz"), loader);
+            Assert.Equal("\0<>|*", refBadPath.Display);
+            Assert.Equal("\0<>|*", refBadPath.Id);
+        }
+
+        [Fact]
+        public void Equality()
+        {
+            var path1 = Path.Combine(TempRoot.Root, "dir");
+            var path2 = Path.Combine(TempRoot.Root, "dir", "..", "dir");
+
+            // Equals/GetHashCode should not load the analyzer
+            var loader1 = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new InvalidOperationException());
+            var loader2 = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new InvalidOperationException());
+
+            var refA = new AnalyzerFileReference(path1, loader1);
+            var refB = new AnalyzerFileReference(path1, loader1);
+
+            Assert.False(refA.Equals(null));
+            Assert.True(refA.Equals(refA));
+            Assert.True(refA.Equals(refB));
+
+            // paths are compared for exact equality, it's up to the host to normalize them:
+            Assert.False(refA.Equals(new AnalyzerFileReference(path2, loader1)));
+
+            // different loader:
+            Assert.False(refA.Equals(new AnalyzerFileReference(path1, loader2)));
+
+            // legacy overload:
+            Assert.True(refA.Equals((AnalyzerReference)refA));
+            Assert.False(refA.Equals((AnalyzerReference)null));
+            Assert.True(refA.Equals((AnalyzerReference)refB));
+            Assert.True(refA.Equals(new TestAnalyzerReference(path1)));
+            Assert.False(refA.Equals(new TestAnalyzerReference(path2)));
+        }
+
+        [Fact]
         public void TestMetadataParse()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
