@@ -124,9 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             internal void IncrementReferenceCount()
-            {
-                _taggerReferenceCount++;
-            }
+                => _taggerReferenceCount++;
 
             internal void DecrementReferenceCountAndDisposeIfNecessary()
             {

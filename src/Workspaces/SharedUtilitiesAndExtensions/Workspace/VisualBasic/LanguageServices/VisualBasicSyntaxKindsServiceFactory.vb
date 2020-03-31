@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

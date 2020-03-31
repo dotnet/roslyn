@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
@@ -18,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
     internal static class EditorConfigDocumentOptionsProviderFactory
     {
         public static IDocumentOptionsProvider Create(Workspace workspace)
-        {
-            return new EditorConfigDocumentOptionsProvider();
-        }
+            => new EditorConfigDocumentOptionsProvider();
 
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
@@ -29,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
                 storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "UseLegacySupport"));
 
         public static bool ShouldUseNativeEditorConfigSupport(Workspace workspace)
-        {
-            return !workspace.Options.GetOption(UseLegacyEditorConfigSupport);
-        }
+            => !workspace.Options.GetOption(UseLegacyEditorConfigSupport);
 
         private sealed class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
         {
@@ -52,9 +47,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
             {
                 private readonly ImmutableDictionary<string, string> _options;
                 public DocumentOptions(ImmutableDictionary<string, string> options)
-                {
-                    _options = options;
-                }
+                    => _options = options;
 
                 public bool TryGetDocumentOption(OptionKey option, out object? value)
                 {

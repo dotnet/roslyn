@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(this SyntaxNode node)
-        {
-            return node.GetBraces();
-        }
+            => node.GetBraces();
 
         public static bool IsValidBracePair(this ValueTuple<SyntaxToken, SyntaxToken> bracePair)
         {
@@ -64,24 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsOpenParenInParameterListOfAConversionOperatorDeclaration(this SyntaxToken token)
-        {
-            return token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.ConversionOperatorDeclaration);
-        }
+            => token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.ConversionOperatorDeclaration);
 
         public static bool IsOpenParenInParameterListOfAOperationDeclaration(this SyntaxToken token)
-        {
-            return token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.OperatorDeclaration);
-        }
+            => token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.OperatorDeclaration);
 
         public static bool IsOpenParenInParameterList(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.OpenParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
-        }
+            => token.Kind() == SyntaxKind.OpenParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
 
         public static bool IsCloseParenInParameterList(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.CloseParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
-        }
+            => token.Kind() == SyntaxKind.CloseParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
 
         public static bool IsOpenParenInArgumentListOrPositionalPattern(this SyntaxToken token)
         {
@@ -114,14 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsColonInTypeBaseList(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.ColonToken && token.Parent.Kind() == SyntaxKind.BaseList;
-        }
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent.Kind() == SyntaxKind.BaseList;
 
         public static bool IsCommaInArgumentOrParameterList(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.Kind() == SyntaxKind.ParameterList);
-        }
+            => token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.Kind() == SyntaxKind.ParameterList);
 
         public static bool IsLambdaBodyBlock(this SyntaxNode node)
         {
@@ -304,9 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsDotInMemberAccessOrQualifiedName(this SyntaxToken token)
-        {
-            return token.IsDotInMemberAccess() || (token.Kind() == SyntaxKind.DotToken && token.Parent.Kind() == SyntaxKind.QualifiedName);
-        }
+            => token.IsDotInMemberAccess() || (token.Kind() == SyntaxKind.DotToken && token.Parent.Kind() == SyntaxKind.QualifiedName);
 
         public static bool IsDotInMemberAccess(this SyntaxToken token)
         {
@@ -356,9 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsColonInSwitchLabel(this SyntaxToken token)
-        {
-            return FormattingRangeHelper.IsColonInSwitchLabel(token);
-        }
+            => FormattingRangeHelper.IsColonInSwitchLabel(token);
 
         public static bool IsColonInLabeledStatement(this SyntaxToken token)
         {
@@ -548,9 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsInterpolation(this SyntaxToken currentToken)
-        {
-            return currentToken.Parent.IsKind(SyntaxKind.Interpolation);
-        }
+            => currentToken.Parent.IsKind(SyntaxKind.Interpolation);
 
         /// <summary>
         /// Checks whether currentToken is the opening paren of a deconstruction-declaration in var form, such as <c>var (x, y) = ...</c>

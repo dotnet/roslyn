@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class DocumentHighlightsHandler : IRequestHandler<TextDocumentPositionParams, DocumentHighlight[]>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentHighlightsHandler()
         {
         }

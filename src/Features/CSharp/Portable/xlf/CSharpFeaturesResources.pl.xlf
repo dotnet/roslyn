@@ -212,11 +212,6 @@
         <target state="translated">asynchroniczna deklaracja using</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">Instrukcja „if” może zostać uproszczona</target>
-        <note />
-      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;wyrażenie lambda&gt;</target>
@@ -735,11 +730,6 @@
       <trans-unit id="Remove_unused_function">
         <source>Remove unused function</source>
         <target state="translated">Usuń nieużywaną funkcję</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_is_null_check">
-        <source>Use 'is null' check</source>
-        <target state="translated">Użyj sprawdzania „is null”</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">

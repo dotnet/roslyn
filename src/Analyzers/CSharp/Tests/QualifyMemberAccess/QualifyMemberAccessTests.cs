@@ -21,19 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess
             => (new CSharpQualifyMemberAccessDiagnosticAnalyzer(), new CSharpQualifyMemberAccessCodeFixProvider());
 
         private Task TestAsyncWithOption(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option)
-        {
-            return TestAsyncWithOptionAndNotificationOption(code, expected, option, NotificationOption2.Error);
-        }
+            => TestAsyncWithOptionAndNotificationOption(code, expected, option, NotificationOption2.Error);
 
         private Task TestAsyncWithOptionAndNotificationOption(string code, string expected, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
-        {
-            return TestInRegularAndScriptAsync(code, expected, options: Option(option, true, notification));
-        }
+            => TestInRegularAndScriptAsync(code, expected, options: Option(option, true, notification));
 
         private Task TestMissingAsyncWithOption(string code, PerLanguageOption2<CodeStyleOption2<bool>> option)
-        {
-            return TestMissingAsyncWithOptionAndNotificationOption(code, option, NotificationOption2.Error);
-        }
+            => TestMissingAsyncWithOptionAndNotificationOption(code, option, NotificationOption2.Error);
 
         private Task TestMissingAsyncWithOptionAndNotificationOption(string code, PerLanguageOption2<CodeStyleOption2<bool>> option, NotificationOption2 notification)
             => TestMissingInRegularAndScriptAsync(code, new TestParameters(options: Option(option, true, notification)));

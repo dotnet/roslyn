@@ -39,24 +39,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         }
 
         public static ChecksumObjectCollection<ProjectStateChecksums> ToProjectObjects(this ProjectChecksumCollection collection, IRemotableDataService service)
-        {
-            return new ChecksumObjectCollection<ProjectStateChecksums>(service, collection);
-        }
+            => new ChecksumObjectCollection<ProjectStateChecksums>(service, collection);
 
         public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this DocumentChecksumCollection collection, IRemotableDataService service)
-        {
-            return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
-        }
+            => new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
 
         public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this TextDocumentChecksumCollection collection, IRemotableDataService service)
-        {
-            return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
-        }
+            => new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
 
         public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this AnalyzerConfigDocumentChecksumCollection collection, IRemotableDataService service)
-        {
-            return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
-        }
+            => new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
     }
 
     /// <summary>
@@ -83,9 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         public IEnumerator<T> GetEnumerator() => Children.Select(t => t).GetEnumerator();
 
         public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException("should not be called");
-        }
+            => throw new NotImplementedException("should not be called");
     }
 
     internal sealed class TestAssetProvider : AbstractAssetProvider
@@ -93,9 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         private readonly IRemotableDataService _service;
 
         public TestAssetProvider(IRemotableDataService service)
-        {
-            _service = service;
-        }
+            => _service = service;
 
         public override Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
             => _service.GetValueAsync<T>(checksum);

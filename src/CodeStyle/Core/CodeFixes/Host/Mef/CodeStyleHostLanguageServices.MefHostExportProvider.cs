@@ -44,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Host
 
         [return: MaybeNull]
         public override TLanguageService GetService<TLanguageService>()
-        {
-            return _codeStyleLanguageServices.GetService<TLanguageService>() ?? _hostLanguageServices.GetService<TLanguageService>();
-        }
+            => _codeStyleLanguageServices.GetService<TLanguageService>() ?? _hostLanguageServices.GetService<TLanguageService>();
     }
 }

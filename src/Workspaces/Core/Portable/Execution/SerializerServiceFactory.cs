@@ -14,14 +14,13 @@ namespace Microsoft.CodeAnalysis.Execution
     internal class SerializerServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SerializerServiceFactory()
         {
         }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new SerializerService(workspaceServices);
-        }
+            => new SerializerService(workspaceServices);
     }
 }

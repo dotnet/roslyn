@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
         Private Shared ReadOnly s_compilation As Compilation = VisualBasicCompilation.Create("empty")
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

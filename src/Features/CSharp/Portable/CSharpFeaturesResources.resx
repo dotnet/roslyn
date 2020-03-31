@@ -499,9 +499,6 @@
   <data name="Remove_unused_function" xml:space="preserve">
     <value>Remove unused function</value>
   </data>
-  <data name="Use_is_null_check" xml:space="preserve">
-    <value>Use 'is null' check</value>
-  </data>
   <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
     <value>Add parentheses</value>
   </data>
@@ -510,9 +507,6 @@
   </data>
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
-  </data>
-  <data name="if_statement_can_be_simplified" xml:space="preserve">
-    <value>'if' statement can be simplified</value>
   </data>
   <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
     <value>Allow unsafe code in this project</value>

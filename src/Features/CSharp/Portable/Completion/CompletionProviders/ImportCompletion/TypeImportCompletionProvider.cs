@@ -4,12 +4,14 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal sealed class TypeImportCompletionProvider : AbstractTypeImportCompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeImportCompletionProvider()
         {
         }
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SyntaxNode location,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
-            => ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel, cancellationToken);
+            => ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel);
 
         protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
             => ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken);

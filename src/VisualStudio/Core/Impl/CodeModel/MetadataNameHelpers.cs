@@ -12,9 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal static class MetadataNameHelpers
     {
         private static void AppendNamespace(INamespaceSymbol namespaceSymbol, StringBuilder builder)
-        {
-            builder.Append(namespaceSymbol.Name);
-        }
+            => builder.Append(namespaceSymbol.Name);
 
         private static void AppendNamedType(INamedTypeSymbol namedTypeSymbol, StringBuilder builder)
         {

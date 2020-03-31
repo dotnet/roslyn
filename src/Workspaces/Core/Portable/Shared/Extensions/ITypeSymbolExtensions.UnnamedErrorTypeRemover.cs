@@ -14,19 +14,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             private readonly Compilation _compilation;
 
             public UnnamedErrorTypeRemover(Compilation compilation)
-            {
-                _compilation = compilation;
-            }
+                => _compilation = compilation;
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return symbol;
-            }
+                => symbol;
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
             {
@@ -67,9 +61,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                return symbol;
-            }
+                => symbol;
         }
     }
 }

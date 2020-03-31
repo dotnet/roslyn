@@ -7,13 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     return null;
 
                 var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+                var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName!);
                 if (equatableType == null)
                     return null;
 

@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
         {
@@ -52,8 +50,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

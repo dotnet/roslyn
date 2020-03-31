@@ -11,9 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
     internal static class SpanExtensions
     {
         internal static LinePositionSpan ToLinePositionSpan(this VsTextSpan span)
-        {
-            return new LinePositionSpan(new LinePosition(span.iStartLine, span.iStartIndex), new LinePosition(span.iEndLine, span.iEndIndex));
-        }
+            => new LinePositionSpan(new LinePosition(span.iStartLine, span.iStartIndex), new LinePosition(span.iEndLine, span.iEndIndex));
 
         internal static VsTextSpan ToVsTextSpan(this LinePositionSpan span)
         {

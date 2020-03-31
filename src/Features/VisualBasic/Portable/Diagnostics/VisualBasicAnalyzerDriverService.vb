@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
         Implements IAnalyzerDriverService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

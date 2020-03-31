@@ -57,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)
-            {
-                return sourceText.FindCorrespondingEditorTextSnapshot();
-            }
+                => sourceText.FindCorrespondingEditorTextSnapshot();
 
             private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
             {
@@ -72,9 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 private readonly ITextBuffer _primaryBuffer;
 
                 public SpanMapper(ITextBuffer primaryBuffer)
-                {
-                    _primaryBuffer = primaryBuffer;
-                }
+                    => _primaryBuffer = primaryBuffer;
 
                 public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
                 {
@@ -123,9 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 private readonly ITextBuffer _primaryBuffer;
 
                 public DocumentExcerpter(ITextBuffer primaryBuffer)
-                {
-                    _primaryBuffer = primaryBuffer;
-                }
+                    => _primaryBuffer = primaryBuffer;
 
                 public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, CancellationToken cancellationToken)
                 {
@@ -310,9 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
 
                 private static TextSpan GetSpanOnContent(TextSpan targetSpan, TextSpan excerptSpan)
-                {
-                    return new TextSpan(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
-                }
+                    => new TextSpan(targetSpan.Start - excerptSpan.Start, targetSpan.Length);
             }
         }
     }

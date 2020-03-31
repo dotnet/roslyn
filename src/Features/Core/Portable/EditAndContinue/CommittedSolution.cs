@@ -10,14 +10,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.DiaSymReader;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.IO;
-using System.Diagnostics;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue

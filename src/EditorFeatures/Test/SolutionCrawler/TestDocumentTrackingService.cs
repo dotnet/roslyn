@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Test
         private DocumentId _activeDocumentId;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestDocumentTrackingService()
         {
         }
@@ -53,13 +54,9 @@ namespace Microsoft.CodeAnalysis.Editor.Test
         }
 
         public DocumentId TryGetActiveDocument()
-        {
-            return _activeDocumentId;
-        }
+            => _activeDocumentId;
 
         public ImmutableArray<DocumentId> GetVisibleDocuments()
-        {
-            return _activeDocumentId != null ? ImmutableArray.Create(_activeDocumentId) : ImmutableArray<DocumentId>.Empty;
-        }
+            => _activeDocumentId != null ? ImmutableArray.Create(_activeDocumentId) : ImmutableArray<DocumentId>.Empty;
     }
 }

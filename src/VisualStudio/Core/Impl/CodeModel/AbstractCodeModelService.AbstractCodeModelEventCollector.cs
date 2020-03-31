@@ -21,9 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             protected readonly AbstractCodeModelService CodeModelService;
 
             protected AbstractCodeModelEventCollector(AbstractCodeModelService codeModelService)
-            {
-                this.CodeModelService = codeModelService;
-            }
+                => this.CodeModelService = codeModelService;
 
             protected abstract void CollectCore(SyntaxNode oldRoot, SyntaxNode newRoot, CodeModelEventQueue eventQueue);
 

@@ -2,14 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 Imports System.Composition
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
@@ -21,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         Implements IReplaceMethodWithPropertyService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
