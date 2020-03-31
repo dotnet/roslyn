@@ -202,11 +202,6 @@
         <target state="translated">zaman uyumsuz using bildirimi</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">'If' deyimi basitleştirilebilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt; lambda ifadesi &gt;</target>

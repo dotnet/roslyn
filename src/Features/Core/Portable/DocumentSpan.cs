@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis
             Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
-        public override bool Equals(object obj)
-            => Equals((DocumentSpan)obj);
+        public override bool Equals(object? obj)
+            => obj is DocumentSpan documentSpan && Equals(documentSpan);
 
         public bool Equals(DocumentSpan obj)
             => Document == obj.Document && SourceSpan == obj.SourceSpan;

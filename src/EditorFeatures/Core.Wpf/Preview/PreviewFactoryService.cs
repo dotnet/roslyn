@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
-        {
-            return GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
-        }
+            => GetSolutionPreviews(oldSolution, newSolution, DefaultZoomLevel, cancellationToken);
 
         public SolutionPreviewResult GetSolutionPreviews(Solution oldSolution, Solution newSolution, double zoomLevel, CancellationToken cancellationToken)
         {
@@ -255,9 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public Task<DifferenceViewerPreview> CreateAddedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
-        }
+            => CreateAddedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
 
         private async ValueTask<DifferenceViewerPreview> CreateAddedDocumentPreviewViewCoreAsync(ITextBuffer newBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
@@ -334,9 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public Task<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CreateRemovedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
-        }
+            => CreateRemovedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
 
         private async ValueTask<DifferenceViewerPreview> CreateRemovedDocumentPreviewViewCoreAsync(ITextBuffer oldBuffer, PreviewWorkspace workspace, TextDocument document, double zoomLevel, CancellationToken cancellationToken)
         {
@@ -434,9 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            return CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
-        }
+            => CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
 
         public async Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
         {

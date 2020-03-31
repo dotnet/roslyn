@@ -269,9 +269,7 @@ namespace Microsoft.CodeAnalysis
         /// True if the solution contains a project with the specified project ID.
         /// </summary>
         public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId)
-        {
-            return projectId != null && _projectIdToProjectStateMap.ContainsKey(projectId);
-        }
+            => projectId != null && _projectIdToProjectStateMap.ContainsKey(projectId);
 
         /// <summary>
         /// True if the solution contains the document in one of its projects
@@ -352,14 +350,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Task<VersionStamp> GetDependentVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            return this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
-        }
+            => this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
 
         public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            return this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
-        }
+            => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
 
         public ProjectState? GetProjectState(ProjectId projectId)
         {
@@ -402,9 +396,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out CompilationTracker? tracker)
-        {
-            return _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
-        }
+            => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
         private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
 
@@ -751,9 +743,7 @@ namespace Microsoft.CodeAnalysis
         /// until then, this will explicitly fork current solution snapshot
         /// </summary>
         internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
-        {
-            return ForkProject(GetRequiredProjectState(projectId));
-        }
+            => ForkProject(GetRequiredProjectState(projectId));
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
@@ -1842,9 +1832,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
         public ProjectDependencyGraph GetProjectDependencyGraph()
-        {
-            return _dependencyGraph;
-        }
+            => _dependencyGraph;
 
         private void CheckNotContainsProject(ProjectId projectId)
         {

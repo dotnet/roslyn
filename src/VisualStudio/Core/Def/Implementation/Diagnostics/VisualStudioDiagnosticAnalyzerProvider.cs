@@ -61,20 +61,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         }
 
         public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
-        {
-            return _hostDiagnosticAnalyzerInfo.Value;
-        }
+            => _hostDiagnosticAnalyzerInfo.Value;
 
         public IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader()
-        {
-            return s_analyzerAssemblyLoader;
-        }
+            => s_analyzerAssemblyLoader;
 
         // internal for testing purposes.
         internal static IAnalyzerAssemblyLoader GetLoader()
-        {
-            return s_analyzerAssemblyLoader;
-        }
+            => s_analyzerAssemblyLoader;
 
         // internal for testing purpose
         internal static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostAnalyzerPackagesWithName(object extensionManager, Type parameterType)

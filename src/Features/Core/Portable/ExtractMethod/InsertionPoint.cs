@@ -37,24 +37,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public SemanticDocument SemanticDocument { get; }
 
         public SyntaxNode GetRoot()
-        {
-            return SemanticDocument.Root;
-        }
+            => SemanticDocument.Root;
 
         public SyntaxNode GetContext()
-        {
-            return _context.Value;
-        }
+            => _context.Value;
 
         public InsertionPoint With(SemanticDocument document)
-        {
-            return new InsertionPoint(document, _annotation);
-        }
+            => new InsertionPoint(document, _annotation);
 
         private Lazy<SyntaxNode> CreateLazyContextNode()
-        {
-            return new Lazy<SyntaxNode>(ComputeContextNode, isThreadSafe: true);
-        }
+            => new Lazy<SyntaxNode>(ComputeContextNode, isThreadSafe: true);
 
         private SyntaxNode ComputeContextNode()
         {

@@ -22,13 +22,9 @@ namespace Microsoft.CodeAnalysis.Execution
         }
 
         public static PooledObject<List<T>> CreateList<T>()
-        {
-            return SharedPools.Default<List<T>>().GetPooledObject();
-        }
+            => SharedPools.Default<List<T>>().GetPooledObject();
 
         public static PooledObject<Dictionary<Checksum, object>> CreateResultSet()
-        {
-            return SharedPools.Default<Dictionary<Checksum, object>>().GetPooledObject();
-        }
+            => SharedPools.Default<Dictionary<Checksum, object>>().GetPooledObject();
     }
 }

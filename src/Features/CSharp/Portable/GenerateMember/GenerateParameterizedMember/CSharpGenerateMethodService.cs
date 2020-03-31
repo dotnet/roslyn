@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
         protected override AbstractInvocationInfo CreateInvocationMethodInfo(SemanticDocument document, AbstractGenerateParameterizedMemberService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
-        {
-            return new CSharpGenerateParameterizedMemberService<CSharpGenerateMethodService>.InvocationExpressionInfo(document, state);
-        }
+            => new CSharpGenerateParameterizedMemberService<CSharpGenerateMethodService>.InvocationExpressionInfo(document, state);
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
             => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive();

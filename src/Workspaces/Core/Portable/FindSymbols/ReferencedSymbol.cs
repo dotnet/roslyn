@@ -54,9 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly ReferencedSymbol _referencedSymbol;
 
             public TestAccessor(ReferencedSymbol referencedSymbol)
-            {
-                _referencedSymbol = referencedSymbol;
-            }
+                => _referencedSymbol = referencedSymbol;
 
             internal string GetDebuggerDisplay()
                 => _referencedSymbol.GetDebuggerDisplay();

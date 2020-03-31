@@ -1293,9 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         private static SyntaxToken FindTokenOnLeftOfNode(SyntaxNode node)
-        {
-            return node.FindTokenOnLeftOfPosition(node.SpanStart);
-        }
+            => node.FindTokenOnLeftOfPosition(node.SpanStart);
 
 
         public static bool IsPossibleTupleOpenParenOrComma(this SyntaxToken possibleCommaOrParen)
@@ -1436,9 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool HasNames(this TupleExpressionSyntax tuple)
-        {
-            return tuple.Arguments.Any(a => a.NameColon != null);
-        }
+            => tuple.Arguments.Any(a => a.NameColon != null);
 
         public static bool IsValidContextForFromClause(
             this SyntaxTree syntaxTree,

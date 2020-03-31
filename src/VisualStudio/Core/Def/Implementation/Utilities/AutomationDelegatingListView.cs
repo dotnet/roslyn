@@ -18,19 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     internal class AutomationDelegatingListView : ListView
     {
         protected override bool IsItemItsOwnContainerOverride(object item)
-        {
-            return item is AutomationDelegatingListViewItem;
-        }
+            => item is AutomationDelegatingListViewItem;
 
         protected override DependencyObject GetContainerForItemOverride()
-        {
-            return new AutomationDelegatingListViewItem();
-        }
+            => new AutomationDelegatingListViewItem();
 
         protected override AutomationPeer OnCreateAutomationPeer()
-        {
-            return new AutomationDelegatingListViewAutomationPeer(this);
-        }
+            => new AutomationDelegatingListViewAutomationPeer(this);
 
         protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
         {
@@ -73,17 +67,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         }
 
         protected override AutomationControlType GetAutomationControlTypeCore()
-        {
-            return AutomationControlType.List;
-        }
+            => AutomationControlType.List;
     }
 
     internal class AutomationDelegatingListViewItem : ListViewItem
     {
         protected override AutomationPeer OnCreateAutomationPeer()
-        {
-            return new AutomationDelegatingListViewItemAutomationPeer(this);
-        }
+            => new AutomationDelegatingListViewItemAutomationPeer(this);
     }
 
     internal class AutomationDelegatingListViewItemAutomationPeer : ListBoxItemWrapperAutomationPeer
@@ -170,13 +160,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         }
 
         protected override string GetNameCore()
-        {
-            return GetAutomationPeer()?.GetName() ?? string.Empty;
-        }
+            => GetAutomationPeer()?.GetName() ?? string.Empty;
 
         private AutomationPeer GetAutomationPeer()
-        {
-            return checkBoxItem ?? radioButtonItem ?? (AutomationPeer)textBlockItem;
-        }
+            => checkBoxItem ?? radioButtonItem ?? (AutomationPeer)textBlockItem;
     }
 }

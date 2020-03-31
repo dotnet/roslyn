@@ -84,9 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         public void Dispose()
-        {
-            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
-        }
+            => this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
@@ -176,24 +174,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         private void UpdateClassVersion()
-        {
-            _classVersion = unchecked(_classVersion + 1);
-        }
+            => _classVersion = unchecked(_classVersion + 1);
 
         private void UpdateMembersVersion()
-        {
-            _membersVersion = unchecked(_membersVersion + 1);
-        }
+            => _membersVersion = unchecked(_membersVersion + 1);
 
         internal void UpdatePackageVersion()
-        {
-            _packageVersion = unchecked(_packageVersion + 1);
-        }
+            => _packageVersion = unchecked(_packageVersion + 1);
 
         internal void SetActiveListItem(ObjectListItem listItem)
-        {
-            _activeListItem = listItem;
-        }
+            => _activeListItem = listItem;
 
         private bool IsFindAllReferencesSupported()
         {
@@ -206,9 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         internal Project GetProject(ProjectId projectId)
-        {
-            return this.Workspace.CurrentSolution.GetProject(projectId);
-        }
+            => this.Workspace.CurrentSolution.GetProject(projectId);
 
         internal Project GetProject(ObjectListItem listItem)
         {
@@ -348,9 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         protected override uint GetUpdateCounter()
-        {
-            return _packageVersion;
-        }
+            => _packageVersion;
 
         protected override int CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
         {

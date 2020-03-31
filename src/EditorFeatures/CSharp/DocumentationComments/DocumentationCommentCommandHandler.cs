@@ -79,9 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         }
 
         protected override bool HasDocumentationComment(MemberDeclarationSyntax member)
-        {
-            return member.GetFirstToken().LeadingTrivia.Any(SyntaxKind.SingleLineDocumentationCommentTrivia, SyntaxKind.MultiLineDocumentationCommentTrivia);
-        }
+            => member.GetFirstToken().LeadingTrivia.Any(SyntaxKind.SingleLineDocumentationCommentTrivia, SyntaxKind.MultiLineDocumentationCommentTrivia);
 
         protected override int GetPrecedingDocumentationCommentCount(MemberDeclarationSyntax member)
         {
@@ -99,9 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         }
 
         protected override bool IsMemberDeclaration(MemberDeclarationSyntax member)
-        {
-            return true;
-        }
+            => true;
 
         protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member)
         {
@@ -171,14 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         }
 
         protected override bool IsDocCommentNewLine(SyntaxToken token)
-        {
-            return token.RawKind == (int)SyntaxKind.XmlTextLiteralNewLineToken;
-        }
+            => token.RawKind == (int)SyntaxKind.XmlTextLiteralNewLineToken;
 
         protected override bool IsEndOfLineTrivia(SyntaxTrivia trivia)
-        {
-            return trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
-        }
+            => trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
 
         protected override bool IsSingleExteriorTrivia(DocumentationCommentTriviaSyntax documentationComment, bool allowWhitespace = false)
         {
@@ -283,9 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         }
 
         protected override bool IsMultilineDocComment(DocumentationCommentTriviaSyntax documentationComment)
-        {
-            return documentationComment.IsMultilineDocComment();
-        }
+            => documentationComment.IsMultilineDocComment();
 
         protected override bool AddIndent
         {

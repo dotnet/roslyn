@@ -23,14 +23,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
-        {
-            return new StreamStorage();
-        }
+            => new StreamStorage();
 
         public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default)
-        {
-            return new TextStorage();
-        }
+            => new TextStorage();
 
         private sealed class StreamStorage : ITemporaryStreamStorage
         {
@@ -84,19 +80,13 @@ namespace Microsoft.CodeAnalysis
             private SourceText _sourceText;
 
             public void Dispose()
-            {
-                _sourceText = null;
-            }
+                => _sourceText = null;
 
             public SourceText ReadText(CancellationToken cancellationToken = default)
-            {
-                return _sourceText;
-            }
+                => _sourceText;
 
             public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(ReadText(cancellationToken));
-            }
+                => Task.FromResult(ReadText(cancellationToken));
 
             public void WriteText(SourceText text, CancellationToken cancellationToken = default)
             {

@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// syntax tree associated with the binding.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
-        }
+            => semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
 
         public static TSymbol? GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             where TSymbol : class, ISymbol
@@ -50,14 +48,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static INamedTypeSymbol? GetEnclosingNamedType(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(position, cancellationToken);
-        }
+            => semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(position, cancellationToken);
 
         public static INamespaceSymbol? GetEnclosingNamespace(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
-        }
+            => semanticModel.GetEnclosingSymbol<INamespaceSymbol>(position, cancellationToken);
 
         public static IEnumerable<ISymbol> GetExistingSymbols(
                     this SemanticModel semanticModel, SyntaxNode? container, CancellationToken cancellationToken, Func<SyntaxNode, bool>? descendInto = null)

@@ -2230,16 +2230,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Implementovat {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">Formátovací řetězec obsahuje neplatný zástupný symbol.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Neplatný formátovací řetězec</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Použít odvozený název člena</target>
@@ -2305,16 +2295,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Přepínání mezi lambda a lokální funkcí zabrání v pokračování ladicí relace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Dekonstruovat deklaraci proměnné</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Deklaraci proměnné je možné dekonstruovat.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Přidat název argumentu {0} (včetně koncových argumentů)</target>
@@ -2368,11 +2348,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Upozornění: Během iterace se kolekce může změnit.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Převést na podmíněný výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

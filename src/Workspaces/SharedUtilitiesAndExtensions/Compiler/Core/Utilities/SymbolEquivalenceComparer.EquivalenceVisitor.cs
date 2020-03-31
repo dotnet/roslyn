@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             internal bool AreEquivalent(CustomModifier x, CustomModifier y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
-            {
-                return x.IsOptional == y.IsOptional && AreEquivalent(x.Modifier, y.Modifier, equivalentTypesWithDifferingAssemblies);
-            }
+                => x.IsOptional == y.IsOptional && AreEquivalent(x.Modifier, y.Modifier, equivalentTypesWithDifferingAssemblies);
 
             internal bool AreEquivalent(ImmutableArray<CustomModifier> x, ImmutableArray<CustomModifier> y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
@@ -157,14 +155,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
-            {
-                return _symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
-            }
+                => _symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
 
             private bool DynamicTypesAreEquivalent(IDynamicTypeSymbol x, IDynamicTypeSymbol y)
-            {
-                return true;
-            }
+                => true;
 
             private bool FieldsAreEquivalent(IFieldSymbol x, IFieldSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
@@ -182,9 +176,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
-            {
-                return HaveSameLocation(x, y);
-            }
+                => HaveSameLocation(x, y);
 
             private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
@@ -290,9 +282,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool ModulesAreEquivalent(IModuleSymbol x, IModuleSymbol y)
-            {
-                return AssembliesAreEquivalent(x.ContainingAssembly, y.ContainingAssembly) && x.Name == y.Name;
-            }
+                => AssembliesAreEquivalent(x.ContainingAssembly, y.ContainingAssembly) && x.Name == y.Name;
 
             private bool NamedTypesAreEquivalent(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
             {
@@ -621,14 +611,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool RangeVariablesAreEquivalent(IRangeVariableSymbol x, IRangeVariableSymbol y)
-            {
-                return HaveSameLocation(x, y);
-            }
+                => HaveSameLocation(x, y);
 
             private bool PreprocessingSymbolsAreEquivalent(IPreprocessingSymbol x, IPreprocessingSymbol y)
-            {
-                return x.Name == y.Name;
-            }
+                => x.Name == y.Name;
         }
     }
 }

@@ -2230,16 +2230,6 @@ This version used in: {2}</source>
         <target state="translated">{0} を実装する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">書式設定文字列に無効なプレース ホルダーが含まれています</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">無効な書式設定文字列</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">推定メンバーの名前を使用します</target>
@@ -2305,16 +2295,6 @@ This version used in: {2}</source>
         <target state="translated">ラムダとローカル関数を切り替えると、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">変数の宣言を分解</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">変数の宣言を分解できます</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">引数の名前 '{0}' を追加します (末尾の引数を含む)</target>
@@ -2368,11 +2348,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">警告: 反復処理中にコレクションが変更される可能性があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">条件式に変換します</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

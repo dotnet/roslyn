@@ -19,23 +19,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry textUndoHistoryRegistry)
-        {
-            _serviceSingleton = new TextUndoHistoryWorkspaceService(textUndoHistoryRegistry);
-        }
+            => _serviceSingleton = new TextUndoHistoryWorkspaceService(textUndoHistoryRegistry);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _serviceSingleton;
-        }
+            => _serviceSingleton;
 
         private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
         {
             private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
 
             public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry textUndoHistoryRegistry)
-            {
-                _textUndoHistoryRegistry = textUndoHistoryRegistry;
-            }
+                => _textUndoHistoryRegistry = textUndoHistoryRegistry;
 
             public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
             {

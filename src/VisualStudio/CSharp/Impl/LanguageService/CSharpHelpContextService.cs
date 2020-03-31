@@ -47,9 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
 
         private static string Keyword(string text)
-        {
-            return text + "_CSharpKeyword";
-        }
+            => text + "_CSharpKeyword";
 
         public override async Task<string> GetHelpTermAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {

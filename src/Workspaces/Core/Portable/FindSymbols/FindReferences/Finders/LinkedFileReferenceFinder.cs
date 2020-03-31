@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            return SpecializedTasks.EmptyImmutableArray<Project>();
-        }
+            => SpecializedTasks.EmptyImmutableArray<Project>();
 
         public Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,

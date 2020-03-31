@@ -40,14 +40,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsAbstractClass([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            return symbol?.TypeKind == TypeKind.Class && symbol.IsAbstract;
-        }
+            => symbol?.TypeKind == TypeKind.Class && symbol.IsAbstract;
 
         public static bool IsSystemVoid([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            return symbol?.SpecialType == SpecialType.System_Void;
-        }
+            => symbol?.SpecialType == SpecialType.System_Void;
 
         public static bool IsNullable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
             => symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
@@ -67,29 +63,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsModuleType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            return symbol?.TypeKind == TypeKind.Module;
-        }
+            => symbol?.TypeKind == TypeKind.Module;
 
         public static bool IsInterfaceType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            return symbol?.TypeKind == TypeKind.Interface;
-        }
+            => symbol?.TypeKind == TypeKind.Interface;
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            return symbol?.TypeKind == TypeKind.Delegate;
-        }
+            => symbol?.TypeKind == TypeKind.Delegate;
 
         public static bool IsStructType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
-        {
-            return symbol?.TypeKind == TypeKind.Struct;
-        }
+            => symbol?.TypeKind == TypeKind.Struct;
 
         public static bool IsAnonymousType([NotNullWhen(returnValue: true)] this INamedTypeSymbol? symbol)
-        {
-            return symbol?.IsAnonymousType == true;
-        }
+            => symbol?.IsAnonymousType == true;
 
         private static HashSet<INamedTypeSymbol> GetOriginalInterfacesAndTheirBaseInterfaces(
             this ITypeSymbol type,
@@ -299,9 +285,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
-        }
+            => typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
 
         public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
@@ -621,9 +605,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsEnumType(this ITypeSymbol type)
-        {
-            return type.IsValueType && type.TypeKind == TypeKind.Enum;
-        }
+            => type.IsValueType && type.TypeKind == TypeKind.Enum;
 
         public static bool? IsMutableValueType(this ITypeSymbol type)
         {

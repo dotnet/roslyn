@@ -2230,16 +2230,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Implementar {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">A cadeia de formato contém espaço reservado inválido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Cadeia de formato inválida</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Usar o nome do membro inferido</target>
@@ -2305,16 +2295,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">Alternar entre um lambda e uma função local impedirá que a sessão de depuração continue.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Desconstruir declaração de variável</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">A declaração de variável pode ser desconstruída</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Adicionar nome de argumento '{0}' (incluindo argumentos à direita)</target>
@@ -2368,11 +2348,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Aviso: a coleção pode ser modificada durante a iteração.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Converter em expressão condicional</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

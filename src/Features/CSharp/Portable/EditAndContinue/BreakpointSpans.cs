@@ -84,14 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => CreateSpan(node.GetFirstToken(), node.GetLastToken());
 
         private static TextSpan CreateSpan(SyntaxNode node, SyntaxToken token)
-        {
-            return TextSpan.FromBounds(node.SpanStart, token.Span.End);
-        }
+            => TextSpan.FromBounds(node.SpanStart, token.Span.End);
 
         private static TextSpan CreateSpan(SyntaxToken token)
-        {
-            return TextSpan.FromBounds(token.SpanStart, token.Span.End);
-        }
+            => TextSpan.FromBounds(token.SpanStart, token.Span.End);
 
         private static TextSpan CreateSpan(SyntaxTokenList startOpt, SyntaxNodeOrToken startFallbackOpt, SyntaxNodeOrToken endOpt)
         {
@@ -332,14 +328,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static TextSpan CreateSpanForConstructorInitializer(ConstructorInitializerSyntax constructorInitializer)
-        {
-            return CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
-        }
+            => CreateSpan(constructorInitializer.ThisOrBaseKeyword, constructorInitializer.ArgumentList.CloseParenToken);
 
         private static TextSpan? TryCreateSpanForFieldDeclaration(BaseFieldDeclarationSyntax fieldDeclaration, int position)
-        {
-            return TryCreateSpanForVariableDeclaration(fieldDeclaration.Declaration, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken, position);
-        }
+            => TryCreateSpanForVariableDeclaration(fieldDeclaration.Declaration, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken, position);
 
         private static TextSpan? TryCreateSpanForSwitchLabel(SwitchLabelSyntax switchLabel, int position)
         {
@@ -558,9 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static SyntaxToken LastNotMissing(SyntaxToken token1, SyntaxToken token2)
-        {
-            return token2.IsMissing ? token1 : token2;
-        }
+            => token2.IsMissing ? token1 : token2;
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(VariableDeclarationSyntax declaration, int position)
         {

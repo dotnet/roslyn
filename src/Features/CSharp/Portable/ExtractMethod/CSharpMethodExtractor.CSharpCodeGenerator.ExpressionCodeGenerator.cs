@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 public static bool IsExtractMethodOnExpression(SelectionResult code)
-                {
-                    return code.SelectionInExpression;
-                }
+                    => code.SelectionInExpression;
 
                 protected override SyntaxToken CreateMethodName()
                 {

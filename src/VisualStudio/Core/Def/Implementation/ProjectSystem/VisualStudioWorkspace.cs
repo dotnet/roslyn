@@ -61,14 +61,10 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         protected override void OnDocumentTextChanged(Document document)
-        {
-            _backgroundParser.Parse(document);
-        }
+            => _backgroundParser.Parse(document);
 
         protected override void OnDocumentClosing(DocumentId documentId)
-        {
-            _backgroundParser.CancelParse(documentId);
-        }
+            => _backgroundParser.CancelParse(documentId);
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges => true;
 
@@ -109,9 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <param name="filePath">The file path of the assembly or module.</param>
         /// <param name="properties">The properties for the reference.</param>
         public PortableExecutableReference CreatePortableExecutableReference(string filePath, MetadataReferenceProperties properties)
-        {
-            return this.Services.GetRequiredService<IMetadataService>().GetReference(filePath, properties);
-        }
+            => this.Services.GetRequiredService<IMetadataService>().GetReference(filePath, properties);
 
         internal abstract string? TryGetRuleSetPathForProject(ProjectId projectId);
     }

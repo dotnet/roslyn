@@ -2230,16 +2230,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">{0} uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">Biçim dizesi, geçersiz yer tutucu içeriyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Geçersiz biçim dizesi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Gösterilen üye adı kullan</target>
@@ -2305,16 +2295,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Bir lambda ile yerel işlev arasında geçiş yapmak, hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Değişken bildirimini ayrıştır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Değişken bildirimi ayrıştırılabilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">{0}' bağımsız değişken adını ekle (sondaki bağımsız değişkenler dahil)</target>
@@ -2368,11 +2348,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Uyarı: Yineleme sırasında koleksiyon değiştirilebilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Koşullu ifadeye dönüştürme</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

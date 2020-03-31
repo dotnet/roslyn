@@ -2230,16 +2230,6 @@ This version used in: {2}</source>
         <target state="translated">Реализация {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">Строка формата содержит недопустимый заполнитель</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Недопустимая строка формата</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Использовать имя выводимого элемента</target>
@@ -2305,16 +2295,6 @@ This version used in: {2}</source>
         <target state="translated">Переключение между лямбда-выражением и локальной функцией заблокирует продолжение сеанса отладки.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Деконструировать объявление переменной</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Объявление переменной можно деконструировать</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Добавьте имя аргумента "{0}" (включая конечные аргументы)</target>
@@ -2368,11 +2348,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Внимание! Коллекция может быть изменена во время итерации.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Преобразовать в условное выражение</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

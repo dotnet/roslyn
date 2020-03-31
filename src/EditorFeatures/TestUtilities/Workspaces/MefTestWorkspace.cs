@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            return true;
-        }
+            => true;
     }
 }

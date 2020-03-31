@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public AssetSource? AssetSource => _assetSource;
 
         public void SetAssetSource(AssetSource assetSource)
-        {
-            _assetSource = assetSource;
-        }
+            => _assetSource = assetSource;
 
         public bool TryAddGlobalAsset(Checksum checksum, object value)
         {
@@ -138,9 +136,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public void UpdateLastActivityTime()
-        {
-            _lastActivityTime = DateTime.UtcNow;
-        }
+            => _lastActivityTime = DateTime.UtcNow;
 
         private void Update(Entry entry)
         {

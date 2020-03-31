@@ -65,9 +65,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             private State ReadState()
-            {
-                return Volatile.Read(ref _stateDoNotAccessDirectly);
-            }
+                => Volatile.Read(ref _stateDoNotAccessDirectly);
 
             private void WriteState(State state, SolutionServices solutionServices)
             {
@@ -156,9 +154,7 @@ namespace Microsoft.CodeAnalysis
             /// Creates a fork with the same final project.
             /// </summary>
             public CompilationTracker Clone()
-            {
-                return this.Fork(this.ProjectState, clone: true);
-            }
+                => this.Fork(this.ProjectState, clone: true);
 
             public CompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {

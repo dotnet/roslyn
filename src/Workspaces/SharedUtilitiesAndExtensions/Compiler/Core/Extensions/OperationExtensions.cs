@@ -281,9 +281,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
-        {
-            return operationBlock.HasAnyOperationDescendant(predicate, out _);
-        }
+            => operationBlock.HasAnyOperationDescendant(predicate, out _);
 
         public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, out IOperation foundOperation)
         {
@@ -303,9 +301,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, OperationKind kind)
-        {
-            return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation.Kind == kind);
-        }
+            => operationBlocks.HasAnyOperationDescendant(predicate: operation => operation.Kind == kind);
 
         public static bool IsNumericLiteral(this IOperation operation)
             => operation.Kind == OperationKind.Literal && operation.Type.IsNumericType();

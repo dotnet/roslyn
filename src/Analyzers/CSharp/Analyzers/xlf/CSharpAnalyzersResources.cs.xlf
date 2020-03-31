@@ -17,6 +17,11 @@
         <target state="new">Convert switch statement to expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_variable_declaration">
+        <source>Deconstruct variable declaration</source>
+        <target state="new">Deconstruct variable declaration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="new">Simplify 'default' expression</target>
@@ -127,9 +132,19 @@
         <target state="new">Use 'switch' expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_deconstructed">
+        <source>Variable declaration can be deconstructed</source>
+        <target state="new">Variable declaration can be deconstructed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
         <target state="new">'default' expression can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

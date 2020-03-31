@@ -720,14 +720,10 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly GCHandle _gcHandle;
 
             public PinnedObject(byte[] array, long length)
-            {
-                _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-            }
+                => _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
 
             internal IntPtr GetPointer()
-            {
-                return _gcHandle.AddrOfPinnedObject();
-            }
+                => _gcHandle.AddrOfPinnedObject();
 
             private void OnDispose()
             {
@@ -738,9 +734,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             ~PinnedObject()
-            {
-                OnDispose();
-            }
+                => OnDispose();
 
             public void Dispose()
             {
@@ -779,9 +773,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return new MissingMetadataReference(properties, FilePath, _provider);
-            }
+                => new MissingMetadataReference(properties, FilePath, _provider);
         }
 
         [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
@@ -809,19 +801,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             protected override Metadata GetMetadataImpl()
-            {
-                return _metadata;
-            }
+                => _metadata;
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
-            }
+                => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
             public IEnumerable<ITemporaryStreamStorage> GetStorages()
-            {
-                return _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>)null : _storagesOpt;
-            }
+                => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>)null : _storagesOpt;
         }
     }
 }

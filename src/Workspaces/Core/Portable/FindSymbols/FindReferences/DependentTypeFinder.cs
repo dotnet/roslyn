@@ -845,8 +845,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolAndProjectIdSet CreateSymbolAndProjectIdSet()
-        {
-            return s_setPool.Allocate();
-        }
+            => s_setPool.Allocate();
     }
 }
