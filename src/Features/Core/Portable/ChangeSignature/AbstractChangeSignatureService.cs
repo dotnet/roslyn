@@ -60,9 +60,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
 
-        protected abstract int? TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
+        protected abstract int TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
 
         protected abstract SyntaxToken CommaTokenWithElasticSpace();
+
+        protected abstract SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
+
+        protected abstract SyntaxNode AddName(SyntaxNode newArgument, string name);
+
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
@@ -159,14 +164,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetRequiredDocument(declarationLocation.SourceTree!);
             var declarationChangeSignatureService = declarationDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            int? insertPosition = declarationChangeSignatureService.TryGetPositionBeforeParameterListClosingBrace(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax());
+            int insertPosition = declarationChangeSignatureService.TryGetPositionBeforeParameterListClosingBrace(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax());
 
             var parameterConfiguration = ParameterConfiguration.Create(
                 symbol.GetParameters().Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
-                declarationDocument, insertPosition!.Value, symbol, parameterConfiguration);
+                declarationDocument, insertPosition, symbol, parameterConfiguration);
         }
 
         private ChangeSignatureResult ChangeSignatureWithContext(ChangeSignatureAnalysisSucceededContext context, CancellationToken cancellationToken)
@@ -467,7 +472,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             argumentsToPermute.Sort((a1, a2) => { return parameterToIndexMap[argumentToParameterMap[a1]].CompareTo(parameterToIndexMap[argumentToParameterMap[a2]]); });
 
             // 4. Add names to arguments where necessary.
-            var newArguments = ImmutableArray.CreateBuilder<IUnifiedArgumentSyntax>();
+            var newArguments = ArrayBuilder<IUnifiedArgumentSyntax>.GetInstance();
             var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
             var seenNamedArgument = false;
 
@@ -537,7 +542,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            return newArguments.ToImmutable();
+            return newArguments.ToImmutableAndFree();
         }
 
         private static SignatureChange CreateCompensatingSignatureChange(ISymbol declarationSymbol, SignatureChange updatedSignature)
@@ -751,8 +756,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         if (indexInListOfPreexistingArguments == (declarationSymbol as IMethodSymbol).Parameters.Length - 1 &&
                             (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].IsParams)
                         {
+                            // Handling params array
                             if (seenOmitted)
                             {
+                                // Need to ensure the params array is an actual array, and that the argument is named.
                                 if (isParamsArrayExpanded)
                                 {
                                     var newArgument = CreateArray(newArguments, indexInListOfPreexistingArguments, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments]);
@@ -767,6 +774,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                 }
 
                                 paramsHandled = true;
+                            }
+                            else
+                            {
+                                // Normal case. Handled later.
                             }
                         }
                         else if (indexInListOfPreexistingArguments < newArguments.Count)
@@ -816,9 +827,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return Generator.SeparatedList(fullList.ToImmutableAndFree(), separators.ToImmutableAndFree());
         }
-
-        internal abstract SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
-        internal abstract SyntaxNode AddName(SyntaxNode newArgument, string name);
 
         protected ImmutableArray<SyntaxTrivia> GetPermutedDocCommentTrivia(Document document, SyntaxNode node, ImmutableArray<SyntaxNode> permutedParamNodes)
         {

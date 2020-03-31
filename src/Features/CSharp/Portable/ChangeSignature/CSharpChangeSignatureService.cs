@@ -156,15 +156,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         /// Find the position to insert the new parameter.
         /// We will insert a new comma and a parameter.
         /// </summary>
-        protected override int? TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode)
+        protected override int TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
             return parameters switch
             {
-                null => null,
                 ParameterListSyntax parameterListSyntax => parameterListSyntax.CloseParenToken.SpanStart,
                 BracketedParameterListSyntax bracketedParameterListSyntax => bracketedParameterListSyntax.CloseBracketToken.SpanStart,
-                _ => null
+                _ => throw new ArgumentException("Unexpected SyntaxNode", nameof(matchingNode))
             };
         }
 
@@ -672,12 +671,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
             => Formatter.GetDefaultFormattingRules(document).Concat(new ChangeSignatureFormattingRule());
 
-        internal override SyntaxNode AddName(SyntaxNode newArgument, string name)
+        protected override SyntaxNode AddName(SyntaxNode newArgument, string name)
         {
             return (newArgument as ArgumentSyntax).WithNameColon(NameColon(name));
         }
 
-        internal override SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
+        protected override SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
         {
             var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
             var initializerExpression = InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);

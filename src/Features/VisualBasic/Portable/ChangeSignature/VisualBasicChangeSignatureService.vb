@@ -138,11 +138,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
         End Function
 
-        Protected Overrides Function TryGetPositionBeforeParameterListClosingBrace(matchingNode As SyntaxNode) As Integer?
+        Protected Overrides Function TryGetPositionBeforeParameterListClosingBrace(matchingNode As SyntaxNode) As Integer
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
 
             If parameters Is Nothing Then
-                Return Nothing
+                Throw New ArgumentException("Unexpected SyntaxNode", NameOf(matchingNode))
             End If
 
             Return parameters.CloseParenToken.SpanStart
@@ -615,7 +615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return newArgument
         End Function
 
-        Friend Overrides Function AddName(newArgument As SyntaxNode, name As String) As SyntaxNode
+        Protected Overrides Function AddName(newArgument As SyntaxNode, name As String) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
@@ -631,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End Get
         End Property
 
-        Friend Overrides Function CreateArray(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
+        Protected Overrides Function CreateArray(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
