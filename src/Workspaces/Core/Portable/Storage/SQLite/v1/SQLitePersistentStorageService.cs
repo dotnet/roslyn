@@ -6,64 +6,19 @@
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v1
 {
-    internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService
+    internal partial class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
     {
         private const string LockFile = "db.lock";
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
         private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr LoadLibrary(string dllToLoad);
-
-        private static bool TryInitializeLibraries() => s_initialized.Value;
-
-        private static readonly Lazy<bool> s_initialized = new Lazy<bool>(() => TryInitializeLibrariesLazy());
-
-        private static bool TryInitializeLibrariesLazy()
-        {
-            // Attempt to load the correct version of e_sqlite.dll.  That way when we call
-            // into SQLitePCL.Batteries_V2.Init it will be able to find it.
-            //
-            // Only do this on Windows when we can safely do the LoadLibrary call to this
-            // direct dll.  On other platforms, it is the responsibility of the host to ensure
-            // that the necessary sqlite library has already been loaded such that SQLitePCL.Batteries_V2
-            // will be able to call into it.
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                var myFolder = Path.GetDirectoryName(
-                    typeof(SQLitePersistentStorage).Assembly.Location);
-                if (myFolder == null)
-                    return false;
-
-                var is64 = IntPtr.Size == 8;
-                var subfolder = is64 ? "x64" : "x86";
-
-                LoadLibrary(Path.Combine(myFolder, subfolder, "e_sqlite3.dll"));
-            }
-
-            try
-            {
-                // Necessary to initialize SQLitePCL.
-                SQLitePCL.Batteries_V2.Init();
-            }
-            catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException)
-            {
-                StorageDatabaseLogger.LogException(e);
-                return false;
-            }
-
-            return true;
-        }
 
         public SQLitePersistentStorageService(IPersistentStorageLocationService locationService)
             : base(locationService)

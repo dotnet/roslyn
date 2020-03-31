@@ -41,6 +41,10 @@ namespace Microsoft.CodeAnalysis.Storage
                         {
                             return new SQLite.v2.SQLitePersistentStorageService(locationService);
                         }
+                        else
+                        {
+                            return new SQLite.v1.SQLitePersistentStorageService(locationService);
+                        }
                     }
 
                     break;
