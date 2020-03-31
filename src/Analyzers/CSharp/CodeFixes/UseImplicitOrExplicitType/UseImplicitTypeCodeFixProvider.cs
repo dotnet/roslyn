@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             foreach (var diagnostic in diagnostics)
             {
-                var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) as TypeSyntax;
+                var typeSyntax = (TypeSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 if (node != null)
                     ReplaceTypeWithVar(editor, node);
             }
