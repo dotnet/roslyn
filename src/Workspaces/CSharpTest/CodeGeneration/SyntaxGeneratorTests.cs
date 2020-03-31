@@ -3406,7 +3406,7 @@ public class C : IDisposable
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestNamespaceModifiers()
         {
-            TestModifiersAsync(DeclarationModifiers.None,
+            TestModifiers(DeclarationModifiers.None,
                 @"
 [|namespace N1
 {
@@ -3416,7 +3416,7 @@ public class C : IDisposable
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestClassModifiers1()
         {
-            TestModifiersAsync(DeclarationModifiers.Static,
+            TestModifiers(DeclarationModifiers.Static,
                 @"
 [|static class C
 {
@@ -3426,7 +3426,7 @@ public class C : IDisposable
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestMethodModifiers1()
         {
-            TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
+            TestModifiers(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
                 @"
 class C
 {
@@ -3437,7 +3437,7 @@ class C
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestPropertyModifiers1()
         {
-            TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
+            TestModifiers(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
                 @"
 class C
 {
@@ -3448,7 +3448,7 @@ class C
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestFieldModifiers1()
         {
-            TestModifiersAsync(DeclarationModifiers.Static,
+            TestModifiers(DeclarationModifiers.Static,
                 @"
 class C
 {
@@ -3459,7 +3459,7 @@ class C
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
         public void TestEvent1()
         {
-            TestModifiersAsync(DeclarationModifiers.Virtual,
+            TestModifiers(DeclarationModifiers.Virtual,
                 @"
 class C
 {
@@ -3467,7 +3467,7 @@ class C
 }");
         }
 
-        private void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
+        private void TestModifiers(DeclarationModifiers modifiers, string markup)
         {
             MarkupTestFile.GetSpan(markup, out var code, out var span);
 
