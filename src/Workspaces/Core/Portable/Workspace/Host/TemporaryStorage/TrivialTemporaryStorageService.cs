@@ -3,23 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    [ExportWorkspaceService(typeof(ITemporaryStorageService)), Shared]
-    [Export(typeof(TrivialTemporaryStorageService))]
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TrivialTemporaryStorageService()
+        public static readonly TrivialTemporaryStorageService Instance = new TrivialTemporaryStorageService();
+
+        private TrivialTemporaryStorageService()
         {
         }
 

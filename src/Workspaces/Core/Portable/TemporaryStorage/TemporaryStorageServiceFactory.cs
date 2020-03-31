@@ -19,16 +19,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default), Shared]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly TrivialTemporaryStorageService _trivialStorageService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TemporaryStorageServiceFactory(TrivialTemporaryStorageService trivialStorageService)
+        public TemporaryStorageServiceFactory()
         {
-            _trivialStorageService = trivialStorageService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
             // until https://github.com/dotnet/roslyn/issues/42178 is fixed.
             return PlatformInformation.IsWindows
                 ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
-                : _trivialStorageService;
+                : TrivialTemporaryStorageService.Instance;
         }
 
         /// <summary>
