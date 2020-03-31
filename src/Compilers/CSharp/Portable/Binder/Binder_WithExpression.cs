@@ -78,6 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var expr = BindValue(initializer.Expression, diagnostics, BindValueKind.RValue);
+                if (!(member is null))
+                {
+                    expr = GenerateConversionForAssignment(
+                        member.GetTypeOrReturnType().Type,
+                        expr,
+                        diagnostics);
+                }
                 lookupResult.Clear();
                 args.Add((member, expr));
             }
@@ -233,22 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ErrorCode.ERR_WithMemberArgumentDoesntMatchParameter,
                             syntax.Initializers[i].NameEquals!.Name.Location,
                             member.Name);
-                    }
-
-                    var memberType = member.GetTypeOrReturnType().Type;
-                    var conversion = Conversions.ClassifyImplicitConversionFromExpression(
-                        expr,
-                        memberType,
-                        ref useSiteDiagnostics);
-
-                    if (!conversion.IsImplicit || !conversion.IsValid)
-                    {
-                        GenerateImplicitConversionError(
-                            diagnostics,
-                            expr.Syntax,
-                            conversion,
-                            expr,
-                            memberType);
                     }
                 }
                 useSiteDiagnostics = null;

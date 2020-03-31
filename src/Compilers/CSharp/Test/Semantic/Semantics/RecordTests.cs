@@ -1219,6 +1219,23 @@ data class C(long X)
     }
 }";
             var verifier = CompileAndVerify(src, expectedOutput: "11");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (long V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i8
+  IL_0002:  newobj     ""C..ctor(long)""
+  IL_0007:  ldc.i4.s   11
+  IL_0009:  conv.i8
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  callvirt   ""C C.With(long)""
+  IL_0011:  callvirt   ""long C.X.get""
+  IL_0016:  call       ""void System.Console.WriteLine(long)""
+  IL_001b:  ret
+}");
         }
 
         [Fact]
@@ -1233,7 +1250,11 @@ struct S
     {
         _i = i;
     }
-    public static implicit operator long(S s) => s._i;
+    public static implicit operator long(S s)
+    {
+        Console.WriteLine(""conversion"");
+        return s._i;
+    }
 }
 data class C(long X)
 {
@@ -1245,7 +1266,30 @@ data class C(long X)
         Console.WriteLine((c with { X = s }).X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: "11");
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+conversion
+11");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  3
+  .locals init (S V_0, //s
+                long V_1)
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i8
+  IL_0002:  newobj     ""C..ctor(long)""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.s   11
+  IL_000b:  call       ""S..ctor(int)""
+  IL_0010:  ldloc.0
+  IL_0011:  call       ""long S.op_Implicit(S)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  callvirt   ""C C.With(long)""
+  IL_001d:  callvirt   ""long C.X.get""
+  IL_0022:  call       ""void System.Console.WriteLine(long)""
+  IL_0027:  ret
+}");
         }
 
         [Fact]
@@ -1260,7 +1304,11 @@ struct S
     {
         _i = i;
     }
-    public static explicit operator long(S s) => s._i;
+    public static explicit operator int(S s)
+    {
+        Console.WriteLine(""conversion"");
+        return s._i;
+    }
 }
 data class C(long X)
 {
@@ -1269,10 +1317,12 @@ data class C(long X)
     {
         var c = new C(0);
         var s = new S(11);
-        Console.WriteLine((c with { X = s }).X);
+        Console.WriteLine((c with { X = (int)s }).X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: "11");
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+conversion
+11");
         }
 
         [Fact]
@@ -1299,7 +1349,12 @@ data class C(long X)
         Console.WriteLine((c with { X = s }).X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: "11");
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (19,41): error CS0266: Cannot implicitly convert type 'S' to 'long'. An explicit conversion exists (are you missing a cast?)
+                //         Console.WriteLine((c with { X = s }).X);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "s").WithArguments("S", "long").WithLocation(19, 41)
+            );
         }
  
         [Fact]
