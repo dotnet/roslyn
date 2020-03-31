@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithGetName()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo()
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithoutGetName()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]Goo()
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public async Task TestMethodWithArrowBody()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo() => 0;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithoutBody()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo();
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithModifiers()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     public static int [||]GetGoo()
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithAttributes()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     [A]
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithTrivia_1()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     // Goo
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithTrailingTrivia()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetP();
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestDelegateWithTrailingTrivia()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"delegate int Mdelegate();
 class C
 {
@@ -222,7 +222,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestIndentation()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo()
@@ -256,7 +256,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestIfDefMethod1()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
 #if true
@@ -282,7 +282,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestIfDefMethod2()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
 #if true
@@ -316,7 +316,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestIfDefMethod3()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
 #if true
@@ -350,7 +350,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestIfDefMethod4()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
 #if true
@@ -384,7 +384,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestIfDefMethod5()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
 #if true
@@ -419,7 +419,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithTrivia_2()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     // Goo
@@ -452,7 +452,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExplicitInterfaceMethod_1()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]I.GetGoo()
@@ -473,7 +473,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExplicitInterfaceMethod_2()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"interface I
 {
     int GetGoo();
@@ -504,7 +504,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExplicitInterfaceMethod_3()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"interface I
 {
     int [||]GetGoo();
@@ -659,7 +659,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceNotInMethod()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo()
@@ -690,7 +690,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceSimpleInvocation()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo()
@@ -721,7 +721,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceMemberAccessInvocation()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo()
@@ -752,7 +752,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceBindingMemberInvocation()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo()
@@ -785,7 +785,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReferenceInMethod()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     int [||]GetGoo()
@@ -808,7 +808,7 @@ class C : I
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestOverride()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     public virtual int [||]GetGoo()
@@ -846,7 +846,7 @@ class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReference_NonInvoked()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -881,7 +881,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetReference_ImplicitReference()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System.Collections;
 
 class C
@@ -920,7 +920,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -954,7 +954,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSetReference_NonInvoked()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -998,7 +998,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_SetterAccessibility()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1032,7 +1032,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_ExpressionBodies()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1063,7 +1063,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_GetInSetReference()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1107,7 +1107,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_UpdateSetParameterName_1()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1143,7 +1143,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_UpdateSetParameterName_2()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1179,7 +1179,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSet_SetReferenceInSetter()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1215,7 +1215,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestVirtualGetWithOverride_1()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     protected virtual int [||]GetGoo()
@@ -1254,7 +1254,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestVirtualGetWithOverride_2()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     protected virtual int [||]GetGoo()
@@ -1295,7 +1295,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestGetWithInterface()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"interface I
 {
     int [||]GetGoo();
@@ -1327,7 +1327,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestWithPartialClasses()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"partial class C
 {
     int [||]GetGoo()
@@ -1364,7 +1364,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateGetSetCaseInsensitive()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1398,7 +1398,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task Tuple()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     (int, string) [||]GetGoo()
@@ -1419,7 +1419,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task Tuple_GetAndSet()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1453,7 +1453,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TupleWithNames_GetAndSet()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"using System;
 
 class C
@@ -1507,7 +1507,7 @@ count: 1, new TestParameters(options: AllCodeStyleOff));
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestOutVarDeclaration_1()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     // Goo
@@ -1550,7 +1550,7 @@ index: 0);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestOutVarDeclaration_2()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     // Goo
@@ -1640,7 +1640,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestUpdateChainedGet1()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"public class Goo
 {
     public Goo()
@@ -1911,7 +1911,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestExplicitInterfaceImplementation()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"interface IGoo
 {
     int [||]GetGoo();
@@ -1958,7 +1958,7 @@ class C : IGoo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMetadataOverride()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C : System.Type
 {
     public override int [||]GetArrayRank()
@@ -2210,7 +2210,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestAtStartOfMethod()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     [||]int GetGoo()
@@ -2231,7 +2231,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestBeforeStartOfMethod_OnSameLine()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
 [||]    int GetGoo()
@@ -2252,7 +2252,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestBeforeStartOfMethod_OnPreviousLine()
         {
-            await TestWithAllCodeStyleOff(
+            await TestWithAllCodeStyleOffAsync(
 @"class C
 {
     [||]
@@ -2359,7 +2359,7 @@ class C
 }");
         }
 
-        private async Task TestWithAllCodeStyleOff(
+        private async Task TestWithAllCodeStyleOffAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)
         {

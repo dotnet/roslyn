@@ -55,7 +55,7 @@ internal class Program
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -86,7 +86,7 @@ internal class Program
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
@@ -131,7 +131,7 @@ namespace M
     public class Goo { }
 }
 ";
-            return AssertCodeCleanupResult(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
+            return AssertCodeCleanupResultAsync(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
         }
 
         [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
@@ -176,7 +176,7 @@ namespace M
     public class Goo { }
 }
 ";
-            return AssertCodeCleanupResult(expected, code, systemUsingsFirst: true, separateUsingGroups: true);
+            return AssertCodeCleanupResultAsync(expected, code, systemUsingsFirst: true, separateUsingGroups: true);
         }
 
         [Fact]
@@ -205,7 +205,7 @@ namespace M
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -227,7 +227,7 @@ namespace M
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -249,10 +249,10 @@ namespace M
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
-        protected static async Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
+        protected static async Task AssertCodeCleanupResultAsync(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
             var exportProvider = ExportProviderCache
                 .GetOrCreateExportProviderFactory(

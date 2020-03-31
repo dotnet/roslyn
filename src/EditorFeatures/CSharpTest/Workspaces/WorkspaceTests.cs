@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
         private TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
             => new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, workspaceKind, disablePartialSolutions);
 
-        private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
+        private static async Task WaitForWorkspaceOperationsToCompleteAsync(TestWorkspace workspace)
         {
             var workspaceWaiter = workspace.ExportProvider
                                     .GetExportedValue<AsynchronousOperationListenerProvider>()
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             workspace.AddTestProject(project);
 
             // wait for all previous operations to complete
-            await WaitForWorkspaceOperationsToComplete(workspace);
+            await WaitForWorkspaceOperationsToCompleteAsync(workspace);
 
             var solution = workspace.CurrentSolution;
             var workspaceChanged = false;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             workspace.OnParseOptionsChanged(project.Id, project.ParseOptions);
 
             // wait for any new outstanding operations to complete (there shouldn't be any)
-            await WaitForWorkspaceOperationsToComplete(workspace);
+            await WaitForWorkspaceOperationsToCompleteAsync(workspace);
 
             // same solution instance == nothing changed
             Assert.Equal(solution, workspace.CurrentSolution);
@@ -742,7 +742,7 @@ class D { }
             workspace.CloseDocument(document.Id);
 
             // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-            await WaitForWorkspaceOperationsToComplete(workspace);
+            await WaitForWorkspaceOperationsToCompleteAsync(workspace);
 
             // Wait to receive signal that events have fired.
             Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
@@ -760,7 +760,7 @@ class D { }
             workspace.CloseDocument(document.Id);
 
             // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-            await WaitForWorkspaceOperationsToComplete(workspace);
+            await WaitForWorkspaceOperationsToCompleteAsync(workspace);
 
             // Verifying that an event has not been called is difficult to prove.  
             // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
@@ -1148,7 +1148,7 @@ class D { }
             var linkedDocumentId = workspace.GetOpenDocumentIds().Single(id => workspace.GetTestDocument(id).IsLinkFile);
 
             workspace.GetTestDocument(originalDocumentId).Update(SourceText.From("class Program2 { }"));
-            await WaitForWorkspaceOperationsToComplete(workspace);
+            await WaitForWorkspaceOperationsToCompleteAsync(workspace);
 
             Assert.Equal(2, eventArgs.Count);
             AssertEx.SetEqual(workspace.Projects.SelectMany(p => p.Documents).Select(d => d.Id), eventArgs.Select(e => e.DocumentId));

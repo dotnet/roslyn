@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         private SyntaxTree GetTreeFromCode(string code)
             => SyntaxFactory.ParseSyntaxTree(code);
 
-        private async Task GenerateBaseline()
+        private async Task GenerateBaselineAsync()
         {
             Console.WriteLine(typeof(FactAttribute));
 

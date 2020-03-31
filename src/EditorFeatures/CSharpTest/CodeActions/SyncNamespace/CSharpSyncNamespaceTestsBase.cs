@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         protected string CreateFolderPath(params string[] folders)
             => string.Join(PathUtilities.DirectorySeparatorStr, folders);
 
-        protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
+        protected async Task TestMoveFileToMatchNamespaceAsync(string initialMarkup, List<string[]> expectedFolders = null)
         {
             var testOptions = new TestParameters();
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))

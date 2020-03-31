@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMoveAsync(code, expected, expectOperation: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -58,7 +58,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMoveAsync(code, expected, expectOperation: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -91,7 +91,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -126,7 +126,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -163,7 +163,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -208,7 +208,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -241,7 +241,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -276,7 +276,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -313,7 +313,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -358,7 +358,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -418,7 +418,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -480,7 +480,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -550,7 +550,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -640,7 +640,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -714,7 +714,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -750,7 +750,7 @@ namespace N2
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMoveAsync(code, expected, expectOperation: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -797,7 +797,7 @@ namespace N2
     }
 }";
 
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -842,7 +842,7 @@ namespace N2
     {
     }
 }";
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -904,10 +904,10 @@ namespace N1
         }
     }
 }";
-            return TestNamespaceMove(code, expected);
+            return TestNamespaceMoveAsync(code, expected);
         }
 
-        private async Task TestNamespaceMove(string originalCode, string expectedCode, bool expectOperation = true)
+        private async Task TestNamespaceMoveAsync(string originalCode, string expectedCode, bool expectOperation = true)
         {
             using var workspace = CreateWorkspaceFromOptions(originalCode, default);
             var documentToModifyId = workspace.Documents[0].Id;
