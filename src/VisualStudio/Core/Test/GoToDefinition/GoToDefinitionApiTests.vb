@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
                     symbolInfo.Symbol, document.Project,
                     presenter,
-                    thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False,
+                    thirdPartyNavigationAllowed:=True,
                     cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)

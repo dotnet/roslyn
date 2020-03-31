@@ -6,23 +6,19 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -355,11 +351,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)
-            {
-                return OnReferenceFoundWorkerAsync(reference);
-            }
+                => OnReferenceFoundWorkerAsync(reference);
 
             protected abstract Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
+
+            public sealed override Task OnExternalReferenceFoundAsync(ExternalReferenceItem reference)
+                => OnExternalReferenceFoundWorkerAsync(reference);
+
+            protected abstract Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference);
 
             protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
             {
@@ -375,7 +374,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public sealed override Task ReportProgressAsync(int current, int maximum)
+            public sealed override Task ReportMessageAsync(string message)
+                => throw new InvalidOperationException("This should never be called in the streaming case.");
+
+            protected sealed override Task ReportProgressAsync(int current, int maximum)
             {
                 // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
                 // Right now VS actually responds to each SetProgess call by enqueueing a UI task

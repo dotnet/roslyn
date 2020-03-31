@@ -17,6 +17,56 @@
         <target state="new">Convert switch statement to expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deconstruct_variable_declaration">
+        <source>Deconstruct variable declaration</source>
+        <target state="new">Deconstruct variable declaration</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_default_expression">
+        <source>Simplify 'default' expression</source>
+        <target state="new">Simplify 'default' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unreachable_code_detected">
+        <source>Unreachable code detected</source>
+        <target state="new">Unreachable code detected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_accessors">
+        <source>Use block body for accessors</source>
+        <target state="new">Use block body for accessors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_constructors">
+        <source>Use block body for constructors</source>
+        <target state="new">Use block body for constructors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_indexers">
+        <source>Use block body for indexers</source>
+        <target state="new">Use block body for indexers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_local_functions">
+        <source>Use block body for local functions</source>
+        <target state="new">Use block body for local functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_methods">
+        <source>Use block body for methods</source>
+        <target state="new">Use block body for methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_operators">
+        <source>Use block body for operators</source>
+        <target state="new">Use block body for operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_properties">
+        <source>Use block body for properties</source>
+        <target state="new">Use block body for properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicit_type">
         <source>Use explicit type</source>
         <target state="new">Use explicit type</target>
@@ -27,14 +77,74 @@
         <target state="new">Use explicit type instead of 'var'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_expression_body_for_accessors">
+        <source>Use expression body for accessors</source>
+        <target state="new">Use expression body for accessors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_constructors">
+        <source>Use expression body for constructors</source>
+        <target state="new">Use expression body for constructors</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_indexers">
+        <source>Use expression body for indexers</source>
+        <target state="new">Use expression body for indexers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="new">Use expression body for local functions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_methods">
+        <source>Use expression body for methods</source>
+        <target state="new">Use expression body for methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_operators">
+        <source>Use expression body for operators</source>
+        <target state="new">Use expression body for operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_properties">
+        <source>Use expression body for properties</source>
+        <target state="new">Use expression body for properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_implicit_type">
         <source>Use implicit type</source>
         <target state="new">Use implicit type</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_is_null_check">
+        <source>Use 'is null' check</source>
+        <target state="new">Use 'is null' check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching">
+        <source>Use pattern matching</source>
+        <target state="new">Use pattern matching</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="new">Use 'switch' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_deconstructed">
+        <source>Variable declaration can be deconstructed</source>
+        <target state="new">Variable declaration can be deconstructed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="default_expression_can_be_simplified">
+        <source>'default' expression can be simplified</source>
+        <target state="new">'default' expression can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

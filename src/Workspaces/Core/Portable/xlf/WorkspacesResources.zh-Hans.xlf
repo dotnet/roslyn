@@ -57,16 +57,6 @@
         <target state="translated">缩进和间距</target>
         <note />
       </trans-unit>
-      <trans-unit id="Naming_rules">
-        <source>Naming rules</source>
-        <target state="translated">命名规则</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_styles">
-        <source>Naming styles</source>
-        <target state="translated">命名样式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">新行首选项</target>
@@ -75,6 +65,11 @@
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">选项并非来自指定的解决方案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_contain_specified_reference">
+        <source>Project does not contain specified reference</source>
+        <target state="new">Project does not contain specified reference</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1282,9 +1277,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">不支持添加项目。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Symbol_specifications">
-        <source>Symbol specifications</source>
-        <target state="translated">符号规范</target>
+      <trans-unit id="The_project_already_contains_the_specified_reference">
+        <source>The project already contains the specified reference.</source>
+        <target state="new">The project already contains the specified reference.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

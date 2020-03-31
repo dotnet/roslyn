@@ -18,20 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         private readonly struct TupleIntrospector<T> : IIntervalIntrospector<Tuple<int, int, T>>
         {
             public int GetStart(Tuple<int, int, T> value)
-            {
-                return value.Item1;
-            }
+                => value.Item1;
 
             public int GetLength(Tuple<int, int, T> value)
-            {
-                return value.Item2;
-            }
+                => value.Item2;
         }
 
         private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(params Tuple<int, int, string>[] values)
-        {
-            return CreateTrees((IEnumerable<Tuple<int, int, string>>)values);
-        }
+            => CreateTrees((IEnumerable<Tuple<int, int, string>>)values);
 
         private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>, TupleIntrospector<string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
         {
@@ -267,20 +261,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         private readonly struct Int32Introspector : IIntervalIntrospector<int>
         {
             public int GetLength(int value)
-            {
-                return 0;
-            }
+                => 0;
 
             public int GetStart(int value)
-            {
-                return value;
-            }
+                => value;
         }
 
         private IntervalTree<int> CreateIntTree(params int[] values)
-        {
-            return IntervalTree<int>.Create(new Int32Introspector(), values);
-        }
+            => IntervalTree<int>.Create(new Int32Introspector(), values);
 
         [Fact]
         public void TestSortedEnumerable1()
@@ -359,13 +347,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         }
 
         private ISet<T> Set<T>(params T[] values)
-        {
-            return new HashSet<T>(values);
-        }
+            => new HashSet<T>(values);
 
         private IList<T> List<T>(params T[] values)
-        {
-            return new List<T>(values);
-        }
+            => new List<T>(values);
     }
 }

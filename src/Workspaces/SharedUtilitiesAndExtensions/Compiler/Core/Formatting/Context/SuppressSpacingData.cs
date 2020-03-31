@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal class SuppressSpacingData
     {
         public SuppressSpacingData(TextSpan textSpan)
-        {
-            this.TextSpan = textSpan;
-        }
+            => this.TextSpan = textSpan;
 
         public TextSpan TextSpan { get; }
     }

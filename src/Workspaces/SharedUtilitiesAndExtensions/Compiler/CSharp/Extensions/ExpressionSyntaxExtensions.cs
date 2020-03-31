@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsQualifiedCrefName(this ExpressionSyntax expression)
-        {
-            return expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
-        }
+            => expression.IsParentKind(SyntaxKind.NameMemberCref) && expression.Parent.IsParentKind(SyntaxKind.QualifiedCref);
 
         public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
             => (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) && memberAccess.Name == expression) ||
@@ -63,24 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => expression.IsParentKind(SyntaxKind.AliasQualifiedName, out AliasQualifiedNameSyntax aliasName) && aliasName.Name == expression;
 
         public static bool IsRightSideOfDot(this ExpressionSyntax name)
-        {
-            return IsMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
-        }
+            => IsMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
 
         public static bool IsRightSideOfDotOrArrow(this ExpressionSyntax name)
-        {
-            return IsAnyMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name);
-        }
+            => IsAnyMemberAccessExpressionName(name) || IsRightSideOfQualifiedName(name);
 
         public static bool IsRightSideOfDotOrColonColon(this ExpressionSyntax name)
-        {
-            return IsRightSideOfDot(name) || IsRightSideOfColonColon(name);
-        }
+            => IsRightSideOfDot(name) || IsRightSideOfColonColon(name);
 
         public static bool IsRightSideOfDotOrArrowOrColonColon(this ExpressionSyntax name)
-        {
-            return IsRightSideOfDotOrArrow(name) || IsRightSideOfColonColon(name);
-        }
+            => IsRightSideOfDotOrArrow(name) || IsRightSideOfColonColon(name);
 
         public static bool IsRightOfCloseParen(this ExpressionSyntax expression)
         {
@@ -368,9 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsNamedArgumentIdentifier(this ExpressionSyntax expression)
-        {
-            return expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
-        }
+            => expression is IdentifierNameSyntax && expression.Parent is NameColonSyntax;
 
         public static bool IsInsideNameOfExpression(
             this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)

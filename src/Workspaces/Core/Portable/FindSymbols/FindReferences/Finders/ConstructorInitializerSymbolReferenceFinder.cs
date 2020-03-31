@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class ConstructorInitializerSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.Constructor;
-        }
+            => symbol.MethodKind == MethodKind.Constructor;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,

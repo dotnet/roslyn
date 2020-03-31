@@ -21,12 +21,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
@@ -37,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal abstract Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters);
 
-        protected async Task TestDiagnosticsAsync(
+        private protected async Task TestDiagnosticsAsync(
             string initialMarkup, TestParameters parameters = default, params DiagnosticDescription[] expected)
         {
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
@@ -242,12 +236,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : new FixAllState(fixAllProvider, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider);
         }
 
-        protected Task TestActionCountInAllFixesAsync(
+        private protected Task TestActionCountInAllFixesAsync(
             string initialMarkup,
             int count,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            IDictionary<OptionKey, object> options = null,
+            IOptionsCollection options = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(

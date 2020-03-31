@@ -14,9 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(eventDeclaration As EventStatementSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(eventDeclaration, spans)
+            CollectCommentsRegions(eventDeclaration, spans, isMetadataAsSource)
 
             Dim block = TryCast(eventDeclaration.Parent, EventBlockSyntax)
             If Not block?.EndEventStatement.IsMissing Then
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     block, bannerNode:=eventDeclaration, autoCollapse:=True,
                     type:=BlockTypes.Member, isCollapsible:=True))
 
-                CollectCommentsRegions(block.EndEventStatement, spans)
+                CollectCommentsRegions(block.EndEventStatement, spans, isMetadataAsSource)
             End If
         End Sub
     End Class

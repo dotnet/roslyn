@@ -239,9 +239,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
         }
 
         private bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)
-        {
-            return subsequentStatementRanges.Length == 1 && IsSingleStatementStatementRange(subsequentStatementRanges[0]);
-        }
+            => subsequentStatementRanges.Length == 1 && IsSingleStatementStatementRange(subsequentStatementRanges[0]);
 
         private async Task<Document> InvertIfAsync(
             Document document,
@@ -261,6 +259,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     invertIfStyle,
                     subsequentSingleExitPointOpt,
                     negatedExpression: generator.Negate(
+                        generator.SyntaxGeneratorInternal,
                         GetCondition(ifNode),
                         semanticModel,
                         cancellationToken)));
@@ -308,8 +307,8 @@ namespace Microsoft.CodeAnalysis.InvertIf
             TIfStatementSyntax ifNode,
             ImmutableArray<StatementRange> subsequentStatementRanges)
         {
-            Debug.Assert(subsequentStatementRanges.Length > 0);
-            return ifNode.Parent == subsequentStatementRanges[0].Parent;
+            return subsequentStatementRanges.Length == 1 &&
+                   ifNode.Parent == subsequentStatementRanges[0].Parent;
         }
 
         private int GetNearmostParentJumpStatementRawKind(SyntaxNode ifNode)

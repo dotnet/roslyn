@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -14,34 +13,22 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal abstract class LogMessage
     {
         public static LogMessage Create(string message)
-        {
-            return StaticLogMessage.Construct(message);
-        }
+            => StaticLogMessage.Construct(message);
 
         public static LogMessage Create(Func<string> messageGetter)
-        {
-            return LazyLogMessage.Construct(messageGetter);
-        }
+            => LazyLogMessage.Construct(messageGetter);
 
         public static LogMessage Create<TArg>(Func<TArg, string> messageGetter, TArg arg)
-        {
-            return LazyLogMessage<TArg>.Construct(messageGetter, arg);
-        }
+            => LazyLogMessage<TArg>.Construct(messageGetter, arg);
 
         public static LogMessage Create<TArg0, TArg1>(Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1)
-        {
-            return LazyLogMessage<TArg0, TArg1>.Construct(messageGetter, arg0, arg1);
-        }
+            => LazyLogMessage<TArg0, TArg1>.Construct(messageGetter, arg0, arg1);
 
         public static LogMessage Create<TArg0, TArg1, TArg2>(Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2)
-        {
-            return LazyLogMessage<TArg0, TArg1, TArg2>.Construct(messageGetter, arg0, arg1, arg2);
-        }
+            => LazyLogMessage<TArg0, TArg1, TArg2>.Construct(messageGetter, arg0, arg1, arg2);
 
         public static LogMessage Create<TArg0, TArg1, TArg2, TArg3>(Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3)
-        {
-            return LazyLogMessage<TArg0, TArg1, TArg2, TArg3>.Construct(messageGetter, arg0, arg1, arg2, arg3);
-        }
+            => LazyLogMessage<TArg0, TArg1, TArg2, TArg3>.Construct(messageGetter, arg0, arg1, arg2, arg3);
 
         // message will be either initially set or lazily set by caller
         private string _message;
@@ -83,9 +70,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             protected override string CreateMessage()
-            {
-                return _message;
-            }
+                => _message;
 
             protected override void FreeCore()
             {
@@ -114,9 +99,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             protected override string CreateMessage()
-            {
-                return _messageGetter();
-            }
+                => _messageGetter();
 
             protected override void FreeCore()
             {
@@ -147,9 +130,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             protected override string CreateMessage()
-            {
-                return _messageGetter(_arg);
-            }
+                => _messageGetter(_arg);
 
             protected override void FreeCore()
             {
@@ -183,9 +164,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             protected override string CreateMessage()
-            {
-                return _messageGetter(_arg0, _arg1);
-            }
+                => _messageGetter(_arg0, _arg1);
 
             protected override void FreeCore()
             {
@@ -222,9 +201,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             protected override string CreateMessage()
-            {
-                return _messageGetter(_arg0, _arg1, _arg2);
-            }
+                => _messageGetter(_arg0, _arg1, _arg2);
 
             protected override void FreeCore()
             {
@@ -264,9 +241,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             protected override string CreateMessage()
-            {
-                return _messageGetter(_arg0, _arg1, _arg2, _arg3);
-            }
+                => _messageGetter(_arg0, _arg1, _arg2, _arg3);
 
             protected override void FreeCore()
             {

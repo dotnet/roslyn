@@ -127,9 +127,7 @@ namespace Roslyn.Utilities
             private readonly AsyncLazy<T> _asyncLazy;
 
             public WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy)
-            {
-                _asyncLazy = asyncLazy;
-            }
+                => _asyncLazy = asyncLazy;
 
             public void Dispose()
             {
@@ -165,7 +163,7 @@ namespace Roslyn.Utilities
 
         #endregion
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out T result)
+        public override bool TryGetValue([MaybeNullWhen(false)] out T result)
         {
             // No need to lock here since this is only a fast check to 
             // see if the result is already computed.
@@ -175,8 +173,7 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            // Suppressing nullable warning due to https://github.com/dotnet/roslyn/issues/40266
-            result = default!;
+            result = default;
             return false;
         }
 
@@ -588,9 +585,7 @@ namespace Roslyn.Utilities
             }
 
             public void Cancel()
-            {
-                this.TrySetCanceled(_cancellationToken);
-            }
+                => this.TrySetCanceled(_cancellationToken);
         }
     }
 }

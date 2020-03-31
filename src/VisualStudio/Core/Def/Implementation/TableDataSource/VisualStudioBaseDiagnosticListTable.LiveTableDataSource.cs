@@ -247,9 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
-                {
-                    return _workspace.CreateTrackingPoints(_documentId, items);
-                }
+                    => _workspace.CreateTrackingPoints(_documentId, items);
             }
 
             private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>, IWpfTableEntriesSnapshot
@@ -430,7 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Data;
                     if (item == null)
                     {
-                        expandedContent = default;
+                        expandedContent = null;
                         return false;
                     }
 
@@ -443,13 +441,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Data;
                     if (item == null)
                     {
-                        content = default;
+                        content = null;
                         return false;
                     }
 
                     if (string.IsNullOrWhiteSpace(item.Description))
                     {
-                        content = default;
+                        content = null;
                         return false;
                     }
 
@@ -487,7 +485,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // unused ones                    
                 public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
                 {
-                    content = default;
+                    content = null;
                     return false;
                 }
 
@@ -499,20 +497,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, out string content)
                 {
-                    content = default;
+                    content = null;
                     return false;
                 }
 
                 public bool TryCreateToolTip(int index, string columnName, out object toolTip)
                 {
-                    toolTip = default;
+                    toolTip = null;
                     return false;
                 }
 
                 // remove this once we moved to new drop
                 public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, out string content)
                 {
-                    content = default;
+                    content = null;
                     return false;
                 }
 

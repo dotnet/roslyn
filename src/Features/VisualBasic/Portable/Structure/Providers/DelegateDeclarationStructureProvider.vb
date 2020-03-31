@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -15,9 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(delegateDeclaration As DelegateStatementSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(delegateDeclaration, spans)
+            CollectCommentsRegions(delegateDeclaration, spans, isMetadataAsSource)
         End Sub
     End Class
 End Namespace

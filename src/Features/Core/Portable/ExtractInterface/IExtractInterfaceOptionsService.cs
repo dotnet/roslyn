@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;

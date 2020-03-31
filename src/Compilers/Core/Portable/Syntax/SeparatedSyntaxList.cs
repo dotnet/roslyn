@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // if item after last inserted node is a node, add separator
-            if (insertionIndex < nodesWithSeps.Count && nodesWithSeps[insertionIndex].IsNode)
+            if (insertionIndex < nodesWithSeps.Count && nodesWithSeps[insertionIndex] is { IsNode: true } nodeOrToken)
             {
                 var node = nodesWithSeps[insertionIndex].AsNode();
                 Debug.Assert(node is object);

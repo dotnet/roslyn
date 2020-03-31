@@ -29,15 +29,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return Expression;
-                case 1: return EndOfFileToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => Expression,
+                1 => EndOfFileToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -90,14 +87,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 1;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return TextToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => TextToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -139,16 +133,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 3;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenBracketToken;
-                case 1: return Components;
-                case 2: return CloseBracketToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenBracketToken,
+                1 => Components,
+                2 => CloseBracketToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -172,17 +163,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 4;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenBracketToken;
-                case 1: return CaretToken;
-                case 2: return Components;
-                case 3: return CloseBracketToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenBracketToken,
+                1 => CaretToken,
+                2 => Components,
+                3 => CloseBracketToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -212,16 +200,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 3;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return Left;
-                case 1: return MinusToken;
-                case 2: return Right;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => Left,
+                1 => MinusToken,
+                2 => Right,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -250,15 +235,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return MinusToken;
-                case 1: return CharacterClass;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => MinusToken,
+                1 => CharacterClass,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -283,14 +265,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 1;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return TextToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => TextToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -335,14 +314,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 1;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return DotToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => DotToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -380,15 +356,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return this.Expression;
-                case 1: return this.AsteriskToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => this.Expression,
+                1 => this.AsteriskToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -415,15 +388,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return this.Expression;
-                case 1: return this.PlusToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => this.Expression,
+                1 => this.PlusToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -450,15 +420,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return this.Expression;
-                case 1: return this.QuestionToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => this.Expression,
+                1 => this.QuestionToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -488,15 +455,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return this.Quantifier;
-                case 1: return this.QuestionToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => this.Quantifier,
+                1 => this.QuestionToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -542,17 +506,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 4;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return Expression;
-                case 1: return OpenBraceToken;
-                case 2: return FirstNumberToken;
-                case 3: return CloseBraceToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => Expression,
+                1 => OpenBraceToken,
+                2 => FirstNumberToken,
+                3 => CloseBraceToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -578,18 +539,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 5;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return Expression;
-                case 1: return OpenBraceToken;
-                case 2: return FirstNumberToken;
-                case 3: return CommaToken;
-                case 4: return CloseBraceToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => Expression,
+                1 => OpenBraceToken,
+                2 => FirstNumberToken,
+                3 => CommaToken,
+                4 => CloseBraceToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -618,19 +576,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 6;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return Expression;
-                case 1: return OpenBraceToken;
-                case 2: return FirstNumberToken;
-                case 3: return CommaToken;
-                case 4: return SecondNumberToken;
-                case 5: return CloseBraceToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => Expression,
+                1 => OpenBraceToken,
+                2 => FirstNumberToken,
+                3 => CommaToken,
+                4 => SecondNumberToken,
+                5 => CloseBraceToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -653,14 +608,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 1;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return AnchorToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => AnchorToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -690,16 +642,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 3;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return Left;
-                case 1: return BarToken;
-                case 2: return Right;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => Left,
+                1 => BarToken,
+                2 => Right,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -740,16 +689,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 3;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return Expression;
-                case 2: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => Expression,
+                2 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -798,17 +744,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 4;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return OptionsToken;
-                case 3: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => OptionsToken,
+                3 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -836,19 +779,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 6;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return OptionsToken;
-                case 3: return ColonToken;
-                case 4: return Expression;
-                case 5: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => OptionsToken,
+                3 => ColonToken,
+                4 => Expression,
+                5 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -876,18 +816,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 5;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return ColonToken;
-                case 3: return Expression;
-                case 4: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => ColonToken,
+                3 => Expression,
+                4 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -915,18 +852,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 5;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return EqualsToken;
-                case 3: return Expression;
-                case 4: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => EqualsToken,
+                3 => Expression,
+                4 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -954,18 +888,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 5;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return ExclamationToken;
-                case 3: return Expression;
-                case 4: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => ExclamationToken,
+                3 => Expression,
+                4 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1007,19 +938,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 6;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return LessThanToken;
-                case 3: return EqualsToken;
-                case 4: return Expression;
-                case 5: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => LessThanToken,
+                3 => EqualsToken,
+                4 => Expression,
+                5 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1047,19 +975,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 6;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return LessThanToken;
-                case 3: return ExclamationToken;
-                case 4: return Expression;
-                case 5: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => LessThanToken,
+                3 => ExclamationToken,
+                4 => Expression,
+                5 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1087,18 +1012,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 5;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return GreaterThanToken;
-                case 3: return Expression;
-                case 4: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => GreaterThanToken,
+                3 => Expression,
+                4 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1130,20 +1052,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 7;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return OpenToken;
-                case 3: return CaptureToken;
-                case 4: return CloseToken;
-                case 5: return Expression;
-                case 6: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => OpenToken,
+                3 => CaptureToken,
+                4 => CloseToken,
+                5 => Expression,
+                6 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1180,22 +1099,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 9;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return OpenToken;
-                case 3: return FirstCaptureToken;
-                case 4: return MinusToken;
-                case 5: return SecondCaptureToken;
-                case 6: return CloseToken;
-                case 7: return Expression;
-                case 8: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => OpenToken,
+                3 => FirstCaptureToken,
+                4 => MinusToken,
+                5 => SecondCaptureToken,
+                6 => CloseToken,
+                7 => Expression,
+                8 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1240,20 +1156,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 7;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return InnerOpenParenToken;
-                case 3: return CaptureToken;
-                case 4: return InnerCloseParenToken;
-                case 5: return Result;
-                case 6: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => InnerOpenParenToken,
+                3 => CaptureToken,
+                4 => InnerCloseParenToken,
+                5 => Result,
+                6 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1279,18 +1192,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexGroupingNode Grouping { get; }
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return OpenParenToken;
-                case 1: return QuestionToken;
-                case 2: return Grouping;
-                case 3: return Result;
-                case 4: return CloseParenToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => OpenParenToken,
+                1 => QuestionToken,
+                2 => Grouping,
+                3 => Result,
+                4 => CloseParenToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1338,15 +1248,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return TypeToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => TypeToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1365,15 +1272,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return TypeToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => TypeToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1392,15 +1296,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 2;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return TypeToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => TypeToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1422,16 +1323,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken ControlToken { get; }
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return TypeToken;
-                case 2: return ControlToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => TypeToken,
+                2 => ControlToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1453,16 +1351,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken HexText { get; }
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return TypeToken;
-                case 2: return HexText;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => TypeToken,
+                2 => HexText,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1484,16 +1379,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken HexText { get; }
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return TypeToken;
-                case 2: return HexText;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => TypeToken,
+                2 => HexText,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1520,17 +1412,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken CloseToken { get; }
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return OpenToken;
-                case 2: return CaptureToken;
-                case 3: return CloseToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => OpenToken,
+                2 => CaptureToken,
+                3 => CloseToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1558,18 +1447,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken CloseToken { get; }
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return TypeToken;
-                case 2: return OpenToken;
-                case 3: return CaptureToken;
-                case 4: return CloseToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => TypeToken,
+                2 => OpenToken,
+                3 => CaptureToken,
+                4 => CloseToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1621,15 +1507,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken NumberToken { get; }
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return NumberToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => NumberToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -1660,18 +1543,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         internal override int ChildCount => 5;
 
         internal override RegexNodeOrToken ChildAt(int index)
-        {
-            switch (index)
+            => index switch
             {
-                case 0: return BackslashToken;
-                case 1: return TypeToken;
-                case 2: return OpenBraceToken;
-                case 3: return CategoryToken;
-                case 4: return CloseBraceToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                0 => BackslashToken,
+                1 => TypeToken,
+                2 => OpenBraceToken,
+                3 => CategoryToken,
+                4 => CloseBraceToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);

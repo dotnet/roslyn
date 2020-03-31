@@ -2102,19 +2102,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static int CompareLineChanges(LineChange x, LineChange y)
-        {
-            return x.OldLine.CompareTo(y.OldLine);
-        }
+            => x.OldLine.CompareTo(y.OldLine);
 
         #endregion
 
         #region Semantic Analysis
 
-        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol>
+        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol?>
         {
-            public static readonly IEqualityComparer<IAssemblySymbol> Instance = new AssemblyEqualityComparer();
+            public static readonly IEqualityComparer<IAssemblySymbol?> Instance = new AssemblyEqualityComparer();
 
-            public bool Equals(IAssemblySymbol x, IAssemblySymbol y)
+            public bool Equals(IAssemblySymbol? x, IAssemblySymbol? y)
             {
                 // Types defined in old source assembly need to be treated as equivalent to types in the new source assembly,
                 // provided that they only differ in their containing assemblies.
@@ -2125,13 +2123,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // a single PE symbol. Thus comparing assemblies by identity partitions them so that each partition
                 // contains assemblies that originated from the same Gen0 assembly.
 
-                return x.Identity.Equals(y.Identity);
+                return Equals(x?.Identity, y?.Identity);
             }
 
-            public int GetHashCode(IAssemblySymbol obj)
-            {
-                return obj.Identity.GetHashCode();
-            }
+            public int GetHashCode(IAssemblySymbol? obj)
+                => obj?.Identity.GetHashCode() ?? 0;
         }
 
         protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(
@@ -2731,7 +2727,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName);
+            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
             if (lazyLayoutAttribute == null)
             {
                 return false;
@@ -2739,7 +2735,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var attribute in attributes)
             {
-                RoslynDebug.Assert(attribute.AttributeClass is object); // TODO2
+                RoslynDebug.Assert(attribute.AttributeClass is object);
                 if (attribute.AttributeClass.Equals(lazyLayoutAttribute) && attribute.ConstructorArguments.Length == 1)
                 {
                     var layoutValue = attribute.ConstructorArguments.Single().Value;
@@ -3401,6 +3397,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static void BuildIndex<TKey>(Dictionary<TKey, int> index, ImmutableArray<TKey> array)
+            where TKey : notnull
         {
             for (var i = 0; i < array.Length; i++)
             {
@@ -3409,14 +3406,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         protected SyntaxNode GetSymbolSyntax(ISymbol local, CancellationToken cancellationToken)
-        {
-            return local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-        }
+            => local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
 
         private TextSpan GetThisParameterDiagnosticSpan(ISymbol member)
-        {
-            return member.Locations.First().SourceSpan;
-        }
+            => member.Locations.First().SourceSpan;
 
         private TextSpan GetVariableDiagnosticSpan(ISymbol local)
         {
@@ -3781,19 +3774,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static ITypeSymbol GetType(ISymbol localOrParameter)
-        {
-            switch (localOrParameter.Kind)
+            => localOrParameter.Kind switch
             {
-                case SymbolKind.Parameter:
-                    return ((IParameterSymbol)localOrParameter).Type;
-
-                case SymbolKind.Local:
-                    return ((ILocalSymbol)localOrParameter).Type;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(localOrParameter.Kind);
-            }
-        }
+                SymbolKind.Parameter => ((IParameterSymbol)localOrParameter).Type,
+                SymbolKind.Local => ((ILocalSymbol)localOrParameter).Type,
+                _ => throw ExceptionUtilities.UnexpectedValue(localOrParameter.Kind),
+            };
 
         private SyntaxNode GetCapturedVariableScope(ISymbol localOrParameter, SyntaxNode memberBody, CancellationToken cancellationToken)
         {
@@ -3882,9 +3868,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Helpers 
 
         private static SyntaxNode? TryGetNode(SyntaxNode root, int position)
-        {
-            return root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
-        }
+            => root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
 
         private static bool TryGetTextSpan(TextLineCollection lines, LinePositionSpan lineSpan, out TextSpan span)
         {
@@ -3912,9 +3896,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer;
 
             public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
-            {
-                _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
-            }
+                => _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
 
             internal void AnalyzeSyntax(
                 EditScript<SyntaxNode> script,

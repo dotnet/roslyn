@@ -7,6 +7,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.TodoComments
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
@@ -15,11 +16,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicTodoCommentService(languageServices.WorkspaceServices.Workspace)
+            Return New VisualBasicTodoCommentService()
         End Function
 
     End Class
@@ -27,15 +29,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
     Friend Class VisualBasicTodoCommentService
         Inherits AbstractTodoCommentService
 
-        Public Sub New(workspace As Workspace)
-            MyBase.New(workspace)
-        End Sub
-
-        Protected Overrides Sub AppendTodoComments(commentDescriptors As IList(Of TodoCommentDescriptor), document As SyntacticDocument, trivia As SyntaxTrivia, todoList As List(Of TodoComment))
+        Protected Overrides Sub AppendTodoComments(
+                commentDescriptors As ImmutableArray(Of TodoCommentDescriptor),
+                document As SyntacticDocument,
+                trivia As SyntaxTrivia,
+                todoList As ArrayBuilder(Of TodoComment))
             If PreprocessorHasComment(trivia) Then
                 Dim commentTrivia = trivia.GetStructure().DescendantTrivia().First(Function(t) t.RawKind = SyntaxKind.CommentTrivia)
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, document, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
+                AppendTodoCommentInfoFromSingleLine(commentDescriptors, commentTrivia.ToFullString(), commentTrivia.FullSpan.Start, todoList)
                 Return
             End If
 

@@ -2119,9 +2119,7 @@ q = from",
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DontColorThingsOtherThanFromInDeclaration()
-        {
-            await TestInExpressionAsync("fro ");
-        }
+            => await TestInExpressionAsync("fro ");
 
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2357,7 +2355,6 @@ struct Type<T>
             var provider = new SemanticClassificationViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
@@ -2384,7 +2381,6 @@ struct Type<T>
             var provider = new SemanticClassificationBufferTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
@@ -3295,12 +3291,54 @@ class X
                 Escape(@"}}"));
         }
 
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape1()
+        {
+            await TestInMethodAsync(@"var goo = '\n';",
+                Keyword("var"),
+                Escape(@"\n"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape2()
+        {
+            await TestInMethodAsync(@"var goo = '\\';",
+                Keyword("var"),
+                Escape(@"\\"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape3()
+        {
+            await TestInMethodAsync(@"var goo = '\'';",
+                Keyword("var"),
+                Escape(@"\'"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape5()
+        {
+            await TestInMethodAsync(@"var goo = '""';",
+                Keyword("var"));
+        }
+
+        [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCharEscape4()
+        {
+            await TestInMethodAsync(@"var goo = '\u000a';",
+                Keyword("var"),
+                Escape(@"\u000a"));
+        }
+
         [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestDirectiveStringLiteral()
-        {
-            await TestInMethodAsync(@"#line 1 ""a\b""");
-        }
+            => await TestInMethodAsync(@"#line 1 ""a\b""");
 
         [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

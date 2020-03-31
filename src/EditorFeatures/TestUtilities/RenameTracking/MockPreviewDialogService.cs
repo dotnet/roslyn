@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         public bool ShowCheckBoxes;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MockPreviewDialogService()
         {
         }
@@ -40,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return this;
-        }
+            => this;
     }
 }

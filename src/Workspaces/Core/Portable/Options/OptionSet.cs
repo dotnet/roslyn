@@ -30,18 +30,32 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
+        internal object? GetOption(OptionKey2 optionKey)
+            => OptionsHelpers.GetOption<object?>(optionKey, GetOption);
+
+        /// <summary>
+        /// Gets the value of the option, or the default value if not otherwise set.
+        /// </summary>
         public T GetOption<T>(Option<T> option)
-        {
-            return (T)GetOption(new OptionKey(option, language: null))!;
-        }
+            => OptionsHelpers.GetOption(option, GetOption);
+
+        /// <summary>
+        /// Gets the value of the option, or the default value if not otherwise set.
+        /// </summary>
+        internal T GetOption<T>(Option2<T> option)
+            => OptionsHelpers.GetOption(option, GetOption);
 
         /// <summary>
         /// Gets the value of the option, or the default value if not otherwise set.
         /// </summary>
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
-        {
-            return (T)GetOption(new OptionKey(option, language))!;
-        }
+            => OptionsHelpers.GetOption(option, language, GetOption);
+
+        /// <summary>
+        /// Gets the value of the option, or the default value if not otherwise set.
+        /// </summary>
+        internal T GetOption<T>(PerLanguageOption2<T> option, string? language)
+            => OptionsHelpers.GetOption(option, language, GetOption);
 
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
@@ -51,18 +65,32 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
+        internal OptionSet WithChangedOption(OptionKey2 optionAndLanguage, object? value)
+            => WithChangedOption((OptionKey)optionAndLanguage, value);
+
+        /// <summary>
+        /// Creates a new <see cref="OptionSet" /> that contains the changed value.
+        /// </summary>
         public OptionSet WithChangedOption<T>(Option<T> option, T value)
-        {
-            return WithChangedOption(new OptionKey(option), value);
-        }
+            => WithChangedOption(new OptionKey(option), value);
+
+        /// <summary>
+        /// Creates a new <see cref="OptionSet" /> that contains the changed value.
+        /// </summary>
+        internal OptionSet WithChangedOption<T>(Option2<T> option, T value)
+            => WithChangedOption(new OptionKey(option), value);
 
         /// <summary>
         /// Creates a new <see cref="OptionSet" /> that contains the changed value.
         /// </summary>
         public OptionSet WithChangedOption<T>(PerLanguageOption<T> option, string? language, T value)
-        {
-            return WithChangedOption(new OptionKey(option, language), value);
-        }
+            => WithChangedOption(new OptionKey(option, language), value);
+
+        /// <summary>
+        /// Creates a new <see cref="OptionSet" /> that contains the changed value.
+        /// </summary>
+        internal OptionSet WithChangedOption<T>(PerLanguageOption2<T> option, string? language, T value)
+            => WithChangedOption(new OptionKey(option, language), value);
 
         internal AnalyzerConfigOptions AsAnalyzerConfigOptions(IOptionService optionService, string? language)
         {
@@ -76,8 +104,6 @@ namespace Microsoft.CodeAnalysis.Options
         internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
 
         private protected virtual AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
-        {
-            return new AnalyzerConfigOptionsImpl(this, optionService, language);
-        }
+            => new AnalyzerConfigOptionsImpl(this, optionService, language);
     }
 }

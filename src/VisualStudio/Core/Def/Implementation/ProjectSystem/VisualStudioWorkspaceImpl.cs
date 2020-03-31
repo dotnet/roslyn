@@ -205,14 +205,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
-        {
-            _openFileTracker?.QueueCheckForFilesBeingOpen(newFileNames);
-        }
+            => _openFileTracker?.QueueCheckForFilesBeingOpen(newFileNames);
 
         public void ProcessQueuedWorkOnUIThread()
-        {
-            _openFileTracker?.ProcessQueuedWorkOnUIThread();
-        }
+            => _openFileTracker?.ProcessQueuedWorkOnUIThread();
 
         internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
         {
@@ -339,9 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             protected override string? GetOutputFilePath()
-            {
-                return _outputPath;
-            }
+                => _outputPath;
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
@@ -423,10 +417,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             => !IsCPSProject(project);
 
         internal bool IsCPSProject(CodeAnalysis.Project project)
+            => IsCPSProject(project.Id);
+
+        internal bool IsCPSProject(ProjectId projectId)
         {
             _foregroundObject.AssertIsForeground();
 
-            if (this.TryGetHierarchy(project.Id, out var hierarchy))
+            if (this.TryGetHierarchy(projectId, out var hierarchy))
             {
                 // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
                 // This is because the remove/add of the documents in CPS is not synchronous
@@ -440,9 +437,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
-        {
-            return project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
-        }
+            => project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
@@ -452,9 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
-        {
-            e.TextBuffer.Properties.AddProperty(typeof(ITextBufferCloneService), _textBufferCloneService);
-        }
+            => e.TextBuffer.Properties.AddProperty(typeof(ITextBufferCloneService), _textBufferCloneService);
 
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
@@ -504,9 +497,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         internal EnvDTE.Project? TryGetDTEProject(ProjectId projectId)
-        {
-            return TryGetProjectData(projectId, out var _, out var project) ? project : null;
-        }
+            => TryGetProjectData(projectId, out var _, out var project) ? project : null;
 
         internal bool TryAddReferenceToProject(ProjectId projectId, string assemblyName)
         {
@@ -529,9 +520,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private string? GetAnalyzerPath(AnalyzerReference analyzerReference)
-        {
-            return analyzerReference.FullPath;
-        }
+            => analyzerReference.FullPath;
 
         protected override void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
         {
@@ -751,19 +740,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
-        {
-            AddDocumentCore(info, text, TextDocumentKind.Document);
-        }
+            => AddDocumentCore(info, text, TextDocumentKind.Document);
 
         protected override void ApplyAdditionalDocumentAdded(DocumentInfo info, SourceText text)
-        {
-            AddDocumentCore(info, text, TextDocumentKind.AdditionalDocument);
-        }
+            => AddDocumentCore(info, text, TextDocumentKind.AdditionalDocument);
 
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
-        {
-            AddDocumentCore(info, text, TextDocumentKind.AnalyzerConfigDocument);
-        }
+            => AddDocumentCore(info, text, TextDocumentKind.AnalyzerConfigDocument);
 
         private void AddDocumentCore(DocumentInfo info, SourceText initialText, TextDocumentKind documentKind)
         {
@@ -814,9 +797,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private bool IsWebsite(EnvDTE.Project project)
-        {
-            return project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
-        }
+            => project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
 
         private IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
         {
@@ -991,49 +972,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         protected override void ApplyDocumentRemoved(DocumentId documentId)
-        {
-            RemoveDocumentCore(documentId, TextDocumentKind.Document);
-        }
+            => RemoveDocumentCore(documentId, TextDocumentKind.Document);
 
         protected override void ApplyAdditionalDocumentRemoved(DocumentId documentId)
-        {
-            RemoveDocumentCore(documentId, TextDocumentKind.AdditionalDocument);
-        }
+            => RemoveDocumentCore(documentId, TextDocumentKind.AdditionalDocument);
 
         protected override void ApplyAnalyzerConfigDocumentRemoved(DocumentId documentId)
-        {
-            RemoveDocumentCore(documentId, TextDocumentKind.AnalyzerConfigDocument);
-        }
+            => RemoveDocumentCore(documentId, TextDocumentKind.AnalyzerConfigDocument);
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
-        {
-            OpenDocumentCore(documentId, activate);
-        }
+            => OpenDocumentCore(documentId, activate);
 
         public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
-        {
-            OpenDocumentCore(documentId, activate);
-        }
+            => OpenDocumentCore(documentId, activate);
 
         public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
-        {
-            OpenDocumentCore(documentId, activate);
-        }
+            => OpenDocumentCore(documentId, activate);
 
         public override void CloseDocument(DocumentId documentId)
-        {
-            CloseDocumentCore(documentId);
-        }
+            => CloseDocumentCore(documentId);
 
         public override void CloseAdditionalDocument(DocumentId documentId)
-        {
-            CloseDocumentCore(documentId);
-        }
+            => CloseDocumentCore(documentId);
 
         public override void CloseAnalyzerConfigDocument(DocumentId documentId)
-        {
-            CloseDocumentCore(documentId);
-        }
+            => CloseDocumentCore(documentId);
 
         public void OpenDocumentCore(DocumentId documentId, bool activate = true)
         {
@@ -1131,19 +1094,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         protected override void ApplyDocumentTextChanged(DocumentId documentId, SourceText newText)
-        {
-            ApplyTextDocumentChange(documentId, newText);
-        }
+            => ApplyTextDocumentChange(documentId, newText);
 
         protected override void ApplyAdditionalDocumentTextChanged(DocumentId documentId, SourceText newText)
-        {
-            ApplyTextDocumentChange(documentId, newText);
-        }
+            => ApplyTextDocumentChange(documentId, newText);
 
         protected override void ApplyAnalyzerConfigDocumentTextChanged(DocumentId documentId, SourceText newText)
-        {
-            ApplyTextDocumentChange(documentId, newText);
-        }
+            => ApplyTextDocumentChange(documentId, newText);
 
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
@@ -1402,9 +1359,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void EnsureEditableDocuments(params DocumentId[] documents)
-        {
-            this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
-        }
+            => this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
@@ -1491,6 +1446,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
+        /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
+        /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.
+        /// </summary>
+        public void ApplyChangeToWorkspace(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
+        {
+            lock (_gate)
+            {
+                SetCurrentSolution(solutionTransformation, WorkspaceChangeKind.ProjectChanged, projectId);
+            }
+        }
+
+        /// <summary>
         /// Applies a change to the workspace that can do any number of project changes.
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
@@ -1525,9 +1492,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new Dictionary<ProjectId, ProjectReferenceInformation>();
 
         private ProjectReferenceInformation GetReferenceInfo_NoLock(ProjectId projectId)
-        {
-            return _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
-        }
+            => _projectReferenceInfoMap.GetOrAdd(projectId, _ => new ProjectReferenceInformation());
 
         protected internal override void OnProjectRemoved(ProjectId projectId)
         {

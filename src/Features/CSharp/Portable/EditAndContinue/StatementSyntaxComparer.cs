@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -115,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private bool DescendIntoChildren(SyntaxNode node)
-        {
-            return !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
-        }
+            => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
@@ -506,19 +503,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal override int GetLabel(SyntaxNode node)
-        {
-            return (int)GetLabelImpl(node);
-        }
+            => (int)GetLabelImpl(node);
 
         internal static Label GetLabelImpl(SyntaxNode node)
-        {
-            return Classify(node.Kind(), node, out _);
-        }
+            => Classify(node.Kind(), node, out _);
 
         internal static bool HasLabel(SyntaxNode node)
-        {
-            return GetLabelImpl(node) != Label.Ignored;
-        }
+            => GetLabelImpl(node) != Label.Ignored;
 
         protected internal override int LabelCount
         {
@@ -526,9 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal override int TiedToAncestor(int label)
-        {
-            return TiedToAncestor((Label)label);
-        }
+            => TiedToAncestor((Label)label);
 
         #endregion
 
@@ -739,9 +728,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = simple.AsyncKeyword;
                     body = simple.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -750,9 +739,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = parenthesized.AsyncKeyword;
                     body = parenthesized.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.AnonymousMethodExpression:
@@ -769,9 +758,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = anonymous.AsyncKeyword;
                     body = anonymous.Block;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.LocalFunctionStatement:

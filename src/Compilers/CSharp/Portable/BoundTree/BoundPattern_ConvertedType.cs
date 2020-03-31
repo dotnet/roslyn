@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundConstantPattern
     {
-        public override TypeSymbol ConvertedType => Value.Type;
+        public override TypeSymbol ConvertedType => Value.Type ?? InputType;
     }
 
     internal partial class BoundDeclarationPattern

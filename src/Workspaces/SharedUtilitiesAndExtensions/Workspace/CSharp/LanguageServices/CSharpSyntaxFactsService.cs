@@ -67,9 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private bool _addedFirstCloseCurly = false;
 
                 public AddFirstMissingCloseBraceRewriter(SyntaxNode contextNode)
-                {
-                    _contextNode = contextNode;
-                }
+                    => _contextNode = contextNode;
 
                 public override SyntaxNode Visit(SyntaxNode node)
                 {

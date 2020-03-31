@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void SetSlotAssigned(int slot, ref LocalState state)
+        protected void SetSlotAssigned(int slot, ref LocalState state)
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];

@@ -194,9 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
-            {
-                _onClose();
-            }
+                => _onClose();
         }
 
         private static bool TryCreateInfoBarUI(IVsInfoBarUIFactory infoBarUIFactory, IVsInfoBar infoBar, out IVsInfoBarUIElement uiElement)

@@ -20,11 +20,14 @@ namespace Microsoft.CodeAnalysis.Host
         {
             private readonly CompositionHost _compositionContext;
 
-            public MefHostExportProvider(string languageName)
+            private MefHostExportProvider(CompositionHost compositionContext)
+                => _compositionContext = compositionContext;
+
+            public static MefHostExportProvider Create(string languageName)
             {
                 var assemblies = CreateAssemblies(languageName);
                 var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);
-                _compositionContext = compositionConfiguration.CreateContainer();
+                return new MefHostExportProvider(compositionConfiguration.CreateContainer());
             }
 
             private static ImmutableArray<Assembly> CreateAssemblies(string languageName)
@@ -49,9 +52,7 @@ namespace Microsoft.CodeAnalysis.Host
 
 
             IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-            {
-                return _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
-            }
+                => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
 
             IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
             {

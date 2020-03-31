@@ -64,8 +64,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData,
-                                                       Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
+        Private Protected Overridable Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData,
+                                                       Optional options As IDictionary(Of OptionKey2, Object) = Nothing) As Task
             Throw New NotImplementedException
         End Function
 

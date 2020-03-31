@@ -1375,9 +1375,7 @@ End Class";
         }
 
         private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
-        {
-            return provider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        }
+            => provider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
         private static void SetOptions(Workspace workspace)
         {
@@ -1445,14 +1443,10 @@ End Class";
             public readonly IIncrementalAnalyzer Analyzer;
 
             public AnalyzerProvider(IIncrementalAnalyzer analyzer)
-            {
-                Analyzer = analyzer;
-            }
+                => Analyzer = analyzer;
 
             public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            {
-                return Analyzer;
-            }
+                => Analyzer;
         }
 
         internal class Metadata : IncrementalAnalyzerProviderMetadata
@@ -1514,14 +1508,16 @@ End Class";
                 return Task.CompletedTask;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 InvalidateDocumentIds.Add(documentId);
+                return Task.CompletedTask;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 InvalidateProjectIds.Add(projectId);
+                return Task.CompletedTask;
             }
 
             private void Process(DocumentId documentId, CancellationToken cancellationToken)
@@ -1544,30 +1540,20 @@ End Class";
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return e.Option == TestOption;
-            }
+                => e.Option == TestOption;
 
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
             #endregion
         }
 
@@ -1589,8 +1575,8 @@ End Class";
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
-            public void RemoveDocument(DocumentId documentId) { }
-            public void RemoveProject(ProjectId projectId) { }
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken) => Task.CompletedTask;
             #endregion
         }
 

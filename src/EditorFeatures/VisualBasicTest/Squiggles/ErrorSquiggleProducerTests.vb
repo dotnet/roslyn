@@ -104,10 +104,10 @@ End Class"
                     })
 
             Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Dim options As New Dictionary(Of OptionKey, Object)
+                Dim options As New Dictionary(Of OptionKey2, Object)
                 Dim language = workspace.Projects.Single().Language
-                Dim preferIntrinsicPredefinedTypeOption = New OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
-                Dim preferIntrinsicPredefinedTypeOptionValue = New CodeStyleOption(Of Boolean)(value:=True, notification:=NotificationOption.Error)
+                Dim preferIntrinsicPredefinedTypeOption = New OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
+                Dim preferIntrinsicPredefinedTypeOptionValue = New CodeStyleOption2(Of Boolean)(value:=True, notification:=NotificationOption2.Error)
                 options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
                 workspace.ApplyOptions(options)
 

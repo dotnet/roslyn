@@ -4,9 +4,7 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Host
                 DiagnosticOptions = diagnosticOptions;
             }
 
-            internal bool TryGetText([MaybeNullWhen(false)]out SourceText text)
+            internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
             {
                 if (TextSource.TryGetValue(out var textAndVersion))
                 {
@@ -55,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return true;
                 }
 
-                // Suppressing nullable warning due to https://github.com/dotnet/roslyn/issues/40266
-                text = null!;
+                text = null;
                 return false;
             }
 
@@ -182,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             private TRoot RecoverRoot(Stream stream, CancellationToken cancellationToken)
-            {
-                return _containingTree.CloneNodeAsRoot((TRoot)_service.DeserializeNodeFrom(stream, cancellationToken));
-            }
+                => _containingTree.CloneNodeAsRoot((TRoot)_service.DeserializeNodeFrom(stream, cancellationToken));
         }
     }
 

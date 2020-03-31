@@ -255,9 +255,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             private readonly SourceText _text;
 
             public CleanUpNewLinesFormatter(SourceText text)
-            {
-                _text = text;
-            }
+                => _text = text;
 
             public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {

@@ -52,25 +52,20 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             IThreadingContext threadingContext,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
+            IAsyncCompletionBroker completionBroker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, signatureHelpProviders, signatureHelpPresenters, listenerProvider)
+            : base(threadingContext, signatureHelpProviders, signatureHelpPresenters, completionBroker, listenerProvider)
         {
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public CommandState GetCommandState(UpKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public CommandState GetCommandState(DownKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

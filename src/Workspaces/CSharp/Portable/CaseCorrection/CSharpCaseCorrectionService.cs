@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection
     internal class CSharpCaseCorrectionService : AbstractCaseCorrectionService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCaseCorrectionService()
         {
         }

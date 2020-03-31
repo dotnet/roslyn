@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 {
     using Microsoft.CodeAnalysis.Indentation;
+    using Microsoft.CodeAnalysis.Precedence;
 
     internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode

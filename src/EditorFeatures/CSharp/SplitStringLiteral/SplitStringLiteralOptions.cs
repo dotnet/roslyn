@@ -4,8 +4,10 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -13,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
     internal class SplitStringLiteralOptions
     {
-        public static PerLanguageOption<bool> Enabled =
-            new PerLanguageOption<bool>(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
+        public static PerLanguageOption2<bool> Enabled =
+            new PerLanguageOption2<bool>(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     internal class SplitStringLiteralOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SplitStringLiteralOptionsProvider()
         {
         }

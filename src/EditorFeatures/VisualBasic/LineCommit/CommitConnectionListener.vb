@@ -5,6 +5,7 @@
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
@@ -23,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _waitIndicator As IWaitIndicator
 
         <ImportingConstructor()>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(commitBufferManagerFactory As CommitBufferManagerFactory,
                        textBufferAssociatedViewService As ITextBufferAssociatedViewService,
                        textUndoHistoryRegistry As ITextUndoHistoryRegistry,

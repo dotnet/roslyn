@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private readonly bool _includeName;
 
         private CSharpDeclarationComparer(bool includeName)
-        {
-            _includeName = includeName;
-        }
+            => _includeName = includeName;
 
         public int Compare(SyntaxNode x, SyntaxNode y)
         {
@@ -308,9 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool ContainsToken(SyntaxTokenList list, SyntaxKind kind)
-        {
-            return list.Contains(token => token.Kind() == kind);
-        }
+            => list.Contains(token => token.Kind() == kind);
 
         private enum Accessibility
         {

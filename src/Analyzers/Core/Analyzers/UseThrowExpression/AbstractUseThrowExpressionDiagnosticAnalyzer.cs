@@ -6,15 +6,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseThrowExpression
 {
@@ -40,9 +34,9 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
     internal abstract class AbstractUseThrowExpressionDiagnosticAnalyzer :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private readonly Option<CodeStyleOption<bool>> _preferThrowExpressionOption;
+        private readonly Option2<CodeStyleOption2<bool>> _preferThrowExpressionOption;
 
-        protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option<CodeStyleOption<bool>> preferThrowExpressionOption, string language)
+        protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
                    preferThrowExpressionOption,
                    language,
@@ -79,8 +73,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             var throwOperation = (IThrowOperation)context.Operation;
             var throwStatementSyntax = throwOperation.Syntax;
 
-            var compilation = context.Compilation;
-            var semanticModel = compilation.GetSemanticModel(throwStatementSyntax.SyntaxTree);
+            var semanticModel = context.Operation.SemanticModel;
 
             var ifOperation = GetContainingIfOperation(
                 semanticModel, throwOperation, cancellationToken);

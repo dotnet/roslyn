@@ -186,12 +186,8 @@ End Namespace
             Await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst:=False, separateImportDirectiveGroups:=False)
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem(42221, "https://github.com/dotnet/roslyn/pull/42221")>
         Public Async Function AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports() As Task '
-            ' The current fixes for AddImport diagnostics do not consider whether imports should be grouped.
-            ' This test documents this behavior and is a reminder that when the behavior changes 
-            ' AddMissingImports is also affected and should be considered.
-
             Dim code = "
 Imports System
 
@@ -214,6 +210,7 @@ End Namespace
             Dim expected = "
 Imports A
 Imports B
+
 Imports System
 
 Class C

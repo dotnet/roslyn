@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="characters">One or more characters. These are typically punctuation characters.</param>
         /// <returns></returns>
         public static CharacterSetModificationRule Create(CharacterSetModificationKind kind, ImmutableArray<char> characters)
-        {
-            return new CharacterSetModificationRule(kind, characters);
-        }
+            => new CharacterSetModificationRule(kind, characters);
 
         /// <summary>
         /// Creates a new <see cref="CharacterSetModificationRule"/> instance.
@@ -45,8 +43,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="characters">One or more characters. These are typically punctuation characters.</param>
         /// <returns></returns>
         public static CharacterSetModificationRule Create(CharacterSetModificationKind kind, params char[] characters)
-        {
-            return new CharacterSetModificationRule(kind, characters.ToImmutableArray());
-        }
+            => new CharacterSetModificationRule(kind, characters.ToImmutableArray());
     }
 }

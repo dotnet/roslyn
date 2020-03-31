@@ -281,14 +281,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected bool CompareItems(string actualItem, string expectedItem)
-        {
-            return GetStringComparer().Equals(actualItem, expectedItem);
-        }
+            => GetStringComparer().Equals(actualItem, expectedItem);
 
         protected virtual IEqualityComparer<string> GetStringComparer()
-        {
-            return StringComparer.Ordinal;
-        }
+            => StringComparer.Ordinal;
 
         private protected async Task VerifyItemExistsAsync(
             string markup, string expectedItem, string expectedDescriptionOrNull = null,
@@ -977,17 +973,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string markup,
             bool shouldTriggerWithTriggerOnLettersEnabled,
             bool shouldTriggerWithTriggerOnLettersDisabled,
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
+            bool showCompletionInArgumentLists = true)
         {
-            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter: true, sourceCodeKind);
-            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter: false, sourceCodeKind);
+            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter: true, sourceCodeKind, showCompletionInArgumentLists);
+            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter: false, sourceCodeKind, showCompletionInArgumentLists: false);
         }
 
         private void VerifyTextualTriggerCharacterWorker(
             string markup,
             bool expectedTriggerCharacter,
             bool triggerOnLetter,
-            SourceCodeKind sourceCodeKind)
+            SourceCodeKind sourceCodeKind,
+            bool showCompletionInArgumentLists)
         {
             using (var workspace = CreateWorkspace(markup))
             {
@@ -997,8 +995,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 Assert.Same(hostDocument, workspace.Documents.Single());
                 var position = hostDocument.CursorPosition.Value;
                 var text = hostDocument.GetTextBuffer().CurrentSnapshot.AsText();
-                var options = workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnTypingLetters, hostDocument.Project.Language, triggerOnLetter);
+                var options = workspace.Options
+                    .WithChangedOption(CompletionOptions.TriggerOnTypingLetters2, hostDocument.Project.Language, triggerOnLetter)
+                    .WithChangedOption(CompletionOptions.TriggerInArgumentLists, hostDocument.Project.Language, showCompletionInArgumentLists);
                 var trigger = RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(text[position]);
 
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);

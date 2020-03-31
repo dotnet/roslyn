@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.CodeStyle
 
         Protected Overrides ReadOnly Property SyntaxFormattingService As ISyntaxFormattingService
             Get
-                Return New VisualBasicSyntaxFormattingService()
+                Return VisualBasicSyntaxFormattingService.Instance
             End Get
         End Property
     End Class

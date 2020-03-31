@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0; i < parts.Length - 1; i++)
             {
-                INamespaceSymbol next = container.GetNestedNamespace(parts[i]);
+                INamespaceSymbol? next = container.GetNestedNamespace(parts[i]);
                 if (next == null)
                 {
                     AssertNoScriptTrees();
@@ -2268,8 +2268,8 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 options,
                 debugEntryPoint,
-                default(Stream),
-                default(IEnumerable<EmbeddedText>),
+                sourceLinkStream: null,
+                embeddedTexts: null,
                 cancellationToken);
         }
 

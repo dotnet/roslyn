@@ -2335,6 +2335,30 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")]
+        public async Task TestSameNameMemberAsProperty()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int Goo;
+    [||]int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    int Goo;
+    int Goo1
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null, int index = 0)
@@ -2345,19 +2369,19 @@ class C
                 options: AllCodeStyleOff);
         }
 
-        private IDictionary<OptionKey, object> AllCodeStyleOff =>
+        private IDictionary<OptionKey2, object> AllCodeStyleOff =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessors =>
+        private IDictionary<OptionKey2, object> PreferExpressionBodiedAccessors =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedProperties =>
+        private IDictionary<OptionKey2, object> PreferExpressionBodiedProperties =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsAndProperties =>
+        private IDictionary<OptionKey2, object> PreferExpressionBodiedAccessorsAndProperties =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }

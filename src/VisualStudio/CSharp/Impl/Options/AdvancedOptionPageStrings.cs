@@ -8,11 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal static class AdvancedOptionPageStrings
     {
-        public static string Option_AllowMovingDeclaration
-        {
-            get { return CSharpVSResources.Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere; }
-        }
-
         public static string Option_Analysis
             => ServicesVSResources.Analysis;
 
@@ -94,6 +89,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_GenerateXmlDocCommentsForTripleSlash
         {
             get { return CSharpVSResources.Generate_XML_documentation_comments_for; }
+        }
+
+        public static string Option_ShowRemarksInQuickInfo
+        {
+            get { return CSharpVSResources.Show_remarks_in_Quick_Info; }
         }
 
         public static string Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments

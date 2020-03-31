@@ -36,14 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected override ComposableCatalog GetExportCatalog()
-        {
-            return base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
-        }
+            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(ExtensionMethodImportCompletionProvider);
-        }
+            => typeof(ExtensionMethodImportCompletionProvider);
 
         public enum ReferenceType
         {
@@ -1373,15 +1369,10 @@ namespace Baz
                      inlineDescription: "Foo");
             }
         }
-
         private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
-        {
-            return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
-        }
+            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
 
         private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
-        {
-            return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
-        }
+            => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
     }
 }

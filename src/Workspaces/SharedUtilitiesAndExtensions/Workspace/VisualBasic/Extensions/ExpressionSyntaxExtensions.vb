@@ -556,54 +556,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
-        Public Function GetOperatorPrecedence(expression As ExpressionSyntax) As OperatorPrecedence
-            Select Case expression.Kind
-                Case SyntaxKind.ExponentiateExpression
-                    Return OperatorPrecedence.PrecedenceExponentiate
-                Case SyntaxKind.UnaryMinusExpression,
-                     SyntaxKind.UnaryPlusExpression
-                    Return OperatorPrecedence.PrecedenceNegate
-                Case SyntaxKind.MultiplyExpression,
-                     SyntaxKind.DivideExpression
-                    Return OperatorPrecedence.PrecedenceMultiply
-                Case SyntaxKind.IntegerDivideExpression
-                    Return OperatorPrecedence.PrecedenceIntegerDivide
-                Case SyntaxKind.ModuloExpression
-                    Return OperatorPrecedence.PrecedenceModulus
-                Case SyntaxKind.AddExpression,
-                     SyntaxKind.SubtractExpression
-                    Return OperatorPrecedence.PrecedenceAdd
-                Case SyntaxKind.ConcatenateExpression
-                    Return OperatorPrecedence.PrecedenceConcatenate
-                Case SyntaxKind.LeftShiftExpression,
-                     SyntaxKind.RightShiftExpression
-                    Return OperatorPrecedence.PrecedenceShift
-                Case SyntaxKind.EqualsExpression,
-                     SyntaxKind.NotEqualsExpression,
-                     SyntaxKind.LessThanExpression,
-                     SyntaxKind.GreaterThanExpression,
-                     SyntaxKind.LessThanOrEqualExpression,
-                     SyntaxKind.GreaterThanOrEqualExpression,
-                     SyntaxKind.LikeExpression,
-                     SyntaxKind.IsExpression,
-                     SyntaxKind.IsNotExpression
-                    Return OperatorPrecedence.PrecedenceRelational
-                Case SyntaxKind.NotExpression
-                    Return OperatorPrecedence.PrecedenceNot
-                Case SyntaxKind.AndExpression,
-                     SyntaxKind.AndAlsoExpression
-                    Return OperatorPrecedence.PrecedenceAnd
-                Case SyntaxKind.OrExpression,
-                     SyntaxKind.OrElseExpression
-                    Return OperatorPrecedence.PrecedenceOr
-                Case SyntaxKind.ExclusiveOrExpression
-                    Return OperatorPrecedence.PrecedenceXor
-                Case Else
-                    Return OperatorPrecedence.PrecedenceNone
-            End Select
-        End Function
-
-        <Extension>
         Public Function InsideCrefReference(expression As ExpressionSyntax) As Boolean
             Dim crefAttribute = expression.FirstAncestorOrSelf(Of XmlCrefAttributeSyntax)()
             Return crefAttribute IsNot Nothing

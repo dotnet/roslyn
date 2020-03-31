@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _parseOptions = parseOptions;
         }
 
-        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
+        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue)
         {
             lock (_gate)
             {
@@ -188,12 +188,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    _workspace.ApplyChangeToWorkspace(changeValue);
+                    _workspace.ApplyChangeToWorkspace(Id, withNewValue);
                 }
             }
         }
 
-        private void ChangeProjectOutputPath(ref string? field, string? newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
+        private void ChangeProjectOutputPath(ref string? field, string? newValue, Func<Solution, Solution> withNewValue)
         {
             lock (_gate)
             {
@@ -213,18 +213,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _workspace.AddProjectOutputPath(Id, newValue);
                 }
 
-                ChangeProjectProperty(ref field, newValue, withNewValue, changeValue);
+                ChangeProjectProperty(ref field, newValue, withNewValue);
             }
         }
 
         public string AssemblyName
         {
             get => _assemblyName;
-            set => ChangeProjectProperty(
-                      ref _assemblyName,
-                      value,
-                       s => s.WithProjectAssemblyName(Id, value),
-                       w => w.OnAssemblyNameChanged(Id, value));
+            set => ChangeProjectProperty(ref _assemblyName, value, s => s.WithProjectAssemblyName(Id, value));
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -233,11 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public CompilationOptions? CompilationOptions
         {
             get => _compilationOptions;
-            set => ChangeProjectProperty(
-                       ref _compilationOptions,
-                       value,
-                       s => s.WithProjectCompilationOptions(Id, value),
-                       w => w.OnCompilationOptionsChanged(Id, value));
+            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value));
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -246,11 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ParseOptions? ParseOptions
         {
             get => _parseOptions;
-            set => ChangeProjectProperty(
-                       ref _parseOptions,
-                       value,
-                       s => s.WithProjectParseOptions(Id, value),
-                       w => w.OnParseOptionsChanged(Id, value));
+            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value));
         }
 
         /// <summary>
@@ -269,44 +257,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Unlike OutputFilePath and OutputRefFilePath, the intermediate output path isn't represented in the workspace anywhere;
                 // thus, we won't mutate the solution. We'll still call ChangeProjectOutputPath so we have the rest of the output path tracking
                 // for any P2P reference conversion.
-                ChangeProjectOutputPath(ref _intermediateOutputFilePath, value, s => s, w => { });
+                ChangeProjectOutputPath(ref _intermediateOutputFilePath, value, s => s);
             }
         }
 
         public string? OutputFilePath
         {
             get => _outputFilePath;
-            set => ChangeProjectOutputPath(ref _outputFilePath,
-                       value,
-                       s => s.WithProjectOutputFilePath(Id, value),
-                       w => w.OnOutputFilePathChanged(Id, value));
+            set => ChangeProjectOutputPath(ref _outputFilePath, value, s => s.WithProjectOutputFilePath(Id, value));
         }
 
         public string? OutputRefFilePath
         {
             get => _outputRefFilePath;
-            set => ChangeProjectOutputPath(ref _outputRefFilePath,
-                       value,
-                       s => s.WithProjectOutputRefFilePath(Id, value),
-                       w => w.OnOutputRefFilePathChanged(Id, value));
+            set => ChangeProjectOutputPath(ref _outputRefFilePath, value, s => s.WithProjectOutputRefFilePath(Id, value));
         }
 
         public string? FilePath
         {
             get => _filePath;
-            set => ChangeProjectProperty(ref _filePath,
-                       value,
-                       s => s.WithProjectFilePath(Id, value),
-                       w => w.OnProjectNameChanged(Id, _displayName, value));
+            set => ChangeProjectProperty(ref _filePath, value, s => s.WithProjectFilePath(Id, value));
         }
 
         public string DisplayName
         {
             get => _displayName;
-            set => ChangeProjectProperty(ref _displayName,
-                       value,
-                       s => s.WithProjectName(Id, value),
-                       w => w.OnProjectNameChanged(Id, value, _filePath));
+            set => ChangeProjectProperty(ref _displayName, value, s => s.WithProjectName(Id, value));
         }
 
         // internal to match the visibility of the Workspace-level API -- this is something
@@ -314,10 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal bool HasAllInformation
         {
             get => _hasAllInformation;
-            set => ChangeProjectProperty(ref _hasAllInformation,
-                       value,
-                       s => s.WithHasAllInformation(Id, value),
-                       w => w.OnHasAllInformationChanged(Id, value));
+            set => ChangeProjectProperty(ref _hasAllInformation, value, s => s.WithHasAllInformation(Id, value));
         }
 
         internal bool? RunAnalyzers
@@ -344,10 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // Property RunAnalyzers overrides RunAnalyzersDuringLiveAnalysis, and default when both properties are not set is 'true'.
             var runAnalyzers = _runAnalyzersPropertyValue ?? _runAnalyzersDuringLiveAnalysisPropertyValue ?? true;
-            ChangeProjectProperty(ref _runAnalyzers,
-                runAnalyzers,
-                s => s.WithRunAnalyzers(Id, runAnalyzers),
-                w => w.OnRunAnalyzersChanged(Id, runAnalyzers));
+            ChangeProjectProperty(ref _runAnalyzers, runAnalyzers, s => s.WithRunAnalyzers(Id, runAnalyzers));
         }
 
         /// <summary>
@@ -364,10 +334,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal string? DefaultNamespace
         {
             get => _defaultNamespace;
-            set => ChangeProjectProperty(ref _defaultNamespace,
-                       value,
-                       s => s.WithProjectDefaultNamespace(Id, value),
-                       w => w.OnDefaultNamespaceChanged(Id, value));
+            set => ChangeProjectProperty(ref _defaultNamespace, value, s => s.WithProjectDefaultNamespace(Id, value));
         }
 
         /// <summary>
@@ -401,9 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private volatile int _disposed = 0;
 
             internal BatchScope(VisualStudioProject visualStudioProject)
-            {
-                _project = visualStudioProject;
-            }
+                => _project = visualStudioProject;
 
             public void Dispose()
             {
@@ -595,9 +560,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Source File Addition/Removal
 
         public void AddSourceFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
-        {
-            _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
-        }
+            => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
         public DocumentId AddSourceTextContainer(
             SourceTextContainer textContainer,
@@ -610,19 +573,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public bool ContainsSourceFile(string fullPath)
-        {
-            return _sourceFiles.ContainsFile(fullPath);
-        }
+            => _sourceFiles.ContainsFile(fullPath);
 
         public void RemoveSourceFile(string fullPath)
-        {
-            _sourceFiles.RemoveFile(fullPath);
-        }
+            => _sourceFiles.RemoveFile(fullPath);
 
         public void RemoveSourceTextContainer(SourceTextContainer textContainer)
-        {
-            _sourceFiles.RemoveTextContainer(textContainer);
-        }
+            => _sourceFiles.RemoveTextContainer(textContainer);
 
         #endregion
 
@@ -630,19 +587,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         // TODO: should AdditionalFiles have source code kinds?
         public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
-        }
+            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
 
         public bool ContainsAdditionalFile(string fullPath)
-        {
-            return _additionalFiles.ContainsFile(fullPath);
-        }
+            => _additionalFiles.ContainsFile(fullPath);
 
         public void RemoveAdditionalFile(string fullPath)
-        {
-            _additionalFiles.RemoveFile(fullPath);
-        }
+            => _additionalFiles.RemoveFile(fullPath);
 
         #endregion
 
@@ -655,14 +606,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public bool ContainsAnalyzerConfigFile(string fullPath)
-        {
-            return _analyzerConfigFiles.ContainsFile(fullPath);
-        }
+            => _analyzerConfigFiles.ContainsFile(fullPath);
 
         public void RemoveAnalyzerConfigFile(string fullPath)
-        {
-            _analyzerConfigFiles.RemoveFile(fullPath);
-        }
+            => _analyzerConfigFiles.RemoveFile(fullPath);
 
         #endregion
 
@@ -1079,9 +1026,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void ReorderSourceFiles(ImmutableArray<string> filePaths)
-        {
-            _sourceFiles.ReorderFiles(filePaths);
-        }
+            => _sourceFiles.ReorderFiles(filePaths);
 
         /// <summary>
         /// Clears a list and zeros out the capacity. The lists we use for batching are likely to get large during an initial load, but after
@@ -1459,9 +1404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public void ProcessFileChange(string filePath)
-            {
-                ProcessFileChange(filePath, filePath);
-            }
+                => ProcessFileChange(filePath, filePath);
 
             /// <summary>
             /// Process file content changes
@@ -1652,9 +1595,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 private readonly IDocumentServiceProvider _provider;
 
                 public DynamicFileDocumentServiceProvider(IDocumentServiceProvider provider)
-                {
-                    _provider = provider;
-                }
+                    => _provider = provider;
 
                 TService IDocumentServiceProvider.GetService<TService>()
                 {
@@ -1679,9 +1620,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
-                }
+                    => Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
             }
         }
     }
