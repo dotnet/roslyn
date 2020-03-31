@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A common base class for lowering a decision dag.
         /// </summary>
-        private abstract class DecisionDagRewriter : PatternLocalRewriter
+        private abstract partial class DecisionDagRewriter : PatternLocalRewriter
         {
             /// <summary>
             /// Get the builder for code in the given section of the switch.
@@ -412,44 +412,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             private bool GenerateSwitchDispatch(BoundDecisionDagNode node, HashSet<BoundDecisionDagNode> loweredNodes)
             {
                 Debug.Assert(!loweredNodes.Contains(node));
-                if (!CanGenerateSwitchDispatch(node, loweredNodes))
+                if (!canGenerateSwitchDispatch(node))
                     return false;
 
                 var input = ((BoundTestDecisionDagNode)node).Test.Input;
                 ValueDispatchNode n = GatherValueDispatchNodes(node, loweredNodes, input);
-                LowerValueDispatchNode(n, input);
+                LowerValueDispatchNode(n, _tempAllocator.GetTemp(input));
                 return true;
-            }
 
-            private bool CanGenerateSwitchDispatch(BoundDecisionDagNode node, HashSet<BoundDecisionDagNode> loweredNodes)
-            {
-                switch (node)
+                bool canGenerateSwitchDispatch(BoundDecisionDagNode node)
                 {
-                    // These are the forms worth optimizing.
-                    case BoundTestDecisionDagNode { WhenFalse: BoundTestDecisionDagNode test2 } test1:
-                        return CanDispatch(test1, test2);
-                    case BoundTestDecisionDagNode { WhenTrue: BoundTestDecisionDagNode test2 } test1:
-                        return CanDispatch(test1, test2);
-                    default:
-                        // Other cases are just as well done with a single test.
-                        return false;
-                }
+                    switch (node)
+                    {
+                        // These are the forms worth optimizing.
+                        case BoundTestDecisionDagNode { WhenFalse: BoundTestDecisionDagNode test2 } test1:
+                            return canDispatch(test1, test2);
+                        case BoundTestDecisionDagNode { WhenTrue: BoundTestDecisionDagNode test2 } test1:
+                            return canDispatch(test1, test2);
+                        default:
+                            // Other cases are just as well done with a single test.
+                            return false;
+                    }
 
-                bool CanDispatch(BoundTestDecisionDagNode test1, BoundTestDecisionDagNode test2)
-                {
-                    if (this._dagNodeLabels.ContainsKey(test2))
-                        return false;
+                    bool canDispatch(BoundTestDecisionDagNode test1, BoundTestDecisionDagNode test2)
+                    {
+                        if (this._dagNodeLabels.ContainsKey(test2))
+                            return false;
 
-                    Debug.Assert(!loweredNodes.Contains(test2));
-                    var t1 = test1.Test;
-                    var t2 = test2.Test;
-                    if (!(t1 is BoundDagValueTest || t1 is BoundDagRelationalTest))
-                        return false;
-                    if (!(t2 is BoundDagValueTest || t2 is BoundDagRelationalTest))
-                        return false;
-                    if (!t1.Input.Equals(t2.Input))
-                        return false;
-                    return true;
+                        Debug.Assert(!loweredNodes.Contains(test2));
+                        var t1 = test1.Test;
+                        var t2 = test2.Test;
+                        if (!(t1 is BoundDagValueTest || t1 is BoundDagRelationalTest))
+                            return false;
+                        if (!(t2 is BoundDagValueTest || t2 is BoundDagRelationalTest))
+                            return false;
+                        if (!t1.Input.Equals(t2.Input))
+                            return false;
+                        return true;
+                    }
                 }
             }
 
@@ -552,237 +552,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var whenTrueBuilder = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
                     var whenFalseBuilder = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
+                    op = op.Operator();
                     foreach (var pair in cases)
                     {
-                        (fac.Related(op.Operator(), pair.value, value) ? whenTrueBuilder : whenFalseBuilder).Add(pair);
+                        (fac.Related(op, pair.value, value) ? whenTrueBuilder : whenFalseBuilder).Add(pair);
                     }
 
                     return (whenTrueBuilder.ToImmutableAndFree(), whenFalseBuilder.ToImmutableAndFree());
                 }
             }
 
-            /// <summary>
-            /// A node in a tree representing the form of a generated decision tree for classifying an input value.
-            /// </summary>
-            private abstract class ValueDispatchNode
-            {
-                protected virtual int Height => 1;
-                public readonly SyntaxNode Syntax;
-
-                public ValueDispatchNode(SyntaxNode syntax) => Syntax = syntax;
-
-                /// <summary>
-                /// A node representing the dispatch by value (equality). This corresponds to a classical C switch
-                /// statement, except that it also handles values of type float, double, decimal, and string.
-                /// </summary>
-                internal sealed class SwitchDispatch : ValueDispatchNode
-                {
-                    public readonly ImmutableArray<(ConstantValue value, LabelSymbol label)> Cases;
-                    public readonly LabelSymbol Otherwise;
-                    public SwitchDispatch(SyntaxNode syntax, ImmutableArray<(ConstantValue value, LabelSymbol label)> dispatches, LabelSymbol otherwise) : base(syntax)
-                    {
-                        this.Cases = dispatches;
-                        this.Otherwise = otherwise;
-                    }
-                    public override string ToString() => "[" + string.Join(",", Cases.Select(c => c.value)) + "]";
-                }
-
-                /// <summary>
-                /// A node representing a final destination that requires no further dispatch.
-                /// </summary>
-                internal sealed class LeafDispatchNode : ValueDispatchNode
-                {
-                    public readonly LabelSymbol Label;
-                    public LeafDispatchNode(SyntaxNode syntax, LabelSymbol Label) : base(syntax) => this.Label = Label;
-                    public override string ToString() => "Leaf";
-                }
-
-                /// <summary>
-                /// A node representing a dispatch based on a relational test of the input value by some constant.
-                /// Nodes of this kind are required to be height-balanced when constructed, so that when the full
-                /// decision tree is produced it generates a balanced tree of comparisons.
-                /// </summary>
-                internal sealed class RelationalDispatch : ValueDispatchNode
-                {
-                    private int _height;
-                    protected override int Height => _height;
-                    public readonly ConstantValue Value;
-                    public readonly BinaryOperatorKind Operator;
-                    /// <summary>The side of the test handling lower values. The true side for &lt; and &lt;=, the false side for > and >=.</summary>
-                    private ValueDispatchNode Left { get; set; }
-                    /// <summary>The side of the test handling higher values. The false side for &lt; and &lt;=, the true side for > and >=.</summary>
-                    private ValueDispatchNode Right { get; set; }
-                    private RelationalDispatch(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode left, ValueDispatchNode right) : base(syntax)
-                    {
-                        Debug.Assert(op.OperandTypes() != 0);
-                        this.Value = value;
-                        this.Operator = op;
-                        WithLeftAndRight(left, right);
-                    }
-                    public ValueDispatchNode WhenTrue => IsReversed(Operator) ? Right : Left;
-                    public ValueDispatchNode WhenFalse => IsReversed(Operator) ? Left : Right;
-                    public override string ToString() => $"RelationalDispatch.{Height}({Left} {Operator.Operator()} {Value} {Right})";
-                    private static bool IsReversed(BinaryOperatorKind op) => op.Operator() switch { BinaryOperatorKind.GreaterThan => true, BinaryOperatorKind.GreaterThanOrEqual => true, _ => false };
-
-                    private RelationalDispatch WithLeftAndRight(ValueDispatchNode left, ValueDispatchNode right)
-                    {
-                        // Note that this is a destructive implementation to reduce GC garbage.
-                        // That requires clients to stop using the input node once this has been called.
-
-                        int l = left.Height;
-                        int r = right.Height;
-                        Debug.Assert(Math.Abs(l - r) <= 1);
-
-                        this.Left = left;
-                        this.Right = right;
-                        _height = Math.Max(l, r) + 1;
-                        return this;
-                    }
-
-                    public RelationalDispatch WithTrueAndFalseChildren(ValueDispatchNode whenTrue, ValueDispatchNode whenFalse)
-                    {
-                        if (whenTrue == this.WhenTrue && whenFalse == this.WhenFalse)
-                            return this;
-
-                        Debug.Assert(whenTrue.Height == this.WhenTrue.Height);
-                        Debug.Assert(whenFalse.Height == this.WhenFalse.Height);
-                        var (left, right) = IsReversed(Operator) ? (whenFalse, whenTrue) : (whenTrue, whenFalse);
-                        return WithLeftAndRight(left, right);
-                    }
-
-                    public static ValueDispatchNode CreateBalanced(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode whenTrue, ValueDispatchNode whenFalse)
-                    {
-                        // Keep the lower numbers on the left and the higher numbers on the right.
-                        var (left, right) = IsReversed(op) ? (whenFalse, whenTrue) : (whenTrue, whenFalse);
-                        return CreateBalancedCore(syntax, value, op, left: left, right: right);
-                    }
-
-                    private static ValueDispatchNode CreateBalancedCore(SyntaxNode syntax, ConstantValue value, BinaryOperatorKind op, ValueDispatchNode left, ValueDispatchNode right)
-                    {
-                        Debug.Assert(op.OperandTypes() != 0);
-
-                        // Build a height-balanced tree node that is semantically equivalent to a node with the given parameters.
-                        // See http://www.cs.ecu.edu/karl/3300/spr16/Notes/DataStructure/Tree/balance.html
-
-                        // First, build an approximately balanced left and right bottom-up.
-                        if (left.Height > (right.Height + 1))
-                        {
-                            var l = (RelationalDispatch)left;
-                            var newRight = CreateBalancedCore(syntax, value, op, left: l.Right, right: right);
-                            (syntax, value, op, left, right) = (l.Syntax, l.Value, l.Operator, l.Left, newRight);
-                        }
-                        else if (right.Height > (left.Height + 1))
-                        {
-                            var r = (RelationalDispatch)right;
-                            var newLeft = CreateBalancedCore(syntax, value, op, left: left, right: r.Left);
-                            (syntax, value, op, left, right) = (r.Syntax, r.Value, r.Operator, newLeft, r.Right);
-                        }
-
-                        // That should have brought the two sides within a height difference of two.
-                        Debug.Assert(Math.Abs(left.Height - right.Height) <= 2);
-
-                        // Now see if a final rotation is needed.
-                        #region Rebalance the top of the tree if necessary
-                        if (left.Height == right.Height + 2)
-                        {
-                            var leftDispatch = (RelationalDispatch)left;
-                            if (leftDispatch.Left.Height == right.Height)
-                            {
-                                //
-                                //       z
-                                //      / \                 y
-                                //     x   D               / \
-                                //    / \        -->      x   z
-                                //   A   y               /|   |\
-                                //      / \             A B   C D
-                                //     B   C
-                                //
-                                var x = leftDispatch;
-                                var A = x.Left;
-                                var y = (RelationalDispatch)x.Right;
-                                var B = y.Left;
-                                var C = y.Right;
-                                var D = right;
-                                return y.WithLeftAndRight(x.WithLeftAndRight(A, B), new RelationalDispatch(syntax, value, op, C, D));
-                            }
-                            else
-                            {
-                                Debug.Assert(leftDispatch.Right.Height == right.Height);
-                                //
-                                //       z
-                                //      / \                 y
-                                //     y   D               / \
-                                //    / \        -->      x   z
-                                //   x   C               /|   |\
-                                //  / \                 A B   C D
-                                // A   B
-                                //
-                                var y = leftDispatch;
-                                var x = y.Left;
-                                var C = y.Right;
-                                var D = right;
-                                return y.WithLeftAndRight(x, new RelationalDispatch(syntax, value, op, C, D));
-                            }
-                        }
-                        else if (right.Height == left.Height + 2)
-                        {
-                            var rightDispatch = (RelationalDispatch)right;
-                            if (rightDispatch.Right.Height == left.Height)
-                            {
-                                //
-                                //     x
-                                //    / \                   y
-                                //   A   z                 / \
-                                //      / \      -->      x   z
-                                //     y   D             /|   |\
-                                //    / \               A B   C D
-                                //   B   C
-                                //
-                                var A = left;
-                                var z = rightDispatch;
-                                var y = (RelationalDispatch)z.Left;
-                                var B = y.Left;
-                                var C = y.Right;
-                                var D = z.Right;
-                                return y.WithLeftAndRight(new RelationalDispatch(syntax, value, op, A, B), z.WithLeftAndRight(C, D));
-                            }
-                            else
-                            {
-                                Debug.Assert(rightDispatch.Left.Height == left.Height);
-                                //
-                                //     x
-                                //    / \                   y
-                                //   A   y                 / \
-                                //      / \      -->      x   z
-                                //     B   z             /|   |\
-                                //        / \           A B   C D
-                                //       C   D
-                                //
-                                var A = left;
-                                var y = rightDispatch;
-                                var B = y.Left;
-                                var z = y.Right;
-                                return y.WithLeftAndRight(new RelationalDispatch(syntax, value, op, A, B), z);
-                            }
-                        }
-                        #endregion Rebalance the top of the tree if necessary
-
-                        // that should have been sufficient to balance the tree.
-                        Debug.Assert(Math.Abs(left.Height - right.Height) < 2);
-                        return new RelationalDispatch(syntax, value, op, left: left, right: right);
-                    }
-                }
-            }
-
-            private void LowerValueDispatchNode(
-                ValueDispatchNode n,
-                BoundDagTemp input)
-            {
-                var inputExpression = _tempAllocator.GetTemp(input);
-                LowerValueDispatchNodeCore(n, inputExpression);
-            }
-
-            private void LowerValueDispatchNodeCore(ValueDispatchNode n, BoundExpression input)
+            private void LowerValueDispatchNode(ValueDispatchNode n, BoundExpression input)
             {
                 switch (n)
                 {
@@ -807,21 +587,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     LabelSymbol trueLabel = whenTrue.Label;
                     _loweredDecisionDag.Add(_factory.ConditionalGoto(test, trueLabel, jumpIfTrue: true));
-                    LowerValueDispatchNodeCore(rel.WhenFalse, input);
+                    LowerValueDispatchNode(rel.WhenFalse, input);
                 }
                 else if (rel.WhenFalse is ValueDispatchNode.LeafDispatchNode whenFalse)
                 {
                     LabelSymbol falseLabel = whenFalse.Label;
                     _loweredDecisionDag.Add(_factory.ConditionalGoto(test, falseLabel, jumpIfTrue: false));
-                    LowerValueDispatchNodeCore(rel.WhenTrue, input);
+                    LowerValueDispatchNode(rel.WhenTrue, input);
                 }
                 else
                 {
-                    LabelSymbol falseLabel = _factory.GenerateLabel("sw");
+                    LabelSymbol falseLabel = _factory.GenerateLabel("relationalDispatch");
                     _loweredDecisionDag.Add(_factory.ConditionalGoto(test, falseLabel, jumpIfTrue: false));
-                    LowerValueDispatchNodeCore(rel.WhenTrue, input);
+                    LowerValueDispatchNode(rel.WhenTrue, input);
                     _loweredDecisionDag.Add(_factory.Label(falseLabel));
-                    LowerValueDispatchNodeCore(rel.WhenFalse, input);
+                    LowerValueDispatchNode(rel.WhenFalse, input);
                 }
             }
 
@@ -909,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             int half = count / 2;
-                            var gt = _factory.GenerateLabel("gt");
+                            var gt = _factory.GenerateLabel("greaterThanMidpoint");
                             _loweredDecisionDag.Add(_factory.ConditionalGoto(MakeRelationalTest(node.Syntax, input, lessThanOrEqualOperator, cases[firstIndex + half - 1].value), gt, jumpIfTrue: false));
                             lowerFloatDispatch(firstIndex, half);
                             _loweredDecisionDag.Add(_factory.Label(gt));

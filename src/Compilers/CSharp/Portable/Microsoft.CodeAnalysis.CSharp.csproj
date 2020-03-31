@@ -66,4 +66,8 @@
     <InternalsVisibleTo Include="CompilerBenchmarks" />
   </ItemGroup>
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
+  <ItemGroup>
+    <ExpectedCompile Remove="Lowering\LocalRewriter\LocalRewriter.DecisionDagRewriter.ValueDispatchNode.cs" />
+    <ExpectedCompile Remove="Lowering\LocalRewriter\LocalRewriter_DecisionDagRewriter.cs" />
+  </ItemGroup>
 </Project>
