@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
                     if (locationService != null)
                     {
-                        var experimentationService = workspaceServices.GetRequiredService<IExperimentationService>();
-                        if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SQLiteInMemoryWriteCache))
+                        if (UseInMemoryWriteCache(workspaceServices))
                         {
                             return new SQLite.v2.SQLitePersistentStorageService(locationService);
                         }
@@ -53,5 +52,9 @@ namespace Microsoft.CodeAnalysis.Storage
 
             return NoOpPersistentStorageService.Instance;
         }
+
+        private static bool UseInMemoryWriteCache(HostWorkspaceServices workspaceServices)
+            => workspaceServices.Workspace.Options.GetOption(StorageOptions.SQLiteInMemoryWriteCache) ||
+               workspaceServices.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.SQLiteInMemoryWriteCache) == true;
     }
 }
