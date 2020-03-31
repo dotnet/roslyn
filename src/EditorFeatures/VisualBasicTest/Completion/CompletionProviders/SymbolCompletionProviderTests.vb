@@ -8168,6 +8168,32 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")>
+        Public Async Function CompletionForLambdaWithOverloads4() As Task
+            Dim source =
+                <code><![CDATA[
+Imports System
+
+Class C
+    Sub M(a As Action(Of Integer))
+
+    End Sub
+
+    Sub M(a As Action(Of String))
+
+    End Sub
+
+    Sub Test()
+        M(Sub(a) a.$$)
+    End Sub
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Substring")
+            Await VerifyItemExistsAsync(source, "GetTypeCode")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")>
         Public Async Function CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1() As Task
             Dim source =

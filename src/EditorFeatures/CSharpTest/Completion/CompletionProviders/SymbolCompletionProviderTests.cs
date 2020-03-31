@@ -10154,6 +10154,28 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")]
+        public async Task CompletionForLambdaWithOverloads4()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M(Action<int> a) { }
+    void M(Action<string> a) { }
+
+    void Test()
+    {
+        M(p => p.$$);
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Substring");
+            await VerifyItemExistsAsync(markup, "GetTypeCode");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(40216, "https://github.com/dotnet/roslyn/issues/40216")]
         public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1()
         {
