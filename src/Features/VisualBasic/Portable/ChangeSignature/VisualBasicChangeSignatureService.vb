@@ -186,12 +186,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Case SyntaxKind.PropertyBlock
                     Dim parameterList = DirectCast(matchingNode, PropertyBlockSyntax).PropertyStatement.ParameterList
                     Return If(parameterList IsNot Nothing AndAlso parameterList.Parameters.Any(),
-semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken),
+                        semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken),
                         Nothing)
                 Case SyntaxKind.PropertyStatement
                     Dim parameterList = DirectCast(matchingNode, PropertyStatementSyntax).ParameterList
                     Return If(parameterList IsNot Nothing AndAlso parameterList.Parameters.Any(),
-semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken),
+                        semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken),
                         Nothing)
                 Case SyntaxKind.SubBlock
                     Return semanticModel.GetDeclaredSymbol(DirectCast(matchingNode, MethodBlockSyntax).BlockStatement, cancellationToken)
@@ -451,7 +451,7 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
             Dim permutedArguments = PermuteArguments(declarationSymbol, originalArguments, permutedSignature, isReducedExtensionMethod)
 
             Dim newArguments = New List(Of ArgumentSyntax)()
-            Dim newSeparators = New SyntaxToken(arguments.Count - 1) {}
+            Dim newSeparatorsBuilder = ArrayBuilder(Of SyntaxToken).GetInstance(arguments.Count - 1)
             For newIndex = 0 To permutedArguments.Count - 1
                 Dim argument = permutedArguments(newIndex)
                 Dim originalIndex = argument.Index
@@ -459,10 +459,10 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                 Dim newParamNode = TransferLeadingTrivia(CType(DirectCast(argument, UnifiedArgumentSyntax), ArgumentSyntax), arguments(newIndex))
                 newArguments.Add(newParamNode)
 
-                closeParenToken = TransferSeparatorTrivia(arguments, closeParenToken, permutedArguments.Count, newSeparators, newIndex, originalIndex)
+                closeParenToken = TransferSeparatorTrivia(arguments, closeParenToken, permutedArguments.Count, newSeparatorsBuilder, newIndex, originalIndex)
             Next
 
-            Return (SyntaxFactory.SeparatedList(newArguments, newSeparators.ToList().GetRange(0, If(permutedArguments.Count = 0, 0, permutedArguments.Count - 1))), closeParenToken)
+            Return (SyntaxFactory.SeparatedList(newArguments, newSeparatorsBuilder.ToSyntaxTokenListAndFree()), closeParenToken)
         End Function
 
         Private Function PermuteDeclaration(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T), closeParenToken As SyntaxToken, updatedSignature As SignatureChange) As (permutedList As SeparatedSyntaxList(Of T), closeParenToken As SyntaxToken)
@@ -470,7 +470,7 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
             Dim newParameters = New List(Of T)()
-            Dim newSeparators = New SyntaxToken(list.Count - 1) {}
+            Dim newSeparatorsBuilder = ArrayBuilder(Of SyntaxToken).GetInstance(list.Count - 1)
             For newIndex = 0 To reorderedParameters.Count - 1
                 Dim newParamSymbol = reorderedParameters(newIndex)
                 Dim originalIndex = originalParameters.IndexOf(newParamSymbol)
@@ -479,16 +479,33 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
                 Dim newParamNode = TransferLeadingTrivia(list(originalIndex), list(newIndex))
                 newParameters.Add(newParamNode)
 
-                closeParenToken = TransferSeparatorTrivia(list, closeParenToken, reorderedParameters.Count, newSeparators, newIndex, originalIndex)
+                closeParenToken = TransferSeparatorTrivia(list, closeParenToken, reorderedParameters.Count, newSeparatorsBuilder, newIndex, originalIndex)
             Next
 
-            Return (SyntaxFactory.SeparatedList(newParameters, newSeparators.ToList().GetRange(0, If(reorderedParameters.Count = 0, 0, reorderedParameters.Count - 1))), closeParenToken)
+            Return (SyntaxFactory.SeparatedList(newParameters, newSeparatorsBuilder.ToSyntaxTokenListAndFree()), closeParenToken)
         End Function
 
-        Private Shared Function TransferSeparatorTrivia(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T), closeParenToken As SyntaxToken, reorderedParameterCount As Integer, newSeparators() As SyntaxToken, newIndex As Integer, originalIndex As Integer) As SyntaxToken
+        Private Shared Function TransferSeparatorTrivia(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T),
+                                                                            closeParenToken As SyntaxToken,
+                                                                            reorderedParameterCount As Integer,
+                                                                            newSeparatorsBuilder As ArrayBuilder(Of SyntaxToken),
+                                                                            newIndex As Integer, originalIndex As Integer) As SyntaxToken
+            ' We update the close paren token in VB since there's a chance that we'll need to append trivia to the token when switching the positions of nodes.
+            ' Ex.:
+            ' M(a,
+            '   b, ' comment
+            '   c)
+            '
+            ' Switching the positions of 'b' and 'c':
+            ' M(a,
+            '   c,
+            '   b) ' comment
+            '
+            ' Note that this behavior differs from C#, where we instead append the original trivia of the new last node to the trailing trivia of the node itself.
+
             If newIndex <> reorderedParameterCount - 1 Then
                 ' Update separator trivia if we're not at the last node.
-                newSeparators(newIndex) = TransferTrivia(list, closeParenToken, originalIndex, newIndex, False)
+                newSeparatorsBuilder.SetItem(newIndex, TransferTrivia(list, closeParenToken, originalIndex, newIndex, False))
             Else
                 ' If we're at the last node, we instead append the original separator trivia to the close paren token.
                 closeParenToken = TransferTrivia(list, closeParenToken, originalIndex, newIndex, True)
@@ -497,7 +514,11 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
             Return closeParenToken
         End Function
 
-        Private Shared Function TransferTrivia(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T), closeParenToken As SyntaxToken, originalIndex As Integer, newIndex As Integer, lastParam As Boolean) As SyntaxToken
+        Private Shared Function TransferTrivia(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T),
+                                                                   closeParenToken As SyntaxToken,
+                                                                   originalIndex As Integer,
+                                                                   newIndex As Integer,
+                                                                   lastParam As Boolean) As SyntaxToken
             Dim originalSeparator = If(originalIndex = list.Count - 1, closeParenToken, list.GetSeparator(originalIndex))
             Dim newSeparator = If(lastParam, closeParenToken, list.GetSeparator(newIndex))
 
@@ -507,9 +528,11 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
             End If
 
             ' Transfer trivia from the original separator to new separator, excluding any end-of-line trivia.
+            ' We don't want to transfer end-of-line trivia since it could affect the formatting of the 
             Dim triviaToTransfer = From trivia In originalSeparator.TrailingTrivia Where Not trivia.IsKind(SyntaxKind.EndOfLineTrivia)
 
-            ' If our new separator is the close paren token and all the trivia from the original separator is whitespace trivia, we don't want to append any whitespace.
+            ' If our new separator is the close paren token and all the trivia from the original separator is whitespace trivia, we don't need to do any work since
+            ' want to append any whitespace.
             If lastParam And triviaToTransfer.All(Function(trivia) trivia.IsKind(SyntaxKind.WhitespaceTrivia)) Then
                 Return newSeparator
             End If
@@ -518,7 +541,12 @@ originalNode.AncestorsAndSelf().Any(Function(n) n Is DirectCast(matchingNode, In
             triviaToTransfer = triviaToTransfer.Concat(newSeparator.TrailingTrivia.Where(Function(trivia) trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
             newSeparator = newSeparator.WithTrailingTrivia(triviaToTransfer)
 
-            ' If we're not at the last parameter and there's no space after the current separator, append a space.
+            ' If we're not at the last parameter and the current separator has no trailing trivia, append a space.
+            ' This could happen in situations such as:
+            ' M(a, b,
+            '   c,
+            '   d)
+            ' when switching parameters 'c' and 'd'.
             If (Not lastParam) And newSeparator.TrailingTrivia.IsEmpty Then
                 newSeparator = newSeparator.WithTrailingTrivia(SyntaxFactory.ElasticWhitespace(" "))
             End If

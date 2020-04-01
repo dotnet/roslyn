@@ -13,10 +13,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -263,7 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Update declarations parameter lists.
-            // Since nodes are being reordered and we want to preserve existing comments, we must move the trailing trivia on the open paren token to the leading trivia of the original first node.
+            // In order to propelry preserve comments, we must move the trailing trivia on the open paren token to the leading trivia of the original
+            // first node, such as in the case below:
+            //     M(/* comment */ a, b)
+            // In the above case, by default, the comment is associated with the open paren token, while we want it to be associated with node 'a'.
 
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method))
             {
@@ -421,10 +426,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             // If we have no parameters, we don't need to do any work.
             if (reorderedParameters.Count == 0)
             {
-                return SyntaxFactory.SeparatedList(newParameters, new List<SyntaxToken>());
+                return SyntaxFactory.SeparatedList(newParameters, Array.Empty<SyntaxToken>());
             }
 
-            var newSeparators = new SyntaxToken[reorderedParameters.Count - 1];
+            var newSeparatorsBuilder = ArrayBuilder<SyntaxToken>.GetInstance(reorderedParameters.Count - 1);
 
             // We may want the trailing trivia of a separator to apply to different nodes in different cases. Before doing the bulk of the work, apply minor adjustments to trivia.
             var adjustedList = AdjustSeparatorTrivia(list);
@@ -437,6 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var (newParamNode, newSeparator) = TransferTrivia(adjustedList, adjustedList[originalIndex], originalIndex, newIndex, reorderedParameters.Count);
 
                 // We also need to transfer over the trailing trivia from the open paren token since there may be comments/trivia there.
+                // Ex.: M(/* comment */ a, b) -> by default, the comment is associated with the open paren, while we instead want it associated with node 'a'.
                 newParamNode = TransferTriviaFromOpenParen<T>(openParenToken, newIndex, originalIndex, newParamNode);
 
                 newParameters.Add(newParamNode);
@@ -444,11 +450,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 // The last node does't have a separator.
                 if (newIndex != reorderedParameters.Count - 1)
                 {
-                    newSeparators[newIndex] = newSeparator;
+                    newSeparatorsBuilder.SetItem(newIndex, newSeparator);
                 }
             }
 
-            return SyntaxFactory.SeparatedList(newParameters, newSeparators.ToList());
+            return SyntaxFactory.SeparatedList(newParameters, newSeparatorsBuilder.ToSyntaxTokenListAndFree());
         }
 
         private static SeparatedSyntaxList<T> AdjustSeparatorTrivia<T>(SeparatedSyntaxList<T> list) where T : SyntaxNode
@@ -462,8 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             //     M(a, /* b */ b);
 
             var newParameters = list.ToList();
-            var newSeparators = new SyntaxToken[list.SeparatorCount];
-
+            var newSeparatorsBuilder = ArrayBuilder<SyntaxToken>.GetInstance(list.SeparatorCount);
             for (var separatorIndex = 0; separatorIndex < list.SeparatorCount; separatorIndex++)
             {
                 var separator = list.GetSeparator(separatorIndex);
@@ -476,10 +481,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     separator = separator.WithoutTrailingTrivia();
                 }
 
-                newSeparators[separatorIndex] = separator;
+                newSeparatorsBuilder.SetItem(separatorIndex, separator);
             }
 
-            return SyntaxFactory.SeparatedList(newParameters, newSeparators);
+            return SyntaxFactory.SeparatedList(newParameters, newSeparatorsBuilder.ToSyntaxTokenListAndFree());
         }
 
         private static (T newParamNode, SyntaxToken newSeparator) TransferTrivia<T>(
@@ -489,47 +494,71 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             int newIndex,
             int reorderedParametersCount) where T : SyntaxNode
         {
-            // Copy whitespace trivia from original position.
+            // Copy leading whitespace trivia from the original position to new position.
             newParamNode = TransferLeadingWhitespaceTrivia(newParamNode, list[newIndex]);
 
             // The separator associated with the node should have its trivia transferred over as well. If we're looking at the last node, then there is no associated separator.
             var originalSeparator = originalIndex < list.Count - 1 ? list.GetSeparator(originalIndex) : default;
             var newSeparator = newIndex < reorderedParametersCount - 1 ? list.GetSeparator(newIndex) : default;
 
-            // If the associated node is not switching positions, we don't need to do any work.
+            // If the associated node is not switching positions, we don't need to do any more work.
             if (originalSeparator == newSeparator)
             {
                 return (newParamNode, newSeparator);
             }
 
-            // If we have a comment of format '//', we switch the trivia notation to /* */.
-            newParamNode = ChangeNodeSingleLineCommentsToMultiLine(newParamNode);
-            originalSeparator = ChangeSeparatorSingleLineCommentsToMultiLine(originalSeparator);
+            // If we have a comment of format '//', we switch the trivia notation to /* */, since there's a possibility that we may be moving the parameter before
+            // another parameter on the same line.
+            // Ex.:
+            //     M(a, b,
+            //       c, // comment
+            //       d)
+            //
+            // Switching parameters 'a' and 'c':
+            //     M(c, /* comment */ b,
+            //       a,
+            //       d)
+            newParamNode = UpdateTrailingSingleLineCommentsToMultiLine(newParamNode);
+            originalSeparator = UpdateSeparatorSingleLineCommentsToMultiLine(originalSeparator);
 
             // Case 1: The current node in the updated configuration is the last parameter.
-            // Append any trailing trivia from the original separator to the trailing trivia of the new node, as long as it's not all whitespace. We also want to ignore end-of-line trivia.
-            if (newSeparator.IsKind(SyntaxKind.None))
+            // Since there's no new separator to transfer the trivia to, we instead append any trailing trivia from the original separator to the trailing trivia of the new node.
+            // We ignore end-of-line trivia as they should be preserved in their original locations.
+            // Ex.:
+            //     M(a, b, // comment
+            //       c)
+            //
+            // Switching parameters 'b' and 'c':
+            //     M(a, c,
+            //       b /* comment */)
+            if (newSeparator == default)
             {
-                if (originalSeparator.TrailingTrivia.Any(trivia => !trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
-                {
-                    newParamNode = newParamNode.WithAppendedTrailingTrivia(originalSeparator.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia)));
-                }
+                newParamNode = newParamNode.WithAppendedTrailingTrivia(originalSeparator.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia)));
             }
             // Case 2: The current node in the updated configuration is not the last parameter.
+            // If the original separator has any trailing comments or whitespace, we will append them at the end of the new separator's trailing trivia, but before any end-of-line trivia the
+            // new separator may have. Existing comments in the new separator will be removed, as they have will be placed in their correct locations in previous/future iterations of the loop.
+            // Ex.:
+            //     M(a, b, // comment
+            //       c, d)
+            //
+            // Switching parameters 'b' and 'c'. The original separator following 'b' has end-of-line trailing trivia that we want to preserve, but we want to move its comment and whitespace
+            // to the new separator of 'b':
+            // M(a, c,
+            //   b, /* comment */ d)
             else
             {
-                // We want to transfer over the comments from the original separator to the new separator. However, we also want to preserve the new
-                // signature's formatting. To accomplish this, if the original separator has any comments, we will append them at the end of the new separator's
-                // trailing trivia, but before any end-of-line trivia the new separator may have. Existing comments in the new separator will be removed, as they
-                // will be placed in the correct locations in previous or future iterations of the loop.
-                var originalSeparatorComments = originalSeparator.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.WhitespaceTrivia));
+                // Get the comments and whitespace of the original separator.
+                var originalSeparatorCommentsAndWhitespace = originalSeparator.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.WhitespaceTrivia));
 
-                // Remove end-of-line trivia and comments from the new separator, and add any comments from the original separator.
+                // Remove trailing end-of-line trivia (temporarily) and comments from the new separator, and add any comments and whitespace from the original separator.
                 var updatedTrivia = newSeparator.TrailingTrivia.Where(trivia => !trivia.IsKind(SyntaxKind.EndOfLineTrivia) && !trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                                                                    && !trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) && !trivia.IsKind(SyntaxKind.WhitespaceTrivia)).Concat(originalSeparatorComments);
+                                                                    && !trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) && !trivia.IsKind(SyntaxKind.WhitespaceTrivia)).Concat(originalSeparatorCommentsAndWhitespace);
 
                 // Add end-of-line trivia back, if there were any to begin with.
                 updatedTrivia = updatedTrivia.Concat(newSeparator.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)));
+
+                // Override the new separator's trailing trivia with updated trivia.
                 newSeparator = newSeparator.WithTrailingTrivia(updatedTrivia);
             }
 
@@ -547,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return newArgument.WithLeadingTrivia(oldLeadingWhitespaceTrivia.Concat(newLeadingNonWhitespaceTrivia));
             }
 
-            static T ChangeNodeSingleLineCommentsToMultiLine(T param)
+            static T UpdateTrailingSingleLineCommentsToMultiLine(T param)
             {
                 var paramTrailingTrivia = param.GetTrailingTrivia();
 
@@ -560,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return param;
             }
 
-            static SyntaxToken ChangeSeparatorSingleLineCommentsToMultiLine(SyntaxToken separator)
+            static SyntaxToken UpdateSeparatorSingleLineCommentsToMultiLine(SyntaxToken separator)
             {
                 var separatorLeadingTrivia = separator.LeadingTrivia;
                 var separatorTrailingTrivia = separator.TrailingTrivia;
@@ -619,9 +648,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return SyntaxFactory.SeparatedList(new List<AttributeArgumentSyntax>(), new List<SyntaxToken>());
             }
 
-            var newSeparators = new SyntaxToken[permutedArguments.Count - 1];
-
-            return GetFinalPermutedArgumentsWithTrivia(adjustedArguments, openParenToken, permutedArguments, newSeparators);
+            var newSeparatorsBuilder = ArrayBuilder<SyntaxToken>.GetInstance(permutedArguments.Count - 1);
+            return GetFinalPermutedArgumentsWithTrivia(adjustedArguments, openParenToken, permutedArguments, newSeparatorsBuilder);
         }
 
         private static SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
@@ -642,16 +670,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return SyntaxFactory.SeparatedList(new List<ArgumentSyntax>(), new List<SyntaxToken>());
             }
 
-            var newSeparators = new SyntaxToken[permutedArguments.Count - 1];
-
-            return GetFinalPermutedArgumentsWithTrivia(adjustedArguments, openParenToken, permutedArguments, newSeparators);
+            var newSeparatorsBuilder = ArrayBuilder<SyntaxToken>.GetInstance(permutedArguments.Count - 1);
+            return GetFinalPermutedArgumentsWithTrivia(adjustedArguments, openParenToken, permutedArguments, newSeparatorsBuilder);
         }
 
         private static SeparatedSyntaxList<T> GetFinalPermutedArgumentsWithTrivia<T>(
             SeparatedSyntaxList<T> arguments,
             SyntaxToken openParenToken,
             List<IUnifiedArgumentSyntax> permutedArguments,
-            SyntaxToken[] newSeparators) where T : SyntaxNode
+            ArrayBuilder<SyntaxToken> newSeparatorsBuilder) where T : SyntaxNode
         {
             var finalArguments = new List<T>();
             for (var newIndex = 0; newIndex < permutedArguments.Count; newIndex++)
@@ -667,11 +694,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 // The last node does't have a separator.
                 if (newIndex != permutedArguments.Count - 1)
                 {
-                    newSeparators[newIndex] = newSeparator;
+                    newSeparatorsBuilder.SetItem(newIndex, newSeparator);
                 }
             }
 
-            return SyntaxFactory.SeparatedList(finalArguments, newSeparators.ToList());
+            return SyntaxFactory.SeparatedList(finalArguments, newSeparatorsBuilder.ToSyntaxTokenListAndFree());
         }
 
         private List<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
