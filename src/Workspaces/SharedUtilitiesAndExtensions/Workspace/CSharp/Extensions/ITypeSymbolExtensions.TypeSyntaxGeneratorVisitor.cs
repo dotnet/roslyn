@@ -24,19 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: false);
 
             private TypeSyntaxGeneratorVisitor(bool nameOnly)
-            {
-                _nameOnly = nameOnly;
-            }
+                => _nameOnly = nameOnly;
 
             public static TypeSyntaxGeneratorVisitor Create(bool nameOnly = false)
-            {
-                return nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
-            }
+                => nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
 
             public override TypeSyntax DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             private TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
                 where TTypeSyntax : TypeSyntax
@@ -48,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitAlias(IAliasSymbol symbol)
-            {
-                return AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
-            }
+                => AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
 
             private void ThrowIfNameOnly()
             {
@@ -172,9 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             private static IdentifierNameSyntax CreateGlobalIdentifier()
-            {
-                return SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
-            }
+                => SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
 
             private TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
             {
@@ -313,9 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                return AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
-            }
+                => AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
         }
     }
 }

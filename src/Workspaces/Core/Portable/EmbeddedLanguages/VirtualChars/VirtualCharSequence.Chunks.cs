@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
@@ -68,9 +69,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             public override int Length => _underlyingData.Length;
 
             public override VirtualChar this[int index]
-                => new VirtualChar(
-                    _underlyingData[index],
-                    new TextSpan(_firstVirtualCharPosition + index, length: 1));
+            {
+                get
+                {
+#if DEBUG
+                    // We should never have a property paired high/low surrogate in a StringChunk. We are only created
+                    // when the string has the same number of chars as there are VirtualChars.
+                    if (char.IsHighSurrogate(_underlyingData[index]))
+                    {
+                        Debug.Assert(index + 1 >= _underlyingData.Length ||
+                                     !char.IsLowSurrogate(_underlyingData[index + 1]));
+                    }
+#endif
+
+                    var span = new TextSpan(_firstVirtualCharPosition + index, length: 1);
+                    var ch = _underlyingData[index];
+                    return char.IsSurrogate(ch)
+                        ? VirtualChar.Create(ch, span)
+                        : VirtualChar.Create(new Rune(ch), span);
+                }
+            }
         }
     }
 }

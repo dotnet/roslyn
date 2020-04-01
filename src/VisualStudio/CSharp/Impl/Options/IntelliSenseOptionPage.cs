@@ -12,8 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     internal class IntelliSenseOptionPage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
-        {
-            return new IntelliSenseOptionPageControl(optionStore);
-        }
+            => new IntelliSenseOptionPageControl(optionStore);
     }
 }

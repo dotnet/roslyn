@@ -92,9 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         }
 
         internal void CheckText(IBraceCompletionSession session, string result)
-        {
-            Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
-        }
+            => Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
 
         internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
         {
@@ -189,9 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
 
             public void Dispose()
-            {
-                this.Workspace.Dispose();
-            }
+                => this.Workspace.Dispose();
         }
     }
 }

@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static bool IsCSharpWhitespace(char c)
-        {
-            return SyntaxFacts.IsWhitespace(c) || SyntaxFacts.IsNewLine(c);
-        }
+            => SyntaxFacts.IsWhitespace(c) || SyntaxFacts.IsNewLine(c);
 
         public override TriviaData CreateLeadingTrivia(SyntaxToken token)
         {

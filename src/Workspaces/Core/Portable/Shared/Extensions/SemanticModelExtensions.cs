@@ -10,16 +10,13 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return SemanticMap.From(semanticModel, node, cancellationToken);
-        }
+            => SemanticMap.From(semanticModel, node, cancellationToken);
 
         /// <summary>
         /// Fetches the ITypeSymbol that should be used if we were generating a parameter or local that would accept <paramref name="expression"/>. If

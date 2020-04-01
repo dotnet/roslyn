@@ -179,6 +179,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedParametersPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedValuePreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IIntervalIntrospector.cs" />
@@ -280,6 +282,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\LineColumn.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\LineColumnDelta.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\LineColumnRule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\TriviaHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\TriviaEngine\TriviaList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\IUnnecessaryImportsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\AbstractUnnecessaryImportsProvider.cs" />
@@ -306,6 +309,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SymbolSpecification.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDelegates.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocationExtensions.cs" />
@@ -336,10 +340,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\DoNotAllowVarAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SymbolAnnotation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System.Text\Rune.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeDebug.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System.Text\UnicodeUtility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System.Text\Utf16Utility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AbstractSpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AliasSymbolCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AnnotationTable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncBatchingWorkQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncLazy`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BidirectionalMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\BKTree.Builder.cs" />
@@ -352,6 +359,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CommonFormattingHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ComparerWithState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditorConfigFileGenerator_NamingStyles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EventMap.cs" />
@@ -401,7 +409,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\RestrictedInternalsVisibleToAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemaphoreSlimFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SerializableBytes.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\SimpleTaskQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SoftCrashException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SpecializedTasks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\StringBreaker.cs" />
@@ -468,7 +475,7 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

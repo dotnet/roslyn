@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -28,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> tagComputers = new ConditionalWeakTable<ITextBuffer, TagComputer>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SyntacticClassificationTaggerProvider(
             ClassificationTypeMap typeMap,
             IThreadingContext threadingContext,
@@ -63,8 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         }
 
         private void DisconnectTagComputer(ITextBuffer buffer)
-        {
-            tagComputers.Remove(buffer);
-        }
+            => tagComputers.Remove(buffer);
     }
 }

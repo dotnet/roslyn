@@ -237,6 +237,10 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
 
+        // Generators:
+        public abstract int WRN_GeneratorFailedDuringInitialization { get; }
+        public abstract int WRN_GeneratorFailedDuringGeneration { get; }
+
         /// <summary>
         /// Takes an exception produced while writing to a file stream and produces a diagnostic.
         /// </summary>

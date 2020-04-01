@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Inherits AbstractClassificationService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

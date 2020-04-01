@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.FileHeaders
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
@@ -15,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
         Inherits AbstractFileHeaderCodeFixProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

@@ -13,9 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal partial class CSharpProjectShim : ICSharpVenusProjectSite
     {
         public void AddReferenceToCodeDirectory(string assemblyFileName, ICSharpProjectRoot project)
-        {
-            AddReferenceToCodeDirectoryEx(assemblyFileName, project, CompilerOptions.OPTID_IMPORTS);
-        }
+            => AddReferenceToCodeDirectoryEx(assemblyFileName, project, CompilerOptions.OPTID_IMPORTS);
 
         public void RemoveReferenceToCodeDirectory(string assemblyFileName, ICSharpProjectRoot project)
         {
@@ -35,9 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void OnDiskFileUpdated(string filename, ref System.Runtime.InteropServices.ComTypes.FILETIME pFT)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void OnCodeDirectoryAliasesChanged(ICSharpProjectRoot project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
         {

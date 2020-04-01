@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private readonly SyntaxEditorBasedCodeFixProvider _codeFixProvider;
 
             public SyntaxEditorBasedFixAllProvider(SyntaxEditorBasedCodeFixProvider codeFixProvider)
-            {
-                _codeFixProvider = codeFixProvider;
-            }
+                => _codeFixProvider = codeFixProvider;
 
             public sealed override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {

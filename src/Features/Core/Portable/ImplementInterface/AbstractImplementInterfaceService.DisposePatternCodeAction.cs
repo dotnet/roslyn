@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -202,15 +201,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 var disposeImplMethod = CreateDisposeImplementationMethod(compilation, document, classType, disposeMethod, disposedValueField);
 
-                var symbolDisplay = document.GetRequiredLanguageService<ISymbolDisplayService>();
-                var disposeMethodDisplayString = symbolDisplay.ToDisplayString(disposeImplMethod, s_format);
+                var disposeMethodDisplayString = this.Service.ToDisplayString(disposeImplMethod, s_format);
 
                 var disposeInterfaceMethod = CreateDisposeInterfaceMethod(
                     compilation, document, classType, disposeMethod,
                     disposedValueField, disposeMethodDisplayString);
 
                 var g = document.GetRequiredLanguageService<SyntaxGenerator>();
-                var finalizer = this.Service.CreateFinalizer(g, classType, disposeMethodDisplayString);
+                var finalizer = Service.CreateFinalizer(g, classType, disposeMethodDisplayString);
 
                 return (ImmutableArray.Create<ISymbol>(disposeImplMethod, disposeInterfaceMethod), finalizer);
             }
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 //     // TODO: dispose managed state...
                 // }
                 var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), Array.Empty<SyntaxNode>());
-                ifDisposingStatement = this.Service.AddCommentInsideIfStatement(
+                ifDisposingStatement = Service.AddCommentInsideIfStatement(
                     ifDisposingStatement,
                     CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects))
                         .WithoutTrivia().WithTrailingTrivia(g.CarriageReturnLineFeed, g.CarriageReturnLineFeed);
@@ -294,14 +292,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 statements.Add(g.ExpressionStatement(
                     g.InvocationExpression(
                         g.MemberAccessExpression(
-                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName)),
+                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName!)),
                             nameof(GC.SuppressFinalize)),
                         g.ThisExpression())));
 
                 var modifiers = DeclarationModifiers.From(disposeMethod);
                 modifiers = modifiers.WithIsAbstract(false);
 
-                var explicitInterfaceImplementations = Explicitly || !this.Service.CanImplementImplicitly
+                var explicitInterfaceImplementations = Explicitly || !Service.CanImplementImplicitly
                     ? ImmutableArray.Create(disposeMethod) : default;
 
                 var result = CodeGenerationSymbolFactory.CreateMethodSymbol(

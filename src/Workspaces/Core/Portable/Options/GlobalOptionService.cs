@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Options
         private ImmutableArray<Workspace> _registeredWorkspaces;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GlobalOptionService(
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersister>> optionSerializers)
@@ -105,9 +106,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public IEnumerable<IOption> GetRegisteredOptions()
-        {
-            return _lazyAllOptions.Value;
-        }
+            => _lazyAllOptions.Value;
 
         public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
         {

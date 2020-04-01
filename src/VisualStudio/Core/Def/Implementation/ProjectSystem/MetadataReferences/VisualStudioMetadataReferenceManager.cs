@@ -88,19 +88,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
-        {
-            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
-        }
+            => new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
 
         public void ClearCache()
-        {
-            _metadataCache.ClearCache();
-        }
+            => _metadataCache.ClearCache();
 
         private bool VsSmartScopeCandidate(string fullPath)
-        {
-            return _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
-        }
+            => _runtimeDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
 
         internal static IEnumerable<string> GetReferencePaths()
         {

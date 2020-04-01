@@ -16,24 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         ICommandHandler<WordDeleteToEndCommandArgs>
     {
         public CommandState GetCommandState(WordDeleteToStartCommandArgs args)
-        {
-            return GetCommandState();
-        }
+            => GetCommandState();
 
         public CommandState GetCommandState(WordDeleteToEndCommandArgs args)
-        {
-            return GetCommandState();
-        }
+            => GetCommandState();
 
         public bool ExecuteCommand(WordDeleteToStartCommandArgs args, CommandExecutionContext context)
-        {
-            return HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: true);
-        }
+            => HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: true);
 
         public bool ExecuteCommand(WordDeleteToEndCommandArgs args, CommandExecutionContext context)
-        {
-            return HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: false);
-        }
+            => HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: false);
 
         private bool HandleWordDeleteCommand(ITextBuffer subjectBuffer, ITextView view, bool deleteToStart)
         {

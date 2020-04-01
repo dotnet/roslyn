@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public TemporaryWorkspace(Solution solution) : this()
-        {
-            this.SetCurrentSolution(solution);
-        }
+            => this.SetCurrentSolution(solution);
 
         public TemporaryWorkspace(SolutionInfo solutionInfo, SerializableOptionSet options) : this()
         {

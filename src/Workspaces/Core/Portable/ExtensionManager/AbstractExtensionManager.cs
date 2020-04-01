@@ -17,38 +17,24 @@ namespace Microsoft.CodeAnalysis.Extensions
         }
 
         protected void DisableProvider(object provider)
-        {
-            _disabledProviders.Add(provider);
-        }
+            => _disabledProviders.Add(provider);
 
         protected void EnableProvider(object provider)
-        {
-            _disabledProviders.Remove(provider);
-        }
+            => _disabledProviders.Remove(provider);
 
         protected void IgnoreProvider(object provider)
-        {
-            _ignoredProviders.Add(provider);
-        }
+            => _ignoredProviders.Add(provider);
 
         public bool IsIgnored(object provider)
-        {
-            return _ignoredProviders.Contains(provider);
-        }
+            => _ignoredProviders.Contains(provider);
 
         public bool IsDisabled(object provider)
-        {
-            return _disabledProviders.Contains(provider);
-        }
+            => _disabledProviders.Contains(provider);
 
         public virtual bool CanHandleException(object provider, Exception exception)
-        {
-            return true;
-        }
+            => true;
 
         public virtual void HandleException(object provider, Exception exception)
-        {
-            DisableProvider(provider);
-        }
+            => DisableProvider(provider);
     }
 }

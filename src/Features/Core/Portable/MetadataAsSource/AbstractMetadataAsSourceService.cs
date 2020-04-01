@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         private readonly ICodeGenerationService _codeGenerationService;
 
         protected AbstractMetadataAsSourceService(ICodeGenerationService codeGenerationService)
-        {
-            _codeGenerationService = codeGenerationService;
-        }
+            => _codeGenerationService = codeGenerationService;
 
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {

@@ -2075,16 +2075,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Variablendeklaration kann inline erfolgen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Explizit angegebenen Tupelelementnamen bevorzugen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Explizit angegebenen Tupelelementnamen verwenden</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
         <target state="translated">Dokument "{0}" entfernen</target>
@@ -2240,16 +2230,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">{0} implementieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">Die Formatzeichenfolge enthält einen ungültigen Platzhalter.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Ungültige Formatzeichenfolge</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Abgeleiteten Membernamen verwenden</target>
@@ -2315,16 +2295,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Durch den Wechsel zwischen einer Lambdafunktion und einer lokalen Funktion wird das Fortsetzen der Debugsitzung verhindert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Variablendeklaration dekonstruieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Die Variablendeklaration kann dekonstruiert werden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Argumentnamen "{0}" (einschließlich nachfolgender Argumente) hinzufügen</target>
@@ -2338,26 +2308,6 @@ Diese Version wird verwendet in: {2}</target>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">Indexer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_can_be_removed">
-        <source>Parentheses can be removed</source>
-        <target state="translated">Klammern können entfernt werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_parentheses">
-        <source>Remove unnecessary parentheses</source>
-        <target state="translated">Unnötige Klammern entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_for_clarity">
-        <source>Add parentheses for clarity</source>
-        <target state="translated">Zur besseren Unterscheidung Klammern hinzufügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_should_be_added_for_clarity">
-        <source>Parentheses should be added for clarity</source>
-        <target state="translated">Zur besseren Unterscheidung sollten Klammern hinzugefügt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2378,11 +2328,6 @@ Diese Version wird verwendet in: {2}</target>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">Warnung: Die Sammlung wird bei der Iteration möglicherweise geändert.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">In bedingten Ausdruck konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

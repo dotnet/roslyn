@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddObsoleteAttribute;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
 {
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
             );
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAddObsoleteAttributeCodeFixProvider()
             : base(CSharpSyntaxFacts.Instance, CSharpFeaturesResources.Add_Obsolete)
         {
