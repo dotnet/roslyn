@@ -9718,5 +9718,1207 @@ class Program
         }
 
         #endregion "regression tests"
+
+        #region Code Quality tests
+
+        [Fact]
+        public void BalancedSwitchDispatch_Double()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(2.1D));
+        Console.WriteLine(M(3.1D));
+        Console.WriteLine(M(4.1D));
+        Console.WriteLine(M(5.1D));
+        Console.WriteLine(M(6.1D));
+        Console.WriteLine(M(7.1D));
+        Console.WriteLine(M(8.1D));
+        Console.WriteLine(M(9.1D));
+        Console.WriteLine(M(10.1D));
+        Console.WriteLine(M(11.1D));
+        Console.WriteLine(M(12.1D));
+        Console.WriteLine(M(13.1D));
+        Console.WriteLine(M(14.1D));
+        Console.WriteLine(M(15.1D));
+        Console.WriteLine(M(16.1D));
+        Console.WriteLine(M(17.1D));
+        Console.WriteLine(M(18.1D));
+        Console.WriteLine(M(19.1D));
+        Console.WriteLine(M(20.1D));
+        Console.WriteLine(M(21.1D));
+        Console.WriteLine(M(22.1D));
+        Console.WriteLine(M(23.1D));
+        Console.WriteLine(M(24.1D));
+        Console.WriteLine(M(25.1D));
+        Console.WriteLine(M(26.1D));
+        Console.WriteLine(M(27.1D));
+        Console.WriteLine(M(28.1D));
+        Console.WriteLine(M(29.1D));
+
+    }
+    static int M(double d)
+    {
+        return d switch
+        {
+            >= 27.1D and < 29.1D => 19,
+            26.1D => 18,
+            9.1D => 5,
+            >= 2.1D and < 4.1D => 1,
+            12.1D => 8,
+            >= 21.1D and < 23.1D => 15,
+            19.1D => 13,
+            29.1D => 20,
+            >= 13.1D and < 15.1D => 9,
+            10.1D => 6,
+            15.1D => 10,
+            11.1D => 7,
+            4.1D => 2,
+            >= 16.1D and < 18.1D => 11,
+            >= 23.1D and < 25.1D => 16,
+            18.1D => 12,
+            >= 7.1D and < 9.1D => 4,
+            25.1D => 17,
+            20.1D => 14,
+            >= 5.1D and < 7.1D => 3,
+            _ => 0,
+        };
+    }
+}
+";
+            var expectedOutput =
+@"1
+1
+2
+3
+3
+4
+4
+5
+6
+7
+8
+9
+9
+10
+11
+11
+12
+13
+14
+15
+15
+16
+16
+17
+18
+19
+19
+20
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.RegularWithPatternCombinators,
+                expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M", @"
+    {
+      // Code size      499 (0x1f3)
+      .maxstack  2
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.r8     13.1
+      IL_000a:  blt.un     IL_00fb
+      IL_000f:  ldarg.0
+      IL_0010:  ldc.r8     21.1
+      IL_0019:  blt.un.s   IL_008b
+      IL_001b:  ldarg.0
+      IL_001c:  ldc.r8     27.1
+      IL_0025:  blt.un.s   IL_004a
+      IL_0027:  ldarg.0
+      IL_0028:  ldc.r8     29.1
+      IL_0031:  blt        IL_0193
+      IL_0036:  ldarg.0
+      IL_0037:  ldc.r8     29.1
+      IL_0040:  beq        IL_01b3
+      IL_0045:  br         IL_01ef
+      IL_004a:  ldarg.0
+      IL_004b:  ldc.r8     23.1
+      IL_0054:  blt        IL_01a9
+      IL_0059:  ldarg.0
+      IL_005a:  ldc.r8     25.1
+      IL_0063:  blt        IL_01d3
+      IL_0068:  ldarg.0
+      IL_0069:  ldc.r8     25.1
+      IL_0072:  beq        IL_01e1
+      IL_0077:  ldarg.0
+      IL_0078:  ldc.r8     26.1
+      IL_0081:  beq        IL_0198
+      IL_0086:  br         IL_01ef
+      IL_008b:  ldarg.0
+      IL_008c:  ldc.r8     16.1
+      IL_0095:  blt.un.s   IL_00d8
+      IL_0097:  ldarg.0
+      IL_0098:  ldc.r8     18.1
+      IL_00a1:  blt        IL_01ce
+      IL_00a6:  ldarg.0
+      IL_00a7:  ldc.r8     18.1
+      IL_00b0:  beq        IL_01d8
+      IL_00b5:  ldarg.0
+      IL_00b6:  ldc.r8     19.1
+      IL_00bf:  beq        IL_01ae
+      IL_00c4:  ldarg.0
+      IL_00c5:  ldc.r8     20.1
+      IL_00ce:  beq        IL_01e6
+      IL_00d3:  br         IL_01ef
+      IL_00d8:  ldarg.0
+      IL_00d9:  ldc.r8     15.1
+      IL_00e2:  blt        IL_01b8
+      IL_00e7:  ldarg.0
+      IL_00e8:  ldc.r8     15.1
+      IL_00f1:  beq        IL_01c1
+      IL_00f6:  br         IL_01ef
+      IL_00fb:  ldarg.0
+      IL_00fc:  ldc.r8     7.1
+      IL_0105:  blt.un.s   IL_015f
+      IL_0107:  ldarg.0
+      IL_0108:  ldc.r8     9.1
+      IL_0111:  blt        IL_01dd
+      IL_0116:  ldarg.0
+      IL_0117:  ldc.r8     10.1
+      IL_0120:  bgt.un.s   IL_0142
+      IL_0122:  ldarg.0
+      IL_0123:  ldc.r8     9.1
+      IL_012c:  beq.s      IL_019d
+      IL_012e:  ldarg.0
+      IL_012f:  ldc.r8     10.1
+      IL_0138:  beq        IL_01bd
+      IL_013d:  br         IL_01ef
+      IL_0142:  ldarg.0
+      IL_0143:  ldc.r8     11.1
+      IL_014c:  beq.s      IL_01c6
+      IL_014e:  ldarg.0
+      IL_014f:  ldc.r8     12.1
+      IL_0158:  beq.s      IL_01a5
+      IL_015a:  br         IL_01ef
+      IL_015f:  ldarg.0
+      IL_0160:  ldc.r8     4.1
+      IL_0169:  bge.un.s   IL_0179
+      IL_016b:  ldarg.0
+      IL_016c:  ldc.r8     2.1
+      IL_0175:  bge.s      IL_01a1
+      IL_0177:  br.s       IL_01ef
+      IL_0179:  ldarg.0
+      IL_017a:  ldc.r8     5.1
+      IL_0183:  bge.s      IL_01eb
+      IL_0185:  ldarg.0
+      IL_0186:  ldc.r8     4.1
+      IL_018f:  beq.s      IL_01ca
+      IL_0191:  br.s       IL_01ef
+      IL_0193:  ldc.i4.s   19
+      IL_0195:  stloc.0
+      IL_0196:  br.s       IL_01f1
+      IL_0198:  ldc.i4.s   18
+      IL_019a:  stloc.0
+      IL_019b:  br.s       IL_01f1
+      IL_019d:  ldc.i4.5
+      IL_019e:  stloc.0
+      IL_019f:  br.s       IL_01f1
+      IL_01a1:  ldc.i4.1
+      IL_01a2:  stloc.0
+      IL_01a3:  br.s       IL_01f1
+      IL_01a5:  ldc.i4.8
+      IL_01a6:  stloc.0
+      IL_01a7:  br.s       IL_01f1
+      IL_01a9:  ldc.i4.s   15
+      IL_01ab:  stloc.0
+      IL_01ac:  br.s       IL_01f1
+      IL_01ae:  ldc.i4.s   13
+      IL_01b0:  stloc.0
+      IL_01b1:  br.s       IL_01f1
+      IL_01b3:  ldc.i4.s   20
+      IL_01b5:  stloc.0
+      IL_01b6:  br.s       IL_01f1
+      IL_01b8:  ldc.i4.s   9
+      IL_01ba:  stloc.0
+      IL_01bb:  br.s       IL_01f1
+      IL_01bd:  ldc.i4.6
+      IL_01be:  stloc.0
+      IL_01bf:  br.s       IL_01f1
+      IL_01c1:  ldc.i4.s   10
+      IL_01c3:  stloc.0
+      IL_01c4:  br.s       IL_01f1
+      IL_01c6:  ldc.i4.7
+      IL_01c7:  stloc.0
+      IL_01c8:  br.s       IL_01f1
+      IL_01ca:  ldc.i4.2
+      IL_01cb:  stloc.0
+      IL_01cc:  br.s       IL_01f1
+      IL_01ce:  ldc.i4.s   11
+      IL_01d0:  stloc.0
+      IL_01d1:  br.s       IL_01f1
+      IL_01d3:  ldc.i4.s   16
+      IL_01d5:  stloc.0
+      IL_01d6:  br.s       IL_01f1
+      IL_01d8:  ldc.i4.s   12
+      IL_01da:  stloc.0
+      IL_01db:  br.s       IL_01f1
+      IL_01dd:  ldc.i4.4
+      IL_01de:  stloc.0
+      IL_01df:  br.s       IL_01f1
+      IL_01e1:  ldc.i4.s   17
+      IL_01e3:  stloc.0
+      IL_01e4:  br.s       IL_01f1
+      IL_01e6:  ldc.i4.s   14
+      IL_01e8:  stloc.0
+      IL_01e9:  br.s       IL_01f1
+      IL_01eb:  ldc.i4.3
+      IL_01ec:  stloc.0
+      IL_01ed:  br.s       IL_01f1
+      IL_01ef:  ldc.i4.0
+      IL_01f0:  stloc.0
+      IL_01f1:  ldloc.0
+      IL_01f2:  ret
+    }
+"
+            );
+        }
+
+        [Fact]
+        public void BalancedSwitchDispatch_Float()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(2.1F));
+        Console.WriteLine(M(3.1F));
+        Console.WriteLine(M(4.1F));
+        Console.WriteLine(M(5.1F));
+        Console.WriteLine(M(6.1F));
+        Console.WriteLine(M(7.1F));
+        Console.WriteLine(M(8.1F));
+        Console.WriteLine(M(9.1F));
+        Console.WriteLine(M(10.1F));
+        Console.WriteLine(M(11.1F));
+        Console.WriteLine(M(12.1F));
+        Console.WriteLine(M(13.1F));
+        Console.WriteLine(M(14.1F));
+        Console.WriteLine(M(15.1F));
+        Console.WriteLine(M(16.1F));
+        Console.WriteLine(M(17.1F));
+        Console.WriteLine(M(18.1F));
+        Console.WriteLine(M(19.1F));
+        Console.WriteLine(M(20.1F));
+        Console.WriteLine(M(21.1F));
+        Console.WriteLine(M(22.1F));
+        Console.WriteLine(M(23.1F));
+        Console.WriteLine(M(24.1F));
+        Console.WriteLine(M(25.1F));
+        Console.WriteLine(M(26.1F));
+        Console.WriteLine(M(27.1F));
+        Console.WriteLine(M(28.1F));
+        Console.WriteLine(M(29.1F));
+
+    }
+    static int M(float d)
+    {
+        return d switch
+        {
+            >= 27.1F and < 29.1F => 19,
+            26.1F => 18,
+            9.1F => 5,
+            >= 2.1F and < 4.1F => 1,
+            12.1F => 8,
+            >= 21.1F and < 23.1F => 15,
+            19.1F => 13,
+            29.1F => 20,
+            >= 13.1F and < 15.1F => 9,
+            10.1F => 6,
+            15.1F => 10,
+            11.1F => 7,
+            4.1F => 2,
+            >= 16.1F and < 18.1F => 11,
+            >= 23.1F and < 25.1F => 16,
+            18.1F => 12,
+            >= 7.1F and < 9.1F => 4,
+            25.1F => 17,
+            20.1F => 14,
+            >= 5.1F and < 7.1F => 3,
+            _ => 0,
+        };
+    }
+}
+";
+            var expectedOutput =
+@"1
+1
+2
+3
+3
+4
+4
+5
+6
+7
+8
+9
+9
+10
+11
+11
+12
+13
+14
+15
+15
+16
+16
+17
+18
+19
+19
+20
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.RegularWithPatternCombinators,
+                expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M", @"
+    {
+      // Code size      388 (0x184)
+      .maxstack  2
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.r4     13.1
+      IL_0006:  blt.un     IL_00bb
+      IL_000b:  ldarg.0
+      IL_000c:  ldc.r4     21.1
+      IL_0011:  blt.un.s   IL_0067
+      IL_0013:  ldarg.0
+      IL_0014:  ldc.r4     27.1
+      IL_0019:  blt.un.s   IL_0036
+      IL_001b:  ldarg.0
+      IL_001c:  ldc.r4     29.1
+      IL_0021:  blt        IL_0124
+      IL_0026:  ldarg.0
+      IL_0027:  ldc.r4     29.1
+      IL_002c:  beq        IL_0144
+      IL_0031:  br         IL_0180
+      IL_0036:  ldarg.0
+      IL_0037:  ldc.r4     23.1
+      IL_003c:  blt        IL_013a
+      IL_0041:  ldarg.0
+      IL_0042:  ldc.r4     25.1
+      IL_0047:  blt        IL_0164
+      IL_004c:  ldarg.0
+      IL_004d:  ldc.r4     25.1
+      IL_0052:  beq        IL_0172
+      IL_0057:  ldarg.0
+      IL_0058:  ldc.r4     26.1
+      IL_005d:  beq        IL_0129
+      IL_0062:  br         IL_0180
+      IL_0067:  ldarg.0
+      IL_0068:  ldc.r4     16.1
+      IL_006d:  blt.un.s   IL_00a0
+      IL_006f:  ldarg.0
+      IL_0070:  ldc.r4     18.1
+      IL_0075:  blt        IL_015f
+      IL_007a:  ldarg.0
+      IL_007b:  ldc.r4     18.1
+      IL_0080:  beq        IL_0169
+      IL_0085:  ldarg.0
+      IL_0086:  ldc.r4     19.1
+      IL_008b:  beq        IL_013f
+      IL_0090:  ldarg.0
+      IL_0091:  ldc.r4     20.1
+      IL_0096:  beq        IL_0177
+      IL_009b:  br         IL_0180
+      IL_00a0:  ldarg.0
+      IL_00a1:  ldc.r4     15.1
+      IL_00a6:  blt        IL_0149
+      IL_00ab:  ldarg.0
+      IL_00ac:  ldc.r4     15.1
+      IL_00b1:  beq        IL_0152
+      IL_00b6:  br         IL_0180
+      IL_00bb:  ldarg.0
+      IL_00bc:  ldc.r4     7.1
+      IL_00c1:  blt.un.s   IL_0100
+      IL_00c3:  ldarg.0
+      IL_00c4:  ldc.r4     9.1
+      IL_00c9:  blt        IL_016e
+      IL_00ce:  ldarg.0
+      IL_00cf:  ldc.r4     10.1
+      IL_00d4:  bgt.un.s   IL_00eb
+      IL_00d6:  ldarg.0
+      IL_00d7:  ldc.r4     9.1
+      IL_00dc:  beq.s      IL_012e
+      IL_00de:  ldarg.0
+      IL_00df:  ldc.r4     10.1
+      IL_00e4:  beq.s      IL_014e
+      IL_00e6:  br         IL_0180
+      IL_00eb:  ldarg.0
+      IL_00ec:  ldc.r4     11.1
+      IL_00f1:  beq.s      IL_0157
+      IL_00f3:  ldarg.0
+      IL_00f4:  ldc.r4     12.1
+      IL_00f9:  beq.s      IL_0136
+      IL_00fb:  br         IL_0180
+      IL_0100:  ldarg.0
+      IL_0101:  ldc.r4     4.1
+      IL_0106:  bge.un.s   IL_0112
+      IL_0108:  ldarg.0
+      IL_0109:  ldc.r4     2.1
+      IL_010e:  bge.s      IL_0132
+      IL_0110:  br.s       IL_0180
+      IL_0112:  ldarg.0
+      IL_0113:  ldc.r4     5.1
+      IL_0118:  bge.s      IL_017c
+      IL_011a:  ldarg.0
+      IL_011b:  ldc.r4     4.1
+      IL_0120:  beq.s      IL_015b
+      IL_0122:  br.s       IL_0180
+      IL_0124:  ldc.i4.s   19
+      IL_0126:  stloc.0
+      IL_0127:  br.s       IL_0182
+      IL_0129:  ldc.i4.s   18
+      IL_012b:  stloc.0
+      IL_012c:  br.s       IL_0182
+      IL_012e:  ldc.i4.5
+      IL_012f:  stloc.0
+      IL_0130:  br.s       IL_0182
+      IL_0132:  ldc.i4.1
+      IL_0133:  stloc.0
+      IL_0134:  br.s       IL_0182
+      IL_0136:  ldc.i4.8
+      IL_0137:  stloc.0
+      IL_0138:  br.s       IL_0182
+      IL_013a:  ldc.i4.s   15
+      IL_013c:  stloc.0
+      IL_013d:  br.s       IL_0182
+      IL_013f:  ldc.i4.s   13
+      IL_0141:  stloc.0
+      IL_0142:  br.s       IL_0182
+      IL_0144:  ldc.i4.s   20
+      IL_0146:  stloc.0
+      IL_0147:  br.s       IL_0182
+      IL_0149:  ldc.i4.s   9
+      IL_014b:  stloc.0
+      IL_014c:  br.s       IL_0182
+      IL_014e:  ldc.i4.6
+      IL_014f:  stloc.0
+      IL_0150:  br.s       IL_0182
+      IL_0152:  ldc.i4.s   10
+      IL_0154:  stloc.0
+      IL_0155:  br.s       IL_0182
+      IL_0157:  ldc.i4.7
+      IL_0158:  stloc.0
+      IL_0159:  br.s       IL_0182
+      IL_015b:  ldc.i4.2
+      IL_015c:  stloc.0
+      IL_015d:  br.s       IL_0182
+      IL_015f:  ldc.i4.s   11
+      IL_0161:  stloc.0
+      IL_0162:  br.s       IL_0182
+      IL_0164:  ldc.i4.s   16
+      IL_0166:  stloc.0
+      IL_0167:  br.s       IL_0182
+      IL_0169:  ldc.i4.s   12
+      IL_016b:  stloc.0
+      IL_016c:  br.s       IL_0182
+      IL_016e:  ldc.i4.4
+      IL_016f:  stloc.0
+      IL_0170:  br.s       IL_0182
+      IL_0172:  ldc.i4.s   17
+      IL_0174:  stloc.0
+      IL_0175:  br.s       IL_0182
+      IL_0177:  ldc.i4.s   14
+      IL_0179:  stloc.0
+      IL_017a:  br.s       IL_0182
+      IL_017c:  ldc.i4.3
+      IL_017d:  stloc.0
+      IL_017e:  br.s       IL_0182
+      IL_0180:  ldc.i4.0
+      IL_0181:  stloc.0
+      IL_0182:  ldloc.0
+      IL_0183:  ret
+    }
+"
+            );
+        }
+
+        [Fact]
+        public void BalancedSwitchDispatch_Decimal()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(2.1M));
+        Console.WriteLine(M(3.1M));
+        Console.WriteLine(M(4.1M));
+        Console.WriteLine(M(5.1M));
+        Console.WriteLine(M(6.1M));
+        Console.WriteLine(M(7.1M));
+        Console.WriteLine(M(8.1M));
+        Console.WriteLine(M(9.1M));
+        Console.WriteLine(M(10.1M));
+        Console.WriteLine(M(11.1M));
+        Console.WriteLine(M(12.1M));
+        Console.WriteLine(M(13.1M));
+        Console.WriteLine(M(14.1M));
+        Console.WriteLine(M(15.1M));
+        Console.WriteLine(M(16.1M));
+        Console.WriteLine(M(17.1M));
+        Console.WriteLine(M(18.1M));
+        Console.WriteLine(M(19.1M));
+        Console.WriteLine(M(20.1M));
+        Console.WriteLine(M(21.1M));
+        Console.WriteLine(M(22.1M));
+        Console.WriteLine(M(23.1M));
+        Console.WriteLine(M(24.1M));
+        Console.WriteLine(M(25.1M));
+        Console.WriteLine(M(26.1M));
+        Console.WriteLine(M(27.1M));
+        Console.WriteLine(M(28.1M));
+        Console.WriteLine(M(29.1M));
+
+    }
+    static int M(decimal d)
+    {
+        return d switch
+        {
+            >= 27.1M and < 29.1M => 19,
+            26.1M => 18,
+            9.1M => 5,
+            >= 2.1M and < 4.1M => 1,
+            12.1M => 8,
+            >= 21.1M and < 23.1M => 15,
+            19.1M => 13,
+            29.1M => 20,
+            >= 13.1M and < 15.1M => 9,
+            10.1M => 6,
+            15.1M => 10,
+            11.1M => 7,
+            4.1M => 2,
+            >= 16.1M and < 18.1M => 11,
+            >= 23.1M and < 25.1M => 16,
+            18.1M => 12,
+            >= 7.1M and < 9.1M => 4,
+            25.1M => 17,
+            20.1M => 14,
+            >= 5.1M and < 7.1M => 3,
+            _ => 0,
+        };
+    }
+}
+";
+            var expectedOutput =
+@"1
+1
+2
+3
+3
+4
+4
+5
+6
+7
+8
+9
+9
+10
+11
+11
+12
+13
+14
+15
+15
+16
+16
+17
+18
+19
+19
+20
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.RegularWithPatternCombinators,
+                expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M", @"
+    {
+      // Code size      751 (0x2ef)
+      .maxstack  6
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4     0x83
+      IL_0006:  ldc.i4.0
+      IL_0007:  ldc.i4.0
+      IL_0008:  ldc.i4.0
+      IL_0009:  ldc.i4.1
+      IL_000a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_000f:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_0014:  brfalse    IL_019e
+      IL_0019:  ldarg.0
+      IL_001a:  ldc.i4     0xd3
+      IL_001f:  ldc.i4.0
+      IL_0020:  ldc.i4.0
+      IL_0021:  ldc.i4.0
+      IL_0022:  ldc.i4.1
+      IL_0023:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0028:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_002d:  brfalse    IL_00e8
+      IL_0032:  ldarg.0
+      IL_0033:  ldc.i4     0x10f
+      IL_0038:  ldc.i4.0
+      IL_0039:  ldc.i4.0
+      IL_003a:  ldc.i4.0
+      IL_003b:  ldc.i4.1
+      IL_003c:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0041:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_0046:  brfalse.s  IL_007f
+      IL_0048:  ldarg.0
+      IL_0049:  ldc.i4     0x123
+      IL_004e:  ldc.i4.0
+      IL_004f:  ldc.i4.0
+      IL_0050:  ldc.i4.0
+      IL_0051:  ldc.i4.1
+      IL_0052:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0057:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_005c:  brtrue     IL_028f
+      IL_0061:  ldarg.0
+      IL_0062:  ldc.i4     0x123
+      IL_0067:  ldc.i4.0
+      IL_0068:  ldc.i4.0
+      IL_0069:  ldc.i4.0
+      IL_006a:  ldc.i4.1
+      IL_006b:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0070:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0075:  brtrue     IL_02af
+      IL_007a:  br         IL_02eb
+      IL_007f:  ldarg.0
+      IL_0080:  ldc.i4     0xe7
+      IL_0085:  ldc.i4.0
+      IL_0086:  ldc.i4.0
+      IL_0087:  ldc.i4.0
+      IL_0088:  ldc.i4.1
+      IL_0089:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_008e:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_0093:  brtrue     IL_02a5
+      IL_0098:  ldarg.0
+      IL_0099:  ldc.i4     0xfb
+      IL_009e:  ldc.i4.0
+      IL_009f:  ldc.i4.0
+      IL_00a0:  ldc.i4.0
+      IL_00a1:  ldc.i4.1
+      IL_00a2:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_00a7:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_00ac:  brtrue     IL_02cf
+      IL_00b1:  ldarg.0
+      IL_00b2:  ldc.i4     0xfb
+      IL_00b7:  ldc.i4.0
+      IL_00b8:  ldc.i4.0
+      IL_00b9:  ldc.i4.0
+      IL_00ba:  ldc.i4.1
+      IL_00bb:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_00c0:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_00c5:  brtrue     IL_02dd
+      IL_00ca:  ldarg.0
+      IL_00cb:  ldc.i4     0x105
+      IL_00d0:  ldc.i4.0
+      IL_00d1:  ldc.i4.0
+      IL_00d2:  ldc.i4.0
+      IL_00d3:  ldc.i4.1
+      IL_00d4:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_00d9:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_00de:  brtrue     IL_0294
+      IL_00e3:  br         IL_02eb
+      IL_00e8:  ldarg.0
+      IL_00e9:  ldc.i4     0xa1
+      IL_00ee:  ldc.i4.0
+      IL_00ef:  ldc.i4.0
+      IL_00f0:  ldc.i4.0
+      IL_00f1:  ldc.i4.1
+      IL_00f2:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_00f7:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_00fc:  brfalse.s  IL_0167
+      IL_00fe:  ldarg.0
+      IL_00ff:  ldc.i4     0xb5
+      IL_0104:  ldc.i4.0
+      IL_0105:  ldc.i4.0
+      IL_0106:  ldc.i4.0
+      IL_0107:  ldc.i4.1
+      IL_0108:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_010d:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_0112:  brtrue     IL_02ca
+      IL_0117:  ldarg.0
+      IL_0118:  ldc.i4     0xb5
+      IL_011d:  ldc.i4.0
+      IL_011e:  ldc.i4.0
+      IL_011f:  ldc.i4.0
+      IL_0120:  ldc.i4.1
+      IL_0121:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0126:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_012b:  brtrue     IL_02d4
+      IL_0130:  ldarg.0
+      IL_0131:  ldc.i4     0xbf
+      IL_0136:  ldc.i4.0
+      IL_0137:  ldc.i4.0
+      IL_0138:  ldc.i4.0
+      IL_0139:  ldc.i4.1
+      IL_013a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_013f:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0144:  brtrue     IL_02aa
+      IL_0149:  ldarg.0
+      IL_014a:  ldc.i4     0xc9
+      IL_014f:  ldc.i4.0
+      IL_0150:  ldc.i4.0
+      IL_0151:  ldc.i4.0
+      IL_0152:  ldc.i4.1
+      IL_0153:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0158:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_015d:  brtrue     IL_02e2
+      IL_0162:  br         IL_02eb
+      IL_0167:  ldarg.0
+      IL_0168:  ldc.i4     0x97
+      IL_016d:  ldc.i4.0
+      IL_016e:  ldc.i4.0
+      IL_016f:  ldc.i4.0
+      IL_0170:  ldc.i4.1
+      IL_0171:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0176:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_017b:  brtrue     IL_02b4
+      IL_0180:  ldarg.0
+      IL_0181:  ldc.i4     0x97
+      IL_0186:  ldc.i4.0
+      IL_0187:  ldc.i4.0
+      IL_0188:  ldc.i4.0
+      IL_0189:  ldc.i4.1
+      IL_018a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_018f:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0194:  brtrue     IL_02bd
+      IL_0199:  br         IL_02eb
+      IL_019e:  ldarg.0
+      IL_019f:  ldc.i4.s   71
+      IL_01a1:  ldc.i4.0
+      IL_01a2:  ldc.i4.0
+      IL_01a3:  ldc.i4.0
+      IL_01a4:  ldc.i4.1
+      IL_01a5:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01aa:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_01af:  brfalse    IL_023c
+      IL_01b4:  ldarg.0
+      IL_01b5:  ldc.i4.s   91
+      IL_01b7:  ldc.i4.0
+      IL_01b8:  ldc.i4.0
+      IL_01b9:  ldc.i4.0
+      IL_01ba:  ldc.i4.1
+      IL_01bb:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01c0:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_01c5:  brtrue     IL_02d9
+      IL_01ca:  ldarg.0
+      IL_01cb:  ldc.i4.s   101
+      IL_01cd:  ldc.i4.0
+      IL_01ce:  ldc.i4.0
+      IL_01cf:  ldc.i4.0
+      IL_01d0:  ldc.i4.1
+      IL_01d1:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01d6:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+      IL_01db:  brfalse.s  IL_020e
+      IL_01dd:  ldarg.0
+      IL_01de:  ldc.i4.s   91
+      IL_01e0:  ldc.i4.0
+      IL_01e1:  ldc.i4.0
+      IL_01e2:  ldc.i4.0
+      IL_01e3:  ldc.i4.1
+      IL_01e4:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01e9:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_01ee:  brtrue     IL_0299
+      IL_01f3:  ldarg.0
+      IL_01f4:  ldc.i4.s   101
+      IL_01f6:  ldc.i4.0
+      IL_01f7:  ldc.i4.0
+      IL_01f8:  ldc.i4.0
+      IL_01f9:  ldc.i4.1
+      IL_01fa:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_01ff:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0204:  brtrue     IL_02b9
+      IL_0209:  br         IL_02eb
+      IL_020e:  ldarg.0
+      IL_020f:  ldc.i4.s   111
+      IL_0211:  ldc.i4.0
+      IL_0212:  ldc.i4.0
+      IL_0213:  ldc.i4.0
+      IL_0214:  ldc.i4.1
+      IL_0215:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_021a:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_021f:  brtrue     IL_02c2
+      IL_0224:  ldarg.0
+      IL_0225:  ldc.i4.s   121
+      IL_0227:  ldc.i4.0
+      IL_0228:  ldc.i4.0
+      IL_0229:  ldc.i4.0
+      IL_022a:  ldc.i4.1
+      IL_022b:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0230:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_0235:  brtrue.s   IL_02a1
+      IL_0237:  br         IL_02eb
+      IL_023c:  ldarg.0
+      IL_023d:  ldc.i4.s   41
+      IL_023f:  ldc.i4.0
+      IL_0240:  ldc.i4.0
+      IL_0241:  ldc.i4.0
+      IL_0242:  ldc.i4.1
+      IL_0243:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0248:  call       ""bool decimal.op_LessThan(decimal, decimal)""
+      IL_024d:  brfalse.s  IL_0267
+      IL_024f:  ldarg.0
+      IL_0250:  ldc.i4.s   21
+      IL_0252:  ldc.i4.0
+      IL_0253:  ldc.i4.0
+      IL_0254:  ldc.i4.0
+      IL_0255:  ldc.i4.1
+      IL_0256:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_025b:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_0260:  brtrue.s   IL_029d
+      IL_0262:  br         IL_02eb
+      IL_0267:  ldarg.0
+      IL_0268:  ldc.i4.s   51
+      IL_026a:  ldc.i4.0
+      IL_026b:  ldc.i4.0
+      IL_026c:  ldc.i4.0
+      IL_026d:  ldc.i4.1
+      IL_026e:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0273:  call       ""bool decimal.op_GreaterThanOrEqual(decimal, decimal)""
+      IL_0278:  brtrue.s   IL_02e7
+      IL_027a:  ldarg.0
+      IL_027b:  ldc.i4.s   41
+      IL_027d:  ldc.i4.0
+      IL_027e:  ldc.i4.0
+      IL_027f:  ldc.i4.0
+      IL_0280:  ldc.i4.1
+      IL_0281:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+      IL_0286:  call       ""bool decimal.op_Equality(decimal, decimal)""
+      IL_028b:  brtrue.s   IL_02c6
+      IL_028d:  br.s       IL_02eb
+      IL_028f:  ldc.i4.s   19
+      IL_0291:  stloc.0
+      IL_0292:  br.s       IL_02ed
+      IL_0294:  ldc.i4.s   18
+      IL_0296:  stloc.0
+      IL_0297:  br.s       IL_02ed
+      IL_0299:  ldc.i4.5
+      IL_029a:  stloc.0
+      IL_029b:  br.s       IL_02ed
+      IL_029d:  ldc.i4.1
+      IL_029e:  stloc.0
+      IL_029f:  br.s       IL_02ed
+      IL_02a1:  ldc.i4.8
+      IL_02a2:  stloc.0
+      IL_02a3:  br.s       IL_02ed
+      IL_02a5:  ldc.i4.s   15
+      IL_02a7:  stloc.0
+      IL_02a8:  br.s       IL_02ed
+      IL_02aa:  ldc.i4.s   13
+      IL_02ac:  stloc.0
+      IL_02ad:  br.s       IL_02ed
+      IL_02af:  ldc.i4.s   20
+      IL_02b1:  stloc.0
+      IL_02b2:  br.s       IL_02ed
+      IL_02b4:  ldc.i4.s   9
+      IL_02b6:  stloc.0
+      IL_02b7:  br.s       IL_02ed
+      IL_02b9:  ldc.i4.6
+      IL_02ba:  stloc.0
+      IL_02bb:  br.s       IL_02ed
+      IL_02bd:  ldc.i4.s   10
+      IL_02bf:  stloc.0
+      IL_02c0:  br.s       IL_02ed
+      IL_02c2:  ldc.i4.7
+      IL_02c3:  stloc.0
+      IL_02c4:  br.s       IL_02ed
+      IL_02c6:  ldc.i4.2
+      IL_02c7:  stloc.0
+      IL_02c8:  br.s       IL_02ed
+      IL_02ca:  ldc.i4.s   11
+      IL_02cc:  stloc.0
+      IL_02cd:  br.s       IL_02ed
+      IL_02cf:  ldc.i4.s   16
+      IL_02d1:  stloc.0
+      IL_02d2:  br.s       IL_02ed
+      IL_02d4:  ldc.i4.s   12
+      IL_02d6:  stloc.0
+      IL_02d7:  br.s       IL_02ed
+      IL_02d9:  ldc.i4.4
+      IL_02da:  stloc.0
+      IL_02db:  br.s       IL_02ed
+      IL_02dd:  ldc.i4.s   17
+      IL_02df:  stloc.0
+      IL_02e0:  br.s       IL_02ed
+      IL_02e2:  ldc.i4.s   14
+      IL_02e4:  stloc.0
+      IL_02e5:  br.s       IL_02ed
+      IL_02e7:  ldc.i4.3
+      IL_02e8:  stloc.0
+      IL_02e9:  br.s       IL_02ed
+      IL_02eb:  ldc.i4.0
+      IL_02ec:  stloc.0
+      IL_02ed:  ldloc.0
+      IL_02ee:  ret
+    }
+"
+            );
+        }
+
+        [Fact]
+        public void BalancedSwitchDispatch_Uint32()
+        {
+            // We do not currently detect that the set of values that we are dispatching on is a compact set,
+            // which would enable us to use the IL switch instruction even though the input was expressed using
+            // a set of relational comparisons.
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(2U));
+        Console.WriteLine(M(3U));
+        Console.WriteLine(M(4U));
+        Console.WriteLine(M(5U));
+        Console.WriteLine(M(6U));
+        Console.WriteLine(M(7U));
+        Console.WriteLine(M(8U));
+        Console.WriteLine(M(9U));
+        Console.WriteLine(M(10U));
+        Console.WriteLine(M(11U));
+        Console.WriteLine(M(12U));
+        Console.WriteLine(M(13U));
+        Console.WriteLine(M(14U));
+        Console.WriteLine(M(15U));
+        Console.WriteLine(M(16U));
+        Console.WriteLine(M(17U));
+        Console.WriteLine(M(18U));
+        Console.WriteLine(M(19U));
+        Console.WriteLine(M(20U));
+        Console.WriteLine(M(21U));
+        Console.WriteLine(M(22U));
+        Console.WriteLine(M(23U));
+        Console.WriteLine(M(24U));
+        Console.WriteLine(M(25U));
+        Console.WriteLine(M(26U));
+        Console.WriteLine(M(27U));
+        Console.WriteLine(M(28U));
+        Console.WriteLine(M(29U));
+
+    }
+    static int M(uint d)
+    {
+        return d switch
+        {
+            >= 27U and < 29U => 19,
+            26U => 18,
+            9U => 5,
+            >= 2U and < 4U => 1,
+            12U => 8,
+            >= 21U and < 23U => 15,
+            19U => 13,
+            29U => 20,
+            >= 13U and < 15U => 9,
+            10U => 6,
+            15U => 10,
+            11U => 7,
+            4U => 2,
+            >= 16U and < 18U => 11,
+            >= 23U and < 25U => 16,
+            18U => 12,
+            >= 7U and < 9U => 4,
+            25U => 17,
+            20U => 14,
+            >= 5U and < 7U => 3,
+            _ => 0,
+        };
+    }
+}
+";
+            var expectedOutput =
+@"1
+1
+2
+3
+3
+4
+4
+5
+6
+7
+8
+9
+9
+10
+11
+11
+12
+13
+14
+15
+15
+16
+16
+17
+18
+19
+19
+20
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.RegularWithPatternCombinators,
+                expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M", @"
+    {
+      // Code size      243 (0xf3)
+      .maxstack  2
+      .locals init (int V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  ldc.i4.s   21
+      IL_0003:  blt.un.s   IL_0039
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.s   27
+      IL_0008:  blt.un.s   IL_001f
+      IL_000a:  ldarg.0
+      IL_000b:  ldc.i4.s   29
+      IL_000d:  blt.un     IL_0093
+      IL_0012:  ldarg.0
+      IL_0013:  ldc.i4.s   29
+      IL_0015:  beq        IL_00b3
+      IL_001a:  br         IL_00ef
+      IL_001f:  ldarg.0
+      IL_0020:  ldc.i4.s   23
+      IL_0022:  blt.un     IL_00a9
+      IL_0027:  ldarg.0
+      IL_0028:  ldc.i4.s   25
+      IL_002a:  blt.un     IL_00d3
+      IL_002f:  ldarg.0
+      IL_0030:  ldc.i4.s   26
+      IL_0032:  beq.s      IL_0098
+      IL_0034:  br         IL_00e1
+      IL_0039:  ldarg.0
+      IL_003a:  ldc.i4.s   13
+      IL_003c:  blt.un.s   IL_0061
+      IL_003e:  ldarg.0
+      IL_003f:  ldc.i4.s   15
+      IL_0041:  blt.un.s   IL_00b8
+      IL_0043:  ldarg.0
+      IL_0044:  ldc.i4.s   18
+      IL_0046:  bge.un.s   IL_004f
+      IL_0048:  ldarg.0
+      IL_0049:  ldc.i4.s   15
+      IL_004b:  beq.s      IL_00c1
+      IL_004d:  br.s       IL_00ce
+      IL_004f:  ldarg.0
+      IL_0050:  ldc.i4.s   18
+      IL_0052:  beq        IL_00d8
+      IL_0057:  ldarg.0
+      IL_0058:  ldc.i4.s   19
+      IL_005a:  beq.s      IL_00ae
+      IL_005c:  br         IL_00e6
+      IL_0061:  ldarg.0
+      IL_0062:  ldc.i4.4
+      IL_0063:  bge.un.s   IL_006e
+      IL_0065:  ldarg.0
+      IL_0066:  ldc.i4.2
+      IL_0067:  bge.un.s   IL_00a1
+      IL_0069:  br         IL_00ef
+      IL_006e:  ldarg.0
+      IL_006f:  ldc.i4.7
+      IL_0070:  blt.un.s   IL_008d
+      IL_0072:  ldarg.0
+      IL_0073:  ldc.i4.s   9
+      IL_0075:  sub
+      IL_0076:  switch    (
+            IL_009d,
+            IL_00bd,
+            IL_00c6,
+            IL_00a5)
+      IL_008b:  br.s       IL_00dd
+      IL_008d:  ldarg.0
+      IL_008e:  ldc.i4.4
+      IL_008f:  beq.s      IL_00ca
+      IL_0091:  br.s       IL_00eb
+      IL_0093:  ldc.i4.s   19
+      IL_0095:  stloc.0
+      IL_0096:  br.s       IL_00f1
+      IL_0098:  ldc.i4.s   18
+      IL_009a:  stloc.0
+      IL_009b:  br.s       IL_00f1
+      IL_009d:  ldc.i4.5
+      IL_009e:  stloc.0
+      IL_009f:  br.s       IL_00f1
+      IL_00a1:  ldc.i4.1
+      IL_00a2:  stloc.0
+      IL_00a3:  br.s       IL_00f1
+      IL_00a5:  ldc.i4.8
+      IL_00a6:  stloc.0
+      IL_00a7:  br.s       IL_00f1
+      IL_00a9:  ldc.i4.s   15
+      IL_00ab:  stloc.0
+      IL_00ac:  br.s       IL_00f1
+      IL_00ae:  ldc.i4.s   13
+      IL_00b0:  stloc.0
+      IL_00b1:  br.s       IL_00f1
+      IL_00b3:  ldc.i4.s   20
+      IL_00b5:  stloc.0
+      IL_00b6:  br.s       IL_00f1
+      IL_00b8:  ldc.i4.s   9
+      IL_00ba:  stloc.0
+      IL_00bb:  br.s       IL_00f1
+      IL_00bd:  ldc.i4.6
+      IL_00be:  stloc.0
+      IL_00bf:  br.s       IL_00f1
+      IL_00c1:  ldc.i4.s   10
+      IL_00c3:  stloc.0
+      IL_00c4:  br.s       IL_00f1
+      IL_00c6:  ldc.i4.7
+      IL_00c7:  stloc.0
+      IL_00c8:  br.s       IL_00f1
+      IL_00ca:  ldc.i4.2
+      IL_00cb:  stloc.0
+      IL_00cc:  br.s       IL_00f1
+      IL_00ce:  ldc.i4.s   11
+      IL_00d0:  stloc.0
+      IL_00d1:  br.s       IL_00f1
+      IL_00d3:  ldc.i4.s   16
+      IL_00d5:  stloc.0
+      IL_00d6:  br.s       IL_00f1
+      IL_00d8:  ldc.i4.s   12
+      IL_00da:  stloc.0
+      IL_00db:  br.s       IL_00f1
+      IL_00dd:  ldc.i4.4
+      IL_00de:  stloc.0
+      IL_00df:  br.s       IL_00f1
+      IL_00e1:  ldc.i4.s   17
+      IL_00e3:  stloc.0
+      IL_00e4:  br.s       IL_00f1
+      IL_00e6:  ldc.i4.s   14
+      IL_00e8:  stloc.0
+      IL_00e9:  br.s       IL_00f1
+      IL_00eb:  ldc.i4.3
+      IL_00ec:  stloc.0
+      IL_00ed:  br.s       IL_00f1
+      IL_00ef:  ldc.i4.0
+      IL_00f0:  stloc.0
+      IL_00f1:  ldloc.0
+      IL_00f2:  ret
+    }
+"
+            );
+        }
+
+        #endregion Code Quality tests
     }
 }

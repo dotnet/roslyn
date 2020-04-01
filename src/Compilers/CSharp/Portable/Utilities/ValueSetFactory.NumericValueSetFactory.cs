@@ -53,6 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public IValueSet<T> Random(int expectedSize, Random random) =>
                 NumericValueSet<T, TTC>.Random(expectedSize, random);
+
+            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
+            {
+                var tc = default(TTC);
+                return tc.Related(relation, tc.FromConstantValue(left), tc.FromConstantValue(right));
+            }
         }
     }
 }

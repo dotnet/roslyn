@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            BinaryOperatorKind opType = binaryOperatorType(value.Type.EnumUnderlyingTypeOrSelf().SpecialType);
+            BinaryOperatorKind opType = RelationalOperatorType(value.Type.EnumUnderlyingTypeOrSelf().SpecialType);
             switch (opType)
             {
                 case BinaryOperatorKind.Float:
@@ -1258,6 +1258,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                     break;
+                case BinaryOperatorKind.String:
+                case BinaryOperatorKind.Bool:
                 case BinaryOperatorKind.Error:
                     if (!hasErrors)
                     {
@@ -1284,27 +1286,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The following occurs in error recovery scenarios
                 _ => BinaryOperatorKind.Equal,
             };
-
-            // Compute the type code for the comparison operator to be used.  When comparing `byte`s for example,
-            // the compiler actually uses `bool operator <(int, int)` as there is no corresponding operator for
-            // the type `byte`.
-            static BinaryOperatorKind binaryOperatorType(SpecialType specialType) => specialType switch
-            {
-                SpecialType.System_Single => BinaryOperatorKind.Float,
-                SpecialType.System_Double => BinaryOperatorKind.Double,
-                SpecialType.System_Char => BinaryOperatorKind.Char,
-                SpecialType.System_SByte => BinaryOperatorKind.Int, // operands are converted to int
-                SpecialType.System_Byte => BinaryOperatorKind.Int, // operands are converted to int
-                SpecialType.System_UInt16 => BinaryOperatorKind.Int, // operands are converted to int
-                SpecialType.System_Int16 => BinaryOperatorKind.Int, // operands are converted to int
-                SpecialType.System_Int32 => BinaryOperatorKind.Int,
-                SpecialType.System_UInt32 => BinaryOperatorKind.UInt,
-                SpecialType.System_Int64 => BinaryOperatorKind.Long,
-                SpecialType.System_UInt64 => BinaryOperatorKind.ULong,
-                SpecialType.System_Decimal => BinaryOperatorKind.Decimal,
-                _ => BinaryOperatorKind.Error,
-            };
         }
+
+        /// <summary>
+        /// Compute the type code for the comparison operator to be used.  When comparing `byte`s for example,
+        /// the compiler actually uses the operator on the type `int` as there is no corresponding operator for
+        /// the type `byte`.
+        /// </summary>
+        internal static BinaryOperatorKind RelationalOperatorType(SpecialType specialType) => specialType switch
+        {
+            SpecialType.System_Single => BinaryOperatorKind.Float,
+            SpecialType.System_Double => BinaryOperatorKind.Double,
+            SpecialType.System_Char => BinaryOperatorKind.Char,
+            SpecialType.System_SByte => BinaryOperatorKind.Int, // operands are converted to int
+            SpecialType.System_Byte => BinaryOperatorKind.Int, // operands are converted to int
+            SpecialType.System_UInt16 => BinaryOperatorKind.Int, // operands are converted to int
+            SpecialType.System_Int16 => BinaryOperatorKind.Int, // operands are converted to int
+            SpecialType.System_Int32 => BinaryOperatorKind.Int,
+            SpecialType.System_UInt32 => BinaryOperatorKind.UInt,
+            SpecialType.System_Int64 => BinaryOperatorKind.Long,
+            SpecialType.System_UInt64 => BinaryOperatorKind.ULong,
+            SpecialType.System_Decimal => BinaryOperatorKind.Decimal,
+            SpecialType.System_String => BinaryOperatorKind.String,
+            SpecialType.System_Boolean => BinaryOperatorKind.Bool,
+            _ => BinaryOperatorKind.Error,
+        };
 
         private BoundPattern BindUnaryPattern(
             UnaryPatternSyntax node,

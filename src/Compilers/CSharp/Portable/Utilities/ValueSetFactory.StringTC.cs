@@ -13,7 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private struct StringTC : IEquatableValueTC<string>
         {
-            string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue) => constantValue.StringValue!;
+            string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue)
+            {
+                var result = constantValue.StringValue;
+                Debug.Assert(result != null);
+                return result;
+            }
 
             string[] IEquatableValueTC<string>.RandomValues(int count, Random random, int scope)
             {
