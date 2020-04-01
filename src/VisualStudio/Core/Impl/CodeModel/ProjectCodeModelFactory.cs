@@ -124,6 +124,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
+            // Events that can't change existing code model items.  Can just ignore them.
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionAdded:
+                case WorkspaceChangeKind.ProjectAdded:
+                case WorkspaceChangeKind.DocumentAdded:
+                case WorkspaceChangeKind.AdditionalDocumentAdded:
+                case WorkspaceChangeKind.AdditionalDocumentRemoved:
+                case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                case WorkspaceChangeKind.AdditionalDocumentChanged:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                    return;
+            }
+
             var changes = e.OldSolution.GetChanges(e.NewSolution);
 
             // Ensure clients hear about events for documents that go away and documents that are changed. We don't have
