@@ -324,9 +324,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return eventBlock
             End If
 
+            ' TODO: NEEDS TESTED
             If vbnode.IsKind(SyntaxKind.RaiseEventStatement) Then
                 Dim raiseEventStatement = DirectCast(vbnode, RaiseEventStatementSyntax)
+                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))
+                Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
+
                 Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature, declarationSymbol)
+                updatedArguments = AddNewArgumentsToList(methodSymbol, updatedArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False)
                 Return raiseEventStatement.WithArgumentList(raiseEventStatement.ArgumentList.WithArguments(updatedArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -354,12 +360,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return constructor.WithParameterList(constructor.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
+            ' TODO: NEEDS TESTED
             If vbnode.IsKind(SyntaxKind.Attribute) Then
                 Dim attribute = DirectCast(vbnode, AttributeSyntax)
+
+                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))
+                Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
+
                 Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature, declarationSymbol)
+                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False)
                 Return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
+            ' TODO: NEEDS TESTED
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
@@ -371,9 +385,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
+                Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken)
+
                 Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                ' TODO
-                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, False)
+                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, paramsArrayExpanded)
                 Return objectCreation.WithArgumentList(objectCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -443,11 +458,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim lastArgumentExpression As ExpressionSyntax
 
             Dim invocation = TryCast(node, InvocationExpressionSyntax)
+            Dim objectCreation = TryCast(node, ObjectCreationExpressionSyntax)
             If invocation IsNot Nothing Then
                 argumentCount = invocation.ArgumentList.Arguments.Count
                 Dim isNamed = invocation.ArgumentList.Arguments.LastOrDefault()?.IsNamed
                 lastArgumentIsNamed = isNamed.HasValue AndAlso isNamed.Value
                 lastArgumentExpression = invocation.ArgumentList.Arguments.LastOrDefault()?.GetExpression()
+            ElseIf objectCreation IsNot Nothing Then
+                argumentCount = objectCreation.ArgumentList.Arguments.Count
+                Dim isNamed = objectCreation.ArgumentList.Arguments.LastOrDefault()?.IsNamed
+                lastArgumentIsNamed = isNamed.HasValue AndAlso isNamed.Value
+                lastArgumentExpression = objectCreation.ArgumentList.Arguments.LastOrDefault()?.GetExpression()
             Else
                 Throw New ArgumentException("Unexpected SyntaxNode", NameOf(node))
             End If
