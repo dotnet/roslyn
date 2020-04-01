@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (field.FieldSymbol.IsStatic) break;
 
                         // instance fields are directly assignable, but receiver is pushed, so need to spill that.
-                        left = spillReceiver(field, ref leftBuilder, isFieldLeft: true);
+                        left = fieldWithSpilledReceiver(field, ref leftBuilder, isAssignmentTarget: true);
                         break;
 
                     case BoundKind.ArrayAccess:
@@ -709,13 +709,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return UpdateExpression(builder, node.Update(left, right, node.IsRef, node.Type));
 
-            BoundExpression spillReceiver(BoundFieldAccess field, ref BoundSpillSequenceBuilder leftBuilder, bool isFieldLeft)
+            BoundExpression fieldWithSpilledReceiver(BoundFieldAccess field, ref BoundSpillSequenceBuilder leftBuilder, bool isAssignmentTarget)
             {
                 BoundExpression receiver;
+                var generateDummyFieldAccess = false;
                 if (field.FieldSymbol.ContainingType.IsReferenceType)
                 {
                     // a reference type can always live across await so Spill using leftBuilder
                     receiver = Spill(leftBuilder, VisitExpression(ref leftBuilder, field.ReceiverOpt));
+
+                    // dummy field access to trigger NRE
+                    // a.b = c will trigger a NRE if a is null on assignment,
+                    // but a.b.c = d will trigger a NRE if a is null before evaluating d
+                    // so check whether we assign to the field directly
+                    generateDummyFieldAccess = !isAssignmentTarget;
                 }
                 else if (field.ReceiverOpt is BoundArrayAccess arrayAccess)
                 {
@@ -732,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (field.ReceiverOpt is BoundFieldAccess receiverField)
                 {
-                    receiver = spillReceiver(receiverField, ref leftBuilder, isFieldLeft: false);
+                    receiver = fieldWithSpilledReceiver(receiverField, ref leftBuilder, isAssignmentTarget: false);
                 }
                 else
                 {
@@ -741,12 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 field = field.Update(receiver, field.FieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
 
-                // a.b = c will trigger a NRE if a is null on assignment,
-                // but a.b.c = d will trigger a NRE if a is null before evaluating d
-                // so check whether we assign to the field directly
-                if (!isFieldLeft && field.FieldSymbol.ContainingType.IsReferenceType)
+                if (generateDummyFieldAccess)
                 {
-                    // dummy field access to trigger NRE
                     Spill(leftBuilder, field, sideEffectsOnly: true);
                 }
 
