@@ -279,6 +279,9 @@
   <data name="This_submission_already_references_another_submission_project" xml:space="preserve">
     <value>This submission already references another submission project.</value>
   </data>
+  <data name="Only_submission_project_can_reference_submission_projects" xml:space="preserve">
+    <value>Only submission project can reference submission projects.</value>
+  </data>
   <data name="_0_still_contains_open_documents" xml:space="preserve">
     <value>{0} still contains open documents.</value>
   </data>
