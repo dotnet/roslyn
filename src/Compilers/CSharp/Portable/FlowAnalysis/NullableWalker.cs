@@ -657,10 +657,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var slot = GetOrCreateSlot(parameter);
                 if (slot > 0)
                 {
-                    var parameterState = state[slot];
-                    FlowAnalysisAnnotations annotations = parameter.FlowAnalysisAnnotations;
+                    var annotations = parameter.FlowAnalysisAnnotations;
                     bool hasNotNull = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
-                    return hasNotNull && parameterState.MayBeNull();
+                    return hasNotNull && state[slot].MayBeNull();
                 }
 
                 return false;
