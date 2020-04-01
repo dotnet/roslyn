@@ -287,6 +287,142 @@ class C
         }
 
         [Fact]
+        public async Task TestAssignToMember()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System.Runtime.InteropServices;
+
+class C
+{
+    CannotCopy _field;
+
+    void Method(CannotCopy parameter)
+    {
+        CannotCopy local = new CannotCopy();
+
+        _field.Field = 0;
+        parameter.Field = 0;
+        local.Field = 0;
+
+        _field.Property = 0;
+        parameter.Property = 0;
+        local.Property = 0;
+    }
+}
+
+[NonCopyable]
+struct CannotCopy
+{
+    public int Field;
+    public int Property { get; set; }
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+");
+        }
+
+        [Fact]
+        public async Task TestReturnMember()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    CannotCopy _field;
+    readonly CannotCopy _readonlyField;
+
+    int ReturnFieldMemberField()
+    {
+        return _field.Field;
+    }
+
+    int ReturnReadonlyFieldMemberField()
+    {
+        return _readonlyField.Field;
+    }
+
+    int ReturnParameterMemberField(CannotCopy parameter)
+    {
+        return parameter.Field;
+    }
+
+    int ReturnLocalMemberField()
+    {
+        CannotCopy local = new CannotCopy();
+        return local.Field;
+    }
+
+    int ReturnFieldMemberProperty()
+    {
+        return _field.Property;
+    }
+
+    int ReturnReadonlyFieldMemberProperty()
+    {
+        return _readonlyField.Property;
+    }
+
+    int ReturnParameterMemberProperty(CannotCopy parameter)
+    {
+        return parameter.Property;
+    }
+
+    int ReturnLocalMemberProperty()
+    {
+        CannotCopy local = new CannotCopy();
+        return local.Property;
+    }
+
+    int ReturnFieldMemberReadonlyProperty()
+    {
+        return _field.ReadonlyProperty;
+    }
+
+    int ReturnReadonlyFieldMemberReadonlyProperty()
+    {
+        return _readonlyField.ReadonlyProperty;
+    }
+
+    int ReturnParameterMemberReadonlyProperty(CannotCopy parameter)
+    {
+        return parameter.ReadonlyProperty;
+    }
+
+    int ReturnLocalMemberReadonlyProperty()
+    {
+        CannotCopy local = new CannotCopy();
+        return local.ReadonlyProperty;
+    }
+}
+
+[NonCopyable]
+struct CannotCopy
+{
+    public int Field;
+    public int Property { get { return 0; } }
+    public readonly int ReadonlyProperty { get { return 0; } }
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                ExpectedDiagnostics =
+                {
+                    // The only reported diagnostic occurs for the invocation of a non-readonly getter of a readonly
+                    // non-copyable field.
+                    //
+                    // /0/Test0.cs(37,16): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'FieldReference' operation
+                    VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(37, 16, 37, 30).WithArguments("CannotCopy", "FieldReference"),
+                },
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNonCopyableAttribute()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"

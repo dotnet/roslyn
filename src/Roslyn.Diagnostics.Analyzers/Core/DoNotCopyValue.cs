@@ -493,6 +493,11 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public override void VisitFieldReference(IFieldReferenceOperation operation)
             {
+                // An instance never needs to be copied to read or write a field value. Even in cases where the instance
+                // is read-only, attempts to write to the field would be reported as compiler errors so analyzer
+                // diagnostics are not required.
+                using var releaser = TryAddForVisit(_handledOperations, operation.Instance, out _);
+
                 CheckFieldSymbolInUnsupportedContext(operation, operation.Field);
                 CheckTypeInUnsupportedContext(operation);
                 base.VisitFieldReference(operation);
@@ -766,15 +771,24 @@ namespace Roslyn.Diagnostics.Analyzers
                     CheckTypeInUnsupportedContext(operation);
                 }
 
-                // TODO: Figure out how to handle getters and setters separately
+                // TODO: Figure out how to handle getters and setters separately. For now, assume that both the getter
+                // and the setter will be invoked (if present).
                 var instance = operation.Instance;
                 if (instance is object
                     && _cache.IsNonCopyableType(operation.Property.ContainingType)
-                    && !operation.Property.IsReadOnly
                     && Acquire(instance) == RefKind.In)
                 {
-                    // mark the instance as not checked by this method
-                    instance = null;
+                    if (operation.Property.GetMethod is { IsReadOnly: false })
+                    {
+                        // mark the instance as not checked by this method
+                        instance = null;
+                    }
+
+                    if (operation.Property.SetMethod is { IsReadOnly: false })
+                    {
+                        // mark the instance as not checked by this method
+                        instance = null;
+                    }
                 }
 
                 using var releaser = TryAddForVisit(_handledOperations, instance, out _);
@@ -1078,6 +1092,9 @@ namespace Roslyn.Diagnostics.Analyzers
                             { ReturnsByRef: true } => RefKind.Ref,
                             _ => RefKind.None,
                         };
+
+                    case OperationKind.Literal:
+                        return RefKind.None;
 
                     case OperationKind.LocalReference:
                         var local = ((ILocalReferenceOperation)operation).Local;
