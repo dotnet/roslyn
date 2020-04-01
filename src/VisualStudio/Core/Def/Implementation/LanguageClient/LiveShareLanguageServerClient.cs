@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
     [ContentType(ContentTypeNames.VBLspContentTypeName)]
     [Export(typeof(ILanguageClient))]
-    internal class LiveShareLanguageServerClient : AbstractLiveShareLanguageServerClient
+    internal class LiveShareLanguageServerClient : AbstractLanguageServerClient
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             : base(languageServerProtocol, workspace, diagnosticService, diagnosticsClientName: null)
         {
         }
+
+        public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
     }
-    
-    public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
 }

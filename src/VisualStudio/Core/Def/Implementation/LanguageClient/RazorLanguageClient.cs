@@ -5,9 +5,11 @@
 #nullable enable
 
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
     [ClientName(ClientName)]
     [Export(typeof(ILanguageClient))]
-    internal class RazorLanguageClient : AbstractLiveShareLanguageServerClient
+    internal class RazorLanguageClient : AbstractLanguageServerClient
     {
         public const string ClientName = "RazorCSharp";
 
@@ -36,6 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         public override string Name => ServicesVSResources.Razor_CSharp_Language_Server_Client;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorLanguageClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace, IDiagnosticService diagnosticService)
             : base(languageServerProtocol, workspace, diagnosticService, ClientName)
         {

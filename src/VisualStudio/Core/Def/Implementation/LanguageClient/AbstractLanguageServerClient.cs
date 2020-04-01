@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    internal abstract class AbstractLiveShareLanguageServerClient : ILanguageClient
+    internal abstract class AbstractLanguageServerClient : ILanguageClient
     {
         private readonly string? _diagnosticsClientName;
         private readonly IDiagnosticService _diagnosticService;
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
-        public AbstractLiveShareLanguageServerClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace,
+        public AbstractLanguageServerClient(LanguageServerProtocol languageServerProtocol, VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService, string? diagnosticsClientName)
         {
             _languageServerProtocol = languageServerProtocol;

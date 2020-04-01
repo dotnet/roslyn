@@ -55,7 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
 
-
             if (requestContext?.ClientCapabilities?.ToObject<VSClientCapabilities>()?.HasVisualStudioLspCapability() == true)
             {
                 return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(false);
