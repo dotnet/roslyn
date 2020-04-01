@@ -136,12 +136,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // might be a call to a local function that assigns something
                         node.Method.MethodKind == MethodKind.LocalFunction ||
                         // or perhaps we are passing a variable by ref and mutating it that way
-                        !node.ArgumentRefKindsOpt.IsDefault;
+                        !node.ArgumentRefKindsOpt.IsDefault ||
+                        // or perhaps we are calling a mutating method of a value type
+                        !node.Method.IsStatic && node.Method.ContainingType.IsStructType() && node.Method.ContainingType.SpecialType == SpecialType.None;
 
                     if (mightMutate)
                         _mightAssignSomething = true;
                     else
                         base.VisitCall(node);
+
+                    return null;
+                }
+
+                public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+                {
+                    bool mightMutate =
+                        !node.PropertySymbol.IsStatic && node.PropertySymbol.ContainingType.IsStructType() && node.PropertySymbol.ContainingType.SpecialType == SpecialType.None;
+
+                    if (mightMutate)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitPropertyAccess(node);
 
                     return null;
                 }

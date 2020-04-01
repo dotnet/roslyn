@@ -3231,6 +3231,65 @@ System.Int64
         }
 
         [Fact]
+        public void DoNotShareTempMutatedThroughReceiver()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        S s;
+        s = new S(1);
+        Console.Write(s switch
+        {
+            { N: 1 } when s.No() => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        Console.Write(new S(1) switch
+        {
+            { N: 1 } s0 when s0.No() => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        s = new S(1);
+        Console.Write(s switch
+        {
+            { N: 1 } when s.Nope => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        Console.Write(new S(1) switch
+        {
+            { N: 1 } s0 when s0.Nope => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+    }
+}
+struct S
+{
+    public int N;
+    public int Q => N;
+
+    public S(int n) => N = n;
+
+    public bool No() { N++; return false; }
+    public bool Nope { get { N++; return false; } }
+}
+";
+            var expectedOutput = "2222";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void New9PatternsSemanticModel_01()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
