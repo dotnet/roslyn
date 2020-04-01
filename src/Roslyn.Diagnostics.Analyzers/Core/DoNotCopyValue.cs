@@ -701,6 +701,8 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 // 'new T()' is a valid way to acquire a 'T'. Non-defaultable type analysis is handled separately.
                 // No need to check the method signature further. Parameters will be checked by the IArgumentOperation.
+                // Also mark the initializer (if any) as handled.
+                using var releaser = TryAddForVisit(_handledOperations, operation.Initializer, out _);
                 base.VisitObjectCreation(operation);
             }
 

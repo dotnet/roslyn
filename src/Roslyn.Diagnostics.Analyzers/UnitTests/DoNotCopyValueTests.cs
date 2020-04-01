@@ -475,6 +475,37 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
+        public async Task AllowObjectInitializer()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    CannotCopy Method()
+    {
+        return new CannotCopy() { First = 0, Second = 1 };
+    }
+}
+
+[NonCopyable]
+struct CannotCopy
+{
+    public int First { get; set; }
+    public int Second { get; set; }
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNonCopyableAttribute()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
