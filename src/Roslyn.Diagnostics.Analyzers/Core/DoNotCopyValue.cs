@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -218,7 +219,18 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public override void VisitAwait(IAwaitOperation operation)
             {
-                CheckTypeInUnsupportedContext(operation);
+                // Treat await of ValueTask<T> the same way handling of a return
+                if (operation.Type is { } type
+                    && _cache.IsNonCopyableType(type)
+                    && operation.Operation.Type is INamedTypeSymbol { OriginalDefinition: var taskType })
+                {
+                    if (!SymbolEqualityComparer.Default.Equals(taskType, _cache.ValueTaskT)
+                        && !SymbolEqualityComparer.Default.Equals(taskType, _cache.ConfiguredValueTaskAwaitableT))
+                    {
+                        CheckTypeInUnsupportedContext(operation);
+                    }
+                }
+
                 base.VisitAwait(operation);
             }
 
@@ -1374,6 +1386,9 @@ namespace Roslyn.Diagnostics.Analyzers
             private readonly ConcurrentDictionary<INamedTypeSymbol, bool> _typesToNonCopyable
                 = new ConcurrentDictionary<INamedTypeSymbol, bool>();
 
+            public INamedTypeSymbol? ValueTaskT { get; }
+            public INamedTypeSymbol? ConfiguredValueTaskAwaitableT { get; }
+
             public NonCopyableTypesCache(Compilation compilation)
             {
                 if (compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingSpinLock) is { } spinLock)
@@ -1381,6 +1396,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 if (compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeInteropServicesGCHandle) is { } gcHandle)
                     _typesToNonCopyable[gcHandle] = true;
+
+                ValueTaskT = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericValueTask);
+                ConfiguredValueTaskAwaitableT = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesGenericConfiguredValueTaskAwaitable);
             }
 
             internal bool IsNonCopyableType(ITypeSymbol symbol)

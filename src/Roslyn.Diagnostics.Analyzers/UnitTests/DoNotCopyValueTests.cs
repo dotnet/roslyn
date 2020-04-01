@@ -41,6 +41,72 @@ End Class");
         }
 
         [Theory]
+        [InlineData("ValueTask<GCHandle>", "ValueTask(Of GCHandle)")]
+        [InlineData("ConfiguredValueTaskAwaitable<GCHandle>", "ConfiguredValueTaskAwaitable(Of GCHandle)")]
+        public async Task TestAcquireFromAwait(string csharpAwaitableType, string visualBasicAwaitableType)
+        {
+            await VerifyCS.VerifyAnalyzerAsync($@"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+
+class C
+{{
+    async Task M({csharpAwaitableType} task)
+    {{
+        var local = await task;
+    }}
+}}
+");
+
+            await VerifyVB.VerifyAnalyzerAsync($@"
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+Imports System.Threading.Tasks
+
+Class C
+    Async Function M(task as {visualBasicAwaitableType}) As Task
+        Dim local = Await task
+    End Function
+End Class");
+        }
+
+        [Theory]
+        [InlineData("Task<GCHandle>", "Task(Of GCHandle)")]
+        [InlineData("ConfiguredTaskAwaitable<GCHandle>", "ConfiguredTaskAwaitable(Of GCHandle)")]
+        public async Task TestFailedAcquireFromUnsupportedAwait(string csharpAwaitableType, string visualBasicAwaitableType)
+        {
+            await VerifyCS.VerifyAnalyzerAsync($@"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+
+class C
+{{
+    async Task M({csharpAwaitableType} task)
+    {{
+        var local = await task;
+    }}
+}}
+",
+                // /0/Test0.cs(10,21): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'Await' operation
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(10, 21, 10, 31).WithArguments("System.Runtime.InteropServices.GCHandle", "Await"));
+
+            await VerifyVB.VerifyAnalyzerAsync($@"
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+Imports System.Threading.Tasks
+
+Class C
+    Async Function M(task as {visualBasicAwaitableType}) As Task
+        Dim local = Await task
+    End Function
+End Class",
+                // /0/Test0.vb(8,21): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'Await' operation
+                VerifyVB.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(8, 21, 8, 31).WithArguments("System.Runtime.InteropServices.GCHandle", "Await"));
+        }
+
+        [Theory]
         [InlineData("field", "field")]
         [InlineData("(field)", null)]
         [InlineData("this.field", "Me.field")]

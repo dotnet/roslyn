@@ -21,6 +21,8 @@ namespace Analyzer.Utilities
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
         public const string SystemThreadingTasksGenericValueTask = "System.Threading.Tasks.ValueTask`1";
+        public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable";
+        public const string SystemRuntimeCompilerServicesGenericConfiguredValueTaskAwaitable = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
