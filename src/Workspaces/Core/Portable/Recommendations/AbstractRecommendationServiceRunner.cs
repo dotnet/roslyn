@@ -92,12 +92,50 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 // parameter.Ordinal is the ordinal within (a,b,c) => b.
                 // For candidate symbols of (a,b,c) => b., get types of all possible b.
                 parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+                parameterTypeSymbols = SubstituteTypeParameters(parameterTypeSymbols, invocationExpression);
             }
 
             // For each type of b., return all suitable members.
             return parameterTypeSymbols
                 .SelectMany(parameterTypeSymbol => GetSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false))
                 .ToImmutableArray();
+        }
+
+        private ImmutableArray<ITypeSymbol> SubstituteTypeParameters(ImmutableArray<ITypeSymbol> parameterTypeSymbols, SyntaxNode invocationExpression)
+        {
+            if (!parameterTypeSymbols.Any(t => t.IsKind(SymbolKind.TypeParameter)))
+            {
+                return parameterTypeSymbols;
+            }
+
+            var invocationSymbols = _context.SemanticModel.GetSymbolInfo(invocationExpression).GetAllSymbols();
+            if (invocationSymbols.Length == 0)
+            {
+                return parameterTypeSymbols;
+            }
+
+            var concreteTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
+            foreach (var invocationSymbol in invocationSymbols)
+            {
+                var typeParameters = invocationSymbol.GetTypeParameters();
+                var typeArguments = invocationSymbol.GetTypeArguments();
+
+                foreach (var parameterTypeSymbol in parameterTypeSymbols)
+                {
+                    if (parameterTypeSymbol.IsKind<ITypeParameterSymbol>(SymbolKind.TypeParameter, out var typeParameter))
+                    {
+                        var index = typeParameters.IndexOf(typeParameter);
+                        var concreteType = typeArguments.ElementAtOrDefault(index);
+                        concreteTypes.Add(concreteType ?? typeParameter);
+                    }
+                    else
+                    {
+                        concreteTypes.Add(parameterTypeSymbol);
+                    }
+                }
+            }
+
+            return concreteTypes.ToImmutableAndFree();
         }
 
         /// <summary>
