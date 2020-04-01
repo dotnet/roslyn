@@ -426,5 +426,161 @@ data class C(); ";
                 Diagnostic(ErrorCode.ERR_BadRecordDeclaration, "()").WithLocation(2, 13)
             );
         }
+
+        [Fact]
+        public void StructRecord1()
+        {
+            var src = @"
+data struct Point(int X, int Y);";
+
+            var verifier = CompileAndVerify(src);
+            verifier.VerifyIL("Point.Equals(object)", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (Point V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""Point""
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  ldc.i4.0
+  IL_0009:  ret
+  IL_000a:  ldarg.0
+  IL_000b:  ldarg.1
+  IL_000c:  unbox.any  ""Point""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""bool Point.Equals(in Point)""
+  IL_0019:  ret
+}");
+            verifier.VerifyIL("Point.Equals(in Point)", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  ldfld      ""int Point.<X>k__BackingField""
+  IL_000b:  ldarg.1
+  IL_000c:  ldfld      ""int Point.<X>k__BackingField""
+  IL_0011:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0016:  brfalse.s  IL_002f
+  IL_0018:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001d:  ldarg.0
+  IL_001e:  ldfld      ""int Point.<Y>k__BackingField""
+  IL_0023:  ldarg.1
+  IL_0024:  ldfld      ""int Point.<Y>k__BackingField""
+  IL_0029:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_002e:  ret
+  IL_002f:  ldc.i4.0
+  IL_0030:  ret
+}");
+        }
+
+        [Fact]
+        public void StructRecord2()
+        {
+            var src = @"
+using System;
+data struct S(int X, int Y)
+{
+    public static void Main()
+    {
+        var s1 = new S(0, 1);
+        var s2 = new S(0, 1);
+        Console.WriteLine(s1.X);
+        Console.WriteLine(s1.Y);
+        Console.WriteLine(s1.Equals(s2));
+        Console.WriteLine(s1.Equals(new S(1, 0)));
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"0
+1
+True
+False");
+        }
+
+        [Fact]
+        public void StructRecord3()
+        {
+            var src = @"
+using System;
+data struct S(int X, int Y)
+{
+    public bool Equals(S s) => false;
+    public static void Main()
+    {
+        var s1 = new S(0, 1);
+        Console.WriteLine(s1.Equals(s1));
+        Console.WriteLine(s1.Equals(in s1));
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"False
+True");
+            verifier.VerifyIL("S.Main", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (S V_0) //s1
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""S..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""bool S.Equals(S)""
+  IL_0011:  call       ""void System.Console.WriteLine(bool)""
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       ""bool S.Equals(in S)""
+  IL_001f:  call       ""void System.Console.WriteLine(bool)""
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
+        public void StructRecord4()
+        {
+            var src = @"
+using System;
+data struct S(int X, int Y)
+{
+    public override bool Equals(object o)
+    {
+        Console.WriteLine(""obj"");
+        return true;
+    }
+    public bool Equals(in S s)
+    {
+        Console.WriteLine(""s"");
+        return true;
+    }
+    public static void Main()
+    {
+        var s1 = new S(0, 1);
+        s1.Equals((object)s1);
+        s1.Equals(s1);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"obj
+s");
+        }
+
+        [Fact]
+        public void StructRecordNoCtor()
+        {
+            var src = @"
+data struct S(int X)
+{
+    public static void Main()
+    {
+        var s = new S();
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'S.S(int)'
+                //         var s = new S();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "S").WithArguments("X", "S.S(int)").WithLocation(6, 21)
+            );
+        }
     }
 }
