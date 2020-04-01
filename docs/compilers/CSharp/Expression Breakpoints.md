@@ -53,3 +53,5 @@ Both the `BoundRestorePreviousSequencePoint` and `BoundStepThroughSequencePoint`
 This can be seen, for example, in test `SwitchExpressionSequencePoints`
 
 The purpose of this instruction sequence is to cause there to be an unreachable IL opcode (the `nop`) having a sequence point, followed by a hidden sequence point to prevent the debugger from stopping at the following location. However, once it is executing the following code, the debugger's idea of the program's "current source location" will appear to be that location mentioned in the sequence point.
+
+A `BoundStepThroughSequencePoint` also modifies the debugger's view of the "enclosing statement", but without creating a location where a breakpoint can be set. While evaluating the state machine of a *switch expression*, this is used to make the "current statement" appear to be the *switch expression*.
