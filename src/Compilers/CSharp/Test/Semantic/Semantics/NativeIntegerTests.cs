@@ -765,8 +765,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             }
         }
 
-        [Fact]
-        public void Retargeting_05()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Retargeting_05(bool useCompilationReference)
         {
             var source1 =
 @"namespace System
@@ -777,11 +779,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
     public struct IntPtr { }
     public struct UIntPtr { }
 }";
             var comp = CreateCompilation(new AssemblyIdentity("9ef8b1e0-1ae0-4af6-b9a1-00f2078f299e", new Version(1, 0, 0, 0)), new[] { source1 }, references: null);
-            var ref1 = comp.EmitToImageReference();
+            var ref1 = comp.EmitToImageReference(EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"));
 
             var sourceA =
 @"public abstract class A<T>
@@ -794,7 +805,7 @@ public class B : A<nint>
 }";
             comp = CreateEmptyCompilation(sourceA, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            var refA = comp.ToMetadataReference();
+            var refA = AsReference(comp, useCompilationReference);
 
             var type1 = getConstraintType(comp);
             Assert.True(type1.IsNativeIntegerType);
@@ -1733,6 +1744,47 @@ class C
                 // (9,12): error CS0111: Type 'C' already defines a member called 'this' with the same parameter types
                 //     object this[System.UIntPtr y] { get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C").WithLocation(9, 12));
+        }
+
+        [Fact]
+        public void Overloads_06()
+        {
+            var source1 =
+@"public interface IA
+{
+    void F1(nint i);
+    void F2(nuint i);
+}
+public interface IB
+{
+    void F1(System.IntPtr i);
+    void F2(System.UIntPtr i);
+}";
+            var comp = CreateCompilation(source1, parseOptions: TestOptions.RegularPreview);
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"class C : IA, IB
+{
+    public void F1(System.IntPtr i) { }
+    public void F2(System.UIntPtr i) { }
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            var source3 =
+@"class C1 : IA, IB
+{
+    public void F1(nint i) { }
+    public void F2(System.UIntPtr i) { }
+}
+class C2 : IA, IB
+{
+    public void F1(System.IntPtr i) { }
+    public void F2(nuint i) { }
+}";
+            comp = CreateCompilation(source3, references: new[] { ref1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
