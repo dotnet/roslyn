@@ -140,7 +140,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #pragma warning disable CS0612 // Type or member is obsolete
             var optionSet = await analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
 #pragma warning restore CS0612 // Type or member is obsolete
-            return (T)optionSet?.GetOption(new OptionKey(option, language)) ?? (T)option.DefaultValue!;
+
+            if (optionSet != null)
+            {
+                value = optionSet.GetOption<T>(new OptionKey(option, language));
+            }
+
+            return value ?? (T)option.DefaultValue!;
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
