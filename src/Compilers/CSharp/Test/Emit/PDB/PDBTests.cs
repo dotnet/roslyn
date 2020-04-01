@@ -1616,6 +1616,7 @@ class C
         <entry offset=""0x9"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""31"" document=""1"" />
         <entry offset=""0xf"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""1"" />
         <entry offset=""0x16"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x17"" hidden=""true"" document=""1"" />
         <entry offset=""0x19"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
         <entry offset=""0x1a"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""32"" document=""1"" />
         <entry offset=""0x20"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""23"" document=""1"" />
@@ -1738,7 +1739,7 @@ public class SeqPointForWhile
         <entry offset=""0xc"" startLine=""22"" startColumn=""18"" endLine=""22"" endColumn=""29"" document=""1"" />
         <entry offset=""0x11"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
         <entry offset=""0x13"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""27"" document=""1"" />
-        <entry offset=""0x1a"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1a"" hidden=""true"" document=""1"" />
         <entry offset=""0x1c"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""27"" document=""1"" />
         <entry offset=""0x1d"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""38"" document=""1"" />
         <entry offset=""0x22"" startLine=""31"" startColumn=""17"" endLine=""31"" endColumn=""23"" document=""1"" />
@@ -2509,6 +2510,7 @@ class Program
     IL_001c:  ldstr      ""one""
     IL_0021:  call       ""void System.Console.WriteLine(string)""
     IL_0026:  nop
+    // sequence point: <hidden>
     IL_0027:  br.s       IL_0034
     // sequence point: Console.WriteLine(""other"");
     IL_0029:  ldstr      ""other""
@@ -2578,6 +2580,7 @@ class Program
         <entry offset=""0xf"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""1"" />
         <entry offset=""0x19"" hidden=""true"" document=""1"" />
         <entry offset=""0x1c"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x27"" hidden=""true"" document=""1"" />
         <entry offset=""0x29"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""40"" document=""1"" />
         <entry offset=""0x34"" hidden=""true"" document=""1"" />
         <entry offset=""0x36"" hidden=""true"" document=""1"" />
@@ -3805,6 +3808,472 @@ expectedIL: @"{
 }");
         }
 
+        [Fact]
+        [WorkItem(31665, "https://github.com/dotnet/roslyn/issues/31665")]
+        public void TestSequencePoints_31665()
+        {
+            var source = @"
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        var s = ""1"";
+        if (true)
+            switch (s)
+            {
+                case ""1"":
+                    Console.Out.WriteLine(""Input was 1"");
+                    break;
+                default:
+                    throw new Exception(""Default case"");
+            }
+        else
+            Console.Out.WriteLine(""Too many inputs"");
+    }
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.Main(string[])", @"
+    {
+      // Code size       60 (0x3c)
+      .maxstack  2
+      .locals init (string V_0, //s
+                    bool V_1,
+                    string V_2,
+                    string V_3)
+      // sequence point: {
+      IL_0000:  nop
+      // sequence point: var s = ""1"";
+      IL_0001:  ldstr      ""1""
+      IL_0006:  stloc.0
+      // sequence point: if (true)
+      IL_0007:  ldc.i4.1
+      IL_0008:  stloc.1
+      // sequence point: switch (s)
+      IL_0009:  ldloc.0
+      IL_000a:  stloc.3
+      // sequence point: <hidden>
+      IL_000b:  ldloc.3
+      IL_000c:  stloc.2
+      // sequence point: <hidden>
+      IL_000d:  ldloc.2
+      IL_000e:  ldstr      ""1""
+      IL_0013:  call       ""bool string.op_Equality(string, string)""
+      IL_0018:  brtrue.s   IL_001c
+      IL_001a:  br.s       IL_002e
+      // sequence point: Console.Out.WriteLine(""Input was 1"");
+      IL_001c:  call       ""System.IO.TextWriter System.Console.Out.get""
+      IL_0021:  ldstr      ""Input was 1""
+      IL_0026:  callvirt   ""void System.IO.TextWriter.WriteLine(string)""
+      IL_002b:  nop
+      // sequence point: break;
+      IL_002c:  br.s       IL_0039
+      // sequence point: throw new Exception(""Default case"");
+      IL_002e:  ldstr      ""Default case""
+      IL_0033:  newobj     ""System.Exception..ctor(string)""
+      IL_0038:  throw
+      // sequence point: <hidden>
+      IL_0039:  br.s       IL_003b
+      // sequence point: }
+      IL_003b:  ret
+    }
+", sequencePoints: "Program.Main", source: source);
+        }
+
+        [Fact]
+        [WorkItem(17076, "https://github.com/dotnet/roslyn/issues/17076")]
+        public void TestSequencePoints_17076()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        M(new Node()).GetAwaiter().GetResult();
+    }
+
+    static async Task M(Node node)
+    {
+        while (node != null)
+        {
+            if (node is A a)
+            {
+                await Task.Yield();
+                return;
+            }
+            else if (node is B b)
+            {
+                await Task.Yield();
+                return;
+            }
+
+            node = node.Parent;
+        }
+    }
+}
+
+class Node
+{
+    public Node Parent = null;
+}
+class A : Node { }
+class B : Node { }
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+    {
+      // Code size      403 (0x193)
+      .maxstack  3
+      .locals init (int V_0,
+                    bool V_1,
+                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_2,
+                    System.Runtime.CompilerServices.YieldAwaitable V_3,
+                    Program.<M>d__1 V_4,
+                    bool V_5,
+                    System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_6,
+                    bool V_7,
+                    System.Exception V_8)
+      // sequence point: <hidden>
+      IL_0000:  ldarg.0
+      IL_0001:  ldfld      ""int Program.<M>d__1.<>1__state""
+      IL_0006:  stloc.0
+      .try
+      {
+        // sequence point: <hidden>
+        IL_0007:  ldloc.0
+        IL_0008:  brfalse.s  IL_0012
+        IL_000a:  br.s       IL_000c
+        IL_000c:  ldloc.0
+        IL_000d:  ldc.i4.1
+        IL_000e:  beq.s      IL_0014
+        IL_0010:  br.s       IL_0019
+        IL_0012:  br.s       IL_007e
+        IL_0014:  br         IL_0109
+        // sequence point: {
+        IL_0019:  nop
+        // sequence point: <hidden>
+        IL_001a:  br         IL_0150
+        // sequence point: {
+        IL_001f:  nop
+        // sequence point: if (node is A a)
+        IL_0020:  ldarg.0
+        IL_0021:  ldarg.0
+        IL_0022:  ldfld      ""Node Program.<M>d__1.node""
+        IL_0027:  isinst     ""A""
+        IL_002c:  stfld      ""A Program.<M>d__1.<a>5__1""
+        IL_0031:  ldarg.0
+        IL_0032:  ldfld      ""A Program.<M>d__1.<a>5__1""
+        IL_0037:  ldnull
+        IL_0038:  cgt.un
+        IL_003a:  stloc.1
+        // sequence point: <hidden>
+        IL_003b:  ldloc.1
+        IL_003c:  brfalse.s  IL_00a7
+        // sequence point: {
+        IL_003e:  nop
+        // sequence point: await Task.Yield();
+        IL_003f:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+        IL_0044:  stloc.3
+        IL_0045:  ldloca.s   V_3
+        IL_0047:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+        IL_004c:  stloc.2
+        // sequence point: <hidden>
+        IL_004d:  ldloca.s   V_2
+        IL_004f:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+        IL_0054:  brtrue.s   IL_009a
+        IL_0056:  ldarg.0
+        IL_0057:  ldc.i4.0
+        IL_0058:  dup
+        IL_0059:  stloc.0
+        IL_005a:  stfld      ""int Program.<M>d__1.<>1__state""
+        // async: yield
+        IL_005f:  ldarg.0
+        IL_0060:  ldloc.2
+        IL_0061:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1""
+        IL_0066:  ldarg.0
+        IL_0067:  stloc.s    V_4
+        IL_0069:  ldarg.0
+        IL_006a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M>d__1.<>t__builder""
+        IL_006f:  ldloca.s   V_2
+        IL_0071:  ldloca.s   V_4
+        IL_0073:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<M>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<M>d__1)""
+        IL_0078:  nop
+        IL_0079:  leave      IL_0192
+        // async: resume
+        IL_007e:  ldarg.0
+        IL_007f:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1""
+        IL_0084:  stloc.2
+        IL_0085:  ldarg.0
+        IL_0086:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1""
+        IL_008b:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+        IL_0091:  ldarg.0
+        IL_0092:  ldc.i4.m1
+        IL_0093:  dup
+        IL_0094:  stloc.0
+        IL_0095:  stfld      ""int Program.<M>d__1.<>1__state""
+        IL_009a:  ldloca.s   V_2
+        IL_009c:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+        IL_00a1:  nop
+        // sequence point: return;
+        IL_00a2:  leave      IL_017e
+        // sequence point: if (node is B b)
+        IL_00a7:  ldarg.0
+        IL_00a8:  ldarg.0
+        IL_00a9:  ldfld      ""Node Program.<M>d__1.node""
+        IL_00ae:  isinst     ""B""
+        IL_00b3:  stfld      ""B Program.<M>d__1.<b>5__2""
+        IL_00b8:  ldarg.0
+        IL_00b9:  ldfld      ""B Program.<M>d__1.<b>5__2""
+        IL_00be:  ldnull
+        IL_00bf:  cgt.un
+        IL_00c1:  stloc.s    V_5
+        // sequence point: <hidden>
+        IL_00c3:  ldloc.s    V_5
+        IL_00c5:  brfalse.s  IL_0130
+        // sequence point: {
+        IL_00c7:  nop
+        // sequence point: await Task.Yield();
+        IL_00c8:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
+        IL_00cd:  stloc.3
+        IL_00ce:  ldloca.s   V_3
+        IL_00d0:  call       ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()""
+        IL_00d5:  stloc.s    V_6
+        // sequence point: <hidden>
+        IL_00d7:  ldloca.s   V_6
+        IL_00d9:  call       ""bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get""
+        IL_00de:  brtrue.s   IL_0126
+        IL_00e0:  ldarg.0
+        IL_00e1:  ldc.i4.1
+        IL_00e2:  dup
+        IL_00e3:  stloc.0
+        IL_00e4:  stfld      ""int Program.<M>d__1.<>1__state""
+        // async: yield
+        IL_00e9:  ldarg.0
+        IL_00ea:  ldloc.s    V_6
+        IL_00ec:  stfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1""
+        IL_00f1:  ldarg.0
+        IL_00f2:  stloc.s    V_4
+        IL_00f4:  ldarg.0
+        IL_00f5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M>d__1.<>t__builder""
+        IL_00fa:  ldloca.s   V_6
+        IL_00fc:  ldloca.s   V_4
+        IL_00fe:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<M>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<M>d__1)""
+        IL_0103:  nop
+        IL_0104:  leave      IL_0192
+        // async: resume
+        IL_0109:  ldarg.0
+        IL_010a:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1""
+        IL_010f:  stloc.s    V_6
+        IL_0111:  ldarg.0
+        IL_0112:  ldflda     ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__1.<>u__1""
+        IL_0117:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+        IL_011d:  ldarg.0
+        IL_011e:  ldc.i4.m1
+        IL_011f:  dup
+        IL_0120:  stloc.0
+        IL_0121:  stfld      ""int Program.<M>d__1.<>1__state""
+        IL_0126:  ldloca.s   V_6
+        IL_0128:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+        IL_012d:  nop
+        // sequence point: return;
+        IL_012e:  leave.s    IL_017e
+        // sequence point: <hidden>
+        IL_0130:  ldarg.0
+        IL_0131:  ldnull
+        IL_0132:  stfld      ""B Program.<M>d__1.<b>5__2""
+        // sequence point: node = node.Parent;
+        IL_0137:  ldarg.0
+        IL_0138:  ldarg.0
+        IL_0139:  ldfld      ""Node Program.<M>d__1.node""
+        IL_013e:  ldfld      ""Node Node.Parent""
+        IL_0143:  stfld      ""Node Program.<M>d__1.node""
+        // sequence point: }
+        IL_0148:  nop
+        IL_0149:  ldarg.0
+        IL_014a:  ldnull
+        IL_014b:  stfld      ""A Program.<M>d__1.<a>5__1""
+        // sequence point: while (node != null)
+        IL_0150:  ldarg.0
+        IL_0151:  ldfld      ""Node Program.<M>d__1.node""
+        IL_0156:  ldnull
+        IL_0157:  cgt.un
+        IL_0159:  stloc.s    V_7
+        // sequence point: <hidden>
+        IL_015b:  ldloc.s    V_7
+        IL_015d:  brtrue     IL_001f
+        IL_0162:  leave.s    IL_017e
+      }
+      catch System.Exception
+      {
+        // sequence point: <hidden>
+        IL_0164:  stloc.s    V_8
+        IL_0166:  ldarg.0
+        IL_0167:  ldc.i4.s   -2
+        IL_0169:  stfld      ""int Program.<M>d__1.<>1__state""
+        IL_016e:  ldarg.0
+        IL_016f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M>d__1.<>t__builder""
+        IL_0174:  ldloc.s    V_8
+        IL_0176:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+        IL_017b:  nop
+        IL_017c:  leave.s    IL_0192
+      }
+      // sequence point: }
+      IL_017e:  ldarg.0
+      IL_017f:  ldc.i4.s   -2
+      IL_0181:  stfld      ""int Program.<M>d__1.<>1__state""
+      // sequence point: <hidden>
+      IL_0186:  ldarg.0
+      IL_0187:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M>d__1.<>t__builder""
+      IL_018c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+      IL_0191:  nop
+      IL_0192:  ret
+    }
+", sequencePoints: "Program+<M>d__1.MoveNext", source: source);
+        }
+
+        [Fact]
+        [WorkItem(28288, "https://github.com/dotnet/roslyn/issues/28288")]
+        public void TestSequencePoints_28288()
+        {
+            var source = @"
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        object o = new C();
+        switch (o)
+        {
+            case C c:
+                System.Console.Write(1);
+                break;
+            default:
+                return;
+        }
+
+        if (M() != null)
+        {
+        }
+    }
+
+    private static object M()
+    {
+        return new C();
+    }
+}";
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+
+            v.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+    {
+      // Code size      162 (0xa2)
+      .maxstack  2
+      .locals init (int V_0,
+                    object V_1,
+                    bool V_2,
+                    System.Exception V_3)
+      // sequence point: <hidden>
+      IL_0000:  ldarg.0
+      IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+      IL_0006:  stloc.0
+      .try
+      {
+        // sequence point: {
+        IL_0007:  nop
+        // sequence point: object o = new C();
+        IL_0008:  ldarg.0
+        IL_0009:  newobj     ""C..ctor()""
+        IL_000e:  stfld      ""object C.<Main>d__0.<o>5__1""
+        // sequence point: switch (o)
+        IL_0013:  ldarg.0
+        IL_0014:  ldarg.0
+        IL_0015:  ldfld      ""object C.<Main>d__0.<o>5__1""
+        IL_001a:  stloc.1
+        // sequence point: <hidden>
+        IL_001b:  ldloc.1
+        IL_001c:  stfld      ""object C.<Main>d__0.<>s__3""
+        // sequence point: <hidden>
+        IL_0021:  ldarg.0
+        IL_0022:  ldarg.0
+        IL_0023:  ldfld      ""object C.<Main>d__0.<>s__3""
+        IL_0028:  isinst     ""C""
+        IL_002d:  stfld      ""C C.<Main>d__0.<c>5__2""
+        IL_0032:  ldarg.0
+        IL_0033:  ldfld      ""C C.<Main>d__0.<c>5__2""
+        IL_0038:  brtrue.s   IL_003c
+        IL_003a:  br.s       IL_0047
+        // sequence point: <hidden>
+        IL_003c:  br.s       IL_003e
+        // sequence point: System.Console.Write(1);
+        IL_003e:  ldc.i4.1
+        IL_003f:  call       ""void System.Console.Write(int)""
+        IL_0044:  nop
+        // sequence point: break;
+        IL_0045:  br.s       IL_0049
+        // sequence point: return;
+        IL_0047:  leave.s    IL_0086
+        // sequence point: <hidden>
+        IL_0049:  ldarg.0
+        IL_004a:  ldnull
+        IL_004b:  stfld      ""C C.<Main>d__0.<c>5__2""
+        IL_0050:  ldarg.0
+        IL_0051:  ldnull
+        IL_0052:  stfld      ""object C.<Main>d__0.<>s__3""
+        // sequence point: if (M() != null)
+        IL_0057:  call       ""object C.M()""
+        IL_005c:  ldnull
+        IL_005d:  cgt.un
+        IL_005f:  stloc.2
+        // sequence point: <hidden>
+        IL_0060:  ldloc.2
+        IL_0061:  brfalse.s  IL_0065
+        // sequence point: {
+        IL_0063:  nop
+        // sequence point: }
+        IL_0064:  nop
+        // sequence point: <hidden>
+        IL_0065:  leave.s    IL_0086
+      }
+      catch System.Exception
+      {
+        // sequence point: <hidden>
+        IL_0067:  stloc.3
+        IL_0068:  ldarg.0
+        IL_0069:  ldc.i4.s   -2
+        IL_006b:  stfld      ""int C.<Main>d__0.<>1__state""
+        IL_0070:  ldarg.0
+        IL_0071:  ldnull
+        IL_0072:  stfld      ""object C.<Main>d__0.<o>5__1""
+        IL_0077:  ldarg.0
+        IL_0078:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+        IL_007d:  ldloc.3
+        IL_007e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+        IL_0083:  nop
+        IL_0084:  leave.s    IL_00a1
+      }
+      // sequence point: }
+      IL_0086:  ldarg.0
+      IL_0087:  ldc.i4.s   -2
+      IL_0089:  stfld      ""int C.<Main>d__0.<>1__state""
+      // sequence point: <hidden>
+      IL_008e:  ldarg.0
+      IL_008f:  ldnull
+      IL_0090:  stfld      ""object C.<Main>d__0.<o>5__1""
+      IL_0095:  ldarg.0
+      IL_0096:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+      IL_00a0:  nop
+      IL_00a1:  ret
+    }
+", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
+        }
+
         #endregion
 
         #region DoStatement
@@ -3899,6 +4368,7 @@ public class SeqPointForWhile
         <entry offset=""0x1c"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""14"" document=""1"" />
         <entry offset=""0x1d"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
         <entry offset=""0x24"" startLine=""25"" startColumn=""13"" endLine=""25"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x25"" hidden=""true"" document=""1"" />
         <entry offset=""0x27"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""14"" document=""1"" />
         <entry offset=""0x28"" startLine=""28"" startColumn=""17"" endLine=""28"" endColumn=""23"" document=""1"" />
         <entry offset=""0x2a"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" document=""1"" />
@@ -4689,6 +5159,7 @@ public class SeqPointAfterReturn
         <entry offset=""0xd"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" document=""1"" />
         <entry offset=""0xe"" startLine=""33"" startColumn=""13"" endLine=""33"" endColumn=""28"" document=""1"" />
         <entry offset=""0x18"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x19"" hidden=""true"" document=""1"" />
         <entry offset=""0x1b"" startLine=""36"" startColumn=""9"" endLine=""36"" endColumn=""10"" document=""1"" />
         <entry offset=""0x1c"" startLine=""37"" startColumn=""13"" endLine=""37"" endColumn=""27"" document=""1"" />
         <entry offset=""0x26"" startLine=""38"" startColumn=""9"" endLine=""38"" endColumn=""10"" document=""1"" />
@@ -5601,6 +6072,7 @@ class C
     IL_0012:  stloc.1
     // sequence point: }
     IL_0013:  nop
+    // sequence point: <hidden>
     IL_0014:  br.s       IL_0018
     // sequence point: value = false;
     IL_0016:  ldc.i4.0
@@ -5693,6 +6165,7 @@ class C
     IL_0012:  stloc.1
     // sequence point: }
     IL_0013:  nop
+    // sequence point: <hidden>
     IL_0014:  br.s       IL_001a
     // sequence point: {
     IL_0016:  nop
@@ -5905,6 +6378,7 @@ class C
     IL_001c:  ldc.i4.1
     IL_001d:  call       ""void System.Console.Write(int)""
     IL_0022:  nop
+    // sequence point: <hidden>
     IL_0023:  br.s       IL_002c
     // sequence point: System.Console.Write(2);
     IL_0025:  ldc.i4.2
@@ -10827,6 +11301,7 @@ class Program
     IL_0026:  br.s       IL_002a
     // sequence point: break;
     IL_0028:  br.s       IL_002a
+    // sequence point: <hidden>
     IL_002a:  leave.s    IL_0044
   }
   catch System.Exception

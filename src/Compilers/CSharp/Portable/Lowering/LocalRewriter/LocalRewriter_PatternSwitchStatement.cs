@@ -161,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(_tempAllocator.AllTemps());
 
                 _factory.Syntax = node.Syntax;
+                result.Add(_factory.HiddenSequencePoint());
                 result.Add(_factory.Label(node.BreakLabel));
                 BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());
 

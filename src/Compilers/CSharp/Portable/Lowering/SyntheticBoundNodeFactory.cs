@@ -639,6 +639,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
         }
 
+        public BoundExpression MakeIsNotANumberTest(BoundExpression input)
+        {
+            switch (input.Type)
+            {
+                case { SpecialType: CodeAnalysis.SpecialType.System_Double }:
+                    // produce double.IsNaN(input)
+                    return StaticCall(CodeAnalysis.SpecialMember.System_Double__IsNaN, input);
+                case { SpecialType: CodeAnalysis.SpecialType.System_Single }:
+                    // produce float.IsNaN(input)
+                    return StaticCall(CodeAnalysis.SpecialMember.System_Single__IsNaN, input);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(input.Type);
+            }
+        }
+
         public BoundExpression InstanceCall(BoundExpression? receiver, string name, BoundExpression arg)
         {
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);

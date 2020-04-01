@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A common base class for lowering a decision dag.
         /// </summary>
-        private abstract class DecisionDagRewriter : PatternLocalRewriter
+        private abstract partial class DecisionDagRewriter : PatternLocalRewriter
         {
             /// <summary>
             /// Get the builder for code in the given section of the switch.
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// temporary variables and use user-declared variables instead, because we can conclude that they
             /// are not mutated while the pattern-matching automaton is running.
             /// </summary>
-            protected class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+            protected sealed class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
                 private bool _mightAssignSomething;
 
@@ -404,53 +406,291 @@ namespace Microsoft.CodeAnalysis.CSharp
             private bool GenerateSwitchDispatch(BoundDecisionDagNode node, HashSet<BoundDecisionDagNode> loweredNodes)
             {
                 Debug.Assert(!loweredNodes.Contains(node));
-
-                // We only generate a switch dispatch if we have two or more value tests in a row
-                if (!(node is BoundTestDecisionDagNode firstTestNode &&
-                     firstTestNode.Test is BoundDagValueTest firstTest &&
-                     firstTestNode.WhenFalse is BoundTestDecisionDagNode whenFalse &&
-                     whenFalse.Test is BoundDagValueTest secondTest &&
-                     !loweredNodes.Contains(whenFalse) &&
-                     !this._dagNodeLabels.ContainsKey(whenFalse) &&
-                     firstTest.Input.Equals(secondTest.Input) &&
-                     firstTest.Input.Type.IsValidV6SwitchGoverningType()))
-                {
-                    // https://github.com/dotnet/roslyn/issues/12509 Could optimize float, double, decimal value switches. For now use if-then-else
+                if (!canGenerateSwitchDispatch(node))
                     return false;
-                }
 
-                // Gather up the (value, label) pairs, starting with the first one
-                var cases = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
-                cases.Add((value: firstTest.Value, label: GetDagNodeLabel(firstTestNode.WhenTrue)));
-
-                BoundTestDecisionDagNode previous = firstTestNode;
-                while (previous.WhenFalse is BoundTestDecisionDagNode p &&
-                    p.Test is BoundDagValueTest vd &&
-                    vd.Input.Equals(firstTest.Input) &&
-                    !this._dagNodeLabels.ContainsKey(p) &&
-                    !loweredNodes.Contains(p))
-                {
-                    cases.Add((value: vd.Value, label: GetDagNodeLabel(p.WhenTrue)));
-                    loweredNodes.Add(p);
-                    previous = p;
-                }
-
-                // If we are emitting a hash table based string switch,
-                // we need to generate a helper method for computing
-                // string hash value in <PrivateImplementationDetails> class.
-
-                MethodSymbol stringEquality = null;
-                if (firstTest.Input.Type.SpecialType == SpecialType.System_String)
-                {
-                    EnsureStringHashFunction(cases.Count, node.Syntax);
-                    stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
-                }
-
-                LabelSymbol defaultLabel = GetDagNodeLabel(previous.WhenFalse);
-                var dispatch = new BoundSwitchDispatch(
-                    node.Syntax, _tempAllocator.GetTemp(firstTest.Input), cases.ToImmutableAndFree(), defaultLabel, stringEquality);
-                _loweredDecisionDag.Add(dispatch);
+                var input = ((BoundTestDecisionDagNode)node).Test.Input;
+                ValueDispatchNode n = GatherValueDispatchNodes(node, loweredNodes, input);
+                LowerValueDispatchNode(n, _tempAllocator.GetTemp(input));
                 return true;
+
+                bool canGenerateSwitchDispatch(BoundDecisionDagNode node)
+                {
+                    switch (node)
+                    {
+                        // These are the forms worth optimizing.
+                        case BoundTestDecisionDagNode { WhenFalse: BoundTestDecisionDagNode test2 } test1:
+                            return canDispatch(test1, test2);
+                        case BoundTestDecisionDagNode { WhenTrue: BoundTestDecisionDagNode test2 } test1:
+                            return canDispatch(test1, test2);
+                        default:
+                            // Other cases are just as well done with a single test.
+                            return false;
+                    }
+
+                    bool canDispatch(BoundTestDecisionDagNode test1, BoundTestDecisionDagNode test2)
+                    {
+                        if (this._dagNodeLabels.ContainsKey(test2))
+                            return false;
+
+                        Debug.Assert(!loweredNodes.Contains(test2));
+                        var t1 = test1.Test;
+                        var t2 = test2.Test;
+                        if (!(t1 is BoundDagValueTest || t1 is BoundDagRelationalTest))
+                            return false;
+                        if (!(t2 is BoundDagValueTest || t2 is BoundDagRelationalTest))
+                            return false;
+                        if (!t1.Input.Equals(t2.Input))
+                            return false;
+                        return true;
+                    }
+                }
+            }
+
+            private ValueDispatchNode GatherValueDispatchNodes(
+                BoundDecisionDagNode node,
+                HashSet<BoundDecisionDagNode> loweredNodes,
+                BoundDagTemp input)
+            {
+                IValueSetFactory fac = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
+                return GatherValueDispatchNodes(node, loweredNodes, input, fac);
+            }
+
+            private ValueDispatchNode GatherValueDispatchNodes(
+                BoundDecisionDagNode node,
+                HashSet<BoundDecisionDagNode> loweredNodes,
+                BoundDagTemp input,
+                IValueSetFactory fac)
+            {
+                if (loweredNodes.Contains(node))
+                {
+                    bool foundLabel = this._dagNodeLabels.TryGetValue(node, out LabelSymbol label);
+                    Debug.Assert(foundLabel);
+                    return new ValueDispatchNode.LeafDispatchNode(node.Syntax, label);
+                }
+                if (!(node is BoundTestDecisionDagNode testNode && testNode.Test.Input.Equals(input)))
+                {
+                    var label = GetDagNodeLabel(node);
+                    return new ValueDispatchNode.LeafDispatchNode(node.Syntax, label);
+                }
+
+                switch (testNode.Test)
+                {
+                    case BoundDagRelationalTest relational:
+                        {
+                            loweredNodes.Add(testNode);
+                            var whenTrue = GatherValueDispatchNodes(testNode.WhenTrue, loweredNodes, input, fac);
+                            var whenFalse = GatherValueDispatchNodes(testNode.WhenFalse, loweredNodes, input, fac);
+                            return ValueDispatchNode.RelationalDispatch.CreateBalanced(testNode.Syntax, relational.Value, relational.OperatorKind, whenTrue: whenTrue, whenFalse: whenFalse);
+                        }
+                    case BoundDagValueTest value:
+                        {
+                            // Gather up the (value, label) pairs, starting with the first one
+                            loweredNodes.Add(testNode);
+                            var cases = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
+                            cases.Add((value: value.Value, label: GetDagNodeLabel(testNode.WhenTrue)));
+                            BoundTestDecisionDagNode previous = testNode;
+                            while (previous.WhenFalse is BoundTestDecisionDagNode p &&
+                                p.Test is BoundDagValueTest vd &&
+                                vd.Input.Equals(input) &&
+                                !this._dagNodeLabels.ContainsKey(p) &&
+                                !loweredNodes.Contains(p))
+                            {
+                                cases.Add((value: vd.Value, label: GetDagNodeLabel(p.WhenTrue)));
+                                loweredNodes.Add(p);
+                                previous = p;
+                            }
+
+                            var otherwise = GatherValueDispatchNodes(previous.WhenFalse, loweredNodes, input, fac);
+                            return PushEqualityTestsIntoTree(value.Syntax, otherwise, cases.ToImmutableAndFree(), fac);
+                        }
+                    default:
+                        {
+                            var label = GetDagNodeLabel(node);
+                            return new ValueDispatchNode.LeafDispatchNode(node.Syntax, label);
+                        }
+                }
+            }
+
+            /// <summary>
+            /// Push the set of equality tests down to the level of the leaves in the value dispatch tree.
+            /// </summary>
+            private ValueDispatchNode PushEqualityTestsIntoTree(
+                SyntaxNode syntax,
+                ValueDispatchNode otherwise,
+                ImmutableArray<(ConstantValue value, LabelSymbol label)> cases,
+                IValueSetFactory fac)
+            {
+                if (cases.IsEmpty)
+                    return otherwise;
+
+                switch (otherwise)
+                {
+                    case ValueDispatchNode.LeafDispatchNode leaf:
+                        return new ValueDispatchNode.SwitchDispatch(syntax, cases, leaf.Label);
+                    case ValueDispatchNode.SwitchDispatch sd:
+                        return new ValueDispatchNode.SwitchDispatch(sd.Syntax, sd.Cases.Concat(cases), sd.Otherwise);
+                    case ValueDispatchNode.RelationalDispatch { Operator: var op, Value: var value, WhenTrue: var whenTrue, WhenFalse: var whenFalse } rel:
+                        var (whenTrueCases, whenFalseCases) = splitCases(cases, op, value);
+                        Debug.Assert(cases.Length == whenTrueCases.Length + whenFalseCases.Length);
+                        whenTrue = PushEqualityTestsIntoTree(syntax, whenTrue, whenTrueCases, fac);
+                        whenFalse = PushEqualityTestsIntoTree(syntax, whenFalse, whenFalseCases, fac);
+                        var result = rel.WithTrueAndFalseChildren(whenTrue: whenTrue, whenFalse: whenFalse);
+                        return result;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(otherwise);
+                }
+
+                (ImmutableArray<(ConstantValue value, LabelSymbol label)> whenTrueCases, ImmutableArray<(ConstantValue value, LabelSymbol label)> whenFalseCases)
+                    splitCases(ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, BinaryOperatorKind op, ConstantValue value)
+                {
+                    var whenTrueBuilder = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
+                    var whenFalseBuilder = ArrayBuilder<(ConstantValue value, LabelSymbol label)>.GetInstance();
+                    op = op.Operator();
+                    foreach (var pair in cases)
+                    {
+                        (fac.Related(op, pair.value, value) ? whenTrueBuilder : whenFalseBuilder).Add(pair);
+                    }
+
+                    return (whenTrueBuilder.ToImmutableAndFree(), whenFalseBuilder.ToImmutableAndFree());
+                }
+            }
+
+            private void LowerValueDispatchNode(ValueDispatchNode n, BoundExpression input)
+            {
+                switch (n)
+                {
+                    case ValueDispatchNode.LeafDispatchNode leaf:
+                        _loweredDecisionDag.Add(_factory.Goto(leaf.Label));
+                        return;
+                    case ValueDispatchNode.SwitchDispatch eq:
+                        LowerSwitchDispatchNode(eq, input);
+                        return;
+                    case ValueDispatchNode.RelationalDispatch rel:
+                        LowerRelationalDispatchNode(rel, input);
+                        return;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(n);
+                }
+            }
+
+            private void LowerRelationalDispatchNode(ValueDispatchNode.RelationalDispatch rel, BoundExpression input)
+            {
+                var test = MakeRelationalTest(rel.Syntax, input, rel.Operator, rel.Value);
+                if (rel.WhenTrue is ValueDispatchNode.LeafDispatchNode whenTrue)
+                {
+                    LabelSymbol trueLabel = whenTrue.Label;
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, trueLabel, jumpIfTrue: true));
+                    LowerValueDispatchNode(rel.WhenFalse, input);
+                }
+                else if (rel.WhenFalse is ValueDispatchNode.LeafDispatchNode whenFalse)
+                {
+                    LabelSymbol falseLabel = whenFalse.Label;
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, falseLabel, jumpIfTrue: false));
+                    LowerValueDispatchNode(rel.WhenTrue, input);
+                }
+                else
+                {
+                    LabelSymbol falseLabel = _factory.GenerateLabel("relationalDispatch");
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, falseLabel, jumpIfTrue: false));
+                    LowerValueDispatchNode(rel.WhenTrue, input);
+                    _loweredDecisionDag.Add(_factory.Label(falseLabel));
+                    LowerValueDispatchNode(rel.WhenFalse, input);
+                }
+            }
+
+            /// <summary>
+            /// A comparer for sorting cases containing values of type float, double, or decimal.
+            /// </summary>
+            private sealed class CasesComparer : IComparer<(ConstantValue value, LabelSymbol label)>
+            {
+                private readonly IValueSetFactory _fac;
+                public CasesComparer(SpecialType type)
+                {
+                    _fac = ValueSetFactory.ForSpecialType(type);
+                }
+
+                int IComparer<(ConstantValue value, LabelSymbol label)>.Compare((ConstantValue value, LabelSymbol label) left, (ConstantValue value, LabelSymbol label) right)
+                {
+                    var x = left.value;
+                    var y = right.value;
+                    Debug.Assert(x.Discriminator switch
+                    {
+                        ConstantValueTypeDiscriminator.Decimal => true,
+                        ConstantValueTypeDiscriminator.Single => true,
+                        ConstantValueTypeDiscriminator.Double => true,
+                        _ => false
+                    });
+                    Debug.Assert(y.Discriminator == x.Discriminator);
+                    // Sort NaN values into the "highest" position so they fall naturally into the last bucket
+                    // when partitioned using less-than.
+                    return
+                        isNaN(x) ? 1 :
+                        isNaN(y) ? -1 :
+                        _fac.Related(BinaryOperatorKind.LessThanOrEqual, x, y) ?
+                            (_fac.Related(BinaryOperatorKind.LessThanOrEqual, y, x) ? 0 : -1) :
+                        1;
+
+                    static bool isNaN(ConstantValue value) =>
+                        value.Discriminator != ConstantValueTypeDiscriminator.Decimal && double.IsNaN(value.DoubleValue);
+                }
+            }
+
+            private void LowerSwitchDispatchNode(ValueDispatchNode.SwitchDispatch node, BoundExpression input)
+            {
+                if (input.Type.IsValidV6SwitchGoverningType())
+                {
+                    // If we are emitting a hash table based string switch,
+                    // we need to generate a helper method for computing
+                    // string hash value in <PrivateImplementationDetails> class.
+                    MethodSymbol stringEquality = null;
+                    if (input.Type.SpecialType == SpecialType.System_String)
+                    {
+                        EnsureStringHashFunction(node.Cases.Length, node.Syntax);
+                        stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
+                    }
+
+                    LabelSymbol defaultLabel = node.Otherwise;
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel, stringEquality);
+                    _loweredDecisionDag.Add(dispatch);
+                }
+                else
+                {
+                    // The emitter does not know how to produce a "switch" instruction for float, double, or decimal
+                    // (in part because there is no such instruction) so we fake it here by generating a decision tree.
+                    var lessThanOrEqualOperator = input.Type.SpecialType switch
+                    {
+                        SpecialType.System_Single => BinaryOperatorKind.FloatLessThanOrEqual,
+                        SpecialType.System_Double => BinaryOperatorKind.DoubleLessThanOrEqual,
+                        SpecialType.System_Decimal => BinaryOperatorKind.DecimalLessThanOrEqual,
+                        _ => throw ExceptionUtilities.UnexpectedValue(input.Type.SpecialType)
+                    };
+
+                    var cases = node.Cases.Sort(new CasesComparer(input.Type.SpecialType));
+                    lowerFloatDispatch(0, cases.Length);
+
+                    void lowerFloatDispatch(int firstIndex, int count)
+                    {
+                        if (count <= 3)
+                        {
+                            for (int i = firstIndex, limit = firstIndex + count; i < limit; i++)
+                            {
+                                _loweredDecisionDag.Add(_factory.ConditionalGoto(MakeValueTest(node.Syntax, input, cases[i].value), cases[i].label, jumpIfTrue: true));
+                            }
+
+                            _loweredDecisionDag.Add(_factory.Goto(node.Otherwise));
+                        }
+                        else
+                        {
+                            int half = count / 2;
+                            var gt = _factory.GenerateLabel("greaterThanMidpoint");
+                            _loweredDecisionDag.Add(_factory.ConditionalGoto(MakeRelationalTest(node.Syntax, input, lessThanOrEqualOperator, cases[firstIndex + half - 1].value), gt, jumpIfTrue: false));
+                            lowerFloatDispatch(firstIndex, half);
+                            _loweredDecisionDag.Add(_factory.Label(gt));
+                            lowerFloatDispatch(firstIndex + half, count - half);
+                        }
+                    }
+                }
             }
 
             /// <summary>

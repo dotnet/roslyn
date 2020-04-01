@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3098,65 +3101,66 @@ class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.Grade", @"
     {
-      // Code size      118 (0x76)
+      // Code size      120 (0x78)
       .maxstack  6
       .locals init (char V_0)
       IL_0000:  ldc.i4.1
       IL_0001:  brtrue.s   IL_0004
       IL_0003:  nop
       IL_0004:  ldarg.0
-      IL_0005:  ldc.i4     0xea60
+      IL_0005:  ldc.i4     0x320
       IL_000a:  ldc.i4.0
       IL_000b:  ldc.i4.0
       IL_000c:  ldc.i4.0
-      IL_000d:  ldc.i4.3
+      IL_000d:  ldc.i4.1
       IL_000e:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
       IL_0013:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
-      IL_0018:  brtrue.s   IL_0057
+      IL_0018:  brfalse.s  IL_0048
       IL_001a:  ldarg.0
-      IL_001b:  ldc.i4     0x1b58
+      IL_001b:  ldc.i4     0xea60
       IL_0020:  ldc.i4.0
       IL_0021:  ldc.i4.0
       IL_0022:  ldc.i4.0
-      IL_0023:  ldc.i4.2
+      IL_0023:  ldc.i4.3
       IL_0024:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
       IL_0029:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
-      IL_002e:  brtrue.s   IL_005c
+      IL_002e:  brtrue.s   IL_0059
       IL_0030:  ldarg.0
-      IL_0031:  ldc.i4     0x320
+      IL_0031:  ldc.i4     0x1b58
       IL_0036:  ldc.i4.0
       IL_0037:  ldc.i4.0
       IL_0038:  ldc.i4.0
-      IL_0039:  ldc.i4.1
+      IL_0039:  ldc.i4.2
       IL_003a:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
       IL_003f:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
-      IL_0044:  brtrue.s   IL_0061
-      IL_0046:  ldarg.0
-      IL_0047:  ldc.i4.s   90
-      IL_0049:  newobj     ""decimal..ctor(int)""
-      IL_004e:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
-      IL_0053:  brtrue.s   IL_0066
-      IL_0055:  br.s       IL_006b
-      IL_0057:  ldc.i4.s   70
-      IL_0059:  stloc.0
-      IL_005a:  br.s       IL_0070
-      IL_005c:  ldc.i4.s   68
-      IL_005e:  stloc.0
-      IL_005f:  br.s       IL_0070
-      IL_0061:  ldc.i4.s   67
-      IL_0063:  stloc.0
-      IL_0064:  br.s       IL_0070
-      IL_0066:  ldc.i4.s   66
-      IL_0068:  stloc.0
-      IL_0069:  br.s       IL_0070
-      IL_006b:  ldc.i4.s   65
-      IL_006d:  stloc.0
-      IL_006e:  br.s       IL_0070
-      IL_0070:  ldc.i4.1
-      IL_0071:  brtrue.s   IL_0074
-      IL_0073:  nop
-      IL_0074:  ldloc.0
-      IL_0075:  ret
+      IL_0044:  brtrue.s   IL_005e
+      IL_0046:  br.s       IL_0063
+      IL_0048:  ldarg.0
+      IL_0049:  ldc.i4.s   90
+      IL_004b:  newobj     ""decimal..ctor(int)""
+      IL_0050:  call       ""bool decimal.op_LessThanOrEqual(decimal, decimal)""
+      IL_0055:  brtrue.s   IL_0068
+      IL_0057:  br.s       IL_006d
+      IL_0059:  ldc.i4.s   70
+      IL_005b:  stloc.0
+      IL_005c:  br.s       IL_0072
+      IL_005e:  ldc.i4.s   68
+      IL_0060:  stloc.0
+      IL_0061:  br.s       IL_0072
+      IL_0063:  ldc.i4.s   67
+      IL_0065:  stloc.0
+      IL_0066:  br.s       IL_0072
+      IL_0068:  ldc.i4.s   66
+      IL_006a:  stloc.0
+      IL_006b:  br.s       IL_0072
+      IL_006d:  ldc.i4.s   65
+      IL_006f:  stloc.0
+      IL_0070:  br.s       IL_0072
+      IL_0072:  ldc.i4.1
+      IL_0073:  brtrue.s   IL_0076
+      IL_0075:  nop
+      IL_0076:  ldloc.0
+      IL_0077:  ret
     }
 ");
         }
@@ -3696,6 +3700,536 @@ class Program
                         break;
                 }
             }
+        }
+
+        [Fact]
+        public void Relational_12()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        Test(-1);
+        Test(0);
+        Test(1);
+        Test(2);
+        Test(3);
+        Test(4);
+        Test(5);
+        Test(6);
+        Test(7);
+        Test(11);
+        Test(12);
+        Test(13);
+        Test(19);
+        Test(20);
+        Test(21);
+        Test(39);
+        Test(40);
+        Test(41);
+        Test(64);
+        Test(65);
+        Test(66);
+        Test(68);
+        Test(70);
+        Test(80);
+    }
+    static void Test(int age)
+    {
+        Console.WriteLine($""{age} -> {LifeStageAtAge(age)}"");
+    }
+    static LifeStage LifeStageAtAge(int age) => age switch
+    {
+        < 0 =>  LifeStage.Prenatal,
+        < 2 =>  LifeStage.Infant,
+        < 4 =>  LifeStage.Toddler,
+        < 6 =>  LifeStage.EarlyChild,
+        < 12 => LifeStage.MiddleChild,
+        < 20 => LifeStage.Adolescent,
+        < 40 => LifeStage.EarlyAdult,
+        < 65 => LifeStage.MiddleAdult,
+        _ =>    LifeStage.LateAdult,
+    };
+}
+enum LifeStage
+{
+    Prenatal,
+    Infant,
+    Toddler,
+    EarlyChild,
+    MiddleChild,
+    Adolescent,
+    EarlyAdult,
+    MiddleAdult,
+    LateAdult,
+}
+";
+            var expectedOutput =
+@"-1 -> Prenatal
+0 -> Infant
+1 -> Infant
+2 -> Toddler
+3 -> Toddler
+4 -> EarlyChild
+5 -> EarlyChild
+6 -> MiddleChild
+7 -> MiddleChild
+11 -> MiddleChild
+12 -> Adolescent
+13 -> Adolescent
+19 -> Adolescent
+20 -> EarlyAdult
+21 -> EarlyAdult
+39 -> EarlyAdult
+40 -> MiddleAdult
+41 -> MiddleAdult
+64 -> MiddleAdult
+65 -> LateAdult
+66 -> LateAdult
+68 -> LateAdult
+70 -> LateAdult
+80 -> LateAdult
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.LifeStageAtAge", @"
+    {
+      // Code size       90 (0x5a)
+      .maxstack  2
+      .locals init (LifeStage V_0)
+      IL_0000:  ldc.i4.1
+      IL_0001:  brtrue.s   IL_0004
+      IL_0003:  nop
+      IL_0004:  ldarg.0
+      IL_0005:  ldc.i4.s   12
+      IL_0007:  bge.s      IL_001d
+      IL_0009:  ldarg.0
+      IL_000a:  ldc.i4.4
+      IL_000b:  bge.s      IL_0017
+      IL_000d:  ldarg.0
+      IL_000e:  ldc.i4.0
+      IL_000f:  blt.s      IL_0030
+      IL_0011:  ldarg.0
+      IL_0012:  ldc.i4.2
+      IL_0013:  blt.s      IL_0034
+      IL_0015:  br.s       IL_0038
+      IL_0017:  ldarg.0
+      IL_0018:  ldc.i4.6
+      IL_0019:  blt.s      IL_003c
+      IL_001b:  br.s       IL_0040
+      IL_001d:  ldarg.0
+      IL_001e:  ldc.i4.s   40
+      IL_0020:  bge.s      IL_0029
+      IL_0022:  ldarg.0
+      IL_0023:  ldc.i4.s   20
+      IL_0025:  blt.s      IL_0044
+      IL_0027:  br.s       IL_0048
+      IL_0029:  ldarg.0
+      IL_002a:  ldc.i4.s   65
+      IL_002c:  blt.s      IL_004c
+      IL_002e:  br.s       IL_0050
+      IL_0030:  ldc.i4.0
+      IL_0031:  stloc.0
+      IL_0032:  br.s       IL_0054
+      IL_0034:  ldc.i4.1
+      IL_0035:  stloc.0
+      IL_0036:  br.s       IL_0054
+      IL_0038:  ldc.i4.2
+      IL_0039:  stloc.0
+      IL_003a:  br.s       IL_0054
+      IL_003c:  ldc.i4.3
+      IL_003d:  stloc.0
+      IL_003e:  br.s       IL_0054
+      IL_0040:  ldc.i4.4
+      IL_0041:  stloc.0
+      IL_0042:  br.s       IL_0054
+      IL_0044:  ldc.i4.5
+      IL_0045:  stloc.0
+      IL_0046:  br.s       IL_0054
+      IL_0048:  ldc.i4.6
+      IL_0049:  stloc.0
+      IL_004a:  br.s       IL_0054
+      IL_004c:  ldc.i4.7
+      IL_004d:  stloc.0
+      IL_004e:  br.s       IL_0054
+      IL_0050:  ldc.i4.8
+      IL_0051:  stloc.0
+      IL_0052:  br.s       IL_0054
+      IL_0054:  ldc.i4.1
+      IL_0055:  brtrue.s   IL_0058
+      IL_0057:  nop
+      IL_0058:  ldloc.0
+      IL_0059:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void Relational_13()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+        Test(-1);
+        Test(0);
+        Test(1);
+        Test(2);
+        Test(3);
+        Test(4);
+        Test(5);
+        Test(6);
+        Test(7);
+        Test(11);
+        Test(12);
+        Test(13);
+        Test(19);
+        Test(20);
+        Test(21);
+        Test(39);
+        Test(40);
+        Test(41);
+        Test(64);
+        Test(65);
+        Test(66);
+        Test(68);
+        Test(70);
+        Test(80);
+    }
+    static void Test(int age)
+    {
+        Console.WriteLine($""{age} -> {LifeStageAtAge(age)}"");
+    }
+    static LifeStage LifeStageAtAge(int age) => age switch
+    {
+        >= 20 and < 40 => LifeStage.EarlyAdult,
+        >= 12 and < 20 => LifeStage.Adolescent,
+        >= 4 and < 6 =>  LifeStage.EarlyChild,
+        >= 6 and < 12 => LifeStage.MiddleChild,
+        < 0 =>  LifeStage.Prenatal,
+        >= 0 and < 2 =>  LifeStage.Infant,
+        >= 2 and < 4 =>  LifeStage.Toddler,
+        >= 65 =>    LifeStage.LateAdult,
+        >= 40 and < 65 => LifeStage.MiddleAdult,
+    };
+}
+enum LifeStage
+{
+    Prenatal,
+    Infant,
+    Toddler,
+    EarlyChild,
+    MiddleChild,
+    Adolescent,
+    EarlyAdult,
+    MiddleAdult,
+    LateAdult,
+}
+";
+            var expectedOutput =
+@"-1 -> Prenatal
+0 -> Infant
+1 -> Infant
+2 -> Toddler
+3 -> Toddler
+4 -> EarlyChild
+5 -> EarlyChild
+6 -> MiddleChild
+7 -> MiddleChild
+11 -> MiddleChild
+12 -> Adolescent
+13 -> Adolescent
+19 -> Adolescent
+20 -> EarlyAdult
+21 -> EarlyAdult
+39 -> EarlyAdult
+40 -> MiddleAdult
+41 -> MiddleAdult
+64 -> MiddleAdult
+65 -> LateAdult
+66 -> LateAdult
+68 -> LateAdult
+70 -> LateAdult
+80 -> LateAdult
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.LifeStageAtAge", @"
+    {
+      // Code size       88 (0x58)
+      .maxstack  2
+      .locals init (LifeStage V_0)
+      IL_0000:  ldc.i4.1
+      IL_0001:  brtrue.s   IL_0004
+      IL_0003:  nop
+      IL_0004:  ldarg.0
+      IL_0005:  ldc.i4.s   20
+      IL_0007:  blt.s      IL_0015
+      IL_0009:  ldarg.0
+      IL_000a:  ldc.i4.s   40
+      IL_000c:  blt.s      IL_002e
+      IL_000e:  ldarg.0
+      IL_000f:  ldc.i4.s   65
+      IL_0011:  bge.s      IL_004a
+      IL_0013:  br.s       IL_004e
+      IL_0015:  ldarg.0
+      IL_0016:  ldc.i4.4
+      IL_0017:  blt.s      IL_0024
+      IL_0019:  ldarg.0
+      IL_001a:  ldc.i4.s   12
+      IL_001c:  bge.s      IL_0032
+      IL_001e:  ldarg.0
+      IL_001f:  ldc.i4.6
+      IL_0020:  blt.s      IL_0036
+      IL_0022:  br.s       IL_003a
+      IL_0024:  ldarg.0
+      IL_0025:  ldc.i4.0
+      IL_0026:  blt.s      IL_003e
+      IL_0028:  ldarg.0
+      IL_0029:  ldc.i4.2
+      IL_002a:  blt.s      IL_0042
+      IL_002c:  br.s       IL_0046
+      IL_002e:  ldc.i4.6
+      IL_002f:  stloc.0
+      IL_0030:  br.s       IL_0052
+      IL_0032:  ldc.i4.5
+      IL_0033:  stloc.0
+      IL_0034:  br.s       IL_0052
+      IL_0036:  ldc.i4.3
+      IL_0037:  stloc.0
+      IL_0038:  br.s       IL_0052
+      IL_003a:  ldc.i4.4
+      IL_003b:  stloc.0
+      IL_003c:  br.s       IL_0052
+      IL_003e:  ldc.i4.0
+      IL_003f:  stloc.0
+      IL_0040:  br.s       IL_0052
+      IL_0042:  ldc.i4.1
+      IL_0043:  stloc.0
+      IL_0044:  br.s       IL_0052
+      IL_0046:  ldc.i4.2
+      IL_0047:  stloc.0
+      IL_0048:  br.s       IL_0052
+      IL_004a:  ldc.i4.8
+      IL_004b:  stloc.0
+      IL_004c:  br.s       IL_0052
+      IL_004e:  ldc.i4.7
+      IL_004f:  stloc.0
+      IL_0050:  br.s       IL_0052
+      IL_0052:  ldc.i4.1
+      IL_0053:  brtrue.s   IL_0056
+      IL_0055:  nop
+      IL_0056:  ldloc.0
+      IL_0057:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void RelationalFuzz_2020202_2_F()
+        {
+            var source = @"
+class C
+{
+    static int M(float d)
+    {
+        return d switch
+        {
+            >= 3F and < 6F => 1,
+            >= 6F and < 9F => 2,
+            _ => 0,
+        };
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        /// <summary>
+        /// A test intended to stress the machinery in lowering used to build the balanced tree of tests.
+        /// </summary>
+        [Theory]
+        [InlineData(1169113187, 100, 'D', "")]
+        [InlineData(1415490180, 100, 'F', "")]
+        [InlineData(1965461556, 100, 'M', "")]
+        [InlineData(1745927739, 100, 'D', ".1")]
+        [InlineData(652662048, 100, 'F', ".1")]
+        [InlineData(201887198, 100, 'M', ".1")]
+        [InlineData(1323313104, 100, 'L', "")]
+        [InlineData(349816033, 100, 'U', "")]
+        public void RelationalFuzz_01(int seed, int numCases, char kind, string point)
+        {
+            string type = kind switch
+            {
+                'D' => "double",
+                'F' => "float",
+                'M' => "decimal",
+                'L' => "long",
+                'U' => "uint",
+                _ => throw new ArgumentException(nameof(kind)),
+            };
+            // A 
+            Random random = new Random(seed);
+            int nextInt = 1;
+            int nextValue() => nextInt += random.Next(1, 3);
+            var tests = new StringBuilder();
+            var cases = new ArrayBuilder<string>();
+            var expected = new StringBuilder();
+            int previousValue = nextValue();
+            for (int i = 1; i <= numCases; i++)
+            {
+                int limit = nextValue();
+                if (limit == previousValue + 1)
+                    cases.Add(FormattableString.Invariant($"            {previousValue}{point}{kind} => {i},"));
+                else
+                    cases.Add(FormattableString.Invariant($"            >= {previousValue}{point}{kind} and < {limit}{point}{kind} => {i},"));
+
+                for (int t = previousValue; t < limit; t++)
+                {
+                    tests.AppendLine(FormattableString.Invariant($"        Console.WriteLine(M({t}{point}{kind}));"));
+                    expected.AppendLine(FormattableString.Invariant($"{i}"));
+                }
+
+                previousValue = limit;
+            }
+
+            var sourceTemplate = @"using System;
+class C
+{
+    static void Main()
+    {
+TESTS
+    }
+    static int M(TYPE d)
+    {
+        return d switch
+        {
+CASES
+            _ => 0,
+        };
+    }
+}
+";
+            var casesString = string.Join("\n", cases);
+            var source = sourceTemplate.Replace("TESTS", tests.ToString()).Replace("CASES", casesString).Replace("TYPE", type);
+            var expectedOutput = expected.ToString();
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            shuffle(cases);
+            casesString = string.Join("\n", cases);
+            source = sourceTemplate.Replace("TESTS", tests.ToString()).Replace("CASES", casesString).Replace("TYPE", type);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            void shuffle(ArrayBuilder<string> cases)
+            {
+                for (int i = 0; i < cases.Count; i++)
+                {
+                    int o = random.Next(i, cases.Count);
+                    (cases[o], cases[i]) = (cases[i], cases[o]);
+                }
+            }
+        }
+
+        [Fact]
+        public void ByteEnumConstantPattern()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        BoundCollectionElementInitializer initializer = new BoundCollectionElementInitializer();
+        switch (initializer.Kind)
+        {
+            case BoundKind.CollectionElementInitializer:
+                Console.WriteLine(true);
+                break;
+            default:
+                Console.WriteLine(false);
+                break;
+        }
+    }
+    static void Main2()
+    {
+        BoundCollectionElementInitializer initializer = new BoundCollectionElementInitializer();
+        if (initializer.Kind is BoundKind.CollectionElementInitializer)
+        {
+            Console.WriteLine(true);
+        }
+        else
+        {
+            Console.WriteLine(false);
+        }
+    }
+    static void Main3()
+    {
+        BoundCollectionElementInitializer initializer = new BoundCollectionElementInitializer();
+        if (initializer.Kind == BoundKind.CollectionElementInitializer)
+        {
+            Console.WriteLine(true);
+        }
+        else
+        {
+            Console.WriteLine(false);
+        }
+    }
+}
+
+enum BoundKind: byte
+{
+    CollectionElementInitializer = 0x94,
+}
+class BoundCollectionElementInitializer: BoundNode
+{
+    public BoundCollectionElementInitializer() : base(BoundKind.CollectionElementInitializer) { }
+}
+class BoundNode
+{
+    public readonly BoundKind Kind;
+    public BoundNode(BoundKind kind) => this.Kind = kind;
+}
+";
+            string expectedOutput = "True";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var code = @"
+    {
+      // Code size       31 (0x1f)
+      .maxstack  2
+      IL_0000:  newobj     ""BoundCollectionElementInitializer..ctor()""
+      IL_0005:  ldfld      ""BoundKind BoundNode.Kind""
+      IL_000a:  ldc.i4     0x94
+      IL_000f:  bne.un.s   IL_0018
+      IL_0011:  ldc.i4.1
+      IL_0012:  call       ""void System.Console.WriteLine(bool)""
+      IL_0017:  ret
+      IL_0018:  ldc.i4.0
+      IL_0019:  call       ""void System.Console.WriteLine(bool)""
+      IL_001e:  ret
+    }
+";
+            compVerifier.VerifyIL("C.Main", code);
+            compVerifier.VerifyIL("C.Main2", code);
+            compVerifier.VerifyIL("C.Main3", code);
         }
     }
 }
