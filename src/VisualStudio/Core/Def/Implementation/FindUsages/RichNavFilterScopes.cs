@@ -77,39 +77,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
     [TableManagerIdentifier("FindAllReferences*")]
     [TableManagerIdentifier("FindResults*")]
     [DeferCreation(OptionName = RichNavOptions.RichNavAvailableOptionName)] // This factory will not be loaded unless this option is set to Boolean true
-    [Name(PredefinedScopeFilterNames.EntireOrganizationScopeFilter)]
+    [Name(AllSourcesFilterHandlerFactory.AllSourcesScopeFilter)]
     [Order(Before = PredefinedScopeFilterNames.EntireRepositoryScopeFilter)]
-    internal class EntireOragnizationFilterHandlerFactory : IScopeFilterFactory
+    internal class AllSourcesFilterHandlerFactory : IScopeFilterFactory
     {
+        private const string AllSourcesScopeFilter = "All Sources";
+
         [ImportingConstructor]
-        public EntireOragnizationFilterHandlerFactory()
+        public AllSourcesFilterHandlerFactory()
         {
         }
 
         public IErrorListFilterHandler CreateFilter(IWpfTableControl tableControl)
         {
-            return new EntireOragnizationFilterHandler();
+            return new AllSourcesFilterHandler();
         }
     }
 
-    internal class EntireOragnizationFilterHandler : FilterHandlerBase
+    internal class AllSourcesFilterHandler : FilterHandlerBase
     {
         private readonly string displayName;
-        internal const int EntireRepositoryFilterHandlerFilterId = 22;
+        internal const int AllShadowFilterHandlerFilterId = 22;
 
-        public EntireOragnizationFilterHandler()
+        public AllSourcesFilterHandler()
         {
-            this.displayName = "Entire Organization";
+            this.displayName = "All Sources";
         }
 
-        public override int FilterId => EntireRepositoryFilterHandlerFilterId;
+        public override int FilterId => AllShadowFilterHandlerFilterId;
 
         public override string FilterDisplayName => this.displayName;
 
         public override IEntryFilter GetFilter(out string displayText)
         {
             displayText = this.displayName;
-            return new ItemOriginFilter(ItemOrigin.IndexedInOrganization);
+            return new ItemOriginFilter(ItemOrigin.IndexedInThirdParty);
         }
 
         protected override void OnActivated()
