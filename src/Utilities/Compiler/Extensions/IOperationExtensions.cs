@@ -600,7 +600,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
-        public static IOperation WalkDownParenthesis(this IOperation operation)
+        public static IOperation WalkDownParentheses(this IOperation operation)
         {
             while (operation is IParenthesizedOperation parenthesizedOperation)
             {
