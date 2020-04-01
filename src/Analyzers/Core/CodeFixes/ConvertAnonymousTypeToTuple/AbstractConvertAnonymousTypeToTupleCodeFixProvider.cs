@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         private static TAnonymousObjectCreationExpressionSyntax TryGetCreationNode(Diagnostic diagnostic, CancellationToken cancellationToken)
             => diagnostic.Location.FindToken(cancellationToken).Parent as TAnonymousObjectCreationExpressionSyntax;
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_tuple, createChangedDocument, FeaturesResources.Convert_to_tuple)
+                : base(AnalyzersResources.Convert_to_tuple, createChangedDocument, AnalyzersResources.Convert_to_tuple)
             {
             }
         }
