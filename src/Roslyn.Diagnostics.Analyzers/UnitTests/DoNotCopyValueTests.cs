@@ -424,7 +424,7 @@ struct CannotCopy
 {
     public int Field;
     public int Property { get { return 0; } }
-    public readonly int ReadonlyProperty { get { return 0; } }
+    public int ReadonlyProperty { readonly get { return 0; } set { } }
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }

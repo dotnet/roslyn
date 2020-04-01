@@ -773,23 +773,26 @@ namespace Roslyn.Diagnostics.Analyzers
                     CheckTypeInUnsupportedContext(operation);
                 }
 
-                // TODO: Figure out how to handle getters and setters separately. For now, assume that both the getter
-                // and the setter will be invoked (if present).
                 var instance = operation.Instance;
                 if (instance is object
                     && _cache.IsNonCopyableType(operation.Property.ContainingType)
                     && Acquire(instance) == RefKind.In)
                 {
-                    if (operation.Property.GetMethod is { IsReadOnly: false })
+                    if (operation.IsSetMethodInvocation())
                     {
-                        // mark the instance as not checked by this method
-                        instance = null;
+                        if (operation.Property.SetMethod is { IsReadOnly: false })
+                        {
+                            // mark the instance as not checked by this method
+                            instance = null;
+                        }
                     }
-
-                    if (operation.Property.SetMethod is { IsReadOnly: false })
+                    else
                     {
-                        // mark the instance as not checked by this method
-                        instance = null;
+                        if (operation.Property.GetMethod is { IsReadOnly: false })
+                        {
+                            // mark the instance as not checked by this method
+                            instance = null;
+                        }
                     }
                 }
 
