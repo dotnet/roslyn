@@ -5,9 +5,13 @@
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
+Imports EnvDTE
+Imports EnvDTE80
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -52,13 +56,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim notificationService = workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
 
                 Dim state = New CodeModelState(
                     threadingContext,
                     mockServiceProvider,
                     project.LanguageServices,
                     mockVisualStudioWorkspace,
-                    New ProjectCodeModelFactory(mockVisualStudioWorkspace, mockServiceProvider, threadingContext))
+                    New ProjectCodeModelFactory(
+                        mockVisualStudioWorkspace,
+                        mockServiceProvider,
+                        threadingContext,
+                        notificationService,
+                        listenerProvider))
 
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)
 
@@ -86,9 +97,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Implements IServiceProvider
 
             Private ReadOnly _componentModel As MockComponentModel
+            Private ReadOnly _extensibility As MockVsExtensibility
 
             Public Sub New(componentModel As MockComponentModel)
-                Me._componentModel = componentModel
+                _componentModel = componentModel
+                _extensibility = New MockVsExtensibility()
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
@@ -96,8 +109,214 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Return Me._componentModel
                 End If
 
+                If (serviceType = GetType(EnvDTE.IVsExtensibility)) Then
+                    Return _extensibility
+                End If
+
                 Throw New NotImplementedException($"No service exists for {serviceType.FullName}")
             End Function
+        End Class
+
+        Private Class MockVsExtensibility
+            Implements EnvDTE80.IVsExtensibility2
+
+            Public Sub FireCodeModelEvent(dispid As Integer, pElement As CodeElement, changeKind As vsCMChangeKind) Implements IVsExtensibility2.FireCodeModelEvent
+            End Sub
+
+            Public Sub FireCodeModelEvent3(dispid As Integer, pParent As Object, pElement As CodeElement, changeKind As vsCMChangeKind) Implements IVsExtensibility2.FireCodeModelEvent3
+            End Sub
+
+#Region "Not implemented"
+
+            Public Sub get_Properties(pParent As ISupportVSProperties, pdispPropObj As Object, ByRef ppProperties As Properties) Implements IVsExtensibility2.get_Properties
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function RunWizardFile(bstrWizFilename As String, hwndOwner As Integer, ByRef vContextParams() As Object) As wizardResult Implements IVsExtensibility2.RunWizardFile
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function Get_TextBuffer(pVsTextStream As Object, pParent As IExtensibleObjectSite) As TextBuffer Implements IVsExtensibility2.Get_TextBuffer
+                Throw New NotImplementedException()
+            End Function
+
+            Public Sub EnterAutomationFunction() Implements IVsExtensibility2.EnterAutomationFunction
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub ExitAutomationFunction() Implements IVsExtensibility2.ExitAutomationFunction
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function IsInAutomationFunction() As Integer Implements IVsExtensibility2.IsInAutomationFunction
+                Throw New NotImplementedException()
+            End Function
+
+            Public Sub GetUserControl(ByRef fUserControl As Boolean) Implements IVsExtensibility2.GetUserControl
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub SetUserControl(fUserControl As Boolean) Implements IVsExtensibility2.SetUserControl
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub SetUserControlUnlatched(fUserControl As Boolean) Implements IVsExtensibility2.SetUserControlUnlatched
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub LockServer(__MIDL_0010 As Boolean) Implements IVsExtensibility2.LockServer
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function GetLockCount() As Integer Implements IVsExtensibility2.GetLockCount
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function TestForShutdown() As Boolean Implements IVsExtensibility2.TestForShutdown
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetGlobalsObject(ExtractFrom As Object) As Globals Implements IVsExtensibility2.GetGlobalsObject
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetConfigMgr(pIVsProject As Object, itemid As UInteger) As ConfigurationManager Implements IVsExtensibility2.GetConfigMgr
+                Throw New NotImplementedException()
+            End Function
+
+            Public Sub FireMacroReset() Implements IVsExtensibility2.FireMacroReset
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function GetDocumentFromDocCookie(lDocCookie As Integer) As EnvDTE.Document Implements IVsExtensibility2.GetDocumentFromDocCookie
+                Throw New NotImplementedException()
+            End Function
+
+            Public Sub IsMethodDisabled(ByRef pGUID As Guid, dispid As Integer) Implements IVsExtensibility2.IsMethodDisabled
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub SetSuppressUI([In] As Boolean) Implements IVsExtensibility2.SetSuppressUI
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub GetSuppressUI(ByRef pOut As Boolean) Implements IVsExtensibility2.GetSuppressUI
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub FireProjectsEvent_ItemAdded(Project As EnvDTE.Project) Implements IVsExtensibility2.FireProjectsEvent_ItemAdded
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub FireProjectsEvent_ItemRemoved(Project As EnvDTE.Project) Implements IVsExtensibility2.FireProjectsEvent_ItemRemoved
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub FireProjectsEvent_ItemRenamed(Project As EnvDTE.Project, OldName As String) Implements IVsExtensibility2.FireProjectsEvent_ItemRenamed
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub FireProjectItemsEvent_ItemAdded(ProjectItem As ProjectItem) Implements IVsExtensibility2.FireProjectItemsEvent_ItemAdded
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub FireProjectItemsEvent_ItemRemoved(ProjectItem As ProjectItem) Implements IVsExtensibility2.FireProjectItemsEvent_ItemRemoved
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub FireProjectItemsEvent_ItemRenamed(ProjectItem As ProjectItem, OldName As String) Implements IVsExtensibility2.FireProjectItemsEvent_ItemRenamed
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function BuildUIHierarchyFromTree(hwnd As Integer, pParent As Window) As UIHierarchy Implements IVsExtensibility2.BuildUIHierarchyFromTree
+                Throw New NotImplementedException()
+            End Function
+
+            Public Sub IsFireCodeModelEventNeeded(ByRef vbNeeded As Boolean) Implements IVsExtensibility2.IsFireCodeModelEventNeeded
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Function RunWizardFileEx(bstrWizFilename As String, hwndOwner As Integer, ByRef vContextParams() As Object, ByRef vCustomParams() As Object) As Integer Implements IVsExtensibility2.RunWizardFileEx
+                Throw New NotImplementedException()
+            End Function
+
+            Private Sub IVsExtensibility_get_Properties(pParent As ISupportVSProperties, pdispPropObj As Object, ByRef ppProperties As Properties) Implements IVsExtensibility.get_Properties
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Function IVsExtensibility_RunWizardFile(bstrWizFilename As String, hwndOwner As Integer, ByRef vContextParams() As Object) As wizardResult Implements IVsExtensibility.RunWizardFile
+                Throw New NotImplementedException()
+            End Function
+
+            Private Function IVsExtensibility_Get_TextBuffer(pVsTextStream As Object, pParent As IExtensibleObjectSite) As TextBuffer Implements IVsExtensibility.Get_TextBuffer
+                Throw New NotImplementedException()
+            End Function
+
+            Private Sub IVsExtensibility_EnterAutomationFunction() Implements IVsExtensibility.EnterAutomationFunction
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Sub IVsExtensibility_ExitAutomationFunction() Implements IVsExtensibility.ExitAutomationFunction
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Function IVsExtensibility_IsInAutomationFunction() As Integer Implements IVsExtensibility.IsInAutomationFunction
+                Throw New NotImplementedException()
+            End Function
+
+            Private Sub IVsExtensibility_GetUserControl(ByRef fUserControl As Boolean) Implements IVsExtensibility.GetUserControl
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Sub IVsExtensibility_SetUserControl(fUserControl As Boolean) Implements IVsExtensibility.SetUserControl
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Sub IVsExtensibility_SetUserControlUnlatched(fUserControl As Boolean) Implements IVsExtensibility.SetUserControlUnlatched
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Sub IVsExtensibility_LockServer(__MIDL_0010 As Boolean) Implements IVsExtensibility.LockServer
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Function IVsExtensibility_GetLockCount() As Integer Implements IVsExtensibility.GetLockCount
+                Throw New NotImplementedException()
+            End Function
+
+            Private Function IVsExtensibility_TestForShutdown() As Boolean Implements IVsExtensibility.TestForShutdown
+                Throw New NotImplementedException()
+            End Function
+
+            Private Function IVsExtensibility_GetGlobalsObject(ExtractFrom As Object) As Globals Implements IVsExtensibility.GetGlobalsObject
+                Throw New NotImplementedException()
+            End Function
+
+            Private Function IVsExtensibility_GetConfigMgr(pIVsProject As Object, itemid As UInteger) As ConfigurationManager Implements IVsExtensibility.GetConfigMgr
+                Throw New NotImplementedException()
+            End Function
+
+            Private Sub IVsExtensibility_FireMacroReset() Implements IVsExtensibility.FireMacroReset
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Function IVsExtensibility_GetDocumentFromDocCookie(lDocCookie As Integer) As EnvDTE.Document Implements IVsExtensibility.GetDocumentFromDocCookie
+                Throw New NotImplementedException()
+            End Function
+
+            Private Sub IVsExtensibility_IsMethodDisabled(ByRef pGUID As Guid, dispid As Integer) Implements IVsExtensibility.IsMethodDisabled
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Sub IVsExtensibility_SetSuppressUI([In] As Boolean) Implements IVsExtensibility.SetSuppressUI
+                Throw New NotImplementedException()
+            End Sub
+
+            Private Sub IVsExtensibility_GetSuppressUI(ByRef pOut As Boolean) Implements IVsExtensibility.GetSuppressUI
+                Throw New NotImplementedException()
+            End Sub
+
+#End Region
         End Class
 
         Friend Class MockComWrapperFactory
@@ -132,7 +351,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Class
 
         <Extension()>
-        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Document
+        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Microsoft.CodeAnalysis.Document
             Dim cursorDocument = state.Workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
 
             Dim document = state.Workspace.CurrentSolution.GetDocument(cursorDocument.Id)
