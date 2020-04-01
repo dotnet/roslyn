@@ -16,7 +16,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeStyleDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractParenthesesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AbstractAddRequiredParenthesesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderHelper.cs" />
@@ -38,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\AbstractQualifyMemberAccessDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\AbstractRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.BlockAnalyzer.cs" />

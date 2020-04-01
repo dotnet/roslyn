@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\AbstractMakeFieldReadonlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleCodeFixProvider.cs" />
@@ -24,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PredefinedCodeFixProviderNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\AbstractQualifyMemberAccessCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\AbstractRemoveUnnecessaryParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\AbstractRemoveUnusedMembersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedValuesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
