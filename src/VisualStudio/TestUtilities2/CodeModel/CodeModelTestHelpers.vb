@@ -97,11 +97,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Implements IServiceProvider
 
             Private ReadOnly _componentModel As MockComponentModel
-            Private ReadOnly _extensibility As MockVsExtensibility
 
             Public Sub New(componentModel As MockComponentModel)
                 _componentModel = componentModel
-                _extensibility = New MockVsExtensibility()
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
