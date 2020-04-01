@@ -266,12 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     savedInputExpression = inputTemp;
                 }
 
-                // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
-                // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
-                // the decision dag do not appear to jump back up to the enclosing construct.
-                if (IsSwitchStatement)
-                    result.Add(_factory.HiddenSequencePoint());
-
                 return decisionDag;
             }
 
@@ -787,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                    if (IsSwitchStatement && !whenClause.WhenExpression.WasCompilerGenerated && _localRewriter.Instrument)
+                    if (GenerateSequencePoints && !whenClause.WhenExpression.WasCompilerGenerated)
                     {
                         conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
                     }
@@ -798,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
                     BoundStatement jump = _factory.Goto(GetDagNodeLabel(whenFalse));
-                    sectionBuilder.Add(IsSwitchStatement ? _factory.HiddenSequencePoint(jump) : jump);
+                    sectionBuilder.Add(GenerateSequencePoints ? _factory.HiddenSequencePoint(jump) : jump);
                 }
                 else
                 {
@@ -824,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
                             // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
                             // synchronize on changes.
-                            if (IsSwitchStatement)
+                            if (GenerateSequencePoints)
                                 _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
 
                             if (nextNode != evaluationNode.Next)

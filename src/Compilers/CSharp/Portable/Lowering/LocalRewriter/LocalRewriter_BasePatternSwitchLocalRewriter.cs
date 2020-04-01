@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We start each switch block of a switch statement with a hidden sequence point so that
                     // we do not appear to be in the previous switch block when we begin.
-                    if (IsSwitchStatement)
+                    if (GenerateSequencePoints)
                         armBuilder.Add(_factory.HiddenSequencePoint());
 
                     _switchArms.Add(arm, armBuilder);

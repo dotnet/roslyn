@@ -776,7 +776,37 @@
     <Field Name="StatementOpt" Type="BoundStatement?"/>
     <Field Name="Span" Type="TextSpan"/>
   </Node>
-  
+
+  <!--
+    This is used to save the debugger's idea of what the enclosing sequence
+    point is at this location in the code so that it can be restored later
+    by a BoundRestorePreviousSequencePoint node. When this statement appears,
+    the previous non-hidden sequence point is saved and associated with the
+    given Identifier.
+    -->
+  <Node Name="BoundSavePreviousSequencePoint" Base="BoundStatement">
+    <Field Name="Identifier" Type="object"/>
+  </Node>
+
+  <!--
+    This is used to restore the debugger's idea of what the enclosing statement
+    is to some previous location without introducing a place where a breakpoint
+    would cause the debugger to stop. The identifier must have
+    previously been given in a BoundSavePreviousSequencePoint statement. This is used
+    to implement breakpoints within expressions (e.g. a switch expression).
+    -->
+  <Node Name="BoundRestorePreviousSequencePoint" Base="BoundStatement">
+    <Field Name="Identifier" Type="object"/>
+  </Node>
+
+  <!--
+    This is used to set the debugger's idea of what the enclosing statement
+    is without causing the debugger to stop here when single stepping.
+    -->
+  <Node Name="BoundStepThroughSequencePoint" Base="BoundStatement">
+    <Field Name="Span" Type="TextSpan"/>
+  </Node>
+
   <!--  
   BoundBlock contains 
     a) Statements - actions performed within the scope of the block
