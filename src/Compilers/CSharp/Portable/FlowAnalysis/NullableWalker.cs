@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (memberHasBadState(member, state))
                             {
                                 // Member '{name}' must have a non-null value when exiting with '{sense}'.
-                                Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
+                                Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense ? "true" : "false");
                             }
                         }
                     }

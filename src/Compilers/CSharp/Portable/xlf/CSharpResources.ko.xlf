@@ -1500,8 +1500,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
-        <source>Member '{0}' may not have a null value when exiting.</source>
-        <target state="new">Member '{0}' may not have a null value when exiting.</target>
+        <source>Member '{0}' must have a non-null value when exiting.</source>
+        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
@@ -1515,18 +1515,18 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
-        <source>Member '{0}' may not have a null value when exiting with `{1}`.</source>
-        <target state="new">Member '{0}' may not have a null value when exiting with `{1}`.</target>
+        <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
+        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
-        <source>Member may not have a null value when exiting in some condition.</source>
-        <target state="new">Member may not have a null value when exiting in some condition.</target>
+        <source>Member must have a non-null value when exiting in some condition.</source>
+        <target state="new">Member must have a non-null value when exiting in some condition.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
-        <source>Member may not have a null value when exiting.</source>
-        <target state="new">Member may not have a null value when exiting.</target>
+        <source>Member must have a non-null value when exiting.</source>
+        <target state="new">Member must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -1840,23 +1840,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
-        <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
-        <target state="translated">'{1}'(으)로 종료할 때 '{0}' 매개 변수에 null 값을 사용할 수 없습니다.</target>
+        <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
+        <target state="needs-review-translation">'{1}'(으)로 종료할 때 '{0}' 매개 변수에 null 값을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
-        <source>Parameter may not have a null value when exiting in some condition.</source>
-        <target state="translated">일부 조건으로 종료할 때 매개 변수에 null 값을 사용할 수 없습니다.</target>
+        <source>Parameter must have a non-null value when exiting in some condition.</source>
+        <target state="needs-review-translation">일부 조건으로 종료할 때 매개 변수에 null 값을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull">
-        <source>Parameter '{0}' may not have a null value when exiting.</source>
-        <target state="new">Parameter '{0}' may not have a null value when exiting.</target>
+        <source>Parameter '{0}' must have a non-null value when exiting.</source>
+        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
-        <source>Parameter may not have a null value when exiting.</source>
-        <target state="new">Parameter may not have a null value when exiting.</target>
+        <source>Parameter must have a non-null value when exiting.</source>
+        <target state="new">Parameter must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">

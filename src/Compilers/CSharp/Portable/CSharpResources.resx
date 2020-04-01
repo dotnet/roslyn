@@ -5525,7 +5525,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Member cannot be used in this attribute.</value>
   </data>
   <data name="WRN_MemberNotNullWhen" xml:space="preserve">
-    <value>Member '{0}' must have a non-null value when exiting with `{1}`.</value>
+    <value>Member '{0}' must have a non-null value when exiting with '{1}'.</value>
   </data>
   <data name="WRN_MemberNotNullWhen_Title" xml:space="preserve">
     <value>Member must have a non-null value when exiting in some condition.</value>
