@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -121,8 +124,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            if (e.Kind == WorkspaceChangeKind.DocumentChanged || e.Kind == WorkspaceChangeKind.DocumentRemoved)
-                _documentsToFireEventsFor.AddWork(e.DocumentId);
+            var changes = e.OldSolution.GetChanges(e.NewSolution);
+
+            // Ensure clients hear about events for documents that go away and documents that are changed. We don't have
+            // to notify for documents created because there couldn't be any existing client holding onto code model
+            // items from that document.
+            foreach (var project in changes.GetRemovedProjects())
+                _documentsToFireEventsFor.AddWork(project.DocumentIds);
+
+            foreach (var projectChange in changes.GetProjectChanges())
+            {
+                _documentsToFireEventsFor.AddWork(projectChange.GetRemovedDocuments());
+                _documentsToFireEventsFor.AddWork(projectChange.GetChangedDocuments());
+            }
         }
 
         public IProjectCodeModel CreateProjectCodeModel(ProjectId id, ICodeModelInstanceFactory codeModelInstanceFactory)
