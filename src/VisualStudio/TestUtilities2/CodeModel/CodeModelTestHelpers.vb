@@ -147,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Class
 
         <Extension()>
-        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Document
+        Public Function GetDocumentAtCursor(state As CodeModelTestState) As Microsoft.CodeAnalysis.Document
             Dim cursorDocument = state.Workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
 
             Dim document = state.Workspace.CurrentSolution.GetDocument(cursorDocument.Id)
