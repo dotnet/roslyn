@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : GenerateConversionForAssignment(destination, source.Alternative, diagnostics);
             var constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
             hasErrors |= constantValue?.IsBad == true;
-            return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: true, destination, hasErrors)
+            return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: targetTyped, destination, hasErrors)
                 .WithSuppression(source.IsSuppressed);
         }
 

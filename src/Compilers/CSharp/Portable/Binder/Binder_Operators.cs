@@ -3735,7 +3735,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindValueConditionalOperator(ConditionalExpressionSyntax node, ExpressionSyntax whenTrue, ExpressionSyntax whenFalse, DiagnosticBag diagnostics)
         {
-            bool targetTyped = Compilation.LanguageVersion >= MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion();
             ErrorCode noCommonTypeError = 0;
 
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);
@@ -3744,8 +3743,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             TypeSymbol type = BestTypeInferrer.InferBestTypeForConditionalOperator(trueExpr, falseExpr, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
+            bool targetTyped;
             if (type is null)
+            {
                 noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
+                targetTyped = Compilation.LanguageVersion >= MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion();
+            }
+            else
+            {
+                targetTyped = false;
+            }
 
             bool hasErrors = type?.IsErrorType() == true;
             var unconvertedResult = new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, noCommonTypeError, type, hasErrors);
