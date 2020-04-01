@@ -1777,6 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_WithParameterWithoutMatchingMember = 8805,
         ERR_WithParameterTypeDoesntMatchMemberType = 8806,
         ERR_WithMemberArgumentDoesntMatchParameter = 8807,
+        ERR_WithMemberIsNotInstancePropertyOrField = 8808,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propName,
                         arity: 0,
                         basesBeingResolved: null,
-                        options: LookupOptions.MustBeInstance,
+                        options: LookupOptions.Default,
                         originalBinder: this,
                         diagnose: false,
                         useSiteDiagnostics: ref useSiteDiagnostics);
@@ -61,6 +61,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             case SymbolKind.Field:
+                                if (!sym.RequiresInstanceReceiver())
+                                {
+                                    diagnostics.Add(
+                                        ErrorCode.ERR_WithMemberIsNotInstancePropertyOrField,
+                                        initializer.NameEquals!.Name.Location);
+                                }
+                                member = sym;
+                                break;
+
+                            default:
+                                diagnostics.Add(
+                                    ErrorCode.ERR_WithMemberIsNotInstancePropertyOrField,
+                                    initializer.NameEquals!.Name.Location);
                                 member = sym;
                                 break;
                         }
@@ -185,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         p.Name,
                         arity: 0,
                         basesBeingResolved: null,
-                        options: LookupOptions.MustBeInstance,
+                        options: LookupOptions.Default,
                         originalBinder: this,
                         diagnose: false,
                         useSiteDiagnostics: ref useSiteDiagnostics);
@@ -227,20 +240,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Verify that the member name exists in the 'With' method parameter list
-            for (int i = 0; i < args.Count; i++)
+            if (!withMembers.IsDefault)
             {
-                var (member, expr) = args[i];
-                if (!(member is null))
+                for (int i = 0; i < args.Count; i++)
                 {
-                    if (!withMembers.Contains(member))
+                    var (member, expr) = args[i];
+                    if (!(member is null))
                     {
-                        diagnostics.Add(
-                            ErrorCode.ERR_WithMemberArgumentDoesntMatchParameter,
-                            syntax.Initializers[i].NameEquals!.Name.Location,
-                            member.Name);
+                        if (!withMembers.Contains(member))
+                        {
+                            diagnostics.Add(
+                                ErrorCode.ERR_WithMemberArgumentDoesntMatchParameter,
+                                syntax.Initializers[i].NameEquals!.Name.Location,
+                                member.Name);
+                        }
                     }
+                    useSiteDiagnostics = null;
                 }
-                useSiteDiagnostics = null;
             }
 
             lookupResult.Free();

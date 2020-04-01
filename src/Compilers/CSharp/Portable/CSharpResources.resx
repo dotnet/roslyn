@@ -6064,4 +6064,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_WithMemberArgumentDoesntMatchParameter" xml:space="preserve">
     <value>There is no `With` method parameter which matches property '{0}'.</value>
   </data>
+  <data name="ERR_WithMemberIsNotInstancePropertyOrField" xml:space="preserve">
+    <value>All arguments to a `with` expression must be instance properties or fields.</value>
+  </data>
 </root>

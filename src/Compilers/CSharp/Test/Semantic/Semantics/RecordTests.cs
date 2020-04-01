@@ -1373,5 +1373,116 @@ data class C(object X)
 }";
             var verifier = CompileAndVerify(src, expectedOutput: "abc");
         }
+
+        [Fact]
+        public void WithExprStaticProperty()
+        {
+            var src = @"
+class C
+{
+    public static int X { get; }
+    public C With(int X) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+        c = c with { X = 11 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (10,22): error CS8808: All arguments to a `with` expression must be instance properties or fields.
+                //         c = c with { X = 11 };
+                Diagnostic(ErrorCode.ERR_WithMemberIsNotInstancePropertyOrField, "X").WithLocation(10, 22)
+            );
+        }
+
+        [Fact]
+        public void WithExprMethodAsArgument()
+        {
+            var src = @"
+class C
+{
+    public int X() => 0;
+    public C With(int X) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+        c = c with { X = 11 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8805: The receiver type 'C' does not have a matching field or property to the 'With' method parameter named 'X'.
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_WithParameterWithoutMatchingMember, "c").WithArguments("C", "X").WithLocation(9, 13),
+                // (10,13): error CS8805: The receiver type 'C' does not have a matching field or property to the 'With' method parameter named 'X'.
+                //         c = c with { X = 11 };
+                Diagnostic(ErrorCode.ERR_WithParameterWithoutMatchingMember, "c").WithArguments("C", "X").WithLocation(10, 13),
+                // (10,22): error CS8808: All arguments to a `with` expression must be instance properties or fields.
+                //         c = c with { X = 11 };
+                Diagnostic(ErrorCode.ERR_WithMemberIsNotInstancePropertyOrField, "X").WithLocation(10, 22),
+                // (10,22): error CS8807: There is no `With` method parameter which matches property 'X'.
+                //         c = c with { X = 11 };
+                Diagnostic(ErrorCode.ERR_WithMemberArgumentDoesntMatchParameter, "X").WithArguments("X").WithLocation(10, 22)
+            );
+        }
+ 
+        [Fact]
+        public void WithExprStaticWithMethod()
+        {
+            var src = @"
+class C
+{
+    public int X { get; }
+    public static C With(int X) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+        c = c with { X = 11 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "c").WithArguments("C").WithLocation(9, 13),
+                // (10,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                //         c = c with { X = 11 };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "c").WithArguments("C").WithLocation(10, 13)
+            );
+        }   
+ 
+        [Fact]
+        public void WithExprStaticWithMethod2()
+        {
+            var src = @"
+class B
+{
+    public B With(int X) => null;
+}
+class C : B
+{
+    public int X { get; }
+    public static new C With(int X) => null;
+    public static void Main()
+    {
+        var c = new C();
+        c = c with { };
+        c = c with { X = 11 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (13,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                //         c = c with { };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "c").WithArguments("C").WithLocation(13, 13),
+                // (14,13): error CS8803: The 'with' expression requires the receiver type 'C' to have a single accessible non-inherited instance method named "With".
+                //         c = c with { X = 11 };
+                Diagnostic(ErrorCode.ERR_NoSingleWithMethod, "c").WithArguments("C").WithLocation(14, 13)
+            );
+        }
     }
 }

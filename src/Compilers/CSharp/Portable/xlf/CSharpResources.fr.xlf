@@ -557,6 +557,11 @@
         <target state="new">There is no `With` method parameter which matches property '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_WithMemberIsNotInstancePropertyOrField">
+        <source>All arguments to a `with` expression must be instance properties or fields.</source>
+        <target state="new">All arguments to a `with` expression must be instance properties or fields.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WithParameterTypeDoesntMatchMemberType">
         <source>The 'With' method parameter named '{0}' has type '{1}' which doesn't match member type '{2}'</source>
         <target state="new">The 'With' method parameter named '{0}' has type '{1}' which doesn't match member type '{2}'</target>
