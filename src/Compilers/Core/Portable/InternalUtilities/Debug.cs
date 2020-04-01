@@ -24,11 +24,7 @@ namespace Roslyn.Utilities
         [Conditional("DEBUG")]
         public static void AssertNotNull<T>([NotNull] T value) where T : class?
         {
-            Debug.Assert(value is object, "Unexpected null reference");
-            if (value is null)
-            {
-                throw new InvalidOperationException("This program location is unreachable.");
-            }
+            Assert(value is object, "Unexpected null reference");
         }
     }
 }
