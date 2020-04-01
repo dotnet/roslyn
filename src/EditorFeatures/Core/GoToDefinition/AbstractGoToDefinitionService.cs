@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         protected AbstractGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
-        {
-            _streamingPresenter = streamingPresenter;
-        }
+            => _streamingPresenter = streamingPresenter;
 
         public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
             Document document, int position, CancellationToken cancellationToken)

@@ -25,23 +25,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
-        {
-            _serviceSingleton = new TextUndoHistoryWorkspaceService(undoHistoryRegistry);
-        }
+            => _serviceSingleton = new TextUndoHistoryWorkspaceService(undoHistoryRegistry);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _serviceSingleton;
-        }
+            => _serviceSingleton;
 
         private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
         {
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
             public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry undoHistoryRegistry)
-            {
-                _undoHistoryRegistry = undoHistoryRegistry;
-            }
+                => _undoHistoryRegistry = undoHistoryRegistry;
 
             public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
             {

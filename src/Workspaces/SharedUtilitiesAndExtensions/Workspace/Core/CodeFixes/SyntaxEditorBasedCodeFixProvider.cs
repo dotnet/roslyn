@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly bool _supportsFixAll;
 
         protected SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true)
-        {
-            _supportsFixAll = supportsFixAll;
-        }
+            => _supportsFixAll = supportsFixAll;
 
         public sealed override FixAllProvider GetFixAllProvider()
             => _supportsFixAll ? new SyntaxEditorBasedFixAllProvider(this) : null;

@@ -319,6 +319,8 @@ class X
                         case ErrorCode.WRN_MemberNotNull:
                         case ErrorCode.WRN_MemberNotNullWhen:
                         case ErrorCode.WRN_MemberNotNullBadMember:
+                        case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                        case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -361,6 +363,8 @@ class X
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
+                    ErrorCode.WRN_GeneratorFailedDuringInitialization,
+                    ErrorCode.WRN_GeneratorFailedDuringGeneration
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

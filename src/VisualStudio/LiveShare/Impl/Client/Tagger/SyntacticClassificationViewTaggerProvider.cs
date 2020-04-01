@@ -47,9 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
-        }
+            => TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
 
         protected override async TPL.Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> taggerContext,

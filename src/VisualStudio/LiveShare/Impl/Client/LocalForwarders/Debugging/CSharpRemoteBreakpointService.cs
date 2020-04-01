@@ -26,9 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpRemoteBreakpointService(languageServices);
-        }
+            => new CSharpRemoteBreakpointService(languageServices);
     }
 
     internal class CSharpRemoteBreakpointService : IBreakpointResolutionService
@@ -36,14 +34,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         private readonly IBreakpointResolutionService originalService;
 
         public CSharpRemoteBreakpointService(HostLanguageServices languageServices)
-        {
-            this.originalService = languageServices.GetOriginalLanguageService<IBreakpointResolutionService>();
-        }
+            => this.originalService = languageServices.GetOriginalLanguageService<IBreakpointResolutionService>();
 
         public Task<BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
-        {
-            return this.originalService.ResolveBreakpointAsync(document, textSpan, cancellationToken);
-        }
+            => this.originalService.ResolveBreakpointAsync(document, textSpan, cancellationToken);
 
         public Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
         {

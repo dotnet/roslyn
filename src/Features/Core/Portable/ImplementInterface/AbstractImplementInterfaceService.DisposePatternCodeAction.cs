@@ -201,8 +201,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             {
                 var disposeImplMethod = CreateDisposeImplementationMethod(compilation, document, classType, disposeMethod, disposedValueField);
 
-                var symbolDisplay = document.GetRequiredLanguageService<ISymbolDisplayService>();
-                var disposeMethodDisplayString = symbolDisplay.ToDisplayString(disposeImplMethod, s_format);
+                var disposeMethodDisplayString = this.Service.ToDisplayString(disposeImplMethod, s_format);
 
                 var disposeInterfaceMethod = CreateDisposeInterfaceMethod(
                     compilation, document, classType, disposeMethod,
@@ -293,7 +292,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 statements.Add(g.ExpressionStatement(
                     g.InvocationExpression(
                         g.MemberAccessExpression(
-                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName)),
+                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName!)),
                             nameof(GC.SuppressFinalize)),
                         g.ThisExpression())));
 

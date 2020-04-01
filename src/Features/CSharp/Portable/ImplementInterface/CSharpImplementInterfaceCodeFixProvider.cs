@@ -66,8 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return WellKnownFixAllProviders.BatchFixer;
-        }
+            => WellKnownFixAllProviders.BatchFixer;
     }
 }

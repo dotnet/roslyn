@@ -91,9 +91,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public void Write(string str) => Write(str, null);
 
         public void Write(string format, params Arg[] args)
-        {
-            Append(new Entry(format, args));
-        }
+            => Append(new Entry(format, args));
 
         [Conditional("DEBUG")]
         public void DebugWrite(string str) => DebugWrite(str, null);
@@ -114,9 +112,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private readonly TraceLog _traceLog;
 
             public TestAccessor(TraceLog traceLog)
-            {
-                _traceLog = traceLog;
-            }
+                => _traceLog = traceLog;
 
             internal Entry[] Entries => _traceLog._log;
         }

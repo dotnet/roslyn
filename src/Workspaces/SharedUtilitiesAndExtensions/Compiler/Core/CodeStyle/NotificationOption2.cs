@@ -70,14 +70,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public override string ToString() => Name;
 
         public override bool Equals(object? obj)
-        {
-            return ReferenceEquals(this, obj);
-        }
+            => ReferenceEquals(this, obj);
 
         public bool Equals(NotificationOption2? notificationOption2)
-        {
-            return ReferenceEquals(this, notificationOption2);
-        }
+            => ReferenceEquals(this, notificationOption2);
 
         public override int GetHashCode()
         {

@@ -227,9 +227,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         }
 
         private static IMethodSymbol GetPartialImplementationPartOrNull(ISymbol symbol)
-        {
-            return (symbol.Kind == SymbolKind.Method) ? ((IMethodSymbol)symbol).PartialImplementationPart : null;
-        }
+            => (symbol.Kind == SymbolKind.Method) ? ((IMethodSymbol)symbol).PartialImplementationPart : null;
 
         /// <summary>
         /// Is this method or property a valid place to set a breakpoint and does it match the expected parameter count?

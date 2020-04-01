@@ -49,14 +49,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public override int GetHashCode()
-        {
-            return _name.GetHashCode() + _ordinal;
-        }
+            => _name.GetHashCode() + _ordinal;
 
         public override string ToString()
-        {
-            return $"{{{_name}, {_ordinal}}}";
-        }
+            => $"{{{_name}, {_ordinal}}}";
 
         public string Name
         {
@@ -74,13 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public static bool operator ==(SyntaxNodeKey left, SyntaxNodeKey right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(SyntaxNodeKey left, SyntaxNodeKey right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

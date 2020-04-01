@@ -141,8 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override string GetDisplayText(IMethodSymbol method, SemanticModel semanticModel, int position)
-        {
-            return method.ToMinimalDisplayString(semanticModel, position, SignatureDisplayFormat);
-        }
+            => method.ToMinimalDisplayString(semanticModel, position, SignatureDisplayFormat);
     }
 }

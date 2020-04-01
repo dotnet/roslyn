@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service();
-        }
+            => new Service();
 
         private sealed class Service : IFrameworkAssemblyPathResolver
         {

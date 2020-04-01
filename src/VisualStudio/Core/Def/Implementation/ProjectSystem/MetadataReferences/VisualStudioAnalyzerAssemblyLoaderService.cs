@@ -23,8 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public IAnalyzerAssemblyLoader GetLoader()
-        {
-            return _loader;
-        }
+            => _loader;
     }
 }

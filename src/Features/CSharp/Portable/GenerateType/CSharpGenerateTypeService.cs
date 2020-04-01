@@ -43,14 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         protected override string DefaultFileExtension => ".cs";
 
         protected override ExpressionSyntax GetLeftSideOfDot(SimpleNameSyntax simpleName)
-        {
-            return simpleName.GetLeftSideOfDot();
-        }
+            => simpleName.GetLeftSideOfDot();
 
         protected override bool IsInCatchDeclaration(ExpressionSyntax expression)
-        {
-            return expression.IsParentKind(SyntaxKind.CatchDeclaration);
-        }
+            => expression.IsParentKind(SyntaxKind.CatchDeclaration);
 
         protected override bool IsArrayElementType(ExpressionSyntax expression)
         {
@@ -531,19 +527,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         public override string GetRootNamespace(CompilationOptions options)
-        {
-            return string.Empty;
-        }
+            => string.Empty;
 
         protected override bool IsInVariableTypeContext(ExpressionSyntax expression)
-        {
-            return false;
-        }
+            => false;
 
         protected override INamedTypeSymbol DetermineTypeToGenerateIn(SemanticModel semanticModel, SimpleNameSyntax simpleName, CancellationToken cancellationToken)
-        {
-            return semanticModel.GetEnclosingNamedType(simpleName.SpanStart, cancellationToken);
-        }
+            => semanticModel.GetEnclosingNamedType(simpleName.SpanStart, cancellationToken);
 
         protected override Accessibility GetAccessibility(State state, SemanticModel semanticModel, bool intoNamespace, CancellationToken cancellationToken)
         {
@@ -571,14 +561,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         protected override ITypeSymbol DetermineArgumentType(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
-        {
-            return argument.DetermineParameterType(semanticModel, cancellationToken);
-        }
+            => argument.DetermineParameterType(semanticModel, cancellationToken);
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
-        {
-            return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
-        }
+            => compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
 
         public override async Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(
             INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken)

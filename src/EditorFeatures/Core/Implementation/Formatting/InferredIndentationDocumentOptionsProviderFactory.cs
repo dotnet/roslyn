@@ -28,28 +28,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InferredIndentationDocumentOptionsProviderFactory(IIndentationManagerService indentationManagerService)
-        {
-            _indentationManagerService = indentationManagerService;
-        }
+            => _indentationManagerService = indentationManagerService;
 
         public IDocumentOptionsProvider? TryCreate(Workspace workspace)
-        {
-            return new DocumentOptionsProvider(_indentationManagerService);
-        }
+            => new DocumentOptionsProvider(_indentationManagerService);
 
         private class DocumentOptionsProvider : IDocumentOptionsProvider
         {
             private readonly IIndentationManagerService _indentationManagerService;
 
             public DocumentOptionsProvider(IIndentationManagerService indentationManagerService)
-            {
-                _indentationManagerService = indentationManagerService;
-            }
+                => _indentationManagerService = indentationManagerService;
 
             public Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.FromResult<IDocumentOptions?>(new DocumentOptions(document.Project.Solution.Workspace, document.Id, _indentationManagerService));
-            }
+                => Task.FromResult<IDocumentOptions?>(new DocumentOptions(document.Project.Solution.Workspace, document.Id, _indentationManagerService));
 
             private sealed class DocumentOptions : IDocumentOptions
             {

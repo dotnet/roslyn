@@ -70,9 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
@@ -439,9 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             private readonly CrefCompletionProvider _crefCompletionProvider;
 
             public TestAccessor(CrefCompletionProvider crefCompletionProvider)
-            {
-                _crefCompletionProvider = crefCompletionProvider;
-            }
+                => _crefCompletionProvider = crefCompletionProvider;
 
             public void SetSpeculativeNodeCallback(Action<SyntaxNode> value)
                 => _crefCompletionProvider._testSpeculativeNodeCallbackOpt = value;

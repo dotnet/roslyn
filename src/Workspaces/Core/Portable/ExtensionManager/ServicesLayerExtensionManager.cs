@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Extensions
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new ExtensionManager();
-        }
+            => new ExtensionManager();
 
         private class ExtensionManager : AbstractExtensionManager
         {

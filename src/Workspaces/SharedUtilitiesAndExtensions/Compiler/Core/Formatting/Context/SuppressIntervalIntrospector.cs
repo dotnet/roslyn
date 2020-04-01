@@ -11,23 +11,15 @@ namespace Microsoft.CodeAnalysis.Formatting
         IIntervalIntrospector<SuppressWrappingData>
     {
         int IIntervalIntrospector<SuppressSpacingData>.GetStart(SuppressSpacingData value)
-        {
-            return value.TextSpan.Start;
-        }
+            => value.TextSpan.Start;
 
         int IIntervalIntrospector<SuppressSpacingData>.GetLength(SuppressSpacingData value)
-        {
-            return value.TextSpan.Length;
-        }
+            => value.TextSpan.Length;
 
         int IIntervalIntrospector<SuppressWrappingData>.GetStart(SuppressWrappingData value)
-        {
-            return value.TextSpan.Start;
-        }
+            => value.TextSpan.Start;
 
         int IIntervalIntrospector<SuppressWrappingData>.GetLength(SuppressWrappingData value)
-        {
-            return value.TextSpan.Length;
-        }
+            => value.TextSpan.Length;
     }
 }

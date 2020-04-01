@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         }
 
         public void Dispose()
-        {
-            Interlocked.Exchange(ref _workspaceOpt, null)?.Dispose();
-        }
+            => Interlocked.Exchange(ref _workspaceOpt, null)?.Dispose();
     }
 }

@@ -25,14 +25,10 @@ namespace Microsoft.CodeAnalysis.Options
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OptionServiceFactory(IGlobalOptionService globalOptionService)
-        {
-            _globalOptionService = globalOptionService;
-        }
+            => _globalOptionService = globalOptionService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new OptionService(_globalOptionService, workspaceServices);
-        }
+            => new OptionService(_globalOptionService, workspaceServices);
 
         /// <summary>
         /// Wraps an underlying <see cref="IGlobalOptionService"/> and exposes its data to workspace
@@ -213,9 +209,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-                {
-                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
-                }
+                    => new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 {

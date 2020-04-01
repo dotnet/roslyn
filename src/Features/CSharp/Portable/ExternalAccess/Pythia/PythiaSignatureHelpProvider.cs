@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PythiaSignatureHelpProvider(Lazy<IPythiaSignatureHelpProviderImplementation> implementation)
-        {
-            _lazyImplementation = implementation;
-        }
+            => _lazyImplementation = implementation;
 
         internal async override Task<(ImmutableArray<SignatureHelpItem> items, int? selectedItemIndex)> GetMethodGroupItemsAndSelectionAsync(
             ImmutableArray<IMethodSymbol> accessibleMethods,

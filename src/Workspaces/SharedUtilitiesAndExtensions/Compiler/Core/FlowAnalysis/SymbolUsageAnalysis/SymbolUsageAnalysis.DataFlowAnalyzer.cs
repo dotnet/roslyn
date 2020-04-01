@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private readonly FlowGraphAnalysisData _analysisData;
 
             private DataFlowAnalyzer(ControlFlowGraph cfg, ISymbol owningSymbol)
-            {
-                _analysisData = FlowGraphAnalysisData.Create(cfg, owningSymbol, AnalyzeLocalFunctionOrLambdaInvocation);
-            }
+                => _analysisData = FlowGraphAnalysisData.Create(cfg, owningSymbol, AnalyzeLocalFunctionOrLambdaInvocation);
 
             private DataFlowAnalyzer(
                 ControlFlowGraph cfg,

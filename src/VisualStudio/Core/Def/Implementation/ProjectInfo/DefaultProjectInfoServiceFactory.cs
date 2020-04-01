@@ -27,8 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectInfoServ
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton.Value;
-        }
+            => _singleton.Value;
     }
 }

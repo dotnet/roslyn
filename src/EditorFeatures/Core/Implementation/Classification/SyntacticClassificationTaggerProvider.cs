@@ -73,8 +73,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
 
         private void DisconnectTagComputer(ITextBuffer buffer)
-        {
-            _tagComputers.Remove(buffer);
-        }
+            => _tagComputers.Remove(buffer);
     }
 }

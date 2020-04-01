@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly IndentationResult _underlyingObject;
 
         public VSTypeScriptIndentationResultWrapper(IndentationResult underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public int BasePosition => _underlyingObject.BasePosition;
         public int Offset => _underlyingObject.Offset;

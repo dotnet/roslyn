@@ -115,9 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public ControlKeywordFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.Keyword_Control;
-            }
+                => this.DisplayName = EditorFeaturesResources.Keyword_Control;
         }
         #endregion
         #region Operator - Overloaded
@@ -134,9 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public OperatorOverloadedFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
-            }
+                => this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
         }
         #endregion
 
@@ -332,9 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersFieldNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Fields;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Fields;
         }
         #endregion
         #region User Members - Enum Members 
@@ -351,9 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersEnumMemberNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Enum_Members;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Enum_Members;
         }
         #endregion
         #region User Members - Constants 
@@ -370,9 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersConstantNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Constants;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Constants;
         }
         #endregion
         #region User Members - Locals 
@@ -389,9 +379,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersLocalNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Locals;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Locals;
         }
         #endregion
         #region User Members - Parameters 
@@ -408,9 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersParameterNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
         }
         #endregion
         #region User Members - Methods 
@@ -427,9 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersMethodNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Methods;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Methods;
         }
         #endregion
         #region User Members - Extension Methods
@@ -446,9 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersExtensionMethodNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
         }
         #endregion
         #region User Members - Properties 
@@ -465,9 +447,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersPropertyNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Properties;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Properties;
         }
         #endregion
         #region User Members - Events 
@@ -483,9 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersEventNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Events;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Events;
         }
         #endregion
         #region User Members - Namespaces 
@@ -501,9 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersNamespaceNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Namespaces;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Namespaces;
         }
         #endregion
         #region User Members - Labels 
@@ -520,9 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public UserMembersLabelNameFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.User_Members_Labels;
-            }
+                => this.DisplayName = EditorFeaturesResources.User_Members_Labels;
         }
         #endregion
 

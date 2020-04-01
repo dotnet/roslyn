@@ -49,9 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             => RemoteHostCrashInfoBar.ShowInfoBar(_workspace, exception);
 
         private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            _shutdownCancellationSource.Cancel();
-        }
+            => _shutdownCancellationSource.Cancel();
 
         public void Dispose()
         {

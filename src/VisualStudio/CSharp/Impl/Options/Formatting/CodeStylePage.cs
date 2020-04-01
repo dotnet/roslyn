@@ -40,9 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
         internal readonly struct TestAccessor
         {
             internal static ImmutableArray<(string feature, ImmutableArray<IOption> options)> GetEditorConfigOptions()
-            {
-                return CodeStylePage.GetEditorConfigOptions();
-            }
+                => CodeStylePage.GetEditorConfigOptions();
         }
     }
 }

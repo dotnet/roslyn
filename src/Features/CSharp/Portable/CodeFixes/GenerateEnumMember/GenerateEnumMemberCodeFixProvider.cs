@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
         }
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
-        {
-            return node is IdentifierNameSyntax;
-        }
+            => node is IdentifierNameSyntax;
     }
 }

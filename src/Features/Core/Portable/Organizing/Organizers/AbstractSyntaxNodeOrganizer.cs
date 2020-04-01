@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Organizing.Organizers
         }
 
         public SyntaxNode OrganizeNode(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return Organize((TSyntaxNode)node, cancellationToken);
-        }
+            => Organize((TSyntaxNode)node, cancellationToken);
 
         protected abstract TSyntaxNode Organize(TSyntaxNode node, CancellationToken cancellationToken);
     }

@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         protected virtual Task<bool> IsValidContextAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(IsValidContext(position, context, cancellationToken));
-        }
+            => Task.FromResult(IsValidContext(position, context, cancellationToken));
 
         protected virtual bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
@@ -83,9 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             private readonly AbstractSyntacticSingleKeywordRecommender _recommender;
 
             public TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
-            {
-                _recommender = recommender;
-            }
+                => _recommender = recommender;
 
             internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context)
             {

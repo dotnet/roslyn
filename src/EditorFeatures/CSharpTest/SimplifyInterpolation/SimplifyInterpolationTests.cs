@@ -801,5 +801,100 @@ class Derived : Base
     public override string ToString() => $""Test: {base.ToString(),10}"";
 }");
         }
+
+        [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
+        public async Task FormatComponentSimplificationIsNotOfferedOnNonIFormattableType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    string M(TypeNotImplementingIFormattable value) => $""Test: {value[||].ToString(""a"")}"";
+}
+
+struct TypeNotImplementingIFormattable
+{
+    public string ToString(string format) => ""A"";
+}");
+        }
+
+        [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
+        public async Task FormatComponentSimplificationIsOfferedOnIFormattableType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    string M(TypeImplementingIFormattable value) => $""Test: {value[||].ToString(""a"")}"";
+}
+
+struct TypeImplementingIFormattable : IFormattable
+{
+    public string ToString(string format) => ""A"";
+
+    string IFormattable.ToString(string format, IFormatProvider formatProvider) => ""B"";
+}",
+@"using System;
+
+class C
+{
+    string M(TypeImplementingIFormattable value) => $""Test: {value:a}"";
+}
+
+struct TypeImplementingIFormattable : IFormattable
+{
+    public string ToString(string format) => ""A"";
+
+    string IFormattable.ToString(string format, IFormatProvider formatProvider) => ""B"";
+}");
+        }
+
+        [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
+        public async Task ParameterlessToStringSimplificationIsStillOfferedOnNonIFormattableType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    string M(TypeNotImplementingIFormattable value) => $""Test: {value[||].ToString()}"";
+}
+
+struct TypeNotImplementingIFormattable
+{
+    public string ToString(string format) => ""A"";
+}",
+@"class C
+{
+    string M(TypeNotImplementingIFormattable value) => $""Test: {value}"";
+}
+
+struct TypeNotImplementingIFormattable
+{
+    public string ToString(string format) => ""A"";
+}");
+        }
+
+        [Fact, WorkItem(42887, "https://github.com/dotnet/roslyn/issues/42887")]
+        public async Task PadLeftSimplificationIsStillOfferedOnNonIFormattableType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    string M(TypeNotImplementingIFormattable value) => $""Test: {value.ToString(""a"")[||].PadLeft(10)}"";
+}
+
+struct TypeNotImplementingIFormattable
+{
+    public string ToString(string format) => ""A"";
+}",
+@"class C
+{
+    string M(TypeNotImplementingIFormattable value) => $""Test: {value.ToString(""a""),10}"";
+}
+
+struct TypeNotImplementingIFormattable
+{
+    public string ToString(string format) => ""A"";
+}");
+        }
     }
 }

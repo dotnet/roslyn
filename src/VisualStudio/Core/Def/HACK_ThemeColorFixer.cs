@@ -48,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         private void TextFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
-        {
-            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
-        }
+            => VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
 
         public void RefreshThemeColors()
         {
