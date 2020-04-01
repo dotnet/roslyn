@@ -69,6 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             var extensibility = (EnvDTE80.IVsExtensibility2)this.State.ServiceProvider.GetService(typeof(EnvDTE.IVsExtensibility));
+            if (extensibility == null)
+                return false;
 
             foreach (var codeModelEvent in eventQueue)
             {
