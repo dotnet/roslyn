@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     addedParameter.Type.GenerateTypeSyntax() _
                     .WithPrependedLeadingTrivia(ElasticSpace)) _
                     .WithPrependedLeadingTrivia(ElasticSpace),
-                [default]:=If(addedParameter.HasDefaultValue, SyntaxFactory.EqualsValue(SyntaxFactory.ParseExpression(addedParameter.DefaultValue)), Nothing))
+                [default]:=If(addedParameter.HasDefaultValue, EqualsValue(ParseExpression(addedParameter.DefaultValue)), Nothing))
         End Function
 
         Private Shared Function CreateNewCrefParameterSyntax(addedParameter As AddedParameter) As CrefSignaturePartSyntax
@@ -688,27 +688,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End Get
         End Property
 
-        Protected Overrides Function CreateArray(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
-            Dim relevantArguments = newArguments.Skip(indexInExistingList).Select(Function(a) DirectCast(a, ArgumentSyntax).GetExpression())
-            Dim relevantSeparators = newArguments.GetSeparators().Skip(indexInExistingList)
-            Dim listOfArguments = SyntaxFactory.SeparatedList(relevantArguments, relevantSeparators)
-            Dim initializerExpression = SyntaxFactory.CollectionInitializer(listOfArguments)
-
-            Dim objectCreation = SyntaxFactory.ArrayCreationExpression(
-                Nothing,
-                DirectCast(parameterSymbol.Type, IArrayTypeSymbol).ElementType.GenerateTypeSyntax(),
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList(
-                        SpecializedCollections.SingletonEnumerable(
-                            DirectCast(SyntaxFactory.SimpleArgument(
-                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.IntegerLiteralToken((listOfArguments.Count - 1).ToString(), LiteralBase.Decimal, TypeCharacter.None, CULng(listOfArguments.Count - 1)))), ArgumentSyntax)))),
-                initializerExpression)
-
-            Return SyntaxFactory.SimpleArgument(objectCreation)
+        Protected Overrides Function CreateParamsArray(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
+            ' A params array cannot be introduced due to the addition of an omitted 
+            ' argument in VB because you cannot have a named argument to a params array.
+            Throw New InvalidOperationException()
         End Function
 
         Protected Overrides Function AddName(newArgument As SyntaxNode, name As String) As SyntaxNode
-            Return DirectCast(newArgument, SimpleArgumentSyntax).WithNameColonEquals(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(name)))
+            Return DirectCast(newArgument, SimpleArgumentSyntax).WithNameColonEquals(NameColonEquals(IdentifierName(name)))
+        End Function
+
+        Protected Overrides Function DoesLanguageForceCallsiteErrorsDueToParamsArrays() As Boolean
+            Return True
         End Function
 
         Protected Overrides Function CommaTokenWithElasticSpace() As SyntaxToken

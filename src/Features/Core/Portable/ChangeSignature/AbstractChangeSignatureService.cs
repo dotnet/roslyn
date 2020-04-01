@@ -64,10 +64,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract SyntaxToken CommaTokenWithElasticSpace();
 
-        protected abstract SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
+        protected abstract SyntaxNode CreateParamsArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
 
         protected abstract SyntaxNode AddName(SyntaxNode newArgument, string name);
 
+        protected abstract bool DoesLanguageForceCallsiteErrorsDueToParamsArrays();
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
@@ -737,7 +738,16 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     if (updatedParameters[i] is AddedParameter addedParameter)
                     {
-                        if (addedParameter.IsCallsiteOmitted)
+                        var forcedCallsiteErrorDueToParamsArray = addedParameter.IsCallsiteOmitted &&
+                            declarationSymbol.GetParameters().LastOrDefault()?.IsParams == true &&
+                            newArguments.Count >= (updatedParameters.Length - (isReducedExtensionMethod ? 1 : 0)) &&
+                            DoesLanguageForceCallsiteErrorsDueToParamsArrays();
+
+                        var isCallsiteActuallyOmitted = addedParameter.IsCallsiteOmitted && !forcedCallsiteErrorDueToParamsArray;
+                        var isCallsiteActuallyErrored = addedParameter.IsCallsiteError || forcedCallsiteErrorDueToParamsArray;
+
+
+                        if (isCallsiteActuallyOmitted)
                         {
                             seenOmitted = true;
                             seenNamedArguments = true;
@@ -748,7 +758,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             Generator.Argument(
                                 name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : null,
                                 refKind: RefKind.None,
-                                expression: Generator.ParseExpression(addedParameter.IsCallsiteError ? "TODO" : addedParameter.CallSiteValue)));
+                                expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue)));
                         separators.Add(CommaTokenWithElasticSpace());
                     }
                     else
@@ -762,7 +772,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                 // Need to ensure the params array is an actual array, and that the argument is named.
                                 if (isParamsArrayExpanded)
                                 {
-                                    var newArgument = CreateArray(newArguments, indexInListOfPreexistingArguments, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments]);
+                                    var newArgument = CreateParamsArray(newArguments, indexInListOfPreexistingArguments, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments]);
                                     newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
                                     fullList.Add(newArgument);
                                 }

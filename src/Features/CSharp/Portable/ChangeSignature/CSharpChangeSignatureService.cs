@@ -737,12 +737,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return (newArgument as ArgumentSyntax).WithNameColon(NameColon(name));
         }
 
-        protected override SyntaxNode CreateArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
+        protected override SyntaxNode CreateParamsArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
         {
             var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
             var initializerExpression = InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
             var objectCreation = ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(), initializerExpression);
             return Argument(objectCreation);
+        }
+
+        protected override bool DoesLanguageForceCallsiteErrorsDueToParamsArrays()
+        {
+            return false;
         }
 
         protected override SyntaxToken CommaTokenWithElasticSpace()
