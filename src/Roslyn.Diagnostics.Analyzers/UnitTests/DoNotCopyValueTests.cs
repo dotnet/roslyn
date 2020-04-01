@@ -423,6 +423,58 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
+        public async Task NonReadonlyMemberProperties()
+        {
+            // Verify that a non-readonly member of a non-copyable type can reference another non-readonly member of the
+            // same type.
+            var source = @"
+using System.Runtime.InteropServices;
+
+[NonCopyable]
+struct CannotCopy
+{
+    public int First { get { return 0; } }
+    public int Second { get { return First; } }
+    public int Third => First;
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task NonReadonlyMemberMethods()
+        {
+            // Verify that a non-readonly member of a non-copyable type can reference another non-readonly member of the
+            // same type.
+            var source = @"
+using System.Runtime.InteropServices;
+
+[NonCopyable]
+struct CannotCopy
+{
+    public int First() { return 0; }
+    public int Second() { return First(); }
+    public int Third() => First();
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNonCopyableAttribute()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"

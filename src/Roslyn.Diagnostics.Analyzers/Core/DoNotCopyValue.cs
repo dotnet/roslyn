@@ -1085,6 +1085,9 @@ namespace Roslyn.Diagnostics.Analyzers
                         var field = ((IFieldReferenceOperation)operation).Field;
                         return field.IsReadOnly ? RefKind.RefReadOnly : RefKind.Ref;
 
+                    case OperationKind.InstanceReference:
+                        return _context.OwningSymbol.IsReadOnly() ? RefKind.RefReadOnly : RefKind.Ref;
+
                     case OperationKind.Invocation:
                         return ((IInvocationOperation)operation).TargetMethod switch
                         {
