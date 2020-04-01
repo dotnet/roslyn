@@ -1355,7 +1355,23 @@ namespace Roslyn.Diagnostics.Analyzers
                     return noncopyable;
                 }
 
-                return false;
+                return IsNonCopyableTypeSlow(namedTypeSymbol);
+            }
+
+            private bool IsNonCopyableTypeSlow(INamedTypeSymbol symbol)
+            {
+                return _typesToNonCopyable.GetOrAdd(
+                    symbol,
+                    symbol =>
+                    {
+                        foreach (var attribute in symbol.GetAttributes())
+                        {
+                            if (attribute.AttributeClass.Name == "NonCopyableAttribute")
+                                return true;
+                        }
+
+                        return false;
+                    });
             }
         }
     }

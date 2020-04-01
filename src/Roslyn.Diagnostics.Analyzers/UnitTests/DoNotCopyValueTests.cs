@@ -287,6 +287,39 @@ class C
         }
 
         [Fact]
+        public async Task TestNonCopyableAttribute()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System.Runtime.InteropServices;
+
+class C
+{
+    CanCopy _canCopy;
+    CannotCopy _cannotCopy;
+
+    void Method(object value)
+    {
+        Method(_canCopy);
+        Method(_cannotCopy);
+    }
+}
+
+struct CanCopy
+{
+}
+
+[NonCopyable]
+struct CannotCopy
+{
+}
+
+internal sealed class NonCopyableAttribute : System.Attribute { }
+",
+                // /0/Test0.cs(12,16): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'FieldReference' operation
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(12, 16, 12, 27).WithArguments("CannotCopy", "FieldReference"));
+        }
+
+        [Fact]
         public async Task DoNotWrapNonCopyableTypeInNullableT()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
