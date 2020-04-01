@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,25 +100,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var indicesResult = await TryGetIndicesAsync(
                 document.Project, forceIndexCreation, cancellationToken).ConfigureAwait(false);
 
-            // Don't show unimported extension methods if the index isn't ready.
-            if (!indicesResult.HasResult)
+            // Queue a background task to construct all requested indices in case we are missing any.
+            // But we still want to return what we have found, even if it's incomplete.
+            if (!indicesResult.HasFullResults)
             {
-                // We use a very simple approach to build the cache in the background:
-                // queue a new task only if the previous task is completed, regardless of what
-                // that task is.
+                Debug.Assert(!forceIndexCreation);
+
+                // For simplicity, we queue a new task only if the previous task is completed, 
+                // regardless of what that task is, and we don't distinguish missing indices
+                // from existing ones.
                 lock (s_gate)
                 {
                     if (s_indexingTask.IsCompleted)
                     {
-                        s_indexingTask = Task.Run(() => TryGetIndicesAsync(document.Project, forceIndexCreation: true, CancellationToken.None));
+                        s_indexingTask = Task.Run(() => PopulateCacheEntries(document.Project));
                     }
                 }
-
-                return (ImmutableArray<SerializableImportCompletionItem>.Empty, counter);
             }
 
             counter.GetFilterTicks = Environment.TickCount - ticks;
-            counter.NoFilter = !indicesResult.HasResult;
+            counter.HasFullResults = indicesResult.HasFullResults;
 
             ticks = Environment.TickCount;
             var items = await GetExtensionMethodItemsAsync(document, receiverTypeSymbol, allTypeNames, indicesResult, position, namespaceInScope, counter, cancellationToken).ConfigureAwait(false);
@@ -125,6 +127,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             counter.GetSymbolTicks = Environment.TickCount - ticks;
 
             return (items, counter);
+
+            static async Task PopulateCacheEntries(Project currentProject)
+            {
+                // Just need to populate the cache so we don't want to hold on to the returned value.
+                await TryGetIndicesAsync(currentProject, forceIndexCreation: true, CancellationToken.None).ConfigureAwait(false);
+            }
         }
 
         private static async Task<ImmutableArray<SerializableImportCompletionItem>> GetExtensionMethodItemsAsync(
@@ -137,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             StatisticCounter counter,
             CancellationToken cancellationToken)
         {
-            if (!indices.HasResult)
+            if (!indices.HasFullResults)
             {
                 return ImmutableArray<SerializableImportCompletionItem>.Empty;
             }
@@ -311,6 +319,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
+            bool hasFullResult = true;
+
             var solution = currentProject.Solution;
             var cacheService = GetCacheService(solution.Workspace);
             var graph = currentProject.Solution.GetProjectDependencyGraph();
@@ -336,8 +346,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (cacheEntry == null)
                 {
-                    // Don't provide anything if we don't have all the required SyntaxTreeIndex created.
-                    return GetIndicesResult.NoneResult;
+                    hasFullResult = false;
+                    continue;
                 }
 
                 syntaxIndices.Add(project, cacheEntry.Value);
@@ -353,8 +363,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (info == null)
                 {
-                    // Don't provide anything if we don't have all the required SymbolTreeInfo created.
-                    return GetIndicesResult.NoneResult;
+                    hasFullResult = false;
+                    continue;
                 }
 
                 if (info.ContainsExtensionMethod)
@@ -363,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return new GetIndicesResult(syntaxIndices, symbolInfos);
+            return new GetIndicesResult(syntaxIndices, symbolInfos, hasFullResult);
         }
 
         // Create filter for extension methods from source.
@@ -410,24 +420,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private readonly struct GetIndicesResult
         {
-            public bool HasResult { get; }
+            public bool HasFullResults { get; }
             public Dictionary<Project, CacheEntry>? ProjectExtensionMethodInfo { get; }
             public Dictionary<PortableExecutableReference, SymbolTreeInfo>? PEExtensionMethodInfo { get; }
 
-            public GetIndicesResult(Dictionary<Project, CacheEntry> projectExtensionMethodInfo, Dictionary<PortableExecutableReference, SymbolTreeInfo> peExtensionMethodInfo)
+            public GetIndicesResult(Dictionary<Project, CacheEntry> projectExtensionMethodInfo, Dictionary<PortableExecutableReference, SymbolTreeInfo> peExtensionMethodInfo, bool hasFullResult)
             {
-                HasResult = true;
+                HasFullResults = hasFullResult;
                 ProjectExtensionMethodInfo = projectExtensionMethodInfo;
                 PEExtensionMethodInfo = peExtensionMethodInfo;
             }
-
-            public static GetIndicesResult NoneResult => default;
         }
     }
 
     internal sealed class StatisticCounter
     {
-        public bool NoFilter;
+        public bool HasFullResults;
         public int TotalTicks;
         public int TotalExtensionMethodsProvided;
         public int GetFilterTicks;
@@ -437,19 +445,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public void Report()
         {
-            if (NoFilter)
+            if (!HasFullResults)
             {
-                CompletionProvidersLogger.LogExtensionMethodCompletionSuccess();
+                CompletionProvidersLogger.LogExtensionMethodCompletionPartialResults();
             }
-            else
-            {
-                CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(TotalTicks);
-                CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(TotalExtensionMethodsProvided);
-                CompletionProvidersLogger.LogExtensionMethodCompletionGetFilterTicksDataPoint(GetFilterTicks);
-                CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolTicksDataPoint(GetSymbolTicks);
-                CompletionProvidersLogger.LogExtensionMethodCompletionTypesCheckedDataPoint(TotalTypesChecked);
-                CompletionProvidersLogger.LogExtensionMethodCompletionMethodsCheckedDataPoint(TotalExtensionMethodsChecked);
-            }
+
+            CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(TotalTicks);
+            CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(TotalExtensionMethodsProvided);
+            CompletionProvidersLogger.LogExtensionMethodCompletionGetFilterTicksDataPoint(GetFilterTicks);
+            CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolTicksDataPoint(GetSymbolTicks);
+            CompletionProvidersLogger.LogExtensionMethodCompletionTypesCheckedDataPoint(TotalTypesChecked);
+            CompletionProvidersLogger.LogExtensionMethodCompletionMethodsCheckedDataPoint(TotalExtensionMethodsChecked);
         }
     }
 }

@@ -32,22 +32,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var telemetryCounter = new TelemetryCounter();
                 var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
-                var itemsFromAllAssemblies = await typeImportCompletionService.GetAllTopLevelTypesAsync(
+                var (hasFullResults, itemsFromAllAssemblies) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
                     completionContext.Document.Project,
                     syntaxContext,
                     forceCacheCreation: isExpandedCompletion,
                     cancellationToken).ConfigureAwait(false);
 
-                if (itemsFromAllAssemblies == null)
+                telemetryCounter.HasFullResults = hasFullResults;
+
+                foreach (var items in itemsFromAllAssemblies)
                 {
-                    telemetryCounter.CacheMiss = true;
-                }
-                else
-                {
-                    foreach (var items in itemsFromAllAssemblies)
-                    {
-                        AddItems(items, completionContext, namespacesInScope, telemetryCounter);
-                    }
+                    AddItems(items, completionContext, namespacesInScope, telemetryCounter);
                 }
 
                 telemetryCounter.Report();
@@ -77,24 +72,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             protected int Tick { get; }
             public int ItemsCount { get; set; }
             public int ReferenceCount { get; set; }
-            public bool CacheMiss { get; set; }
+            public bool HasFullResults { get; set; }
 
             public TelemetryCounter()
                 => Tick = Environment.TickCount;
 
             public void Report()
             {
-                if (CacheMiss)
+                if (!HasFullResults)
                 {
-                    CompletionProvidersLogger.LogTypeImportCompletionCacheMiss();
+                    CompletionProvidersLogger.LogTypeImportCompletionPartialResults();
                 }
-                else
-                {
-                    var delta = Environment.TickCount - Tick;
-                    CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
-                    CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
-                    CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
-                }
+
+                var delta = Environment.TickCount - Tick;
+                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
+                CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
+                CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
             }
         }
     }

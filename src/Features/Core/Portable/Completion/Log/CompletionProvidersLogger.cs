@@ -24,13 +24,12 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TypeImportCompletionTicks,
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
-            TypeImportCompletionCacheMissCount,
+            TypeImportCompletionPartialResultsCount,
             CommitsOfTypeImportCompletionItem,
 
             TargetTypeCompletionTicks,
 
-            ExtensionMethodCompletionSuccessCount,
-            // following are only reported when successful (i.e. filter is available)
+            ExtensionMethodCompletionPartialResultsCount,
             ExtensionMethodCompletionTicks,
             ExtensionMethodCompletionMethodsProvided,
             ExtensionMethodCompletionGetFilterTicks,
@@ -52,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         internal static void LogTypeImportCompletionReferenceCountDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TypeImportCompletionReferenceCount, count);
 
-        internal static void LogTypeImportCompletionCacheMiss() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionCacheMissCount);
+        internal static void LogTypeImportCompletionPartialResults() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionPartialResultsCount);
 
         internal static void LogCommitOfTypeImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitsOfTypeImportCompletionItem);
@@ -62,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
 
 
-        internal static void LogExtensionMethodCompletionSuccess() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionSuccessCount);
+        internal static void LogExtensionMethodCompletionPartialResults() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultsCount);
 
         internal static void LogExtensionMethodCompletionTicksDataPoint(int count)
         {

@@ -34,16 +34,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         internal AbstractTypeImportCompletionService(Workspace workspace)
             => CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
 
-        public async Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
+        public async Task<(bool, ImmutableArray<ImmutableArray<CompletionItem>>)> GetAllTopLevelTypesAsync(
             Project currentProject,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
-            var getCacheResults = await GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+            var (hasFullResults, getCacheResults) = await GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
-            if (getCacheResults == null)
+            // Queue a background task to populate cache in case we are missing any.
+            // But we still want to return what we have found, even if it's incomplete.
+            if (!hasFullResults)
             {
+                Debug.Assert(!forceCacheCreation);
+
                 // We use a very simple approach to build the cache in the background:
                 // queue a new task only if the previous task is completed, regardless of what
                 // that task is doing.
@@ -51,29 +55,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 {
                     if (s_cachingTask.IsCompleted)
                     {
-                        s_cachingTask = Task.Run(() => GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation: true, CancellationToken.None));
+                        s_cachingTask = Task.Run(() => PopulateCacheEntriesAsync(currentProject, syntaxContext));
                     }
                 }
-
-                return null;
             }
 
             var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            return getCacheResults.Value.SelectAsArray(GetItemsFromCacheResult);
+            return (hasFullResults, getCacheResults.SelectAsArray(GetItemsFromCacheResult));
 
             ImmutableArray<CompletionItem> GetItemsFromCacheResult(GetCacheResult cacheResult)
+                => cacheResult.Entry.GetItemsForContext(
+                    syntaxContext.SemanticModel.Language,
+                    GenericTypeSuffix,
+                    currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(cacheResult.Assembly),
+                    syntaxContext.IsAttributeNameContext,
+                    IsCaseSensitive);
+
+            async Task PopulateCacheEntriesAsync(Project currentProject, SyntaxContext syntaxContext)
             {
-                return cacheResult.Entry.GetItemsForContext(
-                         syntaxContext.SemanticModel.Language,
-                         GenericTypeSuffix,
-                         currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(cacheResult.Assembly),
-                         syntaxContext.IsAttributeNameContext,
-                         IsCaseSensitive);
+                // Just need to populate the cache so we don't care about the returned value.
+                _ = await GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation: true, CancellationToken.None).ConfigureAwait(false);
             }
         }
 
-        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntriesAsync(Project currentProject, SyntaxContext syntaxContext, bool forceCacheCreation, CancellationToken cancellationToken)
+        private async Task<(bool hasFullResults, ImmutableArray<GetCacheResult> cacheEntries)> GetCacheEntriesAsync(Project currentProject, SyntaxContext syntaxContext, bool forceCacheCreation, CancellationToken cancellationToken)
         {
+            var hasFullResults = true;
             var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
 
             var cacheResult = await GetCacheForProjectAsync(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
@@ -107,9 +114,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     }
                     else
                     {
-                        // If there's cache miss, we just don't return any item.
+                        // If there's cache miss, we just don't return any item from this reference,
                         // This way, we will not block completion building our cache.
-                        return null;
+                        hasFullResults = false;
+                        continue;
                     }
                 }
             }
@@ -126,14 +134,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     }
                     else
                     {
-                        // If there's cache miss, we just don't return any item.
+                        // If there's cache miss, we just don't return any item from this reference,
                         // This way, we will not block completion building our cache.
-                        return null;
+                        hasFullResults = false;
+                        continue;
                     }
                 }
             }
 
-            return builder.ToImmutable();
+            return (hasFullResults, builder.ToImmutable());
 
             static bool HasGlobalAlias(MetadataReference? metadataReference)
                 => metadataReference != null && (metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias));
