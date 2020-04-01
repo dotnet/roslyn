@@ -1169,10 +1169,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 out bool trueTestImpliesTrueOther,
                                 out bool falseTestImpliesTrueOther)
                             {
-                                // We need to check test.Equals(other) to handle "bad" constant values
+                                // We check test.Equals(other) to handle "bad" constant values
+                                bool sameTest = test.Equals(other);
                                 trueTestPermitsTrueOther = whenTrueValues?.Any(relation, value) ?? true;
-                                trueTestImpliesTrueOther = test.Equals(other) || trueTestPermitsTrueOther && (whenTrueValues?.All(relation, value) ?? false);
-                                falseTestPermitsTrueOther = !test.Equals(other) && (whenFalseValues?.Any(relation, value) ?? true);
+                                trueTestImpliesTrueOther = sameTest || trueTestPermitsTrueOther && (whenTrueValues?.All(relation, value) ?? false);
+                                falseTestPermitsTrueOther = !sameTest && (whenFalseValues?.Any(relation, value) ?? true);
                                 falseTestImpliesTrueOther = falseTestPermitsTrueOther && (whenFalseValues?.All(relation, value) ?? false);
                             }
                     }
@@ -1427,9 +1428,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (d)
                     {
                         case BoundDagTypeEvaluation a:
-                            return $"t{tempIdentifier(a)}={a.Kind}(t{tempIdentifier(a)} as {a.Type})";
+                            return $"t{tempIdentifier(a)}={a.Kind}({tempName(a.Input)} as {a.Type})";
+                        case BoundDagFieldEvaluation e:
+                            return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}.{e.Field.Name})";
                         case BoundDagEvaluation e:
-                            return $"t{tempIdentifier(e)}={e.Kind}(t{tempIdentifier(e)})";
+                            return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)})";
                         case BoundDagTypeTest b:
                             return $"?{d.Kind}({tempName(d.Input)} is {b.Type})";
                         case BoundDagValueTest v:

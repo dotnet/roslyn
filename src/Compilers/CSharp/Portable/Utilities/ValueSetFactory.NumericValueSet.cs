@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return true;
                                 case LessThanOrEqual when tc.Related(LessThan, value, minValue):
                                     return false;
-                                case LessThanOrEqual when tc.Related(LessThanOrEqual, maxValue, value):
+                                case LessThanOrEqual when tc.Related(LessThan, maxValue, value):
                                     return true;
                                 case GreaterThanOrEqual when tc.Related(GreaterThan, value, maxValue):
                                     return false;
-                                case GreaterThanOrEqual when tc.Related(GreaterThanOrEqual, minValue, value):
+                                case GreaterThanOrEqual when tc.Related(GreaterThan, minValue, value):
                                     return true;
                                 default:
                                     var (leftMax, rightMin) = tc.Partition(minValue, maxValue);

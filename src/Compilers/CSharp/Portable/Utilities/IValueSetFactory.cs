@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a value set that includes any values that satisfy the given relation when compared to the given value.
         /// </summary>
         IValueSet Related(BinaryOperatorKind relation, ConstantValue value);
+
+        /// <summary>
+        /// Returns true iff the values are related according to the given relation.
+        /// </summary>
+        bool Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right);
     }
 
     /// <summary>
