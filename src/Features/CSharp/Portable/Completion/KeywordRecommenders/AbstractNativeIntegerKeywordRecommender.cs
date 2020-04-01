@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
     {
         protected abstract RecommendedKeyword Keyword { get; }
 
-        private bool IsValidContext(CSharpSyntaxContext context)
+        private static bool IsValidContext(CSharpSyntaxContext context)
         {
             if (context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsPossibleTupleContext ||
                 context.IsPatternContext ||
-                context.IsTypeContext)
+                (context.IsTypeContext && !context.IsEnumBaseListContext))
             {
                 return true;
             }
