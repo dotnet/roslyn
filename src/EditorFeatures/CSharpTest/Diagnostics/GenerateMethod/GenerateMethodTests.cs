@@ -7518,6 +7518,34 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task MethodWithNativeIntegerTypes()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void M(nint i, nuint i2)
+    {
+        (nint, nuint) d = [|NewMethod|](i, i2);
+    }
+}",
+@"using System;
+
+class Class
+{
+    void M(nint i, nuint i2)
+    {
+        (nint, nuint) d = NewMethod(i, i2);
+    }
+
+    private (nint, nuint) NewMethod(nint i, nuint i2)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task MethodWithTuple()
         {
             await TestInRegularAndScriptAsync(

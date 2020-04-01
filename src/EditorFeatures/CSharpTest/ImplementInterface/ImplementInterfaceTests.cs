@@ -150,6 +150,35 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task TestMethodWithNativeIntegers()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    (nint, nuint) Method(nint x, nuint x2);
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"using System;
+
+interface IInterface
+{
+    (nint, nuint) Method(nint x, nuint x2);
+}
+
+class Class : IInterface
+{
+    public (nint, nuint) Method(nint x, nuint x2)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodWithTuple()
         {
             await TestWithAllCodeStyleOptionsOffAsync(

@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -187,6 +187,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return CreateTupleTypeSyntax(symbol);
                 }
+
+#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
+                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+                if (symbol.IsNativeIntegerType)
+                {
+                    string name;
+                    if (symbol.SpecialType == SpecialType.System_IntPtr)
+                    {
+                        name = "nint";
+                    }
+                    else
+                    {
+                        Debug.Assert(symbol.SpecialType == SpecialType.System_UIntPtr);
+                        name = "nuint";
+                    }
+                    return SyntaxFactory.IdentifierName(name);
+                }
+#endif
 
                 if (symbol.IsNullable())
                 {
