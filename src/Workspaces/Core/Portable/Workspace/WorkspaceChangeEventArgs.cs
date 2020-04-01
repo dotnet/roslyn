@@ -24,15 +24,16 @@ namespace Microsoft.CodeAnalysis
 
         /// <remarks>
         /// If linked documents are being changed, there may be multiple events with the same <see cref="OldSolution"/>
-        /// and <see cref="NewSolution"/>.  Will never be <see langword="null"/>, even for a <see
-        /// cref="WorkspaceChangeKind.SolutionAdded"/> notification.
+        /// and <see cref="NewSolution"/>.  Note that the workspace starts with its solution set to an empty solution.
+        /// <see cref="WorkspaceChangeKind.SolutionAdded"/> replaces the previous solution, which might be the empty
+        /// one.
         /// </remarks>
         public Solution OldSolution { get; }
 
         /// <remarks>
         /// If linked documents are being changed, there may be multiple events with the same <see cref="OldSolution"/>
-        /// and <see cref="NewSolution"/>. Will never be <see langword="null"/>, even for a <see
-        /// cref="WorkspaceChangeKind.SolutionRemoved"/> notification.
+        /// and <see cref="NewSolution"/>. Note <see cref="WorkspaceChangeKind.SolutionRemoved"/> replaces the previous
+        /// solution with the empty one.
         /// </remarks>
         public Solution NewSolution { get; }
 
