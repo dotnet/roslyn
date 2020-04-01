@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -38,12 +37,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly LanguageServerProtocol _protocol;
-        private readonly Workspace _workspace;
+        private readonly CodeAnalysis.Workspace _workspace;
 
-        private VSClientCapabilities? _clientCapabilities;
+        // The VS LSP client supports streaming using IProgress<T> on various requests.
+        // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
+        // Additionally, the VS LSP client will be changing the type of 'tagSupport' from bool to an object in future LSP package versions.
+        // Since updating our package versions is extraordinarily difficult, add this workaround so we aren't broken when they change the type.
+        // https://github.com/dotnet/roslyn/issues/40829 tracks updating our package versions to remove this workaround.
+        internal static readonly JsonSerializer JsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            Error = (sender, args) =>
+            {
+                if (object.Equals(args.ErrorContext.Member, "partialResultToken")
+                    || (object.Equals(args.ErrorContext.Member, "tagSupport") && args.ErrorContext.OriginalObject.GetType() == typeof(PublishDiagnosticsSetting)))
+                {
+                    args.ErrorContext.Handled = true;
+                }
+            }
+        });
+
+        private VSClientCapabilities _clientCapabilities;
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
-            Workspace workspace, IDiagnosticService diagnosticService, string? clientName)
+            CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService, string? clientName)
         {
             _protocol = protocol;
             _workspace = workspace;
@@ -54,6 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _diagnosticService = diagnosticService;
             _clientName = clientName;
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
+
+            _clientCapabilities = new VSClientCapabilities();
         }
 
         /// <summary>
@@ -64,27 +83,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.InitializeName)]
         public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
-            // The VS LSP protocol package changed the type of 'tagSupport' from bool to an object.
-            // Our version of the LSP protocol package is older and assumes that the type is bool, so deserialization fails.
-            // Since we don't really read this field, just no-op the error until we can update our package references.
-            // https://github.com/dotnet/roslyn/issues/40829 tracks updating this.
-            var settings = new JsonSerializerSettings
-            {
-                Error = (sender, args) =>
-                {
-                    if (object.Equals(args.ErrorContext.Member, "tagSupport") && args.ErrorContext.OriginalObject.GetType() == typeof(PublishDiagnosticsSetting))
-                    {
-                        args.ErrorContext.Handled = true;
-                    }
-                }
-            };
-            var serializer = JsonSerializer.Create(settings);
-
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(serializer);
-            return _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(serializer), _clientCapabilities, cancellationToken);
+            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(JsonSerializer);
+            return _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(JsonSerializer), _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
@@ -112,9 +115,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentDefinitionName)]
-        public Task<object> GetTextDocumentDefinitionAsync(JToken input, CancellationToken cancellationToken)
+        public Task<SumType<Location, Location[]>?> GetTextDocumentDefinitionAsync(JToken input, CancellationToken cancellationToken)
         {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
+            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.GoToDefinitionAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
         }
 
@@ -126,72 +129,72 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName)]
-        public Task<object> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
+        public Task<SumType<CompletionItem[], CompletionList>?> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
         {
-            var completionParams = input.ToObject<CompletionParams>();
+            var completionParams = input.ToObject<CompletionParams>(JsonSerializer);
             return _protocol.GetCompletionsAsync(_workspace.CurrentSolution, completionParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionResolveName)]
         public Task<CompletionItem> ResolveCompletionItemAsync(JToken input, CancellationToken cancellationToken)
         {
-            var completionItem = input.ToObject<CompletionItem>();
+            var completionItem = input.ToObject<CompletionItem>(JsonSerializer);
             return _protocol.ResolveCompletionItemAsync(_workspace.CurrentSolution, completionItem, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName)]
         public Task<DocumentHighlight[]> GetTextDocumentDocumentHighlightsAsync(JToken input, CancellationToken cancellationToken)
         {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
+            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.GetDocumentHighlightAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName)]
         public Task<object[]> GetTextDocumentDocumentSymbolsAsync(JToken input, CancellationToken cancellationToken)
         {
-            var documentSymbolParams = input.ToObject<DocumentSymbolParams>();
+            var documentSymbolParams = input.ToObject<DocumentSymbolParams>(JsonSerializer);
             return _protocol.GetDocumentSymbolsAsync(_workspace.CurrentSolution, documentSymbolParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentFormattingName)]
         public Task<TextEdit[]> GetTextDocumentFormattingAsync(JToken input, CancellationToken cancellationToken)
         {
-            var documentFormattingParams = input.ToObject<DocumentFormattingParams>();
+            var documentFormattingParams = input.ToObject<DocumentFormattingParams>(JsonSerializer);
             return _protocol.FormatDocumentAsync(_workspace.CurrentSolution, documentFormattingParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName)]
         public Task<TextEdit[]> GetTextDocumentFormattingOnTypeAsync(JToken input, CancellationToken cancellationToken)
         {
-            var documentOnTypeFormattingParams = input.ToObject<DocumentOnTypeFormattingParams>();
+            var documentOnTypeFormattingParams = input.ToObject<DocumentOnTypeFormattingParams>(JsonSerializer);
             return _protocol.FormatDocumentOnTypeAsync(_workspace.CurrentSolution, documentOnTypeFormattingParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName)]
-        public Task<object> GetTextDocumentImplementationsAsync(JToken input, CancellationToken cancellationToken)
+        public Task<SumType<Location, Location[]>?> GetTextDocumentImplementationsAsync(JToken input, CancellationToken cancellationToken)
         {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
+            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.FindImplementationsAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentRangeFormattingName)]
         public Task<TextEdit[]> GetTextDocumentRangeFormattingAsync(JToken input, CancellationToken cancellationToken)
         {
-            var documentRangeFormattingParams = input.ToObject<DocumentRangeFormattingParams>();
+            var documentRangeFormattingParams = input.ToObject<DocumentRangeFormattingParams>(JsonSerializer);
             return _protocol.FormatDocumentRangeAsync(_workspace.CurrentSolution, documentRangeFormattingParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName)]
         public async Task<SignatureHelp> GetTextDocumentSignatureHelpAsync(JToken input, CancellationToken cancellationToken)
         {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
+            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return await _protocol.GetSignatureHelpAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         [JsonRpcMethod(Methods.WorkspaceSymbolName)]
         public async Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(JToken input, CancellationToken cancellationToken)
         {
-            var workspaceSymbolParams = input.ToObject<WorkspaceSymbolParams>();
+            var workspaceSymbolParams = input.ToObject<WorkspaceSymbolParams>(JsonSerializer);
             return await _protocol.GetWorkspaceSymbolsAsync(_workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
@@ -213,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     }
 
                     // Only publish document diagnostics for the languages this provider supports.
-                    if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
+                    if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
                     {
                         return;
                     }
@@ -258,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
 
-        internal async Task PublishDiagnosticsAsync(Document document)
+        internal async Task PublishDiagnosticsAsync(CodeAnalysis.Document document)
         {
             // Retrieve all diagnostics for the current document grouped by their actual file uri.
             var fileUriToDiagnostics = await GetDiagnosticsAsync(document, CancellationToken.None).ConfigureAwait(false);
@@ -330,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
         }
 
-        private async Task<Dictionary<Uri, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<Dictionary<Uri, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> GetDiagnosticsAsync(CodeAnalysis.Document document, CancellationToken cancellationToken)
         {
             var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken)
                                                 .Where(IncludeDiagnostic);

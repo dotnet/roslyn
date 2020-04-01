@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, object>
+    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<object> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
+        public async Task<LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
 
-            var completionService = document.Project.LanguageServices.GetService<CompletionService>();
+            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var list = await completionService.GetCompletionsAsync(document, position, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
