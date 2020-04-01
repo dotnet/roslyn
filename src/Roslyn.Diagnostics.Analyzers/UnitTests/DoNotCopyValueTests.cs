@@ -572,7 +572,7 @@ class C
     GCHandle? field = null;
 }
 ",
-                // /0/Test0.cs(6,21): warning RS0042: Do not wrap non-copyable type '{0}' in '{1)' operation
+                // /0/Test0.cs(6,21): warning RS0042: Do not wrap non-copyable type 'System.Runtime.InteropServices.GCHandle?' in 'FieldInitializer' operation
                 VerifyCS.Diagnostic(DoNotCopyValue.AvoidNullableWrapperRule).WithSpan(6, 21, 6, 27).WithArguments("System.Runtime.InteropServices.GCHandle?", "FieldInitializer"));
         }
     }

@@ -310,6 +310,6 @@
     <value>Avoid nullable wrapper</value>
   </data>
   <data name="DoNotCopyValueAvoidNullableWrapperMessage" xml:space="preserve">
-    <value>Do not wrap non-copyable type '{0}' in '{1)' operation</value>
+    <value>Do not wrap non-copyable type '{0}' in '{1}' operation</value>
   </data>
 </root>

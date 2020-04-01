@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
-        <source>Do not wrap non-copyable type '{0}' in '{1)' operation</source>
-        <target state="new">Do not wrap non-copyable type '{0}' in '{1)' operation</target>
+        <source>Do not wrap non-copyable type '{0}' in '{1}' operation</source>
+        <target state="new">Do not wrap non-copyable type '{0}' in '{1}' operation</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueDescription">
