@@ -2,6 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="AM_PM_abbreviated">
+        <source>AM/PM (abbreviated)</source>
+        <target state="new">AM/PM (abbreviated)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AM_PM_abbreviated_description">
+        <source>The "t" custom format specifier represents the first character of the AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+If the "t" format specifier is used without other custom format specifiers, it's interpreted as the "t" standard date and time format specifier.</source>
+        <target state="new">The "t" custom format specifier represents the first character of the AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+If the "t" format specifier is used without other custom format specifiers, it's interpreted as the "t" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AM_PM_full">
+        <source>AM/PM (full)</source>
+        <target state="new">AM/PM (full)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AM_PM_full_description">
+        <source>The "tt" custom format specifier (plus any number of additional "t" specifiers) represents the entire AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+Make sure to use the "tt" specifier for languages for which it's necessary to maintain the distinction between AM and PM. An example is Japanese, for which the AM and PM designators differ in the second character instead of the first character.</source>
+        <target state="new">The "tt" custom format specifier (plus any number of additional "t" specifiers) represents the entire AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+Make sure to use the "tt" specifier for languages for which it's necessary to maintain the distinction between AM and PM. An example is Japanese, for which the AM and PM designators differ in the second character instead of the first character.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="new">Add 'DebuggerDisplay' attribute</target>
@@ -767,9 +795,351 @@
         <target state="translated">{0} kann vereinfacht werden</target>
         <note />
       </trans-unit>
+      <trans-unit id="_10000000ths_of_a_second">
+        <source>10,000,000ths of a second</source>
+        <target state="new">10,000,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000000ths_of_a_second_description">
+        <source>The "fffffff" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "fffffff" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000000ths_of_a_second_non_zero">
+        <source>10,000,000ths of a second (non-zero)</source>
+        <target state="new">10,000,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000000ths_of_a_second_non_zero_description">
+        <source>The "FFFFFFF" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value. However, trailing zeros or seven zero digits aren't displayed.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "FFFFFFF" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value. However, trailing zeros or seven zero digits aren't displayed.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000000ths_of_a_second">
+        <source>1,000,000ths of a second</source>
+        <target state="new">1,000,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000000ths_of_a_second_description">
+        <source>The "ffffff" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "ffffff" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000000ths_of_a_second_non_zero">
+        <source>1,000,000ths of a second (non-zero)</source>
+        <target state="new">1,000,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000000ths_of_a_second_non_zero_description">
+        <source>The "FFFFFF" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value. However, trailing zeros or six zero digits aren't displayed.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "FFFFFF" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value. However, trailing zeros or six zero digits aren't displayed.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100000ths_of_a_second">
+        <source>100,000ths of a second</source>
+        <target state="new">100,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100000ths_of_a_second_description">
+        <source>The "fffff" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "fffff" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100000ths_of_a_second_non_zero">
+        <source>100,000ths of a second (non-zero)</source>
+        <target state="new">100,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100000ths_of_a_second_non_zero_description">
+        <source>The "FFFFF" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value. However, trailing zeros or five zero digits aren't displayed.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "FFFFF" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value. However, trailing zeros or five zero digits aren't displayed.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000ths_of_a_second">
+        <source>10,000ths of a second</source>
+        <target state="new">10,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000ths_of_a_second_description">
+        <source>The "ffff" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT version 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "ffff" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT version 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000ths_of_a_second_non_zero">
+        <source>10,000ths of a second (non-zero)</source>
+        <target state="new">10,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000ths_of_a_second_non_zero_description">
+        <source>The "FFFF" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value. However, trailing zeros or four zero digits aren't displayed.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "FFFF" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value. However, trailing zeros or four zero digits aren't displayed.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000ths_of_a_second">
+        <source>1,000ths of a second</source>
+        <target state="new">1,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000ths_of_a_second_description">
+        <source>The "fff" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value.</source>
+        <target state="new">The "fff" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000ths_of_a_second_non_zero">
+        <source>1,000ths of a second (non-zero)</source>
+        <target state="new">1,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000ths_of_a_second_non_zero_description">
+        <source>The "FFF" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value. However, trailing zeros or three zero digits aren't displayed.</source>
+        <target state="new">The "FFF" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value. However, trailing zeros or three zero digits aren't displayed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100ths_of_a_second">
+        <source>100ths of a second</source>
+        <target state="new">100ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100ths_of_a_second_description">
+        <source>The "ff" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value.</source>
+        <target state="new">The "ff" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100ths_of_a_second_non_zero">
+        <source>100ths of a second (non-zero)</source>
+        <target state="new">100ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100ths_of_a_second_non_zero_description">
+        <source>The "FF" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value. However, trailing zeros or two zero digits aren't displayed.</source>
+        <target state="new">The "FF" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value. However, trailing zeros or two zero digits aren't displayed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10ths_of_a_second">
+        <source>10ths of a second</source>
+        <target state="new">10ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10ths_of_a_second_description">
+        <source>The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+
+When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+
+When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10ths_of_a_second_non_zero">
+        <source>10ths of a second (non-zero)</source>
+        <target state="new">10ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10ths_of_a_second_non_zero_description">
+        <source>The "F" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value. Nothing is displayed if the digit is zero.
+
+If the "F" format specifier is used without other format specifiers, it's interpreted as the "F" standard date and time format specifier.
+
+The number of "F" format specifiers used with the ParseExact, TryParseExact, ParseExact, or TryParseExact method indicates the maximum number of most significant digits of the seconds fraction that can be present to successfully parse the string.</source>
+        <target state="new">The "F" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value. Nothing is displayed if the digit is zero.
+
+If the "F" format specifier is used without other format specifiers, it's interpreted as the "F" standard date and time format specifier.
+
+The number of "F" format specifiers used with the ParseExact, TryParseExact, ParseExact, or TryParseExact method indicates the maximum number of most significant digits of the seconds fraction that can be present to successfully parse the string.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_12_hour_clock_1_2_digits">
+        <source>12 hour clock (1-2 digits)</source>
+        <target state="new">12 hour clock (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_12_hour_clock_1_2_digits_description">
+        <source>The "h" custom format specifier represents the hour as a number from 1 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted without a leading zero. For example, given a time of 5:43 in the morning or afternoon, this custom format specifier displays "5".
+
+If the "h" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The "h" custom format specifier represents the hour as a number from 1 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted without a leading zero. For example, given a time of 5:43 in the morning or afternoon, this custom format specifier displays "5".
+
+If the "h" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_12_hour_clock_2_digits">
+        <source>12 hour clock (2 digits)</source>
+        <target state="new">12 hour clock (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_12_hour_clock_2_digits_description">
+        <source>The "hh" custom format specifier (plus any number of additional "h" specifiers) represents the hour as a number from 01 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted with a leading zero. For example, given a time of 5:43 in the morning or afternoon, this format specifier displays "05".</source>
+        <target state="new">The "hh" custom format specifier (plus any number of additional "h" specifiers) represents the hour as a number from 01 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted with a leading zero. For example, given a time of 5:43 in the morning or afternoon, this format specifier displays "05".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_24_hour_clock_1_2_digits">
+        <source>24 hour clock (1-2 digits)</source>
+        <target state="new">24 hour clock (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_24_hour_clock_1_2_digits_description">
+        <source>The "H" custom format specifier represents the hour as a number from 0 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted without a leading zero.
+
+If the "H" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The "H" custom format specifier represents the hour as a number from 0 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted without a leading zero.
+
+If the "H" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_24_hour_clock_2_digits">
+        <source>24 hour clock (2 digits)</source>
+        <target state="new">24 hour clock (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_24_hour_clock_2_digits_description">
+        <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
+        <target state="new">The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="date_separator">
+        <source>date separator</source>
+        <target state="new">date separator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="date_separator_description">
+        <source>The "/" custom format specifier represents the date separator, which is used to differentiate years, months, and days. The appropriate localized date separator is retrieved from the DateTimeFormatInfo.DateSeparator property of the current or specified culture.
+
+Note: To change the date separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string mm'/'dd'/'yyyy produces a result string in which "/" is always used as the date separator. To change the date separator for all dates for a culture, either change the value of the DateTimeFormatInfo.DateSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its DateSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the "/" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The "/" custom format specifier represents the date separator, which is used to differentiate years, months, and days. The appropriate localized date separator is retrieved from the DateTimeFormatInfo.DateSeparator property of the current or specified culture.
+
+Note: To change the date separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string mm'/'dd'/'yyyy produces a result string in which "/" is always used as the date separator. To change the date separator for all dates for a culture, either change the value of the DateTimeFormatInfo.DateSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its DateSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the "/" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_month_1_2_digits">
+        <source>day of the month (1-2 digits)</source>
+        <target state="new">day of the month (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_month_1_2_digits_description">
+        <source>The "d" custom format specifier represents the day of the month as a number from 1 through 31. A single-digit day is formatted without a leading zero.
+
+If the "d" format specifier is used without other custom format specifiers, it's interpreted as the "d" standard date and time format specifier.</source>
+        <target state="new">The "d" custom format specifier represents the day of the month as a number from 1 through 31. A single-digit day is formatted without a leading zero.
+
+If the "d" format specifier is used without other custom format specifiers, it's interpreted as the "d" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_month_2_digits">
+        <source>day of the month (2 digits)</source>
+        <target state="new">day of the month (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_month_2_digits_description">
+        <source>The "dd" custom format string represents the day of the month as a number from 01 through 31. A single-digit day is formatted with a leading zero.</source>
+        <target state="new">The "dd" custom format string represents the day of the month as a number from 01 through 31. A single-digit day is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_week_abbreviated">
+        <source>day of the week (abbreviated)</source>
+        <target state="new">day of the week (abbreviated)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_week_abbreviated_description">
+        <source>The "ddd" custom format specifier represents the abbreviated name of the day of the week. The localized abbreviated name of the day of the week is retrieved from the DateTimeFormatInfo.AbbreviatedDayNames property of the current or specified culture.</source>
+        <target state="new">The "ddd" custom format specifier represents the abbreviated name of the day of the week. The localized abbreviated name of the day of the week is retrieved from the DateTimeFormatInfo.AbbreviatedDayNames property of the current or specified culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_week_full">
+        <source>day of the week (full)</source>
+        <target state="new">day of the week (full)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_week_full_description">
+        <source>The "dddd" custom format specifier (plus any number of additional "d" specifiers) represents the full name of the day of the week. The localized name of the day of the week is retrieved from the DateTimeFormatInfo.DayNames property of the current or specified culture.</source>
+        <target state="new">The "dddd" custom format specifier (plus any number of additional "d" specifiers) represents the full name of the day of the week. The localized name of the day of the week is retrieved from the DateTimeFormatInfo.DayNames property of the current or specified culture.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="discard">
         <source>discard</source>
         <target state="translated">Ausschussvariable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="full_long_date_time">
+        <source>full long date/time</source>
+        <target state="new">full long date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="full_long_date_time_description">
+        <source>The "F" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.FullDateTimePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy HH:mm:ss".</source>
+        <target state="new">The "F" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.FullDateTimePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy HH:mm:ss".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="full_short_date_time">
+        <source>full short date/time</source>
+        <target state="new">full short date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="full_short_date_time_description">
+        <source>The Full Date Short Time ("f") Format Specifier
+
+The "f" standard format specifier represents a combination of the long date ("D") and short time ("t") patterns, separated by a space.</source>
+        <target state="new">The Full Date Short Time ("f") Format Specifier
+
+The "f" standard format specifier represents a combination of the long date ("D") and short time ("t") patterns, separated by a space.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="general_long_date_time">
+        <source>general long date/time</source>
+        <target state="new">general long date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="general_long_date_time_description">
+        <source>The "G" standard format specifier represents a combination of the short date ("d") and long time ("T") patterns, separated by a space.</source>
+        <target state="new">The "G" standard format specifier represents a combination of the short date ("d") and long time ("T") patterns, separated by a space.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="general_short_date_time">
+        <source>general short date/time</source>
+        <target state="new">general short date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="general_short_date_time_description">
+        <source>The "g" standard format specifier represents a combination of the short date ("d") and short time ("t") patterns, separated by a space.</source>
+        <target state="new">The "g" standard format specifier represents a combination of the short date ("d") and short time ("t") patterns, separated by a space.</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -785,6 +1155,104 @@
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">in Quelle (Attribut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="long_date">
+        <source>long date</source>
+        <target state="new">long date</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="long_date_description">
+        <source>The "D" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.LongDatePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy".</source>
+        <target state="new">The "D" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.LongDatePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="long_time">
+        <source>long time</source>
+        <target state="new">long time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="long_time_description">
+        <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
+        <target state="new">The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="minute_1_2_digits">
+        <source>minute (1-2 digits)</source>
+        <target state="new">minute (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="minute_1_2_digits_description">
+        <source>The "m" custom format specifier represents the minute as a number from 0 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted without a leading zero.
+
+If the "m" format specifier is used without other custom format specifiers, it's interpreted as the "m" standard date and time format specifier.</source>
+        <target state="new">The "m" custom format specifier represents the minute as a number from 0 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted without a leading zero.
+
+If the "m" format specifier is used without other custom format specifiers, it's interpreted as the "m" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="minute_2_digits">
+        <source>minute (2 digits)</source>
+        <target state="new">minute (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="minute_2_digits_description">
+        <source>The "mm" custom format specifier (plus any number of additional "m" specifiers) represents the minute as a number from 00 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted with a leading zero.</source>
+        <target state="new">The "mm" custom format specifier (plus any number of additional "m" specifiers) represents the minute as a number from 00 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_1_2_digits">
+        <source>month (1-2 digits)</source>
+        <target state="new">month (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_1_2_digits_description">
+        <source>The "M" custom format specifier represents the month as a number from 1 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted without a leading zero.
+
+If the "M" format specifier is used without other custom format specifiers, it's interpreted as the "M" standard date and time format specifier.</source>
+        <target state="new">The "M" custom format specifier represents the month as a number from 1 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted without a leading zero.
+
+If the "M" format specifier is used without other custom format specifiers, it's interpreted as the "M" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_2_digits">
+        <source>month (2 digits)</source>
+        <target state="new">month (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_2_digits_description">
+        <source>The "MM" custom format specifier represents the month as a number from 01 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted with a leading zero.</source>
+        <target state="new">The "MM" custom format specifier represents the month as a number from 01 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_abbreviated">
+        <source>month (abbreviated)</source>
+        <target state="new">month (abbreviated)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_abbreviated_description">
+        <source>The "MMM" custom format specifier represents the abbreviated name of the month. The localized abbreviated name of the month is retrieved from the DateTimeFormatInfo.AbbreviatedMonthNames property of the current or specified culture.</source>
+        <target state="new">The "MMM" custom format specifier represents the abbreviated name of the month. The localized abbreviated name of the month is retrieved from the DateTimeFormatInfo.AbbreviatedMonthNames property of the current or specified culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_day">
+        <source>month day</source>
+        <target state="new">month day</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_day_description">
+        <source>The "M" or "m" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.MonthDayPattern property. For example, the custom format string for the invariant culture is "MMMM dd".</source>
+        <target state="new">The "M" or "m" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.MonthDayPattern property. For example, the custom format string for the invariant culture is "MMMM dd".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_full">
+        <source>month (full)</source>
+        <target state="new">month (full)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_full_description">
+        <source>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</source>
+        <target state="new">The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -1075,6 +1543,20 @@
       <trans-unit id="label">
         <source>label</source>
         <target state="translated">Bezeichnung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="period_era">
+        <source>period/era</source>
+        <target state="new">period/era</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="period_era_description">
+        <source>The "g" or "gg" custom format specifiers (plus any number of additional "g" specifiers) represents the period or era, such as A.D. The formatting operation ignores this specifier if the date to be formatted doesn't have an associated period or era string.
+
+If the "g" format specifier is used without other custom format specifiers, it's interpreted as the "g" standard date and time format specifier.</source>
+        <target state="new">The "g" or "gg" custom format specifiers (plus any number of additional "g" specifiers) represents the period or era, such as A.D. The formatting operation ignores this specifier if the date to be formatted doesn't have an associated period or era string.
+
+If the "g" format specifier is used without other custom format specifiers, it's interpreted as the "g" standard date and time format specifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -1763,6 +2245,164 @@ Möchten Sie fortfahren?</target>
         <target state="translated">Ereignisaccessor</target>
         <note />
       </trans-unit>
+      <trans-unit id="rfc1123_date_time">
+        <source>rfc1123 date/time</source>
+        <target state="new">rfc1123 date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="rfc1123_date_time_description">
+        <source>The "R" or "r" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.RFC1123Pattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</source>
+        <target state="new">The "R" or "r" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.RFC1123Pattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="round_trip_date_time">
+        <source>round-trip date/time</source>
+        <target state="new">round-trip date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="round_trip_date_time_description">
+        <source>The "O" or "o" standard format specifier represents a custom date and time format string using a pattern that preserves time zone information and emits a result string that complies with ISO 8601. For DateTime values, this format specifier is designed to preserve date and time values along with the DateTime.Kind property in text. The formatted string can be parsed back by using the DateTime.Parse(String, IFormatProvider, DateTimeStyles) or DateTime.ParseExact method if the styles parameter is set to DateTimeStyles.RoundtripKind.
+
+The "O" or "o" standard format specifier corresponds to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string for DateTime values and to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzzz" custom format string for DateTimeOffset values. In this string, the pairs of single quotation marks that delimit individual characters, such as the hyphens, the colons, and the letter "T", indicate that the individual character is a literal that cannot be changed. The apostrophes do not appear in the output string.
+
+The "O" or "o" standard format specifier (and the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string) takes advantage of the three ways that ISO 8601 represents time zone information to preserve the Kind property of DateTime values:
+
+    The time zone component of DateTimeKind.Local date and time values is an offset from UTC (for example, +01:00, -07:00). All DateTimeOffset values are also represented in this format.
+
+    The time zone component of DateTimeKind.Utc date and time values uses "Z" (which stands for zero offset) to represent UTC.
+
+    DateTimeKind.Unspecified date and time values have no time zone information.
+
+Because the "O" or "o" standard format specifier conforms to an international standard, the formatting or parsing operation that uses the specifier always uses the invariant culture and the Gregorian calendar.
+
+Strings that are passed to the Parse, TryParse, ParseExact, and TryParseExact methods of DateTime and DateTimeOffset can be parsed by using the "O" or "o" format specifier if they are in one of these formats. In the case of DateTime objects, the parsing overload that you call should also include a styles parameter with a value of DateTimeStyles.RoundtripKind. Note that if you call a parsing method with the custom format string that corresponds to the "O" or "o" format specifier, you won't get the same results as "O" or "o". This is because parsing methods that use a custom format string can't parse the string representation of date and time values that lack a time zone component or use "Z" to indicate UTC.</source>
+        <target state="new">The "O" or "o" standard format specifier represents a custom date and time format string using a pattern that preserves time zone information and emits a result string that complies with ISO 8601. For DateTime values, this format specifier is designed to preserve date and time values along with the DateTime.Kind property in text. The formatted string can be parsed back by using the DateTime.Parse(String, IFormatProvider, DateTimeStyles) or DateTime.ParseExact method if the styles parameter is set to DateTimeStyles.RoundtripKind.
+
+The "O" or "o" standard format specifier corresponds to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string for DateTime values and to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzzz" custom format string for DateTimeOffset values. In this string, the pairs of single quotation marks that delimit individual characters, such as the hyphens, the colons, and the letter "T", indicate that the individual character is a literal that cannot be changed. The apostrophes do not appear in the output string.
+
+The "O" or "o" standard format specifier (and the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string) takes advantage of the three ways that ISO 8601 represents time zone information to preserve the Kind property of DateTime values:
+
+    The time zone component of DateTimeKind.Local date and time values is an offset from UTC (for example, +01:00, -07:00). All DateTimeOffset values are also represented in this format.
+
+    The time zone component of DateTimeKind.Utc date and time values uses "Z" (which stands for zero offset) to represent UTC.
+
+    DateTimeKind.Unspecified date and time values have no time zone information.
+
+Because the "O" or "o" standard format specifier conforms to an international standard, the formatting or parsing operation that uses the specifier always uses the invariant culture and the Gregorian calendar.
+
+Strings that are passed to the Parse, TryParse, ParseExact, and TryParseExact methods of DateTime and DateTimeOffset can be parsed by using the "O" or "o" format specifier if they are in one of these formats. In the case of DateTime objects, the parsing overload that you call should also include a styles parameter with a value of DateTimeStyles.RoundtripKind. Note that if you call a parsing method with the custom format string that corresponds to the "O" or "o" format specifier, you won't get the same results as "O" or "o". This is because parsing methods that use a custom format string can't parse the string representation of date and time values that lack a time zone component or use "Z" to indicate UTC.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="second_1_2_digits">
+        <source>second (1-2 digits)</source>
+        <target state="new">second (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="second_1_2_digits_description">
+        <source>The "s" custom format specifier represents the seconds as a number from 0 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted without a leading zero.
+
+If the "s" format specifier is used without other custom format specifiers, it's interpreted as the "s" standard date and time format specifier.</source>
+        <target state="new">The "s" custom format specifier represents the seconds as a number from 0 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted without a leading zero.
+
+If the "s" format specifier is used without other custom format specifiers, it's interpreted as the "s" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="second_2_digits">
+        <source>second (2 digits)</source>
+        <target state="new">second (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="second_2_digits_description">
+        <source>The "ss" custom format specifier (plus any number of additional "s" specifiers) represents the seconds as a number from 00 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted with a leading zero.</source>
+        <target state="new">The "ss" custom format specifier (plus any number of additional "s" specifiers) represents the seconds as a number from 00 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="short_date">
+        <source>short date</source>
+        <target state="new">short date</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="short_date_description">
+        <source>The "d" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.ShortDatePattern property. For example, the custom format string that is returned by the ShortDatePattern property of the invariant culture is "MM/dd/yyyy".</source>
+        <target state="new">The "d" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.ShortDatePattern property. For example, the custom format string that is returned by the ShortDatePattern property of the invariant culture is "MM/dd/yyyy".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="short_time">
+        <source>short time</source>
+        <target state="new">short time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="short_time_description">
+        <source>The "t" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.ShortTimePattern property. For example, the custom format string for the invariant culture is "HH:mm".</source>
+        <target state="new">The "t" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.ShortTimePattern property. For example, the custom format string for the invariant culture is "HH:mm".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="sortable_date_time">
+        <source>sortable date/time</source>
+        <target state="new">sortable date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="sortable_date_time_description">
+        <source>The "s" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.SortableDateTimePattern property. The pattern reflects a defined standard (ISO 8601), and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd'T'HH':'mm':'ss".
+
+The purpose of the "s" format specifier is to produce result strings that sort consistently in ascending or descending order based on date and time values. As a result, although the "s" standard format specifier represents a date and time value in a consistent format, the formatting operation does not modify the value of the date and time object that is being formatted to reflect its DateTime.Kind property or its DateTimeOffset.Offset value. For example, the result strings produced by formatting the date and time values 2014-11-15T18:32:17+00:00 and 2014-11-15T18:32:17+08:00 are identical.
+
+When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</source>
+        <target state="new">The "s" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.SortableDateTimePattern property. The pattern reflects a defined standard (ISO 8601), and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd'T'HH':'mm':'ss".
+
+The purpose of the "s" format specifier is to produce result strings that sort consistently in ascending or descending order based on date and time values. As a result, although the "s" standard format specifier represents a date and time value in a consistent format, the formatting operation does not modify the value of the date and time object that is being formatted to reflect its DateTime.Kind property or its DateTimeOffset.Offset value. For example, the result strings produced by formatting the date and time values 2014-11-15T18:32:17+00:00 and 2014-11-15T18:32:17+08:00 are identical.
+
+When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="time_separator">
+        <source>time separator</source>
+        <target state="new">time separator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="time_separator_description">
+        <source>The ":" custom format specifier represents the time separator, which is used to differentiate hours, minutes, and seconds. The appropriate localized time separator is retrieved from the DateTimeFormatInfo.TimeSeparator property of the current or specified culture.
+
+Note: To change the time separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string hh'_'dd'_'ss produces a result string in which "_" (an underscore) is always used as the time separator. To change the time separator for all dates for a culture, either change the value of the DateTimeFormatInfo.TimeSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its TimeSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the ":" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The ":" custom format specifier represents the time separator, which is used to differentiate hours, minutes, and seconds. The appropriate localized time separator is retrieved from the DateTimeFormatInfo.TimeSeparator property of the current or specified culture.
+
+Note: To change the time separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string hh'_'dd'_'ss produces a result string in which "_" (an underscore) is always used as the time separator. To change the time separator for all dates for a culture, either change the value of the DateTimeFormatInfo.TimeSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its TimeSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the ":" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="time_zone">
+        <source>time zone</source>
+        <target state="new">time zone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="time_zone_description">
+        <source>The "K" custom format specifier represents the time zone information of a date and time value. When this format specifier is used with DateTime values, the result string is defined by the value of the DateTime.Kind property:
+
+    For the local time zone (a DateTime.Kind property value of DateTimeKind.Local), this specifier is equivalent to the "zzz" specifier and produces a result string containing the local offset from Coordinated Universal Time (UTC); for example, "-07:00".
+
+    For a UTC time (a DateTime.Kind property value of DateTimeKind.Utc), the result string includes a "Z" character to represent a UTC date.
+
+    For a time from an unspecified time zone (a time whose DateTime.Kind property equals DateTimeKind.Unspecified), the result is equivalent to String.Empty.
+
+For DateTimeOffset values, the "K" format specifier is equivalent to the "zzz" format specifier, and produces a result string containing the DateTimeOffset value's offset from UTC.
+
+If the "K" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The "K" custom format specifier represents the time zone information of a date and time value. When this format specifier is used with DateTime values, the result string is defined by the value of the DateTime.Kind property:
+
+    For the local time zone (a DateTime.Kind property value of DateTimeKind.Local), this specifier is equivalent to the "zzz" specifier and produces a result string containing the local offset from Coordinated Universal Time (UTC); for example, "-07:00".
+
+    For a UTC time (a DateTime.Kind property value of DateTimeKind.Utc), the result string includes a "Z" character to represent a UTC date.
+
+    For a time from an unspecified time zone (a time whose DateTime.Kind property equals DateTimeKind.Unspecified), the result is equivalent to String.Empty.
+
+For DateTimeOffset values, the "K" format specifier is equivalent to the "zzz" format specifier, and produces a result string containing the DateTimeOffset value's offset from UTC.
+
+If the "K" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type_constraint">
         <source>type constraint</source>
         <target state="translated">Typeinschränkung</target>
@@ -2350,6 +2990,30 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Warnung: Die Sammlung wird bei der Iteration möglicherweise geändert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="universal_full_date_time">
+        <source>universal full date/time</source>
+        <target state="new">universal full date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="universal_full_date_time_description">
+        <source>The "U" standard format specifier represents a custom date and time format string that is defined by a specified culture's DateTimeFormatInfo.FullDateTimePattern property. The pattern is the same as the "F" pattern. However, the DateTime value is automatically converted to UTC before it is formatted.</source>
+        <target state="new">The "U" standard format specifier represents a custom date and time format string that is defined by a specified culture's DateTimeFormatInfo.FullDateTimePattern property. The pattern is the same as the "F" pattern. However, the DateTime value is automatically converted to UTC before it is formatted.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="universal_sortable_date_time">
+        <source>universal sortable date/time</source>
+        <target state="new">universal sortable date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="universal_sortable_date_time_description">
+        <source>The "u" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.UniversalSortableDateTimePattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd HH':'mm':'ss'Z'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.
+
+Although the result string should express a time as Coordinated Universal Time (UTC), no conversion of the original DateTime value is performed during the formatting operation. Therefore, you must convert a DateTime value to UTC by calling the DateTime.ToUniversalTime method before formatting it.</source>
+        <target state="new">The "u" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.UniversalSortableDateTimePattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd HH':'mm':'ss'Z'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.
+
+Although the result string should express a time as Coordinated Universal Time (UTC), no conversion of the original DateTime value is performed during the formatting operation. Therefore, you must convert a DateTime value to UTC by calling the DateTime.ToUniversalTime method before formatting it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
         <target state="translated">Verwendungen in enthaltenden Members wird aktualisiert.</target>
@@ -2373,6 +3037,136 @@ Diese Version wird verwendet in: {2}</target>
       <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
         <target state="translated">Die using-Anweisung kann vereinfacht werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_and_minute_offset">
+        <source>utc hour and minute offset</source>
+        <target state="new">utc hour and minute offset</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_and_minute_offset_description">
+        <source>With DateTime values, the "zzz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours and minutes. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zzz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours and minutes.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</source>
+        <target state="new">With DateTime values, the "zzz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours and minutes. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zzz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours and minutes.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_offset_1_2_digits">
+        <source>utc hour offset (1-2 digits)</source>
+        <target state="new">utc hour offset (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_offset_1_2_digits_description">
+        <source>With DateTime values, the "z" custom format specifier represents the signed offset of the local operating system's time zone from Coordinated Universal Time (UTC), measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "z" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted without a leading zero.
+
+If the "z" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">With DateTime values, the "z" custom format specifier represents the signed offset of the local operating system's time zone from Coordinated Universal Time (UTC), measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "z" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted without a leading zero.
+
+If the "z" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_offset_2_digits">
+        <source>utc hour offset (2 digits)</source>
+        <target state="new">utc hour offset (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_offset_2_digits_description">
+        <source>With DateTime values, the "zz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</source>
+        <target state="new">With DateTime values, the "zz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_1_2_digits">
+        <source>year (1-2 digits)</source>
+        <target state="new">year (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_1_2_digits_description">
+        <source>The "y" custom format specifier represents the year as a one-digit or two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the first digit of a two-digit year begins with a zero (for example, 2008), the number is formatted without a leading zero.
+
+If the "y" format specifier is used without other custom format specifiers, it's interpreted as the "y" standard date and time format specifier.</source>
+        <target state="new">The "y" custom format specifier represents the year as a one-digit or two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the first digit of a two-digit year begins with a zero (for example, 2008), the number is formatted without a leading zero.
+
+If the "y" format specifier is used without other custom format specifiers, it's interpreted as the "y" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_2_digits">
+        <source>year (2 digits)</source>
+        <target state="new">year (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_2_digits_description">
+        <source>The "yy" custom format specifier represents the year as a two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the two-digit year has fewer than two significant digits, the number is padded with leading zeros to produce two digits.
+
+In a parsing operation, a two-digit year that is parsed using the "yy" custom format specifier is interpreted based on the Calendar.TwoDigitYearMax property of the format provider's current calendar. The following example parses the string representation of a date that has a two-digit year by using the default Gregorian calendar of the en-US culture, which, in this case, is the current culture. It then changes the current culture's CultureInfo object to use a GregorianCalendar object whose TwoDigitYearMax property has been modified.</source>
+        <target state="new">The "yy" custom format specifier represents the year as a two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the two-digit year has fewer than two significant digits, the number is padded with leading zeros to produce two digits.
+
+In a parsing operation, a two-digit year that is parsed using the "yy" custom format specifier is interpreted based on the Calendar.TwoDigitYearMax property of the format provider's current calendar. The following example parses the string representation of a date that has a two-digit year by using the default Gregorian calendar of the en-US culture, which, in this case, is the current culture. It then changes the current culture's CultureInfo object to use a GregorianCalendar object whose TwoDigitYearMax property has been modified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_3_4_digits">
+        <source>year (3-4 digits)</source>
+        <target state="new">year (3-4 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_3_4_digits_description">
+        <source>The "yyy" custom format specifier represents the year with a minimum of three digits. If the year has more than three significant digits, they are included in the result string. If the year has fewer than three digits, the number is padded with leading zeros to produce three digits.</source>
+        <target state="new">The "yyy" custom format specifier represents the year with a minimum of three digits. If the year has more than three significant digits, they are included in the result string. If the year has fewer than three digits, the number is padded with leading zeros to produce three digits.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_4_digits">
+        <source>year (4 digits)</source>
+        <target state="new">year (4 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_4_digits_description">
+        <source>The "yyyy" custom format specifier represents the year with a minimum of four digits. If the year has more than four significant digits, they are included in the result string. If the year has fewer than four digits, the number is padded with leading zeros to produce four digits.</source>
+        <target state="new">The "yyyy" custom format specifier represents the year with a minimum of four digits. If the year has more than four significant digits, they are included in the result string. If the year has fewer than four digits, the number is padded with leading zeros to produce four digits.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_5_digits">
+        <source>year (5 digits)</source>
+        <target state="new">year (5 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_5_digits_description">
+        <source>The "yyyyy" custom format specifier (plus any number of additional "y" specifiers) represents the year with a minimum of five digits. If the year has more than five significant digits, they are included in the result string. If the year has fewer than five digits, the number is padded with leading zeros to produce five digits.
+
+If there are additional "y" specifiers, the number is padded with as many leading zeros as necessary to produce the number of "y" specifiers.</source>
+        <target state="new">The "yyyyy" custom format specifier (plus any number of additional "y" specifiers) represents the year with a minimum of five digits. If the year has more than five significant digits, they are included in the result string. If the year has fewer than five digits, the number is padded with leading zeros to produce five digits.
+
+If there are additional "y" specifiers, the number is padded with as many leading zeros as necessary to produce the number of "y" specifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_month">
+        <source>year month</source>
+        <target state="new">year month</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_month_description">
+        <source>The "Y" or "y" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.YearMonthPattern property of a specified culture. For example, the custom format string for the invariant culture is "yyyy MMMM".</source>
+        <target state="new">The "Y" or "y" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.YearMonthPattern property of a specified culture. For example, the custom format string for the invariant culture is "yyyy MMMM".</target>
         <note />
       </trans-unit>
     </body>

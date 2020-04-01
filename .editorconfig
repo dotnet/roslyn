@@ -39,6 +39,7 @@ indent_size = 2
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
 # Avoid "this." and "Me." if not necessary
 dotnet_style_qualification_for_field = false:refactoring
 dotnet_style_qualification_for_property = false:refactoring
