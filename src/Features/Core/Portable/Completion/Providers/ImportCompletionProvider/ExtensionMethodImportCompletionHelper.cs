@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             using var _2 = PooledDictionary<INamespaceSymbol, string>.GetInstance(out var namespaceNameCache);
 
             // Get extension method items from source
-            foreach (var (project, syntaxIndex) in indices.SyntaxIndices!)
+            foreach (var (project, syntaxIndex) in indices.ProjectExtensionMethodInfo!)
             {
                 var filter = CreateAggregatedFilter(targetTypeNames, syntaxIndex);
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Get extension method items from PE
-            foreach (var (peReference, symbolInfo) in indices.SymbolInfos!)
+            foreach (var (peReference, symbolInfo) in indices.PEExtensionMethodInfo!)
             {
                 var filter = CreateAggregatedFilter(targetTypeNames, symbolInfo);
                 if (currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly)
@@ -411,14 +411,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly struct GetIndicesResult
         {
             public bool HasResult { get; }
-            public Dictionary<Project, CacheEntry>? SyntaxIndices { get; }
-            public Dictionary<PortableExecutableReference, SymbolTreeInfo>? SymbolInfos { get; }
+            public Dictionary<Project, CacheEntry>? ProjectExtensionMethodInfo { get; }
+            public Dictionary<PortableExecutableReference, SymbolTreeInfo>? PEExtensionMethodInfo { get; }
 
-            public GetIndicesResult(Dictionary<Project, CacheEntry> syntaxIndices, Dictionary<PortableExecutableReference, SymbolTreeInfo> symbolInfos)
+            public GetIndicesResult(Dictionary<Project, CacheEntry> projectExtensionMethodInfo, Dictionary<PortableExecutableReference, SymbolTreeInfo> peExtensionMethodInfo)
             {
                 HasResult = true;
-                SyntaxIndices = syntaxIndices;
-                SymbolInfos = symbolInfos;
+                ProjectExtensionMethodInfo = projectExtensionMethodInfo;
+                PEExtensionMethodInfo = peExtensionMethodInfo;
             }
 
             public static GetIndicesResult NoneResult => default;
