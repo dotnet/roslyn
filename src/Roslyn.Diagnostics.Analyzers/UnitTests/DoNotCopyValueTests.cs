@@ -322,6 +322,29 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
         }
 
         [Fact]
+        public async Task ReturnLocalByValue()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    GCHandle Method()
+    {
+        GCHandle handle = default;
+        return handle;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestReturnMember()
         {
             var source = @"

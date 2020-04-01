@@ -838,6 +838,26 @@ namespace Roslyn.Diagnostics.Analyzers
 
             public override void VisitReturn(IReturnOperation operation)
             {
+                var returnedValue = operation.ReturnedValue;
+                if (Acquire(returnedValue) != RefKind.None)
+                {
+                    if (returnedValue is ILocalReferenceOperation { Local: { IsRef: false } })
+                    {
+                        // Returning a by-value local is allowed
+                    }
+                    else if (returnedValue is IParameterReferenceOperation { Parameter: { RefKind: RefKind.None } })
+                    {
+                        // Returning a by-value parameter is allowed
+                    }
+                    else
+                    {
+                        // Mark the returned value as not checked by this method
+                        returnedValue = null;
+                    }
+                }
+
+                using var releaser = TryAddForVisit(_handledOperations, returnedValue, out _);
+
                 CheckTypeInUnsupportedContext(operation);
                 base.VisitReturn(operation);
             }
