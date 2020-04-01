@@ -288,16 +288,14 @@ namespace Microsoft.CodeAnalysis.Serialization
         private static readonly ConditionalWeakTable<object, object> s_cache = new ConditionalWeakTable<object, object>();
 
         public static IReadOnlyList<T> GetOrCreate<T>(IReadOnlyList<T> unorderedList, ConditionalWeakTable<object, object>.CreateValueCallback orderedListGetter)
-        {
-            return (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
-        }
+            => (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
 
         public static bool TryGetValue(object value, out Checksum checksum)
         {
             // same key should always return same checksum
             if (!s_cache.TryGetValue(value, out var result))
             {
-                checksum = default;
+                checksum = null;
                 return false;
             }
 

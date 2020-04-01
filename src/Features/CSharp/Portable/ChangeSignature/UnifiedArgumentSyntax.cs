@@ -21,14 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public static IUnifiedArgumentSyntax Create(ArgumentSyntax argument, int index)
-        {
-            return new UnifiedArgumentSyntax(argument, index);
-        }
+            => new UnifiedArgumentSyntax(argument, index);
 
         public static IUnifiedArgumentSyntax Create(AttributeArgumentSyntax argument, int index)
-        {
-            return new UnifiedArgumentSyntax(argument, index);
-        }
+            => new UnifiedArgumentSyntax(argument, index);
 
         public SyntaxNode NameColon
         {
@@ -50,9 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public string GetName()
-        {
-            return NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ToString();
-        }
+            => NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ToString();
 
         public IUnifiedArgumentSyntax WithName(string name)
         {
@@ -62,9 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation)
-        {
-            return new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation), Index);
-        }
+            => new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation), Index);
 
         public SyntaxNode Expression
         {
@@ -95,8 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         public int Index { get; }
 
         public static explicit operator SyntaxNode(UnifiedArgumentSyntax unified)
-        {
-            return unified._argument;
-        }
+            => unified._argument;
     }
 }

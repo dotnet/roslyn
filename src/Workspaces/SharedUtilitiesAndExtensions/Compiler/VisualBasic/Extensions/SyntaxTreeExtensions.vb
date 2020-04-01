@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
@@ -48,7 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' check whether given token is the last token of a statement by walking up the spine
         ''' </summary>
         <Extension()>
-        Public Function IsLastTokenOfStatement(token As SyntaxToken, Optional checkColonTrivia As Boolean = False) As Boolean
+        Public Function IsLastTokenOfStatement(
+                token As SyntaxToken,
+                Optional checkColonTrivia As Boolean = False,
+                <Out> Optional ByRef statement As StatementSyntax = Nothing) As Boolean
             Dim current = token.Parent
             While current IsNot Nothing
                 If current.FullSpan.End <> token.FullSpan.End Then
@@ -56,6 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If TypeOf current Is StatementSyntax Then
+                    statement = DirectCast(current, StatementSyntax)
                     Dim colonTrivia = GetTrailingColonTrivia(DirectCast(current, StatementSyntax))
                     If Not PartOfSingleLineLambda(current) AndAlso Not PartOfMultilineLambdaFooter(current) Then
                         If checkColonTrivia Then

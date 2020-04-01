@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Debugging
         }
 
         private void ClearTable()
-        {
-            _snapshotToExpressions = new ConditionalWeakTable<ITextSnapshot, IDictionary<string, LinkedList<IList<string>>>>();
-        }
+            => _snapshotToExpressions = new ConditionalWeakTable<ITextSnapshot, IDictionary<string, LinkedList<IList<string>>>>();
 
         public async Task<IList<string>> DoAsync(
             Document document,

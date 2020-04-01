@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -51,15 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         private readonly string _rootTemporaryPath;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MetadataAsSourceFileService()
-        {
-            _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
-        }
+            => _rootTemporaryPath = Path.Combine(Path.GetTempPath(), "MetadataAsSource");
 
         private static string CreateMutexName(string directoryName)
-        {
-            return "MetadataAsSource-" + directoryName;
-        }
+            => "MetadataAsSource-" + directoryName;
 
         private string GetRootPathWithGuid_NoLock()
         {
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var useDecompiler = allowDecompilation;
                     if (useDecompiler)
                     {
-                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute)
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
                             && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
                     }
 
@@ -481,9 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             }
 
             public override bool Equals(object? obj)
-            {
-                return Equals(obj as UniqueDocumentKey);
-            }
+                => Equals(obj as UniqueDocumentKey);
 
             public override int GetHashCode()
             {

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -39,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new SyntaxAnnotation(nameof(s_usingPlacementCodeFixAnnotation));
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public MisplacedUsingDirectivesCodeFixProvider()
         {
         }
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var codeStyleOption = options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
 
             var placement = codeStyleOption.Value;
-            var preferPreservation = codeStyleOption.Notification == NotificationOption.None;
+            var preferPreservation = codeStyleOption.Notification == NotificationOption2.None;
 
             if (preferPreservation || placement == AddImportPlacement.OutsideNamespace)
             {

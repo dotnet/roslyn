@@ -127,9 +127,7 @@ namespace Roslyn.Utilities
             private readonly AsyncLazy<T> _asyncLazy;
 
             public WaitThatValidatesInvariants(AsyncLazy<T> asyncLazy)
-            {
-                _asyncLazy = asyncLazy;
-            }
+                => _asyncLazy = asyncLazy;
 
             public void Dispose()
             {
@@ -165,7 +163,7 @@ namespace Roslyn.Utilities
 
         #endregion
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out T result)
+        public override bool TryGetValue([MaybeNullWhen(false)] out T result)
         {
             // No need to lock here since this is only a fast check to 
             // see if the result is already computed.
@@ -175,8 +173,7 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            // Suppressing nullable warning due to https://github.com/dotnet/roslyn/issues/40266
-            result = default!;
+            result = default;
             return false;
         }
 
@@ -415,7 +412,7 @@ namespace Roslyn.Utilities
                     // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
                     // the continuation if asynchronousComputeFunction completes synchronously
                     task.ContinueWith(
-                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s).Token),
+                        (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s!).Token),
                         computationToStart.CancellationTokenSource,
                         cancellationToken,
                         TaskContinuationOptions.ExecuteSynchronously,
@@ -502,9 +499,9 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void OnAsynchronousRequestCancelled(object state)
+        private void OnAsynchronousRequestCancelled(object? state)
         {
-            var request = (Request)state;
+            var request = (Request)state!;
             CancellationTokenSource? cancellationTokenSource = null;
 
             using (TakeLock(CancellationToken.None))
@@ -561,7 +558,7 @@ namespace Roslyn.Utilities
             {
             }
 
-            public void RegisterForCancellation(Action<object> callback, CancellationToken cancellationToken)
+            public void RegisterForCancellation(Action<object?> callback, CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
                 _cancellationTokenRegistration = cancellationToken.Register(callback, this);
@@ -577,7 +574,7 @@ namespace Roslyn.Utilities
                 }
                 else if (task.IsFaulted)
                 {
-                    this.TrySetException(task.Exception);
+                    this.TrySetException(task.Exception!);
                 }
                 else
                 {
@@ -588,9 +585,7 @@ namespace Roslyn.Utilities
             }
 
             public void Cancel()
-            {
-                this.TrySetCanceled(_cancellationToken);
-            }
+                => this.TrySetCanceled(_cancellationToken);
         }
     }
 }

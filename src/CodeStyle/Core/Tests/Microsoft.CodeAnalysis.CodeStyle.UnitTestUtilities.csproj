@@ -15,10 +15,8 @@
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2+Test.cs" Link="VisualBasicCodeFixVerifier`2+Test.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2.cs" Link="VisualBasicCodeFixVerifier`2.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\OptionsCollection.cs" Link="OptionsCollection.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs" Link="TestFramework\AbstractCodeActionOrUserDiagnosticTest.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" Link="TestFramework\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractUserDiagnosticTest.cs" Link="TestFramework\AbstractUserDiagnosticTest.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\AbstractUserDiagnosticTest.FixAllDiagnosticProvider.cs" Link="TestFramework\AbstractUserDiagnosticTest.FixAllDiagnosticProvider.cs" />
+    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\ParenthesesOptionsProvider.cs" Link="ParenthesesOptionsProvider.cs" />
+    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\NamingStyles\NamingStylesTestOptionSets.cs" Link="NamingStyles\NamingStylesTestOptionSets.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
@@ -35,12 +33,12 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <!-- TODO: Remove the below project references to workspaces and test utility projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
-    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
+    <!-- TODO: Remove the below project references to test utility projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
   </ItemGroup>
-</Project>
+</Project> 

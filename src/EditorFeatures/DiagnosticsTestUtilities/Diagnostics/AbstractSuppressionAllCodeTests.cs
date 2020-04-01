@@ -127,14 +127,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public bool Equals(Diagnostic x, Diagnostic y)
-        {
-            return x.Id == y.Id && x.Descriptor.Category == y.Descriptor.Category;
-        }
+            => x.Id == y.Id && x.Descriptor.Category == y.Descriptor.Category;
 
         public int GetHashCode(Diagnostic obj)
-        {
-            return Hash.Combine(obj.Id, obj.Descriptor.Category.GetHashCode());
-        }
+            => Hash.Combine(obj.Id, obj.Descriptor.Category.GetHashCode());
 
         internal class Analyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
         {

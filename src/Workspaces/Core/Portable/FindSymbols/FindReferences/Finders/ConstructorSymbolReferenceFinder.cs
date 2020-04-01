@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -23,9 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.Constructor;
-        }
+            => symbol.MethodKind == MethodKind.Constructor;
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
@@ -85,9 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static Func<SyntaxToken, SyntaxNode> GetFindParentNodeFunction(ISyntaxFactsService syntaxFacts)
-        {
-            return t => syntaxFacts.GetBindableParent(t);
-        }
+            => t => syntaxFacts.GetBindableParent(t);
 
         private async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentWorkerAsync(
             IMethodSymbol symbol,

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -243,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                             // If not, we'll still fall through and see if we can convert it to Int32.
 
                             var codeStyleOptionName = inDeclarationContext
-                                ? nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
-                                : nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
+                                ? nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                                : nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
 
                             var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
                             if (type != null)
@@ -480,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             out TextSpan issueSpan)
         {
             issueSpan = default;
-            replacementNode = default;
+            replacementNode = null;
 
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))

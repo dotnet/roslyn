@@ -214,16 +214,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-            {
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _compilation, _range, cancellationToken);
-            }
+                => AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, _range, cancellationToken);
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
                 var supportsSemanticInSpan = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
 
                 var analysisSpan = supportsSemanticInSpan ? (TextSpan?)_range : null;
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Semantic, _compilation, analysisSpan, cancellationToken);
+                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Semantic, _compilation, _owner.GetOrCreateSkippedAnalyzersInfo, analysisSpan, cancellationToken);
             }
 
             private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -442,17 +440,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return set.SetEquals(diagnosticsB);
         }
 
-        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic>
+        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic?>
         {
             internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
 
-            public bool Equals(Diagnostic x, Diagnostic y)
+            public bool Equals(Diagnostic? x, Diagnostic? y)
             {
+                if (x is null)
+                    return y is null;
+                else if (y is null)
+                    return false;
+
                 return x.Id == y.Id && x.Location == y.Location;
             }
 
-            public int GetHashCode(Diagnostic obj)
+            public int GetHashCode(Diagnostic? obj)
             {
+                if (obj is null)
+                    return 0;
+
                 return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
             }
         }

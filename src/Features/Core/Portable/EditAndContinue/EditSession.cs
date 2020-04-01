@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal void Cancel() => _cancellationSource.Cancel();
 
         public void Dispose()
-        {
-            _cancellationSource.Dispose();
-        }
+            => _cancellationSource.Dispose();
 
         /// <summary>
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
@@ -614,7 +612,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         {
                             if (edit.Kind == SemanticEditKind.Insert)
                             {
-                                allAddedSymbols.Add(edit.NewSymbol);
+                                allAddedSymbols.Add(edit.NewSymbol!);
                             }
                         }
                     }
@@ -930,6 +928,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     debugInfoReader.IsPortable);
 
                 success = true;
+                return true;
             }
             catch (Exception e)
             {
@@ -945,7 +944,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return success;
+            return false;
         }
 
         // internal for testing

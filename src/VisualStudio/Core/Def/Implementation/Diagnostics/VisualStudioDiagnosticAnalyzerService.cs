@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -44,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticAnalyzerService(
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
@@ -162,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             if (visible)
             {
                 if (command.CommandID.ID == RunCodeAnalysisForSelectedProjectCommandId &&
-                    hierarchy.TryGetProject(out var project))
+                    hierarchy!.TryGetProject(out var project))
                 {
                     // Change to show the name of the project as part of the menu item display text.
                     command.Text = string.Format(ServicesVSResources.Run_Code_Analysis_on_0, project.Name);

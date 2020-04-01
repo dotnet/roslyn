@@ -14,6 +14,12 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Editing;
+#else
+using Microsoft.CodeAnalysis.Editing;
+#endif
+
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractSyntaxFacts
@@ -126,8 +132,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var index = 0;
                     foreach (var child in childNodesAndTokens.Reverse())
                     {
-                        var first = index == 0;
-                        var last = index == childCount - 1;
+                        // Since we're walking the children in reverse, if we're on hte 0th item,
+                        // that's the last child.
+                        var last = index == 0;
+
+                        // Once we get all the way to the end of the reversed list, we're actually
+                        // on the first.
+                        var first = index == childCount - 1;
 
                         // We want the leading trivia if we've asked for it, or if we're not the first
                         // token being processed.  We want the trailing trivia if we've asked for it,
@@ -499,5 +510,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool HasIncompleteParentMember(SyntaxNode node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
+
+        public abstract bool CanHaveAccessibility(SyntaxNode declaration);
+
+        public abstract Accessibility GetAccessibility(SyntaxNode declaration);
+
+        public abstract void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault);
+
+        public abstract SyntaxTokenList GetModifierTokens(SyntaxNode declaration);
+
+        public abstract DeclarationKind GetDeclarationKind(SyntaxNode declaration);
     }
 }

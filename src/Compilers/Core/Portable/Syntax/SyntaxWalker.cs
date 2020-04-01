@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Text;
+#nullable enable
 
 namespace Microsoft.CodeAnalysis
 {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Depth >= SyntaxWalkerDepth.Node)
                     {
-                        Visit(child.AsNode());
+                        Visit(child.AsNode()!);
                     }
                 }
                 else if (child.IsToken)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.Depth >= SyntaxWalkerDepth.StructuredTrivia && trivia.HasStructure)
             {
-                this.Visit(trivia.GetStructure());
+                this.Visit(trivia.GetStructure()!);
             }
         }
     }

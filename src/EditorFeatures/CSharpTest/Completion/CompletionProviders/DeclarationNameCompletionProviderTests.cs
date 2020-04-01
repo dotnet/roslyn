@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(DeclarationNameCompletionProvider);
-        }
+            => typeof(DeclarationNameCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameWithOnlyType1()
@@ -1453,7 +1451,7 @@ public class Class1
         {
             var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
 
             var markup = @"
@@ -1477,7 +1475,7 @@ class Configuration
         {
             var workspace = WorkspaceFixture.GetWorkspace(ExportProvider);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
                 NamesEndWithSuffixPreferences())));
 
             var markup = @"

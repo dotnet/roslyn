@@ -18,6 +18,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Internal.Editing;
+#else
+using Microsoft.CodeAnalysis.Editing;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
@@ -134,9 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                objectCreation.Type == node;
 
         public bool IsAttributeName(SyntaxNode node)
-        {
-            return SyntaxFacts.IsAttributeName(node);
-        }
+            => SyntaxFacts.IsAttributeName(node);
 
         public bool IsAnonymousFunction(SyntaxNode node)
         {
@@ -648,9 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsElementAccessExpression(SyntaxNode node)
-        {
-            return node.Kind() == SyntaxKind.ElementAccessExpression;
-        }
+            => node.Kind() == SyntaxKind.ElementAccessExpression;
 
         public SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false)
             => node.ConvertToSingleLine(useElasticTrivia);
@@ -870,6 +872,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return list;
         }
 
+        public bool IsClassDeclaration(SyntaxNode node)
+            => node?.Kind() == SyntaxKind.ClassDeclaration;
+
+        public bool IsNamespaceDeclaration(SyntaxNode node)
+            => node?.Kind() == SyntaxKind.NamespaceDeclaration;
+
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
@@ -944,9 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         private TextSpan GetBlockBodySpan(BlockSyntax body)
-        {
-            return TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
-        }
+            => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
         public int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node)
         {
@@ -1179,9 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsLeftSideOfDot(SyntaxNode node)
-        {
-            return (node as ExpressionSyntax).IsLeftSideOfDot();
-        }
+            => (node as ExpressionSyntax).IsLeftSideOfDot();
 
         public SyntaxNode GetRightSideOfDot(SyntaxNode node)
         {
@@ -1223,14 +1227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                node.IsParentKind(SyntaxKind.PreDecrementExpression);
 
         public bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node)
-        {
-            return IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
-        }
+            => IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
 
         public SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString)
-        {
-            return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
-        }
+            => ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
 
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
@@ -1325,9 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsDeclaration(SyntaxNode node)
-        {
-            return SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
-        }
+            => SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
 
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
@@ -1700,5 +1698,293 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
             => node.GetAttributeLists();
+
+        public override bool CanHaveAccessibility(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.DelegateDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    return true;
+
+                case SyntaxKind.VariableDeclaration:
+                case SyntaxKind.VariableDeclarator:
+                    var declarationKind = this.GetDeclarationKind(declaration);
+                    return declarationKind == DeclarationKind.Field || declarationKind == DeclarationKind.Event;
+
+                case SyntaxKind.ConstructorDeclaration:
+                    // Static constructor can't have accessibility
+                    return !((ConstructorDeclarationSyntax)declaration).Modifiers.Any(SyntaxKind.StaticKeyword);
+
+                case SyntaxKind.PropertyDeclaration:
+                    return ((PropertyDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)declaration;
+                    if (method.ExplicitInterfaceSpecifier != null)
+                    {
+                        // explicit interface methods can't have accessibility.
+                        return false;
+                    }
+
+                    if (method.Modifiers.Any(SyntaxKind.PartialKeyword))
+                    {
+                        // partial methods can't have accessibility modifiers.
+                        return false;
+                    }
+
+                    return true;
+
+                case SyntaxKind.EventDeclaration:
+                    return ((EventDeclarationSyntax)declaration).ExplicitInterfaceSpecifier == null;
+
+                default:
+                    return false;
+            }
+        }
+
+        public override Accessibility GetAccessibility(SyntaxNode declaration)
+        {
+            if (!CanHaveAccessibility(declaration))
+            {
+                return Accessibility.NotApplicable;
+            }
+
+            var modifierTokens = GetModifierTokens(declaration);
+            GetAccessibilityAndModifiers(modifierTokens, out var accessibility, out _, out _);
+            return accessibility;
+        }
+
+        public override void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault)
+        {
+            accessibility = Accessibility.NotApplicable;
+            modifiers = DeclarationModifiers.None;
+            isDefault = false;
+
+            foreach (var token in modifierList)
+            {
+                accessibility = (token.Kind(), accessibility) switch
+                {
+                    (SyntaxKind.PublicKeyword, _) => Accessibility.Public,
+
+                    (SyntaxKind.PrivateKeyword, Accessibility.Protected) => Accessibility.ProtectedAndInternal,
+                    (SyntaxKind.PrivateKeyword, _) => Accessibility.Private,
+
+                    (SyntaxKind.InternalKeyword, Accessibility.Protected) => Accessibility.ProtectedOrInternal,
+                    (SyntaxKind.InternalKeyword, _) => Accessibility.Internal,
+
+                    (SyntaxKind.ProtectedKeyword, Accessibility.Private) => Accessibility.ProtectedAndInternal,
+                    (SyntaxKind.ProtectedKeyword, Accessibility.Internal) => Accessibility.ProtectedOrInternal,
+                    (SyntaxKind.ProtectedKeyword, _) => Accessibility.Protected,
+
+                    _ => accessibility,
+                };
+
+                modifiers |= token.Kind() switch
+                {
+                    SyntaxKind.AbstractKeyword => DeclarationModifiers.Abstract,
+                    SyntaxKind.NewKeyword => DeclarationModifiers.New,
+                    SyntaxKind.OverrideKeyword => DeclarationModifiers.Override,
+                    SyntaxKind.VirtualKeyword => DeclarationModifiers.Virtual,
+                    SyntaxKind.StaticKeyword => DeclarationModifiers.Static,
+                    SyntaxKind.AsyncKeyword => DeclarationModifiers.Async,
+                    SyntaxKind.ConstKeyword => DeclarationModifiers.Const,
+                    SyntaxKind.ReadOnlyKeyword => DeclarationModifiers.ReadOnly,
+                    SyntaxKind.SealedKeyword => DeclarationModifiers.Sealed,
+                    SyntaxKind.UnsafeKeyword => DeclarationModifiers.Unsafe,
+                    SyntaxKind.PartialKeyword => DeclarationModifiers.Partial,
+                    SyntaxKind.RefKeyword => DeclarationModifiers.Ref,
+                    SyntaxKind.VolatileKeyword => DeclarationModifiers.Volatile,
+                    SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
+                    _ => DeclarationModifiers.None,
+                };
+
+                isDefault |= token.Kind() == SyntaxKind.DefaultKeyword;
+            }
+        }
+
+        public override SyntaxTokenList GetModifierTokens(SyntaxNode declaration)
+            => declaration switch
+            {
+                MemberDeclarationSyntax memberDecl => memberDecl.Modifiers,
+                ParameterSyntax parameter => parameter.Modifiers,
+                LocalDeclarationStatementSyntax localDecl => localDecl.Modifiers,
+                LocalFunctionStatementSyntax localFunc => localFunc.Modifiers,
+                AccessorDeclarationSyntax accessor => accessor.Modifiers,
+                VariableDeclarationSyntax varDecl => GetModifierTokens(varDecl.Parent),
+                VariableDeclaratorSyntax varDecl => GetModifierTokens(varDecl.Parent),
+                _ => default,
+            };
+
+        public override DeclarationKind GetDeclarationKind(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                    return DeclarationKind.Class;
+                case SyntaxKind.StructDeclaration:
+                    return DeclarationKind.Struct;
+                case SyntaxKind.InterfaceDeclaration:
+                    return DeclarationKind.Interface;
+                case SyntaxKind.EnumDeclaration:
+                    return DeclarationKind.Enum;
+                case SyntaxKind.DelegateDeclaration:
+                    return DeclarationKind.Delegate;
+
+                case SyntaxKind.MethodDeclaration:
+                    return DeclarationKind.Method;
+                case SyntaxKind.OperatorDeclaration:
+                    return DeclarationKind.Operator;
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return DeclarationKind.ConversionOperator;
+                case SyntaxKind.ConstructorDeclaration:
+                    return DeclarationKind.Constructor;
+                case SyntaxKind.DestructorDeclaration:
+                    return DeclarationKind.Destructor;
+
+                case SyntaxKind.PropertyDeclaration:
+                    return DeclarationKind.Property;
+                case SyntaxKind.IndexerDeclaration:
+                    return DeclarationKind.Indexer;
+                case SyntaxKind.EventDeclaration:
+                    return DeclarationKind.CustomEvent;
+                case SyntaxKind.EnumMemberDeclaration:
+                    return DeclarationKind.EnumMember;
+                case SyntaxKind.CompilationUnit:
+                    return DeclarationKind.CompilationUnit;
+                case SyntaxKind.NamespaceDeclaration:
+                    return DeclarationKind.Namespace;
+                case SyntaxKind.UsingDirective:
+                    return DeclarationKind.NamespaceImport;
+                case SyntaxKind.Parameter:
+                    return DeclarationKind.Parameter;
+
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                    return DeclarationKind.LambdaExpression;
+
+                case SyntaxKind.FieldDeclaration:
+                    var fd = (FieldDeclarationSyntax)declaration;
+                    if (fd.Declaration != null && fd.Declaration.Variables.Count == 1)
+                    {
+                        // this node is considered the declaration if it contains only one variable.
+                        return DeclarationKind.Field;
+                    }
+                    else
+                    {
+                        return DeclarationKind.None;
+                    }
+
+                case SyntaxKind.EventFieldDeclaration:
+                    var ef = (EventFieldDeclarationSyntax)declaration;
+                    if (ef.Declaration != null && ef.Declaration.Variables.Count == 1)
+                    {
+                        // this node is considered the declaration if it contains only one variable.
+                        return DeclarationKind.Event;
+                    }
+                    else
+                    {
+                        return DeclarationKind.None;
+                    }
+
+                case SyntaxKind.LocalDeclarationStatement:
+                    var ld = (LocalDeclarationStatementSyntax)declaration;
+                    if (ld.Declaration != null && ld.Declaration.Variables.Count == 1)
+                    {
+                        // this node is considered the declaration if it contains only one variable.
+                        return DeclarationKind.Variable;
+                    }
+                    else
+                    {
+                        return DeclarationKind.None;
+                    }
+
+                case SyntaxKind.VariableDeclaration:
+                    {
+                        var vd = (VariableDeclarationSyntax)declaration;
+                        if (vd.Variables.Count == 1 && vd.Parent == null)
+                        {
+                            // this node is the declaration if it contains only one variable and has no parent.
+                            return DeclarationKind.Variable;
+                        }
+                        else
+                        {
+                            return DeclarationKind.None;
+                        }
+                    }
+
+                case SyntaxKind.VariableDeclarator:
+                    {
+                        var vd = declaration.Parent as VariableDeclarationSyntax;
+
+                        // this node is considered the declaration if it is one among many, or it has no parent
+                        if (vd == null || vd.Variables.Count > 1)
+                        {
+                            if (ParentIsFieldDeclaration(vd))
+                            {
+                                return DeclarationKind.Field;
+                            }
+                            else if (ParentIsEventFieldDeclaration(vd))
+                            {
+                                return DeclarationKind.Event;
+                            }
+                            else
+                            {
+                                return DeclarationKind.Variable;
+                            }
+                        }
+                        break;
+                    }
+
+                case SyntaxKind.AttributeList:
+                    var list = (AttributeListSyntax)declaration;
+                    if (list.Attributes.Count == 1)
+                    {
+                        return DeclarationKind.Attribute;
+                    }
+                    break;
+
+                case SyntaxKind.Attribute:
+                    if (!(declaration.Parent is AttributeListSyntax parentList) || parentList.Attributes.Count > 1)
+                    {
+                        return DeclarationKind.Attribute;
+                    }
+                    break;
+
+                case SyntaxKind.GetAccessorDeclaration:
+                    return DeclarationKind.GetAccessor;
+                case SyntaxKind.SetAccessorDeclaration:
+                    return DeclarationKind.SetAccessor;
+                case SyntaxKind.AddAccessorDeclaration:
+                    return DeclarationKind.AddAccessor;
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    return DeclarationKind.RemoveAccessor;
+            }
+
+            return DeclarationKind.None;
+        }
+
+        internal static bool ParentIsFieldDeclaration(SyntaxNode node)
+            => node?.Parent.IsKind(SyntaxKind.FieldDeclaration) ?? false;
+
+        internal static bool ParentIsEventFieldDeclaration(SyntaxNode node)
+            => node?.Parent.IsKind(SyntaxKind.EventFieldDeclaration) ?? false;
+
+        internal static bool ParentIsLocalDeclarationStatement(SyntaxNode node)
+            => node?.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ?? false;
     }
 }

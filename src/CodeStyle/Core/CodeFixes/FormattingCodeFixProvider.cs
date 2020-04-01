@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
 
         public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return new FixAll(this);
-        }
+            => new FixAll(this);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -72,9 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             private readonly AbstractFormattingCodeFixProvider _formattingCodeFixProvider;
 
             public FixAll(AbstractFormattingCodeFixProvider formattingCodeFixProvider)
-            {
-                _formattingCodeFixProvider = formattingCodeFixProvider;
-            }
+                => _formattingCodeFixProvider = formattingCodeFixProvider;
 
             protected override string CodeActionTitle => CodeStyleResources.Fix_formatting;
 

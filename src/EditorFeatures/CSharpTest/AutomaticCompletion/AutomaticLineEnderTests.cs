@@ -844,9 +844,7 @@ $$
             => TestWorkspace.CreateCSharp(code);
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
-        {
-            return () => { };
-        }
+            => () => { };
 
         internal override IChainedCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,

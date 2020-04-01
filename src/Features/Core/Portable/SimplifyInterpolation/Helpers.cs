@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     internal static class Helpers
     {
         public static void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-            IVirtualCharService virtualCharService, IInterpolationOperation interpolation,
+            IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, IInterpolationOperation interpolation,
             out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment, out bool negate,
             out string? formatString, out ImmutableArray<Location> unnecessaryLocations)
                 where TInterpolationSyntax : SyntaxNode
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             if (interpolation.FormatString == null)
             {
-                UnwrapFormatString(virtualCharService, expression, out expression, out formatString, unnecessarySpans);
+                UnwrapFormatString(virtualCharService, syntaxFacts, expression, out expression, out formatString, unnecessarySpans);
             }
 
             unwrapped = expression.Syntax as TExpressionSyntax;
@@ -67,14 +68,17 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         }
 
         private static void UnwrapFormatString(
-            IVirtualCharService virtualCharService, IOperation expression, out IOperation unwrapped,
+            IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, IOperation expression, out IOperation unwrapped,
             out string? formatString, List<TextSpan> unnecessarySpans)
         {
             if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
-                HasNonImplicitInstance(invocation))
+                HasNonImplicitInstance(invocation) &&
+                !syntaxFacts.IsBaseExpression(invocation.Instance.Syntax))
             {
                 if (invocation.Arguments.Length == 1 &&
-                    invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal)
+                    invocation.Arguments[0].Value is ILiteralOperation { ConstantValue: { HasValue: true, Value: string value } } literal &&
+                    invocation.SemanticModel.Compilation.GetTypeByMetadataName(typeof(System.IFormattable).FullName!) is { } systemIFormattable &&
+                    invocation.Instance.Type.Implements(systemIFormattable))
                 {
                     unwrapped = invocation.Instance;
                     formatString = value;
@@ -127,16 +131,20 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                         if (argCount == 1 ||
                             IsSpaceChar(invocation.Arguments[1]))
                         {
-                            var alignmentSyntax = invocation.Arguments[0].Value.Syntax;
+                            var alignmentOp = invocation.Arguments[0].Value;
+                            if (alignmentOp != null && alignmentOp.ConstantValue.HasValue)
+                            {
+                                var alignmentSyntax = alignmentOp.Syntax;
 
-                            unwrapped = invocation.Instance;
-                            alignment = alignmentSyntax as TExpressionSyntax;
-                            negate = targetName == nameof(string.PadRight);
+                                unwrapped = invocation.Instance;
+                                alignment = alignmentSyntax as TExpressionSyntax;
+                                negate = targetName == nameof(string.PadRight);
 
-                            unnecessarySpans.AddRange(invocation.Syntax.Span
-                                .Subtract(invocation.Instance.Syntax.FullSpan)
-                                .Subtract(alignmentSyntax.FullSpan));
-                            return;
+                                unnecessarySpans.AddRange(invocation.Syntax.Span
+                                    .Subtract(invocation.Instance.Syntax.FullSpan)
+                                    .Subtract(alignmentSyntax.FullSpan));
+                                return;
+                            }
                         }
                     }
                 }

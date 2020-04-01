@@ -83,16 +83,28 @@ namespace Roslyn.Utilities
             }
         }
 
+        public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value)
+            where TKey : notnull
+            where TValue : IEquatable<TValue>
+        {
+            if (!dictionary.TryGetValue(key, out var existingArray))
+            {
+                existingArray = ImmutableArray<TValue>.Empty;
+            }
+
+            dictionary[key] = existingArray.Add(value);
+        }
+
         public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value, ImmutableArray<TValue> defaultArray)
             where TKey : notnull
             where TValue : IEquatable<TValue>
         {
-            if (!dictionary.TryGetValue(key, out var collection))
+            if (!dictionary.TryGetValue(key, out var existingArray))
             {
-                collection = ImmutableArray<TValue>.Empty;
+                existingArray = ImmutableArray<TValue>.Empty;
             }
 
-            dictionary[key] = collection.IsEmpty && value.Equals(defaultArray[0]) ? defaultArray : collection.Add(value);
+            dictionary[key] = existingArray.IsEmpty && value.Equals(defaultArray[0]) ? defaultArray : existingArray.Add(value);
         }
 
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)

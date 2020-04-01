@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public static readonly IReferenceFinder DelegateInvokeMethod = new DelegateInvokeMethodReferenceFinder();
 
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.DelegateInvoke;
-        }
+            => symbol.MethodKind == MethodKind.DelegateInvoke;
 
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,

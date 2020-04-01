@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             => new InlineTemporaryCodeRefactoringProvider();
 
         private async Task TestFixOneAsync(string initial, string expected)
-        {
-            await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
-        }
+            => await TestInRegularAndScriptAsync(GetTreeText(initial), GetTreeText(expected));
 
         private string GetTreeText(string initial)
         {
@@ -32,32 +30,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         }
 
         private SyntaxNode GetNodeToFix(dynamic initialRoot, int declaratorIndex)
-        {
-            return initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
-        }
+            => initialRoot.Members[0].Members[0].Body.Statements[0].Declaration.Variables[declaratorIndex];
 
         private SyntaxNode GetFixedNode(dynamic fixedRoot)
-        {
-            return fixedRoot.Members[0].Members[0].BodyOpt;
-        }
+            => fixedRoot.Members[0].Members[0].BodyOpt;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer1()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer2()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnSecondWithNoInitializer()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnField()
@@ -91,27 +79,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task SingleStatement()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 27; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 27; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_First()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Second()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Last()
-        {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
-        }
+            => await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping1()
@@ -3561,7 +3541,7 @@ class C
     {
         foreach (var t in types)
         {
-            var identity = t?.Something().First()?.ToArray();
+            var identity = (t?.Something().First())?.ToArray();
         }
 
         return null;
@@ -3627,7 +3607,7 @@ class C
     {
         foreach (var t in types)
         {
-            var identity = (t?.Something2())()?.Something().First()?.ToArray();
+            var identity = ((t?.Something2())()?.Something().First())?.ToArray();
         }
 
         return null;
@@ -3742,9 +3722,12 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
+        [WorkItem(33108, "https://github.com/dotnet/roslyn/issues/33108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task CastInterpolatedStringWhenInliningIntoInvalidCall()
         {
+            // Note: This is an error case.  This test just demonstrates our current behavior.  It
+            // is ok if this behavior changes in the future in response to an implementation change.
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -3758,8 +3741,35 @@ class C
 {
     public void M()
     {
-        var s2 = string.Replace($""hello"", ""world"");
+        var s2 = string.Replace((string)$""hello"", ""world"");
     }
+}");
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [WorkItem(33108, "https://github.com/dotnet/roslyn/issues/33108")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DoNotCastInterpolatedStringWhenInliningIntoValidCall()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = Replace(s1, ""world"");
+    }
+
+    void Replace(string s1, string s2) { }
+}",
+@"class C
+{
+    public void M()
+    {
+        var s2 = Replace($""hello"", ""world"");
+    }
+
+    void Replace(string s1, string s2) { }
 }");
         }
 

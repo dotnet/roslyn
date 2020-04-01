@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override CodeGenerationDestination GetDestination(SyntaxNode node)
-        {
-            return CSharpCodeGenerationHelpers.GetDestination(node);
-        }
+            => CSharpCodeGenerationHelpers.GetDestination(node);
 
         protected override IComparer<SyntaxNode> GetMemberComparer()
             => CSharpDeclarationComparer.WithoutNamesInstance;
@@ -50,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
-        {
-            return destination.GetInsertionIndices(cancellationToken);
-        }
+            => destination.GetInsertionIndices(cancellationToken);
 
         public override async Task<Document> AddEventAsync(
             Solution solution, INamedTypeSymbol destination, IEventSymbol @event,
@@ -663,9 +659,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             // TODO: Move more APIs to use pooled ArrayBuilder
             // https://github.com/dotnet/roslyn/issues/34960
-            var list = newModifierTokens.ToList();
-            return GetUpdatedDeclarationAccessibilityModifiers(list, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
-                .ToSyntaxTokenList();
+            return GetUpdatedDeclarationAccessibilityModifiers(
+                newModifierTokens, modifiersList,
+                modifier => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()));
         }
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)

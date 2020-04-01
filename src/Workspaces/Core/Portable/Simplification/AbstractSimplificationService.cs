@@ -28,18 +28,14 @@ namespace Microsoft.CodeAnalysis.Simplification
         private ImmutableArray<AbstractReducer> _reducers;
 
         protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
-        {
-            _reducers = reducers;
-        }
+            => _reducers = reducers;
 
         protected abstract ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans);
         protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
         protected abstract bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
-        {
-            return reducedNode;
-        }
+            => reducedNode;
 
         public abstract SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken);
         public abstract SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken);

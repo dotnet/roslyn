@@ -164,10 +164,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context)
         {
-            var notificationService = context.Solution.Workspace.Services.GetService<INotificationService>();
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
-
-            return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration, notificationService);
+            return changeSignatureOptionsService.GetChangeSignatureOptions(context.Symbol, context.ParameterConfiguration);
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
@@ -177,8 +175,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             using (Logger.LogBlock(FunctionId.FindReference_ChangeSignature, cancellationToken))
             {
-                var streamingProgress = new StreamingProgressCollector(
-                    StreamingFindReferencesProgress.Instance);
+                var streamingProgress = new StreamingProgressCollector();
 
                 IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(

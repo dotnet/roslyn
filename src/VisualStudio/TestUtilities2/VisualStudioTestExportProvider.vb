@@ -31,6 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Implements IWorkspaceServiceFactory
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

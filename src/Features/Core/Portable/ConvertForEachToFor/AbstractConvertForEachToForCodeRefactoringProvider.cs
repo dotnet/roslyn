@@ -22,9 +22,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 {
-    internal abstract class AbstractConvertForEachToForCodeRefactoringProvider<TForEachStatement> :
-        CodeRefactoringProvider
-            where TForEachStatement : SyntaxNode
+    internal abstract class AbstractConvertForEachToForCodeRefactoringProvider<
+        TStatementSyntax,
+        TForEachStatement> : CodeRefactoringProvider
+        where TStatementSyntax : SyntaxNode
+        where TForEachStatement : TStatementSyntax
     {
         private const string get_Count = nameof(get_Count);
         private const string get_Item = nameof(get_Item);
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         }
 
         protected void IntroduceCollectionStatement(
-            SemanticModel model, ForEachInfo foreachInfo, SyntaxEditor editor,
+            ForEachInfo foreachInfo, SyntaxEditor editor,
             SyntaxNode type, SyntaxNode foreachCollectionExpression, SyntaxNode collectionVariable)
         {
             if (!foreachInfo.RequireCollectionStatement)
@@ -127,15 +129,17 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             editor.InsertBefore(foreachInfo.ForEachStatement, collectionStatement);
         }
 
-        protected SyntaxNode AddItemVariableDeclaration(
+        protected TStatementSyntax AddItemVariableDeclaration(
             SyntaxGenerator generator, SyntaxNode type, SyntaxToken foreachVariable,
             ITypeSymbol castType, SyntaxNode collectionVariable, SyntaxToken indexVariable)
         {
             var memberAccess = generator.ElementAccessExpression(
                     collectionVariable, generator.IdentifierName(indexVariable));
 
-            return generator.LocalDeclarationStatement(
+            var localDecl = generator.LocalDeclarationStatement(
                 type, foreachVariable, generator.CastExpression(castType, memberAccess));
+
+            return (TStatementSyntax)localDecl.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         private ForEachInfo GetForeachInfo(
@@ -185,9 +189,9 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             ISemanticFactsService semanticFact, SemanticModel model, ILocalSymbol foreachVariable, IOperation foreachCollection,
             out ITypeSymbol explicitCastInterface, out string collectionNameSuggestion, out string countName)
         {
-            explicitCastInterface = default;
-            collectionNameSuggestion = default;
-            countName = default;
+            explicitCastInterface = null;
+            collectionNameSuggestion = null;
+            countName = null;
 
             // go through list of types and interfaces to find out right set;
             var foreachType = foreachVariable.Type;

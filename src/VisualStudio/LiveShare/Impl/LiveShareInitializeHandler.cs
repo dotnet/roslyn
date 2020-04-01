@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -7,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
@@ -22,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
                 CodeActionProvider = true,
                 ExecuteCommandProvider = new ExecuteCommandOptions(),
                 ReferencesProvider = true,
-                RenameProvider = true,
+                RenameProvider = false,
                 Experimental = new RoslynExperimentalCapabilities { SyntacticLspProvider = true },
             }
         };
@@ -36,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
     internal class RoslynInitializeHandlerShim : LiveShareInitializeHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynInitializeHandlerShim()
         {
         }
@@ -45,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
     internal class CSharpInitializeHandlerShim : LiveShareInitializeHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpInitializeHandlerShim()
         {
         }
@@ -54,6 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
     internal class VisualBasicInitializeHandlerShim : LiveShareInitializeHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicInitializeHandlerShim()
         {
         }

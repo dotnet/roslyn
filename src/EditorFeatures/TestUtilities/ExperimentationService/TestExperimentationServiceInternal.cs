@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ExperimentationService
         }
 
         public bool IsCachedFlightEnabled(string flightName)
-        {
-            return true;
-        }
+            => true;
     }
 }

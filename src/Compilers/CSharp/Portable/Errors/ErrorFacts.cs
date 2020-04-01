@@ -66,12 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_ShouldNotReturn));
             nullableWarnings.Add(getId(ErrorCode.WRN_DoesNotReturnMismatch));
             nullableWarnings.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes));
-            nullableWarnings.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes));
+            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation));
+            nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride));
+            nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNull));
+            nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullBadMember));
+            nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullWhen));
 
             NullableWarnings = nullableWarnings.ToImmutable();
 
@@ -438,12 +441,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_ShouldNotReturn:
                 case ErrorCode.WRN_DoesNotReturnMismatch:
-                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
-                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
-                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
-                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
-                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
-                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_MemberNotNull:
+                case ErrorCode.WRN_MemberNotNullBadMember:
+                case ErrorCode.WRN_MemberNotNullWhen:
+                case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                     return 1;
                 default:
                     return 0;

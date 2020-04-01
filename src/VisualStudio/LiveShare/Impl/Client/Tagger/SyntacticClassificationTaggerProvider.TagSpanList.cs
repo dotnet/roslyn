@@ -142,9 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 private StartComparer() { }
 
                 int IComparer<TagWrapper>.Compare(TagWrapper x, TagWrapper y)
-                {
-                    return x.Span.Start - y.Span.Start;
-                }
+                    => x.Span.Start - y.Span.Start;
             }
 
             private sealed class EndComparer : IComparer<TagWrapper>
@@ -154,9 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 private EndComparer() { }
 
                 int IComparer<TagWrapper>.Compare(TagWrapper x, TagWrapper y)
-                {
-                    return x.Span.End - y.Span.End;
-                }
+                    => x.Span.End - y.Span.End;
             }
 
             private struct TagWrapper
@@ -177,9 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 }
 
                 public override string ToString()
-                {
-                    return $"Wrapper [{Span.Start}, {Span.End}){(Tag.HasValue ? " " + Tag.Value.Tag : "")}";
-                }
+                    => $"Wrapper [{Span.Start}, {Span.End}){(Tag.HasValue ? " " + Tag.Value.Tag : "")}";
             }
         }
     }

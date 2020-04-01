@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,10 +23,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 {
+    using static SyntaxFactory;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseSimpleUsingStatementCodeFixProvider()
         {
         }
@@ -131,12 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
         private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
         {
-            return SyntaxFactory.LocalDeclarationStatement(
+            return LocalDeclarationStatement(
                 usingStatement.AwaitKeyword,
                 usingStatement.UsingKeyword,
                 modifiers: default,
                 usingStatement.Declaration,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(ElasticCarriageReturnLineFeed);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

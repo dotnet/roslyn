@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
 
         public ProjectCacheService(Workspace workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
         {
@@ -174,9 +172,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public void Dispose()
-            {
-                _cacheService.DisableCaching(_key, this);
-            }
+                => _cacheService.DisableCaching(_key, this);
 
             internal void CreateStrongReference(object key, object? instance)
             {
@@ -192,9 +188,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             internal void CreateOwnerEntry(ICachedObjectOwner owner)
-            {
-                _ownerObjects.Add(new WeakReference<ICachedObjectOwner>(owner));
-            }
+                => _ownerObjects.Add(new WeakReference<ICachedObjectOwner>(owner));
 
             internal void FreeOwnerEntries()
             {
