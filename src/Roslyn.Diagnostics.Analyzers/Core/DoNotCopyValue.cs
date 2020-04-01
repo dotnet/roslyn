@@ -1086,6 +1086,10 @@ namespace Roslyn.Diagnostics.Analyzers
                     case OperationKind.ObjectCreation:
                         return RefKind.None;
 
+                    case OperationKind.ParameterReference:
+                        var parameter = ((IParameterReferenceOperation)operation).Parameter;
+                        return parameter.RefKind == RefKind.In ? RefKind.RefReadOnly : RefKind.Ref;
+
                     case OperationKind.Parenthesized:
                         return Acquire(((IParenthesizedOperation)operation).Operand);
 

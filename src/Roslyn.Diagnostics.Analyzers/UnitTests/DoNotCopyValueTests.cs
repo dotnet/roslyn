@@ -252,6 +252,41 @@ class C
         }
 
         [Fact]
+        public async Task TestPassByReference()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System.Runtime.InteropServices;
+
+class C
+{
+    void Get(ref GCHandle handle) => Get(ref handle);
+}
+");
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Imports System.Runtime.InteropServices
+
+Class C
+    Sub Method(ByRef handle As GCHandle)
+        Method(handle)
+    End Sub
+End Class");
+        }
+
+        [Fact]
+        public async Task TestPassByReadOnlyReference()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System.Runtime.InteropServices;
+
+class C
+{
+    void Get(in GCHandle handle) => Get(in handle);
+}
+");
+        }
+
+        [Fact]
         public async Task DoNotWrapNonCopyableTypeInNullableT()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
