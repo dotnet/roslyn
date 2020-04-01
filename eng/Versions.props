@@ -170,7 +170,7 @@
     <NuGetPackagingVersion>4.9.2</NuGetPackagingVersion>
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
-    <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
+    <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta2-19575-01</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesOptimizationDataVersion>3.0.0-beta2-19053-01</RoslynDependenciesOptimizationDataVersion>

@@ -11,5 +11,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>9250a5196fc3dbd251768a9c6e3e9b9489ac4993</Sha>
     </Dependency>
+    <Dependency Name="Microsoft.DiaSymReader.Pdb2Pdb" Version="1.1.0-beta2-19575-01">
+      <Uri>https://github.com/dotnet/symreader-converter</Uri>
+      <Sha>c5ba7c88f92e2dde156c324a8c8edc04d9fa4fe0</Sha>
+    </Dependency>
   </ToolsetDependencies>
 </Dependencies>
