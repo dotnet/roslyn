@@ -172,11 +172,6 @@
         <target state="translated">Convertir en struct</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Convertir en tuple</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Un type qui implémente System.IDisposable déclare des champs dont les types implémentent également IDisposable. La méthode Dispose du champ n'est pas appelée par la méthode Dispose du type déclarant. Pour corriger toute violation de cette règle, appelez Dispose sur les champs dont les types implémentent IDisposable si vous êtes responsable de l'allocation et de la libération des ressources non managées détenues par le champ.</target>

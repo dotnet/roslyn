@@ -172,11 +172,6 @@
         <target state="translated">Преобразовать в структуру</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Преобразовать в кортеж</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Тип, который реализует System.IDisposable, объявляет поля, относящиеся к типам, которые также реализуют IDisposable. Метод Dispose поля не вызывается методом Dispose объявляющего типа. Чтобы устранить нарушение этого правила, вызовите Dispose для полей, относящихся к типам, которые реализуют IDisposable, если вы отвечаете за выделение и освобождение неуправляемых ресурсов, хранящихся в поле.</target>
