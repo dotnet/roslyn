@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 }
             }
 
-            throw new ArgumentException("Unexpected symbol", nameof(symbolInfo));
+            return false;
         }
 
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter)
