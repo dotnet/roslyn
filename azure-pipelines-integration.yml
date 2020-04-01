@@ -14,6 +14,16 @@ pr:
 - features/*
 - demos/*
 
+variables:
+    # Disable component governance in our CI builds. These builds are not shipping nor
+    # are they a service. Also the component governance jobs issue lots of inconsequential
+    # warnings and errors into our build timelines that make it hard to track down 
+    # real errors in the build
+    - name: skipComponentGovernanceDetection
+      value: true
+    - name: runCodesignValidationInjection
+      value: false
+
 jobs:
 - job: VS_Integration
   pool:
