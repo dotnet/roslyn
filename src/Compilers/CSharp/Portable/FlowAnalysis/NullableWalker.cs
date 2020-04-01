@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (memberHasBadState(member, state))
                     {
-                        // Member '{name}' may not have a null value when exiting.
+                        // Member '{name}' must have a non-null value when exiting.
                         Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
                     }
                 }
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (memberHasBadState(member, state))
                             {
-                                // Member '{name}' may not have a null value when exiting with '{sense}'.
+                                // Member '{name}' must have a non-null value when exiting with '{sense}'.
                                 Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
                             }
                         }
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (parameterHasBadState(parameter, state))
                     {
-                        // Parameter '{name}' may not have a null value when exiting.
+                        // Parameter '{name}' must have a non-null value when exiting.
                         Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), parameter.Name);
                     }
                 }
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (parameterHasBadConditionalState(parameter, sense, stateWhen))
                     {
-                        // Parameter '{name}' may not have a null value when exiting with '{sense}'.
+                        // Parameter '{name}' must have a non-null value when exiting with '{sense}'.
                         Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
                     }
                 }
