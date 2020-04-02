@@ -145,6 +145,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             _select_star_from_string_table = $@"select * from {StringInfoTableName}";
             _insert_into_string_table_values_0 = $@"insert into {StringInfoTableName}(""{DataColumnName}"") values (?)";
             _select_star_from_string_table_where_0_limit_one = $@"select * from {StringInfoTableName} where (""{DataColumnName}"" = ?) limit 1";
+
+            // Create a queue to batch up requests to flush.  We'll won't flush more than everu FlushAllDelayMS. The
+            // actual information in the queue isn't relevant, so we pass in an equality comparer to just keep it down
+            // to storing a single piece of data.
+            _flushQueue = new AsyncBatchingWorkQueue<bool>(
+                TimeSpan.FromMilliseconds(FlushAllDelayMS),
+                FlushInMemoryDataToDiskIfNotShutdownAsync,
+                EqualityComparer<bool>.Default,
+                asyncListener: null,
+                _shutdownTokenSource.Token);
         }
 
         private SqlConnection GetConnection()
@@ -210,28 +220,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // persisted to the DB.
             try
             {
-                lock (_flushGate)
-                {
-                    using var _ = GetPooledConnection(out var connection);
-                    FlushInMemoryDataToDisk_MustRunUnderLock(connection);
-
-                    // Now that we've done this, definitely cancel any further work. From this point
-                    // on, it is now invalid for any codepaths to try to acquire a db connection for
-                    // any purpose (beyond us disposing things below).
-                    //
-                    // This will also ensure that if we have a bg flush task still pending, when it
-                    // wakes up it will see that we're shutdown and not proceed (and importantly
-                    // won't acquire a connection). Because both the bg task and us run under this
-                    // lock, there is no way for it to miss this token cancellation.  If it runs
-                    // after us, then it sees this.  If it runs before us, then we just block until
-                    // it finishes.
-                    //
-                    // We don't have to worry about reads/writes getting connections either.  
-                    // The only way we can get disposed in the first place is if every user of this
-                    // storage instance has released their ref on us. In that case, it would be an
-                    // error on their part to ever try to read/write after releasing us.
-                    _shutdownTokenSource.Cancel();
-                }
+                FlushWritesOnClose();
             }
             catch (Exception e)
             {

@@ -58,5 +58,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         // tasks we need to do.
         public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
             => PerformTaskAsync(func, arg, _readerWriterLock.ExclusiveScheduler, cancellationToken);
+
+        public Task PerformWriteAsync(Action action, CancellationToken cancellationToken)
+            => PerformWriteAsync(vt =>
+            {
+                vt.Item1();
+                return true;
+            }, ValueTuple.Create(action), cancellationToken);
     }
 }
