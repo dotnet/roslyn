@@ -1450,5 +1450,24 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate*<void>)d").WithArguments("dynamic", "delegate*<void>").WithLocation(8, 15)
             );
         }
+
+        [Fact]
+        public void FunctionPointerTypeCannotBeQuestionDotted()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        ptr?.ToString();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,12): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                //         ptr?.ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(6, 12)
+            );
+        }
     }
 }
