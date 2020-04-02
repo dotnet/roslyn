@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -36,15 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     /// it feels very safe to assume this is well behaved and switching to `^expr2` is going to
     /// preserve semantics.
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseIndexOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
                    CSharpCodeStyleOptions.PreferIndexOperator,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_index_operator), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Indexing_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_index_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Indexing_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
