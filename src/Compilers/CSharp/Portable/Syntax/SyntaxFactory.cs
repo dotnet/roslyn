@@ -2114,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node;
             }
 
-            CSharpSyntaxNode parent = node.Parent;
+            CSharpSyntaxNode? parent = node.Parent;
 
             if (parent == null)
             {
@@ -2161,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.NameMemberCref:
                     if (((NameMemberCrefSyntax)parent).Name == node)
                     {
-                        CSharpSyntaxNode grandparent = parent.Parent;
+                        CSharpSyntaxNode? grandparent = parent.Parent;
                         return grandparent != null && grandparent.Kind() == SyntaxKind.QualifiedCref
                             ? grandparent
                             : parent;
