@@ -360,7 +360,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // The json rpc messages won't necessarily come back in order by default.
             // So use a synchronization context to preserve the original ordering.
             // https://github.com/microsoft/vs-streamjsonrpc/blob/bc970c61b90db5db135a1b3d1c72ef355c2112af/doc/resiliency.md#when-message-order-is-important
-            jsonRpc.SynchronizationContext = new RpcOrderPreservingSynchronizationContext(); ;
+            jsonRpc.SynchronizationContext = new RpcOrderPreservingSynchronizationContext();
             jsonRpc.StartListening();
 
             // Triggers language server to send notifications.
