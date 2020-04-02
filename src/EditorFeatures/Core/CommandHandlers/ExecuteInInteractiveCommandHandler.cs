@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
-        {
-            return GetCommandHandler(args.SubjectBuffer)?.Value.ExecuteCommand(args, context) ?? false;
-        }
+            => GetCommandHandler(args.SubjectBuffer)?.Value.ExecuteCommand(args, context) ?? false;
 
         CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args)
         {

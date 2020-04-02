@@ -38,16 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public OrganizeDocumentCommandHandler(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public string DisplayName => EditorFeaturesResources.Organize_Document;
 
         public CommandState GetCommandState(OrganizeDocumentCommandArgs args)
-        {
-            return GetCommandState(args, _ => EditorFeaturesResources.Organize_Document, needsSemantics: true);
-        }
+            => GetCommandState(args, _ => EditorFeaturesResources.Organize_Document, needsSemantics: true);
 
         public bool ExecuteCommand(OrganizeDocumentCommandArgs args, CommandExecutionContext context)
         {
@@ -70,14 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         }
 
         public CommandState GetCommandState(SortImportsCommandArgs args)
-        {
-            return GetCommandState(args, o => o.SortImportsDisplayStringWithAccelerator, needsSemantics: false);
-        }
+            => GetCommandState(args, o => o.SortImportsDisplayStringWithAccelerator, needsSemantics: false);
 
         public CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args)
-        {
-            return GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
-        }
+            => GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
 
         private CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
         {
@@ -165,8 +157,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         }
 
         protected static void ApplyTextChange(Document oldDocument, Document newDocument)
-        {
-            oldDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None);
-        }
+            => oldDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None);
     }
 }

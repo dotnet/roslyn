@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected virtual bool IncludeNoLocationDiagnostics => true;
 
         protected Task TestAsync(string initial, string expected)
-        {
-            return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
-        }
+            => TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
 
         internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 

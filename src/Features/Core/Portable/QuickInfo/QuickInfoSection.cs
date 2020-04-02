@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// <param name="kind">The kind of the section. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.</param>
         /// <param name="taggedParts">The individual tagged parts of the section.</param>
         public static QuickInfoSection Create(string? kind, ImmutableArray<TaggedText> taggedParts)
-        {
-            return new QuickInfoSection(kind, taggedParts);
-        }
+            => new QuickInfoSection(kind, taggedParts);
 
         private string? _text;
 

@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        return _workItemQueue.WaitAsync(cancellationToken);
-                    }
+                        => _workItemQueue.WaitAsync(cancellationToken);
 
                     protected override async Task ExecuteAsync()
                     {
@@ -220,9 +218,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     public void Shutdown()
-                    {
-                        _workItemQueue.Dispose();
-                    }
+                        => _workItemQueue.Dispose();
                 }
             }
         }

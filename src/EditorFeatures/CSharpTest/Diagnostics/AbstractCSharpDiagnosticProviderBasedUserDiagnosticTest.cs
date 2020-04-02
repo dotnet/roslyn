@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
@@ -138,5 +139,12 @@ namespace System.Collections.Generic
         T Current { get; }
     }
 }";
+
+        internal IOptionsCollection RequireArithmeticBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireArithmeticBinaryParenthesesForClarity;
+        internal IOptionsCollection RequireRelationalBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireRelationalBinaryParenthesesForClarity;
+        internal IOptionsCollection RequireOtherBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireOtherBinaryParenthesesForClarity;
+        internal IOptionsCollection IgnoreAllParentheses => ParenthesesOptionsProvider.IgnoreAllParentheses;
+        internal IOptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
+        internal IOptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
     }
 }

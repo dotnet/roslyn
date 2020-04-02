@@ -17,13 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-        {
-            _contentTypeRegistry = contentTypeRegistry;
-        }
+            => _contentTypeRegistry = contentTypeRegistry;
 
         public IContentType GetDefaultContentType()
-        {
-            return _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
-        }
+            => _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
     }
 }

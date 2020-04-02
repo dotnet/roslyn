@@ -229,9 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static CompletionItemRules MakeRule(int importDirective, int preselect, int tupleLiteral)
-        {
-            return MakeRule(importDirective == 1, preselect == 1, tupleLiteral == 1);
-        }
+            => MakeRule(importDirective == 1, preselect == 1, tupleLiteral == 1);
 
         private static CompletionItemRules MakeRule(bool importDirective, bool preselect, bool tupleLiteral)
         {

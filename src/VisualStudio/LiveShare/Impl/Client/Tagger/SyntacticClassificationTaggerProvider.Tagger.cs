@@ -38,9 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
             }
 
             private void OnTagsChanged(object sender, SnapshotSpanEventArgs e)
-            {
-                TagsChanged?.Invoke(this, e);
-            }
+                => TagsChanged?.Invoke(this, e);
 
             public void Dispose()
             {

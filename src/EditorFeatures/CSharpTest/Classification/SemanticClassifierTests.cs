@@ -2119,9 +2119,7 @@ q = from",
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DontColorThingsOtherThanFromInDeclaration()
-        {
-            await TestInExpressionAsync("fro ");
-        }
+            => await TestInExpressionAsync("fro ");
 
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -3340,9 +3338,7 @@ class X
         [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestDirectiveStringLiteral()
-        {
-            await TestInMethodAsync(@"#line 1 ""a\b""");
-        }
+            => await TestInMethodAsync(@"#line 1 ""a\b""");
 
         [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

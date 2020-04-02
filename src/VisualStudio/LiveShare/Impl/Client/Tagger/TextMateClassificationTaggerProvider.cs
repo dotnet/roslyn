@@ -27,14 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TextMateClassificationTaggerProvider(ICommonEditorAssetServiceFactory assetServiceFactory)
-        {
-            _assetServiceFactory = assetServiceFactory;
-        }
+            => _assetServiceFactory = assetServiceFactory;
 
         public ITagger<T> CreateTagger<T>(ITextView view, ITextBuffer buffer) where T : ITag
-        {
-            return CreateTagger<T>(buffer);
-        }
+            => CreateTagger<T>(buffer);
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {

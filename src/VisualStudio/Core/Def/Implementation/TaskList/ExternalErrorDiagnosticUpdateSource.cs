@@ -68,14 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool IsInProgress => BuildInprogressState != null;
 
         public ImmutableArray<DiagnosticData> GetBuildErrors()
-        {
-            return _lastBuiltResult;
-        }
+            => _lastBuiltResult;
 
         public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
-        {
-            return BuildInprogressState?.IsSupportedDiagnosticId(projectId, id) ?? false;
-        }
+            => BuildInprogressState?.IsSupportedDiagnosticId(projectId, id) ?? false;
 
         public void ClearErrors(ProjectId projectId)
         {
@@ -243,9 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         }
 
         private void ClearDocumentErrors(Solution solution, ProjectId projectId, DocumentId documentId)
-        {
-            RaiseDiagnosticsRemoved(documentId, solution, projectId, documentId);
-        }
+            => RaiseDiagnosticsRemoved(documentId, solution, projectId, documentId);
 
         public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
         {
@@ -333,9 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private static ArgumentKey CreateArgumentKey(object id) => new ArgumentKey(id);
 
         private void RaiseBuildProgressChanged(BuildProgress progress)
-        {
-            BuildProgressChanged?.Invoke(this, progress);
-        }
+            => BuildProgressChanged?.Invoke(this, progress);
 
         #region not supported
         public bool SupportGetDiagnostics { get { return false; } }
@@ -380,9 +372,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public Solution Solution { get; }
 
             public void Done()
-            {
-                _owner.RaiseBuildProgressChanged(BuildProgress.Done);
-            }
+                => _owner.RaiseBuildProgressChanged(BuildProgress.Done);
 
             public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
             {
@@ -421,9 +411,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             public void Built(ProjectId projectId)
-            {
-                _projectsBuilt.Add(projectId);
-            }
+                => _projectsBuilt.Add(projectId);
 
             public IEnumerable<ProjectId> GetProjectsWithErrors()
             {
@@ -467,24 +455,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             public void AddErrors(DocumentId key, HashSet<DiagnosticData> diagnostics)
-            {
-                AddErrors(_documentMap, key, diagnostics);
-            }
+                => AddErrors(_documentMap, key, diagnostics);
 
             public void AddErrors(ProjectId key, HashSet<DiagnosticData> diagnostics)
-            {
-                AddErrors(_projectMap, key, diagnostics);
-            }
+                => AddErrors(_projectMap, key, diagnostics);
 
             public void AddError(DocumentId key, DiagnosticData diagnostic)
-            {
-                AddError(_documentMap, key, diagnostic);
-            }
+                => AddError(_documentMap, key, diagnostic);
 
             public void AddError(ProjectId key, DiagnosticData diagnostic)
-            {
-                AddError(_projectMap, key, diagnostic);
-            }
+                => AddError(_projectMap, key, diagnostic);
 
             private bool IsLive(Project project, Compilation compilation, DiagnosticData diagnosticData)
             {
@@ -628,9 +608,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             private Dictionary<DiagnosticData, int> GetErrorSet<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key)
-            {
-                return map.GetOrAdd(key, _ => new Dictionary<DiagnosticData, int>(DiagnosticDataComparer.Instance));
-            }
+                => map.GetOrAdd(key, _ => new Dictionary<DiagnosticData, int>(DiagnosticDataComparer.Instance));
         }
 
         private sealed class ArgumentKey : BuildToolId.Base<object>
@@ -649,9 +627,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                    base.Equals(obj);
 
             public override int GetHashCode()
-            {
-                return base.GetHashCode();
-            }
+                => base.GetHashCode();
         }
 
         private sealed class DiagnosticDataComparer : IEqualityComparer<DiagnosticData>

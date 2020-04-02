@@ -33,8 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new RemoteHostClientService(_threadingContext, _listener, workspaceServices.Workspace, _analyzerService.HostAnalyzers);
-        }
+            => new RemoteHostClientService(_threadingContext, _listener, workspaceServices.Workspace, _analyzerService.HostAnalyzers);
     }
 }

@@ -32,9 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             private Document TryGetDocument()
-            {
-                return DefinitionBucket.DefinitionItem.SourceSpans.FirstOrDefault().Document;
-            }
+                => DefinitionBucket.DefinitionItem.SourceSpans.FirstOrDefault().Document;
 
             protected override object GetValueWorker(string keyName)
             {

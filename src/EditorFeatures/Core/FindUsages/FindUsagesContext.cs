@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public IStreamingProgressTracker ProgressTracker { get; }
 
         protected FindUsagesContext()
-        {
-            this.ProgressTracker = new StreamingProgressTracker(this.ReportProgressAsync);
-        }
+            => this.ProgressTracker = new StreamingProgressTracker(this.ReportProgressAsync);
 
         public virtual Task ReportMessageAsync(string message) => Task.CompletedTask;
 

@@ -21,9 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioPickMembersService(IGlyphService glyphService)
-        {
-            _glyphService = glyphService;
-        }
+            => _glyphService = glyphService;
 
         public PickMembersResult PickMembers(
             string title, ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> options)

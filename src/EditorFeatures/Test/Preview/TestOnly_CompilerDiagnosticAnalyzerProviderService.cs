@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestOnly_CompilerDiagnosticAnalyzerProviderService()
-        {
-            _info = new HostDiagnosticAnalyzerPackage("Compiler", GetCompilerAnalyzerAssemblies().Distinct().ToImmutableArray());
-        }
+            => _info = new HostDiagnosticAnalyzerPackage("Compiler", GetCompilerAnalyzerAssemblies().Distinct().ToImmutableArray());
 
         private static IEnumerable<string> GetCompilerAnalyzerAssemblies()
         {
@@ -39,14 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         }
 
         public IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader()
-        {
-            return FromFileLoader.Instance;
-        }
+            => FromFileLoader.Instance;
 
         public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
-        {
-            return ImmutableArray.Create(_info);
-        }
+            => ImmutableArray.Create(_info);
 
         public class FromFileLoader : IAnalyzerAssemblyLoader
         {
@@ -57,9 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
 
             public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
+                => Assembly.LoadFrom(fullPath);
         }
     }
 }

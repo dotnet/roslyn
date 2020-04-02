@@ -87,9 +87,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         }
 
         protected virtual bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return false;
-        }
+            => false;
 
         private void AddPropertyCodeActions(
             ArrayBuilder<CodeAction> result, SemanticDocument document, State state)

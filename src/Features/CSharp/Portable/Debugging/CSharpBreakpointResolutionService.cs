@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
         }
 
         public Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken)
-        {
-            return new BreakpointResolver(solution, name).DoAsync(cancellationToken);
-        }
+            => new BreakpointResolver(solution, name).DoAsync(cancellationToken);
     }
 }

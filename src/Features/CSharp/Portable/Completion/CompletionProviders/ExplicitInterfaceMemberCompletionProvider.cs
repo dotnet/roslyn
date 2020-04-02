@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return text[characterPosition] == '.';
-        }
+            => text[characterPosition] == '.';
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
 

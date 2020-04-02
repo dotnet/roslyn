@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public bool IsRoot => ParentIndex == RootNodeParentIndex;
 
             private string GetDebuggerDisplay()
-            {
-                return Name + ", " + ParentIndex;
-            }
+                => Name + ", " + ParentIndex;
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
@@ -76,9 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             private string GetDebuggerDisplay()
-            {
-                return NameSpan + ", " + ParentIndex;
-            }
+                => NameSpan + ", " + ParentIndex;
         }
 
         private readonly struct ParameterTypeInfo

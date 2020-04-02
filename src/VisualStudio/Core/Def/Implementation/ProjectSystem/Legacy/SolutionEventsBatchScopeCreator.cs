@@ -177,9 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             private readonly SolutionEventsBatchScopeCreator _scopeCreator;
 
             public SolutionEventsEventSink(SolutionEventsBatchScopeCreator scopeCreator)
-            {
-                _scopeCreator = scopeCreator;
-            }
+                => _scopeCreator = scopeCreator;
 
             int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
             {
@@ -208,54 +206,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             #region Unimplemented Members
 
             int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionEvents.OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionEvents.OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionEvents.OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionLoadEvents.OnBeforeBackgroundSolutionLoadBegins()
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionLoadEvents.OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
             {
@@ -264,14 +242,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             #endregion
         }
@@ -301,29 +275,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             #region Unimplemented Members
 
             int IVsRunningDocTableEvents.OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsRunningDocTableEvents.OnAfterSave(uint docCookie)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsRunningDocTableEvents.OnAfterAttributeChange(uint docCookie, uint grfAttribs)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsRunningDocTableEvents.OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             int IVsRunningDocTableEvents.OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             #endregion
         }

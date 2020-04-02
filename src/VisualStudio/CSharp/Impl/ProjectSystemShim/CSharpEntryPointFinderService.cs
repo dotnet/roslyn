@@ -21,8 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol, bool findFormsOnly)
-        {
-            return EntryPointFinder.FindEntryPoints(symbol);
-        }
+            => EntryPointFinder.FindEntryPoints(symbol);
     }
 }

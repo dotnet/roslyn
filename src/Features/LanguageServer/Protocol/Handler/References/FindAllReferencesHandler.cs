@@ -14,8 +14,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -28,19 +30,18 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    // The VS LSP client supports streaming using IProgress<T> on various requests.
-    // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
-    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
     [ExportLspMethod(LSP.Methods.TextDocumentReferencesName), Shared]
     internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]>
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindAllReferencesHandler(IThreadingContext threadingContext)
+        public FindAllReferencesHandler(IThreadingContext threadingContext, IMetadataAsSourceFileService metadataAsSourceFileService)
         {
             _threadingContext = threadingContext;
+            _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
         public async Task<LSP.VSReferenceItem[]> HandleRequestAsync(
@@ -51,13 +52,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
 
-            // The VS LSP client supports streaming using IProgress<T> on various requests.
-            // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
             var document = solution.GetDocumentFromURI(referenceParams.TextDocument.Uri);
             if (document == null)
             {
-                return new LSP.VSReferenceItem[] { };
+                return Array.Empty<LSP.VSReferenceItem>();
             }
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
@@ -68,11 +66,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Finds the references for the symbol at the specific position in the document, pushing the results to the context instance.
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
 
-            return await GetReferenceItemsAsync(referenceParams, context, cancellationToken).ConfigureAwait(false);
+            return await GetReferenceItemsAsync(document, position, context, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<LSP.VSReferenceItem[]> GetReferenceItemsAsync(
-            LSP.ReferenceParams request,
+            Document document,
+            int position,
             SimpleFindUsagesContext context,
             CancellationToken cancellationToken)
         {
@@ -96,21 +95,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var id = 0;
             foreach (var (definition, references) in definitionMap)
             {
-                // Creating the reference item that corresponds to the definition
+                // Creating the reference item that corresponds to the definition.
                 var definitionItem = await GenerateReferenceItem(
-                    id, definitionId: id, definition.SourceSpans.FirstOrDefault(), context, definition.DisplayableProperties,
-                    cancellationToken, definition.GetClassifiedText()).ConfigureAwait(false);
-                referenceItems.Add(definitionItem);
+                    id, definitionId: id, document, position, definition.SourceSpans.FirstOrDefault(), context, definition.DisplayableProperties,
+                    definition.GetClassifiedText(), symbolUsageInfo: null, cancellationToken).ConfigureAwait(false);
 
+                referenceItems.Add(definitionItem);
                 var definitionId = id;
                 id++;
 
-                // Creating a reference item for each reference
+                // Creating a reference item for each reference.
                 foreach (var reference in references)
                 {
                     var referenceItem = await GenerateReferenceItem(
-                        id, definitionId, reference.SourceSpan, context, reference.AdditionalProperties,
-                        symbolUsageInfo: reference.SymbolUsageInfo, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        id, definitionId, document, position, reference.SourceSpan, context, reference.AdditionalProperties,
+                        definitionText: null, reference.SymbolUsageInfo, cancellationToken).ConfigureAwait(false);
+
                     referenceItems.Add(referenceItem);
                     id++;
                 };
@@ -118,25 +118,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return referenceItems.ToArray();
 
-            static async Task<LSP.VSReferenceItem> GenerateReferenceItem(
+            async Task<LSP.VSReferenceItem> GenerateReferenceItem(
                 int id,
                 int? definitionId,
+                Document originalDocument,
+                int originalPosition,
                 DocumentSpan documentSpan,
                 SimpleFindUsagesContext context,
                 ImmutableDictionary<string, string> properties,
-                CancellationToken cancellationToken,
-                ClassifiedTextElement? definitionText = null,
-                SymbolUsageInfo? symbolUsageInfo = null)
+                ClassifiedTextElement? definitionText,
+                SymbolUsageInfo? symbolUsageInfo,
+                CancellationToken cancellationToken)
             {
-                var location = await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
-                var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                    documentSpan, context.CancellationToken).ConfigureAwait(false);
-                var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                var docText = await documentSpan.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+                LSP.Location? location = null;
+
+                // If we have no source span, our location may be in metadata.
+                if (documentSpan == default)
+                {
+                    var symbol = await SymbolFinder.FindSymbolAtPositionAsync(originalDocument, originalPosition, cancellationToken).ConfigureAwait(false);
+                    if (symbol != null && symbol.Locations != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
+                    {
+                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(originalDocument.Project, symbol, false, cancellationToken).ConfigureAwait(false);
+
+                        var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
+                        location = new LSP.Location
+                        {
+                            Uri = new Uri(declarationFile.FilePath),
+                            Range = ProtocolConversions.LinePositionToRange(linePosSpan),
+                        };
+                    }
+                }
+                else
+                {
+                    location = await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+                }
 
                 // TO-DO: The Origin property should be added once Rich-Nav is completed.
                 // https://github.com/dotnet/roslyn/issues/42847
-                return new LSP.VSReferenceItem
+                var result = new LSP.VSReferenceItem
                 {
                     ContainingMember = properties.TryGetValue(
                         AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember) ? referenceContainingMember : null,
@@ -144,40 +163,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : null,
                     DefinitionId = definitionId,
                     DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
-                    DisplayPath = location.Uri.LocalPath,
-                    DocumentName = documentSpan.Document.Name,
+                    DisplayPath = location?.Uri.LocalPath,
+                    DocumentName = documentSpan == default ? null : documentSpan.Document.Name,
                     Id = id,
                     Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : new ReferenceKind[] { },
-                    Location = new LSP.Location { Range = location.Range, Uri = location.Uri },
-                    ProjectName = documentSpan.Document.Project.Name,
+                    Location = location,
+                    ProjectName = documentSpan == default ? null : documentSpan.Document.Project.Name,
                     ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
-                    Text = new ClassifiedTextElement(
-                        classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan)))),
                 };
-            }
-        }
 
-        private static async Task<LSP.Location[]> GetLocationsAsync(LSP.ReferenceParams request, SimpleFindUsagesContext context, CancellationToken cancellationToken)
-        {
-            var locations = ArrayBuilder<LSP.Location>.GetInstance();
-
-            if (request.Context.IncludeDeclaration)
-            {
-                foreach (var definition in context.GetDefinitions())
+                // Properly assigning the text property.
+                if (id == definitionId)
                 {
-                    foreach (var docSpan in definition.SourceSpans)
-                    {
-                        locations.Add(await ProtocolConversions.DocumentSpanToLocationAsync(docSpan, cancellationToken).ConfigureAwait(false));
-                    }
+                    result.Text = definitionText;
                 }
-            }
+                else if (documentSpan != default)
+                {
+                    var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                        documentSpan, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
+                    var docText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var reference in context.GetReferences())
-            {
-                locations.Add(await ProtocolConversions.DocumentSpanToLocationAsync(reference.SourceSpan, cancellationToken).ConfigureAwait(false));
-            }
+                    result.Text = new ClassifiedTextElement(
+                        classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
+                }
 
-            return locations.ToArrayAndFree();
+                return result;
+            }
         }
     }
 }

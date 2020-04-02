@@ -29,14 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(SymbolCompletionProvider);
-        }
+            => typeof(SymbolCompletionProvider);
 
         protected override ComposableCatalog GetExportCatalog()
-        {
-            return base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
-        }
+            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EmptyFile()
@@ -72,15 +68,11 @@ $$", @"System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterHashR()
-        {
-            await VerifyItemIsAbsentAsync(@"#r $$", "@System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        }
+            => await VerifyItemIsAbsentAsync(@"#r $$", "@System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterHashLoad()
-        {
-            await VerifyItemIsAbsentAsync(@"#load $$", "@System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        }
+            => await VerifyItemIsAbsentAsync(@"#load $$", "@System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirective()
@@ -1425,15 +1417,11 @@ $$";
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AliasedNamespace()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using S = System;", AddInsideMethod(@"S.$$")), @"String");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using S = System;", AddInsideMethod(@"S.$$")), @"String");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AliasedType()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using S = System.String;", AddInsideMethod(@"S.$$")), @"Empty");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using S = System.String;", AddInsideMethod(@"S.$$")), @"Empty");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstructorInitializer()
@@ -1451,9 +1439,7 @@ $$";
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Typeof2()
-        {
-            await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; typeof($$"), @"x");
-        }
+            => await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; typeof($$"), @"x");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Sizeof1()
@@ -1464,9 +1450,7 @@ $$";
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Sizeof2()
-        {
-            await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; sizeof($$"), @"x");
-        }
+            => await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; sizeof($$"), @"x");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Default1()
@@ -1477,119 +1461,81 @@ $$";
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Default2()
-        {
-            await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; default($$"), @"x");
-        }
+            => await VerifyItemIsAbsentAsync(AddInsideMethod(@"var x = 0; default($$"), @"x");
 
         [WorkItem(543819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543819")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Checked()
-        {
-            await VerifyItemExistsAsync(AddInsideMethod(@"var x = 0; checked($$"), @"x");
-        }
+            => await VerifyItemExistsAsync(AddInsideMethod(@"var x = 0; checked($$"), @"x");
 
         [WorkItem(543819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543819")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Unchecked()
-        {
-            await VerifyItemExistsAsync(AddInsideMethod(@"var x = 0; unchecked($$"), @"x");
-        }
+            => await VerifyItemExistsAsync(AddInsideMethod(@"var x = 0; unchecked($$"), @"x");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Locals()
-        {
-            await VerifyItemExistsAsync(@"class c { void M() { string goo; $$", "goo");
-        }
+            => await VerifyItemExistsAsync(@"class c { void M() { string goo; $$", "goo");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Parameters()
-        {
-            await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
-        }
+            => await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LambdaDiscardParameters()
-        {
-            await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = (int _, string _) => 1 + $$", "_");
-        }
+            => await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = (int _, string _) => 1 + $$", "_");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AnonymousMethodDiscardParameters()
-        {
-            await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = delegate(int _, string _) { return 1 + $$ }; } }", "_");
-        }
+            => await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = delegate(int _, string _) { return 1 + $$ }; } }", "_");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommonTypesInNewExpressionContext()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class c { void M() { new $$"), "Exception");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class c { void M() { new $$"), "Exception");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoCompletionForUnboundTypes()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M() { goo.$$"), "Equals");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M() { goo.$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParametersInTypeOf()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M(int x) { typeof($$"), "x");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M(int x) { typeof($$"), "x");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParametersInDefault()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M(int x) { default($$"), "x");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class c { void M(int x) { default($$"), "x");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParametersInSizeOf()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M(int x) { unsafe { sizeof($$"), "x");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M(int x) { unsafe { sizeof($$"), "x");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoParametersInGenericParameterList()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class Generic<T> { void M(int x) { Generic<$$"), "x");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class Generic<T> { void M(int x) { Generic<$$"), "x");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoMembersAfterNullLiteral()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M() { null.$$"), "Equals");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M() { null.$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterTrueLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { true.$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { true.$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterFalseLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { false.$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { false.$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterCharLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { 'c'.$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { 'c'.$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterStringLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { """".$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { """".$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterVerbatimStringLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { @"""".$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { @"""".$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterNumericLiteral()
@@ -1601,58 +1547,40 @@ $$";
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NoMembersAfterParenthesizedNullLiteral()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M() { (null).$$"), "Equals");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"public class C { void M() { (null).$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedTrueLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (true).$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (true).$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedFalseLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (false).$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (false).$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedCharLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { ('c').$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { ('c').$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedStringLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { ("""").$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { ("""").$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedVerbatimStringLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (@"""").$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (@"""").$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterParenthesizedNumericLiteral()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (2).$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (2).$$"), "Equals");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task MembersAfterArithmeticExpression()
-        {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (1 + 1).$$"), "Equals");
-        }
+            => await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"public class C { void M() { (1 + 1).$$"), "Equals");
 
         [WorkItem(539332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539332")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InstanceTypesAvailableInUsingAlias()
-        {
-            await VerifyItemExistsAsync(@"using S = System.$$", "String");
-        }
+            => await VerifyItemExistsAsync(@"using S = System.$$", "String");
 
         [WorkItem(539812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -7451,9 +7379,7 @@ class C
         [WorkItem(7648, "http://github.com/dotnet/roslyn/issues/7648")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NothingAfterBaseDotInScriptContext()
-        {
-            await VerifyItemIsAbsentAsync(@"base.$$", @"ToString", sourceCodeKind: SourceCodeKind.Script);
-        }
+            => await VerifyItemIsAbsentAsync(@"base.$$", @"ToString", sourceCodeKind: SourceCodeKind.Script);
 
         [WorkItem(858086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858086")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

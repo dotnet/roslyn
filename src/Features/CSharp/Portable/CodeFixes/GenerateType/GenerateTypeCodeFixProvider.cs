@@ -60,9 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
         }
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
-        {
-            return ((ExpressionSyntax)node).GetRightmostName();
-        }
+            => ((ExpressionSyntax)node).GetRightmostName();
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document, SyntaxNode node, CancellationToken cancellationToken)

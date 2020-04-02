@@ -22,9 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioActiveStatementTracker(VisualStudioWorkspace workspace)
-        {
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-        }
+            => _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
         public async Task<VsTextSpan?> GetCurrentActiveStatementPositionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)
             => (await _encService.GetCurrentActiveStatementPositionAsync(new ActiveInstructionId(moduleId, methodToken, methodVersion, ilOffset), cancellationToken).ConfigureAwait(false))?.ToVsTextSpan();

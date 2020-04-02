@@ -151,9 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         }
 
         private bool SupportsReadOnlyProperties(Compilation compilation)
-        {
-            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
-        }
+            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
 
         private AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
         {

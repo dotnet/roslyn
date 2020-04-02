@@ -144,9 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             private readonly PickMembersDialog _dialog;
 
             public TestAccessor(PickMembersDialog dialog)
-            {
-                _dialog = dialog;
-            }
+                => _dialog = dialog;
 
             public Button OKButton => _dialog.OKButton;
 

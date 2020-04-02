@@ -128,9 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsRightOfDotOrArrow(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            return syntaxTree.IsRightOf(position, s_isDotOrArrow, cancellationToken);
-        }
+            => syntaxTree.IsRightOf(position, s_isDotOrArrow, cancellationToken);
 
         private static bool IsRightOf(
             this SyntaxTree syntaxTree, int position, Func<SyntaxKind, bool> predicate, CancellationToken cancellationToken)

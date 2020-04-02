@@ -19,8 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         }
 
         public bool IsIdentifierValidForRenameTracking(string name)
-        {
-            return false;
-        }
+            => false;
     }
 }

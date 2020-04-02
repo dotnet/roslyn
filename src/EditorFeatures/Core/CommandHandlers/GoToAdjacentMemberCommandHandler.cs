@@ -36,29 +36,19 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService)
-        {
-            _outliningManagerService = outliningManagerService;
-        }
+            => _outliningManagerService = outliningManagerService;
 
         public CommandState GetCommandState(GoToNextMemberCommandArgs args)
-        {
-            return GetCommandStateImpl(args);
-        }
+            => GetCommandStateImpl(args);
 
         public bool ExecuteCommand(GoToNextMemberCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandImpl(args, gotoNextMember: true, context);
-        }
+            => ExecuteCommandImpl(args, gotoNextMember: true, context);
 
         public CommandState GetCommandState(GoToPreviousMemberCommandArgs args)
-        {
-            return GetCommandStateImpl(args);
-        }
+            => GetCommandStateImpl(args);
 
         public bool ExecuteCommand(GoToPreviousMemberCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandImpl(args, gotoNextMember: false, context);
-        }
+            => ExecuteCommandImpl(args, gotoNextMember: false, context);
 
         private CommandState GetCommandStateImpl(EditorCommandArgs args)
         {

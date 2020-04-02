@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         public static Option2<bool> GetOption(FunctionId id)
-        {
-            return s_options.GetOrAdd(id, s_optionCreator);
-        }
+            => s_options.GetOrAdd(id, s_optionCreator);
     }
 }

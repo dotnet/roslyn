@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public AssetProvider AssetProvider { get; }
 
         public SolutionService(AssetProvider assetProvider)
-        {
-            AssetProvider = assetProvider;
-        }
+            => AssetProvider = assetProvider;
 
         public static RemoteWorkspace PrimaryWorkspace
         {

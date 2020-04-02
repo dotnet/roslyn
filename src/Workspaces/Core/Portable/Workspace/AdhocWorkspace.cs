@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis
         /// Clears all projects and documents from the workspace.
         /// </summary>
         public new void ClearSolution()
-        {
-            base.ClearSolution();
-        }
+            => base.ClearSolution();
 
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
