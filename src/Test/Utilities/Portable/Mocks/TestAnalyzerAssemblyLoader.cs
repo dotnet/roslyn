@@ -21,7 +21,10 @@ namespace Roslyn.Test.Utilities
             _loadFromPath = loadFromPath;
         }
 
-        public void AddDependencyLocation(string fullPath) => _addDependencyLocation?.Invoke(fullPath);
-        public Assembly LoadFromPath(string fullPath) => (_loadFromPath ?? throw new NotImplementedException())(fullPath);
+        public void AddDependencyLocation(string fullPath)
+            => _addDependencyLocation?.Invoke(fullPath);
+
+        public Assembly LoadFromPath(string fullPath)
+            => (_loadFromPath != null) ? _loadFromPath(fullPath) : Assembly.LoadFrom(fullPath);
     }
 }

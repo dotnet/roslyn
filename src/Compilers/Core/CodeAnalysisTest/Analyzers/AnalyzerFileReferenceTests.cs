@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // legacy overload:
             Assert.True(refA.Equals((AnalyzerReference)refA));
             Assert.False(refA.Equals((AnalyzerReference?)null));
-            Assert.True(refA.Equals((AnalyzerReference)refB));
+            Assert.True(refA!.Equals((AnalyzerReference)refB));
             Assert.True(refA.Equals(new TestAnalyzerReference(path1)));
             Assert.False(refA.Equals(new TestAnalyzerReference(path2)));
         }
