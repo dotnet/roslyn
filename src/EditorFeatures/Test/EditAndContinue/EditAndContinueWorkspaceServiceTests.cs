@@ -32,14 +32,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public sealed class EditAndContinueWorkspaceServiceTests : TestBase
     {
+        private static readonly ActiveStatementProvider s_noActiveStatements =
+            cancellationToken => Task.FromResult(ImmutableArray<ActiveStatementDebugInfo>.Empty);
+
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly Mock<IDiagnosticAnalyzerService> _mockDiagnosticService;
         private readonly MockDebuggeeModuleMetadataProvider _mockDebugeeModuleMetadataProvider;
         private readonly Mock<IActiveStatementTrackingService> _mockActiveStatementTrackingService;
         private readonly MockCompilationOutputsProviderService _mockCompilationOutputsService;
 
-        private Mock<IActiveStatementProvider> _mockActiveStatementProvider;
-        private readonly List<Guid> _modulesPreparedForUpdate;
         private readonly List<DiagnosticsUpdatedArgs> _emitDiagnosticsUpdated;
         private int _emitDiagnosticsClearedCount;
         private readonly List<string> _telemetryLog;
@@ -47,7 +48,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public EditAndContinueWorkspaceServiceTests()
         {
-            _modulesPreparedForUpdate = new List<Guid>();
             _mockDiagnosticService = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
             _mockDiagnosticService.Setup(s => s.Reanalyze(It.IsAny<Workspace>(), It.IsAny<IEnumerable<ProjectId>>(), It.IsAny<IEnumerable<DocumentId>>(), It.IsAny<bool>()));
 
@@ -56,19 +56,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             _diagnosticUpdateSource.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs args) => _emitDiagnosticsUpdated.Add(args);
             _diagnosticUpdateSource.DiagnosticsCleared += (object sender, EventArgs args) => _emitDiagnosticsClearedCount++;
 
-            _mockActiveStatementProvider = new Mock<IActiveStatementProvider>(MockBehavior.Strict);
-            _mockActiveStatementProvider.Setup(p => p.GetActiveStatementsAsync(It.IsAny<CancellationToken>())).
-                Returns(Task.FromResult(ImmutableArray<ActiveStatementDebugInfo>.Empty));
-
             _mockDebugeeModuleMetadataProvider = new MockDebuggeeModuleMetadataProvider
             {
-                IsEditAndContinueAvailable = (Guid guid, out int errorCode, out string localizedMessage) =>
-                {
-                    errorCode = 0;
-                    localizedMessage = null;
-                    return true;
-                },
-                PrepareModuleForUpdate = mvid => _modulesPreparedForUpdate.Add(mvid)
+                IsEditAndContinueAvailable = _ => (0, null)
             };
 
             _mockActiveStatementTrackingService = new Mock<IActiveStatementTrackingService>(MockBehavior.Strict);
@@ -86,7 +76,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 _mockCompilationOutputsService,
                 _mockDiagnosticService.Object,
                 _diagnosticUpdateSource,
-                _mockActiveStatementProvider.Object,
                 _mockDebugeeModuleMetadataProvider,
                 reportTelemetry: data => EditAndContinueWorkspaceService.LogDebuggingSessionTelemetry(data, (id, message) => _telemetryLog.Add($"{id}: {message.GetMessage()}"), () => ++_telemetryId));
 
@@ -147,7 +136,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         private void LoadLibraryToDebuggee(DebuggeeModuleInfo debuggeeModuleInfo)
-            => _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => debuggeeModuleInfo;
+        {
+            _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => debuggeeModuleInfo;
+            _mockDebugeeModuleMetadataProvider.IsEditAndContinueAvailable = _ => (0, null);
+        }
 
         private (DebuggeeModuleInfo, Guid) EmitLibrary(
             string source,
@@ -184,6 +176,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // library not loaded yet:
             _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => null;
+            _mockDebugeeModuleMetadataProvider.IsEditAndContinueAvailable = _ => null;
 
             return (debuggeeModuleInfo, moduleId);
         }
@@ -203,7 +196,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 StartDebuggingSession(service);
 
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
                 _mockActiveStatementTrackingService.Verify(ts => ts.StartTracking(It.IsAny<EditSession>()), Times.Once());
 
                 service.EndEditSession();
@@ -543,7 +536,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var service = CreateEditAndContinueService(workspace);
 
                 StartDebuggingSession(service);
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
 
                 // change the source:
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -584,7 +577,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var service = CreateEditAndContinueService(workspace);
 
             StartDebuggingSession(service);
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // change the source:
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single(d => d.Id == documentInfo.Id);
@@ -638,7 +631,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // change the source (rude edit):
             workspace.ChangeDocument(documentB.Id, SourceText.From("class B { public void RenamedMethod() { } }"));
@@ -687,7 +680,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var service = CreateEditAndContinueService(workspace);
 
                 StartDebuggingSession(service);
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
 
                 // change the source:
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -762,7 +755,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var service = CreateEditAndContinueService(workspace);
             StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // change the source:
             workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
@@ -828,7 +821,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var service = CreateEditAndContinueService(workspace);
             StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // change the source:
             workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
@@ -898,19 +891,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path));
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            _mockDebugeeModuleMetadataProvider.IsEditAndContinueAvailable = (Guid guid, out int errorCode, out string localizedMessage) =>
-            {
-                errorCode = 123;
-                localizedMessage = "*message*";
-                return false;
-            };
+            _mockDebugeeModuleMetadataProvider.IsEditAndContinueAvailable = _ => (errorCode: 123, errorMessage: "*message*");
 
             _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path));
 
             var service = CreateEditAndContinueService(workspace);
 
             StartDebuggingSession(service);
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // add a source file:
             var document2 = project.AddDocument("file2.cs", SourceText.From("class C2 {}"));
@@ -974,19 +962,17 @@ class C1
                 var project = workspace.CurrentSolution.Projects.Single();
                 _mockCompilationOutputsService.Outputs.Add(project.Id, new MockCompilationOutputs(moduleId));
 
-                _mockDebugeeModuleMetadataProvider.IsEditAndContinueAvailable = (Guid guid, out int errorCode, out string localizedMessage) =>
+                _mockDebugeeModuleMetadataProvider.IsEditAndContinueAvailable = guid =>
                 {
                     Assert.Equal(moduleId, guid);
-                    errorCode = 123;
-                    localizedMessage = "*message*";
-                    return false;
+                    return (errorCode: 123, errorMessage: "*message*");
                 };
 
                 var service = CreateEditAndContinueService(workspace);
 
-                StartDebuggingSession(service);
+                var debuggingSession = StartDebuggingSession(service);
 
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
                 // change the source:
@@ -1015,7 +1001,7 @@ class C1
                 service.EndDebuggingSession();
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-                AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+                AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
                 AssertEx.Equal(new[]
                 {
@@ -1053,7 +1039,7 @@ class C1
             var service = CreateEditAndContinueService(workspace);
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // Emulate opening the file, which will trigger "out-of-sync" check.
             // Since we find content matching the PDB checksum we update the committed solution with this source text.
@@ -1079,9 +1065,9 @@ class C1
 
                 var service = CreateEditAndContinueService(workspace);
 
-                StartDebuggingSession(service);
+                var debuggingSession = StartDebuggingSession(service);
 
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
                 // change the source (rude edit):
@@ -1106,7 +1092,7 @@ class C1
                 service.EndDebuggingSession();
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-                AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+                AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
                 AssertEx.Equal(new[]
                 {
@@ -1147,7 +1133,7 @@ class C1
             var service = CreateEditAndContinueService(workspace);
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
             // change the source (rude edit):
@@ -1197,7 +1183,7 @@ class C1
             service.EndDebuggingSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-            AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+            AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
             AssertEx.Equal(new[]
             {
@@ -1232,7 +1218,7 @@ class C1
             // do not initialize the document state - we will detect the state based on the PDB content.
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // change the source (rude edit since the base document content matches the PDB checksum, so the document is not out-of-sync):
             workspace.ChangeDocument(document1.Id, SourceText.From("abstract class C { public abstract void M(); public abstract void N(); }"));
@@ -1280,7 +1266,7 @@ class C1
             // do not initialize the document state - we will detect the state based on the PDB content.
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // change the source (rude edit) before the library is loaded:
             workspace.ChangeDocument(document1.Id, SourceText.From("class C { public void Renamed() { } }"));
@@ -1329,9 +1315,9 @@ class C1
 
                 var service = CreateEditAndContinueService(workspace);
 
-                StartDebuggingSession(service);
+                var debuggingSession = StartDebuggingSession(service);
 
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
                 // change the source (compilation error):
@@ -1356,7 +1342,7 @@ class C1
                 service.EndDebuggingSession();
                 VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-                AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+                AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
                 AssertEx.Equal(new[]
                 {
@@ -1378,9 +1364,9 @@ class C1
 
             var service = CreateEditAndContinueService(workspace);
 
-            StartDebuggingSession(service);
+            var debuggingSession = StartDebuggingSession(service);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
             // change the source (compilation error):
@@ -1413,7 +1399,7 @@ class C1
             service.EndDebuggingSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-            AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+            AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
             AssertEx.Equal(new[]
             {
@@ -1442,7 +1428,7 @@ class C1
                 var service = CreateEditAndContinueService(workspace);
 
                 StartDebuggingSession(service);
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
 
                 // change C.cs to have a compilation error:
                 var projectC = workspace.CurrentSolution.GetProjectsByName("C").Single();
@@ -1477,7 +1463,7 @@ class C1
 
             StartDebuggingSession(service);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
             var editSession = service.Test_GetEditSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
@@ -1575,7 +1561,7 @@ class C1
             var service = CreateEditAndContinueService(workspace);
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // The user opens the source file and changes the source before Roslyn receives file watcher event.
             var source2 = "class C1 { void M() { System.Console.WriteLine(2); } }";
@@ -1598,7 +1584,7 @@ class C1
 
             service.EndEditSession();
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // file watcher updates the workspace:
             workspace.ChangeDocument(documentId, CreateSourceTextFromFile(sourceFile.Path));
@@ -1655,7 +1641,7 @@ class C1
             var service = CreateEditAndContinueService(workspace);
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
 
             // user edits the file:
             workspace.ChangeDocument(documentId, SourceText.From(source3, Encoding.UTF8));
@@ -1730,9 +1716,9 @@ class C1
 
             var service = CreateEditAndContinueService(workspace);
 
-            StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
             // no changes have been made to the project
@@ -1770,7 +1756,7 @@ class C1
             // no diagnostics reported via a document analyzer
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-            Assert.Empty(_modulesPreparedForUpdate);
+            Assert.Empty(debuggingSession.Test_GetModulesPreparedForUpdate());
         }
 
         [Theory]
@@ -1791,9 +1777,9 @@ class C1
 
             var service = CreateEditAndContinueService(workspace);
 
-            StartDebuggingSession(service);
+            var debuggingSession = StartDebuggingSession(service);
 
-            service.StartEditSession();
+            service.StartEditSession(s_noActiveStatements);
             var editSession = service.Test_GetEditSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
@@ -1869,7 +1855,7 @@ class C1
             service.EndDebuggingSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
 
-            AssertEx.Equal(new[] { moduleId }, _modulesPreparedForUpdate);
+            AssertEx.SetEqual(new[] { moduleId }, debuggingSession.Test_GetModulesPreparedForUpdate());
 
             // the debugger disposes the module metadata and SymReader:
             debuggeeModuleInfo.Dispose();
@@ -1910,14 +1896,15 @@ class C1
             _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path, pdbFile.Path));
 
             // set up an active statement in the first method, so that we can test preservation of local signature.
-            _mockActiveStatementProvider = new Mock<IActiveStatementProvider>(MockBehavior.Strict);
-            _mockActiveStatementProvider.Setup(p => p.GetActiveStatementsAsync(It.IsAny<CancellationToken>())).
-                Returns(Task.FromResult(ImmutableArray.Create(new ActiveStatementDebugInfo(
+            Task<ImmutableArray<ActiveStatementDebugInfo>> activeStatementProvider(CancellationToken _)
+            {
+                return Task.FromResult(ImmutableArray.Create(new ActiveStatementDebugInfo(
                     new ActiveInstructionId(moduleId, methodToken: 0x06000001, methodVersion: 1, ilOffset: 0),
                     documentNameOpt: document1.Name,
                     linePositionSpan: new LinePositionSpan(new LinePosition(0, 15), new LinePosition(0, 16)),
                     threadIds: ImmutableArray.Create(Guid.NewGuid()),
-                    ActiveStatementFlags.IsLeafFrame))));
+                    ActiveStatementFlags.IsLeafFrame)));
+            }
 
             // module not loaded
             _mockDebugeeModuleMetadataProvider.TryGetBaselineModuleInfo = mvid => null;
@@ -1926,7 +1913,7 @@ class C1
 
             StartDebuggingSession(service);
 
-            service.StartEditSession();
+            service.StartEditSession(activeStatementProvider);
             var editSession = service.Test_GetEditSession();
 
             // change the source (valid edit):
@@ -1985,7 +1972,7 @@ class C1
                 service.EndEditSession();
 
                 // make another update:
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
 
                 // Update M1 - this method has an active statement, so we will attempt to preserve the local signature.
                 // Since the method hasn't been edited before we'll read the baseline PDB to get the signature token.
@@ -2069,7 +2056,7 @@ class C1
 
                 StartDebuggingSession(service);
 
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
                 var editSession = service.Test_GetEditSession();
 
                 //
@@ -2125,7 +2112,7 @@ class C1
                 Assert.False(await service.HasChangesAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
                 service.EndEditSession();
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
                 editSession = service.Test_GetEditSession();
 
                 //
@@ -2270,7 +2257,7 @@ class C1
 
                 StartDebuggingSession(service);
 
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
 
                 // change the source (valid edit):
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -2308,7 +2295,7 @@ class C1
 
                 StartDebuggingSession(service);
 
-                service.StartEditSession();
+                service.StartEditSession(s_noActiveStatements);
 
                 // change the source (valid edit):
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
