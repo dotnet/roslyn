@@ -1780,6 +1780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_WrongFuncPtrCallingConvention = 8786,
         ERR_MissingAddressOf = 8787,
         ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
+        ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
 
         ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,

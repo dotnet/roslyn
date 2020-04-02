@@ -1575,7 +1575,6 @@ unsafe class C
         [Fact]
         public void FunctionPointerTypePatternRecursiveType()
         {
-
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
 {
@@ -1590,6 +1589,28 @@ unsafe class C
                 // (7,23): error CS8521: Pattern-matching is not permitted for pointer types.
                 //         _ = c is { O: delegate*<void> _ };
                 Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "delegate*<void>").WithLocation(7, 23)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeNotPermittedInFixedInitializer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M() {}
+    void M(C c)
+    {
+        fixed (delegate*<void> ptr = &M)
+        {
+        }
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,32): error CS8789: The type of a local declared in a fixed statement cannot be a function pointer type.
+                //         fixed (delegate*<void> ptr = &M)
+                Diagnostic(ErrorCode.ERR_CannotUseFunctionPointerAsFixedLocal, "ptr = &M").WithLocation(7, 32)
             );
         }
     }
