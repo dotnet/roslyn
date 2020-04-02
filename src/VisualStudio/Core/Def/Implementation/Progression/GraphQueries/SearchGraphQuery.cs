@@ -58,8 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         }
                         else
                         {
-                            await AddLinkedNodeForMemberAsync(
-                                project, symbol, graphBuilder).ConfigureAwait(false);
+                            await AddLinkedNodeForMemberAsync(project, symbol, graphBuilder).ConfigureAwait(false);
                         }
                     }
                 }
