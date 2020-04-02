@@ -268,24 +268,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        private static void AddConflictingParametersOfProperties(
-            IEnumerable<ISymbol> properties, string newPropertyName, ArrayBuilder<Location> conflicts)
-        {
-            // check if the new property name conflicts with any parameter of the properties.
-            // Note: referencedSymbols come from the original solution, so there is no need to reverse map the locations of the parameters
-            foreach (var symbol in properties)
-            {
-                var prop = (IPropertySymbol)symbol;
-
-                var conflictingParameter = prop.Parameters.FirstOrDefault(param => string.Compare(param.Name, newPropertyName, StringComparison.OrdinalIgnoreCase) == 0);
-
-                if (conflictingParameter != null)
-                {
-                    conflicts.AddRange(conflictingParameter.Locations);
-                }
-            }
-        }
-
         private static void AddConflictingSymbolLocations(IEnumerable<ISymbol> conflictingSymbols, ConflictResolution conflictResolution, IDictionary<Location, Location> reverseMappedLocations)
         {
             foreach (var newSymbol in conflictingSymbols)
