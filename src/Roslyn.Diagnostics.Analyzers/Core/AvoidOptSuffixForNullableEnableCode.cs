@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
@@ -10,7 +9,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class AvoidOptSuffixForNullableEnableCode : DiagnosticAnalyzer
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    public sealed class AvoidOptSuffixForNullableEnableCode : DiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.AvoidOptSuffixForNullableEnableCodeRuleIdTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
@@ -37,19 +37,13 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterSymbolAction(context =>
             {
-                if (context.Symbol.Name.EndsWith("Opt", System.StringComparison.Ordinal))
+                if (context.Symbol.Name.EndsWith("Opt", System.StringComparison.Ordinal) &&
+                    context.Symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is { } node &&
+                    context.Compilation.GetSemanticModel(node.SyntaxTree).GetNullableContext(node.SpanStart).AnnotationsEnabled())
                 {
-                    var parseOptions = context.Symbol.DeclaringSyntaxReferences
-                        .Select(syntaxRef => syntaxRef.GetSyntax(context.CancellationToken)?.SyntaxTree?.Options);
-
-                    if (IsNullableEnabledContext(context.Compilation.Options, parseOptions))
-                    {
-                        context.ReportDiagnostic(context.Symbol.CreateDiagnostic(Rule));
-                    }
+                    context.ReportDiagnostic(context.Symbol.CreateDiagnostic(Rule));
                 }
             }, SymbolKind.Parameter, SymbolKind.Field);
         }
-
-        protected abstract bool IsNullableEnabledContext(CompilationOptions compilationOptions, IEnumerable<ParseOptions?> parseOptions);
     }
 }
