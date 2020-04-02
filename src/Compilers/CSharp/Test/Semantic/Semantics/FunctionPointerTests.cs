@@ -1384,5 +1384,71 @@ unsafe class C
 
             AssertEx.Equal(expectedTypes, invocationTypes);
         }
+
+        [Fact]
+        public void FunctionPointerTypeCannotBeUsedInDynamicTypeArguments()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(dynamic d)
+    {
+        d.M<delegate*<void>>();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //         d.M<delegate*<void>>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeCannotBeUsedInDynamicArgument()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(dynamic d, delegate*<void> ptr)
+    {
+        d.M(ptr);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS1978: Cannot use an expression of type 'delegate*<void>' as an argument to a dynamically dispatched operation.
+                //         d.M(ptr);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "ptr").WithArguments("delegate*<void>").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeCannotBeConvertedFromDynamic()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        dynamic d = ptr;
+        ptr = d;
+        ptr = (delegate*<void>)d;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,21): error CS0029: Cannot implicitly convert type 'delegate*<void>' to 'dynamic'
+                //         dynamic d = ptr;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("delegate*<void>", "dynamic").WithLocation(6, 21),
+                // (7,15): error CS0029: Cannot implicitly convert type 'dynamic' to 'delegate*<void>'
+                //         ptr = d;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("dynamic", "delegate*<void>").WithLocation(7, 15),
+                // (8,15): error CS0030: Cannot convert type 'dynamic' to 'delegate*<void>'
+                //         ptr = (delegate*<void>)d;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate*<void>)d").WithArguments("dynamic", "delegate*<void>").WithLocation(8, 15)
+            );
+        }
     }
 }
