@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             private INamedTypeSymbol[] AttributesToRemove(Compilation compilation)
             {
                 return new[] { compilation.ComAliasNameAttributeType(), compilation.TupleElementNamesAttributeType(),
-                    compilation.DynamicAttributeType() }.WhereNotNull().ToArray()!;
+                    compilation.DynamicAttributeType(), compilation.NativeIntegerAttributeType() }.WhereNotNull().ToArray()!;
             }
 
             private IMethodSymbol? GenerateSetAccessor(

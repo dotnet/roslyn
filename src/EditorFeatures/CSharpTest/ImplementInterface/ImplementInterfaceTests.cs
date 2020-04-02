@@ -153,19 +153,37 @@ class Class : IInterface
         [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
         public async Task TestMethodWithNativeIntegers()
         {
+            var nativeIntegerAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All)]
+    public sealed class NativeIntegerAttribute : System.Attribute
+    {
+        public NativeIntegerAttribute()
+        {
+        }
+        public NativeIntegerAttribute(bool[] flags)
+        {
+        }
+    }
+}";
+
+            // Note: we're putting the attribute by hand to simulate metadata
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IInterface
 {
+    [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
     (nint, nuint) Method(nint x, nuint x2);
 }
 
 class Class : [|IInterface|]
 {
-}",
-@"using System;
+}" + nativeIntegerAttributeDefinition,
+    @"using System;
 
 interface IInterface
 {
+    [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
     (nint, nuint) Method(nint x, nuint x2);
 }
 
@@ -175,7 +193,7 @@ class Class : IInterface
     {
         throw new NotImplementedException();
     }
-}");
+}" + nativeIntegerAttributeDefinition);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -264,9 +282,10 @@ class Class : IInterface
 }
 ";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInMethod()
         {
+            // Note: we're putting the attribute by hand to simulate metadata
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IInterface
 {
