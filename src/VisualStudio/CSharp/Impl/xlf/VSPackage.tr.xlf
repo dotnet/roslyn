@@ -283,8 +283,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma listesi;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma listesi;
 Bir karakter yazıldıktan sonra tamamlanma listesini göster;
 Bir karakter silindikten sonra tamamlanma listesini göster;
 Tamamlanma listesi öğelerinin eşleşen kısımlarını vurgula;

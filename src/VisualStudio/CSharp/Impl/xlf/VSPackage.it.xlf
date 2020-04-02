@@ -283,8 +283,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente elenco di completamento;Elenchi di completamento;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente elenco di completamento;Elenchi di completamento;
 Mostra elenco di completamento dopo la digitazione di un carattere;
 Mostra elenco di completamento dopo l'eliminazione di un carattere;
 Evidenzia le parti corrispondenti di voci dell'elenco di completamento;

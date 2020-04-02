@@ -283,8 +283,9 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="needs-review-translation">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
 文字が入力された後に入力候補一覧を表示する;
 文字が削除された後に入力候補一覧を表示する;
 入力候補一覧の項目の一致している部分を強調表示する;
