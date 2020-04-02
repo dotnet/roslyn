@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             return includeZeroWidth ? SyntaxToken.Any : SyntaxToken.NonZeroWidth;
         }
 
-        private static bool Matches(Func<SyntaxToken, bool> predicate, SyntaxToken token)
+        private static bool Matches(Func<SyntaxToken, bool>? predicate, SyntaxToken token)
         {
             return predicate == null || ReferenceEquals(predicate, SyntaxToken.Any) || predicate(token);
         }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ObjectPool<Stack<ChildSyntaxList.Enumerator>> s_childEnumeratorStackPool
             = new ObjectPool<Stack<ChildSyntaxList.Enumerator>>(() => new Stack<ChildSyntaxList.Enumerator>(), 10);
 
-        internal SyntaxToken GetFirstToken(SyntaxNode current, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto)
+        internal SyntaxToken GetFirstToken(SyntaxNode current, Func<SyntaxToken, bool>? predicate, Func<SyntaxTrivia, bool>? stepInto)
         {
             var stack = s_childEnumeratorStackPool.Allocate();
             try
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
 
         private SyntaxToken GetFirstToken(
             SyntaxTriviaList triviaList,
-            Func<SyntaxToken, bool> predicate,
+            Func<SyntaxToken, bool>? predicate,
             Func<SyntaxTrivia, bool> stepInto)
         {
             Debug.Assert(stepInto != null);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis
 
         private SyntaxToken GetFirstToken(
             SyntaxToken token,
-            Func<SyntaxToken, bool> predicate,
+            Func<SyntaxToken, bool>? predicate,
             Func<SyntaxTrivia, bool>? stepInto)
         {
             // find first token that matches (either specified token or token inside related trivia)
