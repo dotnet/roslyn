@@ -3343,6 +3343,173 @@ unsafe class C
 ");
         }
 
+        [Fact]
+        public void ArraysSupport()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    public static void M(string s) => Console.Write(s);
+    public static void Main()
+    {
+        delegate*<string, void>[] ptrs = new delegate*<string, void>[] { &M, &M };
+        for (int i = 0; i < ptrs.Length; i++)
+        {
+            ptrs[i](i.ToString());
+        }
+    }
+}", expectedOutput: "01");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       57 (0x39)
+  .maxstack  4
+  .locals init (delegate*<string,void>[] V_0, //ptrs
+                int V_1, //i
+                delegate*<string,void> V_2)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""delegate*<string,void>""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldftn      ""void C.M(string)""
+  IL_000e:  stelem.i
+  IL_000f:  dup
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldftn      ""void C.M(string)""
+  IL_0017:  stelem.i
+  IL_0018:  stloc.0
+  IL_0019:  ldc.i4.0
+  IL_001a:  stloc.1
+  IL_001b:  br.s       IL_0032
+  IL_001d:  ldloc.0
+  IL_001e:  ldloc.1
+  IL_001f:  ldelem.i
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  call       ""string int.ToString()""
+  IL_0028:  ldloc.2
+  IL_0029:  calli      ""delegate*<string,void>""
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.1
+  IL_0030:  add
+  IL_0031:  stloc.1
+  IL_0032:  ldloc.1
+  IL_0033:  ldloc.0
+  IL_0034:  ldlen
+  IL_0035:  conv.i4
+  IL_0036:  blt.s      IL_001d
+  IL_0038:  ret
+}
+");
+        }
+
+        [Fact]
+        public void IndirectLoadsAndStores()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static delegate*<void> field;
+    static void Printer() => Console.Write(1);
+    static ref delegate*<void> Getter() => ref field;
+
+    static void Main()
+    {
+        ref var printer = ref Getter();
+        printer = &Printer;
+        printer();
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL(@"C.Main", expectedIL: @"
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  call       ""ref delegate*<void> C.Getter()""
+  IL_0005:  dup
+  IL_0006:  ldftn      ""void C.Printer()""
+  IL_000c:  stind.i
+  IL_000d:  ldind.i
+  IL_000e:  calli      ""delegate*<void>""
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Foreach()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    public static void M(string s) => Console.Write(s);
+    public static void Main()
+    {
+        delegate*<string, void>[] ptrs = new delegate*<string, void>[] { &M, &M };
+        int i = 0;
+        foreach (delegate*<string, void> ptr in ptrs)
+        {
+            ptr(i++.ToString());
+        }
+    }
+}", expectedOutput: "01");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       66 (0x42)
+  .maxstack  4
+  .locals init (int V_0, //i
+                delegate*<string,void>[] V_1,
+                int V_2,
+                delegate*<string,void> V_3,
+                int V_4)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""delegate*<string,void>""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldftn      ""void C.M(string)""
+  IL_000e:  stelem.i
+  IL_000f:  dup
+  IL_0010:  ldc.i4.1
+  IL_0011:  ldftn      ""void C.M(string)""
+  IL_0017:  stelem.i
+  IL_0018:  ldc.i4.0
+  IL_0019:  stloc.0
+  IL_001a:  stloc.1
+  IL_001b:  ldc.i4.0
+  IL_001c:  stloc.2
+  IL_001d:  br.s       IL_003b
+  IL_001f:  ldloc.1
+  IL_0020:  ldloc.2
+  IL_0021:  ldelem.i
+  IL_0022:  stloc.3
+  IL_0023:  ldloc.0
+  IL_0024:  dup
+  IL_0025:  ldc.i4.1
+  IL_0026:  add
+  IL_0027:  stloc.0
+  IL_0028:  stloc.s    V_4
+  IL_002a:  ldloca.s   V_4
+  IL_002c:  call       ""string int.ToString()""
+  IL_0031:  ldloc.3
+  IL_0032:  calli      ""delegate*<string,void>""
+  IL_0037:  ldloc.2
+  IL_0038:  ldc.i4.1
+  IL_0039:  add
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ldloc.1
+  IL_003d:  ldlen
+  IL_003e:  conv.i4
+  IL_003f:  blt.s      IL_001f
+  IL_0041:  ret
+}
+");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
