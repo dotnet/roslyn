@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -483,7 +485,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 
                 typeTextLabel.Visibility = Visibility.Visible;
                 kindTextLabel.Visibility = Visibility.Visible;
-                typeValueLabel.Content = operation.GetType().Name;
+                typeValueLabel.Content = string.Join(", ", GetOperationInterfaces(operation));
                 kindValueLabel.Content = kind;
                 _propertyGrid.SelectedObject = operation;
 
@@ -537,6 +539,32 @@ namespace Roslyn.SyntaxVisualizer.Control
                         AddOperation(item, child);
                     }
                 }
+            }
+
+            return;
+
+            // local functions
+            static IEnumerable<string> GetOperationInterfaces(IOperation operation)
+            {
+                var interfaces = new List<Type>();
+                foreach (var interfaceType in operation.GetType().GetInterfaces())
+                {
+                    if (interfaceType == typeof(IOperation)
+                        || !interfaceType.IsPublic
+                        || !interfaceType.GetInterfaces().Contains(typeof(IOperation)))
+                    {
+                        continue;
+                    }
+
+                    interfaces.Add(interfaceType);
+                }
+
+                if (interfaces.Count == 0)
+                {
+                    interfaces.Add(typeof(IOperation));
+                }
+
+                return interfaces.OrderByDescending(x => x.GetInterfaces().Length).Select(x => x.Name);
             }
         }
 
