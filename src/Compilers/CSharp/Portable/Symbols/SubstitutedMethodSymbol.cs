@@ -219,14 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool ReturnsVoid
-        {
-            get
-            {
-                return OriginalDefinition.ReturnsVoid;
-            }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
