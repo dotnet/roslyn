@@ -8,6 +8,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -17,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private CSharpCompilation CreateCompilationWithFunctionPointers(string source)
         {
             return CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+        }
+
+        private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation)
+        {
+            return CompileAndVerify(compilation, verify: Verification.Skipped);
         }
 
         [Fact]
@@ -38,7 +44,7 @@ unsafe class C
     static string M4() => throw null;
 }");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("C.M1", expectedIL: @"
 {
   // Code size       24 (0x18)
@@ -94,7 +100,7 @@ unsafe class C
         delegate*<C, int> ptr4 = null;
     }
 }");
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("C.M", @"
 {
   // Code size       13 (0xd)
@@ -150,7 +156,7 @@ unsafe class C
     }}
 }}");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL(@"C.M", expectedIL: $@"
 {{
   // Code size       10 (0xa)
@@ -200,7 +206,7 @@ unsafe class C
     }}
 }}");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL(@"C.M", expectedIL: $@"
 {{
   // Code size       13 (0xd)
@@ -251,7 +257,7 @@ unsafe class C
     }}
 }}");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("C.M", $@"
 {{
   // Code size        7 (0x7)
@@ -293,7 +299,7 @@ unsafe struct S
     }
 }");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("S.M", @"
 {
   // Code size       17 (0x11)
@@ -395,7 +401,7 @@ unsafe class C
     }
 }");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("C.M", @"
 {
   // Code size       13 (0xd)
@@ -435,7 +441,7 @@ unsafe class C
     }
 }");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("C.M", @"
 {
   // Code size        7 (0x7)
@@ -477,7 +483,7 @@ unsafe class C
     }
 }");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("C.M", @"
 {
   // Code size        3 (0x3)
@@ -510,7 +516,7 @@ unsafe class C
     }
 }");
 
-            var verifier = CompileAndVerify(comp);
+            var verifier = CompileAndVerifyFunctionPointers(comp);
             verifier.VerifyIL("C.M", @"
 {
   // Code size        3 (0x3)
@@ -624,15 +630,15 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,47): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate*<ref readonly string> ptr1 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(6, 47),
-                // (7,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate*<string> ptr2 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(7, 34),
-                // (8,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<object>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate*<object> ptr3 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<object>").WithLocation(8, 34)
+                // (6,38): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* cdecl<void> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(6, 38),
+                // (7,41): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* thiscall<void> ptr2 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(7, 41),
+                // (8,40): error CS0266: Cannot implicitly convert type 'delegate*<void>' to 'delegate*<void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate* stdcall<void> ptr3 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<void>", "delegate*<void>").WithLocation(8, 40)
             );
         }
 
