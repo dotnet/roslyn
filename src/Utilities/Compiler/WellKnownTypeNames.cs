@@ -2,6 +2,7 @@
 
 namespace Analyzer.Utilities
 {
+    // IMPORTANT: Keep this file sorted alphabetically.
     internal static class WellKnownTypeNames
     {
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
