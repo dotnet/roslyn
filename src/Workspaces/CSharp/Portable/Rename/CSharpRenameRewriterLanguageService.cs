@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         }
                     }
 
-                    ConflictResolver.AddConflictingParametersOfProperties(
+                    AddConflictingParametersOfProperties(
                         properties.Distinct(), replacementText, conflicts);
                 }
                 else if (renamedSymbol.Kind == SymbolKind.Alias)
