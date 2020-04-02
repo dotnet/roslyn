@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTests : CompilingTestBase
     {
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null)
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.RegularPreview);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation)
@@ -1467,6 +1467,129 @@ unsafe class C
                 // (6,12): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
                 //         ptr?.ToString();
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(6, 12)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypePatternIsNull()
+        {
+            var source = @"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr = null;
+        Console.WriteLine(ptr is null);
+        Console.WriteLine(ptr is var v);
+    }
+}";
+
+            var comp = CreateCompilationWithFunctionPointers(source, TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: @"
+True
+True");
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  3
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  dup
+  IL_0003:  ldnull
+  IL_0004:  ceq
+  IL_0006:  call       ""void System.Console.WriteLine(bool)""
+  IL_000b:  pop
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""void System.Console.WriteLine(bool)""
+  IL_0012:  ret
+}
+");
+
+            comp = CreateCompilationWithFunctionPointers(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         delegate*<void> ptr = null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(7, 9),
+                // (8,34): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         Console.WriteLine(ptr is null);
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(8, 34),
+                // (9,34): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         Console.WriteLine(ptr is var v);
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var v").WithLocation(9, 34)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypePatternRecursiveInput()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        _ = ptr is { } _;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = ptr is { } _;
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{ } _").WithLocation(6, 20)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeIsAsOperator()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(object o, delegate*<void> ptr)
+    {
+        _ = o is delegate*<void>;
+        _ = o as delegate*<void>;
+        _ = ptr as object;
+        _ = ptr is object;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         _ = o is delegate*<void>;
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "o is delegate*<void>").WithLocation(6, 13),
+                // (7,13): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         _ = o as delegate*<void>;
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "o as delegate*<void>").WithLocation(7, 13),
+                // (8,13): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         _ = ptr as object;
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "ptr as object").WithLocation(8, 13),
+                // (9,13): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         _ = ptr is object;
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "ptr is object").WithLocation(9, 13)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypePatternRecursiveType()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public object O = null;
+    void M(C c)
+    {
+        _ = c is { O: delegate*<void> _ };
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,23): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = c is { O: delegate*<void> _ };
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "delegate*<void>").WithLocation(7, 23)
             );
         }
     }

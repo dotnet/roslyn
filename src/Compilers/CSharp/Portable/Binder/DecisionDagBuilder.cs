@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression variableAccess = declaration.VariableAccess;
             if (variableAccess != null)
             {
-                Debug.Assert(variableAccess.Type.Equals(input.Type, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(variableAccess.Type.Equals(input.Type, TypeCompareKind.AllIgnoreOptions) || variableAccess.Type.IsErrorType());
                 bindings.Add(new BoundPatternBinding(variableAccess, input));
             }
             else
