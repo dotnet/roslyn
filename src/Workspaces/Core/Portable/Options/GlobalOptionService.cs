@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Options
             = ImmutableDictionary.Create<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)>(AnalyzerConfigOptions.KeyComparer);
 
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
-        private readonly ImmutableArray<Lazy<IOptionPersister>> _optionSerializers;
+        private readonly ImmutableArray<Lazy<IOptionPersister>> _optionPersisters;
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
         private readonly HashSet<string> _forceComputedLanguages;
 
@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.Options
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GlobalOptionService(
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
-            [ImportMany] IEnumerable<Lazy<IOptionPersister>> optionSerializers)
+            [ImportMany] IEnumerable<Lazy<IOptionPersister>> optionPersisters)
         {
             _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
-            _optionSerializers = optionSerializers.ToImmutableArray();
+            _optionPersisters = optionPersisters.ToImmutableArray();
             _serializableOptionsByLanguage = CreateLazySerializableOptionsByLanguage(optionProviders);
             _forceComputedLanguages = new HashSet<string>();
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private object? LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)
+        private object? LoadOptionFromPersisterOrGetDefault(OptionKey optionKey)
         {
-            foreach (var serializer in _optionSerializers)
+            foreach (var persister in _optionPersisters)
             {
-                // We have a deserializer, so deserialize and use that value.
-                if (serializer.Value.TryFetch(optionKey, out var deserializedValue))
+                // We have a persister, so deserialize and use that value.
+                if (persister.Value.TryFetch(optionKey, out var deserializedValue))
                 {
                     return deserializedValue;
                 }
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return value;
             }
 
-            value = LoadOptionFromSerializerOrGetDefault(optionKey);
+            value = LoadOptionFromPersisterOrGetDefault(optionKey);
 
             _currentValues = _currentValues.Add(optionKey, value);
 
@@ -321,9 +321,9 @@ namespace Microsoft.CodeAnalysis.Options
 
                     SetOptionCore(optionKey, setValue);
 
-                    foreach (var serializer in _optionSerializers)
+                    foreach (var persister in _optionPersisters)
                     {
-                        if (serializer.Value.TryPersist(optionKey, setValue))
+                        if (persister.Value.TryPersist(optionKey, setValue))
                         {
                             break;
                         }
