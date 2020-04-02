@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     underlyingType = innerArray.ElementType;
 
 #if !CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
-                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+                    // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                     if (underlyingType.NullableAnnotation == NullableAnnotation.Annotated)
                     {
                         // If the inner array we just moved to is also nullable, then

@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public bool IsVar => IsIdentifierName("var");
         public bool IsUnmanaged => IsIdentifierName("unmanaged");
         public bool IsNotNull => IsIdentifierName("notnull");
+        public bool IsNint => IsIdentifierName("nint");
+        public bool IsNuint => IsIdentifierName("nuint");
 
         private bool IsIdentifierName(string id) => this is IdentifierNameSyntax name && name.Identifier.ToString() == id;
     }
