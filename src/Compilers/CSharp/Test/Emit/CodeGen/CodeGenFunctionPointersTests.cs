@@ -2578,6 +2578,39 @@ public unsafe class C
         }
 
         [Fact]
+        public void AddressOf_FunctionPointerConversionReturn()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static string ToStringer(object o) => o.ToString();
+    static delegate*<object, string> Returner() => &ToStringer;
+    public static void Main()
+    {
+        delegate*<delegate*<string, object>> ptr = &Returner;
+        Console.Write(ptr()(""1""));
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (delegate*<string,object> V_0)
+  IL_0000:  ldftn      ""delegate*<object,string> C.Returner()""
+  IL_0006:  calli      ""delegate*<delegate*<string,object>>""
+  IL_000b:  stloc.0
+  IL_000c:  ldstr      ""1""
+  IL_0011:  ldloc.0
+  IL_0012:  calli      ""delegate*<string,object>""
+  IL_0017:  call       ""void System.Console.Write(object)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
         public void AddressOf_Initializer_Overloads()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"

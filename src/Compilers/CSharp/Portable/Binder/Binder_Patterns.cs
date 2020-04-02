@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // input value among many constant tests.
                         convertedExpression = operand;
                     }
-                    else if (conversion.ConversionKind == ConversionKind.NullToPointer ||
+                    else if (conversion.ConversionKind == ConversionKind.ImplicitNullToPointer ||
                         (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true))
                     {
                         convertedExpression = operand;

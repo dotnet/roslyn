@@ -517,7 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnsMatch = Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
                     if (!returnsMatch && isFunctionPointerConversion)
                     {
-                        returnsMatch = ConversionsBase.HasImplicitPointerToVoidConversion(method.ReturnType, returnType);
+                        returnsMatch = ConversionsBase.HasImplicitPointerToVoidConversion(method.ReturnType, returnType)
+                                       || Conversions.HasImplicitPointerConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
                     }
                 }
                 else

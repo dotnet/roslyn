@@ -3160,11 +3160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
-                case ConversionKind.PointerToInteger:
-                case ConversionKind.PointerToPointer:
-                case ConversionKind.PointerToVoid:
-                case ConversionKind.IntegerToPointer:
-                case ConversionKind.NullToPointer:
+                case ConversionKind.ExplicitPointerToInteger:
+                case ConversionKind.ExplicitPointerToPointer:
+                case ConversionKind.ImplicitPointerToVoid:
+                case ConversionKind.ExplicitIntegerToPointer:
+                case ConversionKind.ImplicitNullToPointer:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.NullLiteral:
                 case ConversionKind.DefaultLiteral:
