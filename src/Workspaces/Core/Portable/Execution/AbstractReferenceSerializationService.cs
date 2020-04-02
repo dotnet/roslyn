@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,6 +13,8 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,6 +26,10 @@ namespace Microsoft.CodeAnalysis.Execution
 {
     internal abstract class AbstractReferenceSerializationService : IReferenceSerializationService
     {
+        // cache for encoding. 
+        // typical low number, high volumn data cache.
+        private static readonly ConcurrentDictionary<Encoding, byte[]> s_encodingCache = new ConcurrentDictionary<Encoding, byte[]>(concurrencyLevel: 2, capacity: 5);
+
         private const int MetadataFailed = int.MaxValue;
         private const string VisualStudioUnresolvedAnalyzerReference = "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer+VisualStudioUnresolvedAnalyzerReference";
 
@@ -33,16 +40,42 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private readonly ITemporaryStorageService _storageService;
         private readonly IDocumentationProviderService _documentationService;
+        private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
 
         protected AbstractReferenceSerializationService(
             ITemporaryStorageService storageService,
-            IDocumentationProviderService documentationService)
+            IDocumentationProviderService documentationService,
+            IAnalyzerAssemblyLoaderProvider analyzerLoaderProvider)
         {
             _storageService = storageService;
             _documentationService = documentationService;
+            _analyzerLoaderProvider = analyzerLoaderProvider;
         }
 
-        public virtual void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        public void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            if (encoding == null)
+            {
+                WriteNoEncodingTo(encoding, writer, cancellationToken);
+                return;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var value = GetEncodingBytes(encoding);
+            if (value == null)
+            {
+                // we couldn't serialize encoding, act like there is no encoding.
+                WriteNoEncodingTo(encoding, writer, cancellationToken);
+                return;
+            }
+
+            // write data out
+            writer.WriteByte(EncodingSerialization);
+            writer.WriteValue(value.AsSpan());
+        }
+
+        private void WriteNoEncodingTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -50,18 +83,52 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteString(encoding?.WebName);
         }
 
-        public virtual Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
+        private static byte[] GetEncodingBytes(Encoding encoding)
+        {
+            try
+            {
+                if (!s_encodingCache.TryGetValue(encoding, out var value))
+                {
+                    // we don't have cache, cache it
+                    var formatter = new BinaryFormatter();
+                    using var stream = SerializableBytes.CreateWritableStream();
+
+                    // unfortunately, this is only way to properly clone encoding
+                    formatter.Serialize(stream, encoding);
+                    value = stream.ToArray();
+
+                    // add if not already exist. otherwise, noop
+                    s_encodingCache.TryAdd(encoding, value);
+                }
+
+                return value;
+            }
+            catch (SerializationException)
+            {
+                // even though Encoding is supposed to be serializable, 
+                // not every Encoding follows the rule strictly.
+                // in such as, behave like there was no encoding
+                return null;
+            }
+        }
+
+        public Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var serialized = reader.ReadByte();
+            if (serialized == EncodingSerialization)
+            {
+                var array = (byte[])reader.ReadValue();
+                var formatter = new BinaryFormatter();
 
-            // portable layer doesn't support serialization
-            Contract.ThrowIfFalse(serialized == NoEncodingSerialization);
+                return (Encoding)formatter.Deserialize(new MemoryStream(array));
+            }
+
             return ReadEncodingFrom(serialized, reader, cancellationToken);
         }
 
-        protected Encoding ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
+        private Encoding ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -74,9 +141,6 @@ namespace Microsoft.CodeAnalysis.Execution
             return webName == null ? null : Encoding.GetEncoding(webName);
         }
 
-        protected abstract string GetAnalyzerAssemblyPath(AnalyzerFileReference reference);
-        protected abstract AnalyzerReference GetAnalyzerReference(string displayPath, string assemblyPath);
-
         public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
@@ -87,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
-        public Checksum CreateChecksum(AnalyzerReference reference, bool usePathFromAssembly, CancellationToken cancellationToken)
+        public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -98,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 switch (reference)
                 {
                     case AnalyzerFileReference file:
-                        WriteAnalyzerFileReferenceMvid(file, writer, usePathFromAssembly, cancellationToken);
+                        WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
                         break;
 
                     case UnresolvedAnalyzerReference unresolved:
@@ -153,55 +217,17 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        public void WriteTo(AnalyzerReference reference, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken)
+        public void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             switch (reference)
             {
                 case AnalyzerFileReference file:
-                    {
-                        // fail to load analyzer assembly
-                        var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
-                        if (assemblyPath == null)
-                        {
-                            WriteUnresolvedAnalyzerReferenceTo(reference, writer);
-                            return;
-                        }
-
-                        writer.WriteString(nameof(AnalyzerFileReference));
-                        writer.WriteInt32((int)SerializationKinds.FilePath);
-
-                        // TODO: remove this kind of host specific knowledge from common layer.
-                        //       but think moving it to host layer where this implementation detail actually exist.
-                        //
-                        // analyzer assembly path to load analyzer acts like
-                        // snapshot version for analyzer (since it is based on shadow copy)
-                        // we can't send over bits and load analyzer from memory (image) due to CLR not being able
-                        // to find satellite dlls for analyzers.
-                        writer.WriteString(file.FullPath);
-                        writer.WriteString(assemblyPath);
-                        return;
-                    }
-
-                case UnresolvedAnalyzerReference unresolved:
-                    {
-                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
-                        return;
-                    }
-
-                case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
-                    {
-                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
-                        return;
-                    }
-
-                case AnalyzerImageReference _:
-                    {
-                        // TODO: think a way to support this or a way to deal with this kind of situation.
-                        // https://github.com/dotnet/roslyn/issues/15783
-                        throw new NotSupportedException(nameof(AnalyzerImageReference));
-                    }
+                    writer.WriteString(nameof(AnalyzerFileReference));
+                    writer.WriteString(file.FullPath);
+                    writer.WriteBoolean(file.AssemblyLoader is ShadowCopyAnalyzerAssemblyLoader);
+                    break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(reference);
@@ -215,41 +241,22 @@ namespace Microsoft.CodeAnalysis.Execution
             var type = reader.ReadString();
             if (type == nameof(AnalyzerFileReference))
             {
-                var kind = (SerializationKinds)reader.ReadInt32();
-                Contract.ThrowIfFalse(kind == SerializationKinds.FilePath);
-
-                // display path
-                var displayPath = reader.ReadString();
-                var assemblyPath = reader.ReadString();
-
-                return GetAnalyzerReference(displayPath, assemblyPath);
-            }
-
-            if (type == nameof(UnresolvedAnalyzerReference))
-            {
                 var fullPath = reader.ReadString();
-                return new UnresolvedAnalyzerReference(fullPath);
+                var shadowCopy = reader.ReadBoolean();
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
             }
 
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
         private void WriteAnalyzerFileReferenceMvid(
-            AnalyzerFileReference file, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken)
+            AnalyzerFileReference file, ObjectWriter writer, CancellationToken cancellationToken)
         {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // use actual assembly path rather than one returned from reference.FullPath if asked (usePathFromAssembly)
-                // 2 can be different if analyzer loader used for the reference do something like shadow copying
-                // otherwise, use reference.FullPath. we use usePathFromAssembly == false for vsix installed analyzer dlls
-                // to make sure we don't load them up front and they don't get shadow copied.
-                // TryGetAnalyzerAssemblyPath will load the given assembly to find out actual location where CLR
-                // picked up the dll
-                var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
-
-                using var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+                using var stream = new FileStream(file.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
                 using var peReader = new PEReader(stream);
 
                 var metadataReader = peReader.GetMetadataReader();
@@ -697,20 +704,6 @@ namespace Microsoft.CodeAnalysis.Execution
                 // we have a reference but the file the reference is pointing to
                 // might not actually exist on disk.
                 // in that case, rather than crashing, we will handle it gracefully.
-                return null;
-            }
-        }
-
-        private string TryGetAnalyzerAssemblyPath(AnalyzerFileReference file)
-        {
-            try
-            {
-                return GetAnalyzerAssemblyPath(file);
-            }
-            catch
-            {
-                // we can't load the assembly analyzer file reference is pointing to.
-                // rather than crashing, handle it gracefully
                 return null;
             }
         }

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken);
 
-        void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken);
+        void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken);
 
         void SerializeChecksumWithChildren(ChecksumWithChildren checksums, ObjectWriter writer, CancellationToken cancellationToken);
 

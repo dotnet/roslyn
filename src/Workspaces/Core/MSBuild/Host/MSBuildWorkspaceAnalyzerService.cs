@@ -9,17 +9,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Host
 {
     [ExportWorkspaceService(typeof(IAnalyzerService), WorkspaceKind.MSBuild), Shared]
-    internal sealed class SimpleAnalyzerAssemblyLoaderService : IAnalyzerService
+    internal sealed class MSBuildWorkspaceAnalyzerService : IAnalyzerService
     {
-#if NET472
-        private readonly DesktopAnalyzerAssemblyLoader _loader = new DesktopAnalyzerAssemblyLoader();
-#elif NETCOREAPP1_1 || NETCOREAPP3_1
-        private readonly CoreClrAnalyzerAssemblyLoader _loader = new CoreClrAnalyzerAssemblyLoader();
-#endif
+        private readonly DefaultAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SimpleAnalyzerAssemblyLoaderService()
+        public MSBuildWorkspaceAnalyzerService()
         {
         }
 

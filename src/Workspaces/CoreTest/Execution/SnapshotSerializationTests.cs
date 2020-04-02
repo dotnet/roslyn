@@ -472,13 +472,8 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var service = workspace.Services.GetService<IReferenceSerializationService>();
             var expectedChecksum = Checksum.Create(
                 WellKnownSynchronizationKind.AnalyzerReference,
-                service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None));
+                service.CreateChecksum(reference, CancellationToken.None));
             Assert.Equal(expectedChecksum, asset.Checksum);
-
-            // verify usePathFromAssembly return different checksum for same reference
-            var fromFilePath = service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None);
-            var fromAssembly = service.CreateChecksum(reference, usePathFromAssembly: true, CancellationToken.None);
-            Assert.NotEqual(fromFilePath, fromAssembly);
         }
 
         [Fact]

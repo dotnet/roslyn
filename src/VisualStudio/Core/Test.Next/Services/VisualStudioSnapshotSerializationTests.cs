@@ -31,7 +31,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     @"PathToAnalyzer",
                     hostDiagnosticUpdateSource: null,
                     projectId: project.Id,
-                    workspace: workspace,
                     language: project.Language);
 
                 var analyzerReference = analyzer.GetReference();

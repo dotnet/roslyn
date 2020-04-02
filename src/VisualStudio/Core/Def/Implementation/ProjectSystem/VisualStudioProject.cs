@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -684,16 +685,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAnalyzerReference(string fullPath)
         {
-            if (string.IsNullOrEmpty(fullPath))
-            {
-                throw new ArgumentException("message", nameof(fullPath));
-            }
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
             var visualStudioAnalyzer = new VisualStudioAnalyzer(
                 fullPath,
                 _hostDiagnosticUpdateSource,
                 Id,
-                _workspace,
                 Language);
 
             lock (_gate)

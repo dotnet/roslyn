@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             }
 
             var analyzer = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
-            var analyzerService = project.Solution.Workspace.Services.GetService<IAnalyzerService>();
-            var analyzerReferences = ImmutableArray.Create<AnalyzerReference>(new AnalyzerFileReference(analyzer.GetType().Assembly.Location, analyzerService.GetLoader()));
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            var analyzerReferences = ImmutableArray.Create<AnalyzerReference>(new AnalyzerFileReference(analyzer.GetType().Assembly.Location, loader));
 
             return new TestDiagnosticAnalyzerService(analyzerReferences, _exceptionDiagnosticsSource);
         }

@@ -67,10 +67,6 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal sealed class WorkspaceAnalyzerReferenceAsset : CustomAsset
     {
-        // host analyzer is not shadow copied, no need to load assembly to get real path
-        // this also prevent us from loading assemblies for all vsix analyzers preemptively
-        private const bool usePathFromAssembly = false;
-
         private readonly AnalyzerReference _reference;
         private readonly ISerializerService _serializer;
 
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             var checksum = Checksum.Create(
                 WellKnownSynchronizationKind.AnalyzerReference,
-                hostSerializationService.CreateChecksum(reference, usePathFromAssembly, cancellationToken));
+                hostSerializationService.CreateChecksum(reference, cancellationToken));
 
             return new WorkspaceAnalyzerReferenceAsset(reference, serializer, checksum);
         }
@@ -96,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public override Task WriteObjectToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
-            _serializer.SerializeAnalyzerReference(_reference, writer, usePathFromAssembly, cancellationToken);
+            _serializer.SerializeAnalyzerReference(_reference, writer, cancellationToken);
             return Task.CompletedTask;
         }
     }
