@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => new FunctionPointerTypeSymbol(
                 FunctionPointerMethodSymbol.CreateFromMetadata(callingConvention, retAndParamTypes));
 
+        public FunctionPointerTypeSymbol SubstituteTypeSymbol(TypeWithAnnotations substitutedReturnType, ArrayBuilder<TypeWithAnnotations> substitutedParameterTypes)
+            => new FunctionPointerTypeSymbol(Signature.SubstiteParameterSymbols(substitutedReturnType, substitutedParameterTypes));
+
         public static (CallingConvention Convention, bool IsValid) GetCallingConvention(string convention) =>
             convention switch
             {

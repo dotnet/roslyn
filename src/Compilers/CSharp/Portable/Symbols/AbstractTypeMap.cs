@@ -108,6 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.PointerType:
                     result = SubstitutePointerType((PointerTypeSymbol)previous);
                     break;
+                case SymbolKind.FunctionPointer:
+                    result = SubstituteFunctionPointerType((FunctionPointerTypeSymbol)previous);
+                    break;
                 case SymbolKind.DynamicType:
                     result = SubstituteDynamicType();
                     break;
@@ -230,6 +233,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new PointerTypeSymbol(pointedAtType);
+        }
+
+        private FunctionPointerTypeSymbol SubstituteFunctionPointerType(FunctionPointerTypeSymbol f)
+        {
+            bool paramTypesChanged = false;
+            var substitutedParamTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(f.Signature.ParameterCount);
+            foreach (var param in f.Signature.Parameters)
+            {
+                var substitutedType = param.TypeWithAnnotations.SubstituteType(this);
+                if (!param.TypeWithAnnotations.IsSameAs(substitutedType))
+                {
+                    paramTypesChanged = true;
+                }
+                substitutedParamTypes.Add(substitutedType);
+            }
+
+            var substitutedReturnType = f.Signature.ReturnTypeWithAnnotations.SubstituteType(this);
+
+            if (paramTypesChanged || !f.Signature.ReturnTypeWithAnnotations.IsSameAs(substitutedReturnType))
+            {
+                f = f.SubstituteTypeSymbol(substitutedReturnType, substitutedParamTypes);
+            }
+
+            substitutedParamTypes.Free();
+            return f;
         }
 
         internal ImmutableArray<TypeSymbol> SubstituteTypesWithoutModifiers(ImmutableArray<TypeSymbol> original)

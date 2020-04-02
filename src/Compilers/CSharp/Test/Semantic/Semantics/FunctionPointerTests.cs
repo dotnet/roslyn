@@ -6,6 +6,7 @@
 #nullable enable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -725,6 +726,92 @@ unsafe class C
                 //         delegate*<delegate*<string>> ptr2 = param2;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<delegate*<object>>", "delegate*<delegate*<string>>").WithLocation(7, 45)
             );
+        }
+
+        [Fact]
+        public void FunctionPointerParameterTypeInference()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T, void> param) {}
+    public void M2()
+    {
+        delegate*<string, void> p = null;
+        M1(p);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol!;
+
+            Assert.NotSame(methodSymbol, methodSymbol.OriginalDefinition);
+            Assert.Equal(SpecialType.System_String, methodSymbol.TypeArguments[0].SpecialType);
+            var functionPointer = (FunctionPointerTypeSymbol)methodSymbol.Parameters[0].Type;
+            Assert.Equal(SpecialType.System_String, functionPointer.Signature.Parameters[0].Type.SpecialType);
+        }
+
+        [Fact]
+        public void FunctionPointerReturnTypeInference()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T> param) {}
+    public void M2()
+    {
+        delegate*<string> p = null;
+        M1(p);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol!;
+
+            Assert.NotSame(methodSymbol, methodSymbol.OriginalDefinition);
+            Assert.Equal(SpecialType.System_String, methodSymbol.TypeArguments[0].SpecialType);
+            var functionPointer = (FunctionPointerTypeSymbol)methodSymbol.Parameters[0].Type;
+            Assert.Equal(SpecialType.System_String, functionPointer.Signature.ReturnType.SpecialType);
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionInference()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T, T> param) {}
+    public void M2<T>()
+    {
+        delegate*<T, T> p = null;
+        M1(p);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol!;
+
+            Assert.NotSame(methodSymbol, methodSymbol.OriginalDefinition);
+            Assert.Equal(TypeKind.TypeParameter, methodSymbol.TypeArguments[0].TypeKind);
+            var functionPointer = (FunctionPointerTypeSymbol)methodSymbol.Parameters[0].Type;
+            Assert.Equal(TypeKind.TypeParameter, functionPointer.Signature.ReturnType.TypeKind);
+            Assert.Equal(TypeKind.TypeParameter, functionPointer.Signature.Parameters[0].Type.TypeKind);
         }
     }
 }

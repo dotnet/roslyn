@@ -95,6 +95,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static FunctionPointerMethodSymbol CreateFromMetadata(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes);
 
+        public FunctionPointerMethodSymbol SubstiteParameterSymbols(TypeWithAnnotations substitutedReturnType, ArrayBuilder<TypeWithAnnotations> substitutedParameterTypes)
+            => new FunctionPointerMethodSymbol(
+                this.CallingConvention,
+                this.RefKind,
+                substitutedReturnType,
+                this.RefCustomModifiers,
+                this.Parameters,
+                substitutedParameterTypes);
+
+        private FunctionPointerMethodSymbol(
+            CallingConvention callingConvention,
+            RefKind refKind,
+            TypeWithAnnotations returnType,
+            ImmutableArray<CustomModifier> refCustomModifiers,
+            ImmutableArray<ParameterSymbol> originalParameters,
+            ArrayBuilder<TypeWithAnnotations> substitutedParameterTypes)
+        {
+            Debug.Assert(originalParameters.Length == substitutedParameterTypes.Count);
+            RefCustomModifiers = refCustomModifiers;
+            CallingConvention = callingConvention;
+            RefKind = refKind;
+            ReturnTypeWithAnnotations = returnType;
+
+            if (originalParameters.Length > 0)
+            {
+                var paramsBuilder = ArrayBuilder<FunctionPointerParameterSymbol>.GetInstance(originalParameters.Length);
+                for (int i = 0; i < originalParameters.Length; i++)
+                {
+                    var originalParam = originalParameters[i];
+                    var substitutedType = substitutedParameterTypes[i];
+                    paramsBuilder.Add(new FunctionPointerParameterSymbol(
+                        substitutedType,
+                        originalParam.RefKind,
+                        originalParam.Ordinal,
+                        containingSymbol: this,
+                        originalParam.RefCustomModifiers));
+                }
+
+                _parameters = paramsBuilder.ToImmutableAndFree();
+            }
+            else
+            {
+                _parameters = ImmutableArray<FunctionPointerParameterSymbol>.Empty;
+            }
+        }
 
         private FunctionPointerMethodSymbol(
             CallingConvention callingConvention,
