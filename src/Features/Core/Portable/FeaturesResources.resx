@@ -1333,18 +1333,6 @@ This version used in: {2}</value>
   <data name="Merge_with_previous_0_statement" xml:space="preserve">
     <value>Merge with previous '{0}' statement</value>
   </data>
-  <data name="Indexing_can_be_simplified" xml:space="preserve">
-    <value>Indexing can be simplified</value>
-  </data>
-  <data name="Use_index_operator" xml:space="preserve">
-    <value>Use index operator</value>
-  </data>
-  <data name="Use_range_operator" xml:space="preserve">
-    <value>Use range operator</value>
-  </data>
-  <data name="_0_can_be_simplified" xml:space="preserve">
-    <value>{0} can be simplified</value>
-  </data>
   <data name="Unwrap_expression" xml:space="preserve">
     <value>Unwrap expression</value>
   </data>
