@@ -143,6 +143,43 @@ End Class");
             }
         }
 
+        [Theory]
+        [InlineData("field", "field")]
+        [InlineData("(field)", null)]
+        [InlineData("this.field", "Me.field")]
+        [InlineData("(this).field", null)]
+        [InlineData("((C)this).field", "DirectCast(Me, C).field")]
+        public async Task TestAcquireIntoArrayFieldFromReturnByValue(string csharpFieldReference, string? visualBasicFieldReference)
+        {
+            await VerifyCS.VerifyAnalyzerAsync($@"
+using System.Runtime.InteropServices;
+
+class C
+{{
+    GCHandle[] field;
+
+    void M()
+    {{
+        {csharpFieldReference}[0] = GCHandle.Alloc(new object());
+    }}
+}}
+");
+
+            if (visualBasicFieldReference is object)
+            {
+                await VerifyVB.VerifyAnalyzerAsync($@"
+Imports System.Runtime.InteropServices
+
+Class C
+    Dim field As GCHandle()
+
+    Sub M()
+        {visualBasicFieldReference}(0) = GCHandle.Alloc(New Object())
+    End Sub
+End Class");
+            }
+        }
+
         [Fact]
         public async Task TestDoNotAcquireFromReturnByReference()
         {
@@ -436,6 +473,11 @@ class C
         return parameter.Field;
     }
 
+    int ReturnArrayParameterMemberField(CannotCopy[] parameter)
+    {
+        return parameter[0].Field;
+    }
+
     int ReturnLocalMemberField()
     {
         CannotCopy local = new CannotCopy();
@@ -457,6 +499,11 @@ class C
         return parameter.Property;
     }
 
+    int ReturnArrayParameterMemberProperty(CannotCopy[] parameter)
+    {
+        return parameter[0].Property;
+    }
+
     int ReturnLocalMemberProperty()
     {
         CannotCopy local = new CannotCopy();
@@ -476,6 +523,11 @@ class C
     int ReturnParameterMemberReadonlyProperty(CannotCopy parameter)
     {
         return parameter.ReadonlyProperty;
+    }
+
+    int ReturnArrayParameterMemberReadonlyProperty(CannotCopy[] parameter)
+    {
+        return parameter[0].ReadonlyProperty;
     }
 
     int ReturnLocalMemberReadonlyProperty()
@@ -504,8 +556,8 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
                     // The only reported diagnostic occurs for the invocation of a non-readonly getter of a readonly
                     // non-copyable field.
                     //
-                    // /0/Test0.cs(37,16): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'FieldReference' operation
-                    VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(37, 16, 37, 30).WithArguments("CannotCopy", "FieldReference"),
+                    // /0/Test0.cs(42,16): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'FieldReference' operation
+                    VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(42, 16, 42, 30).WithArguments("CannotCopy", "FieldReference"),
                 },
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();

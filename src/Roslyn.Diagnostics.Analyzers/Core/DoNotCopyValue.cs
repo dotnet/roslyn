@@ -1101,6 +1101,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 switch (operation.Kind)
                 {
+                    case OperationKind.ArrayElementReference:
+                        return RefKind.Ref;
+
                     case OperationKind.Conditional:
                         var conditional = (IConditionalOperation)operation;
                         return CombineRestrictions(Acquire(conditional.WhenTrue ?? conditional.Condition), Acquire(conditional.WhenFalse));
