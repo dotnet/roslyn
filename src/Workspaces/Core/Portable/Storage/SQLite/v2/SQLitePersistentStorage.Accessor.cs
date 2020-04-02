@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksumOpt, cancellationToken);
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
-                        // Write the information into the in-memory write-cache.  Later on a bg task
+                        // Write the information into the in-memory write-cache.  Later on a background task
                         // will move it from the in-memory cache to the on-disk db in a bulk transaction.
                         InsertOrReplaceBlobIntoWriteCache(
                             connection, dataId, checksumBytes, checksumLength, dataBytes, dataLength);
