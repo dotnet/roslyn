@@ -617,11 +617,6 @@
         <target state="translated">Lambda ifadeleri için blok vücut kullanımı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">Bileşik atama kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Lambda ifadeleri için ifade vücut kullanımı</target>

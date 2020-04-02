@@ -247,6 +247,11 @@
         <target state="new">Use coalesce expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="new">Use compound assignment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
         <target state="new">Use explicitly provided tuple name</target>

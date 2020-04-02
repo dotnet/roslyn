@@ -265,6 +265,9 @@
   <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
     <value>Use explicitly provided tuple name</value>
   </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
+  </data>
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
   </data>
