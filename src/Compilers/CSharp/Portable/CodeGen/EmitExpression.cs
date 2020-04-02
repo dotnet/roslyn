@@ -2900,7 +2900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                 }
 
-                if (type.IsPointerType() || type.SpecialType == SpecialType.System_UIntPtr)
+                if (type.IsPointerOrFunctionPointer() || type.SpecialType == SpecialType.System_UIntPtr)
                 {
                     // default(whatever*) and default(UIntPtr) can be emitted as:
                     _builder.EmitOpCode(ILOpCode.Ldc_i4_0);

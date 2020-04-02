@@ -4051,6 +4051,34 @@ unsafe class C
 ");
         }
 
+        [Fact]
+        public void DefaultOfFunctionPointerType()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr = default;
+        Console.Write(ptr is null);
+    }
+}", expectedOutput: "True");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  ldnull
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.Write(bool)""
+  IL_000a:  ret
+}
+");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
