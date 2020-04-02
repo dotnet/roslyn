@@ -4231,5 +4231,44 @@ class BoundNode
             compVerifier.VerifyIL("C.Main2", code);
             compVerifier.VerifyIL("C.Main3", code);
         }
+
+        [Fact, WorkItem(38665, "https://github.com/dotnet/roslyn/issues/38665")]
+        public void SpanForFallThrough()
+        {
+            var source = @"
+class C
+{
+    public void M(object o)
+    {
+        switch (o)
+        {
+            case 0:
+                _ = 2;
+            case string s:
+                _ = 3;
+            case int i:
+                _ = 4;
+            case long l when l != 0:
+                _ = 5;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (8,13): error CS0163: Control cannot fall through from one case label ('case 0:') to another
+                //             case 0:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 0:").WithArguments("case 0:").WithLocation(8, 13),
+                // (10,13): error CS0163: Control cannot fall through from one case label ('case string s:') to another
+                //             case string s:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case string s:").WithArguments("case string s:").WithLocation(10, 13),
+                // (12,13): error CS0163: Control cannot fall through from one case label ('case int i:') to another
+                //             case int i:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case int i:").WithArguments("case int i:").WithLocation(12, 13),
+                // (14,13): error CS8070: Control cannot fall out of switch from final case label ('case long l when l != 0:')
+                //             case long l when l != 0:
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case long l when l != 0:").WithArguments("case long l when l != 0:").WithLocation(14, 13)
+                );
+        }
     }
 }
