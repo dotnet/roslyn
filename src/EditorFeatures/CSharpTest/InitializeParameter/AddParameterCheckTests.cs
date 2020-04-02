@@ -1740,5 +1740,24 @@ class C
     }
 }");
         }
+
+        [WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingInArgList()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private static void M()
+    {
+        M2(__arglist(1, 2, 3, 5, 6));
+    }
+
+    public static void M2([||]__arglist)
+    {
+    }
+}");
+        }
     }
 }
