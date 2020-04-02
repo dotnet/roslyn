@@ -10154,6 +10154,110 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42997, "https://github.com/dotnet/roslyn/issues/42997")]
+        public async Task CompletionForLambdaWithTypeParameters()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Hovering over 'arg' shows that it is of type 'Product' but it doesn't show 'MyProperty' in the completion list.
+        Create(new List<Product>(), arg => arg.$$);
+    }
+
+    static void Create<T>(List<T> list, Action<T> expression)
+    {
+    }
+}
+
+class Product
+{
+    public void MyProperty() { }
+}";
+
+            await VerifyItemExistsAsync(markup, "MyProperty");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42997, "https://github.com/dotnet/roslyn/issues/42997")]
+        public async Task CompletionForLambdaWithTypeParametersAndOverloads()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Hovering over 'arg' shows that it is of type 'Product' but it doesn't show 'MyProperty' in the completion list.
+        Create(new Dictionary<Product1, Product2>(), arg => arg.$$);
+    }
+
+    static void Create<T, U>(Dictionary<T, U> list, Action<T> expression) { }
+    static void Create<T, U>(Dictionary<U, T> list, Action<T> expression) { }
+}
+
+class Product1
+{
+    public void MyProperty1() { }
+}
+
+class Product2
+{
+    public void MyProperty2() { }
+}";
+
+            await VerifyItemExistsAsync(markup, "MyProperty1");
+            await VerifyItemExistsAsync(markup, "MyProperty2");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42997, "https://github.com/dotnet/roslyn/issues/42997")]
+        public async Task CompletionForLambdaWithTypeParametersAndOverloads2()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Hovering over 'arg' shows that it is of type 'Product' but it doesn't show 'MyProperty' in the completion list.
+        Create(new Dictionary<Product1,Product2>(),arg => arg.$$);
+    }
+
+    static void Create<T, U>(Dictionary<T, U> list, Action<T> expression) { }
+    static void Create<T, U>(Dictionary<U, T> list, Action<T> expression) { }
+    static void Create(Dictionary<Product1, Product2> list, Action<Product3> expression) { }
+}
+
+class Product1
+{
+    public void MyProperty1() { }
+}
+
+class Product2
+{
+    public void MyProperty2() { }
+}
+
+class Product3
+{
+    public void MyProperty3() { }
+}";
+
+            await VerifyItemExistsAsync(markup, "MyProperty1");
+            await VerifyItemExistsAsync(markup, "MyProperty2");
+            await VerifyItemExistsAsync(markup, "MyProperty3");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(1056325, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1056325")]
         public async Task CompletionForLambdaWithOverloads4()
         {
