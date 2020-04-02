@@ -157,8 +157,9 @@ namespace Analyzer.Utilities
         public const string AdditionalInheritanceExcludedSymbolNames = "additional_inheritance_excluded_symbol_names";
 
         /// <summary>
-        /// Boolean option to configure if the naming heuristic should be used for CA1303 (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1303).
+        /// Option to configure analyzed symbol kinds, i.e. <see cref="Microsoft.CodeAnalysis.SymbolKind"/>.
+        /// Allowed option values: One or more fields of <see cref="Microsoft.CodeAnalysis.SymbolKind"/> as a comma separated list.
         /// </summary>
-        public const string UseNamingHeuristic = "use_naming_heuristic";
+        public const string AnalyzedSymbolKinds = "analyzed_symbol_kinds";
     }
 }
