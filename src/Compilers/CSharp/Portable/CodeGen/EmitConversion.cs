@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.PointerToVoid:
                 case ConversionKind.PointerToPointer:
+                case ConversionKind.ImplicitPointer:
                     return; //no-op since they all have the same runtime representation
                 case ConversionKind.PointerToInteger:
                 case ConversionKind.IntegerToPointer:

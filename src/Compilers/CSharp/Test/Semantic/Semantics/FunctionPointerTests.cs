@@ -420,5 +420,266 @@ unsafe class C
                 Assert.Equal(ConversionKind.ImplicitUserDefined, conversion.Kind);
             }
         }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerValid_ReferenceVarianceAndIdentity()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<object, ref int, string> param1, delegate*<object, ref int> param2, delegate*<object, void> param3)
+    {
+        delegate*<string, ref int, object> ptr1 = param1;
+        delegate*<string, ref int> ptr2 = param2;
+        delegate*<string, void> ptr3 = param3;
+    }
+}");
+
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  pop
+  IL_0002:  ldarg.2
+  IL_0003:  pop
+  IL_0004:  ldarg.3
+  IL_0005:  pop
+  IL_0006:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => d.Initializer!.Value).ToList();
+            Assert.Equal(3, decls.Count);
+
+            foreach (var decl in decls)
+            {
+                var conversion = model.GetConversion(decl);
+                Assert.Equal(ConversionKind.ImplicitPointer, conversion.Kind);
+                Assert.True(conversion.IsImplicit);
+                Assert.True(conversion.IsPointer);
+            }
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerValid_NestedFunctionPointerVariantConversions()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<delegate*<string, void>, delegate*<string>> param1)
+    {
+        delegate*<delegate*<object, void>, delegate*<object>> ptr1 = param1;
+    }
+}");
+
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  pop
+  IL_0002:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => d.Initializer!.Value).Single();
+            var conversion = model.GetConversion(decl);
+            Assert.Equal(ConversionKind.ImplicitPointer, conversion.Kind);
+            Assert.True(conversion.IsImplicit);
+            Assert.True(conversion.IsPointer);
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerValid_PointerVariance()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void*, int*> param1)
+    {
+        delegate*<delegate*<object, void>, void*> ptr1 = param1;
+    }
+}");
+
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  pop
+  IL_0002:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => d.Initializer!.Value).Single();
+            var conversion = model.GetConversion(decl);
+            Assert.Equal(ConversionKind.ImplicitPointer, conversion.Kind);
+            Assert.True(conversion.IsImplicit);
+            Assert.True(conversion.IsPointer);
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerInvalid_DifferentParameterCounts()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<string, string, void> param1)
+    {
+        delegate*<string, void> ptr1 = param1;
+        delegate*<string, string, string, void> ptr2 = param1;
+
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,40): error CS0266: Cannot implicitly convert type 'delegate*<string,string,void>' to 'delegate*<string,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<string, void> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string,string,void>", "delegate*<string,void>").WithLocation(6, 40),
+                // (7,56): error CS0266: Cannot implicitly convert type 'delegate*<string,string,void>' to 'delegate*<string,string,string,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<string, string, string, void> ptr2 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string,string,void>", "delegate*<string,string,string,void>").WithLocation(7, 56)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerInvalid_ParameterVariance()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<ref object, void> param1)
+    {
+        delegate*<in object, void> ptr1 = param1;
+        delegate*<object, void> ptr2 = param1;
+        delegate*<ref string, void> ptr3 = param1;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,43): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<in object,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<in object, void> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object,void>", "delegate*<in object,void>").WithLocation(6, 43),
+                // (7,40): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<object,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<object, void> ptr2 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object,void>", "delegate*<object,void>").WithLocation(7, 40),
+                // (8,44): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<ref string,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<ref string, void> ptr3 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object,void>", "delegate*<ref string,void>").WithLocation(8, 44)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerInvalid_ReturnTypeVariance()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<ref string> param1)
+    {
+        delegate*<ref readonly string> ptr1 = param1;
+        delegate*<string> ptr2 = param1;
+        delegate*<object> ptr3 = param1;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,47): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<ref readonly string> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(6, 47),
+                // (7,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<string> ptr2 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(7, 34),
+                // (8,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<object>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<object> ptr3 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<object>").WithLocation(8, 34)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerInvalid_CallingConvention()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> param1)
+    {
+        delegate* cdecl<void> ptr1 = param1;
+        delegate* thiscall<void> ptr2 = param1;
+        delegate* stdcall<void> ptr3 = param1;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,47): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<ref readonly string> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(6, 47),
+                // (7,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<string> ptr2 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(7, 34),
+                // (8,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<object>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<object> ptr3 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<object>").WithLocation(8, 34)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerInvalid_IncompatibleTypes()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<int, object> param1)
+    {
+        delegate*<object, string> ptr1 = param1;
+        delegate*<int, string> ptr2 = param1;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,42): error CS0266: Cannot implicitly convert type 'delegate*<int,object>' to 'delegate*<object,string>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<object, string> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<int,object>", "delegate*<object,string>").WithLocation(6, 42),
+                // (7,39): error CS0266: Cannot implicitly convert type 'delegate*<int,object>' to 'delegate*<int,string>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<int, string> ptr2 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<int,object>", "delegate*<int,string>").WithLocation(7, 39)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerToFunctionPointerInvalid_BadNestedVariance()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<delegate*<object, void>, void> param1, delegate*<delegate*<object>> param2)
+    {
+        delegate*<delegate*<string, void>, void> ptr1 = param1;
+        delegate*<delegate*<string>> ptr2 = param2;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,57): error CS0266: Cannot implicitly convert type 'delegate*<delegate*<object,void>,void>' to 'delegate*<delegate*<string,void>,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<delegate*<string, void>, void> ptr1 = param1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<delegate*<object,void>,void>", "delegate*<delegate*<string,void>,void>").WithLocation(6, 57),
+                // (7,45): error CS0266: Cannot implicitly convert type 'delegate*<delegate*<object>>' to 'delegate*<delegate*<string>>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<delegate*<string>> ptr2 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<delegate*<object>>", "delegate*<delegate*<string>>").WithLocation(7, 45)
+            );
+        }
     }
 }

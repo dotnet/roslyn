@@ -584,9 +584,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.Boxing;
             }
 
-            if (HasImplicitPointerConversion(source, destination))
+            if (HasImplicitPointerToVoidConversion(source, destination))
             {
                 return Conversion.PointerToVoid;
+            }
+
+            if (HasImplicitPointerConversion(source, destination, ref useSiteDiagnostics))
+            {
+                return Conversion.ImplicitPointer;
             }
 
             var tupleConversion = ClassifyImplicitTupleConversion(source, destination, ref useSiteDiagnostics);
@@ -2919,7 +2924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool HasImplicitPointerConversion(TypeSymbol source, TypeSymbol destination)
+        internal static bool HasImplicitPointerToVoidConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -2929,6 +2934,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return source.IsPointerOrFunctionPointer() && destination is PointerTypeSymbol { PointedAtType: { SpecialType: SpecialType.System_Void } };
         }
+
+#nullable enable
+        internal bool HasImplicitPointerConversion(TypeSymbol? source, TypeSymbol? destination, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        {
+            if (!(source is FunctionPointerTypeSymbol { Signature: { } sourceSig })
+                || !(destination is FunctionPointerTypeSymbol { Signature: { } destinationSig }))
+            {
+                return false;
+            }
+
+            if (sourceSig.ParameterCount != destinationSig.ParameterCount ||
+                sourceSig.CallingConvention != destinationSig.CallingConvention)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < sourceSig.ParameterCount; i++)
+            {
+                var sourceParam = sourceSig.Parameters[i];
+                var destintationParam = destinationSig.Parameters[i];
+
+                if (sourceParam.RefKind != destintationParam.RefKind)
+                {
+                    return false;
+                }
+
+                if (!hasVariantConversion(sourceParam.RefKind, destinationSig.Parameters[i].Type, sourceSig.Parameters[i].Type, ref useSiteDiagnostics))
+                {
+                    return false;
+                }
+            }
+
+            return sourceSig.RefKind == destinationSig.RefKind
+                   && hasVariantConversion(sourceSig.RefKind, sourceSig.ReturnType, destinationSig.ReturnType, ref useSiteDiagnostics);
+
+            bool hasVariantConversion(RefKind refKind, TypeSymbol sourceType, TypeSymbol destinationType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            {
+                switch (refKind)
+                {
+                    case RefKind.None:
+                        return HasIdentityOrImplicitReferenceConversion(sourceType, destinationType, ref useSiteDiagnostics)
+                               || HasImplicitPointerToVoidConversion(sourceType, destinationType)
+                               || HasImplicitPointerConversion(sourceType, destinationType, ref useSiteDiagnostics);
+
+                    default:
+                        return HasIdentityConversion(sourceType, destinationType);
+                }
+            }
+        }
+#nullable restore
 
         private bool HasIdentityOrReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {

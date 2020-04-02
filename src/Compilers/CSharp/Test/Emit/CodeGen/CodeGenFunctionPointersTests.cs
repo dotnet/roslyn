@@ -3274,6 +3274,42 @@ class C
             );
         }
 
+        [Fact]
+        public void NestedFunctionPointerVariantConversion()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    public static void Printer(object o) => Console.Write(o);
+    public static void PrintWrapper(delegate*<string, void> printer, string o) => printer(o);
+    static void Main()
+    {
+        delegate*<delegate*<object, void>, string, void> wrapper = &PrintWrapper;
+        delegate*<object, void> printer = &Printer;
+        wrapper(printer, ""1""); 
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("C.Main()", expectedIL: @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (delegate*<object,void> V_0, //printer
+                delegate*<delegate*<object,void>,string,void> V_1)
+  IL_0000:  ldftn      ""void C.PrintWrapper(delegate*<string,void>, string)""
+  IL_0006:  ldftn      ""void C.Printer(object)""
+  IL_000c:  stloc.0
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.0
+  IL_000f:  ldstr      ""1""
+  IL_0014:  ldloc.1
+  IL_0015:  calli      ""delegate*<delegate*<object,void>,string,void>""
+  IL_001a:  ret
+}
+");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
