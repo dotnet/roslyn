@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly RelatedTypeCache s_typeToTransitivelyImplementingStructuresClassesAndInterfacesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToImmediatelyDerivedAndImplementingTypesMap = new RelatedTypeCache();
 
-        public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesFromCacheOrComputeAsync(
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesFromCacheOrComputeAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
