@@ -172,11 +172,6 @@
         <target state="translated">Преобразовать в структуру</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Преобразовать в кортеж</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Тип, который реализует System.IDisposable, объявляет поля, относящиеся к типам, которые также реализуют IDisposable. Метод Dispose поля не вызывается методом Dispose объявляющего типа. Чтобы устранить нарушение этого правила, вызовите Dispose для полей, относящихся к типам, которые реализуют IDisposable, если вы отвечаете за выделение и освобождение неуправляемых ресурсов, хранящихся в поле.</target>
@@ -350,11 +345,6 @@
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
         <target state="translated">Создать отступы для свернутых параметров</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">Вы можете упростить индексирование</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
@@ -627,19 +617,9 @@
         <target state="translated">Использовать тело выражения для лямбда-выражений</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">Использовать оператор индекса</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Использовать интерполированную буквальную строку</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">Использовать оператор диапазона</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -725,11 +705,6 @@
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Перенос по словам</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} можно упростить</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">

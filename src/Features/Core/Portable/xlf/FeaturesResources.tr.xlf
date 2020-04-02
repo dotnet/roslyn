@@ -172,11 +172,6 @@
         <target state="translated">Yapıya dönüştür</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Başlığa dönüştür</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">System.IDisposable uygulayan bir tür, kendileri de IDisposable uygulayan türlerde alanlar bildiriyor. Alanın Dispose metodu, bildirim türünün Dispose metodu tarafından çağrılmıyor. Bu kural ihlalini düzeltmek için, alan tarafından tutulan yönetilmeyen kaynakları ayırmak ve serbest bırakmaktan sorumluysanız, IDisposable uygulayan türlerdeki alanlarda Dispose çağrısı yapın.</target>
@@ -350,11 +345,6 @@
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
         <target state="translated">Sarmalanan parametreleri girintile</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">Dizin oluşturma basitleştirilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
@@ -627,19 +617,9 @@
         <target state="translated">Lambda ifadeleri için ifade vücut kullanımı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">Dizin işleci kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Enterpolasyonlu kelimesi kelimesine dizeyi kullanın</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">Aralık işleci kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -725,11 +705,6 @@
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Kaydırma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} basitleştirilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
