@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             // This is our startup path.  Enqueue our work to the write queue (to ensure invariants about only writing
-            // while having access to it).  Then just block on that queue.  The queue will be empty here, so this will
+            // while having access to it).  Then just block on that work.  The queue will be empty here, so this will
             // not be costly to do.
             var task = PerformWriteAsync(() =>
             {
