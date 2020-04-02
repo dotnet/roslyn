@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private readonly SQLitePersistentStorage _storage;
             public readonly SqlConnection Connection;
 
-            public PooledConnection(SQLitePersistentStorage sqlitePersistentStorage, SqlConnection sqlConnection)
+            public PooledConnection(SQLitePersistentStorage storage, SqlConnection sqlConnection)
             {
-                this._storage = sqlitePersistentStorage;
+                _storage = storage;
                 Connection = sqlConnection;
             }
 
