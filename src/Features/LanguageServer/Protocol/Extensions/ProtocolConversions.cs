@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
