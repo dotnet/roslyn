@@ -36,10 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasAwait)
             {
+                // PROTOTYPE(SimplePrograms): Test with missing Task type.
                 _returnType = Binder.GetWellKnownType(containingType.DeclaringCompilation, WellKnownType.System_Threading_Tasks_Task, diagnostics, NoLocation.Singleton);
             }
             else
             {
+                // PROTOTYPE(SimplePrograms): Test with missing Void type.
                 _returnType = Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Void, NoLocation.Singleton, diagnostics);
             }
 
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return true;
+                return false;
             }
         }
 
@@ -165,14 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         protected override object MethodChecksLockObject => _declaration;
-
-        internal override CSharpSyntaxNode SyntaxNode
-        {
-            get
-            {
-                return (CSharpSyntaxNode)_declaration.SyntaxReference.SyntaxTree.GetRoot();
-            }
-        }
 
         internal CompilationUnitSyntax CompilationUnit => (CompilationUnitSyntax)SyntaxNode;
 
@@ -240,5 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return false;
         }
+
+        public SyntaxNode ReturnTypeSyntax => CompilationUnit.Members.OfType<GlobalStatementSyntax>().First();
     }
 }

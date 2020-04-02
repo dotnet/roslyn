@@ -1070,7 +1070,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     actualDiagnostics = sourceMethod.SetDiagnostics(actualDiagnostics, out diagsWritten);
                 }
 
-                // PROTOTYPE(SimplePrograms): What sould we do for global code?
                 if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
                 {
                     Lazy<SemanticModel> lazySemanticModel = null;
@@ -1663,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (bodyBinder != null)
                 {
-                    importChain = bodyBinder.ImportChain; // PROTOTYPE(SimplePrograms): Need special handling (this is similar to https://github.com/dotnet/roslyn/issues/2846)
+                    importChain = bodyBinder.ImportChain;
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;

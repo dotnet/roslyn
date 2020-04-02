@@ -2725,6 +2725,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a compilation unit syntax, get the corresponding Simple Program entry point symbol.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a member.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The symbol that was declared.</returns>
+        public abstract IMethodSymbol GetDeclaredSymbol(CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
         /// the declaration assembly.
         /// </summary>
@@ -4874,6 +4882,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((JoinIntoClauseSyntax)node, cancellationToken);
                 case SyntaxKind.QueryContinuation:
                     return this.GetDeclaredSymbol((QueryContinuationSyntax)node, cancellationToken);
+                case SyntaxKind.CompilationUnit:
+                    return this.GetDeclaredSymbol((CompilationUnitSyntax)node, cancellationToken);
             }
 
             return null;
@@ -4920,9 +4930,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpDeclarationComputer.ComputeDeclarationsInSpan(this, span, getSymbol, builder, cancellationToken);
         }
 
-        internal override void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
+        internal override void ComputeDeclarationsInNode(SyntaxNode node, ISymbol associatedSymbol, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
-            CSharpDeclarationComputer.ComputeDeclarationsInNode(this, node, getSymbol, builder, cancellationToken, levelsToCompute);
+            CSharpDeclarationComputer.ComputeDeclarationsInNode(this, associatedSymbol, node, getSymbol, builder, cancellationToken, levelsToCompute);
+        }
+
+        internal override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
+        {
+            if (declaredNode is CompilationUnitSyntax unit && SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
+            {
+                switch (declaredSymbol.Kind)
+                {
+                    case SymbolKind.Namespace:
+                        Debug.Assert(((INamespaceSymbol)declaredSymbol).IsGlobalNamespace);
+                        // Do not include top level global statements into a global namespace
+                        return (node) => node.Kind() != SyntaxKind.GlobalStatement || node.Parent != unit;
+
+                    case SymbolKind.Method:
+                        Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
+                        // Include only global statements at the top level
+                        return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
+
+                    default:
+                        ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
+                        break;
+                }
+            }
+
+            return base.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
         }
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)

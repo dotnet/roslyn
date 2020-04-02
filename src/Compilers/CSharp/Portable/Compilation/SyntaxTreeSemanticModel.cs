@@ -179,16 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
                     break;
 
-                case CompilationUnitSyntax unit:
-                    // Allow getting IOperation tree for the entire simple program body by requesting a tree for a compilation unit with top level statements.
-                    if (SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-                    {
-                        model = this.GetMemberModel(entryPoint.SyntaxRef.GetSyntax());
-                        break;
-                    }
-
-                    goto default;
-
                 default:
                     model = this.GetMemberModel(node);
                     break;
@@ -810,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var memberDecl = GetMemberDeclaration(node);
+            var memberDecl = GetMemberDeclaration(node) ?? (node as CompilationUnitSyntax);
             if (memberDecl != null)
             {
                 var span = node.Span;
@@ -899,6 +889,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return GetOrAddModel(memberDecl);
+
+                    case SyntaxKind.CompilationUnit:
+                        if (SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, (CompilationUnitSyntax)memberDecl, fallbackToMainEntryPoint: false) is object)
+                        {
+                            return GetOrAddModel(memberDecl);
+                        }
+                        break;
 
                     case SyntaxKind.Attribute:
                         return GetOrAddModelForAttribute((AttributeSyntax)memberDecl);
@@ -1417,6 +1414,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return (GetDeclaredNamespaceOrType(declarationSyntax) ?? GetDeclaredMemberSymbol(declarationSyntax)).GetPublicSymbol();
             }
+        }
+
+        public override IMethodSymbol GetDeclaredSymbol(CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default)
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            return SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, declarationSyntax, fallbackToMainEntryPoint: false).GetPublicSymbol();
         }
 
         /// <summary>

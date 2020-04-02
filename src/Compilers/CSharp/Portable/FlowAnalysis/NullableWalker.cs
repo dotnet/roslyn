@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             DiagnosticBag diagnostics)
         {
-            if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !method.IsScriptInitializer && !(method is SynthesizedSimpleProgramEntryPointSymbol))
+            if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !method.IsScriptInitializer)
             {
                 return;
             }

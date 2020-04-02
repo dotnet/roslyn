@@ -610,6 +610,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override IMethodSymbol GetDeclaredSymbol(CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default)
+        {
+            return null;
+        }
+
         public override IMethodSymbol GetDeclaredSymbol(BaseMethodDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't define method inside member.
