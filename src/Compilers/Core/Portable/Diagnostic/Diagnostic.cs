@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
             Location? location,
-            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string?>? properties,
             params object?[]? messageArgs)
         {
             return Create(descriptor, location, null, properties, messageArgs);
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticDescriptor descriptor,
             Location? location,
             IEnumerable<Location>? additionalLocations,
-            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string?>? properties,
             params object?[]? messageArgs)
         {
             return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
             Location? location,
             DiagnosticSeverity effectiveSeverity,
             IEnumerable<Location>? additionalLocations,
-            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string?>? properties,
             params object?[]? messageArgs)
         {
             if (descriptor == null)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis
             Location? location = null,
             IEnumerable<Location>? additionalLocations = null,
             IEnumerable<string>? customTags = null,
-            ImmutableDictionary<string, string>? properties = null)
+            ImmutableDictionary<string, string?>? properties = null)
         {
             return Create(id, category, message, severity, defaultSeverity, isEnabledByDefault, warningLevel, false,
                 title, description, helpLink, location, additionalLocations, customTags, properties);
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
             Location? location = null,
             IEnumerable<Location>? additionalLocations = null,
             IEnumerable<string>? customTags = null,
-            ImmutableDictionary<string, string>? properties = null)
+            ImmutableDictionary<string, string?>? properties = null)
         {
             if (id == null)
             {
@@ -398,8 +398,8 @@ namespace Microsoft.CodeAnalysis
         /// if there is no entry. This can be used to put diagnostic specific information you want 
         /// to pass around. for example, to corresponding fixer.
         /// </summary>
-        public virtual ImmutableDictionary<string, string> Properties
-            => ImmutableDictionary<string, string>.Empty;
+        public virtual ImmutableDictionary<string, string?> Properties
+            => ImmutableDictionary<string, string?>.Empty;
 
         string IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
         {
