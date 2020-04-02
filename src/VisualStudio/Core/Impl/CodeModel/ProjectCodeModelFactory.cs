@@ -139,13 +139,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                 case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
                     return;
+                case WorkspaceChangeKind.DocumentRemoved:
+                case WorkspaceChangeKind.DocumentChanged:
+                    // Fast path when we know we affected a document that could have had code model elements in it.  No
+                    // need to do a solution diff in this case.
+                    _documentsToFireEventsFor.AddWork(e.DocumentId!);
+                    return;
             }
+
+            // Other type of event that could indicate a doc change/removal. Have to actually analyze the change to
+            // determine what we should do here.
 
             var changes = e.OldSolution.GetChanges(e.NewSolution);
 
-            // Ensure clients hear about events for documents that go away and documents that are changed. We don't have
-            // to notify for documents created because there couldn't be any existing client holding onto code model
-            // items from that document.
             foreach (var project in changes.GetRemovedProjects())
                 _documentsToFireEventsFor.AddWork(project.DocumentIds);
 
