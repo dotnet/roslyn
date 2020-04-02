@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,9 +70,9 @@ namespace Microsoft.CodeAnalysis.Rename
             if (filter != null)
             {
                 locations = new RenameLocations(
-                    locations.Locations.Where(loc => filter(loc.Location)).ToSet(),
+                    locations.Locations.Where(loc => filter(loc.Location)).ToImmutableHashSet(),
                     symbolAndProjectId, locations.Solution,
-                    locations.ReferencedSymbols, locations.ImplicitLocations.Where(loc => filter(loc.Location)),
+                    locations.ReferencedSymbols, locations.ImplicitLocations.WhereAsArray(loc => filter(loc.Location)),
                     locations.Options);
             }
 
