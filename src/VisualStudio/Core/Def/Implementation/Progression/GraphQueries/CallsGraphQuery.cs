@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbol = graphBuilder.GetSymbolAndProjectId(node);
-                if (symbol.Symbol != null)
+                var symbolAndProjectId = graphBuilder.GetSymbolAndProjectId(node);
+                if (symbolAndProjectId.Symbol != null)
                 {
-                    foreach (var newSymbol in await GetCalledMethodSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
+                    foreach (var newSymbol in await GetCalledMethodSymbolsAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
