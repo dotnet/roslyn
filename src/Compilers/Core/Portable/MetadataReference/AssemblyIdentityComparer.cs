@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                if (!AssemblyIdentity.TryParseDisplayName(referenceDisplayName, out reference, out parts) ||
+                if (!AssemblyIdentity.TryParseDisplayName(referenceDisplayName!, out reference, out parts) ||
                     reference.ContentType != definition.ContentType)
                 {
                     return ComparisonResult.NotEquivalent;
