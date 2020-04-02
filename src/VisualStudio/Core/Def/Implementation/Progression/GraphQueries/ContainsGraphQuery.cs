@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
 
                     if (symbol.Symbol != null)
                     {

@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
                     if (symbol.Symbol is INamedTypeSymbol namedType)
                     {
                         var implementedSymbols = namedType.AllInterfaces.SelectAsArray(i => (SymbolAndProjectId)symbol.WithSymbol(i));

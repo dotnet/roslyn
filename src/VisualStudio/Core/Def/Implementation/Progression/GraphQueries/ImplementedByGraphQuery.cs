@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
                     if (symbol.Symbol is INamedTypeSymbol ||
                         symbol.Symbol is IMethodSymbol ||
                         symbol.Symbol is IPropertySymbol ||

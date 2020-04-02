@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public SymbolAndProjectId GetSymbol(GraphNode node)
+        public SymbolAndProjectId GetSymbolAndProjectId(GraphNode node)
         {
             using (_gate.DisposableWait())
             {
