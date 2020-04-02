@@ -138,18 +138,22 @@ unsafe class C
 {
   // Code size       13 (0xd)
   .maxstack  1
+  .locals init (delegate*<void> V_0, //ptr1
+                delegate*<void> V_1, //ptr2
+                delegate*<string> V_2, //ptr3
+                delegate*<C,int> V_3) //ptr4
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u
-  IL_0002:  pop
+  IL_0002:  stloc.0
   IL_0003:  ldc.i4.0
   IL_0004:  conv.u
-  IL_0005:  pop
+  IL_0005:  stloc.1
   IL_0006:  ldc.i4.0
   IL_0007:  conv.u
-  IL_0008:  pop
+  IL_0008:  stloc.2
   IL_0009:  ldc.i4.0
   IL_000a:  conv.u
-  IL_000b:  pop
+  IL_000b:  stloc.3
   IL_000c:  ret
 }
 ");
@@ -251,10 +255,11 @@ unsafe class C
 {{
   // Code size       13 (0xd)
   .maxstack  1
+  .locals init (delegate*<void> V_0) //ptr
   IL_0000:  ldarg.1
   IL_0001:  call       ""System.{type} System.{type}.op_Explicit(void*)""
   IL_0006:  call       ""void* System.{type}.op_Explicit(System.{type})""
-  IL_000b:  pop
+  IL_000b:  stloc.0
   IL_000c:  ret
 }}
 ");
@@ -300,12 +305,13 @@ unsafe class C
 {{
   // Code size        7 (0x7)
   .maxstack  1
+  .locals init (delegate*<void> V_0) //ptr
   IL_0000:  ldarg.1
   IL_0001:  {convKind}
-  IL_0002:  pop
+  IL_0002:  stloc.0
   IL_0003:  ldarg.1
   IL_0004:  {checkedKind}
-  IL_0005:  pop
+  IL_0005:  stloc.0
   IL_0006:  ret
 }}
 ");
@@ -488,12 +494,15 @@ unsafe class C
 {
   // Code size        7 (0x7)
   .maxstack  1
+  .locals init (delegate*<string,ref int,object> V_0, //ptr1
+                delegate*<string,int> V_1, //ptr2
+                delegate*<string,void> V_2) //ptr3
   IL_0000:  ldarg.1
-  IL_0001:  pop
+  IL_0001:  stloc.0
   IL_0002:  ldarg.2
-  IL_0003:  pop
+  IL_0003:  stloc.1
   IL_0004:  ldarg.3
-  IL_0005:  pop
+  IL_0005:  stloc.2
   IL_0006:  ret
 }
 ");
@@ -530,8 +539,9 @@ unsafe class C
 {
   // Code size        3 (0x3)
   .maxstack  1
+  .locals init (delegate*<delegate*<object,void>,delegate*<object>> V_0) //ptr1
   IL_0000:  ldarg.1
-  IL_0001:  pop
+  IL_0001:  stloc.0
   IL_0002:  ret
 }
 ");
@@ -563,8 +573,9 @@ unsafe class C
 {
   // Code size        3 (0x3)
   .maxstack  1
+  .locals init (delegate*<delegate*<object,void>,void*> V_0) //ptr1
   IL_0000:  ldarg.1
-  IL_0001:  pop
+  IL_0001:  stloc.0
   IL_0002:  ret
 }
 ");
@@ -1492,14 +1503,15 @@ True");
             verifier.VerifyIL("C.Main", expectedIL: @"
 {
   // Code size       19 (0x13)
-  .maxstack  3
+  .maxstack  2
+  .locals init (delegate*<void> V_0) //ptr
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u
-  IL_0002:  dup
-  IL_0003:  ldnull
-  IL_0004:  ceq
-  IL_0006:  call       ""void System.Console.WriteLine(bool)""
-  IL_000b:  pop
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldnull
+  IL_0005:  ceq
+  IL_0007:  call       ""void System.Console.WriteLine(bool)""
   IL_000c:  ldc.i4.1
   IL_000d:  call       ""void System.Console.WriteLine(bool)""
   IL_0012:  ret
