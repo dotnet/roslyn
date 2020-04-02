@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
-        <target state="needs-review-translation">이 호출 사이트가 'params' 매개 변수가 있는 함수를 호출하고 있습니다. 이로 인해 params 매개 변수에 대해 매개 변수가 전달되지 않는 경우에도 배열 할당이 발생합니다.</target>
+        <target state="translated">이 호출 사이트가 'params' 매개 변수가 있는 함수를 호출하고 있습니다. 이 작업으로 인해 배열 할당이 발생합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

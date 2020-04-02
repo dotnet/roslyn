@@ -89,7 +89,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
+#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
             var semanticModel = originalContext.Compilation.GetSemanticModel(field.Locations[0].SourceTree);
+#pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
             if (!semanticModel.GetNullableContext(field.Locations[0].SourceSpan.Start).WarningsEnabled())
             {
                 // Warnings are not enabled for this field

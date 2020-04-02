@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields</source>
-        <target state="new">Defaultable types should have defaultable fields</target>
+        <target state="translated">기본값 설정 가능 형식에는 기본값 설정 가능 필드가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
         <source>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</source>
-        <target state="new">Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</target>
+        <target state="translated">기본값 설정 가능 형식 '{0}'에 기본값 설정 불가능 필드 또는 자동 속성 '{1}'이(가) 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
         <source>Defaultable types should have defaultable fields</source>
-        <target state="new">Defaultable types should have defaultable fields</target>
+        <target state="translated">기본값 설정 가능 형식에는 기본값 설정 가능 필드가 있어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
@@ -109,27 +109,27 @@
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
-        <target state="new">Use 'null' instead of 'default'</target>
+        <target state="translated">'default' 대신 'null'을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
         <source>Use 'null' instead of 'default' for reference types.</source>
-        <target state="new">Use 'null' instead of 'default' for reference types.</target>
+        <target state="translated">참조 형식에 'default' 대신 'null'을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
         <source>Use 'null' instead of 'default' for reference types</source>
-        <target state="new">Use 'null' instead of 'default' for reference types</target>
+        <target state="translated">참조 형식에 'default' 대신 'null'을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">
         <source>Prefer null literal</source>
-        <target state="new">Prefer null literal</target>
+        <target state="translated">null 리터럴을 기본으로 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
         <source>Asynchronous test methods do not require the 'Async' suffix.</source>
-        <target state="new">Asynchronous test methods do not require the 'Async' suffix.</target>
+        <target state="translated">비동기 테스트 메서드에는 'Async' 접미사가 필요하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">

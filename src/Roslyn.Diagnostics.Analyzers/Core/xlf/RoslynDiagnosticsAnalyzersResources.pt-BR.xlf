@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields</source>
-        <target state="new">Defaultable types should have defaultable fields</target>
+        <target state="translated">Os tipos usados como padrão devem ter campos usados como padrão</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
         <source>Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</source>
-        <target state="new">Defaultable type '{0}' has a non-defaultable field or auto-property '{1}'</target>
+        <target state="translated">O tipo usado como padrão '{0}' tem um campo não usado como padrão ou a propriedade automática '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
         <source>Defaultable types should have defaultable fields</source>
-        <target state="new">Defaultable types should have defaultable fields</target>
+        <target state="translated">Os tipos usados como padrão devem ter campos usados como padrão</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
@@ -109,27 +109,27 @@
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
         <source>Use 'null' instead of 'default'</source>
-        <target state="new">Use 'null' instead of 'default'</target>
+        <target state="translated">Use 'null' em vez de 'default'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
         <source>Use 'null' instead of 'default' for reference types.</source>
-        <target state="new">Use 'null' instead of 'default' for reference types.</target>
+        <target state="translated">Use 'null' em vez de 'default' para tipos de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
         <source>Use 'null' instead of 'default' for reference types</source>
-        <target state="new">Use 'null' instead of 'default' for reference types</target>
+        <target state="translated">Use 'null' em vez de 'default' para tipos de referência</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">
         <source>Prefer null literal</source>
-        <target state="new">Prefer null literal</target>
+        <target state="translated">Preferir literal nulo</target>
         <note />
       </trans-unit>
       <trans-unit id="RelaxTestNamingSuppressorJustification">
         <source>Asynchronous test methods do not require the 'Async' suffix.</source>
-        <target state="new">Asynchronous test methods do not require the 'Async' suffix.</target>
+        <target state="translated">Os métodos de teste assíncronos não exigem o sufixo 'Async'.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">

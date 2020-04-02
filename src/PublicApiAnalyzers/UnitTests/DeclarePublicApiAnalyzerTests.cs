@@ -1140,6 +1140,90 @@ C.C() -> void
                 );
         }
 
+        [Fact]
+        public async Task ObliviousMember_NestedEnumIsNotOblivious()
+        {
+            var source = @"
+public class C
+{
+    public enum E
+    {
+        None,
+        Some
+    }
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.E
+C.E.None = 0 -> C.E
+C.E.Some = 1 -> C.E";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public async Task NestedEnumIsNotOblivious()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public enum E
+    {
+        None,
+        Some
+    }
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.E
+C.E.None = 0 -> C.E
+C.E.Some = 1 -> C.E";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public async Task ObliviousTypeArgumentInContainingType()
+        {
+            var source = @"
+#nullable enable
+public class C<T>
+{
+    public struct Nested { }
+
+    public C<
+#nullable disable
+        string
+#nullable enable
+            >.Nested field;
+}
+";
+
+            var shippedText = @"#nullable enable
+C<T>
+C<T>.C() -> void
+C<T>.Nested
+C<T>.Nested.Nested() -> void
+~C<T>.field -> C<string>.Nested";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                GetCSharpResultAt(11, 22, DeclarePublicApiAnalyzer.ObliviousApiRule, "field")
+                );
+        }
+
         #endregion
 
         #region Fix tests
@@ -1282,26 +1366,6 @@ C.C() -> void
             var fixedUnshippedText = @"C
 C.C() -> void
 ~C.ChangedField -> string";
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
-        }
-
-        [Fact]
-        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithAddedNullability_WithOblivious()
-        {
-            var source = @"
-#nullable enable
-public class C
-{
-    public string? {|RS0016:ChangedField|};
-}
-";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
-            var unshippedText = @"C
-C.C() -> void
-{|RS0017:~C.ChangedField -> string|}";
-            var fixedUnshippedText = @"C
-C.C() -> void
-C.ChangedField -> string?";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
