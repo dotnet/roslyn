@@ -347,11 +347,6 @@
         <target state="translated">Recuar parâmetros encapsulados</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">A indexação pode ser simplificada</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
         <target state="translated">A interpolação pode ser simplificada</target>
@@ -622,19 +617,9 @@
         <target state="translated">Usar corpo da expressão para expressões lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">Usar operador de índice</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Usar cadeia de caracteres verbatim interpolada</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">Usar operador de intervalo</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -720,11 +705,6 @@
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Quebra de linha</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} pode ser simplificado</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">

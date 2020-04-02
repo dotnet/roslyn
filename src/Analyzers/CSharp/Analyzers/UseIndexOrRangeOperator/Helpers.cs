@@ -35,14 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             => !symbol.IsStatic && symbol.DeclaredAccessibility == Accessibility.Public;
 
         /// <summary>
-        /// Creates an `^expr` index expression from a given `expr`.
-        /// </summary>
-        public static PrefixUnaryExpressionSyntax IndexExpression(ExpressionSyntax expr)
-            => SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.IndexExpression,
-                expr.Parenthesize());
-
-        /// <summary>
         /// Checks if this <paramref name="operation"/> is `expr.Length` where `expr` is equivalent
         /// to the <paramref name="instance"/> we were originally invoking an accessor/method off
         /// of.
