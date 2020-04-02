@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                     var symbol = graphBuilder.GetSymbol(node);
 
-                    if (symbol != null)
+                    if (symbol.Symbol != null)
                     {
                         foreach (var newSymbol in SymbolContainment.GetContainedSymbols(symbol))
                         {

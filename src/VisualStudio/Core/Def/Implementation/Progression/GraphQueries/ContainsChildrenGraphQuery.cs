@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var symbol = graphBuilder.GetSymbol(node);
 
-                    if (symbol != null)
+                    if (symbol.Symbol != null)
                     {
                         var containsChildren = SymbolContainment.GetContainedSymbols(symbol).Any();
                         graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, containsChildren);

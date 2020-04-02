@@ -23,7 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 foreach (var node in context.InputNodes)
                 {
                     var symbol = graphBuilder.GetSymbol(node);
-                    if (symbol is INamedTypeSymbol || symbol is IMethodSymbol || symbol is IPropertySymbol || symbol is IEventSymbol)
+                    if (symbol.Symbol is INamedTypeSymbol ||
+                        symbol.Symbol is IMethodSymbol ||
+                        symbol.Symbol is IPropertySymbol ||
+                        symbol.Symbol is IEventSymbol)
                     {
                         var implementations = await SymbolFinder.FindImplementationsAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
