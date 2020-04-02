@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Rename
             RenameLocations locations,
             string newName,
             Func<Location, bool> filter = null,
-            Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
+            ImmutableHashSet<ISymbol> nonConflictSymbols = null,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(newName))
@@ -76,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             var conflictResolution = await ConflictResolver.ResolveConflictsAsync(
-                locations, symbolAndProjectId.Symbol.Name, newName, locations.Options, hasConflict, cancellationToken).ConfigureAwait(false);
+                locations, symbolAndProjectId.Symbol.Name, newName,
+                locations.Options, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
 
             return conflictResolution.NewSolution;
         }
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Rename
             string newName,
             OptionSet options,
             Func<Location, bool> filter,
-            Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
+            ImmutableHashSet<ISymbol> nonConflictSymbols = null,
             CancellationToken cancellationToken = default)
         {
             if (solution == null)
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             options ??= solution.Workspace.Options;
             var renameLocations = await GetRenameLocationsAsync(solution, symbolAndProjectId, options, cancellationToken).ConfigureAwait(false);
-            return await RenameAsync(renameLocations, newName, filter, hasConflict, cancellationToken).ConfigureAwait(false);
+            return await RenameAsync(renameLocations, newName, filter, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
     }
 }
