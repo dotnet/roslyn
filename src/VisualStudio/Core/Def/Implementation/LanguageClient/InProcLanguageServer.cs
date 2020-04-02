@@ -412,14 +412,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 => _server._documentsToPublishedUris.Keys.ToImmutableArray();
 
             internal IImmutableSet<Uri> GetFileUrisForDocument(DocumentId documentId)
-            {
-                if (_server._documentsToPublishedUris.TryGetValue(documentId, out var uris))
-                {
-                    return uris;
-                }
-
-                return ImmutableSortedSet<Uri>.Empty;
-            }
+                => _server._documentsToPublishedUris.GetOrValue(documentId, ImmutableSortedSet<Uri>.Empty);
 
             internal ImmutableArray<LanguageServer.Protocol.Diagnostic> GetDiagnosticsForUriAndDocument(DocumentId documentId, Uri uri)
             {
