@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// the same name as another member of a type: binding doesn't change (at least from the
         /// perspective of find all references), but we still need to track it.
         /// </summary>
-        internal static async Task AddDeclarationConflictsAsync(
+        private static async Task AddDeclarationConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
             IEnumerable<SymbolAndProjectId> referencedSymbols,
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        internal static void AddConflictingParametersOfProperties(
+        private static void AddConflictingParametersOfProperties(
             IEnumerable<ISymbol> properties, string newPropertyName, ArrayBuilder<Location> conflicts)
         {
             // check if the new property name conflicts with any parameter of the properties.
