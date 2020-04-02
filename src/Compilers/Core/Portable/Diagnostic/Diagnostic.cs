@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
-            params object?[] messageArgs)
+            Location? location,
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, null, null, messageArgs);
         }
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, null, properties, messageArgs);
         }
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             IEnumerable<Location>? additionalLocations,
-            params object?[] messageArgs)
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, additionalLocations, properties: null, messageArgs: messageArgs);
         }
@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             IEnumerable<Location>? additionalLocations,
             ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
         }
@@ -132,11 +132,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             DiagnosticSeverity effectiveSeverity,
             IEnumerable<Location>? additionalLocations,
             ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            params object?[]? messageArgs)
         {
             if (descriptor == null)
             {
