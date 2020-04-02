@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -25,7 +26,8 @@ namespace Roslyn.SyntaxVisualizer.Control
         None,
         SyntaxNode,
         SyntaxToken,
-        SyntaxTrivia
+        SyntaxTrivia,
+        Operation,
     }
 
     // A control for visually displaying the contents of a SyntaxTree.
@@ -34,6 +36,7 @@ namespace Roslyn.SyntaxVisualizer.Control
         private static readonly string SyntaxNodeTextBrushKey = "SyntaxNodeText.Brush";
         private static readonly string SyntaxTokenTextBrushKey = "SyntaxTokenText.Brush";
         private static readonly string SyntaxTriviaTextBrushKey = "SyntaxTriviaText.Brush";
+        private static readonly string OperationTextBrushKey = "OperationText.Brush";
         private static readonly string ErrorSquiggleBrushKey = "ErrorSquiggle.Brush";
         private static readonly string SquiggleStyleKey = "SquiggleStyle";
 
@@ -184,6 +187,9 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             var syntaxTriviaBrush = (SolidColorBrush)FindResource(SyntaxTriviaTextBrushKey);
             syntaxTriviaBrush.Color = GetForegroundColor(editorFormatMap.GetProperties(classificationFormatMap.GetEditorFormatMapKey(classificationTypeRegistryService.GetClassificationType(PredefinedClassificationTypeNames.String))));
+
+            var operationBrush = (SolidColorBrush)FindResource(OperationTextBrushKey);
+            operationBrush.Color = GetForegroundColor(editorFormatMap.GetProperties(classificationFormatMap.GetEditorFormatMapKey(classificationTypeRegistryService.GetClassificationType(PredefinedClassificationTypeNames.Number))));
 
             var errorBrush = (SolidColorBrush)FindResource(ErrorSquiggleBrushKey);
             errorBrush.Color = GetForegroundColor(editorFormatMap.GetProperties(PredefinedErrorTypeNames.SyntaxError));
@@ -402,6 +408,12 @@ namespace Roslyn.SyntaxVisualizer.Control
 
                         foreach (TreeViewItem item in current.Items)
                         {
+                            if (category != SyntaxCategory.Operation && ((SyntaxTag)item.Tag).Category == SyntaxCategory.Operation)
+                            {
+                                // Do not prefer navigating to IOperation nodes when clicking in source code
+                                continue;
+                            }
+
                             match = NavigateToBestMatch(item, span, kind, category);
                             if (match != null)
                             {
@@ -434,6 +446,97 @@ namespace Roslyn.SyntaxVisualizer.Control
             else
             {
                 AddToken(parentItem, nodeOrToken.AsToken());
+            }
+        }
+
+        private void AddOperation(TreeViewItem parentItem, IOperation operation)
+        {
+            var node = operation.Syntax;
+            var kind = operation.Kind.ToString();
+            var tag = new SyntaxTag()
+            {
+                SyntaxNode = node,
+                Category = SyntaxCategory.Operation,
+                Span = node.Span,
+                FullSpan = node.FullSpan,
+                Kind = kind,
+                ParentItem = parentItem,
+            };
+
+            var item = CreateTreeViewItem(tag, tag.Kind + " " + node.Span.ToString(), node.ContainsDiagnostics);
+            item.SetResourceReference(ForegroundProperty, OperationTextBrushKey);
+
+            if (SyntaxTree is object && node.ContainsDiagnostics)
+            {
+                item.ToolTip = string.Empty;
+                foreach (var diagnostic in SyntaxTree.GetDiagnostics(node))
+                {
+                    item.ToolTip += diagnostic.ToString() + "\n";
+                }
+
+                item.ToolTip = item.ToolTip.ToString().Trim();
+            }
+
+            item.Selected += new RoutedEventHandler((sender, e) =>
+            {
+                _isNavigatingFromTreeToSource = true;
+
+                typeTextLabel.Visibility = Visibility.Visible;
+                kindTextLabel.Visibility = Visibility.Visible;
+                typeValueLabel.Content = operation.GetType().Name;
+                kindValueLabel.Content = kind;
+                _propertyGrid.SelectedObject = operation;
+
+                item.IsExpanded = true;
+
+                if (!_isNavigatingFromSourceToTree && SyntaxNodeNavigationToSourceRequested != null)
+                {
+                    SyntaxNodeNavigationToSourceRequested(node);
+                }
+
+                _isNavigatingFromTreeToSource = false;
+                e.Handled = true;
+            });
+
+            item.Expanded += new RoutedEventHandler((sender, e) =>
+            {
+                if (item.Items.Count == 1 && item.Items[0] == null)
+                {
+                    // Remove placeholder child and populate real children.
+                    item.Items.RemoveAt(0);
+
+                    foreach (var child in operation.Children)
+                    {
+                        AddOperation(item, child);
+                    }
+                }
+            });
+
+            if (parentItem == null)
+            {
+                treeView.Items.Clear();
+                treeView.Items.Add(item);
+            }
+            else
+            {
+                parentItem.Items.Add(item);
+            }
+
+            if (operation.Children.Any())
+            {
+                if (IsLazy)
+                {
+                    // Add placeholder child to indicate that real children need to be populated on expansion.
+                    item.Items.Add(null);
+                }
+                else
+                {
+                    // Recursively populate all descendants.
+                    foreach (var child in operation.Children)
+                    {
+                        AddOperation(item, child);
+                    }
+                }
             }
         }
 
@@ -491,6 +594,13 @@ namespace Roslyn.SyntaxVisualizer.Control
                 {
                     // Remove placeholder child and populate real children.
                     item.Items.RemoveAt(0);
+
+                    var operation = SemanticModel.GetOperation(node);
+                    if (operation is { Parent: null })
+                    {
+                        AddOperation(item, operation);
+                    }
+
                     foreach (var child in node.ChildNodesAndTokens())
                     {
                         AddNodeOrToken(item, child);

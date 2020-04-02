@@ -16,6 +16,7 @@
         <SolidColorBrush x:Key="SyntaxNodeText.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
         <SolidColorBrush x:Key="SyntaxTokenText.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
         <SolidColorBrush x:Key="SyntaxTriviaText.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
+        <SolidColorBrush x:Key="OperationText.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
         <SolidColorBrush x:Key="ErrorSquiggle.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
 
         <Style x:Key="SquiggleStyle" TargetType="{x:Type Shape}">
