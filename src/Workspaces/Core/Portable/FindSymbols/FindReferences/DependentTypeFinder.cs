@@ -157,8 +157,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             return FindTypesFromCacheOrComputeAsync(
                 type, solution, projects, s_typeToTransitivelyDerivedClassesMap,
-                c => FindDerivedClassesAsync(type, solution, projects,
-                    transitive: true, c),
+                c => FindDerivedClassesAsync(type, solution, projects, transitive: true, c),
                 cancellationToken);
         }
 
