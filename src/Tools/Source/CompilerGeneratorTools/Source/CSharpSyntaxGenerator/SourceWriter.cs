@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using static System.String;
 
 namespace CSharpSyntaxGenerator
 {
@@ -68,6 +67,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
             OpenBlock();
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
+            WriteLine("using System.Diagnostics.CodeAnalysis;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
@@ -1162,6 +1162,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 nWritten++;
                 WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
+                WriteLine("[return: MaybeNull]");
                 WriteLine($"public virtual {(genericResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
