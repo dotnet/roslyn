@@ -135,15 +135,15 @@ unsafe class C
         }
 
         [Theory]
-        [InlineData("sbyte", "conv.i1", "conv.ovf.i1")]
-        [InlineData("byte", "conv.u1", "conv.ovf.u1")]
-        [InlineData("short", "conv.i2", "conv.ovf.i2")]
-        [InlineData("ushort", "conv.u2", "conv.ovf.u2")]
-        [InlineData("int", "conv.i4", "conv.ovf.i4")]
-        [InlineData("uint", "conv.u4", "conv.ovf.u4")]
+        [InlineData("sbyte", "conv.i1", "conv.ovf.i1.un")]
+        [InlineData("byte", "conv.u1", "conv.ovf.u1.un")]
+        [InlineData("short", "conv.i2", "conv.ovf.i2.un")]
+        [InlineData("ushort", "conv.u2", "conv.ovf.u2.un")]
+        [InlineData("int", "conv.i4", "conv.ovf.i4.un")]
+        [InlineData("uint", "conv.u4", "conv.ovf.u4.un")]
         [InlineData("long", "conv.u8", "conv.ovf.i8.un")]
         [InlineData("ulong", "conv.u8", "conv.u8")]
-        public void FunctionPointerToNumericConversions(string type, string convKind, string checkedKind)
+        public void FunctionPointerToNumericConversions(string type, string uncheckedInstruction, string checkedInstruction)
         {
             var comp = CreateCompilationWithFunctionPointers($@"
 unsafe class C
@@ -162,13 +162,13 @@ unsafe class C
   // Code size       10 (0xa)
   .maxstack  1
   IL_0000:  ldarg.1
-  IL_0001:  {convKind}
+  IL_0001:  {uncheckedInstruction}
   IL_0002:  pop
   IL_0003:  ldarg.1
-  IL_0004:  {convKind}
+  IL_0004:  {uncheckedInstruction}
   IL_0005:  pop
   IL_0006:  ldarg.1
-  IL_0007:  {checkedKind}
+  IL_0007:  {checkedInstruction}
   IL_0008:  pop
   IL_0009:  ret
 }}

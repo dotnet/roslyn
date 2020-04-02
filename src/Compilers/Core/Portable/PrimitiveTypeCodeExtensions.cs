@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis
                 case Cci.PrimitiveTypeCode.UIntPtr:
                 case Cci.PrimitiveTypeCode.Char:
                 case Cci.PrimitiveTypeCode.Pointer:
+                case Cci.PrimitiveTypeCode.FunctionPointer:
                     return true;
                 default:
                     return false;
