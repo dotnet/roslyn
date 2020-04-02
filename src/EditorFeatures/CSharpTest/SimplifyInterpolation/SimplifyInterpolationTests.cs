@@ -896,5 +896,44 @@ struct TypeNotImplementingIFormattable
     public string ToString(string format) => ""A"";
 }");
         }
+
+        [Fact, WorkItem(42936, "https://github.com/dotnet/roslyn/issues/42936")]
+        public async Task ToStringSimplificationIsNotOfferedOnRefStruct()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    string M(RefStruct someValue) => $""Test: {someValue[||].ToString()}"";
+}
+
+ref struct RefStruct
+{
+    public override string ToString() => ""A"";
+}");
+        }
+
+        [Fact, WorkItem(42936, "https://github.com/dotnet/roslyn/issues/42936")]
+        public async Task PadLeftSimplificationIsStillOfferedOnRefStruct()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    string M(RefStruct someValue) => $""Test: {someValue.ToString()[||].PadLeft(10)}"";
+}
+
+ref struct RefStruct
+{
+    public override string ToString() => ""A"";
+}",
+@"class C
+{
+    string M(RefStruct someValue) => $""Test: {someValue.ToString(),10}"";
+}
+
+ref struct RefStruct
+{
+    public override string ToString() => ""A"";
+}");
+        }
     }
 }

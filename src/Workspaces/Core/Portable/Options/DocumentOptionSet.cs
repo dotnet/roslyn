@@ -26,8 +26,11 @@ namespace Microsoft.CodeAnalysis.Options
             _language = language;
         }
 
-        public override object? GetOption(OptionKey optionKey)
+        private protected override object? GetOptionCore(OptionKey optionKey)
             => _backingOptionSet.GetOption(optionKey);
+
+        public new object? GetOption(OptionKey optionKey)
+            => base.GetOption(optionKey);
 
         public T GetOption<T>(PerLanguageOption<T> option)
             => _backingOptionSet.GetOption(option, _language);

@@ -94,6 +94,11 @@
         <target state="translated">Impossible d'utiliser le module de copie pour créer des métadonnées d'assembly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="new">Only a single {0} can be registered per generator.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
         <target state="translated">L'analyseur '{0}' contient un descripteur null dans 'SupportedDiagnostics'.</target>

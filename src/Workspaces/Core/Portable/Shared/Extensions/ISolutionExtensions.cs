@@ -63,16 +63,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IEnumerable<DocumentId> FilterDocumentIdsByLanguage(this Solution solution, ImmutableArray<DocumentId> documentIds, string language)
-        {
-            foreach (var documentId in documentIds)
-            {
-                var document = solution.GetDocument(documentId);
-                if (document != null && document.Project.Language == language)
-                {
-                    yield return documentId;
-                }
-            }
-        }
+        public static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(this Solution solution, ImmutableArray<DocumentId> documentIds, string language)
+            => documentIds.WhereAsArray(
+                (documentId, args) => args.solution.GetDocument(documentId)?.Project.Language == args.language,
+                (solution, language));
     }
 }
