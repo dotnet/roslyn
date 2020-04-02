@@ -39,10 +39,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
                 Assert.NotNull(checksum);
 
-                var assetBuilder = new CustomAssetBuilder(workspace);
                 var serializer = workspace.Services.GetService<ISerializerService>();
 
-                var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
+                var asset = WorkspaceAnalyzerReferenceAsset.Create(analyzerReference, serializer, CancellationToken.None);
 
                 using var stream = SerializableBytes.CreateWritableStream();
 
@@ -55,7 +54,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     var recovered = serializer.Deserialize<AnalyzerReference>(asset.Kind, reader, CancellationToken.None);
-                    var assetFromStorage = assetBuilder.Build(recovered, CancellationToken.None);
+                    var assetFromStorage = WorkspaceAnalyzerReferenceAsset.Create(recovered, serializer, CancellationToken.None);
 
                     Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
 

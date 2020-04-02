@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,133 +12,19 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Execution
+namespace Microsoft.CodeAnalysis.Serialization
 {
-    internal abstract class AbstractReferenceSerializationService : IReferenceSerializationService
+    internal partial class SerializerService
     {
-        // cache for encoding. 
-        // typical low number, high volumn data cache.
-        private static readonly ConcurrentDictionary<Encoding, byte[]> s_encodingCache = new ConcurrentDictionary<Encoding, byte[]>(concurrencyLevel: 2, capacity: 5);
-
         private const int MetadataFailed = int.MaxValue;
-        private const string VisualStudioUnresolvedAnalyzerReference = "Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.VisualStudioAnalyzer+VisualStudioUnresolvedAnalyzerReference";
-
-        protected const byte NoEncodingSerialization = 0;
-        protected const byte EncodingSerialization = 1;
 
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
-
-        private readonly ITemporaryStorageService _storageService;
-        private readonly IDocumentationProviderService _documentationService;
-        private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
-
-        protected AbstractReferenceSerializationService(
-            ITemporaryStorageService storageService,
-            IDocumentationProviderService documentationService,
-            IAnalyzerAssemblyLoaderProvider analyzerLoaderProvider)
-        {
-            _storageService = storageService;
-            _documentationService = documentationService;
-            _analyzerLoaderProvider = analyzerLoaderProvider;
-        }
-
-        public void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            if (encoding == null)
-            {
-                WriteNoEncodingTo(encoding, writer, cancellationToken);
-                return;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var value = GetEncodingBytes(encoding);
-            if (value == null)
-            {
-                // we couldn't serialize encoding, act like there is no encoding.
-                WriteNoEncodingTo(encoding, writer, cancellationToken);
-                return;
-            }
-
-            // write data out
-            writer.WriteByte(EncodingSerialization);
-            writer.WriteValue(value.AsSpan());
-        }
-
-        private void WriteNoEncodingTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            writer.WriteByte(NoEncodingSerialization);
-            writer.WriteString(encoding?.WebName);
-        }
-
-        private static byte[] GetEncodingBytes(Encoding encoding)
-        {
-            try
-            {
-                if (!s_encodingCache.TryGetValue(encoding, out var value))
-                {
-                    // we don't have cache, cache it
-                    var formatter = new BinaryFormatter();
-                    using var stream = SerializableBytes.CreateWritableStream();
-
-                    // unfortunately, this is only way to properly clone encoding
-                    formatter.Serialize(stream, encoding);
-                    value = stream.ToArray();
-
-                    // add if not already exist. otherwise, noop
-                    s_encodingCache.TryAdd(encoding, value);
-                }
-
-                return value;
-            }
-            catch (SerializationException)
-            {
-                // even though Encoding is supposed to be serializable, 
-                // not every Encoding follows the rule strictly.
-                // in such as, behave like there was no encoding
-                return null;
-            }
-        }
-
-        public Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var serialized = reader.ReadByte();
-            if (serialized == EncodingSerialization)
-            {
-                var array = (byte[])reader.ReadValue();
-                var formatter = new BinaryFormatter();
-
-                return (Encoding)formatter.Deserialize(new MemoryStream(array));
-            }
-
-            return ReadEncodingFrom(serialized, reader, cancellationToken);
-        }
-
-        private Encoding ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (serialized != NoEncodingSerialization)
-            {
-                return null;
-            }
-
-            var webName = reader.ReadString();
-            return webName == null ? null : Encoding.GetEncoding(webName);
-        }
 
         public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
@@ -164,19 +49,6 @@ namespace Microsoft.CodeAnalysis.Execution
                     case AnalyzerFileReference file:
                         WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
                         break;
-
-                    case UnresolvedAnalyzerReference unresolved:
-                        WriteUnresolvedAnalyzerReferenceTo(unresolved, writer);
-                        break;
-
-                    case AnalyzerReference analyzerReference when analyzerReference.GetType().FullName == VisualStudioUnresolvedAnalyzerReference:
-                        WriteUnresolvedAnalyzerReferenceTo(analyzerReference, writer);
-                        break;
-
-                    case AnalyzerImageReference _:
-                        // TODO: think a way to support this or a way to deal with this kind of situation.
-                        // https://github.com/dotnet/roslyn/issues/15783
-                        throw new NotSupportedException(nameof(AnalyzerImageReference));
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(reference);
@@ -468,11 +340,6 @@ namespace Microsoft.CodeAnalysis.Execution
         private bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
             ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
-            if (_storageService == null)
-            {
-                return false;
-            }
-
             var storages = reference.GetStorages();
             if (storages == null)
             {

@@ -73,12 +73,11 @@ namespace Microsoft.CodeAnalysis.Execution
         public static WorkspaceAnalyzerReferenceAsset Create(
             AnalyzerReference reference,
             ISerializerService serializer,
-            IReferenceSerializationService hostSerializationService,
             CancellationToken cancellationToken)
         {
             var checksum = Checksum.Create(
                 WellKnownSynchronizationKind.AnalyzerReference,
-                hostSerializationService.CreateChecksum(reference, cancellationToken));
+                serializer.CreateChecksum(reference, cancellationToken));
 
             return new WorkspaceAnalyzerReferenceAsset(reference, serializer, checksum);
         }

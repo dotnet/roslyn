@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -174,9 +175,9 @@ End Class";
 
                 // add host analyzer as global assets
                 var snapshotService = workspace.Services.GetService<IRemotableDataService>();
-                var assetBuilder = new CustomAssetBuilder(workspace);
+                var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
-                var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
+                var asset = WorkspaceAnalyzerReferenceAsset.Create(analyzerReference, serializer, CancellationToken.None);
                 snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
 
                 var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
@@ -232,9 +233,9 @@ End Class";
 
                 // add host analyzer as global assets
                 var snapshotService = workspace.Services.GetService<IRemotableDataService>();
-                var assetBuilder = new CustomAssetBuilder(workspace);
+                var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
-                var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
+                var asset = WorkspaceAnalyzerReferenceAsset.Create(analyzerReference, serializer, CancellationToken.None);
                 snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
 
                 var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);

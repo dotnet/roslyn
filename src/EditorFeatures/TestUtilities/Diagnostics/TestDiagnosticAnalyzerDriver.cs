@@ -10,9 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -141,8 +142,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             var builder = ArrayBuilder<Checksum>.GetInstance();
 
-            var snapshotService = workspace.Services.GetService<CodeAnalysis.Execution.IRemotableDataService>();
-            var assetBuilder = new CodeAnalysis.Execution.CustomAssetBuilder(workspace);
+            var snapshotService = workspace.Services.GetService<IRemotableDataService>();
+            var serializer = workspace.Services.GetService<ISerializerService>();
 
             foreach (var (_, reference) in _diagnosticAnalyzerService.HostAnalyzers.GetHostAnalyzerReferencesMap())
             {
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     continue;
                 }
 
-                var asset = assetBuilder.Build(reference, CancellationToken.None);
+                var asset = WorkspaceAnalyzerReferenceAsset.Create(reference, serializer, CancellationToken.None);
 
                 builder.Add(asset.Checksum);
                 snapshotService.AddGlobalAsset(reference, asset, CancellationToken.None);

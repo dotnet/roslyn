@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly HostWorkspaceServices _workspaceServices;
 
-        private readonly IReferenceSerializationService _hostSerializationService;
-        private readonly ITemporaryStorageService2 _tempService;
+        private readonly ITemporaryStorageService2 _storageService;
         private readonly ITextFactoryService _textService;
+        private readonly IDocumentationProviderService _documentationService;
+        private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
 
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
@@ -41,9 +42,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             _workspaceServices = workspaceServices;
 
-            _hostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
-            _tempService = _workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2;
-            _textService = _workspaceServices.GetService<ITextFactoryService>();
+            _storageService = (ITemporaryStorageService2)workspaceServices.GetRequiredService<ITemporaryStorageService>();
+            _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
+            _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+            _documentationService = workspaceServices.GetRequiredService<IDocumentationProviderService>();
 
             _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
         }
@@ -56,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (value is IChecksummedObject)
+                if (value is IChecksummedObject checksummedObject)
                 {
-                    return ((IChecksummedObject)value).Checksum;
+                    return checksummedObject.Checksum;
                 }
 
                 switch (kind)
@@ -73,10 +75,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(kind, value, this);
 
                     case WellKnownSynchronizationKind.MetadataReference:
-                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
+                        return Checksum.Create(kind, CreateChecksum((MetadataReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.AnalyzerReference:
-                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, cancellationToken));
+                        return Checksum.Create(kind, CreateChecksum((AnalyzerReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.SourceText:
                         return Checksum.Create(kind, ((SourceText)value).GetChecksum());

@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
                 typeof(CodeAnalysis.CSharp.Execution.CSharpOptionsSerializationService),
                 typeof(CodeAnalysis.VisualBasic.Execution.VisualBasicOptionsSerializationService),
-                typeof(CodeAnalysis.Execution.DesktopReferenceSerializationServiceFactory),
                 typeof(CodeAnalysis.Execution.SerializerServiceFactory),
                 typeof(CodeAnalysis.Shared.TestHooks.AsynchronousOperationListenerProvider),
                 typeof(CodeAnalysis.Host.WorkspaceAsynchronousOperationListenerProvider),
