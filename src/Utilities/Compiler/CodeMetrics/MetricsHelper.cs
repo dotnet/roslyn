@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -34,49 +34,52 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             return RoundMetricValue((maintIndex / 171.0) * 100.0);
         }
 
-        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, IEnumerable<ITypeSymbol> coupledTypes)
+        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
+            IEnumerable<ITypeSymbol> coupledTypes)
         {
             foreach (var coupledType in coupledTypes)
             {
-                AddCoupledNamedTypesCore(builder, coupledType);
+                AddCoupledNamedTypesCore(builder, coupledType, wellKnownTypeProvider);
             }
         }
 
-        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, params ITypeSymbol[] coupledTypes)
+        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
+            params ITypeSymbol[] coupledTypes)
         {
             foreach (var coupledType in coupledTypes)
             {
-                AddCoupledNamedTypesCore(builder, coupledType);
+                AddCoupledNamedTypesCore(builder, coupledType, wellKnownTypeProvider);
             }
         }
 
-        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, ImmutableArray<IParameterSymbol> parameters)
+        internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,
+            ImmutableArray<IParameterSymbol> parameters)
         {
             foreach (var parameter in parameters)
             {
-                AddCoupledNamedTypesCore(builder, parameter.Type);
+                AddCoupledNamedTypesCore(builder, parameter.Type, wellKnownTypeProvider);
             }
         }
 
-        internal static async Task<long> GetLinesOfCodeAsync(ImmutableArray<SyntaxReference> declarations, ISymbol symbol, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+        internal static async Task<long> GetLinesOfCodeAsync(ImmutableArray<SyntaxReference> declarations, ISymbol symbol, CodeMetricsAnalysisContext context)
         {
             long linesOfCode = 0;
             foreach (var decl in declarations)
             {
-                SyntaxNode declSyntax = await GetTopmostSyntaxNodeForDeclarationAsync(decl, symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SyntaxNode declSyntax = await GetTopmostSyntaxNodeForDeclarationAsync(decl, symbol, context).ConfigureAwait(false);
 
                 // For namespace symbols, don't count lines of code for declarations of child namespaces.
                 // For example, "namespace N1.N2 { }" is a declaration reference for N1, but the actual declaration is for N2.
                 if (symbol.Kind == SymbolKind.Namespace)
                 {
-                    var model = semanticModelProvider.GetSemanticModel(declSyntax);
-                    if (model.GetDeclaredSymbol(declSyntax, cancellationToken) != (object)symbol)
+                    var model = context.GetSemanticModel(declSyntax);
+                    if (model.GetDeclaredSymbol(declSyntax, context.CancellationToken) != (object)symbol)
                     {
                         continue;
                     }
                 }
 
-                FileLinePositionSpan linePosition = declSyntax.SyntaxTree.GetLineSpan(declSyntax.FullSpan, cancellationToken);
+                FileLinePositionSpan linePosition = declSyntax.SyntaxTree.GetLineSpan(declSyntax.FullSpan, context.CancellationToken);
                 long delta = linePosition.EndLinePosition.Line - linePosition.StartLinePosition.Line;
                 if (delta == 0)
                 {
@@ -90,13 +93,13 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             return linesOfCode;
         }
 
-        internal static async Task<SyntaxNode> GetTopmostSyntaxNodeForDeclarationAsync(SyntaxReference declaration, ISymbol declaredSymbol, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+        internal static async Task<SyntaxNode> GetTopmostSyntaxNodeForDeclarationAsync(SyntaxReference declaration, ISymbol declaredSymbol, CodeMetricsAnalysisContext context)
         {
-            var declSyntax = await declaration.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+            var declSyntax = await declaration.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
             if (declSyntax.Language == LanguageNames.VisualBasic)
             {
-                SemanticModel model = semanticModelProvider.GetSemanticModel(declSyntax);
-                while (declSyntax.Parent != null && Equals(model.GetDeclaredSymbol(declSyntax.Parent, cancellationToken), declaredSymbol))
+                SemanticModel model = context.GetSemanticModel(declSyntax);
+                while (declSyntax.Parent != null && Equals(model.GetDeclaredSymbol(declSyntax.Parent, context.CancellationToken), declaredSymbol))
                 {
                     declSyntax = declSyntax.Parent;
                 }
@@ -109,8 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ImmutableArray<SyntaxReference> declarations,
             ISymbol symbol,
             ImmutableHashSet<INamedTypeSymbol>.Builder builder,
-            SemanticModelProvider semanticModelProvider,
-            CancellationToken cancellationToken)
+            CodeMetricsAnalysisContext context)
         {
             int cyclomaticComplexity = 0;
             ComputationalComplexityMetrics computationalComplexityMetrics = ComputationalComplexityMetrics.Default;
@@ -118,9 +120,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             var nodesToProcess = new Queue<SyntaxNode>();
             using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
+            var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(context.Compilation);
+
             foreach (var declaration in declarations)
             {
-                SyntaxNode syntax = await GetTopmostSyntaxNodeForDeclarationAsync(declaration, symbol, semanticModelProvider, cancellationToken).ConfigureAwait(false);
+                SyntaxNode syntax = await GetTopmostSyntaxNodeForDeclarationAsync(declaration, symbol, context).ConfigureAwait(false);
                 nodesToProcess.Enqueue(syntax);
 
                 // Ensure we process parameter initializers and attributes.
@@ -130,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     var parameterSyntaxRef = parameter.DeclaringSyntaxReferences.FirstOrDefault();
                     if (parameterSyntaxRef != null)
                     {
-                        var parameterSyntax = await parameterSyntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                        var parameterSyntax = await parameterSyntaxRef.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
                         nodesToProcess.Enqueue(parameterSyntax);
                     }
                 }
@@ -146,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     if (attribute.ApplicationSyntaxReference != null &&
                         attribute.ApplicationSyntaxReference.SyntaxTree == declaration.SyntaxTree)
                     {
-                        var attributeSyntax = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                        var attributeSyntax = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(context.CancellationToken).ConfigureAwait(false);
                         if (applicableAttributeNodes.Add(attributeSyntax))
                         {
                             nodesToProcess.Enqueue(attributeSyntax);
@@ -157,11 +161,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 do
                 {
                     var node = nodesToProcess.Dequeue();
-                    var model = semanticModelProvider.GetSemanticModel(node);
+                    var model = context.GetSemanticModel(node);
 
                     if (!ReferenceEquals(node, syntax))
                     {
-                        var declaredSymbol = model.GetDeclaredSymbol(node, cancellationToken);
+                        var declaredSymbol = model.GetDeclaredSymbol(node, context.CancellationToken);
                         if (declaredSymbol != null && !Equals(symbol, declaredSymbol) && declaredSymbol.Kind != SymbolKind.Parameter)
                         {
                             // Skip member declarations.
@@ -169,10 +173,10 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         }
                     }
 
-                    var typeInfo = model.GetTypeInfo(node, cancellationToken);
-                    AddCoupledNamedTypesCore(builder, typeInfo.Type);
+                    var typeInfo = model.GetTypeInfo(node, context.CancellationToken);
+                    AddCoupledNamedTypesCore(builder, typeInfo.Type, wellKnownTypeProvider);
 
-                    var operationBlock = model.GetOperation(node, cancellationToken);
+                    var operationBlock = model.GetOperation(node, context.CancellationToken);
                     if (operationBlock != null && operationBlock.Parent == null)
                     {
                         switch (operationBlock.Kind)
@@ -211,18 +215,18 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                                 cyclomaticComplexity += 1;
                             }
 
-                            AddCoupledNamedTypesCore(builder, operation.Type);
+                            AddCoupledNamedTypesCore(builder, operation.Type, wellKnownTypeProvider);
 
                             // Handle static member accesses specially as there is no operation for static type off which the member is accessed.
                             if (operation is IMemberReferenceOperation memberReference &&
                                 memberReference.Member.IsStatic)
                             {
-                                AddCoupledNamedTypesCore(builder, memberReference.Member.ContainingType);
+                                AddCoupledNamedTypesCore(builder, memberReference.Member.ContainingType, wellKnownTypeProvider);
                             }
                             else if (operation is IInvocationOperation invocation &&
                                 (invocation.TargetMethod.IsStatic || invocation.TargetMethod.IsExtensionMethod))
                             {
-                                AddCoupledNamedTypesCore(builder, invocation.TargetMethod.ContainingType);
+                                AddCoupledNamedTypesCore(builder, invocation.TargetMethod.ContainingType, wellKnownTypeProvider);
                             }
                         }
                     }
@@ -262,23 +266,28 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
         }
 
-        private static void AddCoupledNamedTypesCore(ImmutableHashSet<INamedTypeSymbol>.Builder builder, ITypeSymbol typeOpt)
+        private static void AddCoupledNamedTypesCore(ImmutableHashSet<INamedTypeSymbol>.Builder builder, ITypeSymbol typeOpt,
+            WellKnownTypeProvider wellKnownTypeProvider)
         {
             if (typeOpt is INamedTypeSymbol usedType &&
-                !isIgnoreableType(usedType) &&
-                builder.Add(usedType))
+                !isIgnoreableType(usedType, wellKnownTypeProvider))
             {
+                // Save the OriginalDefinition of the type as IEnumerable<int> and IEnumerable<float>
+                // should register only one IEnumerable...
+                builder.Add(usedType.OriginalDefinition);
+
+                // ... but always parse the generic type arguments as IEnumerable<int> and IEnumerable<float>
+                // should register int and float.
                 if (usedType.IsGenericType)
                 {
                     foreach (var type in usedType.TypeArguments)
                     {
-                        AddCoupledNamedTypesCore(builder, type);
+                        AddCoupledNamedTypesCore(builder, type, wellKnownTypeProvider);
                     }
                 }
             }
 
-            // Compat
-            static bool isIgnoreableType(INamedTypeSymbol namedType)
+            static bool isIgnoreableType(INamedTypeSymbol namedType, WellKnownTypeProvider wellKnownTypeProvider)
             {
                 switch (namedType.SpecialType)
                 {
@@ -303,7 +312,10 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         return true;
 
                     default:
-                        return false;
+                        return namedType.IsAnonymousType ||
+                            namedType.GetAttributes().Any(a =>
+                                a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesCompilerGeneratedAttribute)) ||
+                                a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute)));
                 }
             }
         }

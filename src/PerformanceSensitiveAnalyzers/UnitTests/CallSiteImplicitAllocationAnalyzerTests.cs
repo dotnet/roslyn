@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.CSharpPerformanceCodeFixVerifier<
@@ -25,7 +26,7 @@ public class MyClass
     public void Testing()
     {
 
-        Params();
+        Params(); //no allocation, because compiler will implicitly substitute Array.Empty<int>()
         Params(1, 2);
         Params(new [] { 1, 2}); // explicit, so no warning
         ParamsWithObjects(new [] { 1, 2}); // explicit, but converted to objects, so stil la warning?!
@@ -44,14 +45,50 @@ public class MyClass
 }";
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(10,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
-                VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(10, 9),
-                // Test0.cs(11,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
+                // Test0.cs(11,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(11, 9),
-                // Test0.cs(13,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
+                // Test0.cs(13,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(13, 9),
-                // Test0.cs(16,20): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
+                // Test0.cs(16,20): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(16, 20));
+        }
+
+
+        [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
+        public async Task EmptyParamsWithNetFramework45()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net45.Default,
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        Params(); // allocation
+    }
+
+    public void Params(params int[] args)
+    {
+    }
+}",
+                        ("PerformanceSensitiveAttribute.cs", VerifyCS.PerformanceSensitiveAttributeSource)
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(10, 9),
+                    },
+                },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+            }.RunAsync();
         }
 
         [Fact]

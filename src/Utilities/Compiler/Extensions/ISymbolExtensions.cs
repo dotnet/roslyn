@@ -161,7 +161,7 @@ namespace Analyzer.Utilities.Extensions
             Compilation compilation,
             CancellationToken cancellationToken)
         {
-            var excludedSymbols = options.GetExcludedSymbolNamesOption(rule, compilation, cancellationToken);
+            var excludedSymbols = options.GetExcludedSymbolNamesWithValueOption(rule, compilation, cancellationToken);
             var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, compilation, cancellationToken);
             if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
             {

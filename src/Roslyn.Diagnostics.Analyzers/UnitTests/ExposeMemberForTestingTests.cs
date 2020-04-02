@@ -55,7 +55,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 },
                 LanguageVersion = CSLanguageVersion.CSharp7_2,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "F:TestClass._field",
+                CodeActionEquivalenceKey = "F:TestClass._field",
             };
 
             await test.RunAsync();
@@ -105,7 +105,7 @@ End Class";
                 },
                 LanguageVersion = VBLanguageVersion.Default,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "F:TestClass._field",
+                CodeActionEquivalenceKey = "F:TestClass._field",
             };
 
             await test.RunAsync();
@@ -150,7 +150,7 @@ End Class";
                 },
                 LanguageVersion = CSLanguageVersion.CSharp7_2,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "F:TestClass._field",
+                CodeActionEquivalenceKey = "F:TestClass._field",
             };
 
             await test.RunAsync();
@@ -197,7 +197,7 @@ End Class";
                 },
                 LanguageVersion = VBLanguageVersion.Default,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "F:TestClass._field",
+                CodeActionEquivalenceKey = "F:TestClass._field",
             };
 
             await test.RunAsync();
@@ -247,7 +247,7 @@ End Class";
                 },
                 LanguageVersion = CSLanguageVersion.CSharp7_2,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "P:TestClass.Property",
+                CodeActionEquivalenceKey = "P:TestClass.Property",
             };
 
             await test.RunAsync();
@@ -297,7 +297,7 @@ End Class";
                 },
                 LanguageVersion = VBLanguageVersion.Default,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "P:TestClass.TestProperty",
+                CodeActionEquivalenceKey = "P:TestClass.TestProperty",
             };
 
             await test.RunAsync();
@@ -342,7 +342,7 @@ End Class";
                 },
                 LanguageVersion = CSLanguageVersion.CSharp7_2,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "P:TestClass.Property",
+                CodeActionEquivalenceKey = "P:TestClass.Property",
             };
 
             await test.RunAsync();
@@ -389,7 +389,7 @@ End Class";
                 },
                 LanguageVersion = VBLanguageVersion.Default,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "P:TestClass.TestProperty",
+                CodeActionEquivalenceKey = "P:TestClass.TestProperty",
             };
 
             await test.RunAsync();
@@ -434,7 +434,7 @@ End Class";
                 },
                 LanguageVersion = CSLanguageVersion.CSharp7_2,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "P:TestClass.Property",
+                CodeActionEquivalenceKey = "P:TestClass.Property",
             };
 
             await test.RunAsync();
@@ -487,7 +487,7 @@ End Class";
                 },
                 LanguageVersion = VBLanguageVersion.Default,
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-                CodeFixEquivalenceKey = "P:TestClass.TestProperty",
+                CodeActionEquivalenceKey = "P:TestClass.TestProperty",
             };
 
             await test.RunAsync();

@@ -215,6 +215,7 @@ Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisD
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.SerializationInfoNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.MonitorNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.GenericTaskNamedType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
+Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.StringReaderType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.CollectionNamedTypes.get -> System.Collections.Immutable.ImmutableHashSet<Microsoft.CodeAnalysis.INamedTypeSymbol>
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue>
 Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue>.Add(System.Collections.Generic.KeyValuePair<TKey, TValue> item) -> void
@@ -709,3 +710,10 @@ virtual Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TA
 virtual Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DataFlowOperationVisitor<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>.VisitUnaryOperatorCore(Microsoft.CodeAnalysis.Operations.IUnaryOperation operation, object argument) -> TAbstractAnalysisValue
 virtual Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PredicatedAnalysisData<TKey, TValue>.ApplyPredicatedData(Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue> coreAnalysisData, Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue> predicatedData) -> void
 virtual Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PredicatedAnalysisData<TKey, TValue>.RemoveEntryInPredicatedData(TKey key, Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DictionaryAnalysisData<TKey, TValue> predicatedData) -> void
+Microsoft.CodeAnalysis.CodeMetrics.CodeMetricsAnalysisContext
+Microsoft.CodeAnalysis.CodeMetrics.CodeMetricsAnalysisContext.CodeMetricsAnalysisContext(Microsoft.CodeAnalysis.Compilation compilation, System.Threading.CancellationToken cancellationToken, System.Func<Microsoft.CodeAnalysis.INamedTypeSymbol, bool> isExcludedFromInheritanceCountFunc = null) -> void
+Microsoft.CodeAnalysis.CodeMetrics.CodeMetricsAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.CodeMetrics.CodeMetricsAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.CodeMetrics.CodeMetricsAnalysisContext.IsExcludedFromInheritanceCountFunc.get -> System.Func<Microsoft.CodeAnalysis.INamedTypeSymbol, bool>
+static Microsoft.CodeAnalysis.CodeMetrics.CodeAnalysisMetricData.ComputeAsync(Microsoft.CodeAnalysis.CodeMetrics.CodeMetricsAnalysisContext context) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeMetrics.CodeAnalysisMetricData>
+static Microsoft.CodeAnalysis.CodeMetrics.CodeAnalysisMetricData.ComputeAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.CodeMetrics.CodeMetricsAnalysisContext context) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeMetrics.CodeAnalysisMetricData>

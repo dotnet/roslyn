@@ -3,6 +3,7 @@
 #pragma warning disable CA1305
 
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
@@ -40,7 +41,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
+            DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
 
             var fixedCode_WithCSharpAttribute = @"
@@ -73,8 +74,8 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
-                CodeFixIndex = 0,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -107,8 +108,8 @@ class MyAnalyzer : DiagnosticAnalyzer
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
-                CodeFixIndex = 2,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
             }.RunAsync();
         }
 
@@ -133,7 +134,7 @@ Class MyAnalyzer
 	End Sub
 End Class
 ";
-            DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
+            DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute);
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
 
             var fixedCode_WithVBAttribute = @"
@@ -164,8 +165,8 @@ End Class
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithVBAttribute } },
-                CodeFixIndex = 1,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -196,8 +197,8 @@ End Class
                     ExpectedDiagnostics = { expected },
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
-                CodeFixIndex = 2,
-                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
             }.RunAsync();
         }
 

@@ -3,5 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <RootNamespace>OtherDll</RootNamespace>
+    <NonShipping>true</NonShipping>
   </PropertyGroup>
 </Project>

@@ -69,7 +69,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return Task.CompletedTask;
         }
 
-        private async Task<Document> AddExplicitImportingConstructorAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private static async Task<Document> AddExplicitImportingConstructorAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -108,7 +108,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 DeclarationModifiers.None,
                 baseConstructorArguments: null,
                 statements: Enumerable.Empty<SyntaxNode>());
-            importingConstructor = generator.AddAttributes(importingConstructor, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol)));
+            importingConstructor = generator.AddAttributes(importingConstructor, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol).WithAddImportsAnnotation()));
 
             var index = 0;
             var existingMembers = generator.GetMembers(declaration);
@@ -131,7 +131,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
 
-        private async Task<Document> MakeConstructorPublicAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private static async Task<Document> MakeConstructorPublicAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var importingConstructorAttribute = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
@@ -148,7 +148,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
 
-        private async Task<Document> AddImportingConstructorAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private static async Task<Document> AddImportingConstructorAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -194,7 +194,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol)));
+            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol).WithAddImportsAnnotation()));
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
     }

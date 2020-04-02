@@ -3,7 +3,9 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
@@ -90,17 +92,9 @@ namespace ConsoleApplication1
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string objectName, string methodName)
-        {
-            return GetExpectedDiagnostic(CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer.DoNotIgnoreReturnValueDiagnosticRule,
-                line, column, objectName, methodName);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string objectName, string methodName)
-        {
-            return new DiagnosticResult(rule)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string objectName, string methodName) =>
+            VerifyCS.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(objectName, methodName);
-        }
     }
 }

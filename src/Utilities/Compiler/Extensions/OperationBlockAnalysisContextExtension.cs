@@ -2,7 +2,6 @@
 
 #if HAS_IOPERATION
 
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -11,7 +10,9 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class OperationBlockAnalysisContextExtension
     {
-        public static bool IsMethodNotImplementedOrSupported(this OperationBlockAnalysisContext context)
+#pragma warning disable RS1012 // Start action has no registered actions.
+        public static bool IsMethodNotImplementedOrSupported(this OperationBlockStartAnalysisContext context)
+#pragma warning restore RS1012 // Start action has no registered actions.
         {
             // Note that VB method bodies with 1 action have 3 operations.
             // The first is the actual operation, the second is a label statement, and the third is a return
@@ -46,27 +47,16 @@ namespace Analyzer.Utilities.Extensions
                          body.Operations[2] is IReturnOperation returnOp && returnOp.IsImplicit);
                 }
 
-                if (IsSingleStatementBody(methodBlock))
+                if (IsSingleStatementBody(methodBlock) &&
+                    methodBlock.Operations[0].GetTopmostExplicitDescendants() is { } descendants &&
+                    descendants.Length == 1 &&
+                    descendants[0] is IThrowOperation throwOperation &&
+                    throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
                 {
-                    var innerOperation = methodBlock.Operations.First();
-
-                    // Because of https://github.com/dotnet/roslyn/issues/23152, there can be an expression-statement
-                    // wrapping expression-bodied throw operations. Compensate by unwrapping if necessary.
-                    if (innerOperation.Kind == OperationKind.ExpressionStatement &&
-                        innerOperation is IExpressionStatementOperation exprStatement)
+                    if (Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException), createdExceptionType.OriginalDefinition)
+                        || Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException), createdExceptionType.OriginalDefinition))
                     {
-                        innerOperation = exprStatement.Operation;
-                    }
-
-                    if (innerOperation.Kind == OperationKind.Throw &&
-                        innerOperation is IThrowOperation throwOperation &&
-                        throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
-                    {
-                        if (Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException), createdExceptionType.OriginalDefinition)
-                            || Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException), createdExceptionType.OriginalDefinition))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }

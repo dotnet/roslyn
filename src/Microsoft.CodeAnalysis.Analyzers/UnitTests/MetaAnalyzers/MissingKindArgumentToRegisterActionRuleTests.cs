@@ -2,10 +2,16 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -220,32 +226,26 @@ End Class
         {
             var rule = kind switch
             {
-                MissingKindArgument.SymbolKind => CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
-                MissingKindArgument.SyntaxKind => CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
-                MissingKindArgument.OperationKind => CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.MissingOperationKindArgumentRule,
-                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind))
+                MissingKindArgument.SymbolKind => CSharpRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
+                MissingKindArgument.SyntaxKind => CSharpRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
+                MissingKindArgument.OperationKind => CSharpRegisterActionAnalyzer.MissingOperationKindArgumentRule,
+                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
 
-            return GetExpectedDiagnostic(rule, line, column);
+            return VerifyCS.Diagnostic(rule).WithLocation(line, column);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, MissingKindArgument kind)
         {
             var rule = kind switch
             {
-                MissingKindArgument.SymbolKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
-                MissingKindArgument.SyntaxKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
-                MissingKindArgument.OperationKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingOperationKindArgumentRule,
-                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind))
+                MissingKindArgument.SymbolKind => BasicRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
+                MissingKindArgument.SyntaxKind => BasicRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
+                MissingKindArgument.OperationKind => BasicRegisterActionAnalyzer.MissingOperationKindArgumentRule,
+                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
 
-            return GetExpectedDiagnostic(rule, line, column);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column)
-        {
-            return new DiagnosticResult(rule)
-                .WithLocation(line, column);
+            return VerifyVB.Diagnostic(rule).WithLocation(line, column);
         }
 
         private enum MissingKindArgument

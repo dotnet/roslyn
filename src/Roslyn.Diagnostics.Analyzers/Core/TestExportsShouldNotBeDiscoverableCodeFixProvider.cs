@@ -39,7 +39,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return Task.CompletedTask;
         }
 
-        private async Task<Document> AddPartNotDiscoverableAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private static async Task<Document> AddPartNotDiscoverableAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return document;
             }
 
-            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(partNotDiscoverableAttributeSymbol)));
+            var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(partNotDiscoverableAttributeSymbol).WithAddImportsAnnotation()));
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
     }

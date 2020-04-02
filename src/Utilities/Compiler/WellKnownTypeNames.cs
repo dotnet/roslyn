@@ -5,6 +5,7 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypeNames
     {
         public const string SystemAppContext = "System.AppContext";
+        public const string SystemBuffersMemoryManager1 = "System.Buffers.MemoryManager`1";
         public const string SystemNetSecurityProtocolType = "System.Net.SecurityProtocolType";
         public const string SystemWebMvcValidateInputAttribute = "System.Web.Mvc.ValidateInputAttribute";
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
@@ -19,6 +20,7 @@ namespace Analyzer.Utilities
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
+        public const string SystemThreadingTasksGenericValueTask = "System.Threading.Tasks.ValueTask`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
@@ -360,7 +362,6 @@ namespace Analyzer.Utilities
         public const string SystemNetHttpHttpClient = "System.Net.Http.HttpClient";
         public const string SystemNetHttpHttpClientHandler = "System.Net.Http.HttpClientHandler";
         public const string SystemNetHttpWinHttpHandler = "System.Net.Http.WinHttpHandler";
-        public const string SystemNetHttpCurlHandler = "System.Net.Http.CurlHandler";
         public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
         public const string SystemRandom = "System.Random";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
@@ -438,6 +439,7 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
         public const string SystemFlagsAttribute = "System.FlagsAttribute";
         public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
+        public const string SystemDiagnosticsDebug = "System.Diagnostics.Debug";
         public const string SystemReflectionAssemblyVersionAttribute = "System.Reflection.AssemblyVersionAttribute";
         public const string SystemCLSCompliantAttribute = "System.CLSCompliantAttribute";
         public const string SystemIComparable = "System.IComparable";
@@ -460,6 +462,32 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcHttpOptionsAttribute = "Microsoft.AspNetCore.Mvc.HttpOptionsAttribute";
         public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
         public const string SystemWebHttpApplication = "System.Web.HttpApplication";
+        public const string MicrosoftCodeAnalysisCompilation = "Microsoft.CodeAnalysis.Compilation";
+        public const string MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation = "Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
         public const string SystemRuntimeInteropServicesOutAttribute = "System.Runtime.InteropServices.OutAttribute";
+        public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
+        public const string MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzer = "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer";
+        public const string MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute = "Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerAttribute";
+        public const string MicrosoftCodeAnalysisDiagnostic = "Microsoft.CodeAnalysis.Diagnostic";
+        public const string MicrosoftCodeAnalysisDiagnosticDescriptor = "Microsoft.CodeAnalysis.DiagnosticDescriptor";
+        public const string MicrosoftCodeAnalysisLocalizableString = "Microsoft.CodeAnalysis.LocalizableString";
+        public const string MicrosoftCodeAnalysisDiagnosticsAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.AnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsCompilationStartAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsCompilationEndAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsSemanticModelAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsSymbolAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsSyntaxNodeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsSyntaxTreeAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsCodeBlockStartAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext`1";
+        public const string MicrosoftCodeAnalysisDiagnosticsCodeBlockAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsOperationBlockStartAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsOperationBlockAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext";
+        public const string MicrosoftCodeAnalysisDiagnosticsOperationAnalysisContext = "Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext";
+        public const string MicrosoftCodeAnalysisSymbolKind = "Microsoft.CodeAnalysis.SymbolKind";
+        public const string SystemIOStringReader = "System.IO.StringReader";
+        public const string SystemCollectionsObjectModelReadOnlyCollection1 = "System.Collections.ObjectModel.ReadOnlyCollection`1";
+        public const string SystemCollectionsObjectModelReadOnlyDictionary2 = "System.Collections.ObjectModel.ReadOnlyDictionary`2";
+        public const string SystemCollectionsObjectModelReadOnlyObservableCollection1 = "System.Collections.ObjectModel.ReadOnlyObservableCollection`1";
+        public const string RoslynUtilitiesNonDefaultableAttribute = "Roslyn.Utilities.NonDefaultableAttribute";
     }
 }

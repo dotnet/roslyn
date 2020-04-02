@@ -48,6 +48,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.OutputKind, rule, s_defaultOutputKinds, cancellationToken);
 
+        public static ImmutableHashSet<SymbolKind> GetAnalyzedSymbolKindsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            ImmutableHashSet<SymbolKind> defaultSymbolKinds,
+            CancellationToken cancellationToken)
+            => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.AnalyzedSymbolKinds, rule, defaultSymbolKinds, cancellationToken);
+
         private static TEnum GetFlagsEnumOptionValue<TEnum>(
             this AnalyzerOptions options,
             string optionName,
@@ -128,84 +135,188 @@ namespace Analyzer.Utilities
             return analyzerConfigOptions.GetOptionValue(optionName, rule, uint.TryParse, defaultValue);
         }
 
-        public static SymbolNamesOption GetNullCheckValidationMethodsOption(
+        public static SymbolNamesWithValueOption<Unit> GetNullCheckValidationMethodsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.NullCheckValidationMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.NullCheckValidationMethods, rule, compilation, cancellationToken, namePrefixOpt: "M:");
 
-        public static SymbolNamesOption GetAdditionalStringFormattingMethodsOption(
+        public static SymbolNamesWithValueOption<Unit> GetAdditionalStringFormattingMethodsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalStringFormattingMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalStringFormattingMethods, rule, compilation, cancellationToken, namePrefixOpt: "M:");
 
-        public static SymbolNamesOption GetExcludedSymbolNamesOption(
+        public static SymbolNamesWithValueOption<Unit> GetExcludedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedSymbolNames, rule, compilation, cancellationToken);
 
-        public static SymbolNamesOption GetExcludedTypeNamesWithDerivedTypesOption(
+        public static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, namePrefixOpt: "T:", rule, compilation, cancellationToken);
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, rule, compilation, cancellationToken, namePrefixOpt: "T:");
 
-        public static SymbolNamesOption GetDisallowedSymbolNamesOption(
+        public static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesOption(EditorConfigOptionNames.DisallowedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.DisallowedSymbolNames, rule, compilation, cancellationToken);
 
-        public static SymbolNamesOption GetAdditionalRequiredSuffixesOption(
+        public static SymbolNamesWithValueOption<string> GetAdditionalRequiredSuffixesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken)
         {
-            return options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalRequiredSuffixes, namePrefixOpt: "T:", rule, compilation, cancellationToken, GetParts);
+            return options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.AdditionalRequiredSuffixes, rule, compilation, cancellationToken, namePrefixOpt: "T:", getTypeAndSuffixFunc: GetParts);
 
-            static SymbolNamesOption.NameParts GetParts(string name)
+            static SymbolNamesWithValueOption<string>.NameParts GetParts(string name)
             {
                 var split = name.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
 
                 // If we don't find exactly one '->', we assume that there is no given suffix.
-                return split.Length == 2
-                    ? new SymbolNamesOption.NameParts(split[0], split[1])
-                    : new SymbolNamesOption.NameParts(name);
+                if (split.Length != 2)
+                {
+                    return new SymbolNamesWithValueOption<string>.NameParts(name);
+                }
+
+                // Note that we do not validate if the suffix will give a valid class name.
+                var trimmedSuffix = split[1].Trim();
+
+                // Check if the given suffix is the special suffix symbol "{[ ]*?}" (opening curly brace '{', 0..N spaces and a closing curly brace '}')
+                if (trimmedSuffix.Length >= 2 &&
+                    trimmedSuffix[0] == '{' &&
+                    trimmedSuffix[trimmedSuffix.Length - 1] == '}')
+                {
+                    for (int i = 1; i < trimmedSuffix.Length - 2; i++)
+                    {
+                        if (trimmedSuffix[i] != ' ')
+                        {
+                            return new SymbolNamesWithValueOption<string>.NameParts(split[0], trimmedSuffix);
+                        }
+                    }
+
+                    // Replace the special empty suffix symbol by an empty string
+                    return new SymbolNamesWithValueOption<string>.NameParts(split[0], string.Empty);
+                }
+
+                return new SymbolNamesWithValueOption<string>.NameParts(split[0], trimmedSuffix);
             }
         }
 
-        private static SymbolNamesOption GetSymbolNamesOption(
+        public static SymbolNamesWithValueOption<INamedTypeSymbol> GetAdditionalRequiredGenericInterfaces(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            return options.GetSymbolNamesWithValueOption(EditorConfigOptionNames.AdditionalRequiredGenericInterfaces, rule, compilation, cancellationToken, namePrefixOpt: "T:", getTypeAndSuffixFunc: x => GetParts(x, compilation));
+
+            static SymbolNamesWithValueOption<INamedTypeSymbol>.NameParts GetParts(string name, Compilation compilation)
+            {
+                var split = name.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
+
+                // If we don't find exactly one '->', we assume that there is no given suffix.
+                if (split.Length != 2)
+                {
+                    return new SymbolNamesWithValueOption<INamedTypeSymbol>.NameParts(name);
+                }
+
+                var genericInterfaceFullName = split[1].Trim();
+                if (!genericInterfaceFullName.StartsWith("T:", StringComparison.Ordinal))
+                {
+                    genericInterfaceFullName = $"T:{genericInterfaceFullName}";
+                }
+
+                var matchingSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(genericInterfaceFullName, compilation);
+
+                if (matchingSymbols.Length != 1 ||
+                    !(matchingSymbols[0] is INamedTypeSymbol namedType) ||
+                    namedType.TypeKind != TypeKind.Interface ||
+                    !namedType.IsGenericType)
+                {
+                    // Invalid matching type so we assume there was no associated type
+                    return new SymbolNamesWithValueOption<INamedTypeSymbol>.NameParts(split[0]);
+                }
+
+                return new SymbolNamesWithValueOption<INamedTypeSymbol>.NameParts(split[0], namedType);
+            }
+        }
+
+        public static SymbolNamesWithValueOption<Unit> GetInheritanceExcludedSymbolNamesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            string defaultForcedValue,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalInheritanceExcludedSymbolNames, rule, compilation, cancellationToken, optionForcedValue: defaultForcedValue);
+
+        private static SymbolNamesWithValueOption<TValue> GetSymbolNamesWithValueOption<TValue>(
             this AnalyzerOptions options,
             string optionName,
-            string? namePrefixOpt,
             DiagnosticDescriptor rule,
             Compilation compilation,
             CancellationToken cancellationToken,
-            Func<string, SymbolNamesOption.NameParts>? getTypeAndSuffixFunc = null)
+            string? namePrefixOpt = null,
+            string? optionDefaultValue = null,
+            string? optionForcedValue = null,
+            Func<string, SymbolNamesWithValueOption<TValue>.NameParts>? getTypeAndSuffixFunc = null)
+            where TValue : notnull
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
-            return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: SymbolNamesOption.Empty);
+            return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: GetDefaultValue());
 
             // Local functions.
-            bool TryParse(string s, out SymbolNamesOption option)
+            bool TryParse(string s, out SymbolNamesWithValueOption<TValue> option)
             {
-                if (string.IsNullOrEmpty(s))
+                var optionValue = s;
+
+                if (!string.IsNullOrEmpty(optionForcedValue) &&
+                    (optionValue == null || !optionValue.Contains(optionForcedValue)))
                 {
-                    option = SymbolNamesOption.Empty;
+                    optionValue = $"{optionForcedValue}|{optionValue}";
+                }
+
+                if (string.IsNullOrEmpty(optionValue))
+                {
+                    option = SymbolNamesWithValueOption<TValue>.Empty;
                     return false;
                 }
 
-                var names = s.Split('|').ToImmutableArray();
-                option = SymbolNamesOption.Create(names, compilation, namePrefixOpt, getTypeAndSuffixFunc);
+                var names = optionValue.Split('|').ToImmutableArray();
+                option = SymbolNamesWithValueOption<TValue>.Create(names, compilation, namePrefixOpt, getTypeAndSuffixFunc);
                 return true;
+            }
+
+            SymbolNamesWithValueOption<TValue> GetDefaultValue()
+            {
+                string optionValue = string.Empty;
+
+                if (!string.IsNullOrEmpty(optionDefaultValue))
+                {
+                    RoslynDebug.Assert(optionDefaultValue != null);
+                    optionValue = optionDefaultValue;
+                }
+
+                if (!string.IsNullOrEmpty(optionForcedValue) &&
+                    (optionValue == null || !optionValue.Contains(optionForcedValue)))
+                {
+                    optionValue = $"{optionForcedValue}|{optionValue}";
+                }
+
+                RoslynDebug.Assert(optionValue != null);
+
+                return TryParse(optionValue, out var option)
+                    ? option
+                    : SymbolNamesWithValueOption<TValue>.Empty;
             }
         }
 

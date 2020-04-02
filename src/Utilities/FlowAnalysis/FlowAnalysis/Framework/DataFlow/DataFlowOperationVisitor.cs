@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
 #pragma warning disable RS0030 // The symbol 'DiagnosticDescriptor.DiagnosticDescriptor.#ctor' is banned in this project: Use 'DiagnosticDescriptorHelper.Create' instead
+#pragma warning disable RS2000 // Add analyzer diagnostic IDs to analyzer release
         private static readonly DiagnosticDescriptor s_dummyDataflowAnalysisDescriptor = new DiagnosticDescriptor(
             id: "InterproceduralDataflow",
             title: string.Empty,
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.DataflowAndTelemetry);
+#pragma warning restore RS2000 // Add analyzer diagnostic IDs to analyzer release
 #pragma warning restore RS0030
 
         private readonly ImmutableHashSet<CaptureId> _lValueFlowCaptures;
@@ -213,6 +215,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterlockedNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
             SerializationInfoNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
             GenericIEquatableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
+            StringReaderType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOStringReader);
             CollectionNamedTypes = GetWellKnownCollectionTypes();
 
             _lValueFlowCaptures = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(analysisContext.ControlFlowGraph);
@@ -3637,6 +3640,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.IEquatable{T}"/>
         /// </summary>
         protected INamedTypeSymbol? GenericIEquatableNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IO.StringReader"/>
+        /// </summary>
+        protected INamedTypeSymbol? StringReaderType { get; }
 
         /// <summary>
         /// Set containing following named types, if not null:
