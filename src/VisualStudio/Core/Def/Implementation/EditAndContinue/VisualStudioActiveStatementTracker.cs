@@ -8,10 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Microsoft.VisualStudio.Debugger.Symbols;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
-using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 using Dbg = Microsoft.VisualStudio.Debugger.UI.Interfaces;
 
