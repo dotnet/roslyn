@@ -2108,11 +2108,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Semantic Analysis
 
-        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol>
+        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol?>
         {
-            public static readonly IEqualityComparer<IAssemblySymbol> Instance = new AssemblyEqualityComparer();
+            public static readonly IEqualityComparer<IAssemblySymbol?> Instance = new AssemblyEqualityComparer();
 
-            public bool Equals(IAssemblySymbol x, IAssemblySymbol y)
+            public bool Equals(IAssemblySymbol? x, IAssemblySymbol? y)
             {
                 // Types defined in old source assembly need to be treated as equivalent to types in the new source assembly,
                 // provided that they only differ in their containing assemblies.
@@ -2123,11 +2123,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // a single PE symbol. Thus comparing assemblies by identity partitions them so that each partition
                 // contains assemblies that originated from the same Gen0 assembly.
 
-                return x.Identity.Equals(y.Identity);
+                return Equals(x?.Identity, y?.Identity);
             }
 
-            public int GetHashCode(IAssemblySymbol obj)
-                => obj.Identity.GetHashCode();
+            public int GetHashCode(IAssemblySymbol? obj)
+                => obj?.Identity.GetHashCode() ?? 0;
         }
 
         protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(
@@ -2727,7 +2727,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName);
+            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
             if (lazyLayoutAttribute == null)
             {
                 return false;
@@ -3397,6 +3397,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static void BuildIndex<TKey>(Dictionary<TKey, int> index, ImmutableArray<TKey> array)
+            where TKey : notnull
         {
             for (var i = 0; i < array.Length; i++)
             {

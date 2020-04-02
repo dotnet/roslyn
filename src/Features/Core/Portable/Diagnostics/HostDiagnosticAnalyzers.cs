@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _primaryWorkspace = primaryWorkspace;
             }
 
-            public void OnAnalyzerLoadFailed(object sender, AnalyzerLoadFailureEventArgs e)
+            public void OnAnalyzerLoadFailed(object? sender, AnalyzerLoadFailureEventArgs e)
             {
                 if (!(sender is AnalyzerFileReference reference))
                 {

@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+# nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Roslyn.Utilities;
@@ -33,8 +36,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         internal MSBuildProjectLoader(
             HostWorkspaceServices workspaceServices,
             DiagnosticReporter diagnosticReporter,
-            ProjectFileLoaderRegistry projectFileLoaderRegistry,
-            ImmutableDictionary<string, string> properties)
+            ProjectFileLoaderRegistry? projectFileLoaderRegistry,
+            ImmutableDictionary<string, string>? properties)
         {
             _workspaceServices = workspaceServices;
             _diagnosticReporter = diagnosticReporter;
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="workspace">The workspace whose services this <see cref="MSBuildProjectLoader"/> should use.</param>
         /// <param name="properties">An optional dictionary of additional MSBuild properties and values to use when loading projects.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.</param>
-        public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string> properties = null)
+        public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string>? properties = null)
             : this(workspace.Services, new DiagnosticReporter(workspace), projectFileLoaderRegistry: null, properties)
         {
         }
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _projectFileLoaderRegistry.AssociateFileExtensionWithLanguage(projectFileExtension, language);
         }
 
-        private void SetSolutionProperties(string solutionFilePath)
+        private void SetSolutionProperties(string? solutionFilePath)
         {
             const string SolutionDirProperty = "SolutionDir";
 
@@ -139,10 +142,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="solutionFilePath">The path to the solution file to be loaded. This may be an absolute path or a path relative to the
         /// current working directory.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the solution is loaded.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
-            IProgress<ProjectLoadProgress> progress = null,
+            IProgress<ProjectLoadProgress>? progress = null,
+            ILogger? msbuildLogger = null,
             CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
@@ -153,7 +158,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (!_pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath))
             {
                 // TryGetAbsoluteSolutionPath should throw before we get here.
-                return null;
+                return null!;
             }
 
             using (_dataGuard.DisposableWait(cancellationToken))
@@ -182,7 +187,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var buildManager = new ProjectBuildManager(_properties);
+            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
 
             var worker = new Worker(
                 _workspaceServices,
@@ -191,7 +196,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _projectFileLoaderRegistry,
                 buildManager,
                 projectPaths.ToImmutable(),
-                baseDirectory: Path.GetDirectoryName(absoluteSolutionPath),
+                // TryGetAbsoluteSolutionPath should not return an invalid path
+                baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
                 _properties,
                 projectMap: null,
                 progress,
@@ -218,11 +224,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <param name="projectMap">An optional <see cref="ProjectMap"/> that will be used to resolve project references to existing projects.
         /// This is useful when populating a custom <see cref="Workspace"/>.</param>
         /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is loaded.</param>
+        /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath,
-            ProjectMap projectMap = null,
-            IProgress<ProjectLoadProgress> progress = null,
+            ProjectMap? projectMap = null,
+            IProgress<ProjectLoadProgress>? progress = null,
+            ILogger? msbuildLogger = null,
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
@@ -238,7 +246,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var buildManager = new ProjectBuildManager(_properties);
+            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
 
             var worker = new Worker(
                 _workspaceServices,

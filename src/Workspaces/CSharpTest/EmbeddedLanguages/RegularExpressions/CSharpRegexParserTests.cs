@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
 
             Assert.True(regex.GetGroupNumbers().OrderBy(v => v).SequenceEqual(
-                tree.CaptureNumbersToSpan.Keys.OrderBy(v => v)));
+                tree.CaptureNumbersToSpan.Keys.OrderBy(v => v).Select(v => (int)v)));
 
             Assert.True(regex.GetGroupNames().Where(v => !int.TryParse(v, out _)).OrderBy(v => v).SequenceEqual(
                 tree.CaptureNamesToSpan.Keys.OrderBy(v => v)));

@@ -900,7 +900,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return this.x.Compare(x, y);
+        return ((IComparer)this.x).Compare(x, y);
     }
 }",
 index: 1);
@@ -925,7 +925,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return a.Compare(x, y);
+        return ((IComparer)a).Compare(x, y);
     }
 }",
 index: 1);

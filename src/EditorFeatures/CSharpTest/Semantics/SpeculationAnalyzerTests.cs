@@ -176,7 +176,7 @@ class Program
         var d = new Class();
         [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(d)", false);
+}           ", "((IComparable)c).CompareTo(d)", semanticChanges: false);
         }
 
         [Fact]

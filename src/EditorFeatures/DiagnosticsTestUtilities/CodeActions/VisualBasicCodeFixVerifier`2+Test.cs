@@ -6,12 +6,15 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -69,6 +72,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public string? EditorConfig { get; set; }
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
+
+            public override async Task RunAsync(CancellationToken cancellationToken = default)
+            {
+                if (DiagnosticSelector is object)
+                {
+                    Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
+                }
+
+                await base.RunAsync(cancellationToken);
+            }
 
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
