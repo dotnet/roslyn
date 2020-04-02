@@ -172,11 +172,6 @@
         <target state="translated">構造体に変換</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">タプルに変換</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">System.IDisposable を実装する型は、IDisposable も実装する型のフィールドを宣言します。フィールドの Dispose メソッドは、宣言する型の Dispose メソッドによって呼び出されません。フィールドが保持する管理されていないリソースの割り当てと解放を自分が担当している場合、このルールの違反を修正するには、IDisposable を実装する型のフィールドに Dispose を呼び出します。</target>

@@ -172,11 +172,6 @@
         <target state="translated">转换为结构</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">转换为元组</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">实现 System.IDisposable 的类型将声明一些字段，这些字段所属的类型还实现 IDisposable。字段的 Dispose 方法不由声明类型的 Dispose 方法调用。若要修复此规则的违规行为，如果你负责分配和释放该字段持有的非托管资源，请在其所属类型实现 IDisposable 的字段上调用 Dispose。</target>

@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer(ISyntaxKinds syntaxKinds)
             : base(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId,
                    option: null,
-                   new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Convert_to_tuple), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_tuple), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_tuple), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _syntaxKinds = syntaxKinds;
         }
