@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             return type.SubstituteTypes(visitor.Substitutions, compilation);
         }
 
-        private class DetermineSubstitutionsVisitor : AsyncSymbolVisitor
+        private sealed class DetermineSubstitutionsVisitor : AsyncSymbolVisitor
         {
             public readonly Dictionary<ITypeSymbol, ITypeSymbol> Substitutions =
                 new Dictionary<ITypeSymbol, ITypeSymbol>();
