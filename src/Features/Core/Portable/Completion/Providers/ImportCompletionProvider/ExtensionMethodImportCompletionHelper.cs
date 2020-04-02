@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             static async Task PopulateCacheEntries(Project currentProject)
             {
-                // Just need to populate the cache so we don't want to hold on to the returned value.
+                // Just need to populate the cache so we don't want to hold on to the returned value,
+                // also don't cancel the task when completion is canceled.
                 await TryGetIndicesAsync(currentProject, forceIndexCreation: true, CancellationToken.None).ConfigureAwait(false);
             }
         }
