@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.BaseConstructorInitializer:
                     case SyntaxKind.ThisConstructorInitializer:
                         var init = (ConstructorInitializerSyntax)original.Syntax;
+                        Debug.Assert(init.Parent is object);
                         return new BoundSequencePointWithSpan(init, rewritten, CreateSpanForConstructorInitializer((ConstructorDeclarationSyntax)init.Parent));
                 }
             }

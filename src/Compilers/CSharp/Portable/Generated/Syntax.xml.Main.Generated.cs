@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
@@ -878,863 +879,648 @@ namespace Microsoft.CodeAnalysis.CSharp
     public partial class CSharpSyntaxVisitor
     {
         /// <summary>Called when the visitor visits a IdentifierNameSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QualifiedNameSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GenericNameSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeArgumentListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AliasQualifiedNameSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PredefinedTypeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayTypeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayRankSpecifierSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PointerTypeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleTypeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleElementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OmittedTypeArgumentSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefTypeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PrefixUnaryExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AwaitExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PostfixUnaryExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MemberAccessExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConditionalAccessExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MemberBindingExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RangeExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitElementAccessSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BinaryExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AssignmentExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConditionalExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThisExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BaseExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LiteralExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MakeRefExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefTypeExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefValueExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CheckedExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefaultExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeOfExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SizeOfExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InvocationExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElementAccessExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArgumentListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BracketedArgumentListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArgumentSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameColonSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DeclarationExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CastExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousMethodExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SimpleLambdaExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedLambdaExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InitializerExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectMemberDeclaratorSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitArrayCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a StackAllocArrayCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryBodySyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FromClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LetClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a JoinClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a JoinIntoClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhereClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OrderByClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OrderingSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SelectClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GroupClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryContinuationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OmittedArraySizeExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IsPatternExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThrowExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhenClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DiscardPatternSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DeclarationPatternSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VarPatternSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RecursivePatternSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PositionalPatternClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PropertyPatternClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SubpatternSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationAlignmentClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationFormatClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GlobalStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BlockSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LocalFunctionStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LocalDeclarationStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VariableDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VariableDeclaratorSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EqualsValueClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SingleVariableDesignationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DiscardDesignationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedVariableDesignationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExpressionStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EmptyStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LabeledStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GotoStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BreakStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ContinueStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ReturnStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThrowStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a YieldStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhileStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DoStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForEachStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForEachVariableStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UsingStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FixedStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CheckedStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UnsafeStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LockStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IfStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElseClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchSectionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CasePatternSwitchLabelSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CaseSwitchLabelSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefaultSwitchLabelSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchExpressionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchExpressionArmSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TryStatementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchFilterClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FinallyClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CompilationUnitSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExternAliasDirectiveSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UsingDirectiveSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NamespaceDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeTargetSpecifierSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeArgumentListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeArgumentSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameEqualsSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ClassDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a StructDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterfaceDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DelegateDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SimpleBaseTypeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterConstraintClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorConstraintSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ClassOrStructConstraintSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeConstraintSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EventFieldDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExplicitInterfaceSpecifierSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MethodDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OperatorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConversionOperatorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorInitializerSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DestructorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PropertyDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrowExpressionClauseSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EventDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IndexerDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AccessorListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AccessorDeclarationSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParameterListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BracketedParameterListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParameterSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SkippedTokensTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DocumentationCommentTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeCrefSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QualifiedCrefSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OperatorMemberCrefSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConversionOperatorMemberCrefSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefParameterListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefBracketedParameterListSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefParameterSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementStartTagSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementEndTagSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlEmptyElementSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlNameSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlPrefixSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlTextAttributeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCrefAttributeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlNameAttributeSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlTextSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCDataSectionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlProcessingInstructionSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCommentSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IfDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElifDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElseDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EndIfDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RegionDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EndRegionDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ErrorDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WarningDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BadDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefineDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UndefDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LineDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaWarningDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaChecksumDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ReferenceDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LoadDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ShebangDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
-        [return: MaybeNull]
         public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     }
 

@@ -6,11 +6,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     //deferral can result in meaningful savings of strings.
     public abstract partial class CSharpSyntaxNode : SyntaxNode, IFormattable
     {
-        internal CSharpSyntaxNode(GreenNode green, SyntaxNode parent, int position)
+        internal CSharpSyntaxNode(GreenNode green, SyntaxNode? parent, int position)
             : base(green, parent, position)
         {
         }
