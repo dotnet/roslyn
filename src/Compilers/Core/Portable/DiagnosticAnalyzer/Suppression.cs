@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -74,10 +75,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override int GetHashCode()
         {
-            int hashCode = 1755072348;
-            hashCode = hashCode * -1521134295 + EqualityComparer<SuppressionDescriptor>.Default.GetHashCode(Descriptor);
-            hashCode = hashCode * -1521134295 + EqualityComparer<Diagnostic>.Default.GetHashCode(SuppressedDiagnostic);
-            return hashCode;
+            return Hash.Combine(
+                EqualityComparer<SuppressionDescriptor>.Default.GetHashCode(Descriptor),
+                EqualityComparer<Diagnostic>.Default.GetHashCode(SuppressedDiagnostic));
         }
     }
 }
