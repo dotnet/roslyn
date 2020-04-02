@@ -100,6 +100,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     id, definitionId: id, document, position, definition.SourceSpans.FirstOrDefault(), context, definition.DisplayableProperties,
                     definition.GetClassifiedText(), symbolUsageInfo: null, cancellationToken).ConfigureAwait(false);
 
+                // If we have an empty location, skip this definition and its references.
+                if (definitionItem.Location == null)
+                {
+                    continue;
+                }
+
                 referenceItems.Add(definitionItem);
                 var definitionId = id;
                 id++;
@@ -110,6 +116,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var referenceItem = await GenerateReferenceItem(
                         id, definitionId, document, position, reference.SourceSpan, context, reference.AdditionalProperties,
                         definitionText: null, reference.SymbolUsageInfo, cancellationToken).ConfigureAwait(false);
+
+                    // If we have an empty location, skip this reference.
+                    if (referenceItem.Location == null)
+                    {
+                        continue;
+                    }
 
                     referenceItems.Add(referenceItem);
                     id++;
@@ -138,7 +150,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var symbol = await SymbolFinder.FindSymbolAtPositionAsync(originalDocument, originalPosition, cancellationToken).ConfigureAwait(false);
                     if (symbol != null && symbol.Locations != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
                     {
-                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(originalDocument.Project, symbol, false, cancellationToken).ConfigureAwait(false);
+                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(
+                            originalDocument.Project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         location = new LSP.Location
