@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private const byte NoEncodingSerialization = 0;
         private const byte EncodingSerialization = 1;
 
-        public void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        public void WriteTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (encoding == null)
             {
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteValue(value.AsSpan());
         }
 
-        private void WriteNoEncodingTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WriteNoEncodingTo(Encoding? encoding, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteString(encoding?.WebName);
         }
 
-        private static byte[] GetEncodingBytes(Encoding encoding)
+        private static byte[]? GetEncodingBytes(Encoding encoding)
         {
             try
             {
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public Encoding ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public Encoding? ReadEncodingFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return ReadEncodingFrom(serialized, reader, cancellationToken);
         }
 
-        private Encoding ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
+        private Encoding? ReadEncodingFrom(byte serialized, ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

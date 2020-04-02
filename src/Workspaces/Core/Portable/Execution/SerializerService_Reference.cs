@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        private void WriteMvidsTo(Metadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WriteMvidsTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (metadata == null)
             {
@@ -304,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
         }
 
-        private void WriteTo(Metadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WriteTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (metadata == null)
             {
@@ -346,7 +348,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                 return false;
             }
 
-            using var pooled = Creator.CreateList<(string name, long offset, long size)>();
+            // Not clear if name should be allowed to be null here (https://github.com/dotnet/roslyn/issues/43037)
+            using var pooled = Creator.CreateList<(string? name, long offset, long size)>();
 
             foreach (var storage in storages)
             {
@@ -457,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
 
             var array = reader.ReadArray<byte>();
-            var pinnedObject = new PinnedObject(array, array.Length);
+            var pinnedObject = new PinnedObject(array);
 
             var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
 
@@ -488,8 +491,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (kind == SerializationKinds.MemoryMapFile)
             {
-                var service2 = _storageService as ITemporaryStorageService2;
-                Contract.ThrowIfNull(service2);
+                var service2 = (ITemporaryStorageService2)_storageService;
 
                 var name = reader.ReadString();
                 var offset = reader.ReadInt64();
@@ -518,13 +520,13 @@ namespace Microsoft.CodeAnalysis.Serialization
                 memory.TryGetBuffer(out var buffer) &&
                 buffer.Offset == 0)
             {
-                pinnedObject = new PinnedObject(buffer.Array, buffer.Count);
+                pinnedObject = new PinnedObject(buffer.Array!);
             }
             else
             {
                 var array = new byte[length];
                 stream.Read(array, 0, (int)length);
-                pinnedObject = new PinnedObject(array, length);
+                pinnedObject = new PinnedObject(array);
             }
 
             metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), (int)length);
@@ -560,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             writer.WriteString(reference.FullPath);
         }
 
-        private static Metadata TryGetMetadata(PortableExecutableReference reference)
+        private static Metadata? TryGetMetadata(PortableExecutableReference reference)
         {
             try
             {
@@ -577,9 +579,10 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private sealed class PinnedObject : IDisposable
         {
-            private readonly GCHandle _gcHandle;
+            // shouldn't be read-only since GCHandle is a mutable struct
+            private GCHandle _gcHandle;
 
-            public PinnedObject(byte[] array, long length)
+            public PinnedObject(byte[] array)
                 => _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
 
             internal IntPtr GetPointer()
@@ -608,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             private readonly DocumentationProvider _provider;
 
             public MissingMetadataReference(
-                MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation)
+                MetadataReferenceProperties properties, string? fullPath, DocumentationProvider initialDocumentation)
                 : base(properties, fullPath, initialDocumentation)
             {
                 // TODO: doc comment provider is a bit weird.
@@ -618,7 +621,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             protected override DocumentationProvider CreateDocumentationProvider()
             {
                 // TODO: properly implement this
-                return null;
+                throw new NotImplementedException();
             }
 
             protected override Metadata GetMetadataImpl()
@@ -644,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             private readonly DocumentationProvider _provider;
 
             public SerializedMetadataReference(
-                MetadataReferenceProperties properties, string fullPath,
+                MetadataReferenceProperties properties, string? fullPath,
                 Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation)
                 : base(properties, fullPath, initialDocumentation)
             {
@@ -666,8 +669,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
                 => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
-            public IEnumerable<ITemporaryStreamStorage> GetStorages()
-                => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>)null : _storagesOpt;
+            public IEnumerable<ITemporaryStreamStorage>? GetStorages()
+                => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>?)null : _storagesOpt;
         }
     }
 }

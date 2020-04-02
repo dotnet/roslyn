@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly HostWorkspaceServices _workspaceServices;
 
-        private readonly ITemporaryStorageService2 _storageService;
+        private readonly ITemporaryStorageService _storageService;
         private readonly ITextFactoryService _textService;
         private readonly IDocumentationProviderService _documentationService;
         private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             _workspaceServices = workspaceServices;
 
-            _storageService = (ITemporaryStorageService2)workspaceServices.GetRequiredService<ITemporaryStorageService>();
+            _storageService = workspaceServices.GetRequiredService<ITemporaryStorageService>();
             _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
             _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
             _documentationService = workspaceServices.GetRequiredService<IDocumentationProviderService>();
@@ -99,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (value is ChecksumWithChildren)
+                if (value is ChecksumWithChildren checksumWithChildren)
                 {
-                    SerializeChecksumWithChildren((ChecksumWithChildren)value, writer, cancellationToken);
+                    SerializeChecksumWithChildren(checksumWithChildren, writer, cancellationToken);
                     return;
                 }
 
@@ -153,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
+        [return: MaybeNull]
         public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
@@ -204,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)
-            => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<IOptionsSerializationService>());
+            => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
     }
 
     // TODO: convert this to sub class rather than using enum with if statement.

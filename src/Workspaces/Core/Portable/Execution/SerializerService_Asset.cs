@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService
     {
-        public void SerializeSourceText(ITemporaryStorageWithName storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSourceText(ITemporaryStorageWithName? storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             // TODO: refactor this part in its own abstraction (Bits) that has multiple sub types
             //       rather than using enums
-            if (_storageService != null && storage != null && storage.Name != null)
+            if (storage != null && storage.Name != null)
             {
                 writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
                 writer.WriteString(storage.Name);
@@ -52,11 +54,13 @@ namespace Microsoft.CodeAnalysis.Serialization
             var kind = (SerializationKinds)reader.ReadInt32();
             if (kind == SerializationKinds.MemoryMapFile)
             {
+                var storage2 = (ITemporaryStorageService2)_storageService;
+
                 var name = reader.ReadString();
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                var storage = _storageService.AttachTemporaryTextStorage(name, offset, size, encoding, cancellationToken);
+                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, encoding, cancellationToken);
 
                 return storage.ReadText(cancellationToken);
             }
