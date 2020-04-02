@@ -347,11 +347,6 @@
         <target state="translated">缩进包装参数</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">索引可以简化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
         <target state="translated">内插可以简化</target>
@@ -622,19 +617,9 @@
         <target state="translated">对 lambda 表达式使用表达式正文</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">使用索引运算符</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">使用内插的逐字字符串</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">使用范围运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -720,11 +705,6 @@
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">换行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} 可以简化</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">

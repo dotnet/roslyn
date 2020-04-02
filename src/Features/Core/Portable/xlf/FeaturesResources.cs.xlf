@@ -347,11 +347,6 @@
         <target state="translated">Odsadit zalomené parametry</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">Indexování se dá zjednodušit.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
         <target state="translated">Interpolace se dá zjednodušit.</target>
@@ -622,19 +617,9 @@
         <target state="translated">Používat text výrazu pro lambda výrazy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">Použít operátor indexu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Použít interpolovaný doslovný řetězec</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">Použít operátor rozsahu</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -720,11 +705,6 @@
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Zalamování</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} se dá zjednodušit.</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
