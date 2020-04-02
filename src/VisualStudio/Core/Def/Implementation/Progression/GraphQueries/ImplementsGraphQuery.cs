@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             foreach (var interfaceType in implementedSymbols)
             {
-                var interfaceTypeNode = await graphBuilder.AddNodeForSymbolAsync(interfaceType, relatedNode: node).ConfigureAwait(false);
+                var interfaceTypeNode = await graphBuilder.AddNodeAsync(interfaceType, relatedNode: node).ConfigureAwait(false);
                 graphBuilder.AddLink(node, CodeLinkCategories.Implements, interfaceTypeNode);
             }
         }

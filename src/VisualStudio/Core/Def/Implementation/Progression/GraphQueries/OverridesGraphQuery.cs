@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         var overrides = await SymbolFinder.FindOverridesAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         foreach (var o in overrides)
                         {
-                            var symbolNode = await graphBuilder.AddNodeForSymbolAsync(o, relatedNode: node).ConfigureAwait(false);
+                            var symbolNode = await graphBuilder.AddNodeAsync(o, relatedNode: node).ConfigureAwait(false);
                             graphBuilder.AddLink(symbolNode, RoslynGraphCategories.Overrides, node);
                         }
                     }

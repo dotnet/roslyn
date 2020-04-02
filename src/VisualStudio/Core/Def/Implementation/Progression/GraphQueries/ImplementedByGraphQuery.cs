@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                         foreach (var implementation in implementations)
                         {
-                            var symbolNode = await graphBuilder.AddNodeForSymbolAsync(implementation, relatedNode: node).ConfigureAwait(false);
+                            var symbolNode = await graphBuilder.AddNodeAsync(implementation, relatedNode: node).ConfigureAwait(false);
                             graphBuilder.AddLink(symbolNode, CodeLinkCategories.Implements, node);
                         }
                     }

@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         symbolAndProjectId.WithSymbol(namedType), solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
-                        var symbolNode = await graphBuilder.AddNodeForSymbolAsync(
+                        var symbolNode = await graphBuilder.AddNodeAsync(
                             derivedType, relatedNode: node).ConfigureAwait(false);
                         graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node);
                     }
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         symbolAndProjectId.WithSymbol(namedType), solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
-                        var symbolNode = await graphBuilder.AddNodeForSymbolAsync(
+                        var symbolNode = await graphBuilder.AddNodeAsync(
                             derivedType, relatedNode: node).ConfigureAwait(false);
                         graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node);
                     }

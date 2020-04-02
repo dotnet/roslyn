@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     {
                         if (namedType.BaseType != null)
                         {
-                            var baseTypeNode = await graphBuilder.AddNodeForSymbolAsync(
+                            var baseTypeNode = await graphBuilder.AddNodeAsync(
                                 symbolAndProjectId.WithSymbol(namedType.BaseType), relatedNode: node).ConfigureAwait(false);
                             newNodes.Add(baseTypeNode);
                             graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode);
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         {
                             foreach (var baseNode in namedType.OriginalDefinition.AllInterfaces.Distinct())
                             {
-                                var baseTypeNode = await graphBuilder.AddNodeForSymbolAsync(
+                                var baseTypeNode = await graphBuilder.AddNodeAsync(
                                     symbolAndProjectId.WithSymbol(baseNode), relatedNode: node).ConfigureAwait(false);
                                 newNodes.Add(baseTypeNode);
                                 graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode);

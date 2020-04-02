@@ -170,14 +170,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public Task<GraphNode> AddNodeForSymbolAsync(SymbolAndProjectId symbol, GraphNode relatedNode)
+        public Task<GraphNode> AddNodeAsync(SymbolAndProjectId symbol, GraphNode relatedNode)
         {
             // The lack of a lock here is acceptable, since each of the functions lock, and GetContextProject/GetContextDocument
             // never change for the same input.
-            return AddNodeForSymbolAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
+            return AddNodeAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
         }
 
-        public async Task<GraphNode> AddNodeForSymbolAsync(SymbolAndProjectId symbolAndProjectId, Project contextProject, Document contextDocument)
+        public async Task<GraphNode> AddNodeAsync(SymbolAndProjectId symbolAndProjectId, Project contextProject, Document contextDocument)
         {
             var symbol = symbolAndProjectId.Symbol;
 
