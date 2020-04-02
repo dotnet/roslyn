@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     /// <summary>
     /// Customizes the path where to store shadow-copies of analyzer assemblies.
     /// </summary>
-    [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
+    [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), WorkspaceKind.RemoteWorkspace), Shared]
     internal sealed class RemoteAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
     {
         private readonly DefaultAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
