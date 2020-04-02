@@ -66,14 +66,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private async Task<GraphNode> AddLinkedNodeForTypeAsync(
-            Project project, SymbolAndProjectId<INamedTypeSymbol> namedType, GraphBuilder graphBuilder, IEnumerable<SyntaxTree> syntaxTrees)
+            Project project, SymbolAndProjectId<INamedTypeSymbol> namedTypeAndProjectId, GraphBuilder graphBuilder, IEnumerable<SyntaxTree> syntaxTrees)
         {
             // If this named type is contained in a parent type, then just link farther up
-            if (namedType.Symbol.ContainingType != null)
+            if (namedTypeAndProjectId.Symbol.ContainingType != null)
             {
                 var parentTypeNode = await AddLinkedNodeForTypeAsync(
-                    project, namedType.WithSymbol(namedType.Symbol.ContainingType), graphBuilder, syntaxTrees).ConfigureAwait(false);
-                var typeNode = await graphBuilder.AddNodeAsync(namedType, relatedNode: parentTypeNode).ConfigureAwait(false);
+                    project, namedTypeAndProjectId.WithSymbol(namedTypeAndProjectId.Symbol.ContainingType), graphBuilder, syntaxTrees).ConfigureAwait(false);
+                var typeNode = await graphBuilder.AddNodeAsync(namedTypeAndProjectId, relatedNode: parentTypeNode).ConfigureAwait(false);
                 graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, typeNode);
 
                 return typeNode;
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             else
             {
                 // From here, we can link back up to the containing project item
-                var typeNode = await graphBuilder.AddNodeAsync(namedType, contextProject: project, contextDocument: null).ConfigureAwait(false);
+                var typeNode = await graphBuilder.AddNodeAsync(namedTypeAndProjectId, contextProject: project, contextDocument: null).ConfigureAwait(false);
 
                 foreach (var tree in syntaxTrees)
                 {
