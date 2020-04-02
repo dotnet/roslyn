@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
-        private readonly IPersistentStorageFaultInjector? _faultInjectorOpt;
+        private readonly IPersistentStorageFaultInjector? _faultInjector;
 
         public SQLitePersistentStorageService(IPersistentStorageLocationService locationService)
             : base(locationService)
@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public SQLitePersistentStorageService(
             IPersistentStorageLocationService locationService,
-            IPersistentStorageFaultInjector faultInjector)
+            IPersistentStorageFaultInjector? faultInjector)
             : this(locationService)
         {
-            _faultInjectorOpt = faultInjector;
+            _faultInjector = faultInjector;
         }
 
         protected override string GetDatabaseFilePath(string workingFolderPath)
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             try
             {
                 sqlStorage = new SQLitePersistentStorage(
-                     workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
+                     workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjector);
 
                 sqlStorage.Initialize(solution);
 
