@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the symbol for the predefined type member from the COR Library referenced by this compilation.
         /// </summary>
-        internal abstract ISymbolInternal CommonGetSpecialTypeMember(SpecialMember specialMember);
+        internal abstract ISymbolInternal? CommonGetSpecialTypeMember(SpecialMember specialMember);
 
         /// <summary>
         /// Returns true if the type is System.Type.

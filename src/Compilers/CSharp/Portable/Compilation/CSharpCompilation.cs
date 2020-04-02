@@ -1418,12 +1418,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the symbol for the predefined type member from the COR Library referenced by this compilation.
         /// </summary>
-        internal Symbol GetSpecialTypeMember(SpecialMember specialMember)
+        internal Symbol? GetSpecialTypeMember(SpecialMember specialMember)
         {
             return Assembly.GetSpecialTypeMember(specialMember);
         }
 
-        internal override ISymbolInternal CommonGetSpecialTypeMember(SpecialMember specialMember)
+        internal override ISymbolInternal? CommonGetSpecialTypeMember(SpecialMember specialMember)
         {
             return GetSpecialTypeMember(specialMember);
         }
@@ -1431,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal TypeSymbol GetTypeByReflectionType(Type type, DiagnosticBag diagnostics)
         {
             var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
-            if ((object)result == null)
+            if ((object?)result == null)
             {
                 var errorType = new ExtendedErrorTypeSymbol(this, type.Name, 0, CreateReflectionTypeNotFoundError(type));
                 diagnostics.Add(errorType.ErrorInfo, NoLocation.Singleton);
@@ -1459,9 +1459,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
 
-                if ((object)symbol == null)
+                if ((object?)symbol == null)
                 {
                     MetadataTypeName mdName = MetadataTypeName.FromNamespaceAndTypeName(HostObjectType.Namespace ?? String.Empty,
                                                                                         HostObjectType.Name,

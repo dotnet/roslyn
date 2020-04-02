@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -70,13 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// <summary>
         /// Backing field for the map from a local NoPia type to corresponding canonical type.
         /// </summary>
-        private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> _noPiaUnificationMap;
+        private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>? _noPiaUnificationMap;
 
         /// <summary>
         /// A map from a local NoPia type to corresponding canonical type.
         /// </summary>
         internal ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> NoPiaUnificationMap =>
-            LazyInitializer.EnsureInitialized(ref _noPiaUnificationMap, () => new ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>(concurrencyLevel: 2, capacity: 0));
+            LazyInitializer.EnsureInitialized(ref _noPiaUnificationMap, () => new ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>(concurrencyLevel: 2, capacity: 0))!;
 
         /// <summary>
         /// Assembly is /l-ed by compilation that is using it as a reference.
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </param>
         public RetargetingAssemblySymbol(SourceAssemblySymbol underlyingAssembly, bool isLinked)
         {
-            Debug.Assert((object)underlyingAssembly != null);
+            RoslynDebug.Assert((object)underlyingAssembly != null);
 
             _underlyingAssembly = underlyingAssembly;
 
@@ -150,14 +152,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override Version AssemblyVersionPattern => _underlyingAssembly.AssemblyVersionPattern;
+        public override Version? AssemblyVersionPattern => _underlyingAssembly.AssemblyVersionPattern;
 
         internal override ImmutableArray<byte> PublicKey
         {
             get { return _underlyingAssembly.PublicKey; }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _underlyingAssembly.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
@@ -267,21 +269,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }
 
-        internal override bool GetGuidString(out string guidString)
+        internal override bool GetGuidString(out string? guidString)
         {
             return _underlyingAssembly.GetGuidString(out guidString);
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
-            NamedTypeSymbol underlying = _underlyingAssembly.TryLookupForwardedMetadataType(ref emittedName);
+            NamedTypeSymbol? underlying = _underlyingAssembly.TryLookupForwardedMetadataType(ref emittedName);
 
-            if ((object)underlying == null)
+            if ((object?)underlying == null)
             {
                 return null;
             }
@@ -289,6 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
 
-        public override AssemblyMetadata GetMetadata() => _underlyingAssembly.GetMetadata();
+        public override AssemblyMetadata? GetMetadata() => _underlyingAssembly.GetMetadata();
     }
 }
