@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 Storage.EnqueueFlushTask();
             }
 
-            public void FlushInMemoryDataToDisk(SqlConnection connection)
+            public void FlushInMemoryDataToDisk_MustRunInTransaction(SqlConnection connection)
             {
                 if (!connection.IsInTransaction)
                 {

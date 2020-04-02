@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             t =>
             {
                 var (self, connection) = t;
-                self._solutionAccessor.FlushInMemoryDataToDisk(connection);
-                self._projectAccessor.FlushInMemoryDataToDisk(connection);
-                self._documentAccessor.FlushInMemoryDataToDisk(connection);
+                self._solutionAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
+                self._projectAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
+                self._documentAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
             };
     }
 }
