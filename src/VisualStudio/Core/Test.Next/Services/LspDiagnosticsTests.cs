@@ -408,7 +408,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDatasWithMappedLocationAsync(Document document, params (string diagnosticId, string mappedFilePath)[] diagnostics)
         {
-            var tree = await document.GetSyntaxTreeAsync().ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
 
             return diagnostics.Select(d => CreateMockDiagnosticDataWithMappedLocation(document, tree, d.diagnosticId, d.mappedFilePath)).ToImmutableArray();
 
