@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     using System.Linq;
-    using static Helpers;
+    using static CodeFixHelpers;
 
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseIndexOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_index_operator, createChangedDocument, FeaturesResources.Use_index_operator)
+                : base(CSharpAnalyzersResources.Use_index_operator, createChangedDocument, CSharpAnalyzersResources.Use_index_operator)
             {
             }
         }
