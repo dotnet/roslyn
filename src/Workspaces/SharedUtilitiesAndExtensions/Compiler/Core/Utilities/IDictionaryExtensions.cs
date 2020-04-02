@@ -155,7 +155,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Private implementation we can delegate to for sets.
         /// This must be a different name as overloads are not resolved based on constraints
-        /// and would conflict with <see cref="MultiRemove{TKey, TValue, TCollection}(IDictionary{TKey, TCollection}, TKey, TValue)"
+        /// and would conflict with <see cref="MultiRemove{TKey, TValue, TCollection}(IDictionary{TKey, TCollection}, TKey, TValue)"/>
         /// </summary>
         private static void MultiRemoveSet<TKey, TValue, TSet>(this IDictionary<TKey, TSet> dictionary, TKey key, TValue value)
             where TKey : notnull
