@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
@@ -249,6 +250,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// </remarks>
         private PooledConnection GetPooledConnection(out SqlConnection connection)
         {
+            var scheduler = TaskScheduler.Current;
+            if (scheduler != _readerWriterLock.ConcurrentScheduler && scheduler != _readerWriterLock.ExclusiveScheduler)
+                throw new InvalidOperationException("Cannot get a connection to the DB unless running on one of _readerWriterLock's schedulers");
+
             var result = new PooledConnection(this, GetConnection());
             connection = result.Connection;
             return result;
@@ -266,54 +271,62 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 throw new InvalidOperationException();
             }
 
-            // Create a connection to the DB and ensure it has tables for the types we care about. 
-            using var _ = GetPooledConnection(out var connection);
+            // This is our startup path.  Enqueue our work to the write queue (to ensure invariants about only writing
+            // while having access to it).  Then just block on that queue.  The queue will be empty here, so this will
+            // not be costly to do.
+            var task = PerformWriteAsync(() =>
+            {
+                // Create a connection to the DB and ensure it has tables for the types we care about. 
+                using var _ = GetPooledConnection(out var connection);
 
-            // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
-            // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
-            // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
-            connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
+                // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
+                // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
+                // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
+                connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
 
-            // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
-            // significantly reducing both the blocked time and the amount of context switches.
-            // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
-            // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
-            // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
-            // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
-            connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
+                // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
+                // significantly reducing both the blocked time and the amount of context switches.
+                // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
+                // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
+                // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
+                // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
+                connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
 
-            // First, create all string tables in the main on-disk db.  These tables
-            // don't need to be in the write-cache as all string looks go to/from the
-            // main db.  This isn't a perf problem as we write the strings in bulk, 
-            // so there's no need for a write caching layer.  This also keeps consistency
-            // totally clear as there's only one source of truth.
-            connection.ExecuteCommand(
-$@"create table if not exists {StringInfoTableName}(
+                // First, create all string tables in the main on-disk db.  These tables
+                // don't need to be in the write-cache as all string looks go to/from the
+                // main db.  This isn't a perf problem as we write the strings in bulk, 
+                // so there's no need for a write caching layer.  This also keeps consistency
+                // totally clear as there's only one source of truth.
+                connection.ExecuteCommand(
+    $@"create table if not exists {StringInfoTableName}(
     ""{DataIdColumnName}"" integer primary key autoincrement not null,
     ""{DataColumnName}"" varchar)");
 
-            // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
-            // We don't allow duplicate strings in this table.
-            connection.ExecuteCommand(
-$@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on {StringInfoTableName}(""{DataColumnName}"")");
+                // Ensure that the string-info table's 'Value' column is defined to be 'unique'.
+                // We don't allow duplicate strings in this table.
+                connection.ExecuteCommand(
+    $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on {StringInfoTableName}(""{DataColumnName}"")");
 
-            // Now make sure we have the individual tables for the solution/project/document info.
-            // We put this in both our persistent table and our in-memory table so that they have
-            // the same shape.
-            EnsureTables(connection, Database.Main);
-            EnsureTables(connection, Database.WriteCache);
+                // Now make sure we have the individual tables for the solution/project/document info.
+                // We put this in both our persistent table and our in-memory table so that they have
+                // the same shape.
+                EnsureTables(connection, Database.Main);
+                EnsureTables(connection, Database.WriteCache);
 
-            // Also get the known set of string-to-id mappings we already have in the DB.
-            // Do this in one batch if possible.
-            var fetched = TryFetchStringTable(connection);
+                // Also get the known set of string-to-id mappings we already have in the DB.
+                // Do this in one batch if possible.
+                var fetched = TryFetchStringTable(connection);
 
-            // If we weren't able to retrieve the entire string table in one batch,
-            // attempt to retrieve it for each 
-            var fetchStringTable = !fetched;
+                // If we weren't able to retrieve the entire string table in one batch,
+                // attempt to retrieve it for each 
+                var fetchStringTable = !fetched;
 
-            // Try to bulk populate all the IDs we'll need for strings/projects/documents.
-            // Bulk population is much faster than trying to do everything individually.
-            BulkPopulateIds(connection, solution, fetchStringTable);
+                // Try to bulk populate all the IDs we'll need for strings/projects/documents.
+                // Bulk population is much faster than trying to do everything individually.
+                BulkPopulateIds(connection, solution, fetchStringTable);
+            }, CancellationToken.None);
+
+            task.Wait();
 
             return;
 
