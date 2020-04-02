@@ -1899,7 +1899,7 @@ interface I
         }
 
         [Fact]
-        public void AliasName()
+        public void AliasName_01()
         {
             var source =
 @"using nint = System.Int16;
@@ -1930,6 +1930,27 @@ interface I
                 Assert.Equal(SpecialType.System_UIntPtr, underlyingType1.SpecialType);
                 Assert.True(underlyingType1.IsNativeIntegerType);
             }
+        }
+
+        [WorkItem(42975, "https://github.com/dotnet/roslyn/issues/42975")]
+        [Fact]
+        public void AliasName_02()
+        {
+            var source =
+@"using N = nint;
+class Program
+{
+    N F() => default;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,11): error CS8652: The feature 'native-sized integers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using N = nint;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("native-sized integers").WithLocation(1, 11));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

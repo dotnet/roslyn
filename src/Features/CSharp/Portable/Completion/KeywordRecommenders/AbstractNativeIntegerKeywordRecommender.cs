@@ -11,18 +11,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
-    internal class VarKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
+    internal abstract class AbstractNativeIntegerKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
-        public VarKeywordRecommender()
-        {
-        }
+        protected abstract RecommendedKeyword Keyword { get; }
 
         private static bool IsValidContext(CSharpSyntaxContext context)
         {
             if (context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsPossibleTupleContext ||
-                context.IsPatternContext)
+                context.IsPatternContext ||
+                (context.IsTypeContext && !context.IsEnumBaseListContext))
             {
                 return true;
             }
@@ -32,12 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         public Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (IsValidContext(context))
-            {
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("var")));
-            }
-
-            return Task.FromResult<IEnumerable<RecommendedKeyword>>(null);
+            return Task.FromResult(IsValidContext(context) ? SpecializedCollections.SingletonEnumerable(Keyword) : null);
         }
     }
 }
