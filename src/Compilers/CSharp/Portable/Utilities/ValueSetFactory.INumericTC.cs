@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using System;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ValueSetFactory
@@ -36,20 +38,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             T MaxValue { get; }
 
             /// <summary>
-            /// Returns the midpoints when subdividing an interval, which becomes the
-            /// left subinterval's max value and the right subinterval's min value.
-            /// The returned rightMin must be the successor value (see <see cref="Next(T)"/>) to leftMax.
-            /// </summary>
-            /// <param name="min">the parent interval's minimum value, inclusive.</param>
-            /// <param name="max">the parent interval's maximum value, inclusive</param>
-            (T leftMax, T rightMin) Partition(T min, T max);
-
-            /// <summary>
-            /// The successor (next larger) value to a given value. Used to determine when two intervals
-            /// are contiguous to improve the output of <see cref="object.ToString"/>. The result is not defined
+            /// The successor (next larger) value to a given value. The result is not defined
             /// when <paramref name="value"/> is <see cref="MaxValue"/>.
             /// </summary>
             T Next(T value);
+
+            /// <summary>
+            /// The predecessor (previous larger) value to a given value. The result is not defined
+            /// when <paramref name="value"/> is <see cref="MinValue"/>.
+            /// </summary>
+            T Prev(T value);
+
+            /// <summary>
+            /// Produce a randomly-selected value for testing purposes.
+            /// </summary>
+            T Random(Random random);
 
             /// <summary>
             /// A formatter for values of type <typeparamref name="T"/>.  This is needed for testing because

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             decimal INumericTC<decimal>.MaxValue => decimal.MaxValue;
 
-            decimal INumericTC<decimal>.FromConstantValue(ConstantValue constantValue) => constantValue.DecimalValue;
+            public decimal FromConstantValue(ConstantValue constantValue) => constantValue.DecimalValue;
 
             public decimal Next(decimal value)
             {
@@ -82,83 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public (decimal leftMax, decimal rightMin) Partition(decimal min, decimal max)
-            {
-                // Assert that the input is in our normal form
-                Debug.Assert(DecimalRep.FromValue(min).Normalize().scale == DecimalRep.FromValue(min).scale);
-                Debug.Assert(DecimalRep.FromValue(max).Normalize().scale == DecimalRep.FromValue(max).scale);
-
-                if (min == decimal.MinValue && max == decimal.MaxValue)
-                    return (-epsilon, normalZero);
-
-                Debug.Assert(min < 0 == max < 0);
-                Debug.Assert(min < max);
-                if (min < 0)
-                {
-                    var (m1, m2) = Partition(-max, -min);
-                    return (-m2, -m1);
-                }
-                var (low1, mid1, high1, isNegative1, scale1) = DecimalRep.FromValue(min);
-                var (low2, mid2, high2, isNegative2, scale2) = DecimalRep.FromValue(max);
-                Debug.Assert(!isNegative1 && !isNegative2);
-                Debug.Assert(min != 0 || scale1 == maxScale);
-                Debug.Assert(scale1 >= scale2);
-                decimal value, next;
-
-                if (scale1 > scale2 + 1)
-                {
-                    var m = new DecimalRep(low: uint.MaxValue, mid: uint.MaxValue, high: uint.MaxValue, isNegative: isNegative2, scale: (byte)((scale1 + scale2) / 2));
-                    value = m.Value;
-                    next = Next(value);
-                    Debug.Assert(value > min);
-                    Debug.Assert(next < max);
-                }
-                else if (scale1 == scale2 + 1)
-                {
-                    var m = new DecimalRep(low: uint.MaxValue, mid: uint.MaxValue, high: uint.MaxValue, isNegative: isNegative2, scale: scale1);
-                    value = m.Value;
-                    next = Next(value);
-                    Debug.Assert(value > min);
-                    Debug.Assert(next < max);
-                }
-                else
-                {
-                    Debug.Assert(scale1 == scale2);
-                    uint highm = high1 + (high2 - high1) / 2;
-                    if (highm != high2)
-                    {
-                        value = new DecimalRep(low: uint.MaxValue, mid: uint.MaxValue, high: highm, isNegative: isNegative1, scale: scale1).Value;
-                        next = Next(value);
-                        Debug.Assert(value > min);
-                        Debug.Assert(next < max);
-                    }
-                    else
-                    {
-                        Debug.Assert(highm == high1);
-                        uint midm = mid1 + (mid2 - mid1) / 2;
-                        if (midm != mid2)
-                        {
-                            value = new DecimalRep(low: uint.MaxValue, mid: midm, high: highm, isNegative: isNegative1, scale: scale1).Value;
-                            next = Next(value);
-                            Debug.Assert(value > min);
-                            Debug.Assert(next < max);
-                        }
-                        else
-                        {
-                            Debug.Assert(midm == mid1);
-                            uint lowm = low1 + (low2 - low1) / 2;
-                            Debug.Assert(lowm != low2);
-                            value = new DecimalRep(low: lowm, mid: midm, high: highm, isNegative: isNegative1, scale: scale1).Value;
-                            next = Next(value);
-                            Debug.Assert(value >= min);
-                            Debug.Assert(next <= max);
-                        }
-                    }
-                }
-
-                return (value, next);
-            }
-
             bool INumericTC<decimal>.Related(BinaryOperatorKind relation, decimal left, decimal right)
             {
                 switch (relation)
@@ -179,6 +102,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             string INumericTC<decimal>.ToString(decimal value) => FormattableString.Invariant($"{value:G}");
+
+            decimal INumericTC<decimal>.Prev(decimal value)
+            {
+                return -Next(-value);
+            }
+
+            decimal INumericTC<decimal>.Random(Random random)
+            {
+                INumericTC<uint> uinttc = default(UIntTC);
+                return new DecimalRep(
+                    low: uinttc.Random(random),
+                    mid: uinttc.Random(random),
+                    high: uinttc.Random(random),
+                    isNegative: random.NextDouble() < 0.5,
+                    scale: (byte)random.Next(0, maxScale + 1)).Normalize().Value;
+            }
+
+            public static decimal Normalize(decimal value) => DecimalRep.FromValue(value).Normalize().Value;
 
             private struct DecimalRep
             {

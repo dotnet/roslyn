@@ -309,11 +309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDouble_02()
         {
-            Assert.Equal("-Inf", ForDouble.Related(LessThan, double.MinValue).ToString());
+            Assert.Equal("[-Inf..-Inf]", ForDouble.Related(LessThan, double.MinValue).ToString());
             var lt = ForDouble.Related(LessThan, 0.0);
-            Assert.Equal(FormattableString.Invariant($"-Inf,[{double.MinValue:G17}..{-double.Epsilon:G17}]"), lt.ToString());
+            Assert.Equal(FormattableString.Invariant($"[-Inf..{-double.Epsilon:G17}]"), lt.ToString());
             var gt = ForDouble.Related(GreaterThan, 0.0);
-            Assert.Equal(FormattableString.Invariant($"Inf,[{double.Epsilon:G17}..{double.MaxValue:G17}]"), gt.ToString());
+            Assert.Equal(FormattableString.Invariant($"[{double.Epsilon:G17}..Inf]"), gt.ToString());
             var eq = ForDouble.Related(Equal, 0.0);
             Assert.Equal("[0..0]", eq.ToString());
             var none = lt.Complement().Intersect(gt.Complement()).Intersect(eq.Complement());
@@ -324,11 +324,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestFloat_01()
         {
-            Assert.Equal("-Inf", ForFloat.Related(LessThan, float.MinValue).ToString());
+            Assert.Equal("[-Inf..-Inf]", ForFloat.Related(LessThan, float.MinValue).ToString());
             var lt = ForFloat.Related(LessThan, 0.0f);
-            Assert.Equal(FormattableString.Invariant($"-Inf,[{float.MinValue:G9}..{-float.Epsilon:G9}]"), lt.ToString());
+            Assert.Equal(FormattableString.Invariant($"[-Inf..{-float.Epsilon:G9}]"), lt.ToString());
             var gt = ForFloat.Related(GreaterThan, 0.0f);
-            Assert.Equal(FormattableString.Invariant($"Inf,[{float.Epsilon:G9}..{float.MaxValue:G9}]"), gt.ToString());
+            Assert.Equal(FormattableString.Invariant($"[{float.Epsilon:G9}..Inf]"), gt.ToString());
             var eq = ForFloat.Related(Equal, 0.0f);
             Assert.Equal("[0..0]", eq.ToString());
             var none = lt.Complement().Intersect(gt.Complement()).Intersect(eq.Complement());
@@ -343,10 +343,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("NaN", ForFloat.Related(Equal, float.NaN).ToString());
             Assert.True(ForDouble.Related(Equal, double.NaN).Any(Equal, double.NaN));
             Assert.True(ForFloat.Related(Equal, float.NaN).Any(Equal, float.NaN));
-            Assert.Equal("Inf", ForDouble.Related(Equal, double.PositiveInfinity).ToString());
-            Assert.Equal("Inf", ForFloat.Related(Equal, float.PositiveInfinity).ToString());
-            Assert.Equal("-Inf", ForDouble.Related(Equal, double.NegativeInfinity).ToString());
-            Assert.Equal("-Inf", ForFloat.Related(Equal, float.NegativeInfinity).ToString());
+            Assert.Equal("[Inf..Inf]", ForDouble.Related(Equal, double.PositiveInfinity).ToString());
+            Assert.Equal("[Inf..Inf]", ForFloat.Related(Equal, float.PositiveInfinity).ToString());
+            Assert.Equal("[-Inf..-Inf]", ForDouble.Related(Equal, double.NegativeInfinity).ToString());
+            Assert.Equal("[-Inf..-Inf]", ForFloat.Related(Equal, float.NegativeInfinity).ToString());
         }
 
         [Fact]

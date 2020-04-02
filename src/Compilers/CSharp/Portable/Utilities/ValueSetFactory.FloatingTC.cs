@@ -18,16 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// All NaN values are treated as equivalent.
             /// </summary>
             T NaN { get; }
-
-            /// <summary>
-            /// The "negative infinity" value for the flowing-point type <typeparamref name="T"/>.
-            /// </summary>
-            T MinusInf { get; }
-
-            /// <summary>
-            /// The "positive infinity" value for the flowing-point type <typeparamref name="T"/>.
-            /// </summary>
-            T PlusInf { get; }
         }
     }
 }

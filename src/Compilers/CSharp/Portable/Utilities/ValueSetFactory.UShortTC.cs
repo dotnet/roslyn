@@ -19,15 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ushort INumericTC<ushort>.MaxValue => ushort.MaxValue;
 
-            (ushort leftMax, ushort rightMin) INumericTC<ushort>.Partition(ushort min, ushort max)
-            {
-                Debug.Assert(min < max);
-                int half = (max - min) / 2;
-                ushort leftMax = (ushort)(min + half);
-                ushort rightMin = (ushort)(leftMax + 1);
-                return (leftMax, rightMin);
-            }
-
             bool INumericTC<ushort>.Related(BinaryOperatorKind relation, ushort left, ushort right)
             {
                 switch (relation)
@@ -56,6 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt16Value;
 
             string INumericTC<ushort>.ToString(ushort value) => value.ToString();
+
+            ushort INumericTC<ushort>.Prev(ushort value)
+            {
+                Debug.Assert(value != ushort.MinValue);
+                return (ushort)(value - 1);
+            }
+
+            ushort INumericTC<ushort>.Random(Random random)
+            {
+                return (ushort)random.Next();
+            }
         }
     }
 }
