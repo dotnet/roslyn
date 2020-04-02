@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestLoadErrors2()
         {
-            AnalyzerFileReference reference = CreateAnalyzerFileReference("C:\\randomlocation\\random.dll");
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Path.Combine(TempRoot.Root, "random.dll"));
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
