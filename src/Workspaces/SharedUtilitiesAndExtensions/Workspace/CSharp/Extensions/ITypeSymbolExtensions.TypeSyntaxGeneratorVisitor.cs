@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     underlyingType = innerArray.ElementType;
 
 #if !CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
+                    // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                     if (underlyingType.NullableAnnotation == NullableAnnotation.Annotated)
                     {
                         // If the inner array we just moved to is also nullable, then
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 TypeSyntax arrayTypeSyntax = SyntaxFactory.ArrayType(elementTypeSyntax, ranks.ToSyntaxList());
 
 #if !CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
+                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                 if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     arrayTypeSyntax = SyntaxFactory.NullableType(arrayTypeSyntax);
@@ -188,6 +190,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return CreateTupleTypeSyntax(symbol);
                 }
 
+#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
+                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+                if (symbol.IsNativeIntegerType)
+                {
+                    return SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
+                }
+#endif
+
                 if (symbol.IsNullable())
                 {
                     // Can't have a nullable of a pointer type.  i.e. "int*?" is illegal.
@@ -260,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
 #if !CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
+                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
                 if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);

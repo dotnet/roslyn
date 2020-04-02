@@ -168,6 +168,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 }
             }
 
+            if (name.IsNint || name.IsNuint)
+            {
+                if (symbol is ITypeSymbol type && type.IsNativeIntegerType)
+                {
+                    classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                    return true;
+                }
+            }
+
             if ((name.IsUnmanaged || name.IsNotNull) && name.Parent.IsKind(SyntaxKind.TypeConstraint))
             {
                 var nameToCheck = name.IsUnmanaged ? "unmanaged" : "notnull";
