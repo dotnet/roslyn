@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // make sure that if we actually request the rowId from the database that it
                 // is equal to our data id.  Only do this in debug as this can be expensive
                 // and we definitely do not want to do this in release.
-                if (TryGetRowIdWorker(connection, database, (TDatabaseId)(object)dataId, out rowId))
+                if (GetActualRowIdFromDatabase(connection, database, (TDatabaseId)(object)dataId, out rowId))
                 {
                     Debug.Assert(dataId == rowId);
                 }
@@ -238,10 +238,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return true;
             }
 
-            protected virtual bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
-                => TryGetRowIdWorker(connection, database, dataId, out rowId);
+            protected abstract bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId);
 
-            private bool TryGetRowIdWorker(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
+            protected bool GetActualRowIdFromDatabase(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
                 // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is 

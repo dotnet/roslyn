@@ -43,6 +43,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return true;
             }
 
+            protected override bool TryGetRowId(SqlConnection connection, Database database, string dataId, out long rowId)
+            {
+                // For the solution table, we have whatever user string that was passed in as our 'key'.  So we actually
+                // have to  go to the DB to find the row for this.
+                return GetActualRowIdFromDatabase(connection, database, dataId, out rowId);
+            }
+
             protected override void BindFirstParameter(SqlStatement statement, string dataId)
                 => statement.BindStringParameter(parameterIndex: 1, value: dataId);
         }
