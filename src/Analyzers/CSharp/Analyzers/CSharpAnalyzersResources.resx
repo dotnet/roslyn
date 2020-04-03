@@ -195,6 +195,12 @@
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
   </data>
+  <data name="Use_simple_using_statement" xml:space="preserve">
+    <value>Use simple 'using' statement</value>
+  </data>
+  <data name="using_statement_can_be_simplified" xml:space="preserve">
+    <value>'using' statement can be simplified</value>
+  </data>
   <data name="if_statement_can_be_simplified" xml:space="preserve">
     <value>'if' statement can be simplified</value>
   </data>
