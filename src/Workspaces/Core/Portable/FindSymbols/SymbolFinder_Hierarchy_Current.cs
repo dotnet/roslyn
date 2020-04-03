@@ -19,19 +19,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        /// <summary>
-        /// Find symbols for members that override the specified member symbol.
-        /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindOverridesAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            var result = await FindOverridesAsync(
-                SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, projects, cancellationToken).ConfigureAwait(false);
-
-            return result.SelectAsArray(s => s.Symbol);
-        }
-
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindOverridesAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
@@ -77,18 +64,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Find symbols for declarations that implement members of the specified interface symbol
-        /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindImplementedInterfaceMembersAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            var result = await FindImplementedInterfaceMembersAsync(
-                SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, projects, cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(s => s.Symbol);
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementedInterfaceMembersAsync(
@@ -180,51 +155,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return type.Symbol.AllInterfaces.Select(type.WithSymbol);
         }
 
-        /// <summary>
-        /// Finds the derived classes of the given type. Implementations of an interface are not considered "derived", but can be found
-        /// with <see cref="FindImplementationsAsync(ISymbol, Solution, IImmutableSet{Project}, CancellationToken)"/>.
-        /// </summary>
-        /// <param name="type">The symbol to find derived types of.</param>
-        /// <param name="solution">The solution to search in.</param>
-        /// <param name="projects">The projects to search. Can be null to search the entire solution.</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns>The derived types of the symbol. The symbol passed in is not included in this list.</returns>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
-            INamedTypeSymbol type, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            var result = await FindDerivedClassesAsync(
-                SymbolAndProjectId.Create(type, projectId: null),
-                solution, projects, cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(s => s.Symbol);
-        }
-
         internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
             SymbolAndProjectId<INamedTypeSymbol> typeAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var type = typeAndProjectId.Symbol;
             if (type == null)
-            {
                 throw new ArgumentNullException(nameof(type));
-            }
 
             if (solution == null)
-            {
                 throw new ArgumentNullException(nameof(solution));
-            }
 
-            return DependentTypeFinder.FindTransitivelyDerivedClassesAsync(type, solution, projects, cancellationToken);
-        }
-
-        /// <summary>
-        /// Finds the symbols that implement an interface or interface member.
-        /// </summary>
-        public static async Task<IEnumerable<ISymbol>> FindImplementationsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            var result = await FindImplementationsAsync(
-                SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, projects, cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(s => s.Symbol);
+            return DependentTypeFinder.FindTransitivelyDerivedClassesAsync(typeAndProjectId, solution, projects, cancellationToken);
         }
 
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsAsync(
@@ -235,7 +176,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var symbol = symbolAndProjectId.Symbol;
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
+                var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(
+                    symbolAndProjectId.WithSymbol(namedTypeSymbol), solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Select(s => (SymbolAndProjectId)s)
                                         .Where(IsAccessible)
                                         .ToImmutableArray();
@@ -243,7 +185,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (symbol.IsImplementableMember())
             {
                 var containingType = symbol.ContainingType.OriginalDefinition;
-                var allTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+                var allTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(
+                    symbolAndProjectId.WithSymbol(containingType), solution, projects, cancellationToken).ConfigureAwait(false);
 
                 ImmutableArray<SymbolAndProjectId>.Builder results = null;
                 foreach (var t in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
@@ -288,25 +231,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds all the callers of a specified symbol.
         /// </summary>
-        public static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken = default)
+        internal static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken = default)
         {
-            return FindCallersAsync(symbol, solution, documents: null, cancellationToken: cancellationToken);
+            return FindCallersAsync(symbolAndProjectId, solution, documents: null, cancellationToken: cancellationToken);
         }
 
         /// <summary>
         /// Finds all the callers of a specified symbol.
         /// </summary>
-        public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
+        internal static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
-            symbol = symbol.OriginalDefinition;
-            var foundSymbol = await FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-            symbol = foundSymbol ?? symbol;
+            symbolAndProjectId = symbolAndProjectId.WithSymbol(symbolAndProjectId.Symbol.OriginalDefinition);
+            var foundSymbol = await FindSourceDefinitionAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
+            symbolAndProjectId = foundSymbol.Symbol != null ? foundSymbol : symbolAndProjectId;
 
-            var references = await FindCallReferencesAsync(solution, symbol, documents, cancellationToken).ConfigureAwait(false);
+            var references = await FindCallReferencesAsync(solution, symbolAndProjectId, documents, cancellationToken).ConfigureAwait(false);
 
             var directReference = references.Where(
-                r => SymbolEquivalenceComparer.Instance.Equals(symbol, r.Definition)).FirstOrDefault();
+                r => SymbolEquivalenceComparer.Instance.Equals(symbolAndProjectId.Symbol, r.Definition)).FirstOrDefault();
 
             var indirectReferences = references.WhereAsArray(r => r != directReference);
 
@@ -329,26 +273,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var result = await reference.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var (callingSymbol, locations) in result)
                 {
-                    results.Add(new SymbolCallerInfo(callingSymbol, reference.Definition, locations, isDirect));
+                    results.Add(new SymbolCallerInfo(callingSymbol, reference.DefinitionAndProjectId, locations, isDirect));
                 }
             }
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindCallReferencesAsync(
             Solution solution,
-            ISymbol symbol,
+            SymbolAndProjectId symbolAndProjectId,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol != null)
             {
                 if (symbol.Kind == SymbolKind.Event ||
                     symbol.Kind == SymbolKind.Method ||
                     symbol.Kind == SymbolKind.Property)
                 {
-                    var result = await FindReferencesAsync(
-                        symbol, solution, documents, cancellationToken).ConfigureAwait(false);
-                    return result.ToImmutableArray();
+                    var collector = new StreamingProgressCollector();
+                    await FindReferencesAsync(
+                        symbolAndProjectId, solution, collector, documents,
+                        FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+                    return collector.GetReferencedSymbols();
                 }
             }
 
