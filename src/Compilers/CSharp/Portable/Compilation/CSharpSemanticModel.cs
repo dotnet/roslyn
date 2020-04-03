@@ -2727,7 +2727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a compilation unit syntax, get the corresponding Simple Program entry point symbol.
         /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a member.</param>
+        /// <param name="declarationSyntax">The compilation unit that declares the entry point member.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
         public abstract IMethodSymbol GetDeclaredSymbol(CompilationUnitSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));

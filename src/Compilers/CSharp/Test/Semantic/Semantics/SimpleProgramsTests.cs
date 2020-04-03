@@ -5387,6 +5387,9 @@ class B : A
 
             private void Handle1(OperationAnalysisContext context)
             {
+                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree, context.Operation.Syntax.SyntaxTree);
+
                 Assert.Equal(SyntaxKind.InvocationExpression, context.Operation.Syntax.Kind());
 
                 switch (context.Operation.Syntax.ToString())
@@ -5405,6 +5408,8 @@ class B : A
 
             private void Handle2(OperationAnalysisContext context)
             {
+                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax(), context.Operation.Syntax);
                 Assert.Equal(SyntaxKind.CompilationUnit, context.Operation.Syntax.Kind());
 
                 switch (context.Operation.Syntax.ToString())
@@ -5971,6 +5976,141 @@ class C1
             {
                 Interlocked.Increment(ref FireCount3);
                 Assert.Equal("C1", context.Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_12()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_12_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_12_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(2, analyzer.FireCount3);
+        }
+
+        private class AnalyzerActions_12_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockStartAction(Handle1);
+            }
+
+            private void Handle1(OperationBlockStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount3);
+                context.RegisterOperationBlockEndAction(Handle2);
+            }
+
+            private void Handle2(OperationBlockAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal(SyntaxKind.CompilationUnit, context.OperationBlocks.Single().Syntax.Kind());
+
+                switch (context.OperationBlocks.Single().Syntax.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_13()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_13_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_13_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(2, analyzer.FireCount3);
+        }
+
+        private class AnalyzerActions_13_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockStartAction(Handle1);
+            }
+
+            private void Handle1(OperationBlockStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount3);
+                context.RegisterOperationAction(Handle2, OperationKind.Block);
+            }
+
+            private void Handle2(OperationAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax(), context.Operation.Syntax);
+                Assert.Equal(SyntaxKind.CompilationUnit, context.Operation.Syntax.Kind());
+
+                switch (context.Operation.Syntax.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
             }
         }
 

@@ -235,6 +235,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public SyntaxNode ReturnTypeSyntax => CompilationUnit.Members.OfType<GlobalStatementSyntax>().First();
+        public SyntaxNode ReturnTypeSyntax => CompilationUnit.Members.First(m => m.Kind() == SyntaxKind.GlobalStatement);
     }
 }
