@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeStructFieldsWritable\CSharpMakeStructFieldsWritableDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\CSharpNamingStyleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\CSharpOrderModifiersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\CSharpOrderModifiersHelper.cs" />
