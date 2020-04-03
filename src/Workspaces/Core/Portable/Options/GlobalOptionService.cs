@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
         private readonly ImmutableArray<Lazy<IOptionPersister>> _optionPersisters;
-        private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
+        private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>>> _serializableOptionsByLanguage;
         private readonly HashSet<string> _forceComputedLanguages;
 
         private readonly object _gate = new object();
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
             _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
             _optionPersisters = optionPersisters.ToImmutableArray();
-            _serializableOptionsByLanguage = CreateLazySerializableOptionsByLanguage(optionProviders);
+            _serializableOptionsByLanguage = new Lazy<ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>>>(() => CreateLazySerializableOptionsByLanguage(optionProviders));
             _forceComputedLanguages = new HashSet<string>();
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Options
             // Local functions.
             ImmutableHashSet<IOption> GetSerializableOptionsForLanguage(string language)
             {
-                if (_serializableOptionsByLanguage.TryGetValue(language, out var lazyOptions))
+                if (_serializableOptionsByLanguage.Value.TryGetValue(language, out var lazyOptions))
                 {
                     return lazyOptions.Value;
                 }
@@ -204,11 +204,16 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         /// <summary>
-        /// Gets force computed serializable options with prefetched values for all the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
+        /// Gets force computed serializable options with prefetched values for all the registered options applicable to the given <paramref name="languages"/> by querying the option persisters.
         /// </summary>
         public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService)
         {
-            var serializableOptionKeys = GetRegisteredSerializableOptions(languages);
+            // We only need to fetch values if we have option persisters in the first place, or else we can save all the loading of metadata.
+            var serializableOptionKeys =
+                _optionPersisters.Length > 0
+                ? GetRegisteredSerializableOptions(languages)
+                : ImmutableHashSet<IOption>.Empty;
+
             var serializableOptionValues = GetSerializableOptionValues(serializableOptionKeys, languages);
             var changedOptionsKeys = _changedOptionKeys.Where(key => serializableOptionKeys.Contains(key.Option)).ToImmutableHashSet();
             return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues, changedOptionsKeys);
