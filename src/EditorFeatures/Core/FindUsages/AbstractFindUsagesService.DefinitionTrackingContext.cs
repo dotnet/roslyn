@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             private readonly List<DefinitionItem> _definitions = new List<DefinitionItem>();
 
             public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
-            {
-                _underlyingContext = underlyingContext;
-            }
+                => _underlyingContext = underlyingContext;
 
             public CancellationToken CancellationToken
                 => _underlyingContext.CancellationToken;

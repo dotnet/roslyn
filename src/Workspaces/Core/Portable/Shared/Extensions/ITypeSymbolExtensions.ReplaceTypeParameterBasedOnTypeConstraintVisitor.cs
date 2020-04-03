@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             protected override ITypeSymbol DefaultResult => throw new NotImplementedException();
 
             public override ValueTask<ITypeSymbol> VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return new ValueTask<ITypeSymbol>(symbol);
-            }
+                => new ValueTask<ITypeSymbol>(symbol);
 
             public override async ValueTask<ITypeSymbol> VisitArrayType(IArrayTypeSymbol symbol)
             {

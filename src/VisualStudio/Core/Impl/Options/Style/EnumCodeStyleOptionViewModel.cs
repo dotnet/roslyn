@@ -25,9 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         where T : struct
     {
         static EnumCodeStyleOptionViewModel()
-        {
-            Contract.ThrowIfFalse(typeof(T).IsEnum);
-        }
+            => Contract.ThrowIfFalse(typeof(T).IsEnum);
 
         private readonly ImmutableArray<T> _enumValues;
         private readonly ImmutableArray<string> _previews;

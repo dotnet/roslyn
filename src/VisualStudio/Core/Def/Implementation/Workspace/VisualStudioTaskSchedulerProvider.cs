@@ -21,18 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTaskSchedulerProvider(IThreadingContext threadingContext)
-        {
-            CurrentContextScheduler = new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory);
-        }
+            => CurrentContextScheduler = new JoinableTaskFactoryTaskScheduler(threadingContext.JoinableTaskFactory);
 
         private sealed class JoinableTaskFactoryTaskScheduler : TaskScheduler
         {
             private readonly JoinableTaskFactory _joinableTaskFactory;
 
             public JoinableTaskFactoryTaskScheduler(JoinableTaskFactory joinableTaskFactory)
-            {
-                _joinableTaskFactory = joinableTaskFactory;
-            }
+                => _joinableTaskFactory = joinableTaskFactory;
 
             public override int MaximumConcurrencyLevel => 1;
 

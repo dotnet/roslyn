@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Text
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
         Public Sub New()
         End Sub
 
-        Public Overrides Function TryGetEscapeCharacter(ch As Char, ByRef escapedChar As Char) As Boolean
+        Public Overrides Function TryGetEscapeCharacter(ch As VirtualChar, ByRef escapedChar As Char) As Boolean
             ' Not needed yet for VB.  Implement when there is an appropriate consumer that needs
             ' this.
             Throw New NotImplementedException()

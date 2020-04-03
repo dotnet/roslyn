@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new InteractiveCommandCompletionService(languageServices.WorkspaceServices.Workspace);
-        }
+            => new InteractiveCommandCompletionService(languageServices.WorkspaceServices.Workspace);
     }
 
     internal class InteractiveCommandCompletionService : CompletionServiceWithProviders

@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Execution
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(workspaceServices, _assetStorages);
-        }
+            => new Service(workspaceServices, _assetStorages);
 
         internal class Service : IRemotableDataService
         {
@@ -46,19 +44,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             public void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken)
-            {
-                _assetStorages.AddGlobalAsset(value, asset, cancellationToken);
-            }
+                => _assetStorages.AddGlobalAsset(value, asset, cancellationToken);
 
             public CustomAsset? GetGlobalAsset(object value, CancellationToken cancellationToken)
-            {
-                return _assetStorages.GetGlobalAsset(value, cancellationToken);
-            }
+                => _assetStorages.GetGlobalAsset(value, cancellationToken);
 
             public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
-            {
-                _assetStorages.RemoveGlobalAsset(value, cancellationToken);
-            }
+                => _assetStorages.RemoveGlobalAsset(value, cancellationToken);
 
             public async ValueTask<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken)
             {
@@ -88,9 +80,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             public async ValueTask<RemotableData?> TestOnly_GetRemotableDataAsync(Checksum checksum, CancellationToken cancellationToken)
-            {
-                return await _assetStorages.TestOnly_GetRemotableDataAsync(checksum, cancellationToken).ConfigureAwait(false);
-            }
+                => await _assetStorages.TestOnly_GetRemotableDataAsync(checksum, cancellationToken).ConfigureAwait(false);
         }
     }
 }

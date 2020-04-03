@@ -27,8 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
     }
 }

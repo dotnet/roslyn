@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new DocumentationProviderService();
-        }
+            => new DocumentationProviderService();
 
         internal sealed class DocumentationProviderService : IDocumentationProviderService
         {

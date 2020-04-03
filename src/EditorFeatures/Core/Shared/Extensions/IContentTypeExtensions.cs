@@ -17,13 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// match an extension.</param>
         /// <param name="extensionContentTypes">Content types from extension metadata.</param>
         public static bool MatchesAny(this IContentType dataContentType, IEnumerable<string> extensionContentTypes)
-        {
-            return extensionContentTypes.Any(v => dataContentType.IsOfType(v));
-        }
+            => extensionContentTypes.Any(v => dataContentType.IsOfType(v));
 
         public static bool MatchesAny(this IContentType dataContentType, params string[] extensionContentTypes)
-        {
-            return dataContentType.MatchesAny((IEnumerable<string>)extensionContentTypes);
-        }
+            => dataContentType.MatchesAny((IEnumerable<string>)extensionContentTypes);
     }
 }

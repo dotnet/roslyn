@@ -117,8 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
             symbol.Kind == SymbolKind.Property;
 
         public CommandState GetCommandState(SyncClassViewCommandArgs args)
-        {
-            return Commanding.CommandState.Available;
-        }
+            => Commanding.CommandState.Available;
     }
 }

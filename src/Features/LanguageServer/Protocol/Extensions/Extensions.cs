@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         public static Uri GetURI(this Document document)
         {
-            return new Uri(document.FilePath);
+            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
         public static Document GetDocumentFromURI(this Solution solution, Uri fileName)
@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
-        {
-            return new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
-        }
+            => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
     }
 }

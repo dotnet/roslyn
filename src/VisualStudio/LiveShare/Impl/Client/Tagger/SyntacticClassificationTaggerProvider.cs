@@ -66,8 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         }
 
         private void DisconnectTagComputer(ITextBuffer buffer)
-        {
-            tagComputers.Remove(buffer);
-        }
+            => tagComputers.Remove(buffer);
     }
 }

@@ -115,9 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             }
 
             public override SyntaxKind VisitSwitchStatement(SwitchStatementSyntax node)
-            {
-                return AnalyzeSwitchStatement(node, out _);
-            }
+                => AnalyzeSwitchStatement(node, out _);
 
             private SyntaxKind AnalyzeSwitchStatement(SwitchStatementSyntax switchStatement, out bool shouldRemoveNextStatement)
             {

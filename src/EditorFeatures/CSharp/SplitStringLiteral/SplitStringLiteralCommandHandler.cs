@@ -45,14 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         public string DisplayName => CSharpEditorResources.Split_string;
 
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandWorker(args);
-        }
+            => ExecuteCommandWorker(args);
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {

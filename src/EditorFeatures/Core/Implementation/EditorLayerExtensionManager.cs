@@ -97,24 +97,16 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             private void ShowDetailedErrorInfo(Exception exception)
-            {
-                _errorReportingService.ShowDetailedErrorInfo(exception);
-            }
+                => _errorReportingService.ShowDetailedErrorInfo(exception);
 
             private static void LogLeaveDisabled(object provider)
-            {
-                LogAction(CodefixInfobar_LeaveDisabled, provider);
-            }
+                => LogAction(CodefixInfobar_LeaveDisabled, provider);
 
             private static void LogEnableAndIgnoreProvider(object provider)
-            {
-                LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
-            }
+                => LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
 
             private static void LogEnableProvider(object provider)
-            {
-                LogAction(CodefixInfobar_Enable, provider);
-            }
+                => LogAction(CodefixInfobar_Enable, provider);
 
             private static void LogAction(FunctionId functionId, object provider)
             {

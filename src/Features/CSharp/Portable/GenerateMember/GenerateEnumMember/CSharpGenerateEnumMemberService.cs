@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
         }
 
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
-        {
-            return node is IdentifierNameSyntax;
-        }
+            => node is IdentifierNameSyntax;
 
         protected override bool TryInitializeIdentifierNameState(
             SemanticDocument document, SimpleNameSyntax identifierName, CancellationToken cancellationToken,

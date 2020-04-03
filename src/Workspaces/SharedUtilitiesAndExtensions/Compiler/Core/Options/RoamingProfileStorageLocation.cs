@@ -34,17 +34,13 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public RoamingProfileStorageLocation(string keyName)
-        {
-            _keyNameFromLanguageName = _ => keyName;
-        }
+            => _keyNameFromLanguageName = _ => keyName;
 
         /// <summary>
         /// Creates a <see cref="RoamingProfileStorageLocation"/> that has different key names for different languages.
         /// </summary>
         /// <param name="keyNameFromLanguageName">A function that maps from a <see cref="LanguageNames"/> value to the key name.</param>
         public RoamingProfileStorageLocation(Func<string, string> keyNameFromLanguageName)
-        {
-            _keyNameFromLanguageName = keyNameFromLanguageName;
-        }
+            => _keyNameFromLanguageName = keyNameFromLanguageName;
     }
 }

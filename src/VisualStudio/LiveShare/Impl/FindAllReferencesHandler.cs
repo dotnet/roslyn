@@ -29,9 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IThreadingContext _threadingContext;
 
         public FindAllReferencesHandler(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public async Task<object[]> HandleAsync(LSP.ReferenceParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {

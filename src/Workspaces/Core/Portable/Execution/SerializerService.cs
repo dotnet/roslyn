@@ -202,9 +202,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)
-        {
-            return _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<IOptionsSerializationService>());
-        }
+            => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<IOptionsSerializationService>());
     }
 
     // TODO: convert this to sub class rather than using enum with if statement.

@@ -41,8 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         protected override ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider => _sendToInteractiveSubmissionProvider;
 
         protected override IInteractiveWindow OpenInteractiveWindow(bool focus)
-        {
-            return _interactiveWindowProvider.Open(instanceId: 0, focus: focus).InteractiveWindow;
-        }
+            => _interactiveWindowProvider.Open(instanceId: 0, focus: focus).InteractiveWindow;
     }
 }

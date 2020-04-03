@@ -18,13 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NoCompilationContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-        {
-            _contentTypeRegistry = contentTypeRegistry;
-        }
+            => _contentTypeRegistry = contentTypeRegistry;
 
         public IContentType GetDefaultContentType()
-        {
-            return _contentTypeRegistry.GetContentType(NoCompilationConstants.LanguageName);
-        }
+            => _contentTypeRegistry.GetContentType(NoCompilationConstants.LanguageName);
     }
 }

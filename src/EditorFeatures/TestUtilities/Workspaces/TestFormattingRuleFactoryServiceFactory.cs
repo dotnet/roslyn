@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public bool UseBaseIndentation = false;
 
             public bool ShouldUseBaseIndentation(Document document)
-            {
-                return UseBaseIndentation;
-            }
+                => UseBaseIndentation;
 
             public AbstractFormattingRule CreateRule(Document document, int position)
             {
@@ -50,14 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
-            {
-                return changes;
-            }
+                => changes;
 
             public bool ShouldNotFormatOrCommitOnPaste(Document document)
-            {
-                return UseBaseIndentation;
-            }
+                => UseBaseIndentation;
         }
     }
 }

@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
 
             public InfoCache(Compilation compilation)
-            {
-                IndexType = compilation.GetTypeByMetadataName("System.Index");
-            }
+                => IndexType = compilation.GetTypeByMetadataName("System.Index");
 
             public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
             {

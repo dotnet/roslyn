@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         protected override void OnScopeProgressChanged(IUIThreadOperationScope changedScope)
-        {
-            UpdateProgress();
-        }
+            => UpdateProgress();
 
         private void UpdateProgress()
         {
