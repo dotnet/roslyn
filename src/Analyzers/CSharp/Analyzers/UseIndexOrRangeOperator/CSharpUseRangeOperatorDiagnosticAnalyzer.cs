@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
     /// could always limit the feature to only work on a whitelist of known safe types.
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         // public const string UseIndexer = nameof(UseIndexer);
@@ -41,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
                    CSharpCodeStyleOptions.PreferRangeOperator,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_range_operator), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources._0_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_range_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources._0_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

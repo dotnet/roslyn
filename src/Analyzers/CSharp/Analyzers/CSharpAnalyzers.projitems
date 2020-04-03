@@ -58,6 +58,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseImplicitTypeDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\CSharpUseIndexOperatorDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\CSharpUseIndexOperatorDiagnosticAnalyzer.InfoCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\CSharpUseRangeOperatorDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\CSharpUseRangeOperatorDiagnosticAnalyzer.InfoCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\CSharpUseRangeOperatorDiagnosticAnalyzer.Result.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\Helpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\MemberInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
