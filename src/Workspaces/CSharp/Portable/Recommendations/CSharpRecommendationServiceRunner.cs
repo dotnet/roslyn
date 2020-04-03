@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -36,6 +38,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return _context.IsRightOfNameSeparator
                 ? GetSymbolsOffOfContainer()
                 : GetSymbolsForCurrentContext();
+        }
+
+        public override bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(true)] out ITypeSymbol explicitLambdaParameterType)
+        {
+            if (lambdaSyntax.IsKind<ParenthesizedLambdaExpressionSyntax>(SyntaxKind.ParenthesizedLambdaExpression, out var parenthesizedLambdaSyntax))
+            {
+                var parameters = parenthesizedLambdaSyntax.ParameterList.Parameters;
+                if (parameters.Count > ordinalInLambda)
+                {
+                    var parameter = parameters[ordinalInLambda];
+                    if (parameter.Type != null)
+                    {
+                        explicitLambdaParameterType = _context.SemanticModel.GetTypeInfo(parameter.Type, _cancellationToken).Type;
+                        return explicitLambdaParameterType != null;
+                    }
+                }
+            }
+
+            // Non-parenthesized lambdas cannot explicitly specify the type of the single parameter
+            explicitLambdaParameterType = null;
+            return false;
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForCurrentContext()
