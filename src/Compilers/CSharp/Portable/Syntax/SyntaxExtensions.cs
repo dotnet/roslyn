@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static XmlNameAttributeElementKind GetElementKind(this XmlNameAttributeSyntax attributeSyntax)
         {
-            Debug.Assert(attributeSyntax.Parent is object);
+            RoslynDebug.Assert(attributeSyntax.Parent is object);
             CSharpSyntaxNode parentSyntax = attributeSyntax.Parent;
             SyntaxKind parentKind = parentSyntax.Kind();
 
