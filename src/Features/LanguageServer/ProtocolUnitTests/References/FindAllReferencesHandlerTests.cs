@@ -37,13 +37,6 @@ class B
 
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
-
-            Assert.Equal("A", results[0].ContainingType);
-            Assert.Equal("B", results[2].ContainingType);
-            Assert.Equal("M", results[1].ContainingMember);
-            Assert.Equal("M2", results[3].ContainingMember);
-
-            AssertValidDefinitionProperties(results, 0);
         }
 
         [WpfFact]
@@ -72,13 +65,6 @@ class B
 
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
-
-            Assert.Equal("A", results[0].ContainingType);
-            Assert.Equal("B", results[2].ContainingType);
-            Assert.Equal("M", results[1].ContainingMember);
-            Assert.Equal("M2", results[3].ContainingMember);
-
-            AssertValidDefinitionProperties(results, 0);
         }
 
         [WpfFact]
@@ -93,25 +79,6 @@ class B
 
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             Assert.Empty(results);
-        }
-
-        [WpfFact]
-        public async Task TestFindAllReferencesMetadataDefinitionAsync()
-        {
-            var markup =
-@"using System;
-
-class A
-{
-    void M()
-    {
-        Console.{|caret:|}{|reference:WriteLine|}(""text"");
-    }
-}";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
-
-            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
-            Assert.NotNull(results[0].Location.Uri);
         }
 
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret) =>
@@ -130,25 +97,6 @@ class A
             };
 
             return await GetLanguageServer(solution).GetDocumentReferencesAsync(solution, CreateReferenceParams(caret), vsClientCapabilities, CancellationToken.None);
-        }
-
-        private static void AssertValidDefinitionProperties(LSP.ReferenceItem[] referenceItems, int definitionIndex)
-        {
-            var definition = referenceItems[definitionIndex];
-            var definitionId = definition.DefinitionId;
-            Assert.NotNull(definition.DefinitionText);
-
-            for (var i = 0; i < referenceItems.Length; i++)
-            {
-                if (i == definitionIndex)
-                {
-                    continue;
-                }
-
-                Assert.Null(referenceItems[i].DefinitionText);
-                Assert.Equal(definitionId, referenceItems[i].DefinitionId);
-                Assert.NotEqual(definitionId, referenceItems[i].Id);
-            }
         }
     }
 }
