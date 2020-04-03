@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(
-                       nameof(FeaturesResources.Use_compound_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                       nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _syntaxFacts = syntaxFacts;
             UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
