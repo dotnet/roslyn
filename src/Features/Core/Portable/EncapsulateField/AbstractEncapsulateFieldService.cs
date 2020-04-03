@@ -244,14 +244,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var projectId = document.Project.Id;
             if (field.IsReadOnly)
             {
-                var fieldAnProjectId = SymbolAndProjectId.Create(field, projectId);
-
                 // Inside the constructor we want to rename references the field to the final field name.
                 var constructorLocations = GetConstructorLocations(field.ContainingType);
                 if (finalFieldName != field.Name && constructorLocations.Count > 0)
                 {
                     solution = await RenameAsync(
-                        solution, fieldAnProjectId, finalFieldName,
+                        solution, SymbolAndProjectId.Create(field, projectId), finalFieldName,
                         location => IntersectsWithAny(location, constructorLocations),
                         cancellationToken).ConfigureAwait(false);
 
@@ -264,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
                 // Outside the constructor we want to rename references to the field to final property name.
                 return await RenameAsync(
-                    solution, fieldAnProjectId, generatedPropertyName,
+                    solution, SymbolAndProjectId.Create(field, projectId), generatedPropertyName,
                     location => !IntersectsWithAny(location, constructorLocations),
                     cancellationToken).ConfigureAwait(false);
             }
@@ -272,8 +270,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId),
-                    generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
+                    solution, SymbolAndProjectId.Create(field, projectId), generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -287,10 +284,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var initialLocations = await Renamer.GetRenameLocationsAsync(
                 solution, field, solution.Options, cancellationToken).ConfigureAwait(false);
 
-            var insideLocations = initialLocations.Filter(filter);
-
             return await Renamer.RenameAsync(
-                insideLocations, finalName, cancellationToken: cancellationToken).ConfigureAwait(false);
+                initialLocations.Filter(filter), finalName,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)
