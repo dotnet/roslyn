@@ -12,25 +12,35 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Testing
 {
     /// <summary>
-    /// To aid with testing, we define a special type of text file that can encode additional
+    /// <para>To aid with testing, we define a special type of text file that can encode additional
     /// information in it.  This prevents a test writer from having to carry around multiple sources
     /// of information that must be reconstituted.  For example, instead of having to keep around the
-    /// contents of a file *and* and the location of the cursor, the tester can just provide a
-    /// string with the "$" character in it.  This allows for easy creation of "FIT" tests where all
+    /// contents of a file <em>and</em> and the location of the cursor, the tester can just provide a
+    /// string with the <c>$$</c> character in it.  This allows for easy creation of "FIT" tests where all
     /// that needs to be provided are strings that encode every bit of state necessary in the string
-    /// itself.
+    /// itself.</para>
     ///
-    /// The current set of encoded features we support are:
+    /// <para>The current set of encoded features we support are:</para>
     ///
-    /// $$ - The position in the file.  There can be at most one of these.
+    /// <list type="bullet">
+    ///   <item>
+    ///     <term><c>$$</c></term>
+    ///     <description>A position in the file. The number of times this is allowed to appear varies depending on the
+    ///     specific call.</description>
+    ///   </item>
+    ///   <item>
+    ///     <term><c>[|</c> ... <c>|]</c></term>
+    ///     <description>A span of text in the file. There can be many of these and they can be nested and/or overlap
+    ///     the <c>$$</c> position.</description>
+    ///   </item>
+    ///   <item>
+    ///     <term><c>{|Name:</c> ... <c>|}</c></term>
+    ///     <description>A span of text in the file annotated with an identifier. There can be many of these, including
+    ///     ones with the same name.</description>
+    ///   </item>
+    /// </list>
     ///
-    /// [| ... |] - A span of text in the file.  There can be many of these and they can be nested
-    /// and/or overlap the $ position.
-    ///
-    /// {|Name: ... |} A span of text in the file annotated with an identifier.  There can be many of
-    /// these, including ones with the same name.
-    ///
-    /// Additional encoded features can be added on a case by case basis.
+    /// <para>Additional encoded features can be added on a case by case basis.</para>
     /// </summary>
     public static class TestFileMarkupParser
     {
@@ -122,12 +132,12 @@ namespace Microsoft.CodeAnalysis.Testing
                     case SpanEndString:
                         if (spanStartStack.Count == 0)
                         {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanEndString, SpanStartString));
+                            throw new ArgumentException($"Saw {SpanEndString} without matching {SpanStartString}");
                         }
 
                         if (spanStartStack.Peek().Item2.Length > 0)
                         {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanStartString, NamedSpanEndString));
+                            throw new ArgumentException($"Saw {NamedSpanStartString} without matching {NamedSpanEndString}");
                         }
 
                         PopSpan(spanStartStack, spans, matchIndexInOutput);
@@ -141,12 +151,12 @@ namespace Microsoft.CodeAnalysis.Testing
                     case NamedSpanEndString:
                         if (spanStartStack.Count == 0)
                         {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanEndString, NamedSpanStartString));
+                            throw new ArgumentException($"Saw {NamedSpanEndString} without matching {NamedSpanStartString}");
                         }
 
                         if (spanStartStack.Peek().Item2.Length == 0)
                         {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanStartString, SpanEndString));
+                            throw new ArgumentException($"Saw {SpanStartString} without matching {SpanEndString}");
                         }
 
                         PopSpan(spanStartStack, spans, matchIndexInOutput);
@@ -159,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             if (spanStartStack.Count > 0)
             {
-                throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanStartString, SpanEndString));
+                throw new ArgumentException($"Saw {SpanStartString} without matching {SpanEndString}");
             }
 
             // Append the remainder of the string.
@@ -192,15 +202,15 @@ namespace Microsoft.CodeAnalysis.Testing
             Parse(input, out output, out positions, out spans);
         }
 
-        public static void GetPositionAndSpans(string input, out string output, out int? cursorPositionOpt, out IDictionary<string, IList<TextSpan>> spans)
+        public static void GetPositionAndSpans(string input, out string output, out int? cursorPosition, out IDictionary<string, IList<TextSpan>> spans)
         {
             Parse(input, out output, out var positions, out spans);
-            cursorPositionOpt = positions.SingleOrDefault();
+            cursorPosition = positions.SingleOrDefault();
         }
 
-        public static void GetPositionAndSpans(string input, out int? cursorPositionOpt, out IDictionary<string, IList<TextSpan>> spans)
+        public static void GetPositionAndSpans(string input, out int? cursorPosition, out IDictionary<string, IList<TextSpan>> spans)
         {
-            GetPositionAndSpans(input, out var output, out cursorPositionOpt, out spans);
+            GetPositionAndSpans(input, out var output, out cursorPosition, out spans);
         }
 
         public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out IDictionary<string, IList<TextSpan>> spans)
@@ -219,17 +229,17 @@ namespace Microsoft.CodeAnalysis.Testing
             GetPositionAndSpans(input, out output, out int? cursorPositionOpt, out spans);
         }
 
-        public static void GetPositionAndSpans(string input, out string output, out int? cursorPositionOpt, out IList<TextSpan> spans)
+        public static void GetPositionAndSpans(string input, out string output, out int? cursorPosition, out IList<TextSpan> spans)
         {
             Parse(input, out output, out var positions, out var dictionary);
-            cursorPositionOpt = positions.SingleOrDefault();
+            cursorPosition = positions.SingleOrDefault();
 
             spans = dictionary.GetOrAdd(string.Empty, () => new List<TextSpan>());
         }
 
-        public static void GetPositionAndSpans(string input, out int? cursorPositionOpt, out IList<TextSpan> spans)
+        public static void GetPositionAndSpans(string input, out int? cursorPosition, out IList<TextSpan> spans)
         {
-            GetPositionAndSpans(input, out var output, out cursorPositionOpt, out spans);
+            GetPositionAndSpans(input, out var output, out cursorPosition, out spans);
         }
 
         public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out IList<TextSpan> spans)
