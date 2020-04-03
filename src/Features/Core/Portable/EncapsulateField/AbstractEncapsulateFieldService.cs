@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -157,8 +158,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // Annotate the field declarations so we can find it after rename.
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
             var declarationAnnotation = new SyntaxAnnotation();
-            document = document.WithSyntaxRoot(fieldDeclaration.SyntaxTree.GetRoot(cancellationToken).ReplaceNode(fieldDeclaration.GetSyntax(cancellationToken),
-                fieldDeclaration.GetSyntax(cancellationToken).WithAdditionalAnnotations(declarationAnnotation)));
+            document = document.WithSyntaxRoot(fieldDeclaration.SyntaxTree.GetRoot(cancellationToken).ReplaceNode<SyntaxNode>(fieldDeclaration.GetSyntax(cancellationToken),
+                fieldDeclaration.GetSyntax(cancellationToken).WithAdditionalAnnotations<SyntaxNode>(declarationAnnotation)));
 
             var solution = document.Project.Solution;
 
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     continue;
                 }
 
-                var updatedRoot = linkedRoot.ReplaceNode(linkedFieldNode, linkedFieldNode.WithAdditionalAnnotations(declarationAnnotation));
+                var updatedRoot = linkedRoot.ReplaceNode<SyntaxNode>(linkedFieldNode, linkedFieldNode.WithAdditionalAnnotations<SyntaxNode>(declarationAnnotation));
                 solution = solution.WithDocumentSyntaxRoot(linkedDocumentId, updatedRoot);
             }
 
@@ -244,14 +245,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             if (field.IsReadOnly)
             {
                 // Inside the constructor we want to rename references the field to the final field name.
-                var constructorSyntaxes = GetConstructorNodes(field.ContainingType).ToSet();
-                if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
+                var constructorLocations = GetConstructorLocations(field.ContainingType);
+                if (finalFieldName != field.Name && constructorLocations.Count > 0)
                 {
                     var initialLocations = await Renamer.GetRenameLocationsAsync(
                         solution, SymbolAndProjectId.Create(field, projectId), solution.Options, cancellationToken).ConfigureAwait(false);
 
                     var insideLocations = initialLocations.Filter(
-                        location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)));
+                        location => IntersectsWithAny(location, constructorLocations));
 
                     solution = await Renamer.RenameAsync(
                         insideLocations, finalFieldName, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -260,6 +261,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
+                    constructorLocations = GetConstructorLocations(field.ContainingType);
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
@@ -268,7 +270,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     solution, SymbolAndProjectId.Create(field, projectId), solution.Options, cancellationToken).ConfigureAwait(false);
 
                 var outsideLocations = finalLocations.Filter(
-                    location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)));
+                    location => !IntersectsWithAny(location, constructorLocations));
 
                 return await Renamer.RenameAsync(
                     outsideLocations, generatedPropertyName, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -281,6 +283,20 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
+
+        private bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)
+        {
+            foreach (var constructor in constructorLocations)
+            {
+                if (location.IntersectsWith(constructor))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private ISet<Location> GetConstructorLocations(INamedTypeSymbol containingType)
+            => GetConstructorNodes(containingType).Select(n => n.GetLocation()).ToSet();
 
         internal abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
 
@@ -354,7 +370,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var body = factory.ExpressionStatement(
                 factory.AssignmentStatement(
-                    assigned.WithAdditionalAnnotations(Simplifier.Annotation),
+                    assigned.WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation),
                 factory.IdentifierName("value")));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
@@ -372,7 +388,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 : factory.IdentifierName(originalFieldName);
 
             var body = factory.ReturnStatement(
-                value.WithAdditionalAnnotations(Simplifier.Annotation));
+                value.WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                 ImmutableArray<AttributeData>.Empty,

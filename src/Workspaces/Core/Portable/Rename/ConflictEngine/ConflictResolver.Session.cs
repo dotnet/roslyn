@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         // to the new position for which we use the renameSpanTracker, which was tracking
                         // & mapping the old span -> new span during rename
                         hasConflict =
-                            IsConflictFreeChange(newReferencedSymbols, nonConflictSymbols) &&
+                            !IsConflictFreeChange(newReferencedSymbols, nonConflictSymbols) &&
                             await CheckForConflictAsync(conflictResolution, renamedSymbolInNewSolution, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
 
                         if (!hasConflict && !conflictAnnotation.IsInvocationExpression)
@@ -492,16 +492,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 if (_nonConflictSymbols != null)
                 {
-                    // We're asking the rename API to update a bunch of references to an existing field to
-                    // the same name as an existing property.  Rename will often flag this situation as
-                    // an unresolvable conflict because the new name won't bind to the field anymore.
-                    //
-                    // To address this, we let rename know that there is no conflict if the new symbol it
-                    // resolves to is the same as the property we're trying to get the references pointing
-                    // to.
-
                     foreach (var symbol in symbols)
                     {
+                        // Reference not points at a symbol in the conflict-free list.  This is a conflict-free change.
                         if (nonConflictSymbols.Contains(symbol))
                             return true;
                     }
