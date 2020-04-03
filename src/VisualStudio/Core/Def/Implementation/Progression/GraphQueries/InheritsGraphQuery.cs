@@ -31,12 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in nodesToProcess)
                 {
-
-                    if (graphBuilder.GetSymbol(node) is INamedTypeSymbol namedType)
+                    var symbolAndProjectId = graphBuilder.GetSymbolAndProjectId(node);
+                    if (symbolAndProjectId.Symbol is INamedTypeSymbol namedType)
                     {
                         if (namedType.BaseType != null)
                         {
-                            var baseTypeNode = await graphBuilder.AddNodeForSymbolAsync(namedType.BaseType, relatedNode: node).ConfigureAwait(false);
+                            var baseTypeNode = await graphBuilder.AddNodeAsync(
+                                symbolAndProjectId.WithSymbol(namedType.BaseType), relatedNode: node).ConfigureAwait(false);
                             newNodes.Add(baseTypeNode);
                             graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode);
                         }
@@ -44,7 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         {
                             foreach (var baseNode in namedType.OriginalDefinition.AllInterfaces.Distinct())
                             {
-                                var baseTypeNode = await graphBuilder.AddNodeForSymbolAsync(baseNode, relatedNode: node).ConfigureAwait(false);
+                                var baseTypeNode = await graphBuilder.AddNodeAsync(
+                                    symbolAndProjectId.WithSymbol(baseNode), relatedNode: node).ConfigureAwait(false);
                                 newNodes.Add(baseTypeNode);
                                 graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode);
                             }
