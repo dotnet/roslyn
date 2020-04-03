@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,9 +15,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Nerdbank.Streams;
 using Newtonsoft.Json.Linq;
@@ -45,7 +49,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             //
             // We expect one publish diagnostic notification ->
             // 1.  from doc1 with id.
-            var (languageServer, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 1, document).ConfigureAwait(false);
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 1, document).ConfigureAwait(false);
 
             var result = Assert.Single(results);
             Assert.Equal(new Uri(document.FilePath), result.Uri);
@@ -69,7 +73,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // We expect two publish diagnostic notifications ->
             // 1.  from m1 with id1 (from 1 above).
             // 2.  from m2 with id2 (from 1 above).
-            var (languageServer, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, expectedNumberOfCallbacks: 2, document).ConfigureAwait(false);
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, expectedNumberOfCallbacks: 2, document).ConfigureAwait(false);
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new Uri(document.FilePath + "m1"), results[0].Uri);
@@ -102,7 +106,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // We expect two publish diagnostic notifications ->
             // 1.  from m1 with doc1Diagnostic (from 1 above).
             // 2.  from m1 with doc1Diagnostic and doc2Diagnostic (from 2 above adding doc2Diagnostic to m1).
-            var (languageServer, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 2, documents[0], documents[1]).ConfigureAwait(false);
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 2, documents[0], documents[1]).ConfigureAwait(false);
 
             Assert.Equal(2, results.Count);
             var expectedUri = new Uri(mappedFilePath);
@@ -134,7 +138,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // We expect two publish diagnostic notifications ->
             // 1.  from doc1 with id.
             // 2.  from doc1 with empty (from 2 above clearing out diagnostics from doc1).
-            var (languageServer, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 2, document, document).ConfigureAwait(false);
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 2, document, document).ConfigureAwait(false);
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new Uri(document.FilePath), results[0].Uri);
@@ -143,8 +147,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Equal(new Uri(document.FilePath), results[1].Uri);
             Assert.True(results[1].Diagnostics.IsEmpty());
 
-            Assert.False(languageServer._documentsToPublishedUris.Keys.Any());
-            Assert.False(languageServer._publishedFileToDiagnostics.Keys.Any());
+            Assert.Empty(testAccessor.GetDocumentIdsInPublishedUris());
+            Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
         [Fact]
@@ -172,7 +176,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // 2.  from m2 with id2 (from 1 above).
             // 3.  from m1 with empty (from 2 above clearing out diagnostics for m1).
             // 4.  from m2 with id2 (from 2 above clearing out diagnostics for m1).
-            var (languageServer, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 4, document, document).ConfigureAwait(false);
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 4, document, document).ConfigureAwait(false);
 
             var mappedFileURIM1 = new Uri(mappedFilePathM1);
             var mappedFileURIM2 = new Uri(mappedFilePathM2);
@@ -192,6 +196,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             Assert.Equal(mappedFileURIM2, results[3].Uri);
             Assert.Equal("id2", results[3].Diagnostics.Single().Code);
+
+            Assert.Single(testAccessor.GetFileUrisForDocument(document.Id), mappedFileURIM2);
+            Assert.Equal("id2", testAccessor.GetDiagnosticsForUriAndDocument(document.Id, mappedFileURIM2).Single().Code);
+            Assert.Empty(testAccessor.GetDiagnosticsForUriAndDocument(document.Id, mappedFileURIM1));
         }
 
         [Fact]
@@ -221,7 +229,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // 1.  from m1 with with doc1Diagnostic (triggered by 1 above to add doc1Diagnostic).
             // 2.  from m1 with doc1Diagnostic and doc2Diagnostic (triggered by 2 above to add doc2Diagnostic).
             // 3.  from m1 with just doc2Diagnostic (triggered by 3 above to remove doc1Diagnostic).
-            var (languageServer, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 3, documents[0], documents[1], documents[0]).ConfigureAwait(false);
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 3, documents[0], documents[1], documents[0]).ConfigureAwait(false);
 
             Assert.Equal(3, results.Count);
             var expectedUri = new Uri(mappedFilePath);
@@ -236,6 +244,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Equal(expectedUri, results[2].Uri);
             Assert.Equal(1, results[2].Diagnostics.Length);
             Assert.Contains(results[2].Diagnostics, d => d.Code == "doc2Diagnostic");
+
+            Assert.Single(testAccessor.GetFileUrisForDocument(documents[1].Id), expectedUri);
+            Assert.Equal("doc2Diagnostic", testAccessor.GetDiagnosticsForUriAndDocument(documents[1].Id, expectedUri).Single().Code);
+            Assert.Empty(testAccessor.GetDiagnosticsForUriAndDocument(documents[0].Id, expectedUri));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43046")]
@@ -259,7 +271,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             //
             // We expect four publish diagnostic notifications - the first two are the two mapped files from 1.
             // The second two are the two mapped files being cleared by 2.
-            var (languageServer, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 4, document, document).ConfigureAwait(false);
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 4, document, document).ConfigureAwait(false);
 
             var mappedFileURIM1 = new Uri(document.FilePath + "m1");
             var mappedFileURIM2 = new Uri(document.FilePath + "m2");
@@ -280,8 +292,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Equal(mappedFileURIM2, results[3].Uri);
             Assert.True(results[3].Diagnostics.IsEmpty());
 
-            Assert.False(languageServer._documentsToPublishedUris.Keys.Any());
-            Assert.False(languageServer._publishedFileToDiagnostics.Keys.Any());
+            Assert.Empty(testAccessor.GetDocumentIdsInPublishedUris());
+            Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
         [Fact]
@@ -312,7 +324,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // 2.  from URI m1 with doc1Diagnostic and doc2Diagnostic (triggered by 2 above to add doc2Diagnostic).
             // 3.  from URI m1 with just doc2Diagnostic (triggered by 3 above to clear doc1 diagnostic).
             // 4.  from URI m1 with empty (triggered by 4 above to also clear doc2 diagnostic).
-            var (languageServer, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 4, documents[0], documents[1], documents[0], documents[1]).ConfigureAwait(false);
+            var (testAccessor, results) = await RunPublishDiagnosticsAsync(workspace, diagnosticsMock.Object, 4, documents[0], documents[1], documents[0], documents[1]).ConfigureAwait(false);
 
             Assert.Equal(4, results.Count);
             var expectedUri = new Uri(mappedFilePath);
@@ -331,28 +343,36 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Equal(expectedUri, results[3].Uri);
             Assert.True(results[3].Diagnostics.IsEmpty());
 
-            Assert.False(languageServer._documentsToPublishedUris.Keys.Any());
-            Assert.False(languageServer._publishedFileToDiagnostics.Keys.Any());
+            Assert.Empty(testAccessor.GetDocumentIdsInPublishedUris());
+            Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        private async Task<(InProcLanguageServer, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(Workspace workspace, IDiagnosticService diagnosticService,
+        private async Task<(InProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(Workspace workspace, IDiagnosticService diagnosticService,
             int expectedNumberOfCallbacks, params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             var languageServer = CreateLanguageServer(serverStream, serverStream, workspace, diagnosticService);
 
+            // Notification target for tests to recieve the notification details
             var callback = new Callback(expectedNumberOfCallbacks);
-            using (var jsonRpc = JsonRpc.Attach(clientStream, callback))
+            using var jsonRpc = new JsonRpc(clientStream, clientStream, callback);
+
+            // The json rpc messages won't necessarily come back in order by default.
+            // So use a synchronization context to preserve the original ordering.
+            // https://github.com/microsoft/vs-streamjsonrpc/blob/bc970c61b90db5db135a1b3d1c72ef355c2112af/doc/resiliency.md#when-message-order-is-important
+            jsonRpc.SynchronizationContext = new RpcOrderPreservingSynchronizationContext();
+            jsonRpc.StartListening();
+
+            // Triggers language server to send notifications.
+            foreach (var document in documentsToPublish)
             {
-                foreach (var document in documentsToPublish)
-                {
-                    await languageServer.PublishDiagnosticsAsync(document).ConfigureAwait(false);
-                }
-
-                await callback.CallbackCompletedTask.Task.ConfigureAwait(false);
-
-                return (languageServer, callback.Results);
+                await languageServer.PublishDiagnosticsAsync(document).ConfigureAwait(false);
             }
+
+            // Waits for all notifications to be recieved.
+            await callback.CallbackCompletedTask.Task.ConfigureAwait(false);
+
+            return (languageServer.GetTestAccessor(), callback.Results);
 
             static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, Workspace workspace, IDiagnosticService mockDiagnosticService)
             {
@@ -382,13 +402,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         private async Task<IEnumerable<DiagnosticData>> CreateMockDiagnosticDataAsync(Document document, string id)
         {
             var descriptor = new DiagnosticDescriptor(id, "", "", "", DiagnosticSeverity.Error, true);
-            var location = Location.Create(await document.GetSyntaxTreeAsync().ConfigureAwait(false), new TextSpan());
+            var location = Location.Create(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false), new TextSpan());
             return new DiagnosticData[] { DiagnosticData.Create(Diagnostic.Create(descriptor, location), document) };
         }
 
         private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDatasWithMappedLocationAsync(Document document, params (string diagnosticId, string mappedFilePath)[] diagnostics)
         {
-            var tree = await document.GetSyntaxTreeAsync().ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
 
             return diagnostics.Select(d => CreateMockDiagnosticDataWithMappedLocation(document, tree, d.diagnosticId, d.mappedFilePath)).ToImmutableArray();
 
@@ -420,6 +440,50 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             static DiagnosticDataLocation GetDataLocation(Document document, string mappedFilePath)
                 => new DiagnosticDataLocation(document.Id, originalFilePath: document.FilePath, mappedFilePath: mappedFilePath);
+        }
+
+        /// <summary>
+        /// Synchronization context to preserve ordering of the RPC messages
+        /// Adapted from https://dev.azure.com/devdiv/DevDiv/VS%20Cloud%20Kernel/_git/DevCore?path=%2Fsrc%2Fclr%2FMicrosoft.ServiceHub.Framework%2FServiceRpcDescriptor%2BRpcOrderPreservingSynchronizationContext.cs
+        /// https://github.com/microsoft/vs-streamjsonrpc/issues/440 tracks exposing functionality so we don't need to copy this.
+        /// </summary>
+        private class RpcOrderPreservingSynchronizationContext : SynchronizationContext, IDisposable
+        {
+            /// <summary>
+            /// The queue of work to execute.
+            /// </summary>
+            private readonly AsyncQueue<(SendOrPostCallback, object?)> _queue = new AsyncQueue<(SendOrPostCallback, object?)>();
+
+            public RpcOrderPreservingSynchronizationContext()
+            {
+                // Process the work in the background.
+                this.ProcessQueueAsync().Forget();
+            }
+
+            public override void Post(SendOrPostCallback d, object? state) => this._queue.Enqueue((d, state));
+
+            public override void Send(SendOrPostCallback d, object? state) => throw new NotSupportedException();
+
+            public override SynchronizationContext CreateCopy() => throw new NotSupportedException();
+
+            /// <summary>
+            /// Causes this <see cref="SynchronizationContext"/> to reject all future posted work and
+            /// releases the queue processor when it is empty.
+            /// </summary>
+            public void Dispose() => this._queue.Complete();
+
+            /// <summary>
+            /// Executes queued work on the threadpool, one at a time.
+            /// Don't catch exceptions - let them bubble up to fail the test.
+            /// </summary>
+            private async Task ProcessQueueAsync()
+            {
+                while (!this._queue.IsCompleted)
+                {
+                    var work = await this._queue.DequeueAsync().ConfigureAwait(false);
+                    work.Item1(work.Item2);
+                }
+            }
         }
 
         private class Callback
