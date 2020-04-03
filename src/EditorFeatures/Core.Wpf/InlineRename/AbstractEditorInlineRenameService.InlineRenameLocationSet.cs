@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var conflicts = await ConflictResolver.ResolveConflictsAsync(
                     _renameLocationSet, _renameLocationSet.Symbol.Name,
-                    _renameInfo.GetFinalSymbolName(replacementText), optionSet, nonConflictSymbols: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    _renameInfo.GetFinalSymbolName(replacementText), nonConflictSymbols: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return new InlineRenameReplacementInfo(conflicts);
             }

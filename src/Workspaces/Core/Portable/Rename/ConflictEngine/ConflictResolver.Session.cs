@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 Location renameSymbolDeclarationLocation,
                 string originalText,
                 string replacementText,
-                OptionSet optionSet,
                 ImmutableHashSet<ISymbol> nonConflictSymbols,
                 CancellationToken cancellationToken)
             {
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
                 _originalText = originalText;
                 _replacementText = replacementText;
-                _optionSet = optionSet;
+                _optionSet = renameLocationSet.Options;
                 _nonConflictSymbols = nonConflictSymbols;
                 _cancellationToken = cancellationToken;
 
