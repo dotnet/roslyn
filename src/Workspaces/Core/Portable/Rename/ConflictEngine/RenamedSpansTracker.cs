@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         internal bool IsDocumentChanged(DocumentId documentId)
-        {
-            return _documentToModifiedSpansMap.ContainsKey(documentId) || _documentToComplexifiedSpansMap.ContainsKey(documentId);
-        }
+            => _documentToModifiedSpansMap.ContainsKey(documentId) || _documentToComplexifiedSpansMap.ContainsKey(documentId);
 
         internal void AddModifiedSpan(DocumentId documentId, TextSpan oldSpan, TextSpan newSpan)
         {
@@ -291,9 +289,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly RenamedSpansTracker _renamedSpansTracker;
 
             public TestAccessor(RenamedSpansTracker renamedSpansTracker)
-            {
-                _renamedSpansTracker = renamedSpansTracker;
-            }
+                => _renamedSpansTracker = renamedSpansTracker;
 
             internal TextSpan GetResolutionTextSpan(TextSpan originalSpan, DocumentId documentId)
             {

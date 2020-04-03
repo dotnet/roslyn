@@ -54,9 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
 
             public static SyntaxNode Visit(SyntaxNode node, SyntaxNode replacementNode, ISet<ExpressionSyntax> matches)
-            {
-                return new Rewriter(replacementNode, matches).Visit(node);
-            }
+                => new Rewriter(replacementNode, matches).Visit(node);
         }
     }
 }

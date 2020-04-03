@@ -92,9 +92,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             internal TaggedTextStyle Style => _styleStack.Peek();
 
             public void AppendSingleSpace()
-            {
-                _pendingSingleSpace = true;
-            }
+                => _pendingSingleSpace = true;
 
             public void AppendString(string s)
             {
@@ -159,24 +157,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             public void PushNavigationTarget(string target, string hint)
-            {
-                _navigationTargetStack.Push((target, hint));
-            }
+                => _navigationTargetStack.Push((target, hint));
 
             public void PopNavigationTarget()
-            {
-                _navigationTargetStack.Pop();
-            }
+                => _navigationTargetStack.Pop();
 
             public void PushStyle(TaggedTextStyle style)
-            {
-                _styleStack.Push(_styleStack.Peek() | style);
-            }
+                => _styleStack.Push(_styleStack.Peek() | style);
 
             public void PopStyle()
-            {
-                _styleStack.Pop();
-            }
+                => _styleStack.Pop();
 
             public void MarkBeginOrEndPara()
             {
@@ -216,9 +206,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             public string GetText()
-            {
-                return Builder.GetFullText();
-            }
+                => Builder.GetFullText();
 
             private void EmitPendingChars()
             {

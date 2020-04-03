@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -23,14 +24,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
-                    if (symbol is INamedTypeSymbol namedType)
+                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
+                    if (symbol.Symbol is INamedTypeSymbol namedType)
                     {
-                        var implementedSymbols = namedType.AllInterfaces;
+                        var implementedSymbols = namedType.AllInterfaces.SelectAsArray(i => (SymbolAndProjectId)symbol.WithSymbol(i));
 
                         await AddImplementedSymbolsAsync(graphBuilder, node, implementedSymbols).ConfigureAwait(false);
                     }
-                    else if (symbol is IMethodSymbol || symbol is IPropertySymbol || symbol is IEventSymbol)
+                    else if (symbol.Symbol is IMethodSymbol ||
+                             symbol.Symbol is IPropertySymbol ||
+                             symbol.Symbol is IEventSymbol)
                     {
                         var implements = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         await AddImplementedSymbolsAsync(graphBuilder, node, implements).ConfigureAwait(false);
@@ -41,11 +44,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private static async Task AddImplementedSymbolsAsync(GraphBuilder graphBuilder, GraphNode node, IEnumerable<ISymbol> implementedSymbols)
+        private static async Task AddImplementedSymbolsAsync(
+            GraphBuilder graphBuilder, GraphNode node,
+            ImmutableArray<SymbolAndProjectId> implementedSymbols)
         {
             foreach (var interfaceType in implementedSymbols)
             {
-                var interfaceTypeNode = await graphBuilder.AddNodeForSymbolAsync(interfaceType, relatedNode: node).ConfigureAwait(false);
+                var interfaceTypeNode = await graphBuilder.AddNodeAsync(interfaceType, relatedNode: node).ConfigureAwait(false);
                 graphBuilder.AddLink(node, CodeLinkCategories.Implements, interfaceTypeNode);
             }
         }

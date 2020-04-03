@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         private TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
-        {
-            return TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
-        }
+            => TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
 
         private SelectionInfo AdjustFinalTokensBasedOnContext(
             SelectionInfo selectionInfo,
@@ -363,9 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public override bool ContainsNonReturnExitPointsStatements(IEnumerable<SyntaxNode> jumpsOutOfRegion)
-        {
-            return jumpsOutOfRegion.Where(n => !(n is ReturnStatementSyntax)).Any();
-        }
+            => jumpsOutOfRegion.Where(n => !(n is ReturnStatementSyntax)).Any();
 
         public override IEnumerable<SyntaxNode> GetOuterReturnStatements(SyntaxNode commonRoot, IEnumerable<SyntaxNode> jumpsOutOfRegion)
         {
@@ -478,9 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             public bool SelectionInSingleStatement { get; set; }
 
             public SelectionInfo WithStatus(Func<OperationStatus, OperationStatus> statusGetter)
-            {
-                return With(s => s.Status = statusGetter(s.Status));
-            }
+                => With(s => s.Status = statusGetter(s.Status));
 
             public SelectionInfo With(Action<SelectionInfo> valueSetter)
             {
@@ -490,9 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             public SelectionInfo Clone()
-            {
-                return (SelectionInfo)MemberwiseClone();
-            }
+                => (SelectionInfo)MemberwiseClone();
         }
     }
 }

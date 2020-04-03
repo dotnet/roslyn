@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
         }
 
-        public abstract List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken);
+        public abstract SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken);
     }
 }

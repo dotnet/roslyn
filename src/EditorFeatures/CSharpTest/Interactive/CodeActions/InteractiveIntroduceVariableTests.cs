@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             => GetNestedActions(actions);
 
         protected Task TestAsync(string initial, string expected, int index = 0)
-        {
-            return TestAsync(initial, expected, Options.Script, null, index);
-        }
+            => TestAsync(initial, expected, Options.Script, null, index);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()

@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
 
             internal void AssociateWithTask(Task task)
-            {
-                Task = task;
-            }
+                => Task = task;
 
             public override string ToString() => $"{Name} {Path.GetFileName(FilePath)} {LineNumber}";
         }

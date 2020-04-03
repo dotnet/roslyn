@@ -141,34 +141,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.FirstOrDefault();
-        }
+            => members.FirstOrDefault();
 
         public static MemberDeclarationSyntax FirstMethod(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.FirstOrDefault(m => m is MethodDeclarationSyntax);
-        }
+            => members.FirstOrDefault(m => m is MethodDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is FieldDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is FieldDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastConstructor(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastMethod(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is MethodDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is MethodDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastOperator(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
 
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
@@ -199,9 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool AreBracesMissing<TDeclaration>(TDeclaration declaration) where TDeclaration : SyntaxNode
-        {
-            return declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
-        }
+            => declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
 
         public static SyntaxNode GetContextNode(
             Location location, CancellationToken cancellationToken)

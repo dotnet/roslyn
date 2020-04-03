@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static class NameSyntaxExtensions
     {
         public static IList<NameSyntax> GetNameParts(this NameSyntax nameSyntax)
-        {
-            return new NameSyntaxIterator(nameSyntax).ToList();
-        }
+            => new NameSyntaxIterator(nameSyntax).ToList();
 
         public static NameSyntax GetLastDottedName(this NameSyntax nameSyntax)
         {

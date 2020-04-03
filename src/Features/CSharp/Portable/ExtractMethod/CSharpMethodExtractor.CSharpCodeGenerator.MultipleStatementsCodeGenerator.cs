@@ -108,14 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                {
-                    return CSharpSelectionResult.GetFirstStatementUnderContainer();
-                }
+                    => CSharpSelectionResult.GetFirstStatementUnderContainer();
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
-                {
-                    return CSharpSelectionResult.GetLastStatementUnderContainer();
-                }
+                    => CSharpSelectionResult.GetLastStatementUnderContainer();
 
                 protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(
                     SyntaxAnnotation callSiteAnnotation, CancellationToken cancellationToken)

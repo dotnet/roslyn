@@ -110,9 +110,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             }
 
             private async Task AddUnwrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
-            {
-                actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain).ConfigureAwait(false));
-            }
+                => actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain).ConfigureAwait(false));
 
             private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
             {

@@ -98,14 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public StatementSyntax GetFirstStatement()
-        {
-            return GetFirstStatement<StatementSyntax>();
-        }
+            => GetFirstStatement<StatementSyntax>();
 
         public StatementSyntax GetLastStatement()
-        {
-            return GetLastStatement<StatementSyntax>();
-        }
+            => GetLastStatement<StatementSyntax>();
 
         public StatementSyntax GetFirstStatementUnderContainer()
         {
@@ -194,14 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public SyntaxKind UnderCheckedExpressionContext()
-        {
-            return UnderCheckedContext<CheckedExpressionSyntax>();
-        }
+            => UnderCheckedContext<CheckedExpressionSyntax>();
 
         public SyntaxKind UnderCheckedStatementContext()
-        {
-            return UnderCheckedContext<CheckedStatementSyntax>();
-        }
+            => UnderCheckedContext<CheckedStatementSyntax>();
 
         private SyntaxKind UnderCheckedContext<T>() where T : SyntaxNode
         {

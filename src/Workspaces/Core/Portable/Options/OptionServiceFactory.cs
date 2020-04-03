@@ -23,15 +23,12 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OptionServiceFactory(IGlobalOptionService globalOptionService)
-        {
-            _globalOptionService = globalOptionService;
-        }
+            => _globalOptionService = globalOptionService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new OptionService(_globalOptionService, workspaceServices);
-        }
+            => new OptionService(_globalOptionService, workspaceServices);
 
         /// <summary>
         /// Wraps an underlying <see cref="IGlobalOptionService"/> and exposes its data to workspace
@@ -190,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-                public override object? GetOption(OptionKey optionKey)
+                private protected override object? GetOptionCore(OptionKey optionKey)
                 {
                     // If we already know the document specific value, we're done
                     if (_values.TryGetValue(optionKey, out var value))
@@ -212,9 +209,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-                {
-                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
-                }
+                    => new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 {

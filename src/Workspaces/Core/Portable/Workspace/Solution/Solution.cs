@@ -212,9 +212,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
         public Document? GetDocument(SyntaxTree? syntaxTree)
-        {
-            return this.GetDocument(syntaxTree, projectId: null);
-        }
+            => this.GetDocument(syntaxTree, projectId: null);
 
         internal Document? GetDocument(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
@@ -254,9 +252,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance that includes a project with the specified language and names.
         /// </summary>
         public Solution AddProject(ProjectId projectId, string name, string assemblyName, string language)
-        {
-            return this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
-        }
+            => this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
 
         /// <summary>
         /// Create a new solution instance that includes a project with the specified project information.
@@ -546,17 +542,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
                 }
-
-                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
-                {
-                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
-                }
-
-                if (_state.IsInvalidSubmissionReference(projectId, projectReference.ProjectId))
-                {
-                    throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
-                }
             }
+
+            CheckCircularProjectReferences(projectId, collection);
+            CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: false);
 
             var newState = _state.AddProjectReferences(projectId, collection);
             if (newState == _state)
@@ -606,7 +595,13 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectReferences(projectId, PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences)));
+            // avoid enumerating multiple times:
+            var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences));
+
+            CheckCircularProjectReferences(projectId, collection);
+            CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: true);
+
+            var newState = _state.WithProjectReferences(projectId, collection);
             if (newState == _state)
             {
                 return this;
@@ -741,8 +736,12 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            // avoid enumerating multiple times:
-            var collection = analyzerReferences?.ToCollection();
+            if (analyzerReferences is null)
+            {
+                throw new ArgumentNullException(nameof(analyzerReferences));
+            }
+
+            var collection = analyzerReferences.ToImmutableArray();
 
             PublicContract.RequireUniqueNonNullItems(collection, nameof(analyzerReferences));
 
@@ -814,18 +813,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static SourceCodeKind GetSourceCodeKind(ProjectState project)
-        {
-            return project.ParseOptions != null ? project.ParseOptions.Kind : SourceCodeKind.Regular;
-        }
+            => project.ParseOptions != null ? project.ParseOptions.Kind : SourceCodeKind.Regular;
 
         /// <summary>
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// document instance defined by its name and text.
         /// </summary>
         public Solution AddDocument(DocumentId documentId, string name, string text, IEnumerable<string>? folders = null, string? filePath = null)
-        {
-            return this.AddDocument(documentId, name, SourceText.From(text), folders, filePath);
-        }
+            => this.AddDocument(documentId, name, SourceText.From(text), folders, filePath);
 
         /// <summary>
         /// Creates a new solution instance with the corresponding project updated to include a new
@@ -875,9 +870,7 @@ namespace Microsoft.CodeAnalysis
         /// document instance defined by its name and root <see cref="SyntaxNode"/>.
         /// </summary>
         public Solution AddDocument(DocumentId documentId, string name, SyntaxNode syntaxRoot, IEnumerable<string>? folders = null, string? filePath = null, bool isGenerated = false, PreservationMode preservationMode = PreservationMode.PreserveValue)
-        {
-            return this.AddDocument(documentId, name, SourceText.From(string.Empty), folders, filePath, isGenerated).WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
-        }
+            => this.AddDocument(documentId, name, SourceText.From(string.Empty), folders, filePath, isGenerated).WithDocumentSyntaxRoot(documentId, syntaxRoot, preservationMode);
 
         /// <summary>
         /// Creates a new solution instance with the project updated to include a new document with
@@ -922,9 +915,7 @@ namespace Microsoft.CodeAnalysis
         /// document instanced defined by the document info.
         /// </summary>
         public Solution AddDocument(DocumentInfo documentInfo)
-        {
-            return AddDocuments(ImmutableArray.Create(documentInfo));
-        }
+            => AddDocuments(ImmutableArray.Create(documentInfo));
 
         /// <summary>
         /// Create a new <see cref="Solution"/> instance with the corresponding <see cref="Project"/>s updated to include
@@ -947,9 +938,7 @@ namespace Microsoft.CodeAnalysis
         /// additional document instance defined by its name and text.
         /// </summary>
         public Solution AddAdditionalDocument(DocumentId documentId, string name, string text, IEnumerable<string>? folders = null, string? filePath = null)
-        {
-            return this.AddAdditionalDocument(documentId, name, SourceText.From(text), folders, filePath);
-        }
+            => this.AddAdditionalDocument(documentId, name, SourceText.From(text), folders, filePath);
 
         /// <summary>
         /// Creates a new solution instance with the corresponding project updated to include a new
@@ -977,9 +966,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Solution AddAdditionalDocument(DocumentInfo documentInfo)
-        {
-            return AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
-        }
+            => AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
 
         public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
@@ -1556,11 +1543,11 @@ namespace Microsoft.CodeAnalysis
             if (string.IsNullOrEmpty(filePath))
             {
                 // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create<DocumentId>(documentId);
+                return ImmutableArray.Create(documentId);
             }
 
-            var documentIds = this.GetDocumentIdsWithFilePath(filePath);
-            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language).ToImmutableArray();
+            var documentIds = GetDocumentIdsWithFilePath(filePath);
+            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language);
         }
 
         internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)
@@ -1762,6 +1749,55 @@ namespace Microsoft.CodeAnalysis
             foreach (var documentId in documentIds)
             {
                 CheckContainsAnalyzerConfigDocument(documentId);
+            }
+        }
+
+        /// <summary>
+        /// Throws if setting the project references of project <paramref name="projectId"/> to specified <paramref name="projectReferences"/>
+        /// would form a cycle in project dependency graph.
+        /// </summary>
+        private void CheckCircularProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
+        {
+            foreach (var projectReference in projectReferences)
+            {
+                if (projectId == projectReference.ProjectId || _state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                {
+                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Throws if setting the project references of project <paramref name="projectId"/> to specified <paramref name="projectReferences"/>
+        /// would form an invalid submission project chain.
+        /// 
+        /// Submission projects can reference at most one other submission project. Regular projects can't reference any.
+        /// </summary>
+        private void CheckSubmissionProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences, bool ignoreExistingReferences)
+        {
+            var projectState = _state.GetRequiredProjectState(projectId);
+
+            bool isSubmission = projectState.IsSubmission;
+            bool hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+
+            foreach (var projectReference in projectReferences)
+            {
+                // Note: need to handle reference to a project that's not included in the solution:
+                var referencedProjectState = _state.GetProjectState(projectReference.ProjectId);
+                if (referencedProjectState != null && referencedProjectState.IsSubmission)
+                {
+                    if (!isSubmission)
+                    {
+                        throw new InvalidOperationException(WorkspacesResources.Only_submission_project_can_reference_submission_projects);
+                    }
+
+                    if (hasSubmissionReference)
+                    {
+                        throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
+                    }
+
+                    hasSubmissionReference = true;
+                }
             }
         }
     }

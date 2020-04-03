@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// create operation status with the given data
         /// </summary>
         public static OperationStatus<T> Create<T>(OperationStatus status, T data)
-        {
-            return new OperationStatus<T>(status, data);
-        }
+            => new OperationStatus<T>(status, data);
     }
 }

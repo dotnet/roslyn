@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new TupleConstructionSignatureHelpProvider();
-        }
+            => new TupleConstructionSignatureHelpProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvocationAfterOpenParen()

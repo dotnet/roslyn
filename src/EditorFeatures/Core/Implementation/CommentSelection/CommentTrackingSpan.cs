@@ -36,8 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         public bool HasPostApplyChanges()
-        {
-            return AmountToAddToTrackingSpanStart != 0 || AmountToAddToTrackingSpanEnd != 0;
-        }
+            => AmountToAddToTrackingSpanStart != 0 || AmountToAddToTrackingSpanEnd != 0;
     }
 }

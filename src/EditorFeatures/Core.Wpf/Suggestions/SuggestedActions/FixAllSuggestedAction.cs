@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         public string GetDiagnosticID()
-        {
-            return _fixedDiagnostic.GetTelemetryDiagnosticID();
-        }
+            => _fixedDiagnostic.GetTelemetryDiagnosticID();
 
         protected override void InnerInvoke(
             IProgressTracker progressTracker, CancellationToken cancellationToken)

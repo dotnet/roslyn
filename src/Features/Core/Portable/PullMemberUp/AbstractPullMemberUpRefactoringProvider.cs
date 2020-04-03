@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         /// Test purpose only
         /// </summary>
         protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService service)
-        {
-            _service = service;
-        }
+            => _service = service;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

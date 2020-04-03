@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
@@ -13,14 +14,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     public class TestSymbolRenamedCodeActionOperationFactoryWorkspaceService : ISymbolRenamedCodeActionOperationFactoryWorkspaceService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestSymbolRenamedCodeActionOperationFactoryWorkspaceService()
         {
         }
 
         public CodeActionOperation CreateSymbolRenamedOperation(ISymbol symbol, string newName, Solution startingSolution, Solution updatedSolution)
-        {
-            return new Operation(symbol, newName, startingSolution, updatedSolution);
-        }
+            => new Operation(symbol, newName, startingSolution, updatedSolution);
 
         public class Operation : CodeActionOperation
         {

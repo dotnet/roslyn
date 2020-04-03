@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 lambdaExpression,
                 lambdaExpression.ArrowToken,
                 lastToken,
+                compressEmptyLines: false,
                 autoCollapse: false,
                 type: BlockTypes.Expression,
                 isCollapsible: true));

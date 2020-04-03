@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameCommandHandler : ICommandHandler<SaveCommandArgs>
     {
         public CommandState GetCommandState(SaveCommandArgs args)
-        {
-            return GetCommandState();
-        }
+            => GetCommandState();
 
         public bool ExecuteCommand(SaveCommandArgs args, CommandExecutionContext context)
         {

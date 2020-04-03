@@ -179,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             private TRoot RecoverRoot(Stream stream, CancellationToken cancellationToken)
-            {
-                return _containingTree.CloneNodeAsRoot((TRoot)_service.DeserializeNodeFrom(stream, cancellationToken));
-            }
+                => _containingTree.CloneNodeAsRoot((TRoot)_service.DeserializeNodeFrom(stream, cancellationToken));
         }
     }
 

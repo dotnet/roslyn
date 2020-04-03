@@ -36,9 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         protected override EnvDTE.CodeElements GetCollection()
-        {
-            return GetCollection<CodeAttributeArgument>(this.Parent);
-        }
+            => GetCollection<CodeAttributeArgument>(this.Parent);
 
         internal override SyntaxNode LookupNode()
         {
@@ -108,8 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         public new void Delete()
-        {
-            base.Delete();
-        }
+            => base.Delete();
     }
 }

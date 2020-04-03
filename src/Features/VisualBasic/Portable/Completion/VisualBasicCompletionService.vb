@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

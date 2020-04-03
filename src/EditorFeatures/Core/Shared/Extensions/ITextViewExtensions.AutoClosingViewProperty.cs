@@ -80,19 +80,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
 
             public bool TryGetValue(object key, out TProperty value)
-            {
-                return _map.TryGetValue(key, out value);
-            }
+                => _map.TryGetValue(key, out value);
 
             public void Add(object key, TProperty value)
-            {
-                _map[key] = value;
-            }
+                => _map[key] = value;
 
             public void Remove(object key)
-            {
-                _map.Remove(key);
-            }
+                => _map.Remove(key);
         }
     }
 }

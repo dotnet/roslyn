@@ -37,9 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
-        {
-            return null;
-        }
+            => null;
 
         // return 1 space for every token pairs as a default operation
         public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
