@@ -4284,5 +4284,158 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case long l when l != 0:").WithArguments("case long l when l != 0:").WithLocation(14, 13)
                 );
         }
+
+        [Theory]
+        [InlineData("int", "int")]
+        [InlineData("uint", "uint")]
+        [InlineData("long", "long")]
+        [InlineData("ulong", "ulong")]
+        [InlineData("ulong", "uint")]
+        [InlineData("long", "int")]
+        [InlineData("nint", "int")]
+        [InlineData("nuint", "uint")]
+        public void SwitchingAtTheBorder(string type, string constantType)
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        M1();
+        M2();
+        M3();
+        M4();
+        Console.WriteLine(""Done"");
+    }
+    static unsafe void M1()
+    {
+        var min = (TYPE)KTYPE.MinValue;
+        var max = (TYPE)KTYPE.MaxValue;
+        bool wrap = sizeof(TYPE) == sizeof(KTYPE);
+        Assert.Equal(1, L(min));
+        Assert.Equal(wrap ? 2 : 3, L(min - 1));
+        Assert.Equal(3, L(min + 1));
+        Assert.Equal(2, L(max));
+        Assert.Equal(wrap ? 1 : 3, L(max + 1));
+        Assert.Equal(3, L(max - 1));
+        static int L(TYPE t)
+        {
+            switch (t)
+            {
+                case (TYPE)KTYPE.MinValue:
+                    return 1;
+                case (TYPE)KTYPE.MaxValue:
+                    return 2;
+                default:
+                    return 3;
+            }
+        }
+    }
+    static unsafe void M2()
+    {
+        var min = (TYPE)KTYPE.MinValue;
+        var max = (TYPE)KTYPE.MaxValue;
+        bool wrap = sizeof(TYPE) == sizeof(KTYPE);
+        Assert.Equal(1, L(min));
+        Assert.Equal(3, L(min - 1));
+        Assert.Equal(3, L(min + 1));
+        Assert.Equal(3, L(max));
+        Assert.Equal(wrap ? 1 : 3, L(max + 1));
+        Assert.Equal(3, L(max - 1));
+        static int L(TYPE t)
+        {
+            switch (t)
+            {
+                case (TYPE)KTYPE.MinValue:
+                    return 1;
+                default:
+                    return 3;
+            }
+        }
+    }
+    static unsafe void M3()
+    {
+        var min = (TYPE)KTYPE.MinValue;
+        var max = (TYPE)KTYPE.MaxValue;
+        bool wrap = sizeof(TYPE) == sizeof(KTYPE);
+        Assert.Equal(3, L(min));
+        Assert.Equal(wrap ? 2 : 3, L(min - 1));
+        Assert.Equal(3, L(min + 1));
+        Assert.Equal(2, L(max));
+        Assert.Equal(3, L(max + 1));
+        Assert.Equal(3, L(max - 1));
+        static int L(TYPE t)
+        {
+            switch (t)
+            {
+                case (TYPE)KTYPE.MaxValue:
+                    return 2;
+                default:
+                    return 3;
+            }
+        }
+    }
+    static unsafe void M4()
+    {
+        var min = (TYPE)KTYPE.MinValue;
+        var max = (TYPE)KTYPE.MaxValue;
+        bool wrap = sizeof(TYPE) == sizeof(KTYPE);
+        Assert.Equal(1, L(min));
+        Assert.Equal(wrap ? 4 : 5, L(min - 1));
+        Assert.Equal(2, L(min + 1));
+        Assert.Equal(4, L(max));
+        Assert.Equal(wrap ? 1 : 5, L(max + 1));
+        Assert.Equal(3, L(max - 1));
+        static int L(TYPE t)
+        {
+            switch (t)
+            {
+                case (TYPE)KTYPE.MinValue:
+                    return 1;
+                case (TYPE)KTYPE.MinValue + 1:
+                case (TYPE)KTYPE.MinValue + 2:
+                case (TYPE)KTYPE.MinValue + 3:
+                case (TYPE)KTYPE.MinValue + 4:
+                case (TYPE)KTYPE.MinValue + 5:
+                case (TYPE)KTYPE.MinValue + 6:
+                case (TYPE)KTYPE.MinValue + 7:
+                case (TYPE)KTYPE.MinValue + 8:
+                case (TYPE)KTYPE.MinValue + 9:
+                    return 2;
+                case (TYPE)KTYPE.MaxValue - 9:
+                case (TYPE)KTYPE.MaxValue - 8:
+                case (TYPE)KTYPE.MaxValue - 7:
+                case (TYPE)KTYPE.MaxValue - 6:
+                case (TYPE)KTYPE.MaxValue - 5:
+                case (TYPE)KTYPE.MaxValue - 4:
+                case (TYPE)KTYPE.MaxValue - 3:
+                case (TYPE)KTYPE.MaxValue - 2:
+                case (TYPE)KTYPE.MaxValue - 1:
+                    return 3;
+                case (TYPE)KTYPE.MaxValue:
+                    return 4;
+                default:
+                    return 5;
+            }
+        }
+    }
+}
+static class Assert
+{
+    public static void Equal<T>(T expected, T value)
+    {
+        if (!expected.Equals(value)) throw new System.InvalidOperationException($""{expected} != {value}"");
+    }
+    public static void True(bool v) => Equals(true, v);
+    public static void False(bool v) => Equals(false, v);
+}
+";
+            source = source.Replace("KTYPE", constantType).Replace("TYPE", type);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "Done");
+        }
     }
 }
