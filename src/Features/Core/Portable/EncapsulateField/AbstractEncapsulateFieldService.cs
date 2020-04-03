@@ -158,8 +158,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // Annotate the field declarations so we can find it after rename.
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
             var declarationAnnotation = new SyntaxAnnotation();
-            document = document.WithSyntaxRoot(fieldDeclaration.SyntaxTree.GetRoot(cancellationToken).ReplaceNode<SyntaxNode>(fieldDeclaration.GetSyntax(cancellationToken),
-                fieldDeclaration.GetSyntax(cancellationToken).WithAdditionalAnnotations<SyntaxNode>(declarationAnnotation)));
+            document = document.WithSyntaxRoot(fieldDeclaration.SyntaxTree.GetRoot(cancellationToken).ReplaceNode(fieldDeclaration.GetSyntax(cancellationToken),
+                fieldDeclaration.GetSyntax(cancellationToken).WithAdditionalAnnotations(declarationAnnotation)));
 
             var solution = document.Project.Solution;
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     continue;
                 }
 
-                var updatedRoot = linkedRoot.ReplaceNode<SyntaxNode>(linkedFieldNode, linkedFieldNode.WithAdditionalAnnotations<SyntaxNode>(declarationAnnotation));
+                var updatedRoot = linkedRoot.ReplaceNode(linkedFieldNode, linkedFieldNode.WithAdditionalAnnotations(declarationAnnotation));
                 solution = solution.WithDocumentSyntaxRoot(linkedDocumentId, updatedRoot);
             }
 
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var body = factory.ExpressionStatement(
                 factory.AssignmentStatement(
-                    assigned.WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation),
+                    assigned.WithAdditionalAnnotations(Simplifier.Annotation),
                 factory.IdentifierName("value")));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 : factory.IdentifierName(originalFieldName);
 
             var body = factory.ReturnStatement(
-                value.WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation));
+                value.WithAdditionalAnnotations(Simplifier.Annotation));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(
                 ImmutableArray<AttributeData>.Empty,
