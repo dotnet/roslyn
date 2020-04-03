@@ -607,11 +607,6 @@
         <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">Usa l'assegnazione composta</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Usa il corpo dell'espressione per le espressioni lambda</target>

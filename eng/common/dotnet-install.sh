@@ -11,8 +11,6 @@ while [[ -h "$source" ]]; do
 done
 scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 
-. "$scriptroot/tools.sh"
-
 version='Latest'
 architecture=''
 runtime='dotnet'
@@ -42,47 +40,18 @@ while [[ $# > 0 ]]; do
       runtimeSourceFeedKey="$1"
       ;;
     *)
-      Write-PipelineTelemetryError -Category 'Build' -Message "Invalid argument: $1"
+      echo "Invalid argument: $1"
       exit 1
       ;;
   esac
   shift
 done
 
-# Use uname to determine what the CPU is.
-cpuname=$(uname -p)
-# Some Linux platforms report unknown for platform, but the arch for machine.
-if [[ "$cpuname" == "unknown" ]]; then
-  cpuname=$(uname -m)
-fi
-
-case $cpuname in
-  aarch64)
-    buildarch=arm64
-    ;;
-  amd64|x86_64)
-    buildarch=x64
-    ;;
-  armv*l)
-    buildarch=arm
-    ;;
-  i686)
-    buildarch=x86
-    ;;
-  *)
-    echo "Unknown CPU $cpuname detected, treating it as x64"
-    buildarch=x64
-    ;;
-esac
-
+. "$scriptroot/tools.sh"
 dotnetRoot="$repo_root/.dotnet"
-if [[ $architecture != "" ]] && [[ $architecture != $buildarch ]]; then
-  dotnetRoot="$dotnetRoot/$architecture"
-fi
-
 InstallDotNet $dotnetRoot $version "$architecture" $runtime true $runtimeSourceFeed $runtimeSourceFeedKey || {
   local exit_code=$?
-  Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "dotnet-install.sh failed (exit code '$exit_code')." >&2
+  echo "dotnet-install.sh failed (exit code '$exit_code')." >&2
   ExitWithExitCode $exit_code
 }
 

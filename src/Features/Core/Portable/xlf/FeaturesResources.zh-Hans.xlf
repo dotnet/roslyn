@@ -607,11 +607,6 @@
         <target state="translated">对 lambda 表达式使用块主体</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">使用复合分配</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">对 lambda 表达式使用表达式正文</target>

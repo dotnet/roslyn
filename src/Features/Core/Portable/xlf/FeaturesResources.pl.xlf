@@ -607,11 +607,6 @@
         <target state="translated">Użyj treści bloku dla wyrażeń lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">Użyj przypisania złożonego</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Użyj treści wyrażenia dla wyrażeń lambda</target>

@@ -607,11 +607,6 @@
         <target state="translated">Usar cuerpo del bloque para las expresiones lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">Usar la asignación compuesta</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
         <target state="translated">Usar órgano de expresión para expresiones lambda</target>
