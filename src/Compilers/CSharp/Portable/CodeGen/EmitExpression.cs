@@ -944,6 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                     case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                     case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                        // PROTOTYPE(func-ptr): Support arrays of function pointers
                         _builder.EmitOpCode(ILOpCode.Ldelem_i);
                         break;
 

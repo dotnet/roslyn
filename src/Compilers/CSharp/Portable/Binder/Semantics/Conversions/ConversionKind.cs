@@ -56,5 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PinnedObjectToPointer,
 
         DefaultLiteral, // a conversion from a `default` literal to any type
+
+        ImplicitPointer,
     }
 }

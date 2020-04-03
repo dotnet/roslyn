@@ -928,7 +928,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                return targetKind == TypeKind.FunctionPointer && ConversionsBase.HasImplicitPointerConversion(source, destination);
+                return targetKind == TypeKind.FunctionPointer
+                       && (ConversionsBase.HasImplicitPointerToVoidConversion(source, destination)
+                           || conversions.HasImplicitPointerConversion(source, destination, ref useSiteDiagnostics));
             }
 
             static ErrorCode getMethodMismatchErrorCode(TypeKind type)

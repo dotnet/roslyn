@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case Deconstruction:
                 case StackAllocToPointerType:
                 case StackAllocToSpanType:
+                case ImplicitPointer:
                     return true;
 
                 case ExplicitNumeric:
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case PointerToInteger:
                 case IntegerToPointer:
                 case NullToPointer:
+                case ImplicitPointer:
                     return true;
                 default:
                     return false;

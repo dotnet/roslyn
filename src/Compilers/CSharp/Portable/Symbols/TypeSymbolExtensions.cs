@@ -340,6 +340,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TypeKind == TypeKind.FunctionPointer;
         }
 
+        public static bool IsPointerOrFunctionPointer(this TypeSymbol type)
+            => type.TypeKind switch
+            {
+                TypeKind.Pointer => true,
+                TypeKind.FunctionPointer => true,
+                _ => false
+            };
+
         // If the type is a delegate type, it returns it. If the type is an
         // expression tree type associated with a delegate type, it returns
         // the delegate type. Otherwise, null.

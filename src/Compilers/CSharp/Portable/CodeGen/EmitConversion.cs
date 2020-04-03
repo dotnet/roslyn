@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.PointerToVoid:
                 case ConversionKind.PointerToPointer:
+                case ConversionKind.ImplicitPointer:
                     return; //no-op since they all have the same runtime representation
                 case ConversionKind.PointerToInteger:
                 case ConversionKind.IntegerToPointer:
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                         case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                         case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                        case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                             Debug.Assert(toPredefTypeKind.IsNumeric());
                             break;
                         default:
@@ -128,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             Debug.Assert(
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.IntPtr ||
                                 toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.UIntPtr ||
-                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer);
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.Pointer ||
+                                toPredefTypeKind == Microsoft.Cci.PrimitiveTypeCode.FunctionPointer);
                             break;
                     }
 #endif
