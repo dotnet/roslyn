@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// resolves them where possible.
         /// </summary>
         /// <param name="renameLocationSet">The locations to perform the renaming at.</param>
-        /// <param name="originalText">The original name of the identifier.</param>
         /// <param name="replacementText">The new name of the identifier</param>
         /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
         /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <returns>A conflict resolution containing the new solution.</returns>
         public static Task<ConflictResolution> ResolveConflictsAsync(
             RenameLocations renameLocationSet,
-            string originalText,
             string replacementText,
             ImmutableHashSet<ISymbol> nonConflictSymbols,
             CancellationToken cancellationToken)
@@ -68,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             var session = new Session(
                 renameLocationSet, renameSymbolDeclarationLocation,
-                originalText, replacementText,
-                nonConflictSymbols, cancellationToken);
+                replacementText, nonConflictSymbols, cancellationToken);
             return session.ResolveConflictsAsync();
         }
 

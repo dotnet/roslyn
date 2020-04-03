@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.Rename
             cancellationToken.ThrowIfCancellationRequested();
 
             var conflictResolution = await ConflictResolver.ResolveConflictsAsync(
-                locations, locations.SymbolAndProjectId.Symbol.Name, newName,
-                nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+                locations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
 
             return conflictResolution.NewSolution;
         }
