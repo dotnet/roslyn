@@ -5,17 +5,13 @@
 #nullable enable
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Log;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
@@ -68,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private const string DecompilerEulaOptionKey = "ILSpy-234190A6EE66";
         private const byte DecompilerEulaOptionVersion = 1;
 
-        private VisualStudioWorkspaceImpl? _workspace;
+        private VisualStudioWorkspace? _workspace;
         private IComponentModel? _componentModel;
         private RuleSetEventHandler? _ruleSetEventHandler;
         private ColorSchemeApplier? _colorSchemeApplier;
@@ -131,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             _componentModel.GetExtensions<IOptionPersister>();
 
-            _workspace = (VisualStudioWorkspaceImpl)_componentModel.GetService<VisualStudioWorkspace>();
+            _workspace = _componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
 
             RoslynTelemetrySetup.Initialize(this, telemetrySession);
