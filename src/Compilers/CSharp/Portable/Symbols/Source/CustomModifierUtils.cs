@@ -154,5 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeInAttribute());
         }
+
+        internal static bool HasIsInitOnlyModifier(this ImmutableArray<CustomModifier> modifiers)
+        {
+            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsInitOnlyType());
+        }
     }
 }

@@ -1775,6 +1775,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadRecordDeclaration = 8800,
         ERR_DuplicateRecordConstructor = 8801,
+        ERR_AssignmentInitOnly = 8802,
+        ERR_CantChangeInitOnlyOnOverride = 8803,
+        ERR_CloseUnimplementedInterfaceMemberWrongInitOnly = 8804,
+        ERR_ExplicitPropertyMismatchInitOnly = 8805,
+        ERR_BadInitAccessor = 8806,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

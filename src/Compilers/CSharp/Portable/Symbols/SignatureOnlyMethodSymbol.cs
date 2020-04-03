@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private readonly RefKind _refKind;
+        private readonly bool _isInitOnly;
         private readonly TypeWithAnnotations _returnType;
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
             RefKind refKind,
+            bool isInitOnly,
             TypeWithAnnotations returnType,
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations)
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _callingConvention = callingConvention;
             _typeParameters = typeParameters;
             _refKind = refKind;
+            _isInitOnly = isInitOnly;
             _returnType = returnType;
             _refCustomModifiers = refCustomModifiers;
             _parameters = parameters;
@@ -154,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsDeclaredReadOnly => false;
+
+        internal override bool IsInitOnly => _isInitOnly;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) { throw ExceptionUtilities.Unreachable; }
 

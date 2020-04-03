@@ -61,6 +61,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return False
         End Function
 
+        Friend Overrides Function IsAcceptedIsInitOnlyModifierType(type As TypeSymbol) As Boolean
+            ' VB doesn't deal with init-only members.
+            Return False
+        End Function
+
         Friend Overrides Function GetSZArrayTypeSymbol(moduleSymbol As PEModuleSymbol, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
             If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
                 Return elementType

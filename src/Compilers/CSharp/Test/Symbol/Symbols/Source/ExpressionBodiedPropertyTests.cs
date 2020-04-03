@@ -174,7 +174,7 @@ interface I
     // (4,20): error CS1514: { expected
     //     int this[int i];
     Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(4, 20),
-    // (4,20): error CS1014: A get or set accessor expected
+    // (4,20): error CS1014: A get, set or init accessor expected
     //     int this[int i];
     Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(4, 20),
     // (5,2): error CS1513: } expected

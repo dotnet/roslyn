@@ -3083,6 +3083,7 @@ parse_member_name:;
             {
                 case SyntaxKind.GetKeyword:
                 case SyntaxKind.SetKeyword:
+                case SyntaxKind.InitKeyword:
                 case SyntaxKind.AddKeyword:
                 case SyntaxKind.RemoveKeyword:
                     return true;
@@ -3327,7 +3328,7 @@ parse_member_name:;
                 else
                 {
                     // We didn't get something we recognized.  If we got an accessor type we 
-                    // recognized (i.e. get/set/add/remove) then try to parse out a block.
+                    // recognized (i.e. get/set/init/add/remove) then try to parse out a block.
                     // Only do this if it doesn't seem like we're at the end of the accessor/property.
                     // for example, if we have "get set", don't actually try to parse out the 
                     // block.  Otherwise we'll consume the 'set'.  In that case, just end the
@@ -3375,6 +3376,7 @@ parse_member_name:;
             {
                 case SyntaxKind.GetKeyword: return SyntaxKind.GetAccessorDeclaration;
                 case SyntaxKind.SetKeyword: return SyntaxKind.SetAccessorDeclaration;
+                case SyntaxKind.InitKeyword: return SyntaxKind.InitAccessorDeclaration;
                 case SyntaxKind.AddKeyword: return SyntaxKind.AddAccessorDeclaration;
                 case SyntaxKind.RemoveKeyword: return SyntaxKind.RemoveAccessorDeclaration;
             }
@@ -3390,6 +3392,7 @@ parse_member_name:;
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return true;
             }
 
@@ -4098,6 +4101,7 @@ tryAgain:
                     case SyntaxKind.RemoveAccessorDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
                         return ((CSharp.Syntax.AccessorDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:

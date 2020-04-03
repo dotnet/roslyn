@@ -208,6 +208,15 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string IsInitOnlyTypeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsInitOnly
+    {
+    }
+}
+";
+
         protected const string IAsyncDisposableDefinition = @"
 namespace System
 {

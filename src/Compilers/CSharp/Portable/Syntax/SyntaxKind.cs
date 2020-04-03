@@ -200,6 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WhenKeyword = 8437,
         DataKeyword = 8438,
         WithKeyword = 8439,
+        InitKeyword = 8440,
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
@@ -602,5 +603,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableDirectiveTrivia = 9055,
 
         WithExpression = 9060,
+        InitAccessorDeclaration = 9061,
     }
 }

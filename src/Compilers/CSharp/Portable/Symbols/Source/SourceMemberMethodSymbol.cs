@@ -428,7 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.flags.EnsureMetadataVirtual();
         }
 
-        // TODO (tomat): sealed?
         public override Accessibility DeclaredAccessibility
         {
             get
@@ -524,6 +523,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (this.DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
             }
         }
+
+        internal override bool IsInitOnly => false;
 
         internal sealed override Cci.CallingConvention CallingConvention
         {
@@ -802,7 +803,7 @@ done:
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 ShouldEmitNullableContextValue(out _))
             {
-                compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
+                compilation.EnsureNullableContextAttributeExists(diagnostics, location);
             }
         }
 

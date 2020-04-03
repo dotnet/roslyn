@@ -2127,10 +2127,10 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,13): error CS1014: A get or set accessor expected
+                // (4,13): error CS1014: A get, set or init accessor expected
                 //     int P1 {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 13),
-                // (4,18): error CS1014: A get or set accessor expected
+                // (4,18): error CS1014: A get, set or init accessor expected
                 //     int P1 {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 18),
                 // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
@@ -2192,10 +2192,10 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyEmitDiagnostics(
-                // (4,13): error CS1014: A get or set accessor expected
+                // (4,13): error CS1014: A get, set or init accessor expected
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 13),
-                // (4,18): error CS1014: A get or set accessor expected
+                // (4,18): error CS1014: A get, set or init accessor expected
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 18),
                 // (4,9): error CS8050: Only auto-implemented properties can have initializers.
@@ -3490,10 +3490,10 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (4,22): error CS1014: A get or set accessor expected
+                // (4,22): error CS1014: A get, set or init accessor expected
                 //     int this[int i] {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 22),
-                // (4,27): error CS1014: A get or set accessor expected
+                // (4,27): error CS1014: A get, set or init accessor expected
                 //     int this[int i] {add; remove;} => 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 27),
                 // (4,9): error CS0548: 'I1.this[int]': property or indexer must have at least one accessor
@@ -3558,10 +3558,10 @@ public interface I1
                 // (4,36): error CS1519: Invalid token '=' in class, struct, or interface member declaration
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(4, 36),
-                // (4,22): error CS1014: A get or set accessor expected
+                // (4,22): error CS1014: A get, set or init accessor expected
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 22),
-                // (4,27): error CS1014: A get or set accessor expected
+                // (4,27): error CS1014: A get, set or init accessor expected
                 //     int this[int i] {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 27),
                 // (4,9): error CS0548: 'I1.this[int]': property or indexer must have at least one accessor

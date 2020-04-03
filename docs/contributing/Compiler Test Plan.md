@@ -32,7 +32,7 @@ This document provides guidance for thinking about language interactions and tes
 - Performance and stress testing
  
 # Type and members
-- Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
+- Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref, init
     - types
     - methods
     - fields

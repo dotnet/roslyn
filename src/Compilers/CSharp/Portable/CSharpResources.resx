@@ -630,6 +630,9 @@
   <data name="ERR_BadMemberFlag" xml:space="preserve">
     <value>The modifier '{0}' is not valid for this item</value>
   </data>
+  <data name="ERR_BadInitAccessor" xml:space="preserve">
+    <value>The 'init' accessor is not valid on static members</value>
+  </data>
   <data name="ERR_BadMemberProtection" xml:space="preserve">
     <value>More than one protection modifier</value>
   </data>
@@ -1591,6 +1594,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_ExplicitPropertyAddingAccessor" xml:space="preserve">
     <value>'{0}' adds an accessor not found in interface member '{1}'</value>
+  </data>
+  <data name="ERR_ExplicitPropertyMismatchInitOnly" xml:space="preserve">
+    <value>Accessors '{0}' and '{1}' don't match by init-only</value>
   </data>
   <data name="ERR_ExplicitPropertyMissingAccessor" xml:space="preserve">
     <value>Explicit interface implementation '{0}' is missing accessor '{1}'</value>
@@ -2891,7 +2897,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_AssgReadonly" xml:space="preserve">
-    <value>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</value>
+    <value>A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))</value>
   </data>
   <data name="ERR_AssgReadonly2" xml:space="preserve">
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
@@ -4918,6 +4924,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CantChangeRefReturnOnOverride" xml:space="preserve">
     <value>'{0}' must match by reference return of overridden member '{1}'</value>
   </data>
+  <data name="ERR_CantChangeInitOnlyOnOverride" xml:space="preserve">
+    <value>'{0}' must match by init-only of overridden member '{1}'</value>
+  </data>
   <data name="ERR_MustNotHaveRefReturn" xml:space="preserve">
     <value>By-reference returns may only be used in methods that return by reference</value>
   </data>
@@ -4929,6 +4938,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CloseUnimplementedInterfaceMemberWrongRefReturn" xml:space="preserve">
     <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not have matching return by reference.</value>
+  </data>
+  <data name="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because it does not match by init-only.</value>
   </data>
   <data name="ERR_BadIteratorReturnRef" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{0}' returns by reference</value>
@@ -6066,5 +6078,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
+  </data>
+  <data name="ERR_AssignmentInitOnly" xml:space="preserve">
+    <value>Init-only member '{0}' can only be assigned from a constructor, object initialization or 'with' expression of that type.</value>
   </data>
 </root>

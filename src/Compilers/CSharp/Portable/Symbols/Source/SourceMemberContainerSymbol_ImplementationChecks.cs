@@ -1018,13 +1018,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (overridingProperty.SetMethod is object)
                         {
+                            var ownOrInheritedOverriddenSetMethod = overriddenProperty.GetOwnOrInheritedSetMethod();
                             checkValidNullableMethodOverride(
                                 overridingProperty.SetMethod.Locations[0],
-                                overriddenProperty.GetOwnOrInheritedSetMethod(),
+                                ownOrInheritedOverriddenSetMethod,
                                 overridingProperty.SetMethod,
                                 diagnostics,
                                 checkReturnType: false,
                                 checkParameters: true);
+
+                            if (ownOrInheritedOverriddenSetMethod is object &&
+                                overridingProperty.SetMethod.IsInitOnly != ownOrInheritedOverriddenSetMethod.IsInitOnly)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_CantChangeInitOnlyOnOverride, overridingMemberLocation, overridingProperty, overriddenProperty);
+                            }
                         }
                     }
 

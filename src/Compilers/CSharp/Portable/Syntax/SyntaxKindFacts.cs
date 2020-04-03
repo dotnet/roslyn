@@ -724,6 +724,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.GetAccessorDeclaration;
                 case SyntaxKind.SetKeyword:
                     return SyntaxKind.SetAccessorDeclaration;
+                case SyntaxKind.InitKeyword:
+                    return SyntaxKind.InitAccessorDeclaration;
                 case SyntaxKind.AddKeyword:
                     return SyntaxKind.AddAccessorDeclaration;
                 case SyntaxKind.RemoveKeyword:
@@ -739,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                     return true;
@@ -753,6 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetKeyword:
                 case SyntaxKind.SetKeyword:
+                case SyntaxKind.InitKeyword:
                 case SyntaxKind.AddKeyword:
                 case SyntaxKind.RemoveKeyword:
                     return true;
@@ -1065,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.WhenKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.InitKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1112,6 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.VarKeyword:
                 case SyntaxKind.DataKeyword:
                 case SyntaxKind.WithKeyword:
+                case SyntaxKind.InitKeyword:
                     return true;
                 default:
                     return false;
@@ -1219,6 +1224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.DataKeyword;
                 case "with":
                     return SyntaxKind.WithKeyword;
+                case "init":
+                    return SyntaxKind.InitKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1642,6 +1649,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "data";
                 case SyntaxKind.WithKeyword:
                     return "with";
+                case SyntaxKind.InitKeyword:
+                    return "init";
                 default:
                     return string.Empty;
             }

@@ -3774,6 +3774,7 @@
   <Node Name="AccessorDeclarationSyntax" Base="CSharpSyntaxNode">
     <Kind Name="GetAccessorDeclaration"/>
     <Kind Name="SetAccessorDeclaration"/>
+    <Kind Name="InitAccessorDeclaration"/>
     <Kind Name="AddAccessorDeclaration"/>
     <Kind Name="RemoveAccessorDeclaration"/>
     <Kind Name="UnknownAccessorDeclaration"/>
@@ -3790,6 +3791,7 @@
     <Field Name="Keyword" Type="SyntaxToken">
       <Kind Name="GetKeyword"/>
       <Kind Name="SetKeyword"/>
+      <Kind Name="InitKeyword"/>
       <Kind Name="AddKeyword"/>
       <Kind Name="RemoveKeyword"/>
       <Kind Name="IdentifierToken"/>

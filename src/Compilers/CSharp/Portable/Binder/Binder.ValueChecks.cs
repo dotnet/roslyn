@@ -709,7 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             MethodSymbol containingMethod = (MethodSymbol)containing;
                             MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
-                            canModifyReadonly = containingMethod.MethodKind == desiredMethodKind;
+                            canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
+                                IsAllowedInitOnlyAssignment(fieldSymbol, fieldAccess.ReceiverOpt, restrictToThis: true);
                         }
                         else if (containing.Kind == SymbolKind.Field)
                         {
@@ -745,6 +746,66 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
+        }
+
+        bool IsAllowedInitOnlyAssignment(Symbol accessedMember, BoundExpression receiver, bool restrictToThis)
+        {
+            // ok: new C() { InitOnlyProperty = ... }
+            if (receiver is BoundObjectOrCollectionValuePlaceholder)
+            {
+                return true;
+            }
+
+            // bad: other.InitOnlyProperty = ...
+            if (!(receiver is BoundThisReference) && !(receiver is BoundBaseReference) && !(receiver is BoundObjectOrCollectionValuePlaceholder))
+            {
+                return false;
+            }
+
+            var containingMember = ContainingMemberOrLambda;
+            if (!(containingMember is MethodSymbol method))
+            {
+                return false;
+            }
+
+            if (!isDerivedType(method.ContainingType, accessedMember.ContainingType.OriginalDefinition, restrictToThis))
+            {
+                return false;
+            }
+
+            if (method.IsConstructor() || isInitOnlySetter(method))
+            {
+                // ok: setting on `this` or `base` from a constructor or init-only setter
+                return true;
+            }
+
+            return false;
+
+            static bool isDerivedType(TypeSymbol type, TypeSymbol container, bool restrictToThis)
+            {
+                Debug.Assert(container.IsDefinition);
+                while (type is object)
+                {
+                    if (type.OriginalDefinition.Equals(container, TypeCompareKind.ConsiderEverything))
+                    {
+                        return true;
+                    }
+                    else if (restrictToThis)
+                    {
+                        return false;
+                    }
+
+                    type = type.BaseTypeNoUseSiteDiagnostics;
+                }
+
+                return false;
+            }
+
+            static bool isInitOnlySetter(MethodSymbol method)
+            {
+                return method.MethodKind == MethodKind.PropertySet &&
+                    method.IsInitOnly;
+            }
         }
 
         private bool CheckSimpleAssignmentValueKind(SyntaxNode node, BoundAssignmentOperator assignment, BindValueKind valueKind, DiagnosticBag diagnostics)
@@ -931,9 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Addendum: Assignment is also allowed for get-only autoprops in their constructor
 
-            BoundExpression receiver;
-            SyntaxNode propertySyntax;
-            var propertySymbol = GetPropertySymbol(expr, out receiver, out propertySyntax);
+            var propertySymbol = GetPropertySymbol(expr, out BoundExpression receiver, out SyntaxNode propertySyntax);
 
             Debug.Assert((object)propertySymbol != null);
             Debug.Assert(propertySyntax != null);
@@ -970,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
 
-                if ((object)setMethod == null)
+                if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
                     if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing))
@@ -981,6 +1040,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    if (setMethod.IsInitOnly &&
+                        !IsAllowedInitOnlyAssignment(setMethod, receiver, restrictToThis: false))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
+                        return false;
+                    }
+
                     var accessThroughType = this.GetAccessThroughType(receiver);
                     bool failedThroughTypeCheck;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;

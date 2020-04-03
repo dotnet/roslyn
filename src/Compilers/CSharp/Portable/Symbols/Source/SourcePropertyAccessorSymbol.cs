@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -23,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly bool _isAutoPropertyAccessor;
         private readonly bool _isExpressionBodied;
+        private readonly bool _isInitOnly;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
             NamedTypeSymbol containingType,
@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
+            Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration ||
+                syntax.Kind() == SyntaxKind.SetAccessorDeclaration ||
+                syntax.Kind() == SyntaxKind.InitAccessorDeclaration);
 
             bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
             string name;
@@ -219,9 +221,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hasBody = syntax.Body != null;
             var hasExpressionBody = syntax.ExpressionBody != null;
             _isExpressionBodied = !hasBody && hasExpressionBody;
+            _isInitOnly = syntax.Keyword.IsKind(SyntaxKind.InitKeyword);
+            if (_isInitOnly)
+            {
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRecords, diagnostics, syntax.Keyword.GetLocation());
+            }
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, methodKind, location, diagnostics, out modifierErrors);
 
             // Include some modifiers from the containing property, but not the accessibility modifiers.
             declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
@@ -414,7 +421,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var binder = GetBinder();
-                return TypeWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+                var type = TypeWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+
+                if (IsInitOnly)
+                {
+                    var isInitOnlyType = Binder.GetWellKnownType(this.DeclaringCompilation,
+                        WellKnownType.System_Runtime_CompilerServices_IsInitOnly, diagnostics, this.locations[0]);
+
+                    var modifiers = ImmutableArray.Create<CustomModifier>(
+                        CSharpCustomModifier.CreateRequired(isInitOnlyType));
+                    type = type.WithModifiers(modifiers);
+                }
+
+                return type;
             }
         }
 
@@ -503,8 +522,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsInitOnly => _isInitOnly;
+
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
-            bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+            bool hasBody, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.
@@ -571,6 +592,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Auto-implemented accessor '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_AutoSetterCantBeReadOnly, location, this);
             }
+            else if (IsInitOnly && IsStatic)
+            {
+                // The 'init' accessor is not valid on static members
+                diagnostics.Add(ErrorCode.ERR_BadInitAccessor, location);
+            }
         }
 
         /// <summary>
@@ -614,6 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return OneOrMany.Create(((AccessorDeclarationSyntax)syntax).AttributeLists);
             }
 

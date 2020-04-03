@@ -390,8 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default,
             bool isOptionalUse = false)
         {
-            DiagnosticInfo diagnosticInfo;
-            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, out diagnosticInfo, isOptional: true);
+            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, diagnosticInfo: out _, isOptional: true);
 
             if ((object)ctorSymbol == null)
             {
@@ -415,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = new ArrayBuilder<KeyValuePair<string, TypedConstant>>(namedArguments.Length);
                 foreach (var arg in namedArguments)
                 {
-                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, out diagnosticInfo, isOptional: true);
+                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, diagnosticInfo: out _, isOptional: true);
                     if (wellKnownMember == null || wellKnownMember is ErrorTypeSymbol)
                     {
                         // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
@@ -517,9 +516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureNullableContextAttributeExists(DiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureNullableContextAttributeExists(DiagnosticBag? diagnostics, Location location)
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute, diagnostics, location, modifyCompilation);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute, diagnostics, location, modifyCompilation: true);
         }
 
         internal void EnsureNativeIntegerAttributeExists(DiagnosticBag? diagnostics, Location location, bool modifyCompilation)

@@ -5020,6 +5020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.UnknownAccessorDeclaration: break;
@@ -5029,6 +5030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.GetKeyword:
                 case SyntaxKind.SetKeyword:
+                case SyntaxKind.InitKeyword:
                 case SyntaxKind.AddKeyword:
                 case SyntaxKind.RemoveKeyword:
                 case SyntaxKind.IdentifierToken: break;
@@ -5056,6 +5058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SyntaxKind.GetAccessorDeclaration => SyntaxKind.GetKeyword,
                 SyntaxKind.SetAccessorDeclaration => SyntaxKind.SetKeyword,
+                SyntaxKind.InitAccessorDeclaration => SyntaxKind.InitKeyword,
                 SyntaxKind.AddAccessorDeclaration => SyntaxKind.AddKeyword,
                 SyntaxKind.RemoveAccessorDeclaration => SyntaxKind.RemoveKeyword,
                 SyntaxKind.UnknownAccessorDeclaration => SyntaxKind.IdentifierToken,
