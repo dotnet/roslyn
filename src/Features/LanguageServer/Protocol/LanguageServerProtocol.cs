@@ -154,6 +154,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
+        /// Answers a document references request by returning references information associated with the symbol at a given document location.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_references
+        /// </summary>
+        /// <param name="solution">the solution containing the request document.</param>
+        /// <param name="request">the references request.</param>
+        /// <param name="clientCapabilities">the client capabilities for the request.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>references information associated with the symbol at the given document location.</returns>
+        public Task<LSP.VSReferenceItem[]> GetDocumentReferencesAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
         /// Answers a document symbols request by returning a list of symbols in the document.
         /// https://microsoft.github.io/language-server-protocol/specification#textDocument_documentSymbol
         /// </summary>
@@ -182,7 +194,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// https://microsoft.github.io/language-server-protocol/specification#textDocument_hover
         /// </summary>
         /// <param name="solution">the solution containing any documents in the request.</param>
-        /// <param name="request">the hover requesst.</param>
+        /// <param name="request">the hover request.</param>
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the Hover using MarkupContent.</returns>
@@ -226,18 +238,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SumType<LSP.Location, LSP.Location[]>?>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
-        /// Answers a rename request by returning the workspace edit for a given symbol.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_rename
-        /// </summary>
-        /// <param name="solution">the solution containing the request.</param>
-        /// <param name="request">the document position of the symbol to rename.</param>
-        /// <param name="clientCapabilities">the client capabilities for the request.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the workspace edits to rename the given symbol</returns>
-        public Task<WorkspaceEdit> RenameAsync(Solution solution, LSP.RenameParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.RenameParams, WorkspaceEdit>(LSP.Methods.TextDocumentRenameName, solution, request, clientCapabilities, cancellationToken);
-
-        /// <summary>
         /// Answers a goto type definition request by returning the location of a given type definition.
         /// https://microsoft.github.io/language-server-protocol/specification#textDocument_typeDefinition
         /// </summary>
@@ -260,6 +260,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <returns>the server capabilities.</returns>
         public Task<LSP.InitializeResult> InitializeAsync(Solution solution, LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a rename request by returning the workspace edit for a given symbol.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_rename
+        /// </summary>
+        /// <param name="solution">the solution containing the request.</param>
+        /// <param name="request">the document position of the symbol to rename.</param>
+        /// <param name="clientCapabilities">the client capabilities for the request.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the workspace edits to rename the given symbol</returns>
+        public Task<WorkspaceEdit> RenameAsync(Solution solution, LSP.RenameParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.RenameParams, WorkspaceEdit>(LSP.Methods.TextDocumentRenameName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a request to resolve a completion item.

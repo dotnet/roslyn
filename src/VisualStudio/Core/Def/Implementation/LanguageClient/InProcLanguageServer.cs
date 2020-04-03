@@ -126,8 +126,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         [JsonRpcMethod(Methods.TextDocumentRenameName)]
         public Task<WorkspaceEdit> GetTextDocumentRenameAsync(JToken input, CancellationToken cancellationToken)
         {
-            var renameParams = input.ToObject<RenameParams>();
+            var renameParams = input.ToObject<RenameParams>(JsonSerializer);
             return _protocol.RenameAsync(_workspace.CurrentSolution, renameParams, _clientCapabilities, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentReferencesName)]
+        public Task<VSReferenceItem[]> GetTextDocumentReferencesAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var referencesParams = input.ToObject<ReferenceParams>(JsonSerializer);
+            return _protocol.GetDocumentReferencesAsync(_workspace.CurrentSolution, referencesParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName)]

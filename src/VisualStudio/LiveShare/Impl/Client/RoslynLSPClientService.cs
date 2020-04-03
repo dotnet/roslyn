@@ -97,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         // Uses Roslyn client.
                         CodeActionProvider = true,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
-                        ReferencesProvider = true,
                     })));
 
             var lifeTimeService = LspClientLifeTimeService;
