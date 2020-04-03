@@ -184,6 +184,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 Debug.Assert(type.IsDefinition);
 
+                if (type.IsNativeIntegerType)
+                {
+                    var result = RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options);
+                    return result.SpecialType == SpecialType.None ? result : result.AsNativeInteger();
+                }
+
                 // Before we do anything else, check if we need to do special retargeting
                 // for primitive type references encoded with enum values in metadata signatures.
                 if (options == RetargetOptions.RetargetPrimitiveTypesByTypeCode)
@@ -789,8 +795,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 foreach (var ts in sequence)
                 {
-                    // In incorrect code, a type parameter constraint list can contain primitive types.
-                    Debug.Assert(ts.TypeKind == TypeKind.Error || ts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
                     result.Add(Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName));
                 }
 
