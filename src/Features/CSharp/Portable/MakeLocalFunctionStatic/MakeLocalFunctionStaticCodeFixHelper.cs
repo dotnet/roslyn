@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         {
                             syntaxEditor.ReplaceNode(
                                 identifierNode,
-                                (node, generator) => generator.IdentifierName(parameter.Name).WithTriviaFrom(node));
+                                (node, generator) => generator.IdentifierName(parameter.Name.ToIdentifierToken()).WithTriviaFrom(node));
                         }
                     }
                 }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         localFunctionWithNewParameters = localFunctionWithNewParameters.WithAdditionalAnnotations(annotation);
                     }
 
-                    return AddStaticModifier(localFunctionWithNewParameters, SyntaxGenerator.GetGenerator(document));
+                    return AddStaticModifier(localFunctionWithNewParameters, CSharpSyntaxGenerator.Instance);
                 });
         }
 
