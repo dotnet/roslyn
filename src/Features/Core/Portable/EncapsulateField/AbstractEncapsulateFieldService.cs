@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -243,28 +244,29 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var projectId = document.Project.Id;
             if (field.IsReadOnly)
             {
-                // Inside the constructor we want to rename references the field to the final field name.
-                var constructorSyntaxes = GetConstructorNodes(field.ContainingType).ToSet();
-                if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
-                {
-                    solution = await Renamer.RenameSymbolAsync(solution,
-                        SymbolAndProjectId.Create(field, projectId),
-                        finalFieldName, solution.Options,
-                        location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-                    document = solution.GetDocument(document.Id);
+                var fieldAnProjectId = SymbolAndProjectId.Create(field, projectId);
 
+                // Inside the constructor we want to rename references the field to the final field name.
+                var constructorLocations = GetConstructorLocations(field.ContainingType);
+                if (finalFieldName != field.Name && constructorLocations.Count > 0)
+                {
+                    solution = await RenameAsync(
+                        solution, fieldAnProjectId, finalFieldName,
+                        location => IntersectsWithAny(location, constructorLocations),
+                        cancellationToken).ConfigureAwait(false);
+
+                    document = solution.GetDocument(document.Id);
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
+                    constructorLocations = GetConstructorLocations(field.ContainingType);
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
-                return await Renamer.RenameSymbolAsync(solution,
-                    SymbolAndProjectId.Create(field, projectId),
-                    generatedPropertyName, solution.Options,
-                    location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await RenameAsync(
+                    solution, fieldAnProjectId, generatedPropertyName,
+                    location => !IntersectsWithAny(location, constructorLocations),
+                    cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -274,6 +276,36 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
+
+        private async Task<Solution> RenameAsync(
+            Solution solution,
+            SymbolAndProjectId<IFieldSymbol> field,
+            string finalName,
+            Func<Location, bool> filter,
+            CancellationToken cancellationToken)
+        {
+            var initialLocations = await Renamer.GetRenameLocationsAsync(
+                solution, field, solution.Options, cancellationToken).ConfigureAwait(false);
+
+            var insideLocations = initialLocations.Filter(filter);
+
+            return await Renamer.RenameAsync(
+                insideLocations, finalName, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        private bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)
+        {
+            foreach (var constructor in constructorLocations)
+            {
+                if (location.IntersectsWith(constructor))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private ISet<Location> GetConstructorLocations(INamedTypeSymbol containingType)
+            => GetConstructorNodes(containingType).Select(n => n.GetLocation()).ToSet();
 
         internal abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
 
