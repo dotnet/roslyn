@@ -38,12 +38,6 @@ class B
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
 
-            foreach (var result in results)
-            {
-                Assert.Equal("test1.cs", result.DocumentName);
-                Assert.Equal("Test", result.ProjectName);
-            }
-
             Assert.Equal("A", results[0].ContainingType);
             Assert.Equal("B", results[2].ContainingType);
             Assert.Equal("M", results[1].ContainingMember);
@@ -78,16 +72,6 @@ class B
 
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
-
-            Assert.Equal("test1.cs", results[0].DocumentName);
-            Assert.Equal("test1.cs", results[1].DocumentName);
-            Assert.Equal("test2.cs", results[2].DocumentName);
-            Assert.Equal("test2.cs", results[3].DocumentName);
-
-            foreach (var result in results)
-            {
-                Assert.Equal("Test", result.ProjectName);
-            }
 
             Assert.Equal("A", results[0].ContainingType);
             Assert.Equal("B", results[2].ContainingType);
