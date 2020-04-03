@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -63,11 +64,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance);
         }
 
-        protected static CodeAction? TryGetCodeActionToApply(List<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, IVerifier verifier)
+        protected static CodeAction? TryGetCodeActionToApply(ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, IVerifier verifier)
         {
             if (codeActionIndex.HasValue && codeActionEquivalenceKey != null)
             {
-                if (actions.Count <= codeActionIndex)
+                if (actions.Length <= codeActionIndex)
                 {
                     return null;
                 }
@@ -81,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Testing
             }
             else if (codeActionEquivalenceKey != null)
             {
-                return actions.Find(x => x.EquivalenceKey == codeActionEquivalenceKey);
+                return actions.FirstOrDefault(x => x.EquivalenceKey == codeActionEquivalenceKey);
             }
-            else if (actions.Count > (codeActionIndex ?? 0))
+            else if (actions.Length > (codeActionIndex ?? 0))
             {
                 return actions[codeActionIndex ?? 0];
             }
@@ -91,6 +92,37 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 return null;
             }
+        }
+
+        protected virtual ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)
+        {
+            var builder = actions.ToBuilder();
+            while (true)
+            {
+                var changesMade = false;
+                for (var i = builder.Count - 1; i >= 0; i--)
+                {
+                    var action = builder[i];
+                    var nestedActions = action.GetNestedActions();
+                    if (!nestedActions.IsEmpty)
+                    {
+                        builder.RemoveAt(i);
+                        for (var j = nestedActions.Length - 1; i >= 0; i--)
+                        {
+                            builder.Insert(i, nestedActions[j]);
+                        }
+
+                        changesMade = true;
+                    }
+                }
+
+                if (!changesMade)
+                {
+                    break;
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
