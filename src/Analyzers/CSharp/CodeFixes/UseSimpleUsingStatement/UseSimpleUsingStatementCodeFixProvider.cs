@@ -143,10 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(ElasticCarriageReturnLineFeed);
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_simple_using_statement, createChangedDocument, FeaturesResources.Use_simple_using_statement)
+                : base(CSharpAnalyzersResources.Use_simple_using_statement, createChangedDocument, CSharpAnalyzersResources.Use_simple_using_statement)
             {
             }
         }
