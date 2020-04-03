@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
+        public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
         {
             var stack = GetContainmentStack(symbol);
-            return stack.SelectMany(n => n.TypeParameters);
+            return stack.SelectMany(n => n.TypeParameters).ToImmutableArray();
         }
 
         public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
