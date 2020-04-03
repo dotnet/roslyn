@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Contains(results[1].Diagnostics, d => d.Code == "doc2Diagnostic");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43046")]
         public async Task RemoveDiagnosticTestAsync()
         {
             using var workspace = CreateTestWorkspace("", out _);
