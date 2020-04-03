@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arrayArgs.Length == 0
                 && !_inExpressionLambda
                 && paramArrayType is ArrayTypeSymbol ats // could be false if there's a semantic error, e.g. the params parameter type isn't an array
-                && !ats.ElementType.IsPointerType())
+                && !ats.ElementType.IsPointerOrFunctionPointer())
             {
                 MethodSymbol? arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
                 if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies

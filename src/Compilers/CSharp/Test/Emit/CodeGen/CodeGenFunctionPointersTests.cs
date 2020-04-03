@@ -4079,6 +4079,38 @@ unsafe class C
 ");
         }
 
+        [Fact]
+        public void ParamsArrayOfFunctionPointers()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class C
+{
+    static void Params(params delegate*<void>[] funcs)
+    {
+        foreach (var f in funcs)
+        {
+            f();
+        }
+    }
+
+    static void Main()
+    {
+        Params();
+    }
+}", expectedOutput: "");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""delegate*<void>""
+  IL_0006:  call       ""void C.Params(params delegate*<void>[])""
+  IL_000b:  ret
+}
+");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
