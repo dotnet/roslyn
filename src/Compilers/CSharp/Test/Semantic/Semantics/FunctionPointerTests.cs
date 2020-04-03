@@ -1625,5 +1625,18 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_CannotUseFunctionPointerAsFixedLocal, "ptr = &M").WithLocation(7, 32)
             );
         }
+
+        [Fact]
+        public void NoUnusedLocalWarning()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C {
+    void M() {
+        delegate*<void> i = default;
+    }
+}");
+
+            comp.VerifyDiagnostics();
+        }
     }
 }
