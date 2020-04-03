@@ -336,19 +336,94 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     var reverseMappedLocations = new Dictionary<Location, Location>();
 
-                    foreach (var group in documentIdsForConflictResolution.GroupBy(d => d.ProjectId))
-                    {
-                        var currentProject = conflictResolution.NewSolution.GetProject(group.Key);
-                        var nonConflictSymbols = await GetNonConflictSymbolsAsync(currentProject).ConfigureAwait(false);
+                    // If we were giving any non-conflict-symbols then ensure that we know what those symbols are in
+                    // the current project post after our edits so far.
+                    var currentProject = conflictResolution.NewSolution.GetProject(projectId);
+                    var nonConflictSymbols = await GetNonConflictSymbolsAsync(currentProject).ConfigureAwait(false);
 
-                        foreach (var documentId in group)
+                    foreach (var documentId in documentIdsForConflictResolution)
+                    {
+                        var newDocument = conflictResolution.NewSolution.GetDocument(documentId);
+                        var syntaxRoot = await newDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
+                        var baseDocument = conflictResolution.OldSolution.GetDocument(documentId);
+                        var baseSyntaxTree = await baseDocument.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
+                        var baseRoot = await baseDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
+                        SemanticModel newDocumentSemanticModel = null;
+                        var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+
+                        // Get all tokens that need conflict check
+                        var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(documentId, syntaxRoot);
+
+                        var complexifiedLocationSpanForThisDocument =
+                            _conflictLocations
+                            .Where(t => t.DocumentId == documentId)
+                            .Select(t => t.OriginalIdentifierSpan).ToSet();
+
+                        foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                         {
-                            await IdentifyConflictsInDocumentAsync(
-                                conflictResolution, renamedSymbolInNewSolution, reverseMappedLocations,
-                                nonConflictSymbols, documentId).ConfigureAwait(false);
+                            var tokenOrNode = syntax;
+                            var conflictAnnotation = annotation;
+                            reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
+                            var originalLocation = conflictAnnotation.OriginalSpan;
+                            ImmutableArray<ISymbol> newReferencedSymbols = default;
+
+                            var hasConflict = _renameAnnotations.HasAnnotation(tokenOrNode, RenameInvalidIdentifierAnnotation.Instance);
+                            if (!hasConflict)
+                            {
+                                newDocumentSemanticModel ??= await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
+                                newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
+
+                                // The semantic correctness, after rename, for each token of interest in the
+                                // rename context is performed by getting the symbol pointed by each token 
+                                // and obtain the Symbol's First Ordered Location's  Span-Start and check to
+                                // see if it is the same as before from the base solution. During rename, 
+                                // the spans would have been modified and so we need to adjust the old position
+                                // to the new position for which we use the renameSpanTracker, which was tracking
+                                // & mapping the old span -> new span during rename
+                                hasConflict =
+                                    !IsConflictFreeChange(newReferencedSymbols, nonConflictSymbols) &&
+                                    await CheckForConflictAsync(conflictResolution, renamedSymbolInNewSolution, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
+
+                                if (!hasConflict && !conflictAnnotation.IsInvocationExpression)
+                                    hasConflict = LocalVariableConflictPerLanguage((SyntaxToken)tokenOrNode, newDocument, newReferencedSymbols);
+                            }
+
+                            if (!hasConflict)
+                            {
+                                if (conflictAnnotation.IsRenameLocation)
+                                {
+                                    conflictResolution.AddRelatedLocation(
+                                        new RelatedLocation(originalLocation,
+                                        documentId,
+                                        complexifiedLocationSpanForThisDocument.Contains(originalLocation) ? RelatedLocationType.ResolvedReferenceConflict : RelatedLocationType.NoConflict,
+                                        isReference: true));
+                                }
+                                else
+                                {
+                                    // if a complexified location was not a reference location, then it was a resolved conflict of a non reference location
+                                    if (!conflictAnnotation.IsOriginalTextLocation && complexifiedLocationSpanForThisDocument.Contains(originalLocation))
+                                    {
+                                        conflictResolution.AddRelatedLocation(
+                                            new RelatedLocation(originalLocation,
+                                            documentId,
+                                            RelatedLocationType.ResolvedNonReferenceConflict,
+                                            isReference: false));
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var baseToken = baseRoot.FindToken(conflictAnnotation.OriginalSpan.Start, true);
+                                var complexifiedTarget = GetExpansionTargetForLocationPerLanguage(baseToken, baseDocument);
+                                conflictResolution.AddRelatedLocation(new RelatedLocation(
+                                    originalLocation,
+                                    documentId,
+                                    complexifiedTarget != null ? RelatedLocationType.PossiblyResolvableConflict : RelatedLocationType.UnresolvableConflict,
+                                    isReference: conflictAnnotation.IsRenameLocation,
+                                    complexifiedTargetSpan: complexifiedTarget != null ? complexifiedTarget.Span : default));
+                            }
                         }
                     }
-
 
                     // there are more conflicts that cannot be identified by checking if the tokens still reference the same
                     // symbol. These conflicts are mostly language specific. A good example is a member with the same name
@@ -396,95 +471,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 var compilation = await currentProject.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 return ImmutableHashSet.CreateRange(
                     _nonConflictSymbols.Select(s => s.GetSymbolKey().Resolve(compilation).GetAnySymbol()).WhereNotNull());
-            }
-
-            private async Task IdentifyConflictsInDocumentAsync(
-                ConflictResolution conflictResolution,
-                ISymbol renamedSymbolInNewSolution,
-                Dictionary<Location, Location> reverseMappedLocations,
-                ImmutableHashSet<ISymbol> nonConflictSymbols,
-                DocumentId documentId)
-            {
-                var newDocument = conflictResolution.NewSolution.GetDocument(documentId);
-                var syntaxRoot = await newDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
-                var baseDocument = conflictResolution.OldSolution.GetDocument(documentId);
-                var baseSyntaxTree = await baseDocument.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
-                var baseRoot = await baseDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
-                SemanticModel newDocumentSemanticModel = null;
-                var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
-
-                // Get all tokens that need conflict check
-                var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(documentId, syntaxRoot);
-
-                var complexifiedLocationSpanForThisDocument =
-                    _conflictLocations
-                    .Where(t => t.DocumentId == documentId)
-                    .Select(t => t.OriginalIdentifierSpan).ToSet();
-
-                foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
-                {
-                    var tokenOrNode = syntax;
-                    var conflictAnnotation = annotation;
-                    reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
-                    var originalLocation = conflictAnnotation.OriginalSpan;
-                    ImmutableArray<ISymbol> newReferencedSymbols = default;
-
-                    var hasConflict = _renameAnnotations.HasAnnotation(tokenOrNode, RenameInvalidIdentifierAnnotation.Instance);
-                    if (!hasConflict)
-                    {
-                        newDocumentSemanticModel ??= await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
-                        newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
-
-                        // The semantic correctness, after rename, for each token of interest in the
-                        // rename context is performed by getting the symbol pointed by each token 
-                        // and obtain the Symbol's First Ordered Location's  Span-Start and check to
-                        // see if it is the same as before from the base solution. During rename, 
-                        // the spans would have been modified and so we need to adjust the old position
-                        // to the new position for which we use the renameSpanTracker, which was tracking
-                        // & mapping the old span -> new span during rename
-                        hasConflict =
-                            !IsConflictFreeChange(newReferencedSymbols, nonConflictSymbols) &&
-                            await CheckForConflictAsync(conflictResolution, renamedSymbolInNewSolution, conflictAnnotation, newReferencedSymbols).ConfigureAwait(false);
-
-                        if (!hasConflict && !conflictAnnotation.IsInvocationExpression)
-                            hasConflict = LocalVariableConflictPerLanguage((SyntaxToken)tokenOrNode, newDocument, newReferencedSymbols);
-                    }
-
-                    if (!hasConflict)
-                    {
-                        if (conflictAnnotation.IsRenameLocation)
-                        {
-                            conflictResolution.AddRelatedLocation(
-                                new RelatedLocation(originalLocation,
-                                documentId,
-                                complexifiedLocationSpanForThisDocument.Contains(originalLocation) ? RelatedLocationType.ResolvedReferenceConflict : RelatedLocationType.NoConflict,
-                                isReference: true));
-                        }
-                        else
-                        {
-                            // if a complexified location was not a reference location, then it was a resolved conflict of a non reference location
-                            if (!conflictAnnotation.IsOriginalTextLocation && complexifiedLocationSpanForThisDocument.Contains(originalLocation))
-                            {
-                                conflictResolution.AddRelatedLocation(
-                                    new RelatedLocation(originalLocation,
-                                    documentId,
-                                    RelatedLocationType.ResolvedNonReferenceConflict,
-                                    isReference: false));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var baseToken = baseRoot.FindToken(conflictAnnotation.OriginalSpan.Start, true);
-                        var complexifiedTarget = GetExpansionTargetForLocationPerLanguage(baseToken, baseDocument);
-                        conflictResolution.AddRelatedLocation(new RelatedLocation(
-                            originalLocation,
-                            documentId,
-                            complexifiedTarget != null ? RelatedLocationType.PossiblyResolvableConflict : RelatedLocationType.UnresolvableConflict,
-                            isReference: conflictAnnotation.IsRenameLocation,
-                            complexifiedTargetSpan: complexifiedTarget != null ? complexifiedTarget.Span : default));
-                    }
-                }
             }
 
             private bool IsConflictFreeChange(

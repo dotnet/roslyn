@@ -129,7 +129,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // same as the property we're trying to get the references pointing to.
 
             var updatedSolution = await Renamer.RenameAsync(
-                fieldLocations.Filter(location => !location.IntersectsWith(declaratorLocation)),
+                fieldLocations.Filter(
+                    location => !location.IntersectsWith(declaratorLocation) &&
+                                CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit)),
                 propertySymbol.Name,
                 nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
                 cancellationToken).ConfigureAwait(false);
