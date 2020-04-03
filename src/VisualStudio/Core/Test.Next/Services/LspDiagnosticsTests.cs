@@ -119,7 +119,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Contains(results[1].Diagnostics, d => d.Code == "doc2Diagnostic");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43046")]
         public async Task RemoveDiagnosticTestAsync()
         {
             using var workspace = CreateTestWorkspace("", out _);
@@ -296,7 +296,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43046")]
         public async Task ClearAllDiagnosticsForMappedFileToManyDocumentsTestAsync()
         {
             using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);

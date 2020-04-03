@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// the same name as another member of a type: binding doesn't change (at least from the
         /// perspective of find all references), but we still need to track it.
         /// </summary>
-        internal static async Task AddDeclarationConflictsAsync(
+        private static async Task AddDeclarationConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
             IEnumerable<SymbolAndProjectId> referencedSymbols,
@@ -265,24 +265,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // See https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=378642
 
                 throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal static void AddConflictingParametersOfProperties(
-            IEnumerable<ISymbol> properties, string newPropertyName, ArrayBuilder<Location> conflicts)
-        {
-            // check if the new property name conflicts with any parameter of the properties.
-            // Note: referencedSymbols come from the original solution, so there is no need to reverse map the locations of the parameters
-            foreach (var symbol in properties)
-            {
-                var prop = (IPropertySymbol)symbol;
-
-                var conflictingParameter = prop.Parameters.FirstOrDefault(param => string.Compare(param.Name, newPropertyName, StringComparison.OrdinalIgnoreCase) == 0);
-
-                if (conflictingParameter != null)
-                {
-                    conflicts.AddRange(conflictingParameter.Locations);
-                }
             }
         }
 
