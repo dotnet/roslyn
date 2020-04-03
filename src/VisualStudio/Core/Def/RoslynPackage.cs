@@ -136,11 +136,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             RoslynTelemetrySetup.Initialize(this, telemetrySession);
 
-            var provider = new VisualStudioDiagnosticAnalyzerProvider(this);
-
-            // fire and forget
-            _ = Task.Run(() => InitializeHostAnalyzerReferences(provider));
-
             InitializeColors();
 
             // load some services that have to be loaded in UI thread
@@ -149,28 +144,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
-        }
-
-        private void InitializeHostAnalyzerReferences(VisualStudioDiagnosticAnalyzerProvider provider)
-        {
-            Contract.ThrowIfNull(_workspace);
-
-            try
-            {
-                var references = provider.GetAnalyzerReferencesInExtensions();
-                LogWorkspaceAnalyzerCount(references.Length);
-
-                _workspace.ApplyChangeToWorkspace(w =>
-                    w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
-            }
-            catch (Exception e) when (FatalError.Report(e))
-            {
-            }
-        }
-
-        private static void LogWorkspaceAnalyzerCount(int analyzerCount)
-        {
-            Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(m => m["AnalyzerCount"] = analyzerCount));
         }
 
         private void InitializeColors()

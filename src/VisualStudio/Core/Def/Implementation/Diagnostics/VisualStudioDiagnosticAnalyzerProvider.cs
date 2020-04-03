@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
@@ -33,28 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly object _extensionManager;
         private readonly Type _typeIExtensionContent;
 
-        public VisualStudioDiagnosticAnalyzerProvider(IServiceProvider serviceProvider)
-        {
-            var dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(EnvDTE.DTE));
-
-            // Microsoft.VisualStudio.ExtensionManager is non-versioned, so we need to dynamically load it, depending on the version of VS we are running on
-            // this will allow us to build once and deploy on different versions of VS SxS.
-            var vsDteVersion = Version.Parse(dte.Version.Split(' ')[0]); // DTE.Version is in the format of D[D[.D[D]]][ (?+)], so we need to split out the version part and check for uninitialized Major/Minor below
-
-            var assembly = Assembly.Load($"Microsoft.VisualStudio.ExtensionManager, Version={(vsDteVersion.Major == -1 ? 0 : vsDteVersion.Major)}.{(vsDteVersion.Minor == -1 ? 0 : vsDteVersion.Minor)}.0.0, PublicKeyToken=b03f5f7f11d50a3a");
-            Contract.ThrowIfNull(assembly);
-
-            _typeIExtensionContent = assembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent");
-            Contract.ThrowIfNull(_typeIExtensionContent);
-
-            var type = assembly.GetType("Microsoft.VisualStudio.ExtensionManager.SVsExtensionManager");
-            Contract.ThrowIfNull(type);
-
-            _extensionManager = serviceProvider.GetService(type);
-            Contract.ThrowIfNull(_extensionManager);
-        }
-
-        // for testing
+        // internal for testing
         internal VisualStudioDiagnosticAnalyzerProvider(object extensionManager, Type typeIExtensionContent)
         {
             Contract.ThrowIfNull(extensionManager);
@@ -64,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             _typeIExtensionContent = typeIExtensionContent;
         }
 
-        // internal for testing purpose
+        // internal for testing
         internal ImmutableArray<AnalyzerReference> GetAnalyzerReferencesInExtensions()
         {
             try
@@ -76,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 // var enabledExtensions = extensionManager.GetEnabledExtensions(AnalyzerContentTypeName);
                 var extensionManagerType = _extensionManager.GetType();
                 var extensionManager_GetEnabledExtensionsMethod = extensionManagerType.GetRuntimeMethod("GetEnabledExtensions", new Type[] { typeof(string) });
-                var enabledExtensions = extensionManager_GetEnabledExtensionsMethod.Invoke(_extensionManager, new object[] { AnalyzerContentTypeName }) as IEnumerable<object>;
+                var enabledExtensions = (IEnumerable<object>)extensionManager_GetEnabledExtensionsMethod.Invoke(_extensionManager, new object[] { AnalyzerContentTypeName });
 
                 foreach (var extension in enabledExtensions)
                 {
@@ -90,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                     // var extension_Content = extension.Content;
                     var extensionType_ContentProperty = extensionType.GetRuntimeProperty("Content");
-                    var extension_Content = extensionType_ContentProperty.GetValue(extension) as IEnumerable<object>;
+                    var extension_Content = (IEnumerable<object>)extensionType_ContentProperty.GetValue(extension);
 
                     foreach (var content in extension_Content)
                     {
