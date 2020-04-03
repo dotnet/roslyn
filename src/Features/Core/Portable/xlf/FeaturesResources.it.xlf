@@ -387,16 +387,6 @@
         <target state="translated">Inverti espressione condizionale</target>
         <note />
       </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">La funzione locale può essere resa statica</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">Rendi la funzione locale 'static'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
         <target state="translated">Unisci con istruzione '{0}' nidificata</target>

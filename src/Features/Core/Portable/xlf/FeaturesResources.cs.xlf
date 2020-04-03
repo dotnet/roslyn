@@ -387,16 +387,6 @@
         <target state="translated">Převrátit podmínku</target>
         <note />
       </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">Místní funkce se dá nastavit jako statická.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">Nastavit místní funkci jako statickou</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
         <target state="translated">Sloučit s vnořeným příkazem {0}</target>

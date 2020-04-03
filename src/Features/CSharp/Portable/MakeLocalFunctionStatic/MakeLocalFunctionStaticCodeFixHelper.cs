@@ -21,30 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
-    internal static class MakeLocalFunctionStaticHelper
+    internal static class MakeLocalFunctionStaticCodeFixHelper
     {
-        public static bool IsStaticLocalFunctionSupported(SyntaxTree tree)
-            => tree.Options is CSharpParseOptions csharpOption && csharpOption.LanguageVersion >= LanguageVersion.CSharp8;
-
-        public static bool TryGetCaputuredSymbols(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
-        {
-            var dataFlow = semanticModel.AnalyzeDataFlow(localFunction);
-            if (dataFlow is null)
-            {
-                captures = default;
-                return false;
-            }
-
-            captures = dataFlow.CapturedInside;
-            return dataFlow.Succeeded;
-        }
-
-        public static bool TryGetCaputuredSymbolsAndCheckApplicability(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
-            => TryGetCaputuredSymbols(localFunction, semanticModel, out captures) && CanMakeLocalFunctionStatic(captures);
-
-        private static bool CanMakeLocalFunctionStatic(ImmutableArray<ISymbol> captures)
-            => captures.Length > 0 && !captures.Any(s => s.IsThisParameter());
-
         public static async Task<Document> MakeLocalFunctionStaticAsync(
             Document document,
             LocalFunctionStatementSyntax localFunction,
@@ -173,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
                     if (shouldWarn)
                     {
-                        var annotation = WarningAnnotation.Create(CSharpFeaturesResources.Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code);
+                        var annotation = WarningAnnotation.Create(CSharpCodeFixesResources.Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code);
                         localFunctionWithNewParameters = localFunctionWithNewParameters.WithAdditionalAnnotations(annotation);
                     }
 
