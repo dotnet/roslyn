@@ -4382,11 +4382,11 @@ class C
         var max = (TYPE)KTYPE.MaxValue;
         bool wrap = sizeof(TYPE) == sizeof(KTYPE);
         Assert.Equal(1, L(min));
-        Assert.Equal(wrap ? 4 : 5, L(min - 1));
+        Assert.Equal(wrap ? 10 : 11, L(min - 1));
         Assert.Equal(2, L(min + 1));
-        Assert.Equal(4, L(max));
-        Assert.Equal(wrap ? 1 : 5, L(max + 1));
-        Assert.Equal(3, L(max - 1));
+        Assert.Equal(10, L(max));
+        Assert.Equal(wrap ? 1 : 11, L(max + 1));
+        Assert.Equal(9, L(max - 1));
         static int L(TYPE t)
         {
             switch (t)
@@ -4394,29 +4394,25 @@ class C
                 case (TYPE)KTYPE.MinValue:
                     return 1;
                 case (TYPE)KTYPE.MinValue + 1:
-                case (TYPE)KTYPE.MinValue + 2:
-                case (TYPE)KTYPE.MinValue + 3:
-                case (TYPE)KTYPE.MinValue + 4:
-                case (TYPE)KTYPE.MinValue + 5:
-                case (TYPE)KTYPE.MinValue + 6:
-                case (TYPE)KTYPE.MinValue + 7:
-                case (TYPE)KTYPE.MinValue + 8:
-                case (TYPE)KTYPE.MinValue + 9:
                     return 2;
-                case (TYPE)KTYPE.MaxValue - 9:
-                case (TYPE)KTYPE.MaxValue - 8:
-                case (TYPE)KTYPE.MaxValue - 7:
-                case (TYPE)KTYPE.MaxValue - 6:
-                case (TYPE)KTYPE.MaxValue - 5:
-                case (TYPE)KTYPE.MaxValue - 4:
-                case (TYPE)KTYPE.MaxValue - 3:
-                case (TYPE)KTYPE.MaxValue - 2:
-                case (TYPE)KTYPE.MaxValue - 1:
+                case (TYPE)KTYPE.MinValue + 2:
                     return 3;
-                case (TYPE)KTYPE.MaxValue:
+                case (TYPE)KTYPE.MinValue + 3:
                     return 4;
-                default:
+                case (TYPE)KTYPE.MinValue + 4:
                     return 5;
+                case (TYPE)KTYPE.MaxValue - 4:
+                    return 6;
+                case (TYPE)KTYPE.MaxValue - 3:
+                    return 7;
+                case (TYPE)KTYPE.MaxValue - 2:
+                    return 8;
+                case (TYPE)KTYPE.MaxValue - 1:
+                    return 9;
+                case (TYPE)KTYPE.MaxValue:
+                    return 10;
+                default:
+                    return 11;
             }
         }
     }
@@ -4436,6 +4432,254 @@ static class Assert
             compilation.VerifyDiagnostics(
                 );
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "Done");
+        }
+
+        [InlineData("nint", "int")]
+        [InlineData("nuint", "uint")]
+        [Theory]
+        public void SwitchingAtTheBorder_Native(string type, string constantType)
+        {
+            var source = @"
+using System;
+class C
+{
+    static unsafe void Main()
+    {
+        var min = (TYPE)KTYPE.MinValue;
+        var max = (TYPE)KTYPE.MaxValue;
+        bool wrap = sizeof(TYPE) == sizeof(KTYPE);
+        Assert.Equal(1, L(min));
+        Assert.Equal(wrap ? 10 : 11, L(min - 1));
+        Assert.Equal(2, L(min + 1));
+        Assert.Equal(10, L(max));
+        Assert.Equal(wrap ? 1 : 11, L(max + 1));
+        Assert.Equal(9, L(max - 1));
+        Console.WriteLine(""Done"");
+    }
+
+    static int L(TYPE t)
+    {
+        switch (t)
+        {
+            case (TYPE)KTYPE.MinValue:
+                return 1;
+            case (TYPE)KTYPE.MinValue + 1:
+                return 2;
+            case (TYPE)KTYPE.MinValue + 2:
+                return 3;
+            case (TYPE)KTYPE.MinValue + 3:
+                return 4;
+            case (TYPE)KTYPE.MinValue + 4:
+                return 5;
+            case (TYPE)KTYPE.MaxValue - 4:
+                return 6;
+            case (TYPE)KTYPE.MaxValue - 3:
+                return 7;
+            case (TYPE)KTYPE.MaxValue - 2:
+                return 8;
+            case (TYPE)KTYPE.MaxValue - 1:
+                return 9;
+            case (TYPE)KTYPE.MaxValue:
+                return 10;
+            default:
+                return 11;
+        }
+    }
+}
+static class Assert
+{
+    public static void Equal<T>(T expected, T value)
+    {
+        if (!expected.Equals(value)) throw new System.InvalidOperationException($""{expected } != {value}"");
+    }
+    public static void True(bool v) => Equals(true, v);
+    public static void False(bool v) => Equals(false, v);
+}
+";
+            source = source.Replace("KTYPE", constantType).Replace("TYPE", type);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "Done");
+            compVerifier.VerifyIL("C.L", type switch
+            {
+                "nint" => @"
+    {
+      // Code size      145 (0x91)
+      .maxstack  3
+      .locals init (System.IntPtr V_0,
+                    System.IntPtr V_1,
+                    long V_2,
+                    int V_3)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  stloc.1
+      IL_0003:  ldloc.1
+      IL_0004:  stloc.0
+      IL_0005:  ldloc.0
+      IL_0006:  conv.i8
+      IL_0007:  stloc.2
+      IL_0008:  ldloc.2
+      IL_0009:  ldc.i4     0x80000000
+      IL_000e:  conv.i8
+      IL_000f:  sub
+      IL_0010:  dup
+      IL_0011:  ldc.i4.4
+      IL_0012:  conv.i8
+      IL_0013:  ble.un.s   IL_0018
+      IL_0015:  pop
+      IL_0016:  br.s       IL_0034
+      IL_0018:  conv.u4
+      IL_0019:  switch    (
+            IL_0060,
+            IL_0064,
+            IL_0068,
+            IL_006c,
+            IL_0070)
+      IL_0032:  br.s       IL_0034
+      IL_0034:  ldloc.2
+      IL_0035:  ldc.i4     0x7ffffffb
+      IL_003a:  conv.i8
+      IL_003b:  sub
+      IL_003c:  dup
+      IL_003d:  ldc.i4.4
+      IL_003e:  conv.i8
+      IL_003f:  ble.un.s   IL_0044
+      IL_0041:  pop
+      IL_0042:  br.s       IL_008a
+      IL_0044:  conv.u4
+      IL_0045:  switch    (
+            IL_0074,
+            IL_0078,
+            IL_007c,
+            IL_0080,
+            IL_0085)
+      IL_005e:  br.s       IL_008a
+      IL_0060:  ldc.i4.1
+      IL_0061:  stloc.3
+      IL_0062:  br.s       IL_008f
+      IL_0064:  ldc.i4.2
+      IL_0065:  stloc.3
+      IL_0066:  br.s       IL_008f
+      IL_0068:  ldc.i4.3
+      IL_0069:  stloc.3
+      IL_006a:  br.s       IL_008f
+      IL_006c:  ldc.i4.4
+      IL_006d:  stloc.3
+      IL_006e:  br.s       IL_008f
+      IL_0070:  ldc.i4.5
+      IL_0071:  stloc.3
+      IL_0072:  br.s       IL_008f
+      IL_0074:  ldc.i4.6
+      IL_0075:  stloc.3
+      IL_0076:  br.s       IL_008f
+      IL_0078:  ldc.i4.7
+      IL_0079:  stloc.3
+      IL_007a:  br.s       IL_008f
+      IL_007c:  ldc.i4.8
+      IL_007d:  stloc.3
+      IL_007e:  br.s       IL_008f
+      IL_0080:  ldc.i4.s   9
+      IL_0082:  stloc.3
+      IL_0083:  br.s       IL_008f
+      IL_0085:  ldc.i4.s   10
+      IL_0087:  stloc.3
+      IL_0088:  br.s       IL_008f
+      IL_008a:  ldc.i4.s   11
+      IL_008c:  stloc.3
+      IL_008d:  br.s       IL_008f
+      IL_008f:  ldloc.3
+      IL_0090:  ret
+    }
+",
+                "nuint" => @"
+    {
+      // Code size      135 (0x87)
+      .maxstack  3
+      .locals init (System.UIntPtr V_0,
+                    System.UIntPtr V_1,
+                    ulong V_2,
+                    int V_3)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  stloc.1
+      IL_0003:  ldloc.1
+      IL_0004:  stloc.0
+      IL_0005:  ldloc.0
+      IL_0006:  conv.u8
+      IL_0007:  stloc.2
+      IL_0008:  ldloc.2
+      IL_0009:  dup
+      IL_000a:  ldc.i4.4
+      IL_000b:  conv.i8
+      IL_000c:  ble.un.s   IL_0011
+      IL_000e:  pop
+      IL_000f:  br.s       IL_002d
+      IL_0011:  conv.u4
+      IL_0012:  switch    (
+            IL_0056,
+            IL_005a,
+            IL_005e,
+            IL_0062,
+            IL_0066)
+      IL_002b:  br.s       IL_002d
+      IL_002d:  ldloc.2
+      IL_002e:  ldc.i4.s   -5
+      IL_0030:  conv.u8
+      IL_0031:  sub
+      IL_0032:  dup
+      IL_0033:  ldc.i4.4
+      IL_0034:  conv.i8
+      IL_0035:  ble.un.s   IL_003a
+      IL_0037:  pop
+      IL_0038:  br.s       IL_0080
+      IL_003a:  conv.u4
+      IL_003b:  switch    (
+            IL_006a,
+            IL_006e,
+            IL_0072,
+            IL_0076,
+            IL_007b)
+      IL_0054:  br.s       IL_0080
+      IL_0056:  ldc.i4.1
+      IL_0057:  stloc.3
+      IL_0058:  br.s       IL_0085
+      IL_005a:  ldc.i4.2
+      IL_005b:  stloc.3
+      IL_005c:  br.s       IL_0085
+      IL_005e:  ldc.i4.3
+      IL_005f:  stloc.3
+      IL_0060:  br.s       IL_0085
+      IL_0062:  ldc.i4.4
+      IL_0063:  stloc.3
+      IL_0064:  br.s       IL_0085
+      IL_0066:  ldc.i4.5
+      IL_0067:  stloc.3
+      IL_0068:  br.s       IL_0085
+      IL_006a:  ldc.i4.6
+      IL_006b:  stloc.3
+      IL_006c:  br.s       IL_0085
+      IL_006e:  ldc.i4.7
+      IL_006f:  stloc.3
+      IL_0070:  br.s       IL_0085
+      IL_0072:  ldc.i4.8
+      IL_0073:  stloc.3
+      IL_0074:  br.s       IL_0085
+      IL_0076:  ldc.i4.s   9
+      IL_0078:  stloc.3
+      IL_0079:  br.s       IL_0085
+      IL_007b:  ldc.i4.s   10
+      IL_007d:  stloc.3
+      IL_007e:  br.s       IL_0085
+      IL_0080:  ldc.i4.s   11
+      IL_0082:  stloc.3
+      IL_0083:  br.s       IL_0085
+      IL_0085:  ldloc.3
+      IL_0086:  ret
+    }
+",
+                _ => throw new System.InvalidOperationException(),
+            });
         }
     }
 }
