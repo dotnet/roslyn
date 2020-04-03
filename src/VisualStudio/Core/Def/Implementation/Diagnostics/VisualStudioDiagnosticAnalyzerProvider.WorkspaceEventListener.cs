@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
@@ -26,21 +27,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         internal sealed class WorkspaceEventListener : IEventListener<object>
         {
             private readonly VisualStudioDiagnosticAnalyzerProvider _provider;
+            private readonly IAsynchronousOperationListener _listener;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public WorkspaceEventListener(Factory factory)
+            public WorkspaceEventListener(Factory factory, IAsynchronousOperationListenerProvider listenerProvider)
             {
                 _provider = factory.Provider;
+                _listener = listenerProvider.GetListener(nameof(VisualStudioDiagnosticAnalyzerProvider));
             }
 
             public void StartListening(Workspace workspace, object serviceOpt)
             {
                 // fire and forget
-                _ = Task.Run(() => InitializeHostAnalyzerReferences((VisualStudioWorkspaceImpl)workspace));
+                var token = _listener.BeginAsyncOperation(nameof(InitializeWorkspace));
+                _ = Task.Run(() => InitializeWorkspace((VisualStudioWorkspaceImpl)workspace)).CompletesAsyncOperation(token);
             }
 
-            private void InitializeHostAnalyzerReferences(VisualStudioWorkspaceImpl workspace)
+            private void InitializeWorkspace(VisualStudioWorkspaceImpl workspace)
             {
                 try
                 {
