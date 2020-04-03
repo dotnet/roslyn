@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
@@ -96,8 +97,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         private static Task<Solution> AddAnalyzerReleaseTrackingFilesAsync(Project project)
         {
-            project = AddAdditionalDocument(project, DiagnosticDescriptorCreationAnalyzer.ShippedFileName, ShippedAnalyzerReleaseTrackingFileDefaultContent);
-            project = AddAdditionalDocument(project, DiagnosticDescriptorCreationAnalyzer.UnshippedFileName, UnshippedAnalyzerReleaseTrackingFileDefaultContent);
+            project = AddAdditionalDocument(project, ReleaseTrackingHelper.ShippedFileName, ShippedAnalyzerReleaseTrackingFileDefaultContent);
+            project = AddAdditionalDocument(project, ReleaseTrackingHelper.UnshippedFileName, UnshippedAnalyzerReleaseTrackingFileDefaultContent);
             return Task.FromResult(project.Solution);
 
             // Local functions.
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         private static async Task<Solution> AddEntryToUnshippedFileAsync(Project project, string entryToAdd, CancellationToken cancellationToken)
         {
-            var unshippedDataDocument = project.AdditionalDocuments.FirstOrDefault(d => d.Name == DiagnosticDescriptorCreationAnalyzer.UnshippedFileName);
+            var unshippedDataDocument = project.AdditionalDocuments.FirstOrDefault(d => d.Name == ReleaseTrackingHelper.UnshippedFileName);
             if (unshippedDataDocument == null)
             {
                 return project.Solution;
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
         private static async Task<Solution> UpdateEntryInUnshippedFileAsync(Project project, string ruleId, string entryToUpdate, CancellationToken cancellationToken)
         {
-            var unshippedDataDocument = project.AdditionalDocuments.FirstOrDefault(d => d.Name == DiagnosticDescriptorCreationAnalyzer.UnshippedFileName);
+            var unshippedDataDocument = project.AdditionalDocuments.FirstOrDefault(d => d.Name == ReleaseTrackingHelper.UnshippedFileName);
             if (unshippedDataDocument == null)
             {
                 return project.Solution;
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
                 if (lineText.StartsWith("###", StringComparison.Ordinal))
                 {
-                    if (lineText.StartsWith(DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules, StringComparison.OrdinalIgnoreCase))
+                    if (lineText.StartsWith(ReleaseTrackingHelper.TableTitleNewRules, StringComparison.OrdinalIgnoreCase))
                     {
                         currentTableKind = RuleEntryTableKind.New;
                     }
@@ -317,11 +318,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                             builder.AppendLine();
                         }
 
-                        if (lineText.StartsWith(DiagnosticDescriptorCreationAnalyzer.TableTitleRemovedRules, StringComparison.OrdinalIgnoreCase))
+                        if (lineText.StartsWith(ReleaseTrackingHelper.TableTitleRemovedRules, StringComparison.OrdinalIgnoreCase))
                         {
                             currentTableKind = RuleEntryTableKind.Removed;
                         }
-                        else if (lineText.StartsWith(DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules, StringComparison.OrdinalIgnoreCase))
+                        else if (lineText.StartsWith(ReleaseTrackingHelper.TableTitleChangedRules, StringComparison.OrdinalIgnoreCase))
                         {
                             currentTableKind = RuleEntryTableKind.Changed;
                         }
@@ -341,13 +342,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 {
                     builder.Append(originalLineText);
 
-                    if (lineText.StartsWith(DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1, StringComparison.OrdinalIgnoreCase) ||
-                        lineText.StartsWith(DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1, StringComparison.OrdinalIgnoreCase))
+                    if (lineText.StartsWith(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1, StringComparison.OrdinalIgnoreCase) ||
+                        lineText.StartsWith(ReleaseTrackingHelper.TableHeaderChangedRulesLine1, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
-                    else if (lineText.StartsWith(DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2, StringComparison.OrdinalIgnoreCase) ||
-                        lineText.StartsWith(DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine2, StringComparison.OrdinalIgnoreCase))
+                    else if (lineText.StartsWith(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2, StringComparison.OrdinalIgnoreCase) ||
+                        lineText.StartsWith(ReleaseTrackingHelper.TableHeaderChangedRulesLine2, StringComparison.OrdinalIgnoreCase))
                     {
                         parsingHeaderLines = false;
                     }
@@ -434,9 +435,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     builder.AppendLine();
                 }
 
-                builder.AppendLine(DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules);
-                builder.AppendLine(DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1);
-                builder.Append(DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2);
+                builder.AppendLine(ReleaseTrackingHelper.TableTitleNewRules);
+                builder.AppendLine(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1);
+                builder.Append(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2);
             }
 
             static void AddChangedRulesTableHeader(StringBuilder builder, bool prependNewLine)
@@ -447,9 +448,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     builder.AppendLine();
                 }
 
-                builder.AppendLine(DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules);
-                builder.AppendLine(DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1);
-                builder.Append(DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine2);
+                builder.AppendLine(ReleaseTrackingHelper.TableTitleChangedRules);
+                builder.AppendLine(ReleaseTrackingHelper.TableHeaderChangedRulesLine1);
+                builder.Append(ReleaseTrackingHelper.TableHeaderChangedRulesLine2);
             }
 
             static bool AddAllEntries(SortedSet<string>? entriesToAdd, StringBuilder builder, bool prependNewLine)

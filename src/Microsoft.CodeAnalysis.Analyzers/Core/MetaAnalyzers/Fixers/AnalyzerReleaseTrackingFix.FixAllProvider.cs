@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                         Project project = pair.Key;
                         ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                        TextDocument? unshippedDocument = project.AdditionalDocuments.FirstOrDefault(a => a.Name == DiagnosticDescriptorCreationAnalyzer.UnshippedFileName);
+                        TextDocument? unshippedDocument = project.AdditionalDocuments.FirstOrDefault(a => a.Name == ReleaseTrackingHelper.UnshippedFileName);
                         if (unshippedDocument == null || diagnostics.IsEmpty)
                         {
                             continue;

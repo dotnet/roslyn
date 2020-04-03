@@ -5,6 +5,7 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypeNames
     {
         public const string SystemAppContext = "System.AppContext";
+        public const string SystemBuffersMemoryManager1 = "System.Buffers.MemoryManager`1";
         public const string SystemNetSecurityProtocolType = "System.Net.SecurityProtocolType";
         public const string SystemWebMvcValidateInputAttribute = "System.Web.Mvc.ValidateInputAttribute";
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
