@@ -121,9 +121,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // Now, rename all usages of the field to point at the property.  Except don't actually 
             // rename the field itself.  We want to be able to find it again post rename.
             var nonConflictSymbols = ImmutableHashSet.Create<ISymbol>(propertySymbol);
+            //location => !location.SourceSpan.IntersectsWith(declaratorLocation.SourceSpan) &&
+            //CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit),
+
             var updatedSolution = await Renamer.RenameAsync(fieldLocations, propertySymbol.Name,
-                location => !location.SourceSpan.IntersectsWith(declaratorLocation.SourceSpan) &&
-                            CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit),
+
                 nonConflictSymbols,
                 cancellationToken).ConfigureAwait(false);
 

@@ -218,5 +218,12 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return new SearchResult(locations, implicitLocations, referencedSymbols);
         }
+
+        public RenameLocations Filter(Func<Location, bool> filter)
+            => new RenameLocations(
+                this.Locations.Where(loc => filter(loc.Location)).ToSet(),
+                this.SymbolAndProjectId, this.Solution,
+                this.ReferencedSymbols, this.ImplicitLocations.Where(loc => filter(loc.Location)),
+                this.Options);
     }
 }
