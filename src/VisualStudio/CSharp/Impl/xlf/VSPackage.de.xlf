@@ -273,6 +273,7 @@ Leerzeichen vor und nach binären Operatoren einfügen;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
 Snippets behavior;
