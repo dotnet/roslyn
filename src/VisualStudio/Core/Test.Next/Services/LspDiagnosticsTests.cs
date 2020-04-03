@@ -284,7 +284,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.False(languageServer._publishedFileToDiagnostics.Keys.Any());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43046")]
         public async Task ClearAllDiagnosticsForMappedFileToManyDocumentsTestAsync()
         {
             using var workspace = CreateTestWorkspace(new string[] { "", "" }, out _);
