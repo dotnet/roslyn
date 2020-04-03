@@ -4,6 +4,30 @@
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
   </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'net46'">
+      <PropertyGroup>
+        <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis2PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
+      <PropertyGroup>
+        <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis2PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net472'">
+      <PropertyGroup>
+        <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis3PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+      <PropertyGroup>
+        <MicrosoftCodeAnalysisPrimaryTestVersion>$(MicrosoftCodeAnalysis3PrimaryTestVersion)</MicrosoftCodeAnalysisPrimaryTestVersion>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisPrimaryTestVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisPrimaryTestVersion)" />
