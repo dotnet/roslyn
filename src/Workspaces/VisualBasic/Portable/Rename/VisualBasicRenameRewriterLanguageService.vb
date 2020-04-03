@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
@@ -658,8 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
         Public Overrides Function LocalVariableConflict(
             token As SyntaxToken,
-            newReferencedSymbols As IEnumerable(Of ISymbol)
-            ) As Boolean
+            newReferencedSymbols As IEnumerable(Of ISymbol)) As Boolean
 
             ' This scenario is not present in VB and only in C#
             Return False

@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.Rename
         public abstract bool LocalVariableConflict(SyntaxToken token, IEnumerable<ISymbol> newReferencedSymbols);
         public abstract void TryAddPossibleNameConflicts(ISymbol symbol, string newName, ICollection<string> possibleNameConflicts);
 
-
         protected static void AddConflictingParametersOfProperties(
             IEnumerable<ISymbol> properties, string newPropertyName, ArrayBuilder<Location> conflicts)
         {
@@ -141,7 +140,8 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 var prop = (IPropertySymbol)symbol;
 
-                var conflictingParameter = prop.Parameters.FirstOrDefault(param => string.Compare(param.Name, newPropertyName, StringComparison.OrdinalIgnoreCase) == 0);
+                var conflictingParameter = prop.Parameters.FirstOrDefault(
+                    param => string.Compare(param.Name, newPropertyName, StringComparison.OrdinalIgnoreCase) == 0);
 
                 if (conflictingParameter != null)
                 {
