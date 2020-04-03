@@ -6,6 +6,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -31,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             decimal INumericTC<decimal>.MaxValue => decimal.MaxValue;
 
             public decimal FromConstantValue(ConstantValue constantValue) => constantValue.DecimalValue;
+
+            public ConstantValue ToConstantValue(decimal value) => ConstantValue.Create(value);
 
             public decimal Next(decimal value)
             {
@@ -108,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -Next(-value);
             }
 
-            decimal INumericTC<decimal>.Random(Random random)
+            public decimal Random(Random random)
             {
                 INumericTC<uint> uinttc = default(UIntTC);
                 return new DecimalRep(

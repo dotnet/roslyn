@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             byte INumericTC<byte>.FromConstantValue(ConstantValue constantValue) => constantValue.ByteValue;
 
+            ConstantValue INumericTC<byte>.ToConstantValue(byte value) => ConstantValue.Create(value);
+
             string INumericTC<byte>.ToString(byte value) => value.ToString();
 
             byte INumericTC<byte>.Random(Random random)

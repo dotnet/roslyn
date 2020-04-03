@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             T FromConstantValue(ConstantValue constantValue);
 
             /// <summary>
+            /// Translate a numeric value of type <typeparamref name="T"/> into a <see cref="ConstantValue"/>.
+            /// </summary>
+            ConstantValue ToConstantValue(T value);
+
+            /// <summary>
             /// Compute the value of the binary relational operator on the given operands.
             /// </summary>
             bool Related(BinaryOperatorKind relation, T left, T right);

@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             long INumericTC<long>.FromConstantValue(ConstantValue constantValue) => constantValue.Int64Value;
 
+            ConstantValue INumericTC<long>.ToConstantValue(long value) => ConstantValue.Create(value);
+
             string INumericTC<long>.ToString(long value) => value.ToString();
 
             long INumericTC<long>.Random(Random random)

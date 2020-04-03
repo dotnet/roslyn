@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             T FromConstantValue(ConstantValue constantValue);
 
             /// <summary>
+            /// Translate a numeric value of type <typeparamref name="T"/> into a <see cref="ConstantValue"/>.
+            /// </summary>
+            ConstantValue ToConstantValue(T value);
+
+            /// <summary>
             /// Generate <paramref name="count"/> random values of type <typeparamref name="T"/>.
             /// If the domain of <typeparamref name="T"/> is infinite (for example, a string type),
             /// the <paramref name="count"/> parameter is used to identify the size of a restricted

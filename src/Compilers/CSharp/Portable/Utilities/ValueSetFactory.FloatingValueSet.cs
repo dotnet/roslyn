@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (expectedSize < 1)
                     expectedSize = 2;
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Random(expectedSize, random), hasNaN: hasNan);
+                    numbers: (IValueSet<TFloating>)NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Random(expectedSize, random), hasNaN: hasNan);
             }
 
             bool IValueSet.IsEmpty => !_hasNaN && _numbers.IsEmpty;

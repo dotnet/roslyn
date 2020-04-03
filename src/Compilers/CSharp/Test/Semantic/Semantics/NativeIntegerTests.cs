@@ -3937,93 +3937,109 @@ case 0: 2
 case 9999: 1
 default: 0
 0");
-            verifier.VerifyIL("Program.M",
-@"{
-  // Code size      170 (0xaa)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0026
-  IL_0003:  ldarg.0
-  IL_0004:  ldc.i4.2
-  IL_0005:  conv.i
-  IL_0006:  beq.s      IL_0038
-  IL_0008:  ldarg.0
-  IL_0009:  ldc.i4.6
-  IL_000a:  conv.i
-  IL_000b:  beq.s      IL_004a
-  IL_000d:  ldarg.0
-  IL_000e:  ldc.i4     0x270f
-  IL_0013:  conv.i
-  IL_0014:  beq.s      IL_005c
-  IL_0016:  ldarg.0
-  IL_0017:  ldc.i4     0xff
-  IL_001c:  conv.i
-  IL_001d:  beq.s      IL_006e
-  IL_001f:  ldarg.0
-  IL_0020:  ldc.i4.m1
-  IL_0021:  conv.i
-  IL_0022:  beq.s      IL_0095
-  IL_0024:  br.s       IL_0080
-  IL_0026:  ldarg.0
-  IL_0027:  ldc.i4.1
-  IL_0028:  sub
-  IL_0029:  starg.s    V_0
-  IL_002b:  ldstr      ""case 0: ""
-  IL_0030:  ldarg.0
-  IL_0031:  call       ""void Program.Report(string, nint)""
-  IL_0036:  br.s       IL_005c
-  IL_0038:  ldarg.0
-  IL_0039:  ldc.i4.1
-  IL_003a:  sub
-  IL_003b:  starg.s    V_0
-  IL_003d:  ldstr      ""case 2: ""
-  IL_0042:  ldarg.0
-  IL_0043:  call       ""void Program.Report(string, nint)""
-  IL_0048:  br.s       IL_006e
-  IL_004a:  ldarg.0
-  IL_004b:  ldc.i4.1
-  IL_004c:  sub
-  IL_004d:  starg.s    V_0
-  IL_004f:  ldstr      ""case 6: ""
-  IL_0054:  ldarg.0
-  IL_0055:  call       ""void Program.Report(string, nint)""
-  IL_005a:  br.s       IL_0038
-  IL_005c:  ldarg.0
-  IL_005d:  ldc.i4.1
-  IL_005e:  sub
-  IL_005f:  starg.s    V_0
-  IL_0061:  ldstr      ""case 9999: ""
-  IL_0066:  ldarg.0
-  IL_0067:  call       ""void Program.Report(string, nint)""
-  IL_006c:  br.s       IL_0080
-  IL_006e:  ldarg.0
-  IL_006f:  ldc.i4.1
-  IL_0070:  sub
-  IL_0071:  starg.s    V_0
-  IL_0073:  ldstr      ""case 0xff: ""
-  IL_0078:  ldarg.0
-  IL_0079:  call       ""void Program.Report(string, nint)""
-  IL_007e:  br.s       IL_0026
-  IL_0080:  ldarg.0
-  IL_0081:  ldc.i4.1
-  IL_0082:  sub
-  IL_0083:  starg.s    V_0
-  IL_0085:  ldstr      ""default: ""
-  IL_008a:  ldarg.0
-  IL_008b:  call       ""void Program.Report(string, nint)""
-  IL_0090:  ldarg.0
-  IL_0091:  ldc.i4.0
-  IL_0092:  conv.i
-  IL_0093:  ble.s      IL_00a8
-  IL_0095:  ldc.i4     0x3e7
-  IL_009a:  conv.i
-  IL_009b:  starg.s    V_0
-  IL_009d:  ldstr      ""case -1: ""
-  IL_00a2:  ldarg.0
-  IL_00a3:  call       ""void Program.Report(string, nint)""
-  IL_00a8:  ldarg.0
-  IL_00a9:  ret
-}");
+            verifier.VerifyIL("Program.M", @"
+    {
+      // Code size      201 (0xc9)
+      .maxstack  3
+      .locals init (long V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  conv.i8
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  ldc.i4.6
+      IL_0005:  conv.i8
+      IL_0006:  bgt.s      IL_0031
+      IL_0008:  ldloc.0
+      IL_0009:  ldc.i4.m1
+      IL_000a:  conv.i8
+      IL_000b:  sub
+      IL_000c:  dup
+      IL_000d:  ldc.i4.3
+      IL_000e:  conv.i8
+      IL_000f:  ble.un.s   IL_0014
+      IL_0011:  pop
+      IL_0012:  br.s       IL_002a
+      IL_0014:  conv.u4
+      IL_0015:  switch    (
+            IL_00b4,
+            IL_0045,
+            IL_009f,
+            IL_0057)
+      IL_002a:  ldloc.0
+      IL_002b:  ldc.i4.6
+      IL_002c:  conv.i8
+      IL_002d:  beq.s      IL_0069
+      IL_002f:  br.s       IL_009f
+      IL_0031:  ldloc.0
+      IL_0032:  ldc.i4     0xff
+      IL_0037:  conv.i8
+      IL_0038:  beq.s      IL_008d
+      IL_003a:  ldloc.0
+      IL_003b:  ldc.i4     0x270f
+      IL_0040:  conv.i8
+      IL_0041:  beq.s      IL_007b
+      IL_0043:  br.s       IL_009f
+      IL_0045:  ldarg.0
+      IL_0046:  ldc.i4.1
+      IL_0047:  sub
+      IL_0048:  starg.s    V_0
+      IL_004a:  ldstr      ""case 0: ""
+      IL_004f:  ldarg.0
+      IL_0050:  call       ""void Program.Report(string, nint)""
+      IL_0055:  br.s       IL_007b
+      IL_0057:  ldarg.0
+      IL_0058:  ldc.i4.1
+      IL_0059:  sub
+      IL_005a:  starg.s    V_0
+      IL_005c:  ldstr      ""case 2: ""
+      IL_0061:  ldarg.0
+      IL_0062:  call       ""void Program.Report(string, nint)""
+      IL_0067:  br.s       IL_008d
+      IL_0069:  ldarg.0
+      IL_006a:  ldc.i4.1
+      IL_006b:  sub
+      IL_006c:  starg.s    V_0
+      IL_006e:  ldstr      ""case 6: ""
+      IL_0073:  ldarg.0
+      IL_0074:  call       ""void Program.Report(string, nint)""
+      IL_0079:  br.s       IL_0057
+      IL_007b:  ldarg.0
+      IL_007c:  ldc.i4.1
+      IL_007d:  sub
+      IL_007e:  starg.s    V_0
+      IL_0080:  ldstr      ""case 9999: ""
+      IL_0085:  ldarg.0
+      IL_0086:  call       ""void Program.Report(string, nint)""
+      IL_008b:  br.s       IL_009f
+      IL_008d:  ldarg.0
+      IL_008e:  ldc.i4.1
+      IL_008f:  sub
+      IL_0090:  starg.s    V_0
+      IL_0092:  ldstr      ""case 0xff: ""
+      IL_0097:  ldarg.0
+      IL_0098:  call       ""void Program.Report(string, nint)""
+      IL_009d:  br.s       IL_0045
+      IL_009f:  ldarg.0
+      IL_00a0:  ldc.i4.1
+      IL_00a1:  sub
+      IL_00a2:  starg.s    V_0
+      IL_00a4:  ldstr      ""default: ""
+      IL_00a9:  ldarg.0
+      IL_00aa:  call       ""void Program.Report(string, nint)""
+      IL_00af:  ldarg.0
+      IL_00b0:  ldc.i4.0
+      IL_00b1:  conv.i
+      IL_00b2:  ble.s      IL_00c7
+      IL_00b4:  ldc.i4     0x3e7
+      IL_00b9:  conv.i
+      IL_00ba:  starg.s    V_0
+      IL_00bc:  ldstr      ""case -1: ""
+      IL_00c1:  ldarg.0
+      IL_00c2:  call       ""void Program.Report(string, nint)""
+      IL_00c7:  ldarg.0
+      IL_00c8:  ret
+    }
+");
         }
 
         [Fact]
@@ -4088,93 +4104,103 @@ case 0: 2
 case 9999: 1
 default: 0
 0");
-            verifier.VerifyIL("Program.M",
-@"{
-  // Code size      174 (0xae)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_002a
-  IL_0003:  ldarg.0
-  IL_0004:  ldc.i4.2
-  IL_0005:  conv.i
-  IL_0006:  beq.s      IL_003c
-  IL_0008:  ldarg.0
-  IL_0009:  ldc.i4.6
-  IL_000a:  conv.i
-  IL_000b:  beq.s      IL_004e
-  IL_000d:  ldarg.0
-  IL_000e:  ldc.i4     0x270f
-  IL_0013:  conv.i
-  IL_0014:  beq.s      IL_0060
-  IL_0016:  ldarg.0
-  IL_0017:  ldc.i4     0xff
-  IL_001c:  conv.i
-  IL_001d:  beq.s      IL_0072
-  IL_001f:  ldarg.0
-  IL_0020:  ldc.i4     0x7fffffff
-  IL_0025:  conv.i
-  IL_0026:  beq.s      IL_0099
-  IL_0028:  br.s       IL_0084
-  IL_002a:  ldarg.0
-  IL_002b:  ldc.i4.1
-  IL_002c:  sub
-  IL_002d:  starg.s    V_0
-  IL_002f:  ldstr      ""case 0: ""
-  IL_0034:  ldarg.0
-  IL_0035:  call       ""void Program.Report(string, nuint)""
-  IL_003a:  br.s       IL_0060
-  IL_003c:  ldarg.0
-  IL_003d:  ldc.i4.1
-  IL_003e:  sub
-  IL_003f:  starg.s    V_0
-  IL_0041:  ldstr      ""case 2: ""
-  IL_0046:  ldarg.0
-  IL_0047:  call       ""void Program.Report(string, nuint)""
-  IL_004c:  br.s       IL_0072
-  IL_004e:  ldarg.0
-  IL_004f:  ldc.i4.1
-  IL_0050:  sub
-  IL_0051:  starg.s    V_0
-  IL_0053:  ldstr      ""case 6: ""
-  IL_0058:  ldarg.0
-  IL_0059:  call       ""void Program.Report(string, nuint)""
-  IL_005e:  br.s       IL_003c
-  IL_0060:  ldarg.0
-  IL_0061:  ldc.i4.1
-  IL_0062:  sub
-  IL_0063:  starg.s    V_0
-  IL_0065:  ldstr      ""case 9999: ""
-  IL_006a:  ldarg.0
-  IL_006b:  call       ""void Program.Report(string, nuint)""
-  IL_0070:  br.s       IL_0084
-  IL_0072:  ldarg.0
-  IL_0073:  ldc.i4.1
-  IL_0074:  sub
-  IL_0075:  starg.s    V_0
-  IL_0077:  ldstr      ""case 0xff: ""
-  IL_007c:  ldarg.0
-  IL_007d:  call       ""void Program.Report(string, nuint)""
-  IL_0082:  br.s       IL_002a
-  IL_0084:  ldarg.0
-  IL_0085:  ldc.i4.1
-  IL_0086:  sub
-  IL_0087:  starg.s    V_0
-  IL_0089:  ldstr      ""default: ""
-  IL_008e:  ldarg.0
-  IL_008f:  call       ""void Program.Report(string, nuint)""
-  IL_0094:  ldarg.0
-  IL_0095:  ldc.i4.0
-  IL_0096:  conv.i
-  IL_0097:  ble.un.s   IL_00ac
-  IL_0099:  ldc.i4     0x3e7
-  IL_009e:  conv.i
-  IL_009f:  starg.s    V_0
-  IL_00a1:  ldstr      ""case int.MaxValue: ""
-  IL_00a6:  ldarg.0
-  IL_00a7:  call       ""void Program.Report(string, nuint)""
-  IL_00ac:  ldarg.0
-  IL_00ad:  ret
-}");
+            verifier.VerifyIL("Program.M", @"
+    {
+      // Code size      184 (0xb8)
+      .maxstack  2
+      .locals init (ulong V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  conv.u8
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  ldc.i4.6
+      IL_0005:  conv.i8
+      IL_0006:  bgt.un.s   IL_0017
+      IL_0008:  ldloc.0
+      IL_0009:  brfalse.s  IL_0034
+      IL_000b:  ldloc.0
+      IL_000c:  ldc.i4.2
+      IL_000d:  conv.i8
+      IL_000e:  beq.s      IL_0046
+      IL_0010:  ldloc.0
+      IL_0011:  ldc.i4.6
+      IL_0012:  conv.i8
+      IL_0013:  beq.s      IL_0058
+      IL_0015:  br.s       IL_008e
+      IL_0017:  ldloc.0
+      IL_0018:  ldc.i4     0xff
+      IL_001d:  conv.i8
+      IL_001e:  beq.s      IL_007c
+      IL_0020:  ldloc.0
+      IL_0021:  ldc.i4     0x270f
+      IL_0026:  conv.i8
+      IL_0027:  beq.s      IL_006a
+      IL_0029:  ldloc.0
+      IL_002a:  ldc.i4     0x7fffffff
+      IL_002f:  conv.i8
+      IL_0030:  beq.s      IL_00a3
+      IL_0032:  br.s       IL_008e
+      IL_0034:  ldarg.0
+      IL_0035:  ldc.i4.1
+      IL_0036:  sub
+      IL_0037:  starg.s    V_0
+      IL_0039:  ldstr      ""case 0: ""
+      IL_003e:  ldarg.0
+      IL_003f:  call       ""void Program.Report(string, nuint)""
+      IL_0044:  br.s       IL_006a
+      IL_0046:  ldarg.0
+      IL_0047:  ldc.i4.1
+      IL_0048:  sub
+      IL_0049:  starg.s    V_0
+      IL_004b:  ldstr      ""case 2: ""
+      IL_0050:  ldarg.0
+      IL_0051:  call       ""void Program.Report(string, nuint)""
+      IL_0056:  br.s       IL_007c
+      IL_0058:  ldarg.0
+      IL_0059:  ldc.i4.1
+      IL_005a:  sub
+      IL_005b:  starg.s    V_0
+      IL_005d:  ldstr      ""case 6: ""
+      IL_0062:  ldarg.0
+      IL_0063:  call       ""void Program.Report(string, nuint)""
+      IL_0068:  br.s       IL_0046
+      IL_006a:  ldarg.0
+      IL_006b:  ldc.i4.1
+      IL_006c:  sub
+      IL_006d:  starg.s    V_0
+      IL_006f:  ldstr      ""case 9999: ""
+      IL_0074:  ldarg.0
+      IL_0075:  call       ""void Program.Report(string, nuint)""
+      IL_007a:  br.s       IL_008e
+      IL_007c:  ldarg.0
+      IL_007d:  ldc.i4.1
+      IL_007e:  sub
+      IL_007f:  starg.s    V_0
+      IL_0081:  ldstr      ""case 0xff: ""
+      IL_0086:  ldarg.0
+      IL_0087:  call       ""void Program.Report(string, nuint)""
+      IL_008c:  br.s       IL_0034
+      IL_008e:  ldarg.0
+      IL_008f:  ldc.i4.1
+      IL_0090:  sub
+      IL_0091:  starg.s    V_0
+      IL_0093:  ldstr      ""default: ""
+      IL_0098:  ldarg.0
+      IL_0099:  call       ""void Program.Report(string, nuint)""
+      IL_009e:  ldarg.0
+      IL_009f:  ldc.i4.0
+      IL_00a0:  conv.i
+      IL_00a1:  ble.un.s   IL_00b6
+      IL_00a3:  ldc.i4     0x3e7
+      IL_00a8:  conv.i
+      IL_00a9:  starg.s    V_0
+      IL_00ab:  ldstr      ""case int.MaxValue: ""
+      IL_00b0:  ldarg.0
+      IL_00b1:  call       ""void Program.Report(string, nuint)""
+      IL_00b6:  ldarg.0
+      IL_00b7:  ret
+    }
+");
         }
 
         [Fact]

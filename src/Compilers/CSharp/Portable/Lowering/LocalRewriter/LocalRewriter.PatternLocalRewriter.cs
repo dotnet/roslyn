@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
             {
                 TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
-                var operatorType = Binder.RelationalOperatorType(comparisonType.SpecialType);
+                var operatorType = Binder.RelationalOperatorType(comparisonType);
                 Debug.Assert(operatorType != BinaryOperatorKind.Error);
                 var operatorKind = BinaryOperatorKind.Equal | operatorType;
                 return MakeRelationalTest(syntax, input, operatorKind, value);

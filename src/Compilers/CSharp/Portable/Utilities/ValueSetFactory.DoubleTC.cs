@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             double INumericTC<double>.FromConstantValue(ConstantValue constantValue) => constantValue.DoubleValue;
 
+            ConstantValue INumericTC<double>.ToConstantValue(double value) => ConstantValue.Create(value);
+
             /// <summary>
             /// Produce a string for testing purposes that is likely to be the same independent of platform and locale.
             /// </summary>

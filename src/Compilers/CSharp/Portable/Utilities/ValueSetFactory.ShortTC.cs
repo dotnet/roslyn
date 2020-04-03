@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             short INumericTC<short>.FromConstantValue(ConstantValue constantValue) => constantValue.Int16Value;
 
+            ConstantValue INumericTC<short>.ToConstantValue(short value) => ConstantValue.Create(value);
+
             string INumericTC<short>.ToString(short value) => value.ToString();
 
             short INumericTC<short>.Random(Random random)

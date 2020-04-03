@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return (char)random.Next((int)char.MinValue, 1 + (int)char.MaxValue);
             }
+
+            ConstantValue INumericTC<char>.ToConstantValue(char value) => ConstantValue.Create(value);
         }
     }
 }

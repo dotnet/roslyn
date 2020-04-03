@@ -4067,6 +4067,9 @@ class C
         [InlineData(201887198, 100, 'M', ".1")]
         [InlineData(1323313104, 100, 'L', "")]
         [InlineData(349816033, 100, 'U', "")]
+        [InlineData(1179638331, 100, 'x', "")]
+        [InlineData(337638347, 100, 'y', "")]
+        [InlineData(834733763, 100, 'z', "")]
         public void RelationalFuzz_01(int seed, int numCases, char kind, string point)
         {
             string type = kind switch
@@ -4076,8 +4079,16 @@ class C
                 'M' => "decimal",
                 'L' => "long",
                 'U' => "uint",
+                'x' => "nint",
+                'y' => "nuint",
+                'z' => "int",
                 _ => throw new ArgumentException(nameof(kind)),
             };
+            if (kind is 'x' || kind is 'y' || kind is 'z')
+            {
+                kind = ' ';
+            }
+
             // A 
             Random random = new Random(seed);
             int nextInt = 1;
@@ -4120,21 +4131,24 @@ CASES
     }
 }
 ";
-            var casesString = string.Join("\n", cases);
-            var source = sourceTemplate.Replace("TESTS", tests.ToString()).Replace("CASES", casesString).Replace("TYPE", type);
             var expectedOutput = expected.ToString();
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
-            compilation.VerifyDiagnostics(
-                );
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
+            // try with cases in order
+            runTest();
+
+            // try with cases in random order
             shuffle(cases);
-            casesString = string.Join("\n", cases);
-            source = sourceTemplate.Replace("TESTS", tests.ToString()).Replace("CASES", casesString).Replace("TYPE", type);
-            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
-            compilation.VerifyDiagnostics(
-                );
-            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            runTest();
+
+            void runTest()
+            {
+                var casesString = string.Join("\n", cases);
+                var source = sourceTemplate.Replace("TESTS", tests.ToString()).Replace("CASES", casesString).Replace("TYPE", type);
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview));
+                compilation.VerifyDiagnostics(
+                    );
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            }
 
             void shuffle(ArrayBuilder<string> cases)
             {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 
 #nullable enable
 
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int INumericTC<int>.MaxValue => int.MaxValue;
 
-            bool INumericTC<int>.Related(BinaryOperatorKind relation, int left, int right)
+            public bool Related(BinaryOperatorKind relation, int left, int right)
             {
                 switch (relation)
                 {
@@ -50,11 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value - 1;
             }
 
-            int INumericTC<int>.FromConstantValue(ConstantValue constantValue) => constantValue.Int32Value;
+            public int FromConstantValue(ConstantValue constantValue) => constantValue.Int32Value;
+
+            public ConstantValue ToConstantValue(int value) => ConstantValue.Create(value);
 
             string INumericTC<int>.ToString(int value) => value.ToString();
 
-            int INumericTC<int>.Random(Random random)
+            public int Random(Random random)
             {
                 return (random.Next() << 10) ^ random.Next();
             }

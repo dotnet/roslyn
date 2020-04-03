@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return tc.FromConstantValue(left).Equals(tc.FromConstantValue(right));
             }
 
-            IValueSet<T> IValueSetFactory<T>.Random(int expectedSize, Random random)
+            IValueSet IValueSetFactory.Random(int expectedSize, Random random)
             {
                 TTC tc = default;
                 T[] values = tc.RandomValues(expectedSize, random, expectedSize * 2);
@@ -54,6 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = result.Union(Related(Equal, value));
 
                 return result;
+            }
+
+            ConstantValue IValueSetFactory.RandomValue(Random random)
+            {
+                TTC tc = default;
+                return tc.ToConstantValue(tc.RandomValues(1, random, 100)[0]);
             }
         }
     }

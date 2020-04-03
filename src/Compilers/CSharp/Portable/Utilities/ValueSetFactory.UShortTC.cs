@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ushort INumericTC<ushort>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt16Value;
 
+            ConstantValue INumericTC<ushort>.ToConstantValue(ushort value) => ConstantValue.Create(value);
+
             string INumericTC<ushort>.ToString(ushort value) => value.ToString();
 
             ushort INumericTC<ushort>.Prev(ushort value)

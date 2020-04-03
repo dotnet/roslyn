@@ -66,4 +66,10 @@
     <InternalsVisibleTo Include="CompilerBenchmarks" />
   </ItemGroup>
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
+  <ItemGroup>
+    <ExpectedCompile Remove="Utilities\ValueSetFactory.NintValueSet.cs" />
+    <ExpectedCompile Remove="Utilities\ValueSetFactory.NintValueSetFactory.cs" />
+    <ExpectedCompile Remove="Utilities\ValueSetFactory.NuintValueSet.cs" />
+    <ExpectedCompile Remove="Utilities\ValueSetFactory.NuintValueSetFactory.cs" />
+  </ItemGroup>
 </Project>
