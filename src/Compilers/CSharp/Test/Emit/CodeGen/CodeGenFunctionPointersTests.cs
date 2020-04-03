@@ -4111,6 +4111,59 @@ unsafe class C
 ");
         }
 
+        [Fact]
+        public void SpanOfFunctionPointers()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+static unsafe class C
+{
+    static int Getter(int i) => i;
+    static void Print(delegate*<int, int>* p)
+    {
+        for (int i = 0; i < 3; i++)
+            Console.Write(p[i](i));
+    }
+
+    static void Main()
+    {
+        delegate*<int, int>* p = stackalloc delegate*<int, int>[] { &Getter, &Getter, &Getter };
+        Print(p);
+    }
+}
+", expectedOutput: "012");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  conv.u
+  IL_0002:  sizeof     ""delegate*<int,int>""
+  IL_0008:  mul.ovf.un
+  IL_0009:  localloc
+  IL_000b:  dup
+  IL_000c:  ldftn      ""int C.Getter(int)""
+  IL_0012:  stind.i
+  IL_0013:  dup
+  IL_0014:  sizeof     ""delegate*<int,int>""
+  IL_001a:  add
+  IL_001b:  ldftn      ""int C.Getter(int)""
+  IL_0021:  stind.i
+  IL_0022:  dup
+  IL_0023:  ldc.i4.2
+  IL_0024:  conv.i
+  IL_0025:  sizeof     ""delegate*<int,int>""
+  IL_002b:  mul
+  IL_002c:  add
+  IL_002d:  ldftn      ""int C.Getter(int)""
+  IL_0033:  stind.i
+  IL_0034:  call       ""void C.Print(delegate*<int,int>*)""
+  IL_0039:  ret
+}
+");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
