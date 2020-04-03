@@ -13,7 +13,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-
+using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -29,6 +29,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
+
+        public AddParameterDialog_OutOfProc AddParameterDialog { get; }
 
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
@@ -125,6 +127,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // we start executing any actual code.
             _inProc.WaitForSystemIdle();
 
+            AddParameterDialog = new AddParameterDialog_OutOfProc(this);
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);

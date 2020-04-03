@@ -1064,8 +1064,14 @@ I agree to all of the foregoing:</value>
   <data name="Avoid_unused_value_assignments" xml:space="preserve">
     <value>Avoid unused value assignments</value>
   </data>
+  <data name="Parameter_name_contains_invalid_characters" xml:space="preserve">
+    <value>Parameter name contains invalid character(s).</value>
+  </data>
   <data name="Parameter_preferences_colon" xml:space="preserve">
     <value>Parameter preferences:</value>
+  </data>
+  <data name="Parameter_type_contains_invalid_characters" xml:space="preserve">
+    <value>Parameter type contains invalid character(s).</value>
   </data>
   <data name="Non_public_methods" xml:space="preserve">
     <value>Non-public methods</value>
@@ -1171,6 +1177,9 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="A_new_namespace_will_be_created" xml:space="preserve">
     <value>A new namespace will be created</value>
+  </data>
+  <data name="A_type_and_name_must_be_provided" xml:space="preserve">
+    <value>A type and name must be provided.</value>
   </data>
   <data name="Rename_0_to_1" xml:space="preserve">
     <value>Rename {0} to {1}</value>
@@ -1354,6 +1363,56 @@ I agree to all of the foregoing:</value>
     <value>Live Share C#/Visual Basic Language Server Client</value>
     <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
+  <data name="Edit" xml:space="preserve">
+    <value>_Edit</value>
+  </data>
+  <data name="Edit_0" xml:space="preserve">
+    <value>Edit {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
+  <data name="Parameter_Details" xml:space="preserve">
+    <value>Parameter Details</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>_Add</value>
+    <comment>Adding an element to a list</comment>
+  </data>
+  <data name="Callsite" xml:space="preserve">
+    <value>Call site</value>
+  </data>
+  <data name="Add_Parameter" xml:space="preserve">
+    <value>Add Parameter</value>
+  </data>
+  <data name="Call_site_value" xml:space="preserve">
+    <value>Call site value:</value>
+  </data>
+  <data name="Parameter_Name" xml:space="preserve">
+    <value>Parameter name:</value>
+  </data>
+  <data name="Type_Name" xml:space="preserve">
+    <value>Type name:</value>
+  </data>
+  <data name="You_must_change_the_signature" xml:space="preserve">
+    <value>You must change the signature</value>
+    <comment>"signature" here means the definition of a method</comment>
+  </data>
+  <data name="ChangeSignature_NewParameterIndicator" xml:space="preserve">
+    <value>&lt;new&gt;</value>
+  </data>
+  <data name="ChangeSignature_NewParameterIntroduceTODOVariable" xml:space="preserve">
+    <value>TODO</value>
+    <comment>"TODO" is an indication that there is work to be done still</comment>
+  </data>
+  <data name="Added_Parameter" xml:space="preserve">
+    <value>Added parameter.</value>
+  </data>
+  <data name="Inserting_call_site_value_0" xml:space="preserve">
+    <value>Inserting call site value '{0}'</value>
+  </data>
+  <data name="Index" xml:space="preserve">
+    <value>Index</value>
+    <comment>Index of parameter in original signature</comment>
+  </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
   </data>
@@ -1374,5 +1433,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
     <value>Prefer simplified boolean expressions</value>
+  </data>
+  <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
+    <value>Razor C# Language Server Client</value>
   </data>
 </root>
