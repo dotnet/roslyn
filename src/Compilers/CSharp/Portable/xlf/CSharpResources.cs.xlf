@@ -889,6 +889,16 @@
         <target state="translated">rozšiřitelný příkaz fixed</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetAsyncEnumerator">
+        <source>extension GetAsyncEnumerator</source>
+        <target state="new">extension GetAsyncEnumerator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionGetEnumerator">
+        <source>extension GetEnumerator</source>
+        <target state="new">extension GetEnumerator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
         <source>extern local functions</source>
         <target state="new">extern local functions</target>

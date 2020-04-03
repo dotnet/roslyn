@@ -6049,4 +6049,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
   </data>
+  <data name="IDS_FeatureExtensionGetAsyncEnumerator" xml:space="preserve">
+    <value>extension GetAsyncEnumerator</value>
+  </data>
+  <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
+    <value>extension GetEnumerator</value>
+  </data>
 </root>
