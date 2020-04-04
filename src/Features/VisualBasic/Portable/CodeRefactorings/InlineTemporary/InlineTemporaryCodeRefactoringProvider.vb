@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
             If local IsNot Nothing Then
                 Dim solution = document.Project.Solution
-                Dim findReferencesResult = Await SymbolFinder.FindReferencesAsync(local, solution, cancellationToken).ConfigureAwait(False)
+                Dim findReferencesResult = Await SymbolFinder.FindReferencesAsync(local, document.Project, cancellationToken).ConfigureAwait(False)
 
                 Dim locations = findReferencesResult.Single(Function(r) Equals(r.Definition, local)).Locations
                 If Not locations.Any(Function(loc) semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)) Then
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
             ' Collect the identifier names for each reference.
             Dim local = semanticModel.GetDeclaredSymbol(modifiedIdentifier, cancellationToken)
-            Dim symbolRefs = Await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project.Solution, cancellationToken).ConfigureAwait(False)
+            Dim symbolRefs = Await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project, cancellationToken).ConfigureAwait(False)
             Dim references = symbolRefs.Single(Function(r) Equals(r.Definition, local)).Locations
             Dim syntaxRoot = Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 

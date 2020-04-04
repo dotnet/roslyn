@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
-            var overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var overrides = await SymbolFinder.FindOverridesAsync(symbol, project, cancellationToken: cancellationToken).ConfigureAwait(false);
             var callsToOverrides = new List<SymbolCallerInfo>();
 
             foreach (var @override in overrides)
             {
-                var calls = await SymbolFinder.FindCallersAsync(@override, project.Solution, documents, cancellationToken).ConfigureAwait(false);
+                var calls = await SymbolFinder.FindCallersAsync(@override.Symbol, @override.Project, documents, cancellationToken).ConfigureAwait(false);
 
                 foreach (var call in calls)
                 {

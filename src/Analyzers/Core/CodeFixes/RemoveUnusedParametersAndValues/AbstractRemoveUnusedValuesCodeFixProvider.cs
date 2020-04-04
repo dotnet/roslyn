@@ -842,9 +842,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var local = localDeclarationOperation.GetDeclaredVariables().Single();
 
             // Check if the declared variable has no references in fixed code.
-            var referencedSymbols = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-            return referencedSymbols.Count() == 1 &&
-                referencedSymbols.Single().Locations.IsEmpty();
+#if CODE_STYLE
+            var referencedSymbolsList = await SymbolFinder.FindReferencesAsync(
+                local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var referencedSymbols = referencedSymbolsList.ToImmutableArray();
+#else
+            var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+                local, document.Project, cancellationToken).ConfigureAwait(false);
+#endif
+            return referencedSymbols.Length == 1 &&
+                referencedSymbols[0].Locations.IsEmpty();
         }
 
         private sealed class MyCodeAction : CustomCodeActions.DocumentChangeAction

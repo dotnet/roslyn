@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                 }
 
                 var symbol = documentEditor.SemanticModel.GetDeclaredSymbol(node);
-                var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, documentsToBeSearched, cancellationToken).ConfigureAwait(false);
+                var referencedSymbols = await SymbolFinder.FindReferencesAsync(
+                    symbol, document.Project, documentsToBeSearched, cancellationToken).ConfigureAwait(false);
 
                 foreach (var referencedSymbol in referencedSymbols)
                 {

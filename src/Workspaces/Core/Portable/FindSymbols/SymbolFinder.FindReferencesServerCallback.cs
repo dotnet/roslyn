@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly CancellationToken _cancellationToken;
 
             private readonly object _gate = new object();
-            private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap =
-                new Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId>();
+            private readonly Dictionary<SerializableSymbolAndProjectId, SymbolDefinition> _definitionMap =
+                new Dictionary<SerializableSymbolAndProjectId, SymbolDefinition>();
 
             public FindReferencesServerCallback(
                 Solution solution,
@@ -83,7 +83,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var referenceLocation = await reference.RehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
 
-                await _progress.OnReferenceFoundAsync(symbolAndProjectId, referenceLocation).ConfigureAwait(false);
+                await _progress.OnReferenceFoundAsync(
+                    SymbolDefinition.Create(_solution, symbolAndProjectId), referenceLocation).ConfigureAwait(false);
             }
         }
     }

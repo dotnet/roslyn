@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var originalSolution = document.Project.Solution;
-            var propertyReferences = await SymbolFinder.FindReferencesAsync(propertySymbol, originalSolution, cancellationToken).ConfigureAwait(false);
+            var propertyReferences = await SymbolFinder.FindReferencesAsync(
+                propertySymbol, document.Project, cancellationToken).ConfigureAwait(false);
 
             // Get the warnings we'd like to put at the definition site.
             var definitionWarning = GetDefinitionIssues(propertyReferences);

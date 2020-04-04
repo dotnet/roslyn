@@ -131,6 +131,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
-            => _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
+            => _progress.OnReferenceFoundAsync(SymbolDefinition.Create(_solution, symbolAndProjectId), location);
     }
 }

@@ -228,10 +228,10 @@ namespace Microsoft.CodeAnalysis.Remote
             public Task OnFindInDocumentCompletedAsync(Document document)
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnFindInDocumentCompletedAsync), new object[] { document.Id }, _cancellationToken);
 
-            public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+            public Task OnDefinitionFoundAsync(SymbolDefinition definition)
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnDefinitionFoundAsync), new object[] { SerializableSymbolAndProjectId.Dehydrate(definition) }, _cancellationToken);
 
-            public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation reference)
+            public Task OnReferenceFoundAsync(SymbolDefinition definition, ReferenceLocation reference)
             {
                 return _endPoint.InvokeAsync(
                     nameof(SymbolFinder.FindReferencesServerCallback.OnReferenceFoundAsync),

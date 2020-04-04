@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     finders.Add(new OverridingMemberFinder(symbol, project.Id, _asyncListener, this));
                 }
 
-                var @overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var @overrides = await SymbolFinder.FindOverridesAsync(symbol, project, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (overrides.Any())
                 {
                     finders.Add(new CallToOverrideFinder(symbol, project.Id, _asyncListener, this));
@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     finders.Add(new BaseMemberFinder(symbol.OverriddenMember(), project.Id, _asyncListener, this));
                 }
 
-                var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project, cancellationToken: cancellationToken).ConfigureAwait(false);
                 foreach (var implementedInterfaceMember in implementedInterfaceMembers)
                 {
-                    finders.Add(new InterfaceImplementationCallFinder(implementedInterfaceMember, project.Id, _asyncListener, this));
+                    finders.Add(new InterfaceImplementationCallFinder(implementedInterfaceMember.Symbol, project.Id, _asyncListener, this));
                 }
 
                 if (symbol.IsImplementableMember())

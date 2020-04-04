@@ -65,11 +65,21 @@ namespace Microsoft.CodeAnalysis.Remote
             return new SerializableSymbolAndProjectId
             {
                 SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = symbolAndProjectId.ProjectId
+                ProjectId = symbolAndProjectId.ProjectId,
             };
         }
 
-        public async Task<SymbolAndProjectId?> TryRehydrateAsync(
+        public static SerializableSymbolAndProjectId Dehydrate(
+            SymbolDefinition definition)
+        {
+            return new SerializableSymbolAndProjectId
+            {
+                SymbolKeyData = definition.Symbol.GetSymbolKey().ToString(),
+                ProjectId = definition.Project.Id,
+            };
+        }
+
+        public async Task<SymbolDefinition?> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
@@ -94,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            return new SymbolAndProjectId(symbol, projectId);
+            return new SymbolDefinition(symbol, project);
         }
     }
 
@@ -200,12 +210,12 @@ namespace Microsoft.CodeAnalysis.Remote
             if (Alias == null)
                 return default;
 
-            var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProjectId == null)
+            var symbolDefinitionOpt = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            if (symbolDefinitionOpt == null)
                 return default;
 
-            return symbolAndProjectId.Value.Symbol is IAliasSymbol alias
-                ? symbolAndProjectId.Value.WithSymbol(alias)
+            return symbolDefinitionOpt.Value.Symbol is IAliasSymbol alias
+                ? SymbolAndProjectId.Create(alias, symbolDefinitionOpt.Value.Project.Id)
                 : default;
         }
     }

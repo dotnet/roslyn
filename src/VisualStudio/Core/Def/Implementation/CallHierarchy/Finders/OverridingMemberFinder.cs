@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         protected override async Task SearchWorkerAsync(ISymbol symbol, Project project, ICallHierarchySearchCallback callback, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
-            var overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var overrides = await SymbolFinder.FindOverridesAsync(symbol, project, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             foreach (var @override in overrides)
             {
-                var sourceLocations = @override.DeclaringSyntaxReferences.Select(d => project.Solution.GetDocument(d.SyntaxTree)).WhereNotNull();
+                var sourceLocations = @override.Symbol.DeclaringSyntaxReferences.Select(d => project.Solution.GetDocument(d.SyntaxTree)).WhereNotNull();
                 var bestLocation = sourceLocations.FirstOrDefault(d => documents == null || documents.Contains(d));
                 if (bestLocation != null)
                 {
-                    var item = await Provider.CreateItemAsync(@override, bestLocation.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).ConfigureAwait(false);
+                    var item = await Provider.CreateItemAsync(@override.Symbol, bestLocation.Project, SpecializedCollections.EmptyEnumerable<Location>(), cancellationToken).ConfigureAwait(false);
                     callback.AddResult(item);
                     cancellationToken.ThrowIfCancellationRequested();
                 }

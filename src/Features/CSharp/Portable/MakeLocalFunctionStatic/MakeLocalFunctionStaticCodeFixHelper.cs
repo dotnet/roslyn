@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 
             // Finds all the call sites of the local function
             var referencedSymbols = await SymbolFinder.FindReferencesAsync(
-                localFunctionSymbol, document.Project.Solution, documentImmutableSet, cancellationToken).ConfigureAwait(false);
+                localFunctionSymbol, document.Project, documentImmutableSet, cancellationToken).ConfigureAwait(false);
 
             // Now we need to find all the references to the local function that we might need to fix.
             var shouldWarn = false;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 }
 
                 var referencedCaptureSymbols = await SymbolFinder.FindReferencesAsync(
-                    capture, document.Project.Solution, documentImmutableSet, cancellationToken).ConfigureAwait(false);
+                    capture, document.Project, documentImmutableSet, cancellationToken).ConfigureAwait(false);
 
                 foreach (var referencedSymbol in referencedCaptureSymbols)
                 {

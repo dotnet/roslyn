@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             public readonly ImmutableHashSet<RenameLocation> Locations;
             public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
-            public readonly ImmutableArray<SymbolAndProjectId> ReferencedSymbols;
+            public readonly ImmutableArray<SymbolDefinition> ReferencedSymbols;
 
             public SearchResult(
                 ImmutableHashSet<RenameLocation> locations,
                 ImmutableArray<ReferenceLocation> implicitLocations,
-                ImmutableArray<SymbolAndProjectId> referencedSymbols)
+                ImmutableArray<SymbolDefinition> referencedSymbols)
             {
                 this.Locations = locations;
                 this.ImplicitLocations = implicitLocations;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableHashSet<RenameLocation> locations,
             SymbolAndProjectId symbolAndProjectId,
             Solution solution,
-            ImmutableArray<SymbolAndProjectId> referencedSymbols,
+            ImmutableArray<SymbolDefinition> referencedSymbols,
             ImmutableArray<ReferenceLocation> implicitLocations,
             OptionSet options)
         {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Rename
             _commentsResult = commentsResult;
 
             var mergedLocations = ImmutableHashSet.CreateBuilder<RenameLocation>();
-            using var _1 = ArrayBuilder<SymbolAndProjectId>.GetInstance(out var mergedReferencedSymbols);
+            using var _1 = ArrayBuilder<SymbolDefinition>.GetInstance(out var mergedReferencedSymbols);
             using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(out var mergedImplicitLocations);
 
             if (options.GetOption(RenameOptions.RenameInStrings))
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public SymbolAndProjectId SymbolAndProjectId => _symbolAndProjectId;
         public ISymbol Symbol => _symbolAndProjectId.Symbol;
         public Solution Solution => _solution;
-        public ImmutableArray<SymbolAndProjectId> ReferencedSymbols => _mergedResult.ReferencedSymbols;
+        public ImmutableArray<SymbolDefinition> ReferencedSymbols => _mergedResult.ReferencedSymbols;
         public ImmutableArray<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).Where(loc => loc.IsImplicit).ToImmutableArray();
-            var referencedSymbols = referenceSymbols.Select(r => r.DefinitionAndProjectId).Where(r => !r.Symbol.Equals(symbol)).ToImmutableArray();
+            var referencedSymbols = referenceSymbols.Select(r => r.SymbolDefinition).Where(r => !r.Symbol.Equals(symbol)).ToImmutableArray();
 
             return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
         }

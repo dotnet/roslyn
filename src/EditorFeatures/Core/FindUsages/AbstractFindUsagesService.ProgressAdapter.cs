@@ -94,14 +94,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private async Task<DefinitionItem> GetDefinitionItemAsync(SymbolAndProjectId definition)
+            private async Task<DefinitionItem> GetDefinitionItemAsync(SymbolDefinition definition)
             {
                 using (await _gate.DisposableWaitAsync(_context.CancellationToken).ConfigureAwait(false))
                 {
                     if (!_definitionToItem.TryGetValue(definition.Symbol, out var definitionItem))
                     {
                         definitionItem = await definition.Symbol.ToClassifiedDefinitionItemAsync(
-                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false,
+                            definition.Project, includeHiddenLocations: false,
                             _options, _context.CancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[definition.Symbol] = definitionItem;
@@ -111,13 +111,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
             }
 
-            public async Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+            public async Task OnDefinitionFoundAsync(SymbolDefinition definition)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 await _context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
 
-            public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
+            public async Task OnReferenceFoundAsync(SymbolDefinition definition, ReferenceLocation location)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(

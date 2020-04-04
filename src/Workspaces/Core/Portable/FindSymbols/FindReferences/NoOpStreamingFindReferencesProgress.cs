@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public Task OnCompletedAsync() => Task.CompletedTask;
         public Task OnStartedAsync() => Task.CompletedTask;
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol) => Task.CompletedTask;
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location) => Task.CompletedTask;
+        public Task OnDefinitionFoundAsync(SymbolDefinition symbol) => Task.CompletedTask;
+        public Task OnReferenceFoundAsync(SymbolDefinition symbol, ReferenceLocation location) => Task.CompletedTask;
         public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
         public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
 

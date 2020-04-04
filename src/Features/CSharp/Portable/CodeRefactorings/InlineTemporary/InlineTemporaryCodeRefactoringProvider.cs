@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             if (local != null)
             {
-                var findReferencesResult = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                var findReferencesResult = await SymbolFinder.FindReferencesAsync(local, document.Project, cancellationToken).ConfigureAwait(false);
                 var locations = findReferencesResult.Single(r => Equals(r.Definition, local)).Locations;
                 if (!locations.Any(loc => semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)))
                 {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             // Collect the identifier names for each reference.
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
-            var symbolRefs = await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var symbolRefs = await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project, cancellationToken).ConfigureAwait(false);
             var references = symbolRefs.Single(r => Equals(r.Definition, local)).Locations;
             var syntaxRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

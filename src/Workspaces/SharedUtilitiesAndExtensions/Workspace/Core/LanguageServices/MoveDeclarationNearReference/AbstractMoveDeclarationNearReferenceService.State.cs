@@ -85,7 +85,11 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                     return false;
                 }
 
+#if CODE_STYLE
                 var findReferencesResult = await SymbolFinder.FindReferencesAsync(LocalSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+#else
+                var findReferencesResult = await SymbolFinder.FindReferencesAsync(LocalSymbol, document.Project, cancellationToken).ConfigureAwait(false);
+#endif
                 var findReferencesList = findReferencesResult.ToList();
                 if (findReferencesList.Count != 1)
                 {

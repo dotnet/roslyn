@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var searchSymbol = searchSymbolAndProjectId.Symbol;
             if (searchSymbol != null && result.Add(searchSymbolAndProjectId))
             {
-                await _progress.OnDefinitionFoundAsync(searchSymbolAndProjectId).ConfigureAwait(false);
+                await _progress.OnDefinitionFoundAsync(
+                    SymbolDefinition.Create(_solution, searchSymbolAndProjectId)).ConfigureAwait(false);
 
                 // get project to search
                 var projects = GetProjectScope();

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             var referencedSymbol = new ReferencedSymbol(
-                SymbolAndProjectId.Create(symbol, projectId: null), locations);
+                new SymbolDefinition(symbol, project: null), locations);
             return referencedSymbol;
         }
 

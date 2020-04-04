@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             if (symbol.IsInterfaceType() || symbol.IsImplementableMember())
             {
                 var implementations = await SymbolFinder.FindImplementationsAsync(
-                    symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    symbol, project, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // It's important we use a HashSet here -- we may have cases in an inheritance hierarchy where more than one method
                 // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
@@ -97,15 +97,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 foreach (var implementation in implementations)
                 {
-                    implementationsAndOverrides.Add(implementation);
+                    implementationsAndOverrides.Add(implementation.Symbol);
 
                     // FindImplementationsAsync will only return the base virtual/abstract method, not that method and the overrides
                     // of the method. We should also include those.
-                    if (implementation.IsOverridable())
+                    if (implementation.Symbol.IsOverridable())
                     {
                         var overrides = await SymbolFinder.FindOverridesAsync(
                             implementation, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        implementationsAndOverrides.AddRange(overrides);
+                        implementationsAndOverrides.AddRange(overrides.Select(o => o.Symbol));
                     }
                 }
 
@@ -119,16 +119,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             else if ((symbol as INamedTypeSymbol)?.TypeKind == TypeKind.Class)
             {
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    (INamedTypeSymbol)symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var implementations = derivedClasses.Concat(symbol);
+                    (INamedTypeSymbol)symbol, project, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var implementations = derivedClasses.Select(d => d.Symbol).Concat(symbol);
 
                 return implementations.ToImmutableArray();
             }
             else if (symbol.IsOverridable())
             {
                 var overrides = await SymbolFinder.FindOverridesAsync(
-                    symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var implementations = overrides.Concat(symbol);
+                    symbol, project, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var implementations = overrides.Select(o => o.Symbol).Concat(symbol);
 
                 return implementations.ToImmutableArray();
             }

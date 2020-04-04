@@ -83,6 +83,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public SymbolAndProjectId WithSymbol(ISymbol other)
             => new SymbolAndProjectId(other, this.ProjectId);
+
+        public static implicit operator SymbolAndProjectId(SymbolDefinition definition)
+            => new SymbolAndProjectId(definition.Symbol, definition.Project.Id);
     }
 
     internal struct SymbolAndProjectId<TSymbol> where TSymbol : ISymbol

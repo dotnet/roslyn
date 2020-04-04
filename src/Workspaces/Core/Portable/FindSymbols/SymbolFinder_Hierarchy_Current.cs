@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds all the callers of a specified symbol.
         /// </summary>
-        internal static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
+        internal static Task<ImmutableArray<SymbolCallerInfo>> FindCallersAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken = default)
         {
             return FindCallersAsync(symbolAndProjectId, solution, documents: null, cancellationToken: cancellationToken);
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds all the callers of a specified symbol.
         /// </summary>
-        internal static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
+        internal static async Task<ImmutableArray<SymbolCallerInfo>> FindCallersAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
             symbolAndProjectId = symbolAndProjectId.WithSymbol(symbolAndProjectId.Symbol.OriginalDefinition);
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var indirectReferences = references.WhereAsArray(r => r != directReference);
 
-            var results = new List<SymbolCallerInfo>();
+            using var _ = ArrayBuilder<SymbolCallerInfo>.GetInstance(out var results);
 
             if (directReference != null)
             {
@@ -266,14 +266,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await AddReferencingSymbols(indirectReference, isDirect: false).ConfigureAwait(false);
             }
 
-            return results;
+            return results.ToImmutable();
 
             async Task AddReferencingSymbols(ReferencedSymbol reference, bool isDirect)
             {
                 var result = await reference.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var (callingSymbol, locations) in result)
                 {
-                    results.Add(new SymbolCallerInfo(callingSymbol, reference.DefinitionAndProjectId, locations, isDirect));
+                    results.Add(new SymbolCallerInfo(callingSymbol, reference.SymbolDefinition, locations, isDirect));
                 }
             }
         }

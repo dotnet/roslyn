@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             string replacementText,
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
-            IEnumerable<SymbolAndProjectId> referencedSymbols,
+            ImmutableArray<SymbolDefinition> referencedSymbols,
             Solution baseSolution,
             Solution newSolution,
             IDictionary<Location, Location> reverseMappedLocations,

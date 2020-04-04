@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
 
         protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
-            var calls = await SymbolFinder.FindCallersAsync(symbol, project.Solution, documents, cancellationToken).ConfigureAwait(false);
+            var calls = await SymbolFinder.FindCallersAsync(symbol, project, documents, cancellationToken).ConfigureAwait(false);
             return calls.Where(c => c.IsDirect);
         }
     }

@@ -34,7 +34,7 @@ class C
                 Assert.NotNull(document)
 
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
-                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project, progress:=Nothing, documents:=Nothing)
 
                 Assert.Equal(2, references.Count())
                 Assert.Equal("C.M()", references.ElementAt(0).Definition.ToString())
@@ -66,9 +66,9 @@ End Class
                 Assert.NotNull(document)
 
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
-                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project, progress:=Nothing, documents:=Nothing)
 
-                references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
+                references = references.WhereAsArray(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
                 Assert.Equal(2, references.Count())
                 Assert.Equal("C", references.ElementAt(0).Definition.ToString())
@@ -109,8 +109,8 @@ End Class
                 Assert.NotNull(document)
 
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
-                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
-                references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
+                Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project, progress:=Nothing, documents:=Nothing)
+                references = references.WhereAsArray(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
                 Assert.Equal(2, references.Count())
                 Assert.Equal("C", references.ElementAt(0).Definition.ToString())
@@ -123,8 +123,8 @@ End Class
                 Assert.NotNull(document)
 
                 symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
-                references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
-                references = references.Where(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
+                references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project, progress:=Nothing, documents:=Nothing)
+                references = references.WhereAsArray(Function(r) r.Definition.IsKind(SymbolKind.NamedType))
 
                 Assert.Equal(1, references.Count())
                 Assert.Equal("C", references.ElementAt(0).Definition.ToString())

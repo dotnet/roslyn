@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
             using var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken);
             try
             {
-                await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                    progress.CancellationToken).ConfigureAwait(false);
+                await SymbolFinder.FindReferencesAsync(
+                    symbol, document.Project, progress, null, progress.CancellationToken).ConfigureAwait(false);
 
                 return await onResults(progress).ConfigureAwait(false);
             }

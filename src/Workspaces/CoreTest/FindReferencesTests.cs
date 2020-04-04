@@ -64,7 +64,7 @@ public class C {
             var project = solution.Projects.First();
             var symbol = (await project.GetCompilationAsync()).GetTypeByMetadataName("C").GetMembers("X").First();
 
-            var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+            var result = (await SymbolFinder.FindReferencesAsync(symbol, project)).ToList();
             Assert.Equal(1, result.Count); // 1 symbol found
             Assert.Equal(3, result[0].Locations.Count()); // 3 locations found
         }
@@ -88,7 +88,7 @@ public class C {
             var project = solution.Projects.First();
             var symbol = (IFieldSymbol)(await project.GetCompilationAsync()).GetTypeByMetadataName("C").GetMembers("X").First();
 
-            var result = (await SymbolFinder.FindReferencesAsync(symbol.Type, solution)).ToList();
+            var result = (await SymbolFinder.FindReferencesAsync(symbol.Type, project)).ToList();
             Assert.Equal(9, result.Count);
 
             var typeSymbol = result.Where(@ref => @ref.Definition.Kind == SymbolKind.NamedType).Single();
@@ -145,12 +145,12 @@ Module Module1
 
             // declared method calls
             var symbol = semanticModel.GetDeclaredSymbol(declareMethod);
-            var references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
+            var references = await SymbolFinder.FindReferencesAsync(symbol, prj);
             Assert.Equal(expected: 2, actual: references.ElementAt(0).Locations.Count());
 
             // normal method calls
             symbol = semanticModel.GetDeclaredSymbol(normalMethod);
-            references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
+            references = await SymbolFinder.FindReferencesAsync(symbol, prj);
             Assert.Equal(expected: 2, actual: references.ElementAt(0).Locations.Count());
         }
 
@@ -217,12 +217,12 @@ static class Module1
 
             // pinvoke method calls
             var symbol = semanticModel.GetDeclaredSymbol(declareMethod);
-            var references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
+            var references = await SymbolFinder.FindReferencesAsync(symbol, prj);
             Assert.Equal(2, references.ElementAt(0).Locations.Count());
 
             // normal method calls
             symbol = semanticModel.GetDeclaredSymbol(normalMethod);
-            references = await SymbolFinder.FindReferencesAsync(symbol, prj.Solution);
+            references = await SymbolFinder.FindReferencesAsync(symbol, prj);
             Assert.Equal(2, references.ElementAt(0).Locations.Count());
         }
 
@@ -253,7 +253,7 @@ class B : C, A
             // Find references on definition B.Boo()
             var typeB = comp.GetTypeByMetadataName("B");
             var boo = typeB.GetMembers("Boo").First();
-            var result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
+            var result = (await SymbolFinder.FindReferencesAsync(boo, project)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
             var expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
@@ -264,7 +264,7 @@ class B : C, A
             // Find references on definition C.Boo()
             var typeC = comp.GetTypeByMetadataName("C");
             boo = typeC.GetMembers("Boo").First();
-            result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
+            result = (await SymbolFinder.FindReferencesAsync(boo, project)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
             expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
@@ -275,7 +275,7 @@ class B : C, A
             // Find references on definition A.Boo()
             var typeA = comp.GetTypeByMetadataName("A");
             boo = typeA.GetMembers("Boo").First();
-            result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
+            result = (await SymbolFinder.FindReferencesAsync(boo, project)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
             expectedMatchedLines = new HashSet<int> { 7, 12 };
@@ -320,9 +320,9 @@ namespace N2
 
             var interfaceMethod = (IMethodSymbol)(await netStandardProject.GetCompilationAsync()).GetTypeByMetadataName("N.I").GetMembers("Get").First();
 
-            var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, solution)).ToList();
+            var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, netStandardProject)).ToList();
             Assert.Equal(2, references.Count);
-            Assert.True(references.Any(r => r.DefinitionAndProjectId.ProjectId == desktopProject.Id));
+            Assert.True(references.Any(r => r.SymbolDefinition.Project.Id == desktopProject.Id));
         }
 
         [Fact, WorkItem(35786, "https://github.com/dotnet/roslyn/issues/35786")]
@@ -360,7 +360,7 @@ namespace N2
             var compilation = await project.GetCompilationAsync();
             var nameProperty = compilation.GetTypeByMetadataName("A.C").GetMembers("Uri").Single();
 
-            var references = await SymbolFinder.FindReferencesAsync(nameProperty, solution);
+            var references = await SymbolFinder.FindReferencesAsync(nameProperty, project);
 
             // References are: 
             // A.C.Uri
@@ -410,11 +410,13 @@ namespace M
             var overriddenMethodSymbol = derivedType.GetMembers("SomeMethod").Single();
 
             // FAR from the virtual method should find both methods
-            var refsFromVirtual = await SymbolFinder.FindReferencesAsync(baseVirtualMethodSymbol, solution);
+            var refsFromVirtual = await SymbolFinder.FindReferencesAsync(
+                baseVirtualMethodSymbol, solution.Projects.Single(p => p.Name == "PortableProject"));
             Assert.Equal(2, refsFromVirtual.Count());
 
             // FAR from the overridden method should find both methods
-            var refsFromOverride = await SymbolFinder.FindReferencesAsync(overriddenMethodSymbol, solution);
+            var refsFromOverride = await SymbolFinder.FindReferencesAsync(
+                overriddenMethodSymbol, solution.Projects.Single(p => p.Name == "NormalProject"));
             Assert.Equal(2, refsFromOverride.Count());
 
             // all methods returned should be equal
@@ -438,7 +440,7 @@ abstract class C<T> where T : unmanaged         // Line 4
             var comp = await project.GetCompilationAsync();
 
             var constraint = comp.GetTypeByMetadataName("C`1").TypeParameters.Single().ConstraintTypes.Single();
-            var result = (await SymbolFinder.FindReferencesAsync(constraint, solution)).Single();
+            var result = (await SymbolFinder.FindReferencesAsync(constraint, project)).Single();
 
             Verify(result, new HashSet<int> { 1, 4 });
         }

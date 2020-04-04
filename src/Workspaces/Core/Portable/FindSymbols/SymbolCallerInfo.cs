@@ -20,9 +20,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The symbol that is calling the symbol being called.
         /// </summary>
-        public ISymbol CallingSymbol => CallingSymbolAndProjectId.Symbol;
+        public ISymbol CallingSymbol => CallingSymbolDefinition.Symbol;
 
-        internal SymbolAndProjectId CallingSymbolAndProjectId { get; }
+        /// <summary>
+        /// The symbol that is calling the symbol being called.
+        /// </summary>
+        public SymbolDefinition CallingSymbolDefinition { get; }
 
         /// <summary>
         /// The locations inside the calling symbol where the called symbol is referenced.
@@ -32,9 +35,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The symbol being called.
         /// </summary>
-        public ISymbol CalledSymbol => CalledSymbolAndProjectId.Symbol;
+        public ISymbol CalledSymbol => CalledSymbolDefinition.Symbol;
 
-        internal SymbolAndProjectId CalledSymbolAndProjectId { get; }
+        /// <summary>
+        /// The symbol being called.
+        /// </summary>
+        public SymbolDefinition CalledSymbolDefinition { get; }
 
         /// <summary>
         /// True if the CallingSymbol is directly calling CalledSymbol.  False if it is calling a
@@ -45,13 +51,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool IsDirect { get; }
 
         internal SymbolCallerInfo(
-            SymbolAndProjectId callingSymbol,
-            SymbolAndProjectId calledSymbol,
+            SymbolDefinition callingSymbol,
+            SymbolDefinition calledSymbol,
             IEnumerable<Location> locations,
             bool isDirect)
         {
-            CallingSymbolAndProjectId = callingSymbol;
-            CalledSymbolAndProjectId = calledSymbol;
+            CallingSymbolDefinition = callingSymbol;
+            CalledSymbolDefinition = calledSymbol;
             this.IsDirect = isDirect;
             this.Locations = locations;
         }
