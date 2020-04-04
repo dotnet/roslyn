@@ -10272,6 +10272,7 @@ class Program<T>
 
 class Product { public void MyProperty() { } }";
 
+            await VerifyItemExistsAsync(markup, "GetHashCode");
             await VerifyItemIsAbsentAsync(markup, "MyProperty");
         }
 
@@ -10294,6 +10295,7 @@ class Program<T> where T : Product
 
 class Product { public void MyProperty() { } }";
 
+            await VerifyItemExistsAsync(markup, "GetHashCode");
             await VerifyItemExistsAsync(markup, "MyProperty");
         }
 
