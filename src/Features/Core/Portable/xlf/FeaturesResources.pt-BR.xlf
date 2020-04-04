@@ -597,11 +597,6 @@
         <target state="translated">Use o padrão de descarte recomendado para garantir que o objeto criado por '{0}' seja descartado em todos os caminhos: instrução/declaração using ou try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">Usar a instrução 'using' simples</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="new">Value:</target>
@@ -2288,11 +2283,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">atualizar usos em projetos dependentes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">A instrução 'using' pode ser simplificada</target>
         <note />
       </trans-unit>
     </body>

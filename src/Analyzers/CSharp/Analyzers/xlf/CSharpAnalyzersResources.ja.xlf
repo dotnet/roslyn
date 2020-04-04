@@ -172,6 +172,11 @@
         <target state="new">Use range operator</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="new">Use simple 'using' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="new">Use 'switch' expression</target>
@@ -220,6 +225,11 @@
       <trans-unit id="Using_directive_is_unnecessary">
         <source>Using directive is unnecessary.</source>
         <target state="new">Using directive is unnecessary.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="new">'using' statement can be simplified</target>
         <note />
       </trans-unit>
     </body>

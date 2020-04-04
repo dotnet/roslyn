@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             : base(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
                    CSharpCodeStyleOptions.PreferSimpleUsingStatement,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(FeaturesResources.Use_simple_using_statement), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.using_statement_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_simple_using_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.using_statement_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

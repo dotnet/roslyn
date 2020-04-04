@@ -597,11 +597,6 @@
         <target state="translated">권장 dispose 패턴을 사용하여, '{0}'에 의해 만들어진 개체가 모든 경로(using 문/선언 또는 try/finally)에서 삭제되도록 합니다.</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">간단한 'using' 문 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="new">Value:</target>
@@ -2288,11 +2283,6 @@ This version used in: {2}</source>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">종속 프로젝트에서 사용을 업데이트하는 중</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">'using' 문을 간소화할 수 있습니다.</target>
         <note />
       </trans-unit>
     </body>
