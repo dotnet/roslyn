@@ -130,6 +130,9 @@ namespace Microsoft.CodeAnalysis.Recommendations
                         // present in this method's list of typeParameters.
                         var index = typeParameters.IndexOf(typeParameter);
                         var concreteType = typeArguments.ElementAtOrDefault(index);
+
+                        // If we couldn't find the concrete type, still consider the typeParameter
+                        // as is to provide members of any types it is constrained to (including object)
                         concreteTypes.Add(concreteType ?? typeParameter);
                     }
                     else
