@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>netstandard2.0;$(RoslynPortableTargetFrameworks);net472</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;$(RoslynPortableTargetFrameworks)</TargetFrameworks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
