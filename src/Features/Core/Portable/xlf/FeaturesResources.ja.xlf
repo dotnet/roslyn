@@ -382,16 +382,6 @@
         <target state="translated">条件を反転します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">ローカル関数を静的にすることができます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">ローカル関数を 'static' にします</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
         <target state="translated">入れ子になった '{0}' ステートメントとマージします</target>
