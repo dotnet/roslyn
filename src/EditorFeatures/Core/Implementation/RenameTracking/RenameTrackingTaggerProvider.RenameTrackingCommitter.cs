@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Rename;
@@ -76,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // Get copy of solution with the original name in the place of the renamed name
                 var solutionWithOriginalName = CreateSolutionWithOriginalName(document, cancellationToken);
 
-                var symbol = await TryGetSymbolAsync(solutionWithOriginalName, document.Id, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(symbol, "Invoked rename tracking smart tag but cannot find the symbol.");
+                var symbolAndProjectId = await TryGetSymbolAsync(solutionWithOriginalName, document.Id, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(symbolAndProjectId.Symbol, "Invoked rename tracking smart tag but cannot find the symbol.");
 
                 var optionSet = document.Project.Solution.Workspace.Options;
 
@@ -86,8 +87,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, true);
                 }
 
-                var renamedSolution = await Renamer.RenameSymbolAsync(solutionWithOriginalName, symbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
-                return new RenameTrackingSolutionSet(symbol, solutionWithOriginalName, renamedSolution);
+                var renamedSolution = await Renamer.RenameSymbolAsync(
+                    solutionWithOriginalName, symbolAndProjectId, newName, optionSet, cancellationToken).ConfigureAwait(false);
+                return new RenameTrackingSolutionSet(
+                    symbolAndProjectId.Symbol, solutionWithOriginalName, renamedSolution);
             }
 
             private bool ApplyChangesToWorkspace(CancellationToken cancellationToken)
@@ -198,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return solution;
             }
 
-            private async Task<ISymbol> TryGetSymbolAsync(Solution solutionWithOriginalName, DocumentId documentId, CancellationToken cancellationToken)
+            private async Task<SymbolAndProjectId> TryGetSymbolAsync(Solution solutionWithOriginalName, DocumentId documentId, CancellationToken cancellationToken)
             {
                 var documentWithOriginalName = solutionWithOriginalName.GetDocument(documentId);
                 var syntaxTreeWithOriginalName = await documentWithOriginalName.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -210,7 +213,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var token = await syntaxTreeWithOriginalName.GetTouchingWordAsync(_snapshotSpan.Start, syntaxFacts, cancellationToken).ConfigureAwait(false);
                 var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, token, cancellationToken);
 
-                return tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
+                return tokenRenameInfo.HasSymbols
+                    ? new SymbolAndProjectId(tokenRenameInfo.Symbols.First(), documentId.ProjectId)
+                    : default;
             }
 
             private void UpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution, int trackingSessionId)

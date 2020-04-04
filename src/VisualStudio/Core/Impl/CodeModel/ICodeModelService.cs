@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.Text;
@@ -101,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         bool IsOptionNode(SyntaxNode node);
         bool IsImportNode(SyntaxNode node);
 
-        ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId);
+        ISymbol ResolveSymbol(Workspace workspace, ProjectId projectId, SymbolKey symbolId);
 
         string GetUnescapedName(string name);
 
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
-        void Rename(ISymbol symbol, string newName, Workspace workspace, ProjectCodeModelFactory projectCodeModelFactory);
+        void Rename(ISymbol symbol, ProjectId projectId, string newName, Workspace workspace, ProjectCodeModelFactory projectCodeModelFactory);
 
         /// <summary>
         /// Returns true if the given <paramref name="symbol"/> can be used to create an external code element; otherwise, false.

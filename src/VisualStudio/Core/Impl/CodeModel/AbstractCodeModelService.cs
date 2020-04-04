@@ -34,6 +34,7 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -480,18 +481,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public abstract string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
-        public void Rename(ISymbol symbol, string newName, Workspace workspace, ProjectCodeModelFactory projectCodeModelFactory)
+        public void Rename(ISymbol symbol, ProjectId projectId, string newName, Workspace workspace, ProjectCodeModelFactory projectCodeModelFactory)
         {
             // Save the node keys.
             var nodeKeyValidation = new NodeKeyValidation(projectCodeModelFactory);
 
             // Rename symbol.
             var oldSolution = workspace.CurrentSolution;
-            var newSolution = Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
+            var newSolution = Renamer.RenameSymbolAsync(
+                oldSolution, new SymbolAndProjectId(symbol, projectId), newName, oldSolution.Options, CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
-            _refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
+            _refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(
+                workspace, changedDocuments, symbol, newName, throwOnFailure: true);
 
             // Update the workspace.
             if (!workspace.TryApplyChanges(newSolution))
@@ -500,7 +503,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             // Notify third parties of the completed rename operation and let exceptions propagate out
-            _refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
+            _refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(
+                workspace, changedDocuments, symbol, newName, throwOnFailure: true);
 
             RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
 

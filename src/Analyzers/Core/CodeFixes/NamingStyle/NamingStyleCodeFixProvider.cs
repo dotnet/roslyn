@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 #if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
@@ -100,10 +101,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
         private static async Task<Solution> FixAsync(
             Document document, ISymbol symbol, string fixedName, CancellationToken cancellationToken)
         {
+#if CODE_STYLE
             return await Renamer.RenameSymbolAsync(
                 document.Project.Solution, symbol, fixedName,
                 await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
+#else
+            return await Renamer.RenameSymbolAsync(
+                document.Project, symbol, fixedName,
+                await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
+#endif
         }
 
         private class FixNameCodeAction : CodeAction

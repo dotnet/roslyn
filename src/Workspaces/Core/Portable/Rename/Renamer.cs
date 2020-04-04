@@ -14,12 +14,34 @@ namespace Microsoft.CodeAnalysis.Rename
 {
     public static class Renamer
     {
+        /// <summary>
+        /// Renames the provided <paramref name="symbol"/> to the name <paramref name="newName"/>. This method is less
+        /// efficient than <see cref="RenameSymbolAsync(Project, ISymbol, string, OptionSet, CancellationToken)"/> and
+        /// should be avoided.
+        /// </summary>
+        [Obsolete("Use the overload of RenameSymbolAsync that takes a Project", error: false)]
         public static Task<Solution> RenameSymbolAsync(
             Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
         {
             return RenameSymbolAsync(
                 solution,
                 SymbolAndProjectId.Create(symbol, projectId: null),
+                newName, optionSet, cancellationToken);
+        }
+
+        /// <summary>
+        /// Renames the provided <paramref name="symbol"/> to the name <paramref name="newName"/>. <paramref
+        /// name="symbol"/> must either be a source symbol from <paramref name="project"/> or a metadata symbol from one
+        /// of <paramref name="project"/>'s <see cref="Project.MetadataReferences"/>.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static Task<Solution> RenameSymbolAsync(
+            Project project, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            return RenameSymbolAsync(
+                project.Solution,
+                SymbolAndProjectId.Create(symbol, project.Id),
                 newName, optionSet, cancellationToken);
         }
 

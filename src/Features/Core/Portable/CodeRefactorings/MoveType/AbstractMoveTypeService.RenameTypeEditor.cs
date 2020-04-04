@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
@@ -25,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // TODO: detect conflicts ahead of time and open an inline rename session if any exists.
                 // this will bring up dashboard with conflicts and will allow the user to resolve them.
                 // if no such conflicts exist, proceed with RenameSymbolAsync.
-                var solution = SemanticDocument.Document.Project.Solution;
-                var symbol = State.SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
+                var symbol = SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
                 var documentOptions = await SemanticDocument.Document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
-                return await Renamer.RenameSymbolAsync(solution, symbol, FileName, documentOptions, CancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(
+                    SemanticDocument.Project, symbol, FileName, documentOptions, CancellationToken).ConfigureAwait(false);
             }
         }
     }

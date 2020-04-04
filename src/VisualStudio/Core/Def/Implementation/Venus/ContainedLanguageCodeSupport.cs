@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
@@ -322,7 +323,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
                 var optionSet = document.Project.Solution.Workspace.Options;
-                var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, newName, optionSet, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                var newSolution = Renamer.RenameSymbolAsync(
+                    document.Project.Solution, new SymbolAndProjectId(symbol, document.Project.Id),
+                    newName, optionSet, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
                 var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);

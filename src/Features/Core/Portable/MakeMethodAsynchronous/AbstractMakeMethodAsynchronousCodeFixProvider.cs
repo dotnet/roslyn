@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -166,7 +167,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var syntaxPath = new SyntaxPath(node);
 
             // Rename the method to add the 'Async' suffix, then add the 'async' keyword.
-            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(
+                document.Project, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
 
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

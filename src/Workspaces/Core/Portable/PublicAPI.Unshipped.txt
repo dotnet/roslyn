@@ -21,3 +21,4 @@ override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Equals(object obj) 
 override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.GetHashCode() -> int
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Extern.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Volatile.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(Microsoft.CodeAnalysis.Project project, Microsoft.CodeAnalysis.ISymbol symbol, string newName, Microsoft.CodeAnalysis.Options.OptionSet optionSet, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
