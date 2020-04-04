@@ -5,9 +5,9 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.SQLite.Interop;
+using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
-namespace Microsoft.CodeAnalysis.SQLite
+namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
@@ -41,6 +41,13 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // For the SolutionDataTable the key itself acts as the data-id.
                 dataId = key;
                 return true;
+            }
+
+            protected override bool TryGetRowId(SqlConnection connection, Database database, string dataId, out long rowId)
+            {
+                // For the solution table, we have whatever user string that was passed in as our 'key'.  So we actually
+                // have to  go to the DB to find the row for this.
+                return GetActualRowIdFromDatabase(connection, database, dataId, out rowId);
             }
 
             protected override void BindFirstParameter(SqlStatement statement, string dataId)

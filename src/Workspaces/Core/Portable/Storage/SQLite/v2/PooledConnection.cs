@@ -4,25 +4,25 @@
 
 using System;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SQLite.Interop;
+using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
-namespace Microsoft.CodeAnalysis.SQLite
+namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage : AbstractPersistentStorage
     {
         private struct PooledConnection : IDisposable
         {
-            private readonly SQLitePersistentStorage sqlitePersistentStorage;
+            private readonly SQLitePersistentStorage _storage;
             public readonly SqlConnection Connection;
 
-            public PooledConnection(SQLitePersistentStorage sqlitePersistentStorage, SqlConnection sqlConnection)
+            public PooledConnection(SQLitePersistentStorage storage, SqlConnection sqlConnection)
             {
-                this.sqlitePersistentStorage = sqlitePersistentStorage;
+                _storage = storage;
                 Connection = sqlConnection;
             }
 
             public void Dispose()
-                => sqlitePersistentStorage.ReleaseConnection(Connection);
+                => _storage.ReleaseConnection(Connection);
         }
     }
 }

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 using SQLitePCL;
 
-namespace Microsoft.CodeAnalysis.SQLite.Interop
+namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 {
     /// <summary>
     /// Encapsulates a connection to a sqlite database.  On construction an attempt will be made

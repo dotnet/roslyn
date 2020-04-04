@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
-using Microsoft.CodeAnalysis.SQLite.Interop;
+using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
-namespace Microsoft.CodeAnalysis.SQLite
+namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {

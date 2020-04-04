@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.SQLite.Interop
+namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 {
     internal class SqlException : Exception
     {

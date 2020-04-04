@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SQLite;
+using Microsoft.CodeAnalysis.SQLite.v1;
 using Microsoft.CodeAnalysis.Storage;
 using Xunit;
 
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// write tests once and have them run against all <see cref="IPersistentStorageService"/>
     /// implementations.
     /// </remarks>
-    public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
+    public class SQLiteV1PersistentStorageTests : AbstractPersistentStorageTests
     {
         internal override AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector)
             => new SQLitePersistentStorageService(locationService, faultInjector);

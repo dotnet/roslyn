@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Concurrent;
-using Microsoft.CodeAnalysis.SQLite.Interop;
+using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SQLite
+namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             try
             {
-                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_0))
+                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_string_table))
                 {
                     var statement = resettableStatement.Statement;
                     while (statement.Step() == Result.ROW)
@@ -87,9 +87,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // values.
             try
             {
-                stringId = connection.RunInTransaction(
-                    state => InsertStringIntoDatabase_MustRunInTransaction(state.connection, state.value),
-                    (connection, value));
+                stringId = connection.RunInTransaction(s_insertStringIntoDataBase, (self: this, connection, value));
 
                 Contract.ThrowIfTrue(stringId == null);
                 return stringId;
@@ -110,6 +108,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             return null;
         }
 
+        private static readonly Func<(SQLitePersistentStorage self, SqlConnection connection, string value), int> s_insertStringIntoDataBase =
+            t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value);
+
         private int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
         {
             if (!connection.IsInTransaction)
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             var id = -1;
 
-            using (var resettableStatement = connection.GetResettableStatement(_insert_into_0_1_values))
+            using (var resettableStatement = connection.GetResettableStatement(_insert_into_string_table_values_0))
             {
                 var statement = resettableStatement.Statement;
 
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             try
             {
-                using var resettableStatement = connection.GetResettableStatement(_select_star_from_0_where_1_limit_one);
+                using var resettableStatement = connection.GetResettableStatement(_select_star_from_string_table_where_0_limit_one);
                 var statement = resettableStatement.Statement;
 
                 // SQLite's binding indices are 1-based. 

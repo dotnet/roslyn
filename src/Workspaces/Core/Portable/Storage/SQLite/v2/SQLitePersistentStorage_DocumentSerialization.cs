@@ -5,9 +5,9 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.SQLite.Interop;
+using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
-namespace Microsoft.CodeAnalysis.SQLite
+namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected override void BindFirstParameter(SqlStatement statement, long dataId)
                 => statement.BindInt64Parameter(parameterIndex: 1, value: dataId);
 
-            protected override bool TryGetRowId(SqlConnection connection, long dataId, out long rowId)
-                => GetAndVerifyRowId(connection, dataId, out rowId);
+            protected override bool TryGetRowId(SqlConnection connection, Database database, long dataId, out long rowId)
+                => GetAndVerifyRowId(connection, database, dataId, out rowId);
         }
     }
 }
