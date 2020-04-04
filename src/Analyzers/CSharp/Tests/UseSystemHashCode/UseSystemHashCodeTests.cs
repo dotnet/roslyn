@@ -1209,7 +1209,7 @@ class C
         hash.Add(i);
         return hash.ToHashCode();
     }
-}", options: this.PreferImplicitTypeWithInfo());
+}", options: UseVarTestExtensions.PreferImplicitTypeWithInfo(this));
         }
 
         [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
