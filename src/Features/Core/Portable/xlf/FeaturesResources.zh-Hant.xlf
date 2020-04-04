@@ -387,16 +387,6 @@
         <target state="translated">反轉條件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">區域函式可以變成靜態</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">將區域函式設為 'static'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
         <target state="translated">與巢狀 '{0}' 陳述式合併</target>

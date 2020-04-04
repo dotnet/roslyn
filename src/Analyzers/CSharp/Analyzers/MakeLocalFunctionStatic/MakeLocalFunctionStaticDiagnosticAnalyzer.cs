@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             : base(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId,
                    CSharpCodeStyleOptions.PreferStaticLocalFunction,
                    LanguageNames.CSharp,
-                   new LocalizableResourceString(nameof(FeaturesResources.Make_local_function_static), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Local_function_can_be_made_static), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_local_function_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Local_function_can_be_made_static), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

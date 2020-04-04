@@ -1366,12 +1366,6 @@ This version used in: {2}</value>
   <data name="Wrap_and_align_expression" xml:space="preserve">
     <value>Wrap and align expression</value>
   </data>
-  <data name="Local_function_can_be_made_static" xml:space="preserve">
-    <value>Local function can be made static</value>
-  </data>
-  <data name="Make_local_function_static" xml:space="preserve">
-    <value>Make local function 'static'</value>
-  </data>
   <data name="Make_readonly_fields_writable" xml:space="preserve">
     <value>Make readonly fields writable</value>
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>

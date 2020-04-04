@@ -216,6 +216,12 @@
   <data name="Variable_declaration_can_be_deconstructed" xml:space="preserve">
     <value>Variable declaration can be deconstructed</value>
   </data>
+  <data name="Local_function_can_be_made_static" xml:space="preserve">
+    <value>Local function can be made static</value>
+  </data>
+  <data name="Make_local_function_static" xml:space="preserve">
+    <value>Make local function 'static'</value>
+  </data>
   <data name="_0_can_be_simplified" xml:space="preserve">
     <value>{0} can be simplified</value>
   </data>
