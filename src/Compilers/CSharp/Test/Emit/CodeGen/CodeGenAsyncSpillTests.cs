@@ -4162,7 +4162,7 @@ class Program
         Console.WriteLine(""Before Assignment arr[0].y is: "" + arr[0].y);
         arr[0].x = await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment arr[0].x is: "" + arr[0].x);
-        Console.WriteLine(""Before Assignment arr[0].y is: "" + arr[0].y);
+        Console.WriteLine(""After Assignment arr[0].y is: "" + arr[0].y);
 
         async Task<int> WriteAndReassign(string s)
         {
@@ -4208,7 +4208,7 @@ Before Assignment arr[0].x is: 0
 Before Assignment arr[0].y is: False
 RHS
 After Assignment arr[0].x is: 0
-Before Assignment arr[0].y is: True")
+After Assignment arr[0].y is: True")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      181 (0xb5)
