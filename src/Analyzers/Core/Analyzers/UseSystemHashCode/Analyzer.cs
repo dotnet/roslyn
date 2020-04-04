@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
     /// <summary>
-    /// Helper code to support both <see cref="UseSystemHashCodeCodeFixProvider"/> and
+    /// Helper code to support both "UseSystemHashCodeCodeFixProvider" and
     /// <see cref="UseSystemHashCodeDiagnosticAnalyzer"/>.
     /// </summary>
     internal partial struct Analyzer

@@ -77,6 +77,11 @@
         <target state="new">Format string contains invalid placeholder</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_format_string">
         <source>Invalid format string</source>
         <target state="new">Invalid format string</target>
@@ -245,6 +250,11 @@
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
         <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_coalesce_expression">

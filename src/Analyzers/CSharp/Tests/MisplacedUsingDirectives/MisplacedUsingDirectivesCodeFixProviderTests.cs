@@ -17,11 +17,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirectives
 {
-    /// <summary>
-    /// Unit tests for the <see cref="MisplacedUsingDirectivesDiagnosticAnalyzer"/> and <see cref="MisplacedUsingDirectivesCodeFixProvider"/>.
-    /// </summary>
     public class MisplacedUsingDirectivesInCompilationUnitCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new MisplacedUsingDirectivesDiagnosticAnalyzer(), new MisplacedUsingDirectivesCodeFixProvider());
+
         internal static readonly CodeStyleOption2<AddImportPlacement> OutsidePreferPreservationOption =
            new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.None);
 
@@ -54,17 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
 
         protected const string DelegateDefinition = @"public delegate void TestDelegate();";
 
+        private static TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
+            => new TestParameters(options: OptionsSet((new OptionKey2(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement), preferredPlacementOption)));
+
         private protected Task TestDiagnosticMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
-        {
-            var options = OptionsSet(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption);
-            return TestDiagnosticMissingAsync(initialMarkup, new TestParameters(options: options));
-        }
+            => TestDiagnosticMissingAsync(initialMarkup, GetTestParameters(preferredPlacementOption));
 
         private protected Task TestMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
-        {
-            var options = OptionsSet(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption);
-            return TestMissingAsync(initialMarkup, new TestParameters(options: options));
-        }
+            => TestMissingAsync(initialMarkup, GetTestParameters(preferredPlacementOption));
 
         private protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption, bool placeSystemNamespaceFirst)
         {
@@ -75,9 +72,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
                 );
             return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
         }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new MisplacedUsingDirectivesDiagnosticAnalyzer(), new MisplacedUsingDirectivesCodeFixProvider());
 
         #region Test Preserve
 

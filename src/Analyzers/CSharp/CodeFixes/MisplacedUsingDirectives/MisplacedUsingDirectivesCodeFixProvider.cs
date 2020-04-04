@@ -20,11 +20,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 {
@@ -58,7 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
+
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(syntaxRoot.SyntaxTree, cancellationToken);
+#else
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
             // Read the preferred placement option and verify if it can be applied to this code file.
             // There are cases where we will not be able to fix the diagnostic and the user will need to resolve
@@ -72,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
-                    new MoveMisplacedUsingsCodeAction(token => GetTransformedDocumentAsync(document, compilationUnit, options, placement, token)),
+                    new MoveMisplacedUsingsCodeAction(token => GetTransformedDocumentAsync(document, compilationUnit, placement, token)),
                     diagnostic);
             }
         }
@@ -80,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static async Task<Document> GetTransformedDocumentAsync(
             Document document,
             CompilationUnitSyntax compilationUnit,
-            OptionSet options,
             AddImportPlacement placement,
             CancellationToken cancellationToken)
         {
@@ -93,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings, syntaxFactsService);
 
             // A blanket warning that this codefix may change code so that it does not compile.
-            var warningAnnotation = WarningAnnotation.Create(CSharpFeaturesResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
+            var warningAnnotation = WarningAnnotation.Create(CSharpAnalyzersResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
 
             var newCompilationUnit = placement == AddImportPlacement.InsideNamespace
                 ? MoveUsingsInsideNamespace(compilationUnitWithoutHeader, warningAnnotation)
@@ -104,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var newDocument = document.WithSyntaxRoot(newCompilationUnitWithHeader);
 
             // Simplify usings now that they have been moved and are in the proper context.
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, options, cancellationToken).ConfigureAwait(false);
         }
 
@@ -389,10 +398,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return compilationUnit.ReplaceToken(firstToken, newFirstToken);
         }
 
-        private class MoveMisplacedUsingsCodeAction : DocumentChangeAction
+        private class MoveMisplacedUsingsCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MoveMisplacedUsingsCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Move_misplaced_using_directives, createChangedDocument)
+                : base(CSharpAnalyzersResources.Move_misplaced_using_directives, createChangedDocument)
             {
             }
         }

@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
-            this SyntaxGenerator factory, INamedTypeSymbol hashCodeType, ImmutableArray<SyntaxNode> memberReferences)
+            this SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal,
+            INamedTypeSymbol hashCodeType, ImmutableArray<SyntaxNode> memberReferences)
         {
             if (memberReferences.Length <= 8)
             {
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             const string hashName = "hash";
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
-            statements.Add(factory.SimpleLocalDeclarationStatement(
+            statements.Add(factory.SimpleLocalDeclarationStatement(generatorInternal,
                 hashCodeType, hashName, factory.ObjectCreationExpression(hashCodeType)));
 
             var localReference = factory.IdentifierName(hashName);
@@ -78,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static ImmutableArray<SyntaxNode> CreateGetHashCodeMethodStatements(
             this SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             const string HashCodeName = "hashCode";
             statements.Add(!useInt64
-                ? factory.SimpleLocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int32), HashCodeName, CreateLiteralExpression(factory, initHash))
+                ? factory.SimpleLocalDeclarationStatement(generatorInternal, compilation.GetSpecialType(SpecialType.System_Int32), HashCodeName, CreateLiteralExpression(factory, initHash))
                 : factory.LocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int64), HashCodeName, CreateLiteralExpression(factory, initHash)));
 
             var hashCodeNameExpression = factory.IdentifierName(HashCodeName);
@@ -175,10 +177,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// type and let the simplifier decide if it should be <c>var</c> or not.
         /// </summary>
         private static SyntaxNode SimpleLocalDeclarationStatement(
-            this SyntaxGenerator generator, INamedTypeSymbol namedTypeSymbol,
+            this SyntaxGenerator generator, SyntaxGeneratorInternal generatorInternal, INamedTypeSymbol namedTypeSymbol,
             string name, SyntaxNode initializer)
         {
-            return generator.RequiresLocalDeclarationType()
+            return generatorInternal.RequiresLocalDeclarationType()
                 ? generator.LocalDeclarationStatement(namedTypeSymbol, name, initializer)
                 : generator.LocalDeclarationStatement(name, initializer);
         }

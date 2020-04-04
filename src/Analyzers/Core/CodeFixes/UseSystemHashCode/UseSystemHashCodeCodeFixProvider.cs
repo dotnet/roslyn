@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
+            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
             if (declarationService == null)
             {
@@ -88,16 +89,16 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                     var updatedDecl = generator.WithStatements(
                         methodBlock,
                         generator.CreateGetHashCodeStatementsUsingSystemHashCode(
-                            analyzer.SystemHashCodeType, components));
+                            generatorInternal, analyzer.SystemHashCodeType, components));
                     editor.ReplaceNode(methodBlock, updatedDecl);
                 }
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_System_HashCode, createChangedDocument, FeaturesResources.Use_System_HashCode)
+                : base(AnalyzersResources.Use_System_HashCode, createChangedDocument, AnalyzersResources.Use_System_HashCode)
             {
             }
         }

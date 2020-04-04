@@ -80,5 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function YieldReturnStatement(expression As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.YieldStatement(DirectCast(expression, ExpressionSyntax))
         End Function
+
+        Friend Overrides Function RequiresLocalDeclarationType() As Boolean
+            ' VB supports `dim x = ...` as well as `dim x as Y = ...`.  The local declaration type
+            ' is not required.
+            Return False
+        End Function
     End Class
 End Namespace
