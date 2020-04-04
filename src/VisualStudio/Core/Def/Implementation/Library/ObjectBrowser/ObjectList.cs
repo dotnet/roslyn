@@ -512,17 +512,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             switch (listKind)
             {
                 case ObjectListKind.Types:
-                    return new ObjectList(ObjectListKind.Types, flags, this, listItem, _manager, this.LibraryManager.GetTypeListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.Types, flags, this, listItem, _manager, this.LibraryManager.GetTypeListItems(listItem, compilation, this.LibraryManager.GetProject(listItem.ProjectId)));
                 case ObjectListKind.Hierarchy:
                     return new ObjectList(ObjectListKind.Hierarchy, flags, this, listItem, _manager, this.LibraryManager.GetFolderListItems(listItem, compilation));
                 case ObjectListKind.Namespaces:
-                    return new ObjectList(ObjectListKind.Namespaces, flags, this, listItem, _manager, this.LibraryManager.GetNamespaceListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.Namespaces, flags, this, listItem, _manager, this.LibraryManager.GetNamespaceListItems(listItem, compilation, this.LibraryManager.GetProject(listItem.ProjectId)));
                 case ObjectListKind.Members:
-                    return new ObjectList(ObjectListKind.Members, flags, this, listItem, _manager, this.LibraryManager.GetMemberListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.Members, flags, this, listItem, _manager, this.LibraryManager.GetMemberListItems(listItem, compilation, this.LibraryManager.GetProject(listItem.ProjectId)));
                 case ObjectListKind.References:
                     return new ObjectList(ObjectListKind.References, flags, this, listItem, _manager, this.LibraryManager.GetReferenceListItems(listItem, compilation));
                 case ObjectListKind.BaseTypes:
-                    return new ObjectList(ObjectListKind.BaseTypes, flags, this, listItem, _manager, this.LibraryManager.GetBaseTypeListItems(listItem, compilation));
+                    return new ObjectList(ObjectListKind.BaseTypes, flags, this, listItem, _manager, this.LibraryManager.GetBaseTypeListItems(listItem, compilation, this.LibraryManager.GetProject(listItem.ProjectId)));
             }
 
             throw new NotImplementedException();

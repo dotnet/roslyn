@@ -12,8 +12,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private readonly MemberKind _kind;
         private readonly bool _isInherited;
 
-        internal MemberListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden, bool isInherited)
-            : base(projectId, symbol, displayText, fullNameText, searchText, isHidden)
+        internal MemberListItem(Project project, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden, bool isInherited)
+            : base(project, symbol, displayText, fullNameText, searchText, isHidden)
         {
             _isInherited = isInherited;
 

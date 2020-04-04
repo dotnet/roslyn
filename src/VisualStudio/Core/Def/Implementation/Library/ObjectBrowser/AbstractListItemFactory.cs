@@ -63,22 +63,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         protected abstract string GetMemberDisplayString(ISymbol memberSymbol);
         protected abstract string GetMemberAndTypeDisplayString(ISymbol memberSymbol);
 
-        protected MemberListItem CreateFullyQualifiedMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden)
+        protected MemberListItem CreateFullyQualifiedMemberListItem(ISymbol memberSymbol, Project project, bool hidden)
         {
             var displayText = GetMemberAndTypeDisplayString(memberSymbol);
             var fullNameText = displayText;
             var searchText = memberSymbol.ToDisplayString(s_searchFormat);
 
-            return new MemberListItem(projectId, memberSymbol, displayText, fullNameText, searchText, hidden, isInherited: true);
+            return new MemberListItem(project, memberSymbol, displayText, fullNameText, searchText, hidden, isInherited: true);
         }
 
-        protected MemberListItem CreateInheritedMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden)
-            => CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: true);
+        protected MemberListItem CreateInheritedMemberListItem(ISymbol memberSymbol, Project project, bool hidden)
+            => CreateMemberListItem(memberSymbol, project, hidden, isInherited: true);
 
-        protected MemberListItem CreateSimpleMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden)
-            => CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: false);
+        protected MemberListItem CreateSimpleMemberListItem(ISymbol memberSymbol, Project project, bool hidden)
+            => CreateMemberListItem(memberSymbol, project, hidden, isInherited: false);
 
-        private MemberListItem CreateMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden, bool isInherited)
+        private MemberListItem CreateMemberListItem(ISymbol memberSymbol, Project project, bool hidden, bool isInherited)
         {
             var displayText = GetMemberDisplayString(memberSymbol);
 
@@ -89,10 +89,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             var searchText = memberSymbol.ToDisplayString(s_searchFormat);
 
-            return new MemberListItem(projectId, memberSymbol, displayText, fullNameText, searchText, hidden, isInherited: isInherited);
+            return new MemberListItem(project, memberSymbol, displayText, fullNameText, searchText, hidden, isInherited: isInherited);
         }
 
-        protected TypeListItem CreateSimpleTypeListItem(INamedTypeSymbol namedTypeSymbol, ProjectId projectId, bool hidden)
+        protected TypeListItem CreateSimpleTypeListItem(INamedTypeSymbol namedTypeSymbol, Project project, bool hidden)
         {
             var displayText = GetSimpleDisplayText(namedTypeSymbol);
 
@@ -102,10 +102,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             var searchText = namedTypeSymbol.ToDisplayString(s_searchFormat);
 
-            return new TypeListItem(projectId, namedTypeSymbol, displayText, fullNameText, searchText, hidden);
+            return new TypeListItem(project, namedTypeSymbol, displayText, fullNameText, searchText, hidden);
         }
 
-        protected TypeListItem CreateFullyQualifiedTypeListItem(INamedTypeSymbol namedTypeSymbol, ProjectId projectId, bool hidden)
+        protected TypeListItem CreateFullyQualifiedTypeListItem(INamedTypeSymbol namedTypeSymbol, Project project, bool hidden)
         {
             var displayText = namedTypeSymbol.SpecialType.ToPredefinedType() != PredefinedType.None
                 ? namedTypeSymbol.ToDisplayString(s_predefinedTypeDisplay)
@@ -115,14 +115,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             var searchText = namedTypeSymbol.ToDisplayString(s_searchFormat);
 
-            return new TypeListItem(projectId, namedTypeSymbol, displayText, fullNameText, searchText, hidden);
+            return new TypeListItem(project, namedTypeSymbol, displayText, fullNameText, searchText, hidden);
         }
 
-        protected NamespaceListItem CreateNamespaceListItem(INamespaceSymbol namespaceSymbol, ProjectId projectId)
+        protected NamespaceListItem CreateNamespaceListItem(INamespaceSymbol namespaceSymbol, Project project)
         {
             var text = namespaceSymbol.ToDisplayString();
 
-            return new NamespaceListItem(projectId, namespaceSymbol, displayText: text, fullNameText: text, searchText: text);
+            return new NamespaceListItem(project, namespaceSymbol, displayText: text, fullNameText: text, searchText: text);
         }
 
         private static bool IncludeSymbol(ISymbol symbol)
@@ -165,13 +165,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private ImmutableArray<ObjectListItem> CreateListItemsFromSymbols<TSymbol>(
             ImmutableArray<TSymbol> symbols,
             Compilation compilation,
-            ProjectId projectId,
-            Func<TSymbol, ProjectId, bool, ObjectListItem> listItemCreator)
+            Project project,
+            Func<TSymbol, Project, bool, ObjectListItem> listItemCreator)
             where TSymbol : class, ISymbol
         {
             var builder = ImmutableArray.CreateBuilder<ObjectListItem>(symbols.Length);
 
-            AddListItemsFromSymbols(symbols, compilation, projectId, listItemCreator, builder);
+            AddListItemsFromSymbols(symbols, compilation, project, listItemCreator, builder);
 
             return builder.ToImmutable();
         }
@@ -179,8 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private static void AddListItemsFromSymbols<TSymbol>(
             IEnumerable<TSymbol> symbols,
             Compilation compilation,
-            ProjectId projectId,
-            Func<TSymbol, ProjectId, bool, ObjectListItem> listItemCreator,
+            Project project,
+            Func<TSymbol, Project, bool, ObjectListItem> listItemCreator,
             ImmutableArray<ObjectListItem>.Builder builder)
             where TSymbol : class, ISymbol
         {
@@ -205,11 +205,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     typeLibTypeAttributeConstructors,
                     typeLibVarAttributeConstructors);
 
-                builder.Add(listItemCreator(symbol, projectId, isHidden));
+                builder.Add(listItemCreator(symbol, project, isHidden));
             }
         }
 
-        private ImmutableArray<ObjectListItem> GetBaseTypeListItems(INamedTypeSymbol namedTypeSymbol, Compilation compilation, ProjectId projectId)
+        private ImmutableArray<ObjectListItem> GetBaseTypeListItems(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Project project)
         {
             // Special case: System.Object doesn't have a base type
             if (namedTypeSymbol.SpecialType == SpecialType.System_Object)
@@ -230,10 +230,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 symbolBuilder.Add(interfaceSymbol);
             }
 
-            return CreateListItemsFromSymbols(symbolBuilder.ToImmutable(), compilation, projectId, CreateSimpleTypeListItem);
+            return CreateListItemsFromSymbols(symbolBuilder.ToImmutable(), compilation, project, CreateSimpleTypeListItem);
         }
 
-        public ImmutableArray<ObjectListItem> GetBaseTypeListItems(ObjectListItem parentListItem, Compilation compilation)
+        public ImmutableArray<ObjectListItem> GetBaseTypeListItems(
+            ObjectListItem parentListItem, Compilation compilation, Project project)
         {
             Debug.Assert(parentListItem != null);
             Debug.Assert(parentListItem is TypeListItem);
@@ -246,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             var typeSymbol = parentTypeItem.ResolveTypedSymbol(compilation);
 
-            return GetBaseTypeListItems(typeSymbol, compilation, parentListItem.ProjectId);
+            return GetBaseTypeListItems(typeSymbol, compilation, project);
         }
 
         public ImmutableArray<ObjectListItem> GetFolderListItems(ObjectListItem parentListItem, Compilation compilation)
@@ -297,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private ImmutableArray<ObjectListItem> GetMemberListItems(
             INamedTypeSymbol namedTypeSymbol,
             Compilation compilation,
-            ProjectId projectId,
+            Project project,
             bool fullyQualified = false)
         {
             var builder = ImmutableArray.CreateBuilder<ObjectListItem>();
@@ -306,15 +307,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             if (fullyQualified)
             {
-                AddListItemsFromSymbols(immediateMembers, compilation, projectId, CreateFullyQualifiedMemberListItem, builder);
+                AddListItemsFromSymbols(immediateMembers, compilation, project, CreateFullyQualifiedMemberListItem, builder);
             }
             else
             {
-                AddListItemsFromSymbols(immediateMembers, compilation, projectId, CreateSimpleMemberListItem, builder);
+                AddListItemsFromSymbols(immediateMembers, compilation, project, CreateSimpleMemberListItem, builder);
 
                 var inheritedMembers = GetInheritedMemberSymbols(namedTypeSymbol, compilation);
 
-                AddListItemsFromSymbols(inheritedMembers, compilation, projectId, CreateInheritedMemberListItem, builder);
+                AddListItemsFromSymbols(inheritedMembers, compilation, project, CreateInheritedMemberListItem, builder);
             }
 
             return builder.ToImmutable();
@@ -401,7 +402,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        public ImmutableArray<ObjectListItem> GetMemberListItems(ObjectListItem parentListItem, Compilation compilation)
+        public ImmutableArray<ObjectListItem> GetMemberListItems(ObjectListItem parentListItem, Compilation compilation, Project project)
         {
             Debug.Assert(parentListItem != null);
             Debug.Assert(parentListItem is TypeListItem);
@@ -414,10 +415,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             var typeSymbol = parentTypeItem.ResolveTypedSymbol(compilation);
 
-            return GetMemberListItems(typeSymbol, compilation, parentListItem.ProjectId);
+            return GetMemberListItems(typeSymbol, compilation, project);
         }
 
-        public void CollectNamespaceListItems(IAssemblySymbol assemblySymbol, ProjectId projectId, ImmutableArray<ObjectListItem>.Builder builder, string searchString)
+        public void CollectNamespaceListItems(IAssemblySymbol assemblySymbol, Project project, ImmutableArray<ObjectListItem>.Builder builder, string searchString)
         {
             Debug.Assert(assemblySymbol != null);
 
@@ -432,7 +433,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 if (!namespaceSymbol.IsGlobalNamespace &&
                     ContainsAccessibleTypeMember(namespaceSymbol, assemblySymbol))
                 {
-                    var namespaceListItem = CreateNamespaceListItem(namespaceSymbol, projectId);
+                    var namespaceListItem = CreateNamespaceListItem(namespaceSymbol, project);
 
                     if (searchString == null)
                     {
@@ -452,7 +453,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        public ImmutableArray<ObjectListItem> GetNamespaceListItems(ObjectListItem parentListItem, Compilation compilation)
+        public ImmutableArray<ObjectListItem> GetNamespaceListItems(ObjectListItem parentListItem, Compilation compilation, Project project)
         {
             Debug.Assert(parentListItem != null);
             Debug.Assert(parentListItem is ProjectListItem ||
@@ -465,7 +466,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             var builder = ImmutableArray.CreateBuilder<ObjectListItem>();
 
-            CollectNamespaceListItems(assemblySymbol, parentListItem.ProjectId, builder, searchString: null);
+            CollectNamespaceListItems(assemblySymbol, project, builder, searchString: null);
 
             return builder.ToImmutable();
         }
@@ -712,15 +713,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private ImmutableArray<ObjectListItem> GetTypeListItems(
             INamespaceSymbol namespaceSymbol,
             Compilation compilation,
-            ProjectId projectId,
+            Project project,
             string searchString,
             bool fullyQualified = false)
         {
             var types = GetAccessibleTypes(namespaceSymbol, compilation);
 
             var listItems = fullyQualified
-                ? CreateListItemsFromSymbols(types, compilation, projectId, CreateFullyQualifiedTypeListItem)
-                : CreateListItemsFromSymbols(types, compilation, projectId, CreateSimpleTypeListItem);
+                ? CreateListItemsFromSymbols(types, compilation, project, CreateFullyQualifiedTypeListItem)
+                : CreateListItemsFromSymbols(types, compilation, project, CreateSimpleTypeListItem);
 
             if (searchString == null)
             {
@@ -740,7 +741,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return finalBuilder.ToImmutable();
         }
 
-        public ImmutableArray<ObjectListItem> GetTypeListItems(ObjectListItem parentListItem, Compilation compilation)
+        public ImmutableArray<ObjectListItem> GetTypeListItems(ObjectListItem parentListItem, Compilation compilation, Project project)
         {
             Debug.Assert(parentListItem != null);
             Debug.Assert(parentListItem is NamespaceListItem ||
@@ -762,10 +763,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 namespaceSymbol = compilation.Assembly.GlobalNamespace;
             }
 
-            return GetTypeListItems(namespaceSymbol, compilation, parentListItem.ProjectId, searchString: null);
+            return GetTypeListItems(namespaceSymbol, compilation, project, searchString: null);
         }
 
-        public void CollectTypeListItems(IAssemblySymbol assemblySymbol, Compilation compilation, ProjectId projectId, ImmutableArray<ObjectListItem>.Builder builder, string searchString)
+        public void CollectTypeListItems(IAssemblySymbol assemblySymbol, Compilation compilation, Project project, ImmutableArray<ObjectListItem>.Builder builder, string searchString)
         {
             Debug.Assert(assemblySymbol != null);
             Debug.Assert(compilation != null);
@@ -776,7 +777,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             while (stack.Count > 0)
             {
                 var namespaceSymbol = stack.Pop();
-                var typeListItems = GetTypeListItems(namespaceSymbol, compilation, projectId, searchString, fullyQualified: true);
+                var typeListItems = GetTypeListItems(namespaceSymbol, compilation, project, searchString, fullyQualified: true);
 
                 foreach (var typeListItem in typeListItems)
                 {
@@ -798,7 +799,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
         }
 
-        public void CollectMemberListItems(IAssemblySymbol assemblySymbol, Compilation compilation, ProjectId projectId, ImmutableArray<ObjectListItem>.Builder builder, string searchString)
+        public void CollectMemberListItems(IAssemblySymbol assemblySymbol, Compilation compilation, Project project, ImmutableArray<ObjectListItem>.Builder builder, string searchString)
         {
             Debug.Assert(assemblySymbol != null);
             Debug.Assert(compilation != null);
@@ -813,7 +814,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 foreach (var type in types)
                 {
-                    var memberListItems = GetMemberListItems(type, compilation, projectId, fullyQualified: true);
+                    var memberListItems = GetMemberListItems(type, compilation, project, fullyQualified: true);
                     foreach (var memberListItem in memberListItems)
                     {
                         if (searchString == null)

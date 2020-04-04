@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             var projectId = projectIdAndAssembly.Item1;
                             var assemblySymbol = projectIdAndAssembly.Item2;
 
-                            CollectNamespaceListItems(assemblySymbol, projectId, builder, searchText);
+                            CollectNamespaceListItems(assemblySymbol, GetProject(projectId), builder, searchText);
                         }
 
                         return new ObjectList(ObjectListKind.Namespaces, flags, this, builder.ToImmutable());
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 return null;
                             }
 
-                            CollectTypeListItems(assemblySymbol, compilation, projectId, builder, searchText);
+                            CollectTypeListItems(assemblySymbol, compilation, GetProject(projectId), builder, searchText);
                         }
 
                         return new ObjectList(ObjectListKind.Types, flags, this, builder.ToImmutable());
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 return null;
                             }
 
-                            CollectMemberListItems(assemblySymbol, compilation, projectId, builder, searchText);
+                            CollectMemberListItems(assemblySymbol, compilation, GetProject(projectId), builder, searchText);
                         }
 
                         return new ObjectList(ObjectListKind.Types, flags, this, builder.ToImmutable());

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
                         solution, cancellationToken).ConfigureAwait(false);
 
-                    var progressCallback = new FindReferencesProgressCallback(EndPoint, cancellationToken);
+                    var progressCallback = new FindReferencesProgressCallback(solution, EndPoint, cancellationToken);
 
                     if (!symbolAndProjectId.HasValue)
                     {
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnFindInDocumentCompletedAsync), new object[] { document.Id }, _cancellationToken);
 
             public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
-                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnDefinitionFoundAsync), new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, , definition) }, _cancellationToken);
+                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnDefinitionFoundAsync), new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, definition) }, _cancellationToken);
 
             public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation reference)
             {
