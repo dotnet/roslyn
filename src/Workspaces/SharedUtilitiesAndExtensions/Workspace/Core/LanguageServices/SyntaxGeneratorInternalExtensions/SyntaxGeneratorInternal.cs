@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode YieldReturnStatement(SyntaxNode expression);
 
         /// <summary>
-        /// <see langword="true"/> if the language requires a <see cref="TypeExpression(ITypeSymbol)"/>
+        /// <see langword="true"/> if the language requires a "TypeExpression"
         /// (including <see langword="var"/>) to be stated when making a 
-        /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
+        /// <see cref="LocalDeclarationStatement(SyntaxNode, SyntaxToken, SyntaxNode, bool)"/>.
         /// <see langword="false"/> if the language allows the type node to be entirely elided.
         /// </summary>
         internal abstract bool RequiresLocalDeclarationType();
