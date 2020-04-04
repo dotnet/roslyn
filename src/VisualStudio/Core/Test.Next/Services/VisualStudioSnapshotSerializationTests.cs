@@ -35,7 +35,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
                 var project = workspace.CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp);
                 using var analyzer = new VisualStudioAnalyzer(
-                    @"PathToAnalyzer",
+                    @"C:\PathToAnalyzer",
                     hostDiagnosticUpdateSource,
                     projectId: project.Id,
                     language: project.Language);

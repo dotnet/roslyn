@@ -19,7 +19,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub GetReferenceCalledMultipleTimes()
             Using workspace = New TestWorkspace()
-                Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", Nothing, Nothing, Nothing)
+                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspaceImpl)(
+                                    Function()
+                                        Return Nothing
+                                    End Function)
+
+                Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, New MockDiagnosticUpdateSourceRegistrationService())
+
+                Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference1 = analyzer.GetReference()
                     Dim reference2 = analyzer.GetReference()
 
