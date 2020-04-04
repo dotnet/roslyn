@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             : base(state, parent)
         {
             _projectId = projectId;
-            _typeSymbolId = typeSymbol.GetSymbolKey();
+            _typeSymbolId = SymbolKey.Create(solution: null, typeSymbol);
         }
 
         private ImmutableArray<EnvDTE.CodeElement> GetChildren()

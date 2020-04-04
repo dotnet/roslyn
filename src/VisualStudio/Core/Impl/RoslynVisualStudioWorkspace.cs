@@ -97,9 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
+            var symbolInfo = SymbolKey.Resolve(symbol, currentCompilation, cancellationToken: cancellationToken);
 
             if (symbolInfo.Symbol == null)
             {

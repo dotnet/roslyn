@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             _parentHandle = new ParentHandle<object>(parent);
             _projectId = projectId;
-            _symbolId = typeSymbol.GetSymbolKey();
+            _symbolId = SymbolKey.Create(solution: null, typeSymbol);
         }
 
         internal ITypeSymbol LookupTypeSymbol()

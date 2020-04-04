@@ -638,7 +638,7 @@ class C
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 
             // This should not throw an exception.
-            Assert.NotEqual(default, SymbolKey.Create(xSymbol));
+            Assert.NotEqual(default, SymbolKey.Create(workspace.CurrentSolution, xSymbol));
         }
 
         [Fact]
@@ -663,7 +663,7 @@ public class C
             var methods = GetDeclaredSymbols(compilation1).OfType<IMethodSymbol>();
             foreach (var method in methods)
             {
-                var key = SymbolKey.Create(method);
+                var key = SymbolKey.Create(solution: null, method);
                 key.Resolve(compilation2);
             }
         }

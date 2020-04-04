@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private readonly bool _supportsGoToDefinition;
         private readonly bool _supportsFindAllReferences;
 
-        protected SymbolListItem(Project project, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden)
-            : base(project.Id, symbol.GetGlyph().GetStandardGlyphGroup(), symbol.GetGlyph().GetStandardGlyphItem(), isHidden)
+        protected SymbolListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden)
+            : base(projectId, symbol.GetGlyph().GetStandardGlyphGroup(), symbol.GetGlyph().GetStandardGlyphItem(), isHidden)
         {
-            _symbolKey = symbol.GetSymbolKey(project.Solution);
+            _symbolKey = SymbolKey.Create(solution: null, symbol);
             _accessibility = symbol.DeclaredAccessibility;
             _displayText = displayText;
             _fullNameText = fullNameText;
