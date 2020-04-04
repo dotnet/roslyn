@@ -53,13 +53,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim typeItems As New List(Of NavigationBarItem)
             Dim typeSymbolIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
 
+            Dim solution = document.Project.Solution
             Dim symbolDeclarationService = document.GetLanguageService(Of ISymbolDeclarationService)
-            Dim workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument)
+            Dim workspaceSupportsDocumentChanges = solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument)
 
             For Each typeAndDeclaration In typesAndDeclarations
                 Dim type = typeAndDeclaration.Item1
                 Dim position = typeAndDeclaration.Item2.SpanStart
-                typeItems.AddRange(CreateItemsForType(type, position, typeSymbolIndexProvider.GetIndexForSymbolId(type.GetSymbolKey()), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+                typeItems.AddRange(CreateItemsForType(
+                    solution, type, position, typeSymbolIndexProvider.GetIndexForSymbolId(
+                        type.GetSymbolKey(solution)), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             Next
 
             Return typeItems
@@ -110,7 +113,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End Try
         End Function
 
-        Private Function CreateItemsForType(type As INamedTypeSymbol,
+        Private Function CreateItemsForType(solution As Solution,
+                                            type As INamedTypeSymbol,
                                             position As Integer,
                                             typeSymbolIdIndex As Integer,
                                             semanticModel As SemanticModel,
@@ -119,12 +123,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                                             cancellationToken As CancellationToken) As IEnumerable(Of NavigationBarItem)
             Dim items As New List(Of NavigationBarItem)
             If type.TypeKind = TypeKind.Enum Then
-                items.Add(CreateItemForEnum(type, typeSymbolIdIndex, semanticModel.SyntaxTree, symbolDeclarationService, cancellationToken))
+                items.Add(CreateItemForEnum(
+                    solution, type, typeSymbolIdIndex, semanticModel.SyntaxTree, symbolDeclarationService, cancellationToken))
             Else
-                items.Add(CreatePrimaryItemForType(type, typeSymbolIdIndex, semanticModel.SyntaxTree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+                items.Add(CreatePrimaryItemForType(solution, type, typeSymbolIdIndex, semanticModel.SyntaxTree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
 
                 If type.TypeKind <> TypeKind.Interface Then
                     Dim typeEvents = CreateItemForEvents(
+                        solution,
                         type,
                         position,
                         type,
@@ -145,6 +151,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         If propertySymbol IsNot Nothing AndAlso propertySymbol.IsWithEvents Then
                             items.Add(
                                 CreateItemForEvents(
+                                    solution,
                                     type,
                                     position,
                                     propertySymbol.Type,
@@ -161,7 +168,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return items
         End Function
 
-        Private Function CreateItemForEnum(type As INamedTypeSymbol,
+        Private Function CreateItemForEnum(solution As Solution,
+                                           type As INamedTypeSymbol,
                                            typeSymbolIdIndex As Integer,
                                            tree As SyntaxTree,
                                            symbolDeclarationService As ISymbolDeclarationService,
@@ -175,21 +183,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                               member.Name,
                               member.GetGlyph(),
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
-                              member.GetSymbolKey(),
-                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey())), NavigationBarItem)
+                              member.GetSymbolKey(solution),
+                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(solution))), NavigationBarItem)
                           Into ToList()
 
             Return New NavigationBarSymbolItem(
                 type.Name,
                 type.GetGlyph(),
                 GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
-                type.GetSymbolKey(),
+                type.GetSymbolKey(solution),
                 typeSymbolIdIndex,
                 members,
                 bolded:=True)
         End Function
 
-        Private Function CreatePrimaryItemForType(type As INamedTypeSymbol,
+        Private Function CreatePrimaryItemForType(solution As Solution,
+                                                  type As INamedTypeSymbol,
                                                   typeSymbolIdIndex As Integer,
                                                   tree As SyntaxTree,
                                                   workspaceSupportsDocumentChanges As Boolean,
@@ -204,10 +213,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                 ' Offer to generate the constructor only if it's legal
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New GenerateDefaultConstructorItem(type.GetSymbolKey()))
+                    childItems.Add(New GenerateDefaultConstructorItem(type.GetSymbolKey(solution)))
                 End If
             Else
-                childItems.AddRange(CreateItemsForMemberGroup(constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+                childItems.AddRange(CreateItemsForMemberGroup(solution, constructors, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             End If
 
 
@@ -218,10 +227,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             If Not finalizeMethods.Any() Then
                 If workspaceSupportsDocumentChanges AndAlso type.TypeKind = TypeKind.Class Then
-                    childItems.Add(New GenerateFinalizerItem(type.GetSymbolKey()))
+                    childItems.Add(New GenerateFinalizerItem(type.GetSymbolKey(solution)))
                 End If
             Else
-                childItems.AddRange(CreateItemsForMemberGroup(finalizeMethods, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+                childItems.AddRange(CreateItemsForMemberGroup(solution, finalizeMethods, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             End If
 
             ' And now, methods and properties
@@ -232,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                 For Each memberGroup In memberGroups
                     If Not CaseInsensitiveComparison.Equals(memberGroup.Key, WellKnownMemberNames.DestructorName) Then
-                        childItems.AddRange(CreateItemsForMemberGroup(memberGroup, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+                        childItems.AddRange(CreateItemsForMemberGroup(solution, memberGroup, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
                     End If
                 Next
             End If
@@ -248,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 type.GetGlyph(),
                 indent:=0,
                 spans:=GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
-                navigationSymbolId:=type.GetSymbolKey(),
+                navigationSymbolId:=type.GetSymbolKey(solution),
                 navigationSymbolIndex:=typeSymbolIdIndex,
                 childItems:=childItems,
                 bolded:=True)
@@ -294,7 +303,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         ''' type of the eventContainer.</param>
         ''' <param name="eventContainer">If this is an entry for a WithEvents member, the WithEvents
         ''' property itself.</param>
-        Private Function CreateItemForEvents(containingType As INamedTypeSymbol,
+        Private Function CreateItemForEvents(solution As Solution,
+                                             containingType As INamedTypeSymbol,
                                              position As Integer,
                                              eventType As ITypeSymbol,
                                              eventContainer As IPropertySymbol,
@@ -335,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                     ' Dev11 arbitrarily will navigate to the last method that implements the event
                     ' if more than one exists
-                    Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey()
+                    Dim navigationSymbolId = eventToImplementingMethods(e).Last.GetSymbolKey(solution)
 
                     rightHandMemberItems.Add(
                         New NavigationBarSymbolItem(
@@ -362,8 +372,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                                 e.Name,
                                 e.GetGlyph(),
                                 eventContainerName,
-                                e.GetSymbolKey(),
-                                containingType.GetSymbolKey()))
+                                e.GetSymbolKey(solution),
+                                containingType.GetSymbolKey(solution)))
                     End If
                 End If
             Next
@@ -400,7 +410,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         .ToList()
         End Function
 
-        Private Function CreateItemsForMemberGroup(members As IEnumerable(Of ISymbol),
+        Private Function CreateItemsForMemberGroup(solution As Solution,
+                                                   members As IEnumerable(Of ISymbol),
                                                    tree As SyntaxTree,
                                                    workspaceSupportsDocumentChanges As Boolean,
                                                    symbolDeclarationService As ISymbolDeclarationService,
@@ -431,27 +442,27 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                         method.ToDisplayString(displayFormat),
                         method.GetGlyph(),
                         spans,
-                        method.GetSymbolKey(),
-                        symbolIdIndexProvider.GetIndexForSymbolId(method.GetSymbolKey()),
+                        method.GetSymbolKey(solution),
+                        symbolIdIndexProvider.GetIndexForSymbolId(method.GetSymbolKey(solution)),
                         bolded:=spans.Count > 0,
                         grayed:=spans.Count = 0))
                 ElseIf method IsNot Nothing AndAlso IsUnimplementedPartial(method) Then
                     If workspaceSupportsDocumentChanges Then
                         items.Add(New GenerateMethodItem(
-                        member.ToDisplayString(displayFormat),
-                        member.GetGlyph(),
-                        member.ContainingType.GetSymbolKey(),
-                        member.GetSymbolKey()))
+                            member.ToDisplayString(displayFormat),
+                            member.GetGlyph(),
+                            member.ContainingType.GetSymbolKey(solution),
+                            member.GetSymbolKey(solution)))
                     End If
                 Else
                     items.Add(New NavigationBarSymbolItem(
-                    member.ToDisplayString(displayFormat),
-                    member.GetGlyph(),
-                    spans,
-                    member.GetSymbolKey(),
-                    symbolIdIndexProvider.GetIndexForSymbolId(member.GetSymbolKey()),
-                    bolded:=spans.Count > 0,
-                    grayed:=spans.Count = 0))
+                        member.ToDisplayString(displayFormat),
+                        member.GetGlyph(),
+                        spans,
+                        member.GetSymbolKey(solution),
+                        symbolIdIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(solution)),
+                        bolded:=spans.Count > 0,
+                        grayed:=spans.Count = 0))
                 End If
             Next
 

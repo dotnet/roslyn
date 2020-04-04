@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task<IList<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(
             PinnedSolutionInfo solutionInfo,
             ProjectId projectId,
             string name,
@@ -95,12 +95,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
                         project, query, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
                 }
             }, cancellationToken);
         }
 
-        public Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithNormalQueryAsync(
             PinnedSolutionInfo solutionInfo,
             string name,
             bool ignoreCase,
@@ -115,12 +115,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                         solution, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
                 }
             }, cancellationToken);
         }
 
-        public Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithNormalQueryAsync(
             PinnedSolutionInfo solutionInfo,
             ProjectId projectId,
             string name,
@@ -138,12 +138,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                         project, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
                 }
             }, cancellationToken);
         }
 
-        public Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithPatternAsync(
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithPatternAsync(
             PinnedSolutionInfo solutionInfo, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
                         solution, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
                 }
             }, cancellationToken);
         }
 
-        public Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
+        public Task<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             PinnedSolutionInfo solutionInfo, ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
                         project, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
                 }
             }, cancellationToken);
         }
@@ -204,13 +204,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private sealed class FindReferencesProgressCallback : IStreamingFindReferencesProgress, IStreamingProgressTracker
         {
+            private readonly Solution _solution;
             private readonly RemoteEndPoint _endPoint;
             private readonly CancellationToken _cancellationToken;
 
             public IStreamingProgressTracker ProgressTracker { get; }
 
-            public FindReferencesProgressCallback(RemoteEndPoint endPoint, CancellationToken cancellationToken)
+            public FindReferencesProgressCallback(Solution solution, RemoteEndPoint endPoint, CancellationToken cancellationToken)
             {
+                _solution = solution;
                 _endPoint = endPoint;
                 _cancellationToken = cancellationToken;
                 ProgressTracker = this;
@@ -229,13 +231,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnFindInDocumentCompletedAsync), new object[] { document.Id }, _cancellationToken);
 
             public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
-                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnDefinitionFoundAsync), new object[] { SerializableSymbolAndProjectId.Dehydrate(definition) }, _cancellationToken);
+                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnDefinitionFoundAsync), new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, , definition) }, _cancellationToken);
 
             public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation reference)
             {
                 return _endPoint.InvokeAsync(
                     nameof(SymbolFinder.FindReferencesServerCallback.OnReferenceFoundAsync),
-                    new object[] { SerializableSymbolAndProjectId.Dehydrate(definition), SerializableReferenceLocation.Dehydrate(reference) },
+                    new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, definition), SerializableReferenceLocation.Dehydrate(reference) },
                     _cancellationToken);
             }
 

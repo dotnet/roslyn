@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             properties ??= ImmutableDictionary<string, string>.Empty;
 
-            var symbolKey = symbol.GetSymbolKey().ToString();
+            var symbolKey = symbol.GetSymbolKey(project.Solution).ToString();
 
             properties = properties.Add(MetadataSymbolKey, symbolKey)
                                    .Add(MetadataSymbolOriginatingProjectIdGuid, project.Id.Id.ToString())

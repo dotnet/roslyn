@@ -56,16 +56,20 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return alias == null
                 ? null
-                : Dehydrate(new SymbolAndProjectId(alias, document.Project.Id));
+                : Dehydrate(document.Project.Solution, new SymbolAndProjectId(alias, document.Project.Id));
         }
 
         public static SerializableSymbolAndProjectId Dehydrate(
-            SymbolAndProjectId symbolAndProjectId)
+            Solution solution, SymbolAndProjectId symbolAndProjectId)
         {
+            var symbolKey = symbolAndProjectId.Symbol.GetSymbolKey(solution);
+            if (symbolKey.ProjectId == null)
+                throw new InvalidOperationException("SymbolKeys used for OOP operations must have a ProjectId");
+
             return new SerializableSymbolAndProjectId
             {
-                SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = symbolAndProjectId.ProjectId
+                SymbolKeyData = symbolKey.ToString(),
+                ProjectId = symbolKey.ProjectId,
             };
         }
 

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             MetadataAsSourceGeneratedFileInfo fileInfo;
             Location? navigateLocation = null;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var symbolId = SymbolKey.Create(project.Solution, symbol, cancellationToken);
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -283,12 +283,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (peMetadataReference?.FilePath != null)
             {
-                return new UniqueDocumentKey(peMetadataReference.FilePath, peMetadataReference.GetMetadataId(), project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
+                return new UniqueDocumentKey(peMetadataReference.FilePath, peMetadataReference.GetMetadataId(), project.Language, SymbolKey.Create(project.Solution, topLevelNamedType, cancellationToken), allowDecompilation);
             }
             else
             {
                 var containingAssembly = topLevelNamedType.ContainingAssembly;
-                return new UniqueDocumentKey(containingAssembly.Identity, containingAssembly.GetMetadata()?.Id, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
+                return new UniqueDocumentKey(
+                    containingAssembly.Identity, containingAssembly.GetMetadata()?.Id, project.Language, SymbolKey.Create(project.Solution, topLevelNamedType, cancellationToken), allowDecompilation);
             }
         }
 
