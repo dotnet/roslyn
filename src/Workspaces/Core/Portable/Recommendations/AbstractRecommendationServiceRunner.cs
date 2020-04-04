@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 // parameter.Ordinal is the ordinal within (a,b,c) => b.
                 // For candidate symbols of (a,b,c) => b., get types of all possible b.
                 parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+
+                // The parameterTypeSymbols may include type parameters, and we want their substituted types if available.
                 parameterTypeSymbols = SubstituteTypeParameters(parameterTypeSymbols, invocationExpression);
             }
 
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 return parameterTypeSymbols;
             }
 
-            var concreteTypes = ArrayBuilder<ITypeSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var concreteTypes);
             foreach (var invocationSymbol in invocationSymbols)
             {
                 var typeParameters = invocationSymbol.GetTypeParameters();
@@ -124,6 +126,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 {
                     if (parameterTypeSymbol.IsKind<ITypeParameterSymbol>(SymbolKind.TypeParameter, out var typeParameter))
                     {
+                        // The typeParameter could be from the containing type, so it may not be
+                        // present in this method's list of typeParameters.
                         var index = typeParameters.IndexOf(typeParameter);
                         var concreteType = typeArguments.ElementAtOrDefault(index);
                         concreteTypes.Add(concreteType ?? typeParameter);
@@ -135,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 }
             }
 
-            return concreteTypes.ToImmutableAndFree();
+            return concreteTypes.ToImmutable();
         }
 
         /// <summary>
