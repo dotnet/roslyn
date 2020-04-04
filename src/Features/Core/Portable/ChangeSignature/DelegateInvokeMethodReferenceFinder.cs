@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                       node,
                       new ReferenceLocation(
                           document,
-                          alias: null,
+                          aliasAndProjectId: default,
                           node.GetLocation(),
                           isImplicit: false,
                           symbolUsageInfo: GetSymbolUsageInfo(

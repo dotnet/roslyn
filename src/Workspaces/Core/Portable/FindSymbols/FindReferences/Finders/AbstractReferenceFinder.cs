@@ -263,9 +263,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         var location = token.GetLocation();
                         var symbolUsageInfo = GetSymbolUsageInfo(token.Parent, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                        var isWrittenTo = symbolUsageInfo.IsWrittenTo();
                         locations.Add(new FinderLocation(token.Parent, new ReferenceLocation(
-                            document, alias, location, isImplicit: false,
+                            document, SymbolAndProjectId.Create(alias, document.Project.Id), location, isImplicit: false,
                             symbolUsageInfo, GetAdditionalFindUsagesProperties(token.Parent, semanticModel, syntaxFacts), candidateReason: reason)));
                     }
                 }
@@ -495,7 +494,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
                         document,
-                        alias: null,
+                        aliasAndProjectId: default,
                         location: location,
                         isImplicit: true,
                         symbolUsageInfo,
@@ -532,7 +531,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
+                        document, aliasAndProjectId: default, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
                 }
             }
         }
@@ -559,7 +558,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
                     locations.Add(new FinderLocation(node, new ReferenceLocation(
-                        document, alias: null, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
+                        document, aliasAndProjectId: default, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
                 }
             }
         }

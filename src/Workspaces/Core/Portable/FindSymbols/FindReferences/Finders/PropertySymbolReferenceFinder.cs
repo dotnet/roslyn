@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 locations.Add(new FinderLocation(node,
                     new ReferenceLocation(
-                        document, alias: null, location, isImplicit: false, symbolUsageInfo,
+                        document, aliasAndProjectId: default, location, isImplicit: false, symbolUsageInfo,
                         GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts),
                         candidateReason)));
             }

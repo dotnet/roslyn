@@ -194,16 +194,19 @@ namespace Microsoft.CodeAnalysis.Remote
                 candidateReason: CandidateReason);
         }
 
-        private async Task<IAliasSymbol> RehydrateAliasAsync(
+        private async Task<SymbolAndProjectId<IAliasSymbol>> RehydrateAliasAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             if (Alias == null)
-            {
-                return null;
-            }
+                return default;
 
             var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            return symbolAndProjectId.GetValueOrDefault().Symbol as IAliasSymbol;
+            if (symbolAndProjectId == null)
+                return default;
+
+            return symbolAndProjectId.Value.Symbol is IAliasSymbol alias
+                ? symbolAndProjectId.Value.WithSymbol(alias)
+                : default;
         }
     }
 

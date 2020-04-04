@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// If the symbol was bound through an alias, then this is the alias that was used.
         /// </summary>
-        public IAliasSymbol Alias { get; }
+        public IAliasSymbol Alias => AliasAndProjectId.Symbol;
+
+        internal SymbolAndProjectId<IAliasSymbol> AliasAndProjectId { get; }
 
         /// <summary>
         /// The actual source location for a given symbol.
@@ -56,16 +58,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
-            : this()
+        internal ReferenceLocation(
+            Document document,
+            SymbolAndProjectId<IAliasSymbol> aliasAndProjectId,
+            Location location,
+            bool isImplicit,
+            SymbolUsageInfo symbolUsageInfo,
+            ImmutableDictionary<string, string> additionalProperties,
+            CandidateReason candidateReason)
         {
-            this.Document = document;
-            this.Alias = alias;
-            this.Location = location;
-            this.IsImplicit = isImplicit;
-            this.SymbolUsageInfo = symbolUsageInfo;
-            this.AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
-            this.CandidateReason = candidateReason;
+            Document = document;
+            AliasAndProjectId = aliasAndProjectId;
+            Location = location;
+            IsImplicit = isImplicit;
+            SymbolUsageInfo = symbolUsageInfo;
+            AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
+            CandidateReason = candidateReason;
         }
 
         /// <summary>
