@@ -10278,7 +10278,7 @@ class Product { public void MyProperty() { } }";
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(42997, "https://github.com/dotnet/roslyn/issues/42997")]
-        public async Task CompletionForLambdaWithTypeParametersFromClassWithConstraint()
+        public async Task CompletionForLambdaWithTypeParametersFromClassWithConstraintOnType()
         {
             var markup = @"
 using System;
@@ -10291,6 +10291,29 @@ class Program<T> where T : Product
     }
 
     static void Create(Action<T> expression) { }
+}
+
+class Product { public void MyProperty() { } }";
+
+            await VerifyItemExistsAsync(markup, "GetHashCode");
+            await VerifyItemExistsAsync(markup, "MyProperty");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42997, "https://github.com/dotnet/roslyn/issues/42997")]
+        public async Task CompletionForLambdaWithTypeParametersFromClassWithConstraintOnMethod()
+        {
+            var markup = @"
+using System;
+
+class Program
+{
+    static void M()
+    {
+        Create(arg => arg.$$);
+    }
+
+    static void Create<T>(Action<T> expression) where T : Product { }
 }
 
 class Product { public void MyProperty() { } }";
