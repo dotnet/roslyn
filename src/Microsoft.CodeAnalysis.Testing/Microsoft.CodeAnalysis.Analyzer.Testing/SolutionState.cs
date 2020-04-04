@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 TestFileMarkupParser.GetPositionsAndSpans(content.ToString(), out var output, out var positions, out var namedSpans);
                 sourceFiles.Add((filename, content.Replace(new TextSpan(0, content.Length), output)));
-                if (positions.Count == 0 && namedSpans.Count == 0)
+                if (positions.IsEmpty && namedSpans.IsEmpty)
                 {
                     // No markup notation in this input
                     continue;
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     diagnostics.Add(diagnostic.Value);
                 }
 
-                foreach ((var name, var spans) in namedSpans)
+                foreach ((var name, var spans) in namedSpans.OrderBy(pair => pair.Key, StringComparer.Ordinal))
                 {
                     foreach (var span in spans)
                     {
