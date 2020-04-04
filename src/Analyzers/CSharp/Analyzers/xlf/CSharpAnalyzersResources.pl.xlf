@@ -27,6 +27,16 @@
         <target state="new">Indexing can be simplified</target>
         <note />
       </trans-unit>
+      <trans-unit id="Misplaced_using_directive">
+        <source>Misplaced using directive</source>
+        <target state="new">Misplaced using directive</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Move_misplaced_using_directives">
+        <source>Move misplaced using directives</source>
+        <target state="new">Move misplaced using directives</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
         <target state="new">Make readonly fields writable</target>
@@ -167,10 +177,25 @@
         <target state="new">Use 'switch' expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
+        <source>Using directives must be placed inside of a namespace declaration</source>
+        <target state="new">Using directives must be placed inside of a namespace declaration</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
+        <source>Using directives must be placed outside of a namespace declaration</source>
+        <target state="new">Using directives must be placed outside of a namespace declaration</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_deconstructed">
         <source>Variable declaration can be deconstructed</source>
         <target state="new">Variable declaration can be deconstructed</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
+        <source>Warning: Moving using directives may change code meaning.</source>
+        <target state="new">Warning: Moving using directives may change code meaning.</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
