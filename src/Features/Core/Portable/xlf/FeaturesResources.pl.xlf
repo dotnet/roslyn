@@ -377,24 +377,9 @@
         <target state="translated">Ustaw jako statyczne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">Ustaw możliwość zapisu dla pól z deklaracją readonly</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Odwróć warunkowe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">Funkcję lokalną można ustawić jako statyczną</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">Ustaw funkcję lokalną jako „static”</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -511,11 +496,6 @@
         <source>Stream must support read and seek operations.</source>
         <target state="translated">Strumień musi obsługiwać operacje odczytu i wyszukiwania.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
-        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
