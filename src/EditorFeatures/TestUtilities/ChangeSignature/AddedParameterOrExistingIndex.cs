@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
                 _addedParameterWithoutTypeSymbol.CallSiteValue,
                 _addedParameterWithoutTypeSymbol.IsRequired,
                 _addedParameterWithoutTypeSymbol.DefaultValue,
+                _addedParameterWithoutTypeSymbol.UseNamedArguments,
                 _addedParameterWithoutTypeSymbol.IsCallsiteOmitted,
                 _addedParameterWithoutTypeSymbol.IsCallsiteError);
         }
