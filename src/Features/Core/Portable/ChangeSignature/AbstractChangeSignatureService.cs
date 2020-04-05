@@ -60,15 +60,24 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
 
-        protected abstract int TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
+        protected abstract int GetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode);
 
         protected abstract SyntaxToken CommaTokenWithElasticSpace();
 
-        protected abstract SyntaxNode CreateParamsArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol);
+        /// <summary>
+        /// For some Foo(int x, params int[] p), this helps convert the "1, 2, 3" in Foo(0, 1, 2, 3)
+        /// to "new int[] { 1, 2, 3 }" in Foo(0, new int[] { 1, 2, 3 });
+        /// </summary>
+        protected abstract SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int startingIndex, IParameterSymbol parameterSymbol);
 
-        protected abstract SyntaxNode AddName(SyntaxNode newArgument, string name);
+        protected abstract SyntaxNode AddNameToArgument(SyntaxNode argument, string name);
 
-        protected abstract bool DoesLanguageForceCallsiteErrorsDueToParamsArrays();
+        /// <summary>
+        /// Only some languages support:
+        ///   - Optional parameters and params arrays simultaneously in declarations
+        ///   - Passing the params array as a named argument
+        /// </summary>
+        protected abstract bool SupportsOptionalAndParamsArrayParametersSimultaneously();
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
@@ -165,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetRequiredDocument(declarationLocation.SourceTree!);
             var declarationChangeSignatureService = declarationDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            int insertPosition = declarationChangeSignatureService.TryGetPositionBeforeParameterListClosingBrace(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax());
+            int insertPosition = declarationChangeSignatureService.GetPositionBeforeParameterListClosingBrace(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax());
 
             var parameterConfiguration = ParameterConfiguration.Create(
                 symbol.GetParameters().Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
@@ -738,14 +747,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     if (updatedParameters[i] is AddedParameter addedParameter)
                     {
+                        // Omitting an argument only works in some languages, depending on whether
+                        // there is a params array. We sometimes need to reinterpret an requested 
+                        // omitted parameter as one with a TODO requested.
                         var forcedCallsiteErrorDueToParamsArray = addedParameter.IsCallsiteOmitted &&
                             declarationSymbol.GetParameters().LastOrDefault()?.IsParams == true &&
-                            newArguments.Count >= (updatedParameters.Length - (isReducedExtensionMethod ? 1 : 0)) &&
-                            DoesLanguageForceCallsiteErrorsDueToParamsArrays();
+                            !SupportsOptionalAndParamsArrayParametersSimultaneously();
 
                         var isCallsiteActuallyOmitted = addedParameter.IsCallsiteOmitted && !forcedCallsiteErrorDueToParamsArray;
                         var isCallsiteActuallyErrored = addedParameter.IsCallsiteError || forcedCallsiteErrorDueToParamsArray;
-
 
                         if (isCallsiteActuallyOmitted)
                         {
@@ -772,14 +782,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                 // Need to ensure the params array is an actual array, and that the argument is named.
                                 if (isParamsArrayExpanded)
                                 {
-                                    var newArgument = CreateParamsArray(newArguments, indexInListOfPreexistingArguments, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments]);
-                                    newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
+                                    var newArgument = CreateExplicitParamsArrayFromIndividualArguments(newArguments, indexInListOfPreexistingArguments, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments]);
+                                    newArgument = AddNameToArgument(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
                                     fullList.Add(newArgument);
                                 }
                                 else if (indexInListOfPreexistingArguments < newArguments.Count)
                                 {
                                     var newArgument = newArguments[indexInListOfPreexistingArguments];
-                                    newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
+                                    newArgument = AddNameToArgument(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
                                     fullList.Add(newArgument);
                                 }
 
@@ -806,7 +816,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                             if (seenNamedArguments && !SyntaxFacts.IsNamedParameter(newArgument))
                             {
-                                newArgument = AddName(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
+                                newArgument = AddNameToArgument(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
                             }
 
                             fullList.Add(newArgument);

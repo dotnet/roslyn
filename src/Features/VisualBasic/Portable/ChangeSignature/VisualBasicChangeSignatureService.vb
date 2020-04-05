@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
         End Function
 
-        Protected Overrides Function TryGetPositionBeforeParameterListClosingBrace(matchingNode As SyntaxNode) As Integer
+        Protected Overrides Function GetPositionBeforeParameterListClosingBrace(matchingNode As SyntaxNode) As Integer
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
 
             If parameters Is Nothing Then
@@ -688,18 +688,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End Get
         End Property
 
-        Protected Overrides Function CreateParamsArray(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
+        Protected Overrides Function CreateExplicitParamsArrayFromIndividualArguments(newArguments As SeparatedSyntaxList(Of SyntaxNode), indexInExistingList As Integer, parameterSymbol As IParameterSymbol) As SyntaxNode
             ' A params array cannot be introduced due to the addition of an omitted 
             ' argument in VB because you cannot have a named argument to a params array.
             Throw New InvalidOperationException()
         End Function
 
-        Protected Overrides Function AddName(newArgument As SyntaxNode, name As String) As SyntaxNode
+        Protected Overrides Function AddNameToArgument(newArgument As SyntaxNode, name As String) As SyntaxNode
             Return DirectCast(newArgument, SimpleArgumentSyntax).WithNameColonEquals(NameColonEquals(IdentifierName(name)))
         End Function
 
-        Protected Overrides Function DoesLanguageForceCallsiteErrorsDueToParamsArrays() As Boolean
-            Return True
+        Protected Overrides Function SupportsOptionalAndParamsArrayParametersSimultaneously() As Boolean
+            Return False
         End Function
 
         Protected Overrides Function CommaTokenWithElasticSpace() As SyntaxToken

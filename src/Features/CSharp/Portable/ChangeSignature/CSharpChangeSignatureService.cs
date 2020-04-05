@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         /// Find the position to insert the new parameter.
         /// We will insert a new comma and a parameter.
         /// </summary>
-        protected override int TryGetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode)
+        protected override int GetPositionBeforeParameterListClosingBrace(SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
             return parameters switch
@@ -370,6 +370,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 var isReducedExtensionMethod = symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension };
                 var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken);
+
+                var numArguments = invocation.ArgumentList.Arguments.Count;
+                var hasParamsArray = symbolInfo.Symbol.GetParameters().LastOrDefault()?.IsParams == true;
+                var numParameters = symbolInfo.Symbol.GetParameters().Length;
+                var isSomethingPassedToParamsArray = hasParamsArray && numArguments >= numParameters;
 
                 var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters(), isReducedExtensionMethod);
                 newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod, isParamsArrayExpanded);
@@ -732,12 +737,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
             => Formatter.GetDefaultFormattingRules(document).Concat(new ChangeSignatureFormattingRule());
 
-        protected override SyntaxNode AddName(SyntaxNode newArgument, string name)
+        protected override SyntaxNode AddNameToArgument(SyntaxNode newArgument, string name)
         {
             return (newArgument as ArgumentSyntax).WithNameColon(NameColon(name));
         }
 
-        protected override SyntaxNode CreateParamsArray(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
+        protected override SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
         {
             var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
             var initializerExpression = InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
@@ -745,9 +750,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return Argument(objectCreation);
         }
 
-        protected override bool DoesLanguageForceCallsiteErrorsDueToParamsArrays()
+        protected override bool SupportsOptionalAndParamsArrayParametersSimultaneously()
         {
-            return false;
+            return true;
         }
 
         protected override SyntaxToken CommaTokenWithElasticSpace()
