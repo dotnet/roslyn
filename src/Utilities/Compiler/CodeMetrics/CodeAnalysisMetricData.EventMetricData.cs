@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
             }
 
-            internal async static Task<EventMetricData> ComputeAsync(IEventSymbol @event, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+            internal static async Task<EventMetricData> ComputeAsync(IEventSymbol @event, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
             {
                 var coupledTypesBuilder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 ImmutableArray<SyntaxReference> declarations = @event.DeclaringSyntaxReferences;
