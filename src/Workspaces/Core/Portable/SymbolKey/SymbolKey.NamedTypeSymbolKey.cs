@@ -56,22 +56,23 @@ namespace Microsoft.CodeAnalysis
                         isUnboundGenericType, typeArgumentArray);
                 }
 
-                if (result.Count != 0)
-                    return CreateResolution(result);
-
-                // We couldn't resolve the type as it was encoded originally.  It's possible that this type got
-                // forwarded to another dll in this compilation.
-                var fullTypeName = GetFullMetadataName(containingSymbolResolution.GetAnySymbol(), metadataName);
-                foreach (var assembly in reader.Compilation.GetReferencedAssemblySymbols())
-                {
-                    var type = assembly.ResolveForwardedType(fullTypeName);
-                    if (type?.ContainingSymbol is INamespaceOrTypeSymbol nsOrType)
-                        Resolve(
-                            result, nsOrType, metadataName, arity,
-                            isUnboundGenericType, typeArgumentArray);
-                }
-
                 return CreateResolution(result);
+                //if (result.Count != 0)
+                //    return CreateResolution(result);
+
+                //// We couldn't resolve the type as it was encoded originally.  It's possible that this type got
+                //// forwarded to another dll in this compilation.
+                //var fullTypeName = GetFullMetadataName(containingSymbolResolution.GetAnySymbol(), metadataName);
+                //foreach (var assembly in reader.Compilation.GetReferencedAssemblySymbols())
+                //{
+                //    var type = assembly.ResolveForwardedType(fullTypeName);
+                //    if (type?.ContainingSymbol is INamespaceOrTypeSymbol nsOrType)
+                //        Resolve(
+                //            result, nsOrType, metadataName, arity,
+                //            isUnboundGenericType, typeArgumentArray);
+                //}
+
+                //return CreateResolution(result);
             }
 
             private static string GetFullMetadataName(ISymbol container, string metadataName)

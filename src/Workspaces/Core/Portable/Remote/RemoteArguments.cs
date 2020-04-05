@@ -52,17 +52,17 @@ namespace Microsoft.CodeAnalysis.Remote
             => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
 
         public static SerializableSymbolAndProjectId Dehydrate(
-            IAliasSymbol alias, Document document)
+            IAliasSymbol alias, Document document, CancellationToken cancellationToken)
         {
             return alias == null
                 ? null
-                : Dehydrate(document.Project.Solution, new SymbolAndProjectId(alias, document.Project.Id));
+                : Dehydrate(document.Project.Solution, new SymbolAndProjectId(alias, document.Project.Id), cancellationToken);
         }
 
         public static SerializableSymbolAndProjectId Dehydrate(
-            Solution solution, SymbolAndProjectId symbolAndProjectId)
+            Solution solution, SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
-            var symbolKey = symbolAndProjectId.Symbol.GetSymbolKey(solution);
+            var symbolKey = symbolAndProjectId.Symbol.GetSymbolKey(solution, cancellationToken);
             if (symbolKey.ProjectId == null)
                 throw new InvalidOperationException("SymbolKeys used for OOP operations must have a ProjectId");
 
@@ -167,12 +167,12 @@ namespace Microsoft.CodeAnalysis.Remote
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
-            ReferenceLocation referenceLocation)
+            ReferenceLocation referenceLocation, CancellationToken cancellationToken)
         {
             return new SerializableReferenceLocation
             {
                 Document = referenceLocation.Document.Id,
-                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
+                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),

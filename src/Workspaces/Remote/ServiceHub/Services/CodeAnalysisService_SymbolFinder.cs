@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(
                         project, query, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
+                    return result.SelectAsArray(
+                        s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken));
                 }
             }, cancellationToken);
         }
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                         solution, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
+                    return result.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken));
                 }
             }, cancellationToken);
         }
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
                         project, name, ignoreCase, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
+                    return result.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken));
                 }
             }, cancellationToken);
         }
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
                         solution, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
+                    return result.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken));
                 }
             }, cancellationToken);
         }
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
                         project, pattern, criteria, cancellationToken).ConfigureAwait(false);
 
-                    return result.SelectAsArray<SymbolAndProjectId, SerializableSymbolAndProjectId>(s => SerializableSymbolAndProjectId.Dehydrate(solution, s));
+                    return result.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken));
                 }
             }, cancellationToken);
         }
@@ -231,13 +232,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnFindInDocumentCompletedAsync), new object[] { document.Id }, _cancellationToken);
 
             public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
-                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnDefinitionFoundAsync), new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, definition) }, _cancellationToken);
+                => _endPoint.InvokeAsync(
+                    nameof(SymbolFinder.FindReferencesServerCallback.OnDefinitionFoundAsync),
+                    new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, definition, _cancellationToken) }, _cancellationToken);
 
             public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation reference)
             {
                 return _endPoint.InvokeAsync(
                     nameof(SymbolFinder.FindReferencesServerCallback.OnReferenceFoundAsync),
-                    new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, definition), SerializableReferenceLocation.Dehydrate(reference) },
+                    new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, definition, _cancellationToken), SerializableReferenceLocation.Dehydrate(reference, _cancellationToken) },
                     _cancellationToken);
             }
 

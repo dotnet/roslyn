@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -158,11 +157,6 @@ namespace Microsoft.CodeAnalysis
         /// A list of all the ids for all the projects contained by the solution.
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
-
-        private readonly ConditionalWeakTable<ISymbol, ProjectId?> _metadataModuleOrAssemblySymbolToProjectId =
-            new ConditionalWeakTable<ISymbol, ProjectId?>();
-        private readonly ConditionalWeakTable<Compilation, ProjectId?> _compilationToProjectId =
-            new ConditionalWeakTable<Compilation, ProjectId?>();
 
         // [Conditional("DEBUG")]
         private void CheckInvariants()
@@ -381,108 +375,6 @@ namespace Microsoft.CodeAnalysis
 
             return s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(symbol, out var id)
                 ? this.GetProjectState(id) : null;
-        }
-
-        /// <summary>
-        /// Gets the <see cref="Project"/> associated with an assembly symbol.
-        /// </summary>
-        public ProjectState? GetProjectStateForSourceOrMetadataSymbol(ISymbol? symbol)
-        {
-            while (symbol != null)
-            {
-                var result = GetProjectStateDirectly(symbol);
-                if (result != null)
-                    return result;
-
-                symbol = symbol.ContainingSymbol;
-            }
-
-            return null;
-
-            ProjectState? GetProjectStateDirectly(ISymbol symbol)
-            {
-                if (symbol.IsKind(SymbolKind.Namespace, out INamespaceSymbol? ns))
-                {
-                    if (ns.ContainingCompilation != null)
-                    {
-                        // A namespace that spans a compilation.  These don't belong to an assembly/module. However, we
-                        // can map their compilation directly 
-                        if (!_compilationToProjectId.TryGetValue(ns.ContainingCompilation, out var projectId))
-                        {
-                            projectId = _compilationToProjectId.GetValue(ns.ContainingCompilation,
-                                c => ComputeProjectIdForCompilation(c));
-                        }
-
-                        return projectId == null ? null : this.GetProjectState(projectId);
-                    }
-                }
-                else if (symbol.IsKind(SymbolKind.NetModule, out IModuleSymbol? module))
-                {
-                    var result = GetProjectStateForModuleOrAssembly(module);
-                    if (result != null)
-                        return result;
-                }
-                else if (symbol.IsKind(SymbolKind.Assembly, out IAssemblySymbol? assembly))
-                {
-                    var result = GetProjectStateForModuleOrAssembly(assembly);
-                    if (result != null)
-                        return result;
-                }
-
-                return null;
-            }
-
-            ProjectState? GetProjectStateForModuleOrAssembly(ISymbol symbol)
-            {
-                Debug.Assert(symbol.Kind == SymbolKind.NetModule || symbol.Kind == SymbolKind.Assembly);
-
-                // First, see if there's a source project for this assembly.
-                if (s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(symbol, out var id))
-                    return this.GetProjectState(id);
-
-                // Otherwise, fallback to a more expensive metadata search.
-                if (!_metadataModuleOrAssemblySymbolToProjectId.TryGetValue(symbol, out var projectId))
-                {
-                    projectId = _metadataModuleOrAssemblySymbolToProjectId.GetValue(
-                        symbol, sym => ComputeProjectIdForMetadataModuleOrAssembly(sym));
-                }
-
-                return projectId == null ? null : this.GetProjectState(projectId);
-            }
-
-            ProjectId? ComputeProjectIdForCompilation(Compilation compilation)
-            {
-                foreach (var (id, _) in this.ProjectStates)
-                {
-                    if (this.TryGetCompilation(id, out var otherCompilation) &&
-                        otherCompilation == compilation)
-                    {
-                        return id;
-                    }
-                }
-
-                return null;
-            }
-
-            ProjectId? ComputeProjectIdForMetadataModuleOrAssembly(ISymbol symbol)
-            {
-                foreach (var (id, _) in this.ProjectStates)
-                {
-                    // A symbol can only belong to a project if that project actually produced it from it's compilation.
-                    // So, if we have no compilation, this definitely isn't a match.
-                    if (!this.TryGetCompilation(id, out var compilation))
-                        continue;
-
-                    foreach (var metadataReference in compilation.References)
-                    {
-                        var assemblyOrModule = compilation.GetAssemblyOrModuleSymbol(metadataReference);
-                        if (symbol.Equals(assemblyOrModule))
-                            return id;
-                    }
-                }
-
-                return null;
-            }
         }
 
         private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out CompilationTracker? tracker)

@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
         /// </summary>
         internal static SymbolKey Create(Solution solution, ISymbol symbol, CancellationToken cancellationToken = default)
-            => new SymbolKey(solution?.GetProjectForSourceOrMetadataSymbol(symbol)?.Id, CreateString(symbol, cancellationToken));
+            => new SymbolKey(solution?.GetExactProjectId(symbol, cancellationToken), CreateString(symbol, cancellationToken));
 
         /// <summary>
         /// Returns an <see cref="IEqualityComparer{T}"/> that determines if two <see cref="SymbolKey"/>s
