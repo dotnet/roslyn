@@ -732,13 +732,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
 
                     if (metadataReferenceToProjectId.TryGetValue(reference, out var projectId))
-                    {
                         RecordSourceAssemblySymbol(symbol, projectId);
-                    }
-                    else
-                    {
-                        RecordMetadataAssemblySymbol(symbol, reference, this.ProjectState.Id);
-                    }
                 }
             }
 

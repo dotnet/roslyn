@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -157,6 +158,9 @@ namespace Microsoft.CodeAnalysis
         /// A list of all the ids for all the projects contained by the solution.
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
+
+        private readonly Dictionary<ISymbol, ProjectId?> _metadataModuleOrAssemblySymbolToProjectId =
+            new Dictionary<ISymbol, ProjectId?>();
 
         // [Conditional("DEBUG")]
         private void CheckInvariants()
@@ -406,7 +410,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(symbol.Kind == SymbolKind.NetModule || symbol.Kind == SymbolKind.Assembly);
 
-                return symbol.IsFromSource()
+                return symbol.Locations.Any(loc => loc.IsInSource)
                     ? GetProjectStateForSourceModuleOrAssembly(symbol)
                     : GetProjectStateForMetadataModuleOrAssembly(symbol);
             }
@@ -421,33 +425,35 @@ namespace Microsoft.CodeAnalysis
 
             ProjectState? GetProjectStateForMetadataModuleOrAssembly(ISymbol symbol)
             {
-                using var _ = PooledDictionary<MetadataReference, ImmutableHashSet<ProjectId>>.GetInstance(out var referenceToProjIds);
-
-                lock (s_assemblyOrModuleSymbolToMetadataReferenceAndProjects)
+                lock (_metadataModuleOrAssemblySymbolToProjectId)
                 {
-                    if (!s_assemblyOrModuleSymbolToMetadataReferenceAndProjects.TryGetValue(symbol, out var refToProjectsMap) ||
-                        refToProjectsMap == null)
-                        return null;
-
-                    foreach (var kvp in refToProjectsMap)
-                        referenceToProjIds.Add(kvp.Key, kvp.Value);
+                    if (_metadataModuleOrAssemblySymbolToProjectId.TryGetValue(symbol, out var projectId))
+                        return projectId == null ? null : this.GetProjectState(projectId);
                 }
 
-                // For metadata symbols, we may have may projects associated with it. However, this information may be
-                // out of date, so we have to return a project that is currently referencing that metadata reference.
-                foreach (var (reference, projectIds) in referenceToProjIds)
+                var state = ComputeProjectStateForMetadataModuleOrAssembly(symbol);
+                lock (_metadataModuleOrAssemblySymbolToProjectId)
                 {
-                    foreach (var id in projectIds)
-                    {
-                        var projectState = this.GetProjectState(id);
-                        if (projectState == null)
-                            continue;
+                    _metadataModuleOrAssemblySymbolToProjectId[symbol] = state?.Id;
+                }
 
-                        for (int i = 0; i < projectState.MetadataReferences.Count; i++)
-                        {
-                            if (reference == projectState.MetadataReferences[i])
-                                return projectState;
-                        }
+                return state;
+            }
+
+            ProjectState? ComputeProjectStateForMetadataModuleOrAssembly(ISymbol symbol)
+            {
+                foreach (var (id, projectState) in this.ProjectStates)
+                {
+                    // A symbol can only belong to a project if that project actually produced it from it's compilation.
+                    // So, if we have no compilation, this definitely isn't a match.
+                    if (!this.TryGetCompilation(id, out var compilation))
+                        continue;
+
+                    foreach (var metadataReference in compilation.References)
+                    {
+                        var assemblyOrModule = compilation.GetAssemblyOrModuleSymbol(metadataReference);
+                        if (symbol.Equals(assemblyOrModule))
+                            return projectState;
                     }
                 }
 
@@ -1751,9 +1757,6 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToSourceProjectId =
             new ConditionalWeakTable<ISymbol, ProjectId>();
 
-        private static readonly ConditionalWeakTable<ISymbol, Dictionary<MetadataReference, ImmutableHashSet<ProjectId>>> s_assemblyOrModuleSymbolToMetadataReferenceAndProjects =
-            new ConditionalWeakTable<ISymbol, Dictionary<MetadataReference, ImmutableHashSet<ProjectId>>>();
-
         private static void RecordSourceAssemblySymbol(ISymbol assemblyOrModuleSymbol, ProjectId projectId)
         {
             Contract.ThrowIfNull(projectId);
@@ -1768,25 +1771,6 @@ namespace Microsoft.CodeAnalysis
             {
                 // sanity check: our assembly should always map to the same project for source assemblies.
                 Debug.Assert(tmp == projectId);
-            }
-        }
-
-        private static void RecordMetadataAssemblySymbol(ISymbol assemblyOrModuleSymbol, MetadataReference reference, ProjectId projectId)
-        {
-            Contract.ThrowIfNull(projectId);
-
-            lock (s_assemblyOrModuleSymbolToMetadataReferenceAndProjects)
-            {
-                if (!s_assemblyOrModuleSymbolToMetadataReferenceAndProjects.TryGetValue(assemblyOrModuleSymbol, out var map))
-                {
-                    map = new Dictionary<MetadataReference, ImmutableHashSet<ProjectId>>();
-                    s_assemblyOrModuleSymbolToMetadataReferenceAndProjects.Add(assemblyOrModuleSymbol, map);
-                }
-
-                if (!map.TryGetValue(reference, out var projectIds))
-                    projectIds = ImmutableHashSet<ProjectId>.Empty;
-
-                map[reference] = projectIds.Add(projectId);
             }
         }
 
