@@ -557,7 +557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature)
             If permutedParamNodes.IsEmpty() Then
                 ' Something is wrong with the <param> tags, so don't change anything.
-                Return ImmutableArray(Of SyntaxTrivia).Empty
+                Return node.GetLeadingTrivia().ToImmutableArray()
             End If
 
             Return GetPermutedDocCommentTrivia(document, node, permutedParamNodes)
