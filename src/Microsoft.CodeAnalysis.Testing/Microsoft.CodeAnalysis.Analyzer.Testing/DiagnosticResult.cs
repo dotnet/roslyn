@@ -287,6 +287,12 @@ namespace Microsoft.CodeAnalysis.Testing
         public DiagnosticResult WithSpan(FileLinePositionSpan span, DiagnosticLocationOptions options)
             => AppendSpan(span, options);
 
+        public DiagnosticResult WithLocation(int markupKey)
+            => AppendSpan(new FileLinePositionSpan(string.Empty, new LinePosition(0, markupKey), new LinePosition(0, markupKey)), DiagnosticLocationOptions.InterpretAsMarkupKey);
+
+        public DiagnosticResult WithLocation(int markupKey, DiagnosticLocationOptions options)
+            => AppendSpan(new FileLinePositionSpan(string.Empty, new LinePosition(0, markupKey), new LinePosition(0, markupKey)), options | DiagnosticLocationOptions.InterpretAsMarkupKey);
+
         public DiagnosticResult WithDefaultPath(string path)
         {
             if (Spans.IsEmpty)
@@ -297,10 +303,58 @@ namespace Microsoft.CodeAnalysis.Testing
             var spans = Spans.ToBuilder();
             for (var i = 0; i < spans.Count; i++)
             {
+                if (spans[i].Options.HasFlag(DiagnosticLocationOptions.InterpretAsMarkupKey))
+                {
+                    // Markup keys have a predefined syntax that requires empty paths.
+                    continue;
+                }
+
                 if (spans[i].Span.Path == string.Empty)
                 {
                     spans[i] = new DiagnosticLocation(new FileLinePositionSpan(path, spans[i].Span.Span), spans[i].Options);
                 }
+            }
+
+            return new DiagnosticResult(
+                spans: spans.MoveToImmutable(),
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                options: Options,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
+        }
+
+        internal DiagnosticResult WithAppliedMarkupLocations(ImmutableDictionary<string, FileLinePositionSpan> markupLocations)
+        {
+            if (Spans.IsEmpty)
+            {
+                return this;
+            }
+
+            var verifier = new DefaultVerifier();
+            var spans = Spans.ToBuilder();
+            for (var i = 0; i < spans.Count; i++)
+            {
+                if (!spans[i].Options.HasFlag(DiagnosticLocationOptions.InterpretAsMarkupKey))
+                {
+                    continue;
+                }
+
+                var index = spans[i].Span.StartLinePosition.Character;
+                var expected = new FileLinePositionSpan(path: string.Empty, new LinePosition(0, index), new LinePosition(0, index));
+                if (!spans[i].Span.Equals(expected))
+                {
+                    verifier.Equal(expected, spans[i].Span);
+                }
+
+                if (!markupLocations.TryGetValue("#" + index, out var location))
+                {
+                    throw new InvalidOperationException($"The markup location '#{index}' was not found in the input.");
+                }
+
+                spans[i] = new DiagnosticLocation(location, spans[i].Options & ~DiagnosticLocationOptions.InterpretAsMarkupKey);
             }
 
             return new DiagnosticResult(
