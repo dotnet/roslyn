@@ -26,7 +26,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if CODE_STYLE // TODO: Remove this #if once 'WithNullableAnnotation' and 'NullableAnnotation' are available in CodeStyle layer.
             => type != null && (type.IsReferenceType || type.IsNullable());
 #else
-            => type != null && ((type.IsReferenceType && type.NullableAnnotation != NullableAnnotation.Annotated) || type.IsNullable());
+        {
+            if (type == null)
+                return false;
+
+            var isNullableValueType = type.IsNullable();
+            var isNonNullableReferenceType = type.IsReferenceType && type.NullableAnnotation != NullableAnnotation.Annotated;
+
+            return isNullableValueType || isNonNullableReferenceType;
+        }
 #endif
 
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
