@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerOptionsBuilder.Clear();
                         treeOptionsBuilder.Clear();
                         diagnosticBuilder.Clear();
+                        sectionKey.Clear();
                     }
 
                     int dirLength = config.NormalizedDirectory.Length;
