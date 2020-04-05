@@ -142,9 +142,6 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(sourcePath));
             }
 
-            var treeOptionsBuilder = _treeOptionsPool.Allocate();
-            var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
-            var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
             var sectionKey = _sectionKeyPool.Allocate();
 
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
@@ -161,9 +158,6 @@ namespace Microsoft.CodeAnalysis
                     // to this source file.
                     if (config.IsRoot)
                     {
-                        analyzerOptionsBuilder.Clear();
-                        treeOptionsBuilder.Clear();
-                        diagnosticBuilder.Clear();
                         sectionKey.Clear();
                     }
 
@@ -183,13 +177,6 @@ namespace Microsoft.CodeAnalysis
                         if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
                         {
                             var section = config.NamedSections[sectionIndex];
-                            addOptions(
-                                section,
-                                treeOptionsBuilder,
-                                analyzerOptionsBuilder,
-                                diagnosticBuilder,
-                                config.PathToFile,
-                                _diagnosticIdCache);
                             sectionKey.Add(section);
                         }
                     }
@@ -200,10 +187,47 @@ namespace Microsoft.CodeAnalysis
             // exact same options
             if (!_optionsCache.TryGetValue(sectionKey, out var result))
             {
+                var treeOptionsBuilder = _treeOptionsPool.Allocate();
+                var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
+                var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+
+                int sectionIndex = 0;
+                for (int analyzerConfigIndex = 0;
+                    analyzerConfigIndex < _analyzerConfigs.Length && sectionIndex < sectionKey.Count;
+                    analyzerConfigIndex++)
+                {
+                    AnalyzerConfig config = _analyzerConfigs[analyzerConfigIndex];
+                    ImmutableArray<SectionNameMatcher?> matchers = _analyzerMatchers[analyzerConfigIndex];
+                    for (int matcherIndex = 0; matcherIndex < matchers.Length; matcherIndex++)
+                    {
+                        if (sectionKey[sectionIndex] == config.NamedSections[matcherIndex])
+                        {
+                            addOptions(
+                                sectionKey[sectionIndex],
+                                treeOptionsBuilder,
+                                analyzerOptionsBuilder,
+                                diagnosticBuilder,
+                                config.PathToFile,
+                                _diagnosticIdCache);
+                            sectionIndex++;
+                            if (sectionIndex == sectionKey.Count)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 result = new AnalyzerConfigOptionsResult(
                     treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
                     analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                     diagnosticBuilder.ToImmutableAndFree());
+
+                treeOptionsBuilder.Clear();
+                analyzerOptionsBuilder.Clear();
+                _treeOptionsPool.Free(treeOptionsBuilder);
+                _analyzerOptionsPool.Free(analyzerOptionsBuilder);
+
                 if (_optionsCache.TryAdd(sectionKey, result))
                 {
                     // Release the pooled object to be used as a key
@@ -218,11 +242,6 @@ namespace Microsoft.CodeAnalysis
             {
                 freeKey(sectionKey, _sectionKeyPool);
             }
-
-            treeOptionsBuilder.Clear();
-            analyzerOptionsBuilder.Clear();
-            _treeOptionsPool.Free(treeOptionsBuilder);
-            _analyzerOptionsPool.Free(analyzerOptionsBuilder);
 
             return result;
 
