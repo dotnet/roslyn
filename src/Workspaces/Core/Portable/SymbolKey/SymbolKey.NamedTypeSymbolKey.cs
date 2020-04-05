@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                 // The 'false' section contains the logic to support resolving a forwarded type against the current
                 // compilation.  This can be used in multi-targetting scenarios to find types that are in one location
                 // in project to where they now may be found in another.
-#if true
+#if false
                 return CreateResolution(result);
 #else
                 if (result.Count != 0)
