@@ -121,14 +121,18 @@ namespace Microsoft.CodeAnalysis
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
         public Project? GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default)
-            => GetProject((ISymbol)assemblySymbol, cancellationToken);
+        {
+            var projectState = _state.GetProjectState(assemblySymbol);
+
+            return projectState == null ? null : GetProject(projectState.Id);
+        }
 
         /// <summary>
         /// Gets the <see cref="Project"/> associated with a symbol.
         /// </summary>
-        internal Project? GetProject(ISymbol symbol, CancellationToken cancellationToken = default)
+        internal Project? GetProjectForSourceOrMetadataSymbol(ISymbol symbol, CancellationToken cancellationToken = default)
         {
-            var projectState = _state.GetProjectState(symbol);
+            var projectState = _state.GetProjectStateForSourceOrMetadataSymbol(symbol);
 
             return projectState == null ? null : GetProject(projectState.Id);
         }

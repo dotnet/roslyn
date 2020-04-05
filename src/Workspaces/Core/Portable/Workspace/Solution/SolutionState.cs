@@ -159,8 +159,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
 
-        private readonly Dictionary<ISymbol, ProjectId?> _metadataModuleOrAssemblySymbolToProjectId =
-            new Dictionary<ISymbol, ProjectId?>();
+        private readonly ConditionalWeakTable<ISymbol, ProjectId?> _metadataModuleOrAssemblySymbolToProjectId =
+            new ConditionalWeakTable<ISymbol, ProjectId?>();
+        private readonly ConditionalWeakTable<Compilation, ProjectId?> _compilationToProjectId =
+            new ConditionalWeakTable<Compilation, ProjectId?>();
 
         // [Conditional("DEBUG")]
         private void CheckInvariants()
@@ -372,10 +374,19 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
+        public ProjectState? GetProjectState(IAssemblySymbol? symbol)
+        {
+            if (symbol == null)
+                return null;
+
+            return s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(symbol, out var id)
+                ? this.GetProjectState(id) : null;
+        }
+
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public ProjectState? GetProjectState(ISymbol? symbol)
+        public ProjectState? GetProjectStateForSourceOrMetadataSymbol(ISymbol? symbol)
         {
             while (symbol != null)
             {
@@ -390,7 +401,22 @@ namespace Microsoft.CodeAnalysis
 
             ProjectState? GetProjectStateDirectly(ISymbol symbol)
             {
-                if (symbol.IsKind(SymbolKind.NetModule, out IModuleSymbol? module))
+                if (symbol.IsKind(SymbolKind.Namespace, out INamespaceSymbol? ns))
+                {
+                    if (ns.ContainingCompilation != null)
+                    {
+                        // A namespace that spans a compilation.  These don't belong to an assembly/module. However, we
+                        // can map their compilation directly 
+                        if (!_compilationToProjectId.TryGetValue(ns.ContainingCompilation, out var projectId))
+                        {
+                            projectId = _compilationToProjectId.GetValue(ns.ContainingCompilation,
+                                c => ComputeProjectIdForCompilation(c));
+                        }
+
+                        return projectId == null ? null : this.GetProjectState(projectId);
+                    }
+                }
+                else if (symbol.IsKind(SymbolKind.NetModule, out IModuleSymbol? module))
                 {
                     var result = GetProjectStateForModuleOrAssembly(module);
                     if (result != null)
@@ -410,39 +436,37 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(symbol.Kind == SymbolKind.NetModule || symbol.Kind == SymbolKind.Assembly);
 
-                return symbol.Locations.Any(loc => loc.IsInSource)
-                    ? GetProjectStateForSourceModuleOrAssembly(symbol)
-                    : GetProjectStateForMetadataModuleOrAssembly(symbol);
-            }
+                // First, see if there's a source project for this assembly.
+                if (s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(symbol, out var id))
+                    return this.GetProjectState(id);
 
-            ProjectState? GetProjectStateForSourceModuleOrAssembly(ISymbol symbol)
-            {
-                if (!s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(symbol, out var id))
-                    return null;
-
-                return this.GetProjectState(id);
-            }
-
-            ProjectState? GetProjectStateForMetadataModuleOrAssembly(ISymbol symbol)
-            {
-                lock (_metadataModuleOrAssemblySymbolToProjectId)
+                // Otherwise, fallback to a more expensive metadata search.
+                if (!_metadataModuleOrAssemblySymbolToProjectId.TryGetValue(symbol, out var projectId))
                 {
-                    if (_metadataModuleOrAssemblySymbolToProjectId.TryGetValue(symbol, out var projectId))
-                        return projectId == null ? null : this.GetProjectState(projectId);
+                    projectId = _metadataModuleOrAssemblySymbolToProjectId.GetValue(
+                        symbol, sym => ComputeProjectIdForMetadataModuleOrAssembly(sym));
                 }
 
-                var state = ComputeProjectStateForMetadataModuleOrAssembly(symbol);
-                lock (_metadataModuleOrAssemblySymbolToProjectId)
-                {
-                    _metadataModuleOrAssemblySymbolToProjectId[symbol] = state?.Id;
-                }
-
-                return state;
+                return projectId == null ? null : this.GetProjectState(projectId);
             }
 
-            ProjectState? ComputeProjectStateForMetadataModuleOrAssembly(ISymbol symbol)
+            ProjectId? ComputeProjectIdForCompilation(Compilation compilation)
             {
-                foreach (var (id, projectState) in this.ProjectStates)
+                foreach (var (id, _) in this.ProjectStates)
+                {
+                    if (this.TryGetCompilation(id, out var otherCompilation) &&
+                        otherCompilation == compilation)
+                    {
+                        return id;
+                    }
+                }
+
+                return null;
+            }
+
+            ProjectId? ComputeProjectIdForMetadataModuleOrAssembly(ISymbol symbol)
+            {
+                foreach (var (id, _) in this.ProjectStates)
                 {
                     // A symbol can only belong to a project if that project actually produced it from it's compilation.
                     // So, if we have no compilation, this definitely isn't a match.
@@ -453,7 +477,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         var assemblyOrModule = compilation.GetAssemblyOrModuleSymbol(metadataReference);
                         if (symbol.Equals(assemblyOrModule))
-                            return projectState;
+                            return id;
                     }
                 }
 
