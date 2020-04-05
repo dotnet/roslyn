@@ -148,6 +148,12 @@ namespace Microsoft.CodeAnalysis.Testing
         public List<Func<Solution, ProjectId, Solution>> SolutionTransforms { get; } = new List<Func<Solution, ProjectId, Solution>>();
 
         /// <summary>
+        /// Gets or sets the timeout to use when matching expected and actual diagnostics. The default value is 2
+        /// seconds.
+        /// </summary>
+        protected TimeSpan MatchDiagnosticsTimeout { get; set; } = TimeSpan.FromSeconds(2);
+
+        /// <summary>
         /// Runs the test.
         /// </summary>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
@@ -411,7 +417,19 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var builder = ImmutableArray.CreateBuilder<(Diagnostic? actual, DiagnosticResult? expected)>();
             var usedExpected = new bool[expectedResults.Length];
-            _ = RecursiveMatch(0, actualResults.Length, 0, expectedArguments.Length, MatchQuality.Full, usedExpected);
+
+            // The recursive match algorithm is not optimized, so use a timeout to ensure it completes in a reasonable
+            // time if a correct match isn't found.
+            using var cancellationTokenSource = new CancellationTokenSource(MatchDiagnosticsTimeout);
+
+            try
+            {
+                _ = RecursiveMatch(0, actualResults.Length, 0, expectedArguments.Length, MatchQuality.Full, usedExpected);
+            }
+            catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+            {
+                // Continue with the best match we have
+            }
 
             return bestMatch;
 
@@ -461,6 +479,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     return totalUnmatched;
                 }
+
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 var currentBest = unmatchedActualResults + MatchQuality.RemainingUnmatched(remainingActualItems + remainingExpectedItems);
                 for (var i = firstExpectedIndex; i < expectedResults.Length; i++)
