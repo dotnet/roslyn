@@ -4,6 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -52,7 +56,50 @@ namespace Microsoft.CodeAnalysis
                         isUnboundGenericType, typeArgumentArray);
                 }
 
+                if (result.Count != 0)
+                    return CreateResolution(result);
+
+                // We couldn't resolve the type as it was encoded originally.  It's possible that this type got
+                // forwarded to another dll in this compilation.
+                var fullTypeName = GetFullMetadataName(containingSymbolResolution.GetAnySymbol(), metadataName);
+                foreach (var assembly in reader.Compilation.GetReferencedAssemblySymbols())
+                {
+                    var type = assembly.ResolveForwardedType(fullTypeName);
+                    if (type?.ContainingSymbol is INamespaceOrTypeSymbol nsOrType)
+                        Resolve(
+                            result, nsOrType, metadataName, arity,
+                            isUnboundGenericType, typeArgumentArray);
+                }
+
                 return CreateResolution(result);
+            }
+
+            private static string GetFullMetadataName(ISymbol container, string metadataName)
+            {
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
+                Append(container, builder);
+                if (builder.Length > 0)
+                    builder.Append('.');
+
+                builder.Append(metadataName);
+
+                return builder.ToString();
+
+                static void Append(ISymbol container, StringBuilder builder)
+                {
+                    if (!(container is INamespaceSymbol) && !(container is INamedTypeSymbol))
+                        return;
+
+                    Append(container.ContainingSymbol, builder);
+
+                    if (container.MetadataName == "")
+                        return;
+
+                    if (builder.Length > 0)
+                        builder.Append('.');
+
+                    builder.Append(container.MetadataName);
+                }
             }
 
             private static void Resolve(
