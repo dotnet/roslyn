@@ -1186,9 +1186,6 @@ This version used in: {2}</value>
   <data name="Convert_to_linq" xml:space="preserve">
     <value>Convert to LINQ</value>
   </data>
-  <data name="Convert_to_tuple" xml:space="preserve">
-    <value>Convert to tuple</value>
-  </data>
   <data name="Convert_to_class" xml:space="preserve">
     <value>Convert to class</value>
   </data>
