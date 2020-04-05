@@ -7,6 +7,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisPrimaryTestVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisPrimaryTestVersion)" />
-    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
   </ItemGroup>
 </Project>

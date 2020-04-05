@@ -1,0 +1,6 @@
+<Project>
+  <ItemGroup>
+    <PackageReference Include="MSTest.TestFramework" Version="$(MSTestTestFrameworkVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
+    <PackageReference Include="MSTest.TestAdapter" Version="$(MSTestTestAdapterVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
+  </ItemGroup>
+</Project>
