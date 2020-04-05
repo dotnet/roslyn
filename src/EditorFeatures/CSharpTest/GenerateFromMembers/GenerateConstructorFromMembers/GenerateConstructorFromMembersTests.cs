@@ -1041,6 +1041,45 @@ chosenSymbols: new string[] { "a", "b", "c" },
 optionsCallback: options => options[0].Value = true);
         }
 
+        [WorkItem(41428, "https://github.com/dotnet/roslyn/issues/41428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecksWithNullableReferenceTypeForGenerics()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+#nullable enable
+
+class Z<T> where T : class
+{
+    int a;
+    string b;
+    T? c;
+
+    public Z(int a, string b, T c{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b ?? throw new ArgumentNullException(nameof(b));
+        this.c = c;
+    }
+}",
+chosenSymbols: new string[] { "a", "b", "c" },
+optionsCallback: options => options[0].Value = true);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestAddNullChecks2()
         {
