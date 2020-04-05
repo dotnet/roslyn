@@ -723,16 +723,22 @@ namespace Microsoft.CodeAnalysis
 
             private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
             {
-                RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
+                RecordSourceAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
-                foreach (var kvp in metadataReferenceToProjectId)
+                foreach (var reference in compilation.References)
                 {
-                    var metadataReference = kvp.Key;
-                    var projectId = kvp.Value;
+                    var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
+                    if (symbol == null)
+                        continue;
 
-                    var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
-
-                    RecordSourceOfAssemblySymbol(symbol, projectId);
+                    if (metadataReferenceToProjectId.TryGetValue(reference, out var projectId))
+                    {
+                        RecordSourceAssemblySymbol(symbol, projectId);
+                    }
+                    else
+                    {
+                        RecordMetadataAssemblySymbol(symbol, reference, this.ProjectState.Id);
+                    }
                 }
             }
 

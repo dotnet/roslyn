@@ -371,13 +371,88 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="Project"/> associated with an assembly symbol.
         /// </summary>
-        public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol)
+        public ProjectState? GetProjectState(ISymbol? symbol)
         {
-            if (assemblySymbol == null)
-                return null;
+            while (symbol != null)
+            {
+                var result = GetProjectStateDirectly(symbol);
+                if (result != null)
+                    return result;
 
-            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out var id);
-            return id == null ? null : this.GetProjectState(id);
+                symbol = symbol.ContainingSymbol;
+            }
+
+            return null;
+
+            ProjectState? GetProjectStateDirectly(ISymbol symbol)
+            {
+                if (symbol.IsKind(SymbolKind.NetModule, out IModuleSymbol? module))
+                {
+                    var result = GetProjectStateForModuleOrAssembly(module);
+                    if (result != null)
+                        return result;
+                }
+                else if (symbol.IsKind(SymbolKind.Assembly, out IAssemblySymbol? assembly))
+                {
+                    var result = GetProjectStateForModuleOrAssembly(assembly);
+                    if (result != null)
+                        return result;
+                }
+
+                return null;
+            }
+
+            ProjectState? GetProjectStateForModuleOrAssembly(ISymbol symbol)
+            {
+                Debug.Assert(symbol.Kind == SymbolKind.NetModule || symbol.Kind == SymbolKind.Assembly);
+
+                return symbol.IsFromSource()
+                    ? GetProjectStateForSourceModuleOrAssembly(symbol)
+                    : GetProjectStateForMetadataModuleOrAssembly(symbol);
+            }
+
+            ProjectState? GetProjectStateForSourceModuleOrAssembly(ISymbol symbol)
+            {
+                if (!s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(symbol, out var id))
+                    return null;
+
+                return this.GetProjectState(id);
+            }
+
+            ProjectState? GetProjectStateForMetadataModuleOrAssembly(ISymbol symbol)
+            {
+                using var _ = PooledDictionary<MetadataReference, ImmutableHashSet<ProjectId>>.GetInstance(out var referenceToProjIds);
+
+                lock (s_assemblyOrModuleSymbolToMetadataReferenceAndProjects)
+                {
+                    if (!s_assemblyOrModuleSymbolToMetadataReferenceAndProjects.TryGetValue(symbol, out var refToProjectsMap) ||
+                        refToProjectsMap == null)
+                        return null;
+
+                    foreach (var kvp in refToProjectsMap)
+                        referenceToProjIds.Add(kvp.Key, kvp.Value);
+                }
+
+                // For metadata symbols, we may have may projects associated with it. However, this information may be
+                // out of date, so we have to return a project that is currently referencing that metadata reference.
+                foreach (var (reference, projectIds) in referenceToProjIds)
+                {
+                    foreach (var id in projectIds)
+                    {
+                        var projectState = this.GetProjectState(id);
+                        if (projectState == null)
+                            continue;
+
+                        for (int i = 0; i < projectState.MetadataReferences.Count; i++)
+                        {
+                            if (reference == projectState.MetadataReferences[i])
+                                return projectState;
+                        }
+                    }
+                }
+
+                return null;
+            }
         }
 
         private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out CompilationTracker? tracker)
@@ -1673,30 +1748,45 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
-        private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap =
+        private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToSourceProjectId =
             new ConditionalWeakTable<ISymbol, ProjectId>();
 
-        private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
-        {
-            // TODO: how would we ever get a null here?
-            if (assemblyOrModuleSymbol == null)
-            {
-                return;
-            }
+        private static readonly ConditionalWeakTable<ISymbol, Dictionary<MetadataReference, ImmutableHashSet<ProjectId>>> s_assemblyOrModuleSymbolToMetadataReferenceAndProjects =
+            new ConditionalWeakTable<ISymbol, Dictionary<MetadataReference, ImmutableHashSet<ProjectId>>>();
 
+        private static void RecordSourceAssemblySymbol(ISymbol assemblyOrModuleSymbol, ProjectId projectId)
+        {
             Contract.ThrowIfNull(projectId);
             // remember which project is associated with this assembly
-            if (!s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblyOrModuleSymbol, out var tmp))
+            if (!s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(assemblyOrModuleSymbol, out var tmp))
             {
                 // use GetValue to avoid race condition exceptions from Add.
                 // the first one to set the value wins.
-                s_assemblyOrModuleSymbolToProjectMap.GetValue(assemblyOrModuleSymbol, _ => projectId);
+                s_assemblyOrModuleSymbolToSourceProjectId.GetValue(assemblyOrModuleSymbol, _ => projectId);
             }
             else
             {
-                // sanity check: this should always be true, no matter how many times
-                // we attempt to record the association.
+                // sanity check: our assembly should always map to the same project for source assemblies.
                 Debug.Assert(tmp == projectId);
+            }
+        }
+
+        private static void RecordMetadataAssemblySymbol(ISymbol assemblyOrModuleSymbol, MetadataReference reference, ProjectId projectId)
+        {
+            Contract.ThrowIfNull(projectId);
+
+            lock (s_assemblyOrModuleSymbolToMetadataReferenceAndProjects)
+            {
+                if (!s_assemblyOrModuleSymbolToMetadataReferenceAndProjects.TryGetValue(assemblyOrModuleSymbol, out var map))
+                {
+                    map = new Dictionary<MetadataReference, ImmutableHashSet<ProjectId>>();
+                    s_assemblyOrModuleSymbolToMetadataReferenceAndProjects.Add(assemblyOrModuleSymbol, map);
+                }
+
+                if (!map.TryGetValue(reference, out var projectIds))
+                    projectIds = ImmutableHashSet<ProjectId>.Empty;
+
+                map[reference] = projectIds.Add(projectId);
             }
         }
 

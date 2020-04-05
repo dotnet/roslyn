@@ -112,12 +112,7 @@ namespace Microsoft.CodeAnalysis
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
         /// </summary>
         internal static SymbolKey Create(Solution solution, ISymbol symbol, CancellationToken cancellationToken = default)
-            => new SymbolKey(GetProjectId(solution, symbol)?.Id, CreateString(symbol, cancellationToken));
-
-        private static Project GetProjectId(Solution solution, ISymbol symbol)
-            => symbol is IAssemblySymbol assembly
-                ? solution?.GetProject(assembly)
-                : solution?.GetProject(symbol.ContainingAssembly);
+            => new SymbolKey(solution?.GetProject(symbol)?.Id, CreateString(symbol, cancellationToken));
 
         /// <summary>
         /// Returns an <see cref="IEqualityComparer{T}"/> that determines if two <see cref="SymbolKey"/>s
