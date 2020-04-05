@@ -4807,7 +4807,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -4822,9 +4822,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -4839,7 +4837,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -4854,9 +4852,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -4871,7 +4867,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public struct Enumerator
@@ -4886,9 +4882,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -4905,7 +4899,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -4938,7 +4932,7 @@ public struct C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -4953,9 +4947,112 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [Fact]
+        public void TestGetAsyncEnumeratorPatternOnRange()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in 1..4)
+        {
+            Console.Write(i);
+        }
+    }
+}
+public static class Extensions
+{
+#pragma warning disable CS1998
+    public static async IAsyncEnumerator<int> GetAsyncEnumerator(this Range range)
+    {
+        for(var i = range.Start.Value; i < range.End.Value; i++)
+        {
+            yield return i;
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(
+                new[] { source, TestSources.Index, TestSources.Range, AsyncStreamsTypes },
+                options: TestOptions.DebugExe,
+                parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [Fact]
+        public void TestGetAsyncEnumeratorPatternViaExtensionsOnTuple()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+public struct C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in (1, 2, 3))
+        {
+            Console.Write(i);
+        }
+    }
+}
+public static class Extensions
+{
+#pragma warning disable CS1998
+    public static async IAsyncEnumerator<T> GetAsyncEnumerator<T>(this (T first, T second, T third) self)
+    {
+        yield return self.first;
+        yield return self.second;
+        yield return self.third;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [Fact]
+        public void TestGetAsyncEnumeratorPatternViaExtensionsOnTupleWithNestedConversions()
+        {
+            var source = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public struct C
+{
+    public static async Task Main()
+    {
+        await foreach (var (a, b) in (new[] { 1, 2, 3 }, new List<decimal>{ 0.1m, 0.2m, 0.3m }))
+        {
+            Console.WriteLine(a + b);
+        }
+    }
+}
+public static class Extensions
+{
+#pragma warning disable CS1998
+    public static async IAsyncEnumerator<(T1, T2)> GetAsyncEnumerator<T1, T2>(this (IEnumerable<T1> first, IEnumerable<T2> second) self)
+    {
+        foreach(var pair in self.first.Zip(self.second, (a,b) => (a,b)))
+        {
+            yield return pair;
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: @"1.1
+2.2
+3.3");
         }
 
         [Fact]
@@ -4970,7 +5067,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -5007,7 +5104,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -5045,7 +5142,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator1
@@ -5068,9 +5165,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -5085,7 +5180,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator1
@@ -5129,7 +5224,7 @@ public class C : IAsyncEnumerable<int>
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     
@@ -5157,9 +5252,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -5174,7 +5267,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -5214,7 +5307,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -5230,8 +5323,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"2
-3");
+            CompileAndVerify(comp, expectedOutput: "23");
         }
 
         [Fact]
@@ -5246,7 +5338,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -5262,9 +5354,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -5281,7 +5371,7 @@ public struct C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public struct Enumerator
@@ -5316,7 +5406,7 @@ public struct C
         var c = new C();
         await foreach (var i in c)
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public struct Enumerator
@@ -5349,7 +5439,7 @@ public struct C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public struct Enumerator
@@ -5364,9 +5454,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -5382,7 +5470,7 @@ public struct C
         var c = new C();
         await foreach (var i in c)
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public struct Enumerator
@@ -5397,9 +5485,7 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -5414,7 +5500,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -5447,7 +5533,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -5483,7 +5569,7 @@ public class C
     {
         await foreach (var i in new C())
         {
-            Console.WriteLine(i);
+            Console.Write(i);
         }
     }
     public sealed class Enumerator
@@ -5498,9 +5584,7 @@ internal static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1
-2
-3");
+            CompileAndVerify(comp, expectedOutput: "123");
         }
     }
 }

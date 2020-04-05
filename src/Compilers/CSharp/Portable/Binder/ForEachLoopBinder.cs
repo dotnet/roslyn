@@ -513,7 +513,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.CollectionConversion.IsIdentity ||
                 (builder.CollectionConversion.IsImplicit &&
                  (IsIEnumerable(builder.CollectionType) ||
-                  IsIEnumerableT(builder.CollectionType.OriginalDefinition, IsAsync, Compilation))) ||
+                  IsIEnumerableT(builder.CollectionType.OriginalDefinition, IsAsync, Compilation) ||
+                  builder.GetEnumeratorMethod.IsExtensionMethod)) ||
                 // For compat behavior, we can enumerate over System.String even if it's not IEnumerable. That will
                 // result in an explicit reference conversion in the bound nodes, but that conversion won't be emitted.
                 (builder.CollectionConversion.Kind == ConversionKind.ExplicitReference && collectionExpr.Type.SpecialType == SpecialType.System_String));
@@ -737,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (SatisfiesGetEnumeratorPattern(ref builder, collectionExprType, isAsync, viaExtensionMethod: false, diagnostics))
             {
-                return CreatePatternBasedEnumeratorResult(ref builder, collectionExpr, isAsync, diagnostics);
+                return CreatePatternBasedEnumeratorResult(ref builder, collectionExpr, isAsync, viaExtensionMethod: false, diagnostics);
             }
 
             if (!isAsync && IsIEnumerable(collectionExprType))
@@ -843,30 +844,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (SatisfiesGetEnumeratorPattern(ref builder, collectionExprType, isAsync, viaExtensionMethod: true, diagnostics))
             {
-                return CreatePatternBasedEnumeratorResult(ref builder, collectionExpr, isAsync, diagnostics);
+                return CreatePatternBasedEnumeratorResult(ref builder, collectionExpr, isAsync, viaExtensionMethod: true, diagnostics);
             }
 
             return EnumeratorResult.FailedNotReported;
-        }
 
-        private EnumeratorResult CreatePatternBasedEnumeratorResult(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr, bool isAsync, DiagnosticBag diagnostics)
-        {
-            Debug.Assert((object)builder.GetEnumeratorMethod != null);
-
-            builder.CollectionType = collectionExpr.Type;
-
-            if (SatisfiesForEachPattern(ref builder, isAsync, diagnostics))
+            EnumeratorResult CreatePatternBasedEnumeratorResult(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr, bool isAsync, bool viaExtensionMethod, DiagnosticBag diagnostics)
             {
-                builder.ElementTypeWithAnnotations = ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).TypeWithAnnotations;
+                Debug.Assert((object)builder.GetEnumeratorMethod != null);
 
-                GetDisposalInfoForEnumerator(ref builder, collectionExpr, isAsync, diagnostics);
+                builder.CollectionType = viaExtensionMethod && builder.GetEnumeratorMethod.Parameters is { IsDefaultOrEmpty: false } parameters
+                    ? parameters[0].Type
+                    : collectionExpr.Type;
 
-                return EnumeratorResult.Succeeded;
+                if (SatisfiesForEachPattern(ref builder, isAsync, diagnostics))
+                {
+                    builder.ElementTypeWithAnnotations = ((PropertySymbol)builder.CurrentPropertyGetter.AssociatedSymbol).TypeWithAnnotations;
+
+                    GetDisposalInfoForEnumerator(ref builder, collectionExpr, isAsync, diagnostics);
+
+                    return EnumeratorResult.Succeeded;
+                }
+
+                MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
+                diagnostics.Add(isAsync ? ErrorCode.ERR_BadGetAsyncEnumerator : ErrorCode.ERR_BadGetEnumerator, _syntax.Expression.Location, getEnumeratorMethod.ReturnType, getEnumeratorMethod);
+                return EnumeratorResult.FailedAndReported;
             }
-
-            MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
-            diagnostics.Add(isAsync ? ErrorCode.ERR_BadGetAsyncEnumerator : ErrorCode.ERR_BadGetEnumerator, _syntax.Expression.Location, getEnumeratorMethod.ReturnType, getEnumeratorMethod);
-            return EnumeratorResult.FailedAndReported;
         }
 
         private void GetDisposalInfoForEnumerator(ref ForEachEnumeratorInfo.Builder builder, BoundExpression expr, bool isAsync, DiagnosticBag diagnostics)
@@ -1005,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult,
                     methodName,
                     arity: 0,
-                    LookupOptions.IncludeExtensionMethods,
+                    LookupOptions.IncludeExtensionMethods | LookupOptions.AllMethodsOnArityZero,
                     useSiteDiagnostics: ref useSiteDiagnostics);
             }
             else
