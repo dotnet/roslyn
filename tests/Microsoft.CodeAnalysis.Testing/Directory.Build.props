@@ -14,6 +14,13 @@
     <TestRunnerName>MSTest</TestRunnerName>
   </PropertyGroup>
 
+  <!-- Recognize NUnit projects -->
+  <PropertyGroup Condition="'$(IsUnitTestProject)' == '' and ($(MSBuildProjectName.EndsWith('.NUnit.UnitTests')) or $(MSBuildProjectName.EndsWith('.NUnit.Tests')))">
+    <IsUnitTestProject>true</IsUnitTestProject>
+    <UsingToolXUnit>false</UsingToolXUnit>
+    <TestRunnerName>NUnit</TestRunnerName>
+  </PropertyGroup>
+
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <!-- Provide default versions for MSTest -->
@@ -22,6 +29,12 @@
     <MSTestVersion Condition="'$(MSTestVersion)' == ''">2.0.0</MSTestVersion>
     <MSTestTestAdapterVersion Condition="'$(MSTestTestAdapterVersion)' == ''">$(MSTestVersion)</MSTestTestAdapterVersion>
     <MSTestTestFrameworkVersion Condition="'$(MSTestTestFrameworkVersion)' == ''">$(MSTestVersion)</MSTestTestFrameworkVersion>
+  </PropertyGroup>
+
+  <!-- Provide default versions for NUnit -->
+  <PropertyGroup>
+    <NUnitVersion Condition="'$(NUnitVersion)' == ''">3.12.0</NUnitVersion>
+    <NUnit3TestAdapterVersion Condition="'$(NUnit3TestAdapterVersion)' == ''">$(NUnitVersion)</NUnit3TestAdapterVersion>
   </PropertyGroup>
 
   <!-- Import specialized props files of supported test runners -->
