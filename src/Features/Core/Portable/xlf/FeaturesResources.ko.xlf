@@ -172,11 +172,6 @@
         <target state="translated">구조체로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">튜플로 변환</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">System.IDisposable을 구현하는 형식은 IDisposable도 구현하는 형식의 필드를 선언합니다. 필드의 Dispose 메서드는 선언 형식의 Dispose 메서드에 의해 호출되지 않습니다. 이 규칙 위반 문제를 해결하려면 필드에 포함되는 비관리형 리소스를 할당 및 해제해야 하는 경우 IDisposable을 구현하는 형식의 필드에서 Dispose를 호출합니다.</target>
@@ -277,11 +272,6 @@
         <target state="translated">'{0}' 매개 변수(및 재정의/구현) 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="GetHashCode_implementation_can_be_simplified">
-        <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">'GetHashCode' 구현이 간소화될 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">'{0}'을(를) 명시적으로 구현</target>
@@ -352,11 +342,6 @@
         <target state="translated">래핑된 매개 변수 들여쓰기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">인덱싱은 단순화될 수 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">
         <source>Interpolation can be simplified</source>
         <target state="translated">보간을 단순화할 수 있습니다.</target>
@@ -387,24 +372,9 @@
         <target state="translated">정적으로 만들기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">readonly 필드를 쓰기 가능으로 지정</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">조건 반전</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">로컬 함수를 정적으로 지정할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">로컬 함수를 '정적'으로 지정</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -522,11 +492,6 @@
         <target state="translated">스트림은 읽기 및 찾기 작업을 지원해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
-        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0}을(를) 표시하지 않음</target>
@@ -607,19 +572,9 @@
         <target state="translated">권장 dispose 패턴을 사용하여 로컬로 범위가 지정된 삭제 가능한 개체가 모든 경로에서 삭제되도록 합니다. 가능한 경우 'using' 문이나 'using' 선언 내에서 생성을 래핑합니다. 그러지 않으면 try 영역 앞에 선언된 전용 지역 변수 및 'finally' 영역에 있는 null이 아닌 값의 비조건부 Dispose 호출('x?.Dispose()')과 함께 try-finally 패턴을 사용하세요. 개체가 try 영역 내에서 명시적으로 삭제되거나 삭제 소유권이 다른 개체나 메서드로 이전되면 해당 작업 바로 뒤의 지역 변수에 'null'을 할당하여 'finally'에서 이중 삭제를 방지하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_System_HashCode">
-        <source>Use 'System.HashCode'</source>
-        <target state="translated">'System.HashCode' 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">람다 식에 블록 본문 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">복합형 할당 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -627,19 +582,9 @@
         <target state="translated">람다 식에 식 본문 사용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">인덱스 연산자 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">보간된 축자 문자열 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">범위 연산자 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -651,11 +596,6 @@
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
         <target state="translated">권장 dispose 패턴을 사용하여, '{0}'에 의해 만들어진 개체가 모든 경로(using 문/선언 또는 try/finally)에서 삭제되도록 합니다.</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">간단한 'using' 문 사용</target>
-        <note />
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -725,11 +665,6 @@
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">래핑</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0}은(는) 단순화될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
@@ -2310,26 +2245,6 @@ This version used in: {2}</source>
         <target state="translated">인덱서</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parentheses_can_be_removed">
-        <source>Parentheses can be removed</source>
-        <target state="translated">괄호를 제거할 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_parentheses">
-        <source>Remove unnecessary parentheses</source>
-        <target state="translated">불필요한 괄호 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_for_clarity">
-        <source>Add parentheses for clarity</source>
-        <target state="translated">명확하게 하기 위해 괄호 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_should_be_added_for_clarity">
-        <source>Parentheses should be added for clarity</source>
-        <target state="translated">명확하게 하기 위해 괄호를 추가해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
         <target state="translated">별칭 모호한 형식 '{0}'</target>
@@ -2368,11 +2283,6 @@ This version used in: {2}</source>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">종속 프로젝트에서 사용을 업데이트하는 중</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">'using' 문을 간소화할 수 있습니다.</target>
         <note />
       </trans-unit>
     </body>

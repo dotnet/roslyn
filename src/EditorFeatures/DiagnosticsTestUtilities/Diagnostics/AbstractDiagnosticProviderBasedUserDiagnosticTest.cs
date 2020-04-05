@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -228,5 +229,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
             AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
         }
+
+        // This region provides instances of code fix providers from Features layers, such that the corresponding 
+        // analyzer has been ported to CodeStyle layer, but not the fixer.
+        // This enables porting the tests for the ported analyzer in CodeStyle layer.
+        #region CodeFixProvider Helpers
+
+        // https://github.com/dotnet/roslyn/issues/43056 blocks porting the fixer to CodeStyle layer.
+        protected static CodeFixProvider GetMakeLocalFunctionStaticCodeFixProvider() => new MakeLocalFunctionStaticCodeFixProvider();
+
+        #endregion
     }
 }

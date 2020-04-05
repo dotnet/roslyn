@@ -542,17 +542,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw new InvalidOperationException(WorkspacesResources.The_project_already_references_the_target_project);
                 }
-
-                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
-                {
-                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
-                }
-
-                if (_state.IsInvalidSubmissionReference(projectId, projectReference.ProjectId))
-                {
-                    throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
-                }
             }
+
+            CheckCircularProjectReferences(projectId, collection);
+            CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: false);
 
             var newState = _state.AddProjectReferences(projectId, collection);
             if (newState == _state)
@@ -602,7 +595,13 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectReferences(projectId, PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences)));
+            // avoid enumerating multiple times:
+            var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projectReferences, nameof(projectReferences));
+
+            CheckCircularProjectReferences(projectId, collection);
+            CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: true);
+
+            var newState = _state.WithProjectReferences(projectId, collection);
             if (newState == _state)
             {
                 return this;
@@ -1544,11 +1543,11 @@ namespace Microsoft.CodeAnalysis
             if (string.IsNullOrEmpty(filePath))
             {
                 // this document can't have any related document. only related document is itself.
-                return ImmutableArray.Create<DocumentId>(documentId);
+                return ImmutableArray.Create(documentId);
             }
 
-            var documentIds = this.GetDocumentIdsWithFilePath(filePath);
-            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language).ToImmutableArray();
+            var documentIds = GetDocumentIdsWithFilePath(filePath);
+            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language);
         }
 
         internal Solution WithNewWorkspace(Workspace workspace, int workspaceVersion)
@@ -1750,6 +1749,55 @@ namespace Microsoft.CodeAnalysis
             foreach (var documentId in documentIds)
             {
                 CheckContainsAnalyzerConfigDocument(documentId);
+            }
+        }
+
+        /// <summary>
+        /// Throws if setting the project references of project <paramref name="projectId"/> to specified <paramref name="projectReferences"/>
+        /// would form a cycle in project dependency graph.
+        /// </summary>
+        private void CheckCircularProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
+        {
+            foreach (var projectReference in projectReferences)
+            {
+                if (projectId == projectReference.ProjectId || _state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                {
+                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Throws if setting the project references of project <paramref name="projectId"/> to specified <paramref name="projectReferences"/>
+        /// would form an invalid submission project chain.
+        /// 
+        /// Submission projects can reference at most one other submission project. Regular projects can't reference any.
+        /// </summary>
+        private void CheckSubmissionProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences, bool ignoreExistingReferences)
+        {
+            var projectState = _state.GetRequiredProjectState(projectId);
+
+            bool isSubmission = projectState.IsSubmission;
+            bool hasSubmissionReference = !ignoreExistingReferences && projectState.ProjectReferences.Any(p => _state.GetRequiredProjectState(p.ProjectId).IsSubmission);
+
+            foreach (var projectReference in projectReferences)
+            {
+                // Note: need to handle reference to a project that's not included in the solution:
+                var referencedProjectState = _state.GetProjectState(projectReference.ProjectId);
+                if (referencedProjectState != null && referencedProjectState.IsSubmission)
+                {
+                    if (!isSubmission)
+                    {
+                        throw new InvalidOperationException(WorkspacesResources.Only_submission_project_can_reference_submission_projects);
+                    }
+
+                    if (hasSubmissionReference)
+                    {
+                        throw new InvalidOperationException(WorkspacesResources.This_submission_already_references_another_submission_project);
+                    }
+
+                    hasSubmissionReference = true;
+                }
             }
         }
     }

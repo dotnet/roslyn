@@ -22,6 +22,11 @@
         <target state="new">Add accessibility modifiers</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="new">Add parentheses for clarity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
         <target state="new">Add readonly modifier</target>
@@ -52,6 +57,11 @@
         <target state="new">Convert to conditional expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="new">Expression value is never used</target>
@@ -65,6 +75,11 @@
       <trans-unit id="Format_string_contains_invalid_placeholder">
         <source>Format string contains invalid placeholder</source>
         <target state="new">Format string contains invalid placeholder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_format_string">
@@ -127,6 +142,16 @@
         <target state="new">Object initialization can be simplified</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="new">Parentheses can be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="new">Parentheses should be added for clarity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Populate_switch">
         <source>Populate switch</source>
         <target state="new">Populate switch</target>
@@ -160,6 +185,11 @@
       <trans-unit id="Remove_Unnecessary_Cast">
         <source>Remove Unnecessary Cast</source>
         <target state="new">Remove Unnecessary Cast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="new">Remove unnecessary parentheses</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -222,9 +252,19 @@
         <target state="new">Unnecessary assignment of a value to '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="new">Use coalesce expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="new">Use compound assignment</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">

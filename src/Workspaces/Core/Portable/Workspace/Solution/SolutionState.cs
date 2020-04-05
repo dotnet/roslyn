@@ -855,7 +855,8 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, projectReferences));
+            var newDependencyGraph = _dependencyGraph.WithProjectReferences(projectId, projectReferences);
+            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -1449,12 +1450,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                return ImmutableArray.Create<DocumentId>();
+                return ImmutableArray<DocumentId>.Empty;
             }
 
             return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
                 ? documentIds
-                : ImmutableArray.Create<DocumentId>();
+                : ImmutableArray<DocumentId>.Empty;
         }
 
         private static ProjectDependencyGraph CreateDependencyGraph(
@@ -1861,17 +1862,6 @@ namespace Microsoft.CodeAnalysis
 
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
-
-        internal bool IsInvalidSubmissionReference(ProjectId projectId, ProjectId toProjectId)
-        {
-            var projectState = GetRequiredProjectState(projectId);
-
-            // each submission project can only reference at most one other submission project (the previous submission)
-            return
-                projectState.IsSubmission &&
-                GetRequiredProjectState(toProjectId).IsSubmission &&
-                projectState.ProjectReferences.Any(p => GetRequiredProjectState(p.ProjectId).IsSubmission);
-        }
 
         internal ImmutableHashSet<string> GetProjectLanguages()
             => GetProjectLanguages(ProjectStates);

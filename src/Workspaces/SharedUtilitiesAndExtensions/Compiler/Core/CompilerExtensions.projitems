@@ -179,6 +179,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedParametersPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedValuePreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IIntervalIntrospector.cs" />
@@ -307,7 +309,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\NamingStylePreferences.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SerializableNamingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Serialization\SymbolSpecification.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDelegates.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ObjectPools\PooledDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfig\EditorConfigStorageLocationExtensions.cs" />

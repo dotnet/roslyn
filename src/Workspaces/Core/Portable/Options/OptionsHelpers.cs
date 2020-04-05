@@ -36,5 +36,16 @@ namespace Microsoft.CodeAnalysis.Options
 
             return (T)value!;
         }
+
+        public static object? GetPublicOption(OptionKey optionKey, Func<OptionKey, object?> getOption)
+        {
+            var value = getOption(optionKey);
+            if (value is ICodeStyleOption codeStyleOption)
+            {
+                return codeStyleOption.AsPublicCodeStyleOption();
+            }
+
+            return value;
+        }
     }
 }

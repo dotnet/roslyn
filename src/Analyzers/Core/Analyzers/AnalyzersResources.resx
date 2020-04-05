@@ -247,11 +247,32 @@
   <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
     <value>Changes to expression trees may result in behavior changes at runtime</value>
   </data>
+  <data name="Parentheses_can_be_removed" xml:space="preserve">
+    <value>Parentheses can be removed</value>
+  </data>
+  <data name="Remove_unnecessary_parentheses" xml:space="preserve">
+    <value>Remove unnecessary parentheses</value>
+  </data>
+  <data name="Add_parentheses_for_clarity" xml:space="preserve">
+    <value>Add parentheses for clarity</value>
+  </data>
+  <data name="Parentheses_should_be_added_for_clarity" xml:space="preserve">
+    <value>Parentheses should be added for clarity</value>
+  </data>
   <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
     <value>Prefer explicitly provided tuple element name</value>
   </data>
   <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
     <value>Use explicitly provided tuple name</value>
+  </data>
+  <data name="Use_System_HashCode" xml:space="preserve">
+    <value>Use 'System.HashCode'</value>
+  </data>
+  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
+    <value>'GetHashCode' implementation can be simplified</value>
+  </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
   </data>
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
@@ -261,5 +282,8 @@
   </data>
   <data name="Invalid_format_string" xml:space="preserve">
     <value>Invalid format string</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
   </data>
 </root>

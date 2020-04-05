@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default), Shared]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
@@ -31,7 +31,13 @@ namespace Microsoft.CodeAnalysis.Host
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var textFactory = workspaceServices.GetService<ITextFactoryService>();
-            return new TemporaryStorageService(textFactory);
+
+            // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
+            // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
+            // until https://github.com/dotnet/roslyn/issues/42178 is fixed.
+            return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
+                ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
+                : TrivialTemporaryStorageService.Instance;
         }
 
         /// <summary>

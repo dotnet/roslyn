@@ -23,6 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.6.0-3.20170.19</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -48,11 +49,11 @@
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>5.0.2.5153</ICSharpCodeDecompilerVersion>
-    <MicrosoftBuildVersion>15.1.548</MicrosoftBuildVersion>
-    <MicrosoftBuildFrameworkVersion>15.1.548</MicrosoftBuildFrameworkVersion>
+    <MicrosoftBuildVersion>15.3.409</MicrosoftBuildVersion>
+    <MicrosoftBuildFrameworkVersion>15.3.409</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
-    <MicrosoftBuildRuntimeVersion>15.1.548</MicrosoftBuildRuntimeVersion>
-    <MicrosoftBuildTasksCoreVersion>15.1.548</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildRuntimeVersion>15.3.409</MicrosoftBuildRuntimeVersion>
+    <MicrosoftBuildTasksCoreVersion>15.3.409</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisBuildTasksVersion>2.0.0-rc2-61102-09</MicrosoftCodeAnalysisBuildTasksVersion>
     <MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>
@@ -198,7 +199,7 @@
     <SystemThreadingTasksExtensionsVersion>4.5.3</SystemThreadingTasksExtensionsVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
-    <MicrosoftVSSDKBuildToolsVersion>16.3.2099</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKBuildToolsVersion>16.5.2044</MicrosoftVSSDKBuildToolsVersion>
     <MicrosoftVSSDKVSDConfigToolVersion>16.0.2032702</MicrosoftVSSDKVSDConfigToolVersion>
     <VSLangProjVersion>7.0.3301</VSLangProjVersion>
     <VSLangProj140Version>14.0.25030</VSLangProj140Version>
