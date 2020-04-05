@@ -272,11 +272,6 @@
         <target state="translated">生成参数 {0}(和重写/实现)</target>
         <note />
       </trans-unit>
-      <trans-unit id="GetHashCode_implementation_can_be_simplified">
-        <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">可简化 "GetHashCode" 实现</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">显式实现 "{0}"</target>
@@ -377,24 +372,9 @@
         <target state="translated">设为静态</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">使 readonly 字段可写</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">反转条件</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">可以使本地函数成为静态函数</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">使本地函数成为静态函数</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -512,11 +492,6 @@
         <target state="translated">流必须支持读取和搜寻操作。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
-        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">取消 {0}</target>
@@ -597,19 +572,9 @@
         <target state="translated">使用推荐的释放模式以确保在所有路径中释放局部可释放对象。如果可能，请将创建包装在 "using" 语句或 "using" 声明中。否则，请使用 try-finally 模式，在 try 区域之前声明一个专用的局部变量，在 "finally" 区域中对非 null 值进行无条件 Dispose 调用，比如，"x?.Dispose()"。如果对象显式释放在 try 区域内或释放所有权转让给另一个对象或方法，则在这样的操作之后立即将 "null" 分配给局部变量，以防止在 "finally" 中进行双重释放。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_System_HashCode">
-        <source>Use 'System.HashCode'</source>
-        <target state="translated">使用 "System.HashCode"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">对 lambda 表达式使用块主体</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">使用复合分配</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -631,11 +596,6 @@
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
         <target state="translated">使用建议的释放模式以确保在所有路径上释放由 "{0}" 创建的对象: using 语句/声明或 try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">使用简单的 "using" 语句</target>
-        <note />
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -2338,11 +2298,6 @@ This version used in: {2}</source>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">更新相关项目中的用法</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">可简化 "using" 语句</target>
         <note />
       </trans-unit>
     </body>

@@ -23,6 +23,7 @@ Microsoft.CodeAnalysis.SourceGeneratorContext.CancellationToken.get -> System.Th
 Microsoft.CodeAnalysis.SourceGeneratorContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.SourceGeneratorContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.SourceGeneratorContext.SyntaxReceiver.get -> Microsoft.CodeAnalysis.ISyntaxReceiver
+Microsoft.CodeAnalysis.SyntaxNode.FirstAncestorOrSelf<TNode, TArg>(System.Func<TNode, TArg, bool> predicate, TArg argument, bool ascendOutOfTrivia = true) -> TNode
 Microsoft.CodeAnalysis.SyntaxReceiverCreator
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>

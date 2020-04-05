@@ -272,11 +272,6 @@
         <target state="translated">Generowanie parametru „{0}” (i przesłonięć/implementacji)</target>
         <note />
       </trans-unit>
-      <trans-unit id="GetHashCode_implementation_can_be_simplified">
-        <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">Implementację „GetHashCode” można uprościć</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">Jawnie zaimplementuj interfejs „{0}”</target>
@@ -377,24 +372,9 @@
         <target state="translated">Ustaw jako statyczne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">Ustaw możliwość zapisu dla pól z deklaracją readonly</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Odwróć warunkowe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">Funkcję lokalną można ustawić jako statyczną</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">Ustaw funkcję lokalną jako „static”</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -512,11 +492,6 @@
         <target state="translated">Strumień musi obsługiwać operacje odczytu i wyszukiwania.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
-        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Pomiń element {0}</target>
@@ -597,19 +572,9 @@
         <target state="translated">Użyj zalecanego wzorca likwidacji, aby upewnić się, że obiekty możliwe do likwidacji w lokalnym zakresie są likwidowane we wszystkich ścieżkach. Jeśli to możliwe, opakuj tworzenie w instrukcji „using” lub deklaracji „using”. W przeciwnym razie użyj wzorca try-finally z dedykowaną zmienną lokalną zadeklarowaną przed regionem try i bezwarunkowym wywołaniem metody Dispose dla wartości innej niż null w regionie „finally”, na przykład „x?.Dispose()”. Jeśli obiekt jest jawnie likwidowany w regionie try lub własność dispose jest przenoszona do innego obiektu lub metody, przypisz wartość „null” do zmiennej lokalnej zaraz po takiej operacji, aby zapobiec podwójnemu wywołaniu dispose w regionie „finally”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_System_HashCode">
-        <source>Use 'System.HashCode'</source>
-        <target state="translated">Użyj elementu „System.HashCode”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Użyj treści bloku dla wyrażeń lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">Użyj przypisania złożonego</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -631,11 +596,6 @@
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
         <target state="translated">Użyj zalecanego wzorca likwidacji, aby upewnić się, że obiekt utworzony przez element „{0}” jest likwidowany we wszystkich ścieżkach: instrukcja/deklaracja using lub try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">Użyj prostej instrukcji „using”</target>
-        <note />
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -2338,11 +2298,6 @@ Ta wersja jest używana wersja: {2}</target>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">aktualizowanie użyć w projektach zależnych</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">Instrukcję „using” można uprościć</target>
         <note />
       </trans-unit>
     </body>

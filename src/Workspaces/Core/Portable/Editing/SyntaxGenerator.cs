@@ -1381,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
         /// <see langword="false"/> if the language allows the type node to be entirely elided.
         /// </summary>
-        internal abstract bool RequiresLocalDeclarationType();
+        internal bool RequiresLocalDeclarationType() => SyntaxGeneratorInternal.RequiresLocalDeclarationType();
 
         /// <summary>
         /// Creates a statement that declares a single local variable.

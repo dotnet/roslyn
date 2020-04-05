@@ -32,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractUseCollectionInitializerCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\AbstractUseCompoundAssignmentCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\AbstractUseConditionalExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForAssignment\AbstractUseConditionalExpressionForAssignmentCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\AbstractUseConditionalExpressionForReturnCodeFixProvider.cs" />
@@ -40,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\AbstractUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionCodeFixProvider.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">

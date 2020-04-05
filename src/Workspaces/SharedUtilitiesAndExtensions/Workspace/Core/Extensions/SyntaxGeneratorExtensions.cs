@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SyntaxGeneratorExtensions
     {
+        private const string EqualsName = "Equals";
+        private const string DefaultName = "Default";
+        private const string ObjName = "obj";
+        public const string OtherName = "other";
+
         public static SyntaxNode CreateThrowNotImplementedStatement(
             this SyntaxGenerator codeDefinitionFactory, Compilation compilation)
         {
@@ -46,5 +51,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return factory.Argument(parameter.RefKind, factory.IdentifierName(parameter.Name));
         }
+
+        public static SyntaxNode GetDefaultEqualityComparer(
+            this SyntaxGenerator factory,
+            Compilation compilation,
+            ITypeSymbol type)
+        {
+            var equalityComparerType = compilation.EqualityComparerOfTType();
+            var constructedType = equalityComparerType.Construct(type);
+            return factory.MemberAccessExpression(
+                factory.TypeExpression(constructedType),
+                factory.IdentifierName(DefaultName));
+        }
+
+        private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
+            => symbol switch
+            {
+                IFieldSymbol field => field.Type,
+                IPropertySymbol property => property.Type,
+                _ => compilation.GetSpecialType(SpecialType.System_Object),
+            };
     }
 }

@@ -265,6 +265,15 @@
   <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
     <value>Use explicitly provided tuple name</value>
   </data>
+  <data name="Use_System_HashCode" xml:space="preserve">
+    <value>Use 'System.HashCode'</value>
+  </data>
+  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
+    <value>'GetHashCode' implementation can be simplified</value>
+  </data>
+  <data name="Use_compound_assignment" xml:space="preserve">
+    <value>Use compound assignment</value>
+  </data>
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
   </data>
