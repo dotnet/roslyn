@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 done = true;
                 var anyActions = false;
-                var actions = new List<CodeAction>();
+                var actions = ImmutableArray.CreateBuilder<CodeAction>();
 
                 var location = await GetTriggerLocationAsync();
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     await codeRefactoringProvider.ComputeRefactoringsAsync(context).ConfigureAwait(false);
                 }
 
-                var actionToApply = TryGetCodeActionToApply(actions, codeActionIndex, codeActionEquivalenceKey, verifier);
+                var actionToApply = TryGetCodeActionToApply(actions.ToImmutable(), codeActionIndex, codeActionEquivalenceKey, verifier);
                 if (actionToApply != null)
                 {
                     anyActions = true;
