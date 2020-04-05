@@ -75,6 +75,43 @@ class TestClass {{
             }.RunAsync();
         }
 
+#if !NETCOREAPP1_1 && !NET46
+        [Fact]
+        public async Task TestDefaultSelectionNestedFixers()
+        {
+            var testCode = @"
+class TestClass {
+  int field = [|0|];
+}
+";
+            var fixedCode = $@"
+class TestClass {{
+  int field = 1;
+}}
+";
+
+            // The batch code fix provider does not support nested code actions.
+            // https://github.com/dotnet/roslyn/issues/43044
+            var batchFixedCode = testCode;
+
+            // Three CodeFixProviders provide three actions
+            var codeFixes = ImmutableArray.Create(
+                ImmutableArray.Create(1),
+                ImmutableArray.Create(2),
+                ImmutableArray.Create(3));
+            await new CSharpTest(codeFixes, nested: true)
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                BatchFixedState =
+                {
+                    Sources = { batchFixedCode },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+            }.RunAsync();
+        }
+#endif
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
@@ -232,6 +269,7 @@ class TestClass {{
 
             public override void Initialize(AnalysisContext context)
             {
+                context.EnableConcurrentExecution();
                 context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
                 context.RegisterSyntaxNodeAction(HandleNumericLiteralExpression, SyntaxKind.NumericLiteralExpression);
@@ -252,11 +290,13 @@ class TestClass {{
         private class ReplaceZeroFix : CodeFixProvider
         {
             private readonly ImmutableArray<int> _replacements;
+            private readonly bool _nested;
 
-            public ReplaceZeroFix(ImmutableArray<int> replacements)
+            public ReplaceZeroFix(ImmutableArray<int> replacements, bool nested)
             {
                 Debug.Assert(replacements.All(replacement => replacement >= 0), $"Assertion failed: {nameof(replacements)}.All(replacement => replacement >= 0)");
                 _replacements = replacements;
+                _nested = nested;
             }
 
             public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(LiteralZeroAnalyzer.Descriptor.Id);
@@ -267,14 +307,29 @@ class TestClass {{
             {
                 foreach (var diagnostic in context.Diagnostics)
                 {
+                    var fixes = new List<CodeAction>();
                     foreach (var replacement in _replacements)
                     {
-                        context.RegisterCodeFix(
-                            CodeAction.Create(
-                                "ThisToBase",
-                                cancellationToken => CreateChangedDocument(context.Document, diagnostic.Location.SourceSpan, replacement, cancellationToken),
-                                $"{nameof(ReplaceZeroFix)}_{replacement}"),
-                            diagnostic);
+                        fixes.Add(CodeAction.Create(
+                            "ThisToBase",
+                            cancellationToken => CreateChangedDocument(context.Document, diagnostic.Location.SourceSpan, replacement, cancellationToken),
+                            $"{nameof(ReplaceZeroFix)}_{replacement}"));
+                    }
+
+                    if (_nested)
+                    {
+#if NETCOREAPP2_0 || NET472
+#pragma warning disable RS1010 // Create code actions should have a unique EquivalenceKey for FixAll occurrences support. (https://github.com/dotnet/roslyn-analyzers/issues/3475)
+                        fixes = new List<CodeAction> { CodeAction.Create("Container", fixes.ToImmutableArray(), isInlinable: false) };
+#pragma warning restore RS1010 // Create code actions should have a unique EquivalenceKey for FixAll occurrences support.
+#else
+                        throw new NotSupportedException("Nested code actions are not supported on this framework.");
+#endif
+                    }
+
+                    foreach (var fix in fixes)
+                    {
+                        context.RegisterCodeFix(fix, diagnostic);
                     }
                 }
 
@@ -294,10 +349,12 @@ class TestClass {{
         private class CSharpTest : CodeFixTest<DefaultVerifier>
         {
             private readonly ImmutableArray<ImmutableArray<int>> _replacementGroups;
+            private readonly bool _nested;
 
-            public CSharpTest(ImmutableArray<ImmutableArray<int>> replacementGroups)
+            public CSharpTest(ImmutableArray<ImmutableArray<int>> replacementGroups, bool nested = false)
             {
                 _replacementGroups = replacementGroups;
+                _nested = nested;
             }
 
             public override string Language => LanguageNames.CSharp;
@@ -320,7 +377,7 @@ class TestClass {{
             {
                 foreach (var replacementGroup in _replacementGroups)
                 {
-                    yield return new ReplaceZeroFix(replacementGroup);
+                    yield return new ReplaceZeroFix(replacementGroup, _nested);
                 }
             }
 

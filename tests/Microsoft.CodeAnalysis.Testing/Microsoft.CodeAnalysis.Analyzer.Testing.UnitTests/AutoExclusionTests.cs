@@ -217,6 +217,7 @@ End Class
 
             public override void Initialize(AnalysisContext context)
             {
+                context.EnableConcurrentExecution();
                 context.ConfigureGeneratedCodeAnalysis(_generatedCodeAnalysisFlags);
 
                 context.RegisterSyntaxNodeAction(HandleThisExpression, CSharp.SyntaxKind.ThisExpression);
@@ -246,6 +247,7 @@ End Class
 
             public override void Initialize(AnalysisContext context)
             {
+                context.EnableConcurrentExecution();
                 context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
                 context.RegisterSyntaxNodeAction(HandleThisExpression, CSharp.SyntaxKind.ThisExpression);
@@ -275,7 +277,9 @@ End Class
 
             public override void Initialize(AnalysisContext context)
             {
+                context.EnableConcurrentExecution();
                 context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
                 context.RegisterSyntaxTreeAction(HandleSyntaxTree);
             }
 

@@ -303,6 +303,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
 
             public override void Initialize(AnalysisContext context)
             {
+                context.EnableConcurrentExecution();
                 context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
                 context.RegisterSyntaxNodeAction(HandleThisExpression, SyntaxKind.ThisExpression);
