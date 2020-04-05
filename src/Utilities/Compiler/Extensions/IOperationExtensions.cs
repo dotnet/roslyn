@@ -92,7 +92,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasConstantValue(this IOperation operation, long comparand)
         {
-            return operation.HasConstantValue(unchecked((ulong)(comparand)));
+            return operation.HasConstantValue(unchecked((ulong)comparand));
         }
 
         public static bool HasConstantValue(this IOperation operation, ulong comparand)

@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         public double Volume                //V
         {
             // V = N * Log2(n)
-            get { return (Length * Math.Max(0.0, Math.Log(Vocabulary, 2))); }
+            get { return Length * Math.Max(0.0, Math.Log(Vocabulary, 2)); }
         }
 
         /// <summary>
