@@ -276,9 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             private bool NewIdentifierDefinitelyBindsToReference()
-            {
-                return _newIdentifierBindsTask.Status == TaskStatus.RanToCompletion && _newIdentifierBindsTask.Result;
-            }
+                => _newIdentifierBindsTask.Status == TaskStatus.RanToCompletion && _newIdentifierBindsTask.Result;
         }
     }
 }

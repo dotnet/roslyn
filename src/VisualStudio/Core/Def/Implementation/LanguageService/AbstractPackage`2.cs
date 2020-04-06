@@ -122,15 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected abstract TLanguageService CreateLanguageService();
 
         protected void RegisterService<T>(Func<CancellationToken, Task<T>> serviceCreator)
-        {
-            AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
-        }
+            => AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
 
         // When registering a language service, we need to take its ComAggregate wrapper.
         protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
-        {
-            AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
-        }
+            => AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
 
         protected override void Dispose(bool disposing)
         {
@@ -174,9 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private async Task<bool> IsInIdeModeAsync(Workspace workspace)
-        {
-            return workspace != null && !await IsInCommandLineModeAsync().ConfigureAwait(true);
-        }
+            => workspace != null && !await IsInCommandLineModeAsync().ConfigureAwait(true);
 
         private async Task<bool> IsInCommandLineModeAsync()
         {
@@ -193,13 +187,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private void EnableRemoteHostClientService()
-        {
-            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
-        }
+            => ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
 
         private void DisableRemoteHostClientService()
-        {
-            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
-        }
+            => ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
     }
 }

@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private readonly NameSyntax _name;
 
         public NameSyntaxIterator(NameSyntax name)
-        {
-            _name = name ?? throw new ArgumentNullException(nameof(name));
-        }
+            => _name = name ?? throw new ArgumentNullException(nameof(name));
 
         public IEnumerator<NameSyntax> GetEnumerator()
         {
@@ -44,8 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
     }
 }

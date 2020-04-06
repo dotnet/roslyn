@@ -23,27 +23,24 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public OptionServiceFactory(IGlobalOptionService globalOptionService)
-        {
-            _globalOptionService = globalOptionService;
-        }
+            => _globalOptionService = globalOptionService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new OptionService(_globalOptionService, workspaceServices);
-        }
+            => new OptionService(_globalOptionService, workspaceServices);
 
         /// <summary>
         /// Wraps an underlying <see cref="IGlobalOptionService"/> and exposes its data to workspace
         /// clients.  Also takes the <see cref="IGlobalOptionService.OptionChanged"/> notifications
-        /// and forwards them along using the same <see cref="IWorkspaceTaskScheduler"/> used by the
+        /// and forwards them along using the same <see cref="TaskQueue"/> used by the
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
-        internal class OptionService : IWorkspaceOptionService
+        internal sealed class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
-            private readonly IWorkspaceTaskScheduler _taskQueue;
+            private readonly TaskQueue _taskQueue;
 
             /// <summary>
             /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
@@ -62,8 +59,9 @@ namespace Microsoft.CodeAnalysis.Options
             {
                 _globalOptionService = globalOptionService;
 
-                var workspaceTaskSchedulerFactory = workspaceServices.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-                _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
+                var schedulerProvider = workspaceServices.GetRequiredService<ITaskSchedulerProvider>();
+                var listenerProvider = workspaceServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+                _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
                 _globalOptionService.OptionChanged += OnGlobalOptionServiceOptionChanged;
             }
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             private void OnGlobalOptionServiceOptionChanged(object? sender, OptionChangedEventArgs e)
             {
-                _taskQueue.ScheduleTask(() =>
+                _taskQueue.ScheduleTask(nameof(OptionService) + "." + nameof(OnGlobalOptionServiceOptionChanged), () =>
                 {
                     // Ensure we grab the event handlers inside the scheduled task to prevent a race of people unsubscribing
                     // but getting the event later on the UI thread
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Options
                     {
                         handler(this, e);
                     }
-                }, "OptionsService.OnGlobalOptionServiceOptionChanged");
+                }, CancellationToken.None);
             }
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> GetEventHandlers()
@@ -121,7 +119,9 @@ namespace Microsoft.CodeAnalysis.Options
             public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages) => _globalOptionService.GetSerializableOptionsSnapshot(languages, this);
             public object? GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
             [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
+            [return: MaybeNull] public T GetOption<T>(Option2<T> option) => _globalOptionService.GetOption(option);
             [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
+            [return: MaybeNull] public T GetOption<T>(PerLanguageOption2<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);
             public IEnumerable<IOption> GetRegisteredOptions() => _globalOptionService.GetRegisteredOptions();
             public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey) => _globalOptionService.TryMapEditorConfigKeyToOption(key, language, out storageLocation, out optionKey);
             public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetRegisteredSerializableOptions(languages);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-                public override object? GetOption(OptionKey optionKey)
+                private protected override object? GetOptionCore(OptionKey optionKey)
                 {
                     // If we already know the document specific value, we're done
                     if (_values.TryGetValue(optionKey, out var value))
@@ -209,9 +209,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
 
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-                {
-                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
-                }
+                    => new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 {

@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
+using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
     public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
-        internal override AbstractSyntaxStructureProvider CreateProvider() => new MetadataRegionDirectiveStructureProvider();
+        internal override AbstractSyntaxStructureProvider CreateProvider() => new RegionDirectiveStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task FileHeader()

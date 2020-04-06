@@ -117,13 +117,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public string CreateString()
         {
-            var builder = PooledStringBuilder.GetInstance();
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
             foreach (var ch in this)
-            {
-                builder.Builder.Append(ch.Char);
-            }
+                ch.AppendTo(builder);
 
-            return builder.ToStringAndFree();
+            return builder.ToString();
         }
 
         [Conditional("DEBUG")]

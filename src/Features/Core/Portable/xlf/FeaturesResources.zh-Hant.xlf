@@ -172,11 +172,6 @@
         <target state="translated">轉換為結構</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">轉換為元組</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">實作 System.IDisposable 的類型，宣告的欄位會是也實作 IDisposable 的類型。該欄位的 Dispose 方法，並非由宣告類型的 Dispose 方法呼叫。若要修正此規則違規，如果由您負責配置及釋放由該欄位所保留的非受控資源，則請在會實作 IDisposable 的欄位類型欄位上，呼叫 Dispose。</target>
@@ -2070,24 +2065,9 @@ This version used in: {2}</source>
         <target state="translated">Pascal 命名法的大小寫</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">使用 null 傳播</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">變數宣告可內置</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">建議使用明確提供的元組元素名稱</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">使用明確提供的元組名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -2245,26 +2225,6 @@ This version used in: {2}</source>
         <target state="translated">實作 {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">簡化 'default' 運算式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'default' 運算式可予簡化</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">格式字串包含無效的預留位置</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">格式字串無效</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">使用推斷的成員名稱</target>
@@ -2283,16 +2243,6 @@ This version used in: {2}</source>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">回報之診斷 '{0}' 中的來源位置 '{1}' 位於檔案 '{2}' 內，而該檔案不在指定的檔案內。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">偵測到執行不到的程式碼</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">移除執行不到的程式碼</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">
@@ -2340,16 +2290,6 @@ This version used in: {2}</source>
         <target state="translated">在 lambda 和區域函式之間切換會讓偵錯工作階段無法繼續進行。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">解構變數宣告</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">變數宣告可進行解構</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">新增引數名稱 '{0}' (包括結尾的引數)</target>
@@ -2363,26 +2303,6 @@ This version used in: {2}</source>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">索引子</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_can_be_removed">
-        <source>Parentheses can be removed</source>
-        <target state="translated">可以移除括號</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_parentheses">
-        <source>Remove unnecessary parentheses</source>
-        <target state="translated">移除不必要的括號</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_for_clarity">
-        <source>Add parentheses for clarity</source>
-        <target state="translated">新增括號以明確表示</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_should_be_added_for_clarity">
-        <source>Parentheses should be added for clarity</source>
-        <target state="translated">應新增括號以明確表示</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2403,11 +2323,6 @@ This version used in: {2}</source>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
         <target state="translated">警告: 集合可能於反覆運算期間被修改</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">轉換至條件運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">

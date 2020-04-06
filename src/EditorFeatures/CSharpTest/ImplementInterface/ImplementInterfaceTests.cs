@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
 
-        private IDictionary<OptionKey, object> AllOptionsOff =>
+        private IDictionary<OptionKey2, object> AllOptionsOff =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> AllOptionsOn =>
+        private IDictionary<OptionKey2, object> AllOptionsOn =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> AccessorOptionsOn =>
+        private IDictionary<OptionKey2, object> AccessorOptionsOn =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
@@ -900,7 +900,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return this.x.Compare(x, y);
+        return ((IComparer)this.x).Compare(x, y);
     }
 }",
 index: 1);
@@ -925,7 +925,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return a.Compare(x, y);
+        return ((IComparer)a).Compare(x, y);
     }
 }",
 index: 1);

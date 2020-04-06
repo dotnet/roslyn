@@ -11,6 +11,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
 {
@@ -23,10 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         private readonly IEnumerable<IRemoteProjectInfoProvider> _remoteProjectInfoProviders;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteProjectInfoProvider([ImportMany] IEnumerable<IRemoteProjectInfoProvider> remoteProjectInfoProviders)
-        {
-            _remoteProjectInfoProviders = remoteProjectInfoProviders ?? throw new ArgumentNullException(nameof(remoteProjectInfoProviders));
-        }
+            => _remoteProjectInfoProviders = remoteProjectInfoProviders ?? throw new ArgumentNullException(nameof(remoteProjectInfoProviders));
 
         public async Task<IReadOnlyCollection<ProjectInfo>> GetRemoteProjectInfosAsync(CancellationToken cancellationToken)
         {

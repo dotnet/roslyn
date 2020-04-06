@@ -78,9 +78,7 @@ namespace Microsoft.CodeAnalysis
             Log((int)MergeInfo.InsertedMergeConflictCommentsAtAdjustedLocation, insertedMergeConflictCommentsAtAdjustedLocation);
 
         private static void Log(int mergeInfo, int count)
-        {
-            LogAggregator.IncreaseCountBy(mergeInfo, count);
-        }
+            => LogAggregator.IncreaseCountBy(mergeInfo, count);
 
         internal static void ReportTelemetry()
         {

@@ -646,7 +646,7 @@ class C
         S = s;
     }
 }", parameters: new TestParameters(options:
-    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1481,8 +1481,8 @@ class Program
 }", index: 1,
     parameters: new TestParameters(
         options: Option(
-            CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
-            CodeStyleOptions.FalseWithSuggestionEnforcement)));
+            CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+            CodeStyleOptions2.FalseWithSuggestionEnforcement)));
         }
 
         [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
@@ -1513,7 +1513,7 @@ class C
     }
 }",
     parameters: new TestParameters(options:
-        Option(CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption.Silent))));
+        Option(CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent))));
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
@@ -1737,6 +1737,25 @@ class C
     void M(Action<int, int> a)
     {
         M((x[||]
+    }
+}");
+        }
+
+        [WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingInArgList()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private static void M()
+    {
+        M2(__arglist(1, 2, 3, 5, 6));
+    }
+
+    public static void M2([||]__arglist)
+    {
     }
 }");
         }

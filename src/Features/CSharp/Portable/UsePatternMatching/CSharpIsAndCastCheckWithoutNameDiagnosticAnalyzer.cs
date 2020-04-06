@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var (matches, _) = AnalyzeExpression(workspace, semanticModel, isExpression, cancellationToken);
+            var (matches, _) = AnalyzeExpression(semanticModel, isExpression, cancellationToken);
             if (matches == null || matches.Count == 0)
             {
                 return;
@@ -97,14 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    this.Descriptor, isExpression.GetLocation(),
+                    Descriptor, isExpression.GetLocation(),
                     styleOption.Notification.Severity,
                     SpecializedCollections.EmptyCollection<Location>(),
                     ImmutableDictionary<string, string>.Empty));
         }
 
         public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
-            Workspace workspace,
             SemanticModel semanticModel,
             BinaryExpressionSyntax isExpression,
             CancellationToken cancellationToken)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 tempMatches.Add(castExpression);
                 var updatedSemanticModel = ReplaceMatches(
-                    workspace, semanticModel, isExpression, localName, tempMatches, cancellationToken);
+                    semanticModel, isExpression, localName, tempMatches, cancellationToken);
                 tempMatches.Clear();
 
                 var causesError = ReplacementCausesError(updatedSemanticModel, cancellationToken);
@@ -179,12 +179,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         public SemanticModel ReplaceMatches(
-            Workspace workspace, SemanticModel semanticModel, BinaryExpressionSyntax isExpression,
+            SemanticModel semanticModel, BinaryExpressionSyntax isExpression,
             string localName, HashSet<CastExpressionSyntax> matches,
             CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var editor = new SyntaxEditor(root, workspace);
+            var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
 
             // now, replace "x is Y" with "x is Y y" and put a rename-annotation on 'y' so that
             // the user can actually name the variable whatever they want.

@@ -94,14 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private static bool CanExecuteCommand(ITextBuffer buffer)
-        {
-            return buffer.CanApplyChangeDocumentToWorkspace();
-        }
+            => buffer.CanApplyChangeDocumentToWorkspace();
 
         private static CommandState GetCommandState(ITextBuffer buffer)
-        {
-            return CanExecuteCommand(buffer) ? CommandState.Available : CommandState.Unspecified;
-        }
+            => CanExecuteCommand(buffer) ? CommandState.Available : CommandState.Unspecified;
 
         public void ExecuteReturnOrTypeCommand(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
         {
@@ -192,8 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
         private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
-        {
-            return new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
-        }
+            => new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
     }
 }

@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
             _values = values;
         }
 
-        public override object GetOption(OptionKey optionKey)
+        private protected override object GetOptionCore(OptionKey optionKey)
         {
             Contract.ThrowIfFalse(_values.TryGetValue(optionKey, out var value));
 

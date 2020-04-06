@@ -2069,10 +2069,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WeakReference<BinderFactory>? previousWeakReference = slot;
                 if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousFactory))
                 {
+                    Debug.Assert(slot is object);
                     return previousFactory;
                 }
 
-                if (Interlocked.CompareExchange(ref slot, newWeakReference, previousWeakReference) == previousWeakReference)
+                if (Interlocked.CompareExchange(ref slot!, newWeakReference, previousWeakReference) == previousWeakReference)
                 {
                     return newFactory;
                 }

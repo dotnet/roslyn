@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -17,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private abstract class IndentationData
         {
             public IndentationData(TextSpan textSpan)
-            {
-                this.TextSpan = textSpan;
-            }
+                => this.TextSpan = textSpan;
 
             public TextSpan TextSpan { get; }
             public abstract int Indentation { get; }

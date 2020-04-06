@@ -16,9 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return FlattenActions(actions)
         End Function
 
-        Protected Shared Function GetIndentionColumn(column As Integer) As Dictionary(Of OptionKey, Object)
-            Return New Dictionary(Of OptionKey, Object) From {
-                   {FormattingOptions.PreferredWrappingColumn, column}
+        Private Protected Shared Function GetIndentionColumn(column As Integer) As Dictionary(Of OptionKey2, Object)
+            Return New Dictionary(Of OptionKey2, Object) From {
+                   {FormattingOptions2.PreferredWrappingColumn, column}
                }
         End Function
 
@@ -29,9 +29,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return TestAllWrappingCasesAsync(input, options:=Nothing, outputs)
         End Function
 
-        Protected Function TestAllWrappingCasesAsync(
+        Private Protected Function TestAllWrappingCasesAsync(
             input As String,
-            options As IDictionary(Of OptionKey, Object),
+            options As IDictionary(Of OptionKey2, Object),
             ParamArray outputs As String()) As Task
 
             Dim parameters = New TestParameters(options:=options)

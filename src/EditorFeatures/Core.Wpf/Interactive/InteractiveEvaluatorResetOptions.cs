@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         public bool? Is64Bit;
 
         public InteractiveEvaluatorResetOptions(bool? is64Bit)
-        {
-            Is64Bit = is64Bit;
-        }
+            => Is64Bit = is64Bit;
     }
 }

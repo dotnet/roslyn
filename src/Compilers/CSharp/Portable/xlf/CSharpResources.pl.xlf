@@ -1464,6 +1464,26 @@
         <target state="translated">Interfejs występuje już na liście interfejsów z inną obsługą wartości null typów referencyjnych.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
+        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="new">Generator failed to generate source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
+        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="new">Generator failed to initialize.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
         <source>The given expression always matches the provided constant.</source>
         <target state="translated">Dane wyrażenie jest zawsze zgodne z podaną stałą.</target>
@@ -1505,8 +1525,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
-        <source>Member '{0}' may not have a null value when exiting.</source>
-        <target state="new">Member '{0}' may not have a null value when exiting.</target>
+        <source>Member '{0}' must have a non-null value when exiting.</source>
+        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
@@ -1520,18 +1540,18 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
-        <source>Member '{0}' may not have a null value when exiting with `{1}`.</source>
-        <target state="new">Member '{0}' may not have a null value when exiting with `{1}`.</target>
+        <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
+        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
-        <source>Member may not have a null value when exiting in some condition.</source>
-        <target state="new">Member may not have a null value when exiting in some condition.</target>
+        <source>Member must have a non-null value when exiting in some condition.</source>
+        <target state="new">Member must have a non-null value when exiting in some condition.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
-        <source>Member may not have a null value when exiting.</source>
-        <target state="new">Member may not have a null value when exiting.</target>
+        <source>Member must have a non-null value when exiting.</source>
+        <target state="new">Member must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -1699,16 +1719,6 @@
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru „{0}” jest niezgodna z implementowaną składową „{1}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes">
-        <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' because of nullability attributes.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes_Title">
-        <source>Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member because of nullability attributes.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member.</source>
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru jest niezgodna z implementowaną składową.</target>
@@ -1719,16 +1729,6 @@
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru „{0}” „{1}” jest niezgodna z niejawnie implementowaną składową „{2}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes">
-        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' because of nullability attributes.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes_Title">
-        <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member because of nullability attributes.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member.</source>
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru jest niezgodna z niejawnie implementowaną składową.</target>
@@ -1737,16 +1737,6 @@
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match overridden member.</source>
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie parametru „{0}” jest niezgodna z przesłoniętą składową.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes">
-        <source>Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</source>
-        <target state="new">Type of parameter '{0}' doesn't match overridden member because of nullability attributes.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes_Title">
-        <source>Type of parameter doesn't match overridden member because of nullability attributes.</source>
-        <target state="new">Type of parameter doesn't match overridden member because of nullability attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnOverride_Title">
@@ -1779,16 +1769,6 @@
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z implementowaną składową „{0}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes">
-        <source>Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' because of nullability attributes.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes_Title">
-        <source>Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member because of nullability attributes.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member.</source>
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z implementowaną składową.</target>
@@ -1799,16 +1779,6 @@
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym „{0}” jest niezgodna z niejawnie implementowaną składową „{1}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes">
-        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' because of nullability attributes.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes_Title">
-        <source>Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</source>
-        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member because of nullability attributes.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member.</source>
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z niejawnie implementowaną składową.</target>
@@ -1817,16 +1787,6 @@
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of reference types in return type doesn't match overridden member.</source>
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie zwracanym jest niezgodna z przesłoniętą składową.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes">
-        <source>Return type doesn't match overridden member because of nullability attributes.</source>
-        <target state="new">Return type doesn't match overridden member because of nullability attributes.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes_Title">
-        <source>Return type doesn't match overridden member because of nullability attributes.</source>
-        <target state="new">Return type doesn't match overridden member because of nullability attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnOverride_Title">
@@ -1905,13 +1865,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
-        <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
-        <target state="translated">Parametr „{0}” nie może mieć wartości null podczas zamykania z wartością „{1}”.</target>
+        <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
+        <target state="needs-review-translation">Parametr „{0}” nie może mieć wartości null podczas zamykania z wartością „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
-        <source>Parameter may not have a null value when exiting in some condition.</source>
-        <target state="translated">Parametr nie może mieć wartości null podczas zamykania w pewnym stanie.</target>
+        <source>Parameter must have a non-null value when exiting in some condition.</source>
+        <target state="needs-review-translation">Parametr nie może mieć wartości null podczas zamykania w pewnym stanie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterDisallowsNull">
+        <source>Parameter '{0}' must have a non-null value when exiting.</source>
+        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterDisallowsNull_Title">
+        <source>Parameter must have a non-null value when exiting.</source>
+        <target state="new">Parameter must have a non-null value when exiting.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -1952,6 +1922,66 @@
       <trans-unit id="WRN_ThrowPossibleNull_Title">
         <source>Thrown value may be null.</source>
         <target state="translated">Zgłoszona wartość może być równa null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation">
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride">
+        <source>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title">
+        <source>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation">
+        <source>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
+        <source>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation">
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
+        <source>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride">
+        <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title">
+        <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">

@@ -122,8 +122,6 @@ namespace Microsoft.CodeAnalysis.Completion.Log
         }
 
         private static string CreateProperty(string parent, string child)
-        {
-            return parent + "." + child;
-        }
+            => parent + "." + child;
     }
 }

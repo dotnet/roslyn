@@ -92,21 +92,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         public void EntireRange()
-        {
-            VerifyRange("{|b:{|r:class C {}|}|}");
-        }
+            => VerifyRange("{|b:{|r:class C {}|}|}");
 
         [Fact]
         public void EntireRange_Merge()
-        {
-            VerifyRange("{|r:class {|b:C { }|} class {|b: B { } |}|}");
-        }
+            => VerifyRange("{|r:class {|b:C { }|} class {|b: B { } |}|}");
 
         [Fact]
         public void EntireRange_EndOfFile()
-        {
-            VerifyRange("{|r:class {|b:C { }|} class {|b: B { } |} |}");
-        }
+            => VerifyRange("{|r:class {|b:C { }|} class {|b: B { } |} |}");
 
         [Fact]
         public void EntireRangeWithTransformation_RemoveClass()
@@ -184,21 +178,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         public void MultipleRange_Overlapped()
-        {
-            VerifyRange("namespace N {|r:{ {|b:class C { {|b:void Method() { }|} }|} }|}");
-        }
+            => VerifyRange("namespace N {|r:{ {|b:class C { {|b:void Method() { }|} }|} }|}");
 
         [Fact]
         public void MultipleRange_Adjacent()
-        {
-            VerifyRange("namespace N {|r:{ {|b:class C { |}{|b:void Method() { } }|} }|}");
-        }
+            => VerifyRange("namespace N {|r:{ {|b:class C { |}{|b:void Method() { } }|} }|}");
 
         [Fact]
         public void MultipleRanges()
-        {
-            VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
-        }
+            => VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
 
         [Fact]
         [WorkItem(12848, "DevDiv_Projects/Roslyn")]
@@ -302,9 +290,7 @@ End Module";
         }
 
         public static CSharp.Syntax.MethodDeclarationSyntax CreateCSharpMethod(string returnType = "void", string methodName = "Method")
-        {
-            return CSharp.SyntaxFactory.MethodDeclaration(CSharp.SyntaxFactory.ParseTypeName(returnType), CSharp.SyntaxFactory.Identifier(methodName));
-        }
+            => CSharp.SyntaxFactory.MethodDeclaration(CSharp.SyntaxFactory.ParseTypeName(returnType), CSharp.SyntaxFactory.Identifier(methodName));
 
         private void VerifyRange(string codeWithMarker, string language = LanguageNames.CSharp)
         {

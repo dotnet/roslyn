@@ -23,14 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         private readonly ITextView _textView;
 
         public SmartIndent(ITextView textView)
-        {
-            _textView = textView ?? throw new ArgumentNullException(nameof(textView));
-        }
+            => _textView = textView ?? throw new ArgumentNullException(nameof(textView));
 
         public int? GetDesiredIndentation(ITextSnapshotLine line)
-        {
-            return GetDesiredIndentation(line, CancellationToken.None);
-        }
+            => GetDesiredIndentation(line, CancellationToken.None);
 
         public void Dispose()
         {

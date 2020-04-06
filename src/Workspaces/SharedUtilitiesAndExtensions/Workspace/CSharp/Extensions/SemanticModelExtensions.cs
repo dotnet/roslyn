@@ -487,8 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static TypeSyntax GetOutermostType(TypeSyntax type)
-        {
-            return type.GetAncestorsOrThis<TypeSyntax>().Last();
-        }
+            => type.GetAncestorsOrThis<TypeSyntax>().Last();
     }
 }

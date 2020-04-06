@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor
         public SignatureHelpItem SignatureHelpItem { get; }
 
         public SignatureHelpItemEventArgs(SignatureHelpItem signatureHelpItem)
-        {
-            this.SignatureHelpItem = signatureHelpItem;
-        }
+            => this.SignatureHelpItem = signatureHelpItem;
     }
 }

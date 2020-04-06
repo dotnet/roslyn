@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
     internal class IfStatementHighlighter : AbstractKeywordHighlighter<IfStatementSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public IfStatementHighlighter()
         {
         }

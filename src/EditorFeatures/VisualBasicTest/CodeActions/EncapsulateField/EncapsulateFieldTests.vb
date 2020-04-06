@@ -338,7 +338,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestInRegularAndScriptAsync(text, expected, options:=[Option](CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Error))
+            Await TestInRegularAndScriptAsync(text, expected, options:=[Option](CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error))
 
         End Function
 
@@ -633,7 +633,7 @@ Class C
     End Property
 End Class
 ",
-options:=[Option](CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Error))
+options:=[Option](CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Error))
         End Function
     End Class
 End Namespace

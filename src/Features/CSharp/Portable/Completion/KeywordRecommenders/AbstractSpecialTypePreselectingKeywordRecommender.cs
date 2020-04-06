@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         protected abstract SpecialType SpecialType { get; }
 
         protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return context.InferredTypes.Any(t => t.SpecialType == this.SpecialType);
-        }
+            => context.InferredTypes.Any(t => t.SpecialType == SpecialType);
     }
 }

@@ -1649,7 +1649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            Return GetTypeMembers(name).WhereAsArray(Function(t) t.Arity = arity)
+            Return GetTypeMembers(name).WhereAsArray(Function(t, arity_) t.Arity = arity_, arity)
         End Function
 
         Friend Overrides ReadOnly Property DefaultPropertyName As String

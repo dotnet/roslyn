@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RenameTrackingTaggerProvider(
             IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -70,14 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         }
 
         internal static void ResetRenameTrackingState(Workspace workspace, DocumentId documentId)
-        {
-            ResetRenameTrackingStateWorker(workspace, documentId, visible: false);
-        }
+            => ResetRenameTrackingStateWorker(workspace, documentId, visible: false);
 
         internal static bool ResetVisibleRenameTrackingState(Workspace workspace, DocumentId documentId)
-        {
-            return ResetRenameTrackingStateWorker(workspace, documentId, visible: true);
-        }
+            => ResetRenameTrackingStateWorker(workspace, documentId, visible: true);
 
         internal static bool ResetRenameTrackingStateWorker(Workspace workspace, DocumentId documentId, bool visible)
         {
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer == null)
                     {
-                        Environment.FailFast(string.Format("document with name {0} is open but textBuffer is null. Textcontainer is of type {1}. SourceText is: {2}",
+                        FailFast.Fail(string.Format("document with name {0} is open but textBuffer is null. Textcontainer is of type {1}. SourceText is: {2}",
                                                             document.Name, text.Container.GetType().FullName, text.ToString()));
                     }
 

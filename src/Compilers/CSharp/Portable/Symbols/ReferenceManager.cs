@@ -270,7 +270,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var assemblySymbol = new PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked: false, importOptions: importOptions);
 
-                var unifiedAssemblies = this.UnifiedAssemblies.WhereAsArray(unified => referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion: false));
+                var unifiedAssemblies = this.UnifiedAssemblies.WhereAsArray(
+                    (unified, referencedAssembliesByIdentity) => referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion: false), referencedAssembliesByIdentity);
+
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies);
 
                 if (assembly.ContainsNoPiaLocalTypes())
@@ -351,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 try
                 {
-                    IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap;
+                    IDictionary<(string, string), MetadataReference>? boundReferenceDirectiveMap;
                     ImmutableArray<MetadataReference> boundReferenceDirectives;
                     ImmutableArray<AssemblyData> referencedAssemblies;
                     ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.
@@ -380,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
                     // which would not match the previously created ones. As a result we would get duplicate PE types and conversion errors.
                     var implicitReferenceResolutions = compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions ??
-                        ImmutableDictionary<AssemblyIdentity, PortableExecutableReference>.Empty;
+                        ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?>.Empty;
 
                     BoundInputAssembly[] bindingResult = Bind(
                         compilation,
@@ -424,19 +426,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     for (int i = 1; i < bindingResult.Length; i++)
                     {
-                        if ((object)bindingResult[i].AssemblySymbol == null)
+                        ref BoundInputAssembly bound = ref bindingResult[i];
+                        if (bound.AssemblySymbol is null)
                         {
                             // symbol hasn't been found in the cache, create a new one
-                            bindingResult[i].AssemblySymbol = ((AssemblyDataForMetadataOrCompilation)allAssemblyData[i]).CreateAssemblySymbol();
+                            bound.AssemblySymbol = ((AssemblyDataForMetadataOrCompilation)allAssemblyData[i]).CreateAssemblySymbol();
                             newSymbols.Add(i);
                         }
 
-                        Debug.Assert(allAssemblyData[i].IsLinked == bindingResult[i].AssemblySymbol.IsLinked);
+                        Debug.Assert(allAssemblyData[i].IsLinked == bound.AssemblySymbol.IsLinked);
                     }
 
                     var assemblySymbol = new SourceAssemblySymbol(compilation, SimpleAssemblyName, compilation.MakeSourceModuleName(), netModules: modules);
 
-                    AssemblySymbol corLibrary;
+                    AssemblySymbol? corLibrary;
 
                     if (corLibraryIndex == 0)
                     {
@@ -551,12 +554,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (compilationData != null)
                     {
-                        SetupReferencesForRetargetingAssembly(bindingResult, i, ref missingAssemblies, sourceAssemblyDebugOnly: sourceAssembly);
+                        SetupReferencesForRetargetingAssembly(bindingResult, ref bindingResult[i], ref missingAssemblies, sourceAssemblyDebugOnly: sourceAssembly);
                     }
                     else
                     {
                         var fileData = (AssemblyDataForFile)assemblies[i];
-                        SetupReferencesForFileAssembly(fileData, bindingResult, i, ref missingAssemblies, sourceAssemblyDebugOnly: sourceAssembly);
+                        SetupReferencesForFileAssembly(fileData, bindingResult, ref bindingResult[i], ref missingAssemblies, sourceAssemblyDebugOnly: sourceAssembly);
                     }
                 }
 
@@ -567,9 +570,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (int i in newSymbols)
                 {
+                    ref BoundInputAssembly currentBindingResult = ref bindingResult[i];
+                    Debug.Assert(currentBindingResult.AssemblySymbol is object);
+                    Debug.Assert(currentBindingResult.ReferenceBinding is object);
+
                     if (assemblies[i].ContainsNoPiaLocalTypes)
                     {
-                        bindingResult[i].AssemblySymbol.SetNoPiaResolutionAssemblies(noPiaResolutionAssemblies);
+                        currentBindingResult.AssemblySymbol.SetNoPiaResolutionAssemblies(noPiaResolutionAssemblies);
                     }
 
                     // Setup linked referenced assemblies.
@@ -577,26 +584,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (assemblies[i].IsLinked)
                     {
-                        linkedReferencedAssembliesBuilder.Add(bindingResult[i].AssemblySymbol);
+                        linkedReferencedAssembliesBuilder.Add(currentBindingResult.AssemblySymbol);
                     }
 
-                    foreach (var referenceBinding in bindingResult[i].ReferenceBinding)
+                    foreach (var referenceBinding in currentBindingResult.ReferenceBinding)
                     {
                         if (referenceBinding.IsBound &&
                             assemblies[referenceBinding.DefinitionIndex].IsLinked)
                         {
-                            linkedReferencedAssembliesBuilder.Add(
-                                bindingResult[referenceBinding.DefinitionIndex].AssemblySymbol);
+                            var linkedAssemblySymbol = bindingResult[referenceBinding.DefinitionIndex].AssemblySymbol;
+                            Debug.Assert(linkedAssemblySymbol is object);
+                            linkedReferencedAssembliesBuilder.Add(linkedAssemblySymbol);
                         }
                     }
 
                     if (linkedReferencedAssembliesBuilder.Count > 0)
                     {
                         linkedReferencedAssembliesBuilder.RemoveDuplicates();
-                        bindingResult[i].AssemblySymbol.SetLinkedReferencedAssemblies(linkedReferencedAssembliesBuilder.ToImmutable());
+                        currentBindingResult.AssemblySymbol.SetLinkedReferencedAssemblies(linkedReferencedAssembliesBuilder.ToImmutable());
                     }
 
-                    bindingResult[i].AssemblySymbol.SetCorLibrary(corLibrary);
+                    currentBindingResult.AssemblySymbol.SetCorLibrary(corLibrary);
                 }
 
                 linkedReferencedAssembliesBuilder.Free();
@@ -615,27 +623,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Add new assembly symbols into the cache
                 foreach (int i in newSymbols)
                 {
-                    var compilationData = assemblies[i] as AssemblyDataForCompilation;
+                    ref BoundInputAssembly current = ref bindingResult[i];
+                    Debug.Assert(current.AssemblySymbol is object);
 
+                    var compilationData = assemblies[i] as AssemblyDataForCompilation;
                     if (compilationData != null)
                     {
-                        compilationData.Compilation.CacheRetargetingAssemblySymbolNoLock(bindingResult[i].AssemblySymbol);
+                        compilationData.Compilation.CacheRetargetingAssemblySymbolNoLock(current.AssemblySymbol);
                     }
                     else
                     {
                         var fileData = (AssemblyDataForFile)assemblies[i];
-                        fileData.CachedSymbols.Add((PEAssemblySymbol)bindingResult[i].AssemblySymbol);
+                        fileData.CachedSymbols.Add((PEAssemblySymbol)current.AssemblySymbol);
                     }
                 }
             }
 
             private static void SetupReferencesForRetargetingAssembly(
                 BoundInputAssembly[] bindingResult,
-                int bindingIndex,
+                ref BoundInputAssembly currentBindingResult,
                 ref Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies,
                 SourceAssemblySymbol sourceAssemblyDebugOnly)
             {
-                var retargetingAssemblySymbol = (RetargetingAssemblySymbol)bindingResult[bindingIndex].AssemblySymbol;
+                Debug.Assert(currentBindingResult.AssemblySymbol is object);
+                Debug.Assert(currentBindingResult.ReferenceBinding is object);
+                var retargetingAssemblySymbol = (RetargetingAssemblySymbol)currentBindingResult.AssemblySymbol;
                 ImmutableArray<ModuleSymbol> modules = retargetingAssemblySymbol.Modules;
                 int moduleCount = modules.Length;
                 int refsUsed = 0;
@@ -685,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     for (int k = 0; k < refsCount; k++)
                     {
-                        var referenceBinding = bindingResult[bindingIndex].ReferenceBinding[refsUsed + k];
+                        var referenceBinding = currentBindingResult.ReferenceBinding[refsUsed + k];
                         if (referenceBinding.IsBound)
                         {
                             symbols[k] = GetAssemblyDefinitionSymbol(bindingResult, referenceBinding, ref unifiedAssemblies);
@@ -706,11 +718,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static void SetupReferencesForFileAssembly(
                 AssemblyDataForFile fileData,
                 BoundInputAssembly[] bindingResult,
-                int bindingIndex,
+                ref BoundInputAssembly currentBindingResult,
                 ref Dictionary<AssemblyIdentity, MissingAssemblySymbol>? missingAssemblies,
                 SourceAssemblySymbol sourceAssemblyDebugOnly)
             {
-                var portableExecutableAssemblySymbol = (PEAssemblySymbol)bindingResult[bindingIndex].AssemblySymbol;
+                Debug.Assert(currentBindingResult.AssemblySymbol is object);
+                Debug.Assert(currentBindingResult.ReferenceBinding is object);
+                var portableExecutableAssemblySymbol = (PEAssemblySymbol)currentBindingResult.AssemblySymbol;
 
                 ImmutableArray<ModuleSymbol> modules = portableExecutableAssemblySymbol.Modules;
                 int moduleCount = modules.Length;
@@ -727,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ArrayBuilder<UnifiedAssembly<AssemblySymbol>>? unifiedAssemblies = null;
                     for (int k = 0; k < moduleReferenceCount; k++)
                     {
-                        var boundReference = bindingResult[bindingIndex].ReferenceBinding[refsUsed + k];
+                        var boundReference = currentBindingResult.ReferenceBinding[refsUsed + k];
                         if (boundReference.IsBound)
                         {
                             symbols[k] = GetAssemblyDefinitionSymbol(bindingResult, boundReference, ref unifiedAssemblies);
@@ -770,7 +784,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     for (int k = 0; k < refsCount; k++)
                     {
-                        var boundReference = bindingResult[0].ReferenceBinding[refsUsed + k];
+                        Debug.Assert(bindingResult[0].ReferenceBinding is object);
+                        var boundReference = bindingResult[0].ReferenceBinding![refsUsed + k];
+                        Debug.Assert(boundReference.ReferenceIdentity is object);
+
                         if (boundReference.IsBound)
                         {
                             symbols[k] = GetAssemblyDefinitionSymbol(bindingResult, boundReference, ref unifiedAssemblies);
@@ -807,9 +824,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref ArrayBuilder<UnifiedAssembly<AssemblySymbol>>? unifiedAssemblies)
             {
                 Debug.Assert(referenceBinding.IsBound);
-
+                Debug.Assert(referenceBinding.ReferenceIdentity is object);
                 var assembly = bindingResult[referenceBinding.DefinitionIndex].AssemblySymbol;
-                RoslynDebug.Assert((object)assembly != null);
+                Debug.Assert(assembly is object);
 
                 if (referenceBinding.VersionDifference != 0)
                 {
@@ -1011,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public override bool IsMatchingAssembly(AssemblySymbol candidateAssembly)
+                public override bool IsMatchingAssembly(AssemblySymbol? candidateAssembly)
                 {
                     return IsMatchingAssembly(candidateAssembly as PEAssemblySymbol);
                 }
@@ -1119,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public override bool IsMatchingAssembly(AssemblySymbol candidateAssembly)
+                public override bool IsMatchingAssembly(AssemblySymbol? candidateAssembly)
                 {
                     var retargeting = candidateAssembly as RetargetingAssemblySymbol;
                     AssemblySymbol? asm;

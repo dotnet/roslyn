@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_Negate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\SimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AbstractAddImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\AddImportHelpers.cs" />
@@ -34,8 +35,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceService.State.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\IMoveDeclarationNearReferenceService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Precedence\IPrecedenceService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\ReplaceDiscardDeclarationsWithAssignments\IReplaceDiscardDeclarationsWithAssignmentsService.cs" />
@@ -76,6 +75,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\IMefHostExportProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LanguageMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LanguageServiceMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefConstruction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefLanguageServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefWorkspaceServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableLanguageMetadata.cs" />
@@ -86,5 +86,8 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

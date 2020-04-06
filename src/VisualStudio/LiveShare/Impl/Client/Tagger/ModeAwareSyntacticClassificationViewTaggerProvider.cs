@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -25,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
     internal sealed class CSharpModeAwareSyntacticClassificationViewTaggerProvider : ModeAwareSyntacticClassificationViewTaggerProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpModeAwareSyntacticClassificationViewTaggerProvider(
                 Lazy<TextMateClassificationTaggerProvider> textMateProvider,
                 Lazy<SyntacticClassificationViewTaggerProvider> serverProvider,
@@ -42,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
     internal sealed class VBModeAwareSyntacticClassificationViewTaggerProvider : ModeAwareSyntacticClassificationViewTaggerProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VBModeAwareSyntacticClassificationViewTaggerProvider(
             Lazy<TextMateClassificationTaggerProvider> textMateProvider,
             Lazy<SyntacticClassificationViewTaggerProvider> serverProvider,

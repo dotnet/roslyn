@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         Private Const ExtensionAttributeName As String = "ExtensionAttribute"
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
