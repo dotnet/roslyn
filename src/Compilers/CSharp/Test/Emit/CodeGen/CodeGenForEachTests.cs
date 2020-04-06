@@ -2513,7 +2513,7 @@ public static class Extensions
         {
             var source = @"
 using System;
-public ref struct C
+public class Program
 {
     public static void Main()
     {
@@ -2522,7 +2522,10 @@ public ref struct C
             Console.Write(i);
         }
     }
+}
 
+public ref struct C
+{
     public Span<int> span;
 }
 
