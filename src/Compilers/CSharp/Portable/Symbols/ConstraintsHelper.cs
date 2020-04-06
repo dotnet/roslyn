@@ -30,6 +30,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
+    internal readonly struct CheckConstraintsArgs
+    {
+        public readonly CSharpCompilation CurrentCompilation;
+        public readonly ConversionsBase Conversions;
+        public readonly bool IncludeNullability;
+        public readonly Location Location;
+        public readonly DiagnosticBag Diagnostics;
+
+        public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, DiagnosticBag diagnostics) :
+            this(currentCompilation, conversions, currentCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes), location, diagnostics)
+        {
+        }
+
+        public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, DiagnosticBag diagnostics)
+        {
+            this.CurrentCompilation = currentCompilation;
+            this.Conversions = conversions;
+            this.IncludeNullability = includeNullability;
+            this.Location = location;
+            this.Diagnostics = diagnostics;
+        }
+    }
+
     /// <summary>
     /// Helper methods for generic type parameter constraints. There are two sets of methods: one
     /// set for resolving constraint "bounds" (that is, determining the effective base type, interface set,
@@ -370,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             bool includeNullability = compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            CheckAllConstraints(type, compilation, conversions, includeNullability, location, diagnostics);
+            type.CheckAllConstraints(new CheckConstraintsArgs(compilation, conversions, includeNullability, location, diagnostics));
         }
 
         public static bool CheckAllConstraints(
@@ -382,48 +405,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Nullability checks can only add warnings here so skip them for this check as we are only
             // concerned with errors.
-            CheckAllConstraints(type, compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics);
+            type.CheckAllConstraints(new CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics));
             bool ok = !diagnostics.HasAnyErrors();
             diagnostics.Free();
             return ok;
         }
 
-        public static void CheckAllConstraints(
-            this TypeSymbol type,
-            CSharpCompilation compilation,
-            ConversionsBase conversions,
-            bool includeNullability,
-            Location location,
-            DiagnosticBag diagnostics)
+        public static void CheckAllConstraints(this TypeSymbol type, CheckConstraintsArgs args)
         {
-            type.VisitType(s_checkConstraintsSingleTypeFunc, new CheckConstraintsArgs(compilation, conversions, includeNullability, location, diagnostics));
-        }
-
-        private readonly struct CheckConstraintsArgs
-        {
-            public readonly CSharpCompilation CurrentCompilation;
-            public readonly ConversionsBase Conversions;
-            public readonly bool IncludeNullability;
-            public readonly Location Location;
-            public readonly DiagnosticBag Diagnostics;
-
-            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, DiagnosticBag diagnostics)
-            {
-                this.CurrentCompilation = currentCompilation;
-                this.Conversions = conversions;
-                this.IncludeNullability = includeNullability;
-                this.Location = location;
-                this.Diagnostics = diagnostics;
-            }
+            type.VisitType(s_checkConstraintsSingleTypeFunc, args);
         }
 
         private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, arg);
 
-        private static bool CheckConstraintsSingleType(TypeSymbol type, CheckConstraintsArgs args)
+        private static bool CheckConstraintsSingleType(TypeSymbol type, in CheckConstraintsArgs args)
         {
             if (type.Kind == SymbolKind.NamedType)
             {
-                ((NamedTypeSymbol)type).CheckConstraints(args.CurrentCompilation, args.Conversions, args.IncludeNullability, args.Location, args.Diagnostics);
+                ((NamedTypeSymbol)type).CheckConstraints(args);
             }
             else if (type.Kind == SymbolKind.PointerType)
             {
@@ -550,15 +549,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public static bool CheckConstraints(
-            this NamedTypeSymbol type,
-            CSharpCompilation currentCompilation,
-            ConversionsBase conversions,
-            bool includeNullability,
-            Location location,
-            DiagnosticBag diagnostics)
+        public static bool CheckConstraints(this NamedTypeSymbol type, in CheckConstraintsArgs args)
         {
-            Debug.Assert(currentCompilation is object);
+            Debug.Assert(args.CurrentCompilation is object);
 
             if (!RequiresChecking(type))
             {
@@ -567,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckTypeConstraints(type, conversions, currentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: includeNullability ? diagnosticsBuilder : null, ref useSiteDiagnosticsBuilder);
+            var result = CheckTypeConstraints(type, args.Conversions, args.CurrentCompilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: args.IncludeNullability ? diagnosticsBuilder : null, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -576,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var pair in diagnosticsBuilder)
             {
-                diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
+                args.Diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, args.Location));
             }
 
             diagnosticsBuilder.Free();
@@ -584,10 +577,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we only check for distinct interfaces when the type is not from source, as we
             // trust that types that are from source have already been checked by the compiler
             // to prevent this from happening in the first place.
-            if (!(currentCompilation != null && type.IsFromCompilation(currentCompilation)) && HasDuplicateInterfaces(type, null))
+            if (!(args.CurrentCompilation != null && type.IsFromCompilation(args.CurrentCompilation)) && HasDuplicateInterfaces(type, null))
             {
                 result = false;
-                diagnostics.Add(ErrorCode.ERR_BogusType, location, type);
+                args.Diagnostics.Add(ErrorCode.ERR_BogusType, args.Location, type);
             }
 
             return result;
