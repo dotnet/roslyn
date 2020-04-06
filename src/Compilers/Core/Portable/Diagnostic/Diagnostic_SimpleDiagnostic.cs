@@ -146,6 +146,11 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(Diagnostic? obj)
             {
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
                 var other = obj as SimpleDiagnostic;
                 if (other == null)
                 {
