@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
                   CodeStyleOptions2.PreferSimplifiedInterpolation,
-                  new LocalizableResourceString(nameof(FeaturesResources.Simplify_interpolation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                  new LocalizableResourceString(nameof(FeaturesResources.Interpolation_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                  new LocalizableResourceString(nameof(AnalyzersResources.Simplify_interpolation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

@@ -342,11 +342,6 @@
         <target state="translated">將換行參數縮排</target>
         <note />
       </trans-unit>
-      <trans-unit id="Interpolation_can_be_simplified">
-        <source>Interpolation can be simplified</source>
-        <target state="translated">可簡化內插補點</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">引進常數</target>
@@ -470,11 +465,6 @@
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
         <target state="new">Simplify conditional expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_interpolation">
-        <source>Simplify interpolation</source>
-        <target state="translated">簡化內插補點</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">

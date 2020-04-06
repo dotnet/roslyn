@@ -82,6 +82,11 @@
         <target state="new">'GetHashCode' implementation can be simplified</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="new">Interpolation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_format_string">
         <source>Invalid format string</source>
         <target state="new">Invalid format string</target>
@@ -225,6 +230,11 @@
       <trans-unit id="Simplify_collection_initialization">
         <source>Simplify collection initialization</source>
         <target state="new">Simplify collection initialization</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="new">Simplify interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_object_initialization">

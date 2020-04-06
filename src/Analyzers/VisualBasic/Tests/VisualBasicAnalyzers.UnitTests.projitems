@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValueAssignmentTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValueExpressionStatementTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValuesTestsBase.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\SimplifyInterpolationTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionTests.vb" />

@@ -2,23 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Text
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
-    <ExportLanguageService(GetType(IVirtualCharService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicVirtualCharService
         Inherits AbstractVirtualCharService
 
         Public Shared ReadOnly Instance As IVirtualCharService = New VisualBasicVirtualCharService()
 
-        <ImportingConstructor>
-        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
-        Public Sub New()
+        Protected Sub New()
         End Sub
 
         Public Overrides Function TryGetEscapeCharacter(ch As VirtualChar, ByRef escapedChar As Char) As Boolean

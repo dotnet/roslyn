@@ -342,11 +342,6 @@
         <target state="translated">缩进包装参数</target>
         <note />
       </trans-unit>
-      <trans-unit id="Interpolation_can_be_simplified">
-        <source>Interpolation can be simplified</source>
-        <target state="translated">内插可以简化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">引入常量</target>
@@ -470,11 +465,6 @@
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
         <target state="new">Simplify conditional expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_interpolation">
-        <source>Simplify interpolation</source>
-        <target state="translated">简化内插</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">

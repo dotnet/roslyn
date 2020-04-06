@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Text;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// This allows for embedded language processing that can refer back to the users' original code
     /// instead of the escaped value we're processing.
     /// </summary>
-    internal interface IVirtualCharService : ILanguageService
+    internal interface IVirtualCharService
     {
         /// <summary>
         /// Takes in a string token and return the <see cref="VirtualChar"/>s corresponding to each
