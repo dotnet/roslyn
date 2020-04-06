@@ -251,7 +251,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 await _endPoint.InvokeAsync(
                     nameof(SymbolFinder.FindReferencesServerCallback.OnReferenceFoundAsync),
-                    new object[] {
+                    new object[]
+                    {
                         await SerializableSymbolAndProjectId.DehydrateAsync(_solution, definition, _cancellationToken).ConfigureAwait(false),
                         await SerializableReferenceLocation.DehydrateAsync(reference, _cancellationToken).ConfigureAwait(false),
                     },
