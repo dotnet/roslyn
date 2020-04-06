@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
@@ -30,7 +31,9 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
-                public static readonly State Empty = new State(compilation: null, declarationOnlyCompilation: null, generatorDriver: new TrackedGeneratorDriver(null));
+                public static readonly State Empty = new State(
+                    compilation: null, declarationOnlyCompilation: null,
+                    generatorDriver: new TrackedGeneratorDriver(null), new ConditionalWeakTable<ISymbol, ISymbol>());
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -47,6 +50,14 @@ namespace Microsoft.CodeAnalysis
                 public TrackedGeneratorDriver GeneratorDriver { get; }
 
                 /// <summary>
+                /// Weak table to the assembly symbols that this compilation tracker has created.  This can be used to
+                /// determine which project an assembly symbol came from after the fact.  This is needed as the compilation
+                /// an assembly came from can GC'ed and further requests to get that compilation (or any of it's assemblies)
+                /// may produce new assembly symbols.
+                /// </summary>
+                public readonly ConditionalWeakTable<ISymbol, ISymbol> CompilationAssembliesAndModules;
+
+                /// <summary>
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
                 /// <see langword="null"/> if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
                 /// </summary>
@@ -57,7 +68,11 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public virtual ValueSource<Optional<Compilation>>? FinalCompilation => null;
 
-                protected State(ValueSource<Optional<Compilation>>? compilation, Compilation? declarationOnlyCompilation, TrackedGeneratorDriver generatorDriver)
+                protected State(
+                    ValueSource<Optional<Compilation>>? compilation,
+                    Compilation? declarationOnlyCompilation,
+                    TrackedGeneratorDriver generatorDriver,
+                    ConditionalWeakTable<ISymbol, ISymbol> compilationAssembliesAndModules)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -65,6 +80,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation = compilation;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratorDriver = generatorDriver;
+                    CompilationAssembliesAndModules = compilationAssembliesAndModules;
                 }
 
                 public static State Create(
@@ -90,6 +106,25 @@ namespace Microsoft.CodeAnalysis
                         ? new WeakValueSource<Compilation>(compilation)
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
+
+                public static ConditionalWeakTable<ISymbol, ISymbol> GetCompilationAssembliesAndModules(Compilation compilation)
+                {
+                    var result = new ConditionalWeakTable<ISymbol, ISymbol>();
+
+                    var compAssembly = compilation.Assembly;
+                    result.Add(compAssembly, compAssembly);
+
+                    foreach (var reference in compilation.References)
+                    {
+                        var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
+                        if (symbol == null)
+                            continue;
+
+                        result.Add(symbol, symbol);
+                    }
+
+                    return result;
+                }
             }
 
             /// <summary>
@@ -106,7 +141,8 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
-                           generatorDriver: inProgressGeneratorDriver)
+                           generatorDriver: inProgressGeneratorDriver,
+                           GetCompilationAssembliesAndModules(inProgressCompilation))
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
@@ -121,7 +157,10 @@ namespace Microsoft.CodeAnalysis
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation)
-                    : base(compilation: null, declarationOnlyCompilation: declarationOnlyCompilation, generatorDriver: new TrackedGeneratorDriver(null))
+                    : base(compilation: null,
+                           declarationOnlyCompilation: declarationOnlyCompilation,
+                           generatorDriver: new TrackedGeneratorDriver(null),
+                           new ConditionalWeakTable<ISymbol, ISymbol>())
                 {
                 }
             }
@@ -133,7 +172,10 @@ namespace Microsoft.CodeAnalysis
             private sealed class FullDeclarationState : State
             {
                 public FullDeclarationState(Compilation declarationCompilation, TrackedGeneratorDriver generatorDriver)
-                    : base(new WeakValueSource<Compilation>(declarationCompilation), declarationCompilation.Clone().RemoveAllReferences(), generatorDriver)
+                    : base(new WeakValueSource<Compilation>(declarationCompilation),
+                           declarationCompilation.Clone().RemoveAllReferences(),
+                           generatorDriver,
+                           GetCompilationAssembliesAndModules(declarationCompilation))
                 {
                 }
             }
@@ -160,8 +202,12 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     TrackedGeneratorDriver generatorDriver,
-                    bool hasSuccessfullyLoaded)
-                    : base(compilationWithoutGeneratedFilesSource, compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(), generatorDriver)
+                    bool hasSuccessfullyLoaded,
+                    ConditionalWeakTable<ISymbol, ISymbol> compilationAssemblies)
+                    : base(compilationWithoutGeneratedFilesSource,
+                           compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
+                           generatorDriver,
+                           compilationAssemblies)
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilation = finalCompilationSource;
