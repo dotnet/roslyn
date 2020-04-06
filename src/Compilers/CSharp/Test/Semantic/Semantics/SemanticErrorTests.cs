@@ -23006,6 +23006,136 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArity, "C.M<>").WithArguments("M", "method group", "1"));
         }
 
+        [Fact, WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void EmptyAngleBrackets_GenericExtensionAndNonGenericMember_01()
+        {
+            var text = @"
+class ServiceProvider
+{
+    object GetService() => null;
+}
+
+static class Program
+{
+    static T GetService<T>(this ServiceProvider obj) => default;
+    
+    static void M(ServiceProvider provider)
+    {
+        var service = provider.GetService<>();
+    }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (13,23): error CS7003: Unexpected use of an unbound generic name
+                //         var service = provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "provider.GetService<>()").WithLocation(13, 23));
+        }
+
+        [Fact, WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void EmptyAngleBrackets_GenericExtensionAndNonGenericMember_Scratch_01()
+        {
+            var text = @"
+class ServiceProvider
+{
+    //object GetService() => null;
+}
+
+static class Program
+{
+    static T GetService<T>(this ServiceProvider obj) => default;
+    
+    static void M(ServiceProvider provider)
+    {
+        var service = provider.GetService<>();
+    }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (13,23): error CS7003: Unexpected use of an unbound generic name
+                //         var service = provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "provider.GetService<>()").WithLocation(13, 23));
+        }
+
+        [Fact, WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void EmptyAngleBrackets_GenericExtensionAndNonGenericMember_Scratch_02()
+        {
+            var text = @"
+class ServiceProvider
+{
+    object GetService() => null;
+}
+
+static class Program
+{
+    //static T GetService<T>(this ServiceProvider obj) => default;
+    
+    static void M(ServiceProvider provider)
+    {
+        var service = provider.GetService<>();
+    }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (13,23): error CS7003: Unexpected use of an unbound generic name
+                //         var service = provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "provider.GetService<>()").WithLocation(13, 23));
+        }
+
+        [Fact, WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void EmptyAngleBrackets_GenericExtensionAndNonGenericMember_Scratch_03()
+        {
+            var text = @"
+class ServiceProvider
+{
+    object GetService() => null;
+}
+
+static class Program
+{
+    static T GetService<T>(this ServiceProvider obj) => default;
+    
+    static void M(ServiceProvider provider)
+    {
+        var service = provider.GetService<object, object>();
+    }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (13,23): error CS7003: Unexpected use of an unbound generic name
+                //         var service = provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "provider.GetService<>()").WithLocation(13, 23));
+        }
+
+        [Fact, WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void EmptyAngleBrackets_GenericExtensionAndNonGenericMember_02()
+        {
+            var text = @"
+class ServiceProvider
+{
+    object GetService() => null;
+}
+
+static class Program
+{
+    static T GetService<T>(this ServiceProvider obj) => default;
+    
+    static void M(ServiceProvider provider)
+    {
+        var service = provider.GetService<>().INVALID();
+    }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (13,23): error CS7003: Unexpected use of an unbound generic name
+                //         var service = provider.GetService<>().INVALID();
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "provider.GetService<>()").WithLocation(13, 23));
+        }
+
         [Fact]
         public void NamesTooLong()
         {

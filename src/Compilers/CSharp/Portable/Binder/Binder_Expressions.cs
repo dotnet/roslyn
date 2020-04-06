@@ -5810,9 +5810,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options |= LookupOptions.MustBeInvocableIfMember;
                 }
 
-                var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
-                bool rightHasTypeArguments = typeArgumentsSyntax.Count > 0;
-                var typeArguments = rightHasTypeArguments ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeWithAnnotations>);
+                ImmutableArray<TypeWithAnnotations> typeArguments = default;
+                SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax = default;
+                bool rightHasTypeArguments = false;
+                if (right is GenericNameSyntax genericName)
+                {
+                    typeArgumentsSyntax = genericName.TypeArgumentList.Arguments;
+                    if (typeArgumentsSyntax.Count > 0)
+                    {
+                        rightHasTypeArguments = true;
+                        typeArguments = BindTypeArguments(typeArgumentsSyntax, diagnostics);
+
+                        if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument) && !IsUnboundTypeAllowed(genericName))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedUnboundGenericName, genericName.Location);
+                        }
+                    }
+                }
 
                 // A member-access consists of a primary-expression, a predefined-type, or a 
                 // qualified-alias-member, followed by a "." token, followed by an identifier, 
