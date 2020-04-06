@@ -205,11 +205,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">转换为结构</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">转换为元组</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="new">Create and assign field '{0}'</target>
@@ -773,11 +768,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">换行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} 可以简化</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
