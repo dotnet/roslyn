@@ -48,6 +48,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.OutputKind, rule, s_defaultOutputKinds, cancellationToken);
 
+        public static ImmutableHashSet<SymbolKind> GetAnalyzedSymbolKindsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            ImmutableHashSet<SymbolKind> defaultSymbolKinds,
+            CancellationToken cancellationToken)
+            => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.AnalyzedSymbolKinds, rule, defaultSymbolKinds, cancellationToken);
+
         private static TEnum GetFlagsEnumOptionValue<TEnum>(
             this AnalyzerOptions options,
             string optionName,
