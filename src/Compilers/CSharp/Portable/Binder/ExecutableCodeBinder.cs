@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Location errorLocation = iterator.Locations[0];
+            Location errorLocation = (iterator as SynthesizedSimpleProgramEntryPointSymbol)?.ReturnTypeSyntax.GetLocation() ?? iterator.Locations[0];
             if (iterator.IsVararg)
             {
                 // error CS1636: __arglist is not allowed in the parameter list of iterators

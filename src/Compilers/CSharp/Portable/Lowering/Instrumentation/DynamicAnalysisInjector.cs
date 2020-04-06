@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Do not instrument implicitly-declared methods, except for constructors.
             // Instrument implicit constructors in order to instrument member initializers.
-            if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !(method is SynthesizedSimpleProgramEntryPointSymbol))
+            if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor)
             {
                 return null;
             }

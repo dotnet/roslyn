@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (method is SynthesizedSimpleProgramEntryPointSymbol synthesized)
             {
-                return (CSharpSyntaxNode)synthesized.SyntaxRef.GetSyntax();
+                return (CSharpSyntaxNode)synthesized.ReturnTypeSyntax;
             }
 
             method = method.PartialDefinitionPart ?? method;

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// This binder provides a context for binding within a specific compilation unit, but outside of top-level statements.
-    /// It ensures that locals and labels are in scope, however it is not responsible
+    /// It ensures that locals are in scope, however it is not responsible
     /// for creating the symbols. That task is actually owned by <see cref="SimpleProgramBinder"/> and
     /// this binder simply delegates to it when appropriate. That ensures that the same set of symbols is 
     /// shared across all compilation units.
@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
-            return _scope.Labels;
+            return ImmutableArray<LabelSymbol>.Empty;
         }
 
         internal override bool IsLabelsScopeBinder
         {
             get
             {
-                return _scope.IsLabelsScopeBinder;
+                return false;
             }
         }
 

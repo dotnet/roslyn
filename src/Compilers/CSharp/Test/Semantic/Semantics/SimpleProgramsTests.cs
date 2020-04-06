@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -196,6 +199,8 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local
 ");
                 var localDecl = unit1.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
                 var declSymbol = model1.GetDeclaredSymbol(localDecl);
+                Assert.Same(declSymbol.ContainingSymbol, model1.GetDeclaredSymbol(unit1));
+                Assert.Same(declSymbol.ContainingSymbol, model1.GetDeclaredSymbol((SyntaxNode)unit1));
                 Assert.Same(refSymbol, declSymbol);
                 Assert.Contains(declSymbol.Name, model1.LookupNames(localDecl.SpanStart));
                 Assert.Contains(declSymbol, model1.LookupSymbols(localDecl.SpanStart));
@@ -278,6 +283,8 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local
                 var unit1 = (CompilationUnitSyntax)tree1.GetRoot();
                 var localRef = unit1.DescendantNodes().OfType<IdentifierNameSyntax>().Single();
                 var refSymbol = model1.GetSymbolInfo(localRef).Symbol;
+                var refMethod = model1.GetDeclaredSymbol(unit1);
+                Assert.NotNull(refMethod);
                 Assert.Null(refSymbol);
                 var name = localRef.Identifier.ValueText;
                 Assert.DoesNotContain(name, model1.LookupNames(localRef.SpanStart));
@@ -308,9 +315,12 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 verifyModelForGlobalStatements(tree2, model2);
 
                 var unit2 = (CompilationUnitSyntax)tree2.GetRoot();
+                var declMethod = model2.GetDeclaredSymbol(unit2);
                 var localDecl = unit2.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
                 var declSymbol = model2.GetDeclaredSymbol(localDecl);
                 Assert.Equal("void local()", declSymbol.ToTestDisplayString());
+                Assert.Same(declSymbol.ContainingSymbol, declMethod);
+                Assert.NotEqual(refMethod, declMethod);
                 Assert.Contains(declSymbol.Name, model2.LookupNames(localDecl.SpanStart));
                 Assert.Contains(declSymbol, model2.LookupSymbols(localDecl.SpanStart));
                 Assert.Same(declSymbol, model2.LookupSymbols(localDecl.SpanStart, name: declSymbol.Name).Single());
@@ -651,7 +661,7 @@ System.Console.WriteLine(s);
             Assert.Equal(SymbolKind.Local, local.Kind);
 
             Assert.Equal(SymbolKind.Method, local.ContainingSymbol.Kind);
-            Assert.True(local.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.False(local.ContainingSymbol.IsImplicitlyDeclared);
             Assert.Equal(SymbolKind.NamedType, local.ContainingSymbol.ContainingSymbol.Kind);
             Assert.True(local.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)local.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
@@ -1593,6 +1603,7 @@ namespace N1
 
             var tree2 = comp.SyntaxTrees[1];
             var model2 = comp.GetSemanticModel(tree2);
+            Assert.Null(model2.GetDeclaredSymbol((CompilationUnitSyntax)tree2.GetRoot()));
             var nameRefs = tree2.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
 
             var nameRef = nameRefs[0];
@@ -3608,7 +3619,7 @@ void local()
             Assert.Equal(MethodKind.LocalFunction, ((IMethodSymbol)local).MethodKind);
 
             Assert.Equal(SymbolKind.Method, local.ContainingSymbol.Kind);
-            Assert.True(local.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.False(local.ContainingSymbol.IsImplicitlyDeclared);
             Assert.Equal(SymbolKind.NamedType, local.ContainingSymbol.ContainingSymbol.Kind);
             Assert.True(local.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)local.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
@@ -4039,7 +4050,7 @@ label1: System.Console.WriteLine(""Hi!"");
             Assert.Equal(SymbolKind.Label, label.Kind);
 
             Assert.Equal(SymbolKind.Method, label.ContainingSymbol.Kind);
-            Assert.True(label.ContainingSymbol.IsImplicitlyDeclared);
+            Assert.False(label.ContainingSymbol.IsImplicitlyDeclared);
             Assert.Equal(SymbolKind.NamedType, label.ContainingSymbol.ContainingSymbol.Kind);
             Assert.True(label.ContainingSymbol.ContainingSymbol.IsImplicitlyDeclared);
             Assert.True(((INamespaceSymbol)label.ContainingSymbol.ContainingSymbol.ContainingSymbol).IsGlobalNamespace);
@@ -5091,6 +5102,1015 @@ class B : A
                 Assert.Same(xRef, semanticModel2.LookupSymbols(localRef.SpanStart, name: "x").Single());
                 Assert.Equal(expectedType, ((ILocalSymbol)xRef).Type.ToTestDisplayString());
                 Assert.Same(xDecl, xRef);
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_01()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_01_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(0, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(0, analyzer.FireCount6);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_01_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+        }
+
+        private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.GlobalStatement);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.CompilationUnit);
+            }
+
+            private void Handle1(SyntaxNodeAnalysisContext context)
+            {
+                var model = context.SemanticModel;
+                var globalStatement = (GlobalStatementSyntax)context.Node;
+                var syntaxTreeModel = ((SyntaxTreeSemanticModel)model);
+
+                switch (globalStatement.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Same(globalStatement.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(globalStatement.Parent));
+
+                MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[globalStatement.Parent];
+
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(globalStatement.Statement).IsDefaultOrEmpty);
+
+                Assert.Same(mm, syntaxTreeModel.GetMemberModel(globalStatement.Statement));
+            }
+
+            private void Handle2(SyntaxNodeAnalysisContext context)
+            {
+                var model = context.SemanticModel;
+                var unit = (CompilationUnitSyntax)context.Node;
+                var syntaxTreeModel = ((SyntaxTreeSemanticModel)model);
+
+                switch (unit.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref context.ContainingSymbol.Kind == SymbolKind.Namespace ? ref FireCount5 : ref FireCount3);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref context.ContainingSymbol.Kind == SymbolKind.Namespace ? ref FireCount6 : ref FireCount4);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                switch (context.ContainingSymbol.ToTestDisplayString())
+                {
+                    case "<simple-program-entry-point>":
+                        Assert.Same(unit.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
+                        Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(unit));
+
+                        MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
+
+                        Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+
+                        Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
+                        break;
+                    case "<global namespace>":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_02()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_02_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_02_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+        }
+
+        private class AnalyzerActions_02_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(Handle, SymbolKind.Method);
+            }
+
+            private void Handle(SymbolAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.Symbol.ToTestDisplayString());
+
+                switch (context.Symbol.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_03()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_03_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_03_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+        }
+
+        private class AnalyzerActions_03_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolStartAction(Handle, SymbolKind.Method);
+            }
+
+            private void Handle(SymbolStartAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.Symbol.ToTestDisplayString());
+
+                switch (context.Symbol.DeclaringSyntaxReferences.Single().GetSyntax().ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_04()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_04_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(0, analyzer.FireCount4);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_04_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+        }
+
+        private class AnalyzerActions_04_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationAction(Handle1, OperationKind.Invocation);
+                context.RegisterOperationAction(Handle2, OperationKind.Block);
+            }
+
+            private void Handle1(OperationAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree, context.Operation.Syntax.SyntaxTree);
+
+                Assert.Equal(SyntaxKind.InvocationExpression, context.Operation.Syntax.Kind());
+
+                switch (context.Operation.Syntax.ToString())
+                {
+                    case "System.Console.WriteLine(1)":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2)":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void Handle2(OperationAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax(), context.Operation.Syntax);
+                Assert.Equal(SyntaxKind.CompilationUnit, context.Operation.Syntax.Kind());
+
+                switch (context.Operation.Syntax.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount3);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount4);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_05()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_05_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_05_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+        }
+
+        private class AnalyzerActions_05_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(Handle);
+            }
+
+            private void Handle(OperationBlockAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal(SyntaxKind.CompilationUnit, context.OperationBlocks.Single().Syntax.Kind());
+
+                switch (context.OperationBlocks.Single().Syntax.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_06()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_06_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_06_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+        }
+
+        private class AnalyzerActions_06_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockStartAction(Handle);
+            }
+
+            private void Handle(OperationBlockStartAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal(SyntaxKind.CompilationUnit, context.OperationBlocks.Single().Syntax.Kind());
+
+                switch (context.OperationBlocks.Single().Syntax.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_07()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_07_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_07_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+        }
+
+        private class AnalyzerActions_07_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockAction(Handle);
+            }
+
+            private void Handle(CodeBlockAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal(SyntaxKind.CompilationUnit, context.CodeBlock.Kind());
+
+                switch (context.CodeBlock.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                var model = context.SemanticModel;
+                var unit = (CompilationUnitSyntax)context.CodeBlock;
+                var syntaxTreeModel = ((SyntaxTreeSemanticModel)model);
+
+                MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
+
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+
+                Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_08()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_08_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_08_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+        }
+
+        private class AnalyzerActions_08_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockStartAction<SyntaxKind>(Handle);
+            }
+
+            private void Handle(CodeBlockStartAnalysisContext<SyntaxKind> context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal(SyntaxKind.CompilationUnit, context.CodeBlock.Kind());
+
+                switch (context.CodeBlock.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                var model = context.SemanticModel;
+                var unit = (CompilationUnitSyntax)context.CodeBlock;
+                var syntaxTreeModel = ((SyntaxTreeSemanticModel)model);
+
+                MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[unit];
+
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(unit).IsDefaultOrEmpty);
+
+                Assert.Same(mm, syntaxTreeModel.GetMemberModel(unit));
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_09()
+        {
+            var text1 = @"
+System.Console.WriteLine(""Hi!"");
+";
+            var text2 = @"
+class Test
+{
+    void M()
+    {
+        M();
+    }
+}
+";
+
+            var analyzer = new AnalyzerActions_09_Analyzer();
+            var comp = CreateCompilation(text1 + text2, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+
+            analyzer = new AnalyzerActions_09_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(2, analyzer.FireCount4);
+        }
+
+        private class AnalyzerActions_09_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.InvocationExpression);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.CompilationUnit);
+            }
+
+            private void Handle1(SyntaxNodeAnalysisContext context)
+            {
+                var model = context.SemanticModel;
+                var node = (CSharpSyntaxNode)context.Node;
+                var syntaxTreeModel = ((SyntaxTreeSemanticModel)model);
+
+                switch (node.ToString())
+                {
+                    case @"System.Console.WriteLine(""Hi!"")":
+                        Interlocked.Increment(ref FireCount1);
+                        Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+
+                    case "M()":
+                        Interlocked.Increment(ref FireCount2);
+                        Assert.Equal("void Test.M()", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                var decl = (CSharpSyntaxNode)context.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax();
+
+                Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(decl));
+
+                MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[decl];
+
+                Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsDefaultOrEmpty);
+
+                Assert.Same(mm, syntaxTreeModel.GetMemberModel(node));
+            }
+
+            private void Handle2(SyntaxNodeAnalysisContext context)
+            {
+                var model = context.SemanticModel;
+                var node = (CSharpSyntaxNode)context.Node;
+                var syntaxTreeModel = ((SyntaxTreeSemanticModel)model);
+
+                switch (context.ContainingSymbol.ToTestDisplayString())
+                {
+                    case @"<simple-program-entry-point>":
+                        Interlocked.Increment(ref FireCount3);
+
+                        Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(node));
+
+                        MemberSemanticModel mm = syntaxTreeModel.TestOnlyMemberModels[node];
+
+                        Assert.False(mm.TestOnlyTryGetBoundNodesFromMap(node).IsDefaultOrEmpty);
+
+                        Assert.Same(mm, syntaxTreeModel.GetMemberModel(node));
+                        break;
+
+                    case "<global namespace>":
+                        Interlocked.Increment(ref FireCount4);
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_10()
+        {
+            var text1 = @"
+[assembly: MyAttribute(1)]
+";
+            var text2 = @"
+System.Console.WriteLine(""Hi!"");
+";
+            var text3 = @"
+[MyAttribute(2)]
+class Test
+{
+    [MyAttribute(3)]
+    void M()
+    {
+    }
+}
+
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(int x) {}
+}
+";
+
+            var analyzer = new AnalyzerActions_10_Analyzer();
+            var comp = CreateCompilation(text1 + text2 + text3, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+
+            analyzer = new AnalyzerActions_10_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2, text3 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(3, analyzer.FireCount5);
+        }
+
+        private class AnalyzerActions_10_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.Attribute);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.CompilationUnit);
+            }
+
+            private void Handle1(SyntaxNodeAnalysisContext context)
+            {
+                var node = (CSharpSyntaxNode)context.Node;
+
+                switch (node.ToString())
+                {
+                    case @"MyAttribute(1)":
+                        Interlocked.Increment(ref FireCount1);
+                        Assert.Equal("<global namespace>", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+
+                    case @"MyAttribute(2)":
+                        Interlocked.Increment(ref FireCount2);
+                        Assert.Equal("Test", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+
+                    case @"MyAttribute(3)":
+                        Interlocked.Increment(ref FireCount3);
+                        Assert.Equal("void Test.M()", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void Handle2(SyntaxNodeAnalysisContext context)
+            {
+                switch (context.ContainingSymbol.ToTestDisplayString())
+                {
+                    case @"<simple-program-entry-point>":
+                        Interlocked.Increment(ref FireCount4);
+                        break;
+
+                    case @"<global namespace>":
+                        Interlocked.Increment(ref FireCount5);
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_11()
+        {
+            var text1 = @"
+System.Console.WriteLine(""Hi!"");
+";
+            var text2 = @"
+namespace N1
+{}
+
+class C1
+{}
+";
+
+            var analyzer = new AnalyzerActions_11_Analyzer();
+            var comp = CreateCompilation(text1 + text2, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+
+            analyzer = new AnalyzerActions_11_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+        }
+
+        private class AnalyzerActions_11_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(Handle1, SymbolKind.Method);
+                context.RegisterSymbolAction(Handle2, SymbolKind.Namespace);
+                context.RegisterSymbolAction(Handle3, SymbolKind.NamedType);
+            }
+
+            private void Handle1(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount1);
+                Assert.Equal("<simple-program-entry-point>", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle2(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount2);
+                Assert.Equal("N1", context.Symbol.ToTestDisplayString());
+            }
+
+            private void Handle3(SymbolAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount3);
+                Assert.Equal("C1", context.Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_12()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_12_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_12_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(2, analyzer.FireCount3);
+        }
+
+        private class AnalyzerActions_12_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockStartAction(Handle1);
+            }
+
+            private void Handle1(OperationBlockStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount3);
+                context.RegisterOperationBlockEndAction(Handle2);
+            }
+
+            private void Handle2(OperationBlockAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.OwningSymbol.ToTestDisplayString());
+                Assert.Equal(SyntaxKind.CompilationUnit, context.OperationBlocks.Single().Syntax.Kind());
+
+                switch (context.OperationBlocks.Single().Syntax.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_13()
+        {
+            var text1 = @"System.Console.WriteLine(1);";
+
+            var analyzer = new AnalyzerActions_13_Analyzer();
+            var comp = CreateCompilation(text1, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(0, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+
+            var text2 = @"System.Console.WriteLine(2);";
+
+            analyzer = new AnalyzerActions_13_Analyzer();
+            comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(2, analyzer.FireCount3);
+        }
+
+        private class AnalyzerActions_13_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockStartAction(Handle1);
+            }
+
+            private void Handle1(OperationBlockStartAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCount3);
+                context.RegisterOperationAction(Handle2, OperationKind.Block);
+            }
+
+            private void Handle2(OperationAnalysisContext context)
+            {
+                Assert.Equal("<simple-program-entry-point>", context.ContainingSymbol.ToTestDisplayString());
+                Assert.Same(context.ContainingSymbol.DeclaringSyntaxReferences.Single().GetSyntax(), context.Operation.Syntax);
+                Assert.Equal(SyntaxKind.CompilationUnit, context.Operation.Syntax.Kind());
+
+                switch (context.Operation.Syntax.ToString())
+                {
+                    case "System.Console.WriteLine(1);":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Console.WriteLine(2);":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
             }
         }
 
