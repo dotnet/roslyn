@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
 
+            _symbolToProjectId = new SymbolToProjectId(this);
+
             // when solution state is changed, we re-calcuate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
 
@@ -374,22 +376,7 @@ namespace Microsoft.CodeAnalysis
         public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol)
         {
             if (assemblySymbol == null)
-            {
                 return null;
-            }
-
-            // TODO: Remove this loop when we add source assembly symbols to s_assemblyOrModuleSymbolToProjectMap
-            foreach (var (_, state) in _projectIdToProjectStateMap)
-            {
-                if (this.TryGetCompilation(state.Id, out var compilation))
-                {
-                    // if the symbol is the compilation's assembly symbol, we are done
-                    if (Equals(compilation.Assembly, assemblySymbol))
-                    {
-                        return state;
-                    }
-                }
-            }
 
             s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out var id);
             return id == null ? null : this.GetProjectState(id);

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -100,6 +101,13 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public bool ContainsAssemblyOrModule(ISymbol assemblyOrModule)
+            {
+                Debug.Assert(assemblyOrModule.Kind == SymbolKind.Assembly || assemblyOrModule.Kind == SymbolKind.NetModule);
+                var state = this.ReadState();
+                return state.CompilationAssembliesAndModules.TryGetValue(assemblyOrModule, out _);
+            }
+
             /// <summary>
             /// Creates a new instance of the compilation info, retaining any already built
             /// compilation state as the now 'old' state
@@ -188,7 +196,8 @@ namespace Microsoft.CodeAnalysis
                         new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
-                        hasSuccessfullyLoaded: false));
+                        hasSuccessfullyLoaded: false,
+                        State.GetCompilationAssembliesAndModules(inProgressCompilation)));
             }
 
             /// <summary>
@@ -303,7 +312,7 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
                 }
 
-                RecordAssemblySymbols(inProgressCompilation, metadataReferenceToProjectId);
+                RecordAssemblySymbols(solution, inProgressCompilation, metadataReferenceToProjectId);
 
                 SolutionLogger.CreatePartialProjectState();
             }
@@ -702,7 +711,7 @@ namespace Microsoft.CodeAnalysis
                         generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunFullGeneration(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
 
-                    RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
+                    RecordAssemblySymbols(solution, compilation, metadataReferenceToProjectId);
 
                     this.WriteState(
                         new FinalState(
@@ -710,7 +719,8 @@ namespace Microsoft.CodeAnalysis
                             State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
                             compilationWithoutGeneratedFiles,
                             generatorDriver,
-                            hasSuccessfullyLoaded),
+                            hasSuccessfullyLoaded,
+                            State.GetCompilationAssembliesAndModules(compilation)),
                         solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);
@@ -721,10 +731,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
+            private void RecordAssemblySymbols(SolutionState solutionState, Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
             {
-                // TODO: Record source assembly to project mapping
-                // RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
+                RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
                 foreach (var kvp in metadataReferenceToProjectId)
                 {
@@ -735,6 +744,10 @@ namespace Microsoft.CodeAnalysis
 
                     RecordSourceOfAssemblySymbol(symbol, projectId);
                 }
+
+                // Record which project this compilation came from.  That way we can easily map back to it when given a
+                // compilation for a compilation-namespace in the future.
+                solutionState._symbolToProjectId.RecordCompilation(compilation, this.ProjectState.Id);
             }
 
             /// <summary>

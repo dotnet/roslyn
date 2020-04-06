@@ -37,35 +37,47 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
+    /// <summary>
+    /// Note: for purposes of Equality/Hashing, all that we use is the underlying SymbolKey.  That's because nearly all
+    /// IDE features only care if they're looking at the same symbol, they don't care if the symbol came from a
+    /// different project or not.  i.e. a feature like FAR wants to bucket all references to the 'same' originating
+    /// symbol even if one reference is to a re-targeted version of that symbol.  As such, we do not include the
+    /// ProjectId when computing the result.
+    /// </summary>
     internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
     {
         public string SymbolKeyData;
         public ProjectId ProjectId;
 
         public override int GetHashCode()
-            => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
+            => SymbolKeyData.GetHashCode();
 
         public override bool Equals(object obj)
             => Equals(obj as SerializableSymbolAndProjectId);
 
         public bool Equals(SerializableSymbolAndProjectId other)
-            => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
+            => other != null && SymbolKeyData.Equals(other.SymbolKeyData);
 
         public static SerializableSymbolAndProjectId Dehydrate(
-            IAliasSymbol alias, Document document)
+            IAliasSymbol alias, Document document, CancellationToken cancellationToken)
         {
             return alias == null
                 ? null
-                : Dehydrate(new SymbolAndProjectId(alias, document.Project.Id));
+                : Dehydrate(document.Project.Solution, alias, cancellationToken);
         }
 
         public static SerializableSymbolAndProjectId Dehydrate(
-            SymbolAndProjectId symbolAndProjectId)
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
+            var symbolKey = symbol.GetSymbolKey(cancellationToken);
+            var projectId = solution.GetExactProjectId(symbol);
+            if (projectId == null)
+                throw new ArgumentException("Symbol's project could not be found in the Solution provided");
+
             return new SerializableSymbolAndProjectId
             {
-                SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = symbolAndProjectId.ProjectId
+                SymbolKeyData = symbolKey.ToString(),
+                ProjectId = projectId,
             };
         }
 
@@ -163,12 +175,12 @@ namespace Microsoft.CodeAnalysis.Remote
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
-            ReferenceLocation referenceLocation)
+            ReferenceLocation referenceLocation, CancellationToken cancellationToken)
         {
             return new SerializableReferenceLocation
             {
                 Document = referenceLocation.Document.Id,
-                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
+                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),

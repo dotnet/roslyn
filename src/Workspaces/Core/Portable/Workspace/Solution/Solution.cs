@@ -128,6 +128,30 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the exact <see cref="Project"/> it
+        /// came from.  This operation is not defined for <see cref="ISymbol"/>s produced from other <see
+        /// cref="Solution"/> snapshots.
+        /// </summary>
+        /// <remarks>
+        /// This function differs from <see cref="GetProject(IAssemblySymbol, CancellationToken)"/> in terms of how it
+        /// treats <see cref="IAssemblySymbol"/>s.  Specifically, say there is the following:
+        ///
+        /// <c>
+        /// Project-A, containing Symbol-A.<para/>
+        /// Project-B, with a reference to Project-A, and usage of Symbol-A.
+        /// </c>
+        ///
+        /// It is possible (with retargeting, and other complex cases) that Symbol-A from Project-B will be a different
+        /// symbol than Symbol-A from Project-A.  However, <see cref="GetProject(IAssemblySymbol, CancellationToken)"/>
+        /// will always try to return Project-A for either of the Symbol-A's, as it prefers to return the original
+        /// Source-Project of the original definition, not the project that actually produced the symbol.  For many
+        /// features this is an acceptable abstraction.  However, for some cases (Find-References in particular) it is
+        /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
+        /// </remarks>
+        internal ProjectId? GetExactProjectId(ISymbol symbol)
+            => _state.GetExactProjectId(symbol);
+
+        /// <summary>
         /// True if the solution contains the document in one of its projects
         /// </summary>
         public bool ContainsDocument([NotNullWhen(returnValue: true)] DocumentId? documentId) => _state.ContainsDocument(documentId);

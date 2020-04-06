@@ -130,6 +130,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return builder.ToImmutableAndFree();
         }
 
+        private static async Task<ImmutableArray<(SymbolKey, ProjectId)>> GetSymbolKeysAndProjectIdsAsync(
+            Solution solution, Func<CancellationToken, Task<ImmutableArray<INamedTypeSymbol>>> findAsync, CancellationToken c)
+        {
+            // If we're the code that is actually computing the symbols, then just 
+            // take our result and store it in the outer frame.  That way the caller
+            // doesn't need to incur the cost of deserializing the symbol keys that
+            // we're create right below this.
+            var types = await findAsync(c).ConfigureAwait(false);
+            return types.SelectAsArray(
+                t => (t.GetSymbolKey(), solution.GetExactProjectId(t)));
+        }
+
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>

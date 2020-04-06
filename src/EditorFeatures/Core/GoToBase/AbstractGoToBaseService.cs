@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             var project = document.Project;
             var solution = project.Solution;
-            var projectId = project.Id;
 
             var found = false;
 
@@ -45,11 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             foreach (var baseSymbol in bases)
             {
                 var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-                   SymbolAndProjectId.Create(baseSymbol, projectId), solution, cancellationToken).ConfigureAwait(false);
+                   SymbolAndProjectId.Create(baseSymbol, null), solution, cancellationToken).ConfigureAwait(false);
                 if (sourceDefinition.Symbol != null)
                 {
+                    var projectId = solution.GetExactProjectId(sourceDefinition.Symbol);
                     var definitionItem = await sourceDefinition.Symbol.ToClassifiedDefinitionItemAsync(
-                        solution.GetProject(sourceDefinition.ProjectId), includeHiddenLocations: false,
+                        solution.GetProject(projectId), includeHiddenLocations: false,
                         FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
