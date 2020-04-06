@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public static T ResolveType<T>(this SemanticModel semanticModel, T symbol) where T : class, ITypeSymbol
         {
             // Can be cleaned up when https://github.com/dotnet/roslyn/issues/38061 is resolved
-            var typeSymbol = (T)SymbolKey.Resolve(symbol, semanticModel.Compilation).GetAnySymbol();
+            var typeSymbol = (T)symbol.GetSymbolKey().Resolve(semanticModel.Compilation).GetAnySymbol();
             return (T)typeSymbol.WithNullableAnnotation(symbol.NullableAnnotation);
         }
 

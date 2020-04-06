@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 Return False
             End If
 
-            targetType = DirectCast(SymbolKey.Resolve(targetType, semanticModel.Compilation).Symbol, INamedTypeSymbol)
+            targetType = DirectCast(targetType.GetSymbolKey().Resolve(semanticModel.Compilation).Symbol, INamedTypeSymbol)
 
             If targetType Is Nothing Then
                 Return False
@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             ' Our target type may be from a CSharp file, in which case we should resolve it to our VB compilation.
             Dim originalTargetType = targetType
-            targetType = DirectCast(SymbolKey.Resolve(targetType, semanticModel.Compilation).Symbol, INamedTypeSymbol)
+            targetType = DirectCast(targetType.GetSymbolKey().Resolve(semanticModel.Compilation).Symbol, INamedTypeSymbol)
 
             If targetType Is Nothing Then
                 Return Nothing

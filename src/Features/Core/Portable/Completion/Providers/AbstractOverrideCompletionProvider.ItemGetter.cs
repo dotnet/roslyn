@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // SymbolKey doesn't guarantee roundtrip-ability, which we need in order to generate overrides.
                 // Preemptively filter out those methods whose SymbolKeys we won't be able to round trip.
-                var result = SymbolKey.Resolve(m, compilation, cancellationToken: _cancellationToken);
+                var key = SymbolKey.Create(m, _cancellationToken);
+                var result = key.Resolve(compilation, cancellationToken: _cancellationToken);
                 return result.Symbol != null;
             }
 

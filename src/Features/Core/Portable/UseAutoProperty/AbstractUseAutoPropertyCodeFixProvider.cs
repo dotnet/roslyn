@@ -145,8 +145,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             compilation = await fieldDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            fieldSymbol = (IFieldSymbol)SymbolKey.Resolve(fieldSymbol, compilation, cancellationToken: cancellationToken).Symbol;
-            propertySymbol = (IPropertySymbol)SymbolKey.Resolve(propertySymbol, compilation, cancellationToken: cancellationToken).Symbol;
+            fieldSymbol = (IFieldSymbol)fieldSymbol.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+            propertySymbol = (IPropertySymbol)propertySymbol.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol;
             Debug.Assert(fieldSymbol != null && propertySymbol != null);
 
             declarator = (TVariableDeclarator)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
