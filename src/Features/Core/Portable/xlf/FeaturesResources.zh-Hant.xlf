@@ -122,11 +122,6 @@
         <target state="translated">將 '{0}' 變更為 '{1}' 會變更狀態機器的圖形，進而使偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conditional_expression_can_be_simplified">
-        <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">設定 {0} 程式碼樣式</target>
@@ -465,11 +460,6 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">粗略編輯</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_conditional_expression">
-        <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
