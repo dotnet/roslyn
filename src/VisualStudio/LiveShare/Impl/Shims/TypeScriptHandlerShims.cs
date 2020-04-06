@@ -21,16 +21,15 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using Newtonsoft.Json.Linq;
+using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionName)]
-    internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, object?, Solution>
+    internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<CompletionParams, object?, Solution>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -38,12 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
         }
 
-        public async Task<object?> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
+        public async Task<object?> HandleAsync(CompletionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            // The VS LSP client supports streaming using IProgress<T> on various requests.
-            // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
-            var request = ((JObject)input).ToObject<CompletionParams>(InProcLanguageServer.JsonSerializer);
             // The return definition for TextDocumentCompletionName is SumType<CompletionItem[], CompletionList>.
             // However Live Share is unable to handle a SumType return when using ILspRequestHandler.
             // So instead we just return the actual value from the SumType.
@@ -246,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
-    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<object, SymbolInformation[], Solution>
+    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<WorkspaceSymbolParams, SymbolInformation[], Solution>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -254,13 +250,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
         }
 
-        public Task<SymbolInformation[]> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-        {
-            // The VS LSP client supports streaming using IProgress<T> on various requests.
-            // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
-            var request = ((JObject)input).ToObject<WorkspaceSymbolParams>(InProcLanguageServer.JsonSerializer);
-            return base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken);
-        }
+        [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
+        public Task<SymbolInformation[]> HandleAsync(WorkspaceSymbolParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken);
     }
 }
