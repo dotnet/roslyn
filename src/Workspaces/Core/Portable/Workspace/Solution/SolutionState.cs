@@ -368,13 +368,31 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        public ProjectState? GetProjectState(IAssemblySymbol? symbol)
+        /// <summary>
+        /// Gets the <see cref="Project"/> associated with an assembly symbol.
+        /// </summary>
+        public ProjectState? GetProjectState(IAssemblySymbol? assemblySymbol)
         {
-            if (symbol == null)
+            if (assemblySymbol == null)
+            {
                 return null;
+            }
 
-            return s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(symbol, out var id)
-                ? this.GetProjectState(id) : null;
+            // TODO: Remove this loop when we add source assembly symbols to s_assemblyOrModuleSymbolToProjectMap
+            foreach (var (_, state) in _projectIdToProjectStateMap)
+            {
+                if (this.TryGetCompilation(state.Id, out var compilation))
+                {
+                    // if the symbol is the compilation's assembly symbol, we are done
+                    if (Equals(compilation.Assembly, assemblySymbol))
+                    {
+                        return state;
+                    }
+                }
+            }
+
+            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out var id);
+            return id == null ? null : this.GetProjectState(id);
         }
 
         private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out CompilationTracker? tracker)
@@ -1670,22 +1688,29 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
-        private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToSourceProjectId =
+        private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap =
             new ConditionalWeakTable<ISymbol, ProjectId>();
 
-        private static void RecordSourceAssemblySymbol(ISymbol assemblyOrModuleSymbol, ProjectId projectId)
+        private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
         {
+            // TODO: how would we ever get a null here?
+            if (assemblyOrModuleSymbol == null)
+            {
+                return;
+            }
+
             Contract.ThrowIfNull(projectId);
             // remember which project is associated with this assembly
-            if (!s_assemblyOrModuleSymbolToSourceProjectId.TryGetValue(assemblyOrModuleSymbol, out var tmp))
+            if (!s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblyOrModuleSymbol, out var tmp))
             {
                 // use GetValue to avoid race condition exceptions from Add.
                 // the first one to set the value wins.
-                s_assemblyOrModuleSymbolToSourceProjectId.GetValue(assemblyOrModuleSymbol, _ => projectId);
+                s_assemblyOrModuleSymbolToProjectMap.GetValue(assemblyOrModuleSymbol, _ => projectId);
             }
             else
             {
-                // sanity check: our assembly should always map to the same project for source assemblies.
+                // sanity check: this should always be true, no matter how many times
+                // we attempt to record the association.
                 Debug.Assert(tmp == projectId);
             }
         }

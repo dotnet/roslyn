@@ -123,14 +123,8 @@ namespace Microsoft.CodeAnalysis
         /// <c>A</c> and <c>X.SomeClass</c> from assembly <c>B</c> will be considered the same
         /// effective symbol.
         /// </param>
-        internal static SymbolKeyComparer GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false)
+        internal static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false)
             => SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
-
-        public static SymbolKeyResolution Resolve(
-            ISymbol symbol, Compilation compilation, bool ignoreAssemblyKey = false, bool resolveLocations = false, CancellationToken cancellationToken = default)
-        {
-            return ResolveString(CreateString(symbol, cancellationToken), compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
-        }
 
         internal static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,
