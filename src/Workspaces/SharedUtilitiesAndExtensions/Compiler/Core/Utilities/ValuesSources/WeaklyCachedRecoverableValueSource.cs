@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
         private ValueSource<T> _recoverySource;
 
         public WeaklyCachedRecoverableValueSource(ValueSource<T> initialValue)
-        {
-            _recoverySource = initialValue;
-        }
+            => _recoverySource = initialValue;
 
         public WeaklyCachedRecoverableValueSource(WeaklyCachedRecoverableValueSource<T> savedSource)
         {

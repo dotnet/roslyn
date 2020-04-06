@@ -15,17 +15,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             EnumDeclarationSyntax enumDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans, isMetadataAsSource);
 
             if (!enumDeclaration.OpenBraceToken.IsMissing &&
                 !enumDeclaration.CloseBraceToken.IsMissing)
             {
+                SyntaxNodeOrToken current = enumDeclaration;
+                var nextSibling = current.GetNextSibling();
+
+                // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+                var compressEmptyLines = !nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax;
+
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     enumDeclaration,
                     enumDeclaration.Identifier,
+                    compressEmptyLines: compressEmptyLines,
                     autoCollapse: false,
                     type: BlockTypes.Member,
                     isCollapsible: true));

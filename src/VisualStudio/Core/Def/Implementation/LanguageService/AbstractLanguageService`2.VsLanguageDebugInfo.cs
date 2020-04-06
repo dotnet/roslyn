@@ -55,9 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             internal void OnDebugModeChanged(DebugMode debugMode)
-            {
-                _cachedProximityExpressionsGetter.OnDebugModeChanged(debugMode);
-            }
+                => _cachedProximityExpressionsGetter.OnDebugModeChanged(debugMode);
 
             public int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID)
             {
@@ -181,9 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             public int IsMappedLocation(IVsTextBuffer pBuffer, int iLine, int iCol)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
+                => VSConstants.E_NOTIMPL;
 
             public int ResolveName(string pszName, uint dwFlags, out IVsEnumDebugName ppNames)
             {

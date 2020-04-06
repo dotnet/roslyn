@@ -172,11 +172,6 @@
         <target state="translated">構造体に変換</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">タプルに変換</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">System.IDisposable を実装する型は、IDisposable も実装する型のフィールドを宣言します。フィールドの Dispose メソッドは、宣言する型の Dispose メソッドによって呼び出されません。フィールドが保持する管理されていないリソースの割り当てと解放を自分が担当している場合、このルールの違反を修正するには、IDisposable を実装する型のフィールドに Dispose を呼び出します。</target>
@@ -200,6 +195,11 @@
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
         <target state="translated">スコープを失う前にオブジェクトを破棄</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
@@ -242,11 +242,6 @@
         <target state="translated">メソッドを抽出する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">メソッドとローカルの抽出</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">データ フローを分析できませんでした: {0}</target>
@@ -277,11 +272,6 @@
         <target state="translated">パラメーター '{0}' の生成 (およびオーバーライド/実装)</target>
         <note />
       </trans-unit>
-      <trans-unit id="GetHashCode_implementation_can_be_simplified">
-        <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">'GetHashCode' の実装を簡略化できます</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">'{0}' を明示的に実装する</target>
@@ -307,6 +297,11 @@
         <target state="translated">すべてのインターフェイスを暗黙的に実装する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="new">Implement explicitly</target>
@@ -315,6 +310,11 @@
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">暗黙的に実装する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
@@ -342,16 +342,6 @@
         <target state="translated">折り返されたパラメーターにインデントを設定します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">インデックスの作成を簡略化することができます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interpolation_can_be_simplified">
-        <source>Interpolation can be simplified</source>
-        <target state="translated">補間を簡略化することができます</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">定数を導入します</target>
@@ -377,24 +367,9 @@
         <target state="translated">静的にする</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">readonly フィールドを書き込み可能にします</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">条件を反転します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">ローカル関数を静的にすることができます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">ローカル関数を 'static' にします</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -492,11 +467,6 @@
         <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_interpolation">
-        <source>Simplify interpolation</source>
-        <target state="translated">補間の簡略化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
         <target state="translated">連続する '{0}' ステートメントに分割</target>
@@ -512,14 +482,19 @@
         <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
-        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} の非表示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -587,19 +562,9 @@
         <target state="translated">推奨される破棄パターンを使用して、ローカル スコープの破棄可能なオブジェクトがすべてのパスで破棄されるようにします。可能なら、'using' ステートメントまたは 'using' 宣言内で作成を折り返します。または、try-finally パターンを、try 領域の前で宣言された専用のローカル変数と、'finally' 領域の非 null 値での条件なしの Dispose の呼び出し (例: 'x?.Dispose()') とともに使用します。オブジェクトが try 領域内で明示的に破棄されるか、dispose の所有権が他のオブジェクトまたはメソッドに移される場合、その操作のすぐ後で 'null' をローカル変数に割り当てて、'finally' 内での dispose の重複を回避します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_System_HashCode">
-        <source>Use 'System.HashCode'</source>
-        <target state="translated">'System.HashCode' を使用する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">ラムダ式にブロック本体を使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">複合代入を使用</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -607,19 +572,9 @@
         <target state="translated">ラムダ式に式本体を使用する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">インデックス演算子を使用</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">挿入された逐語的文字列を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">範囲演算子を使用</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -631,11 +586,6 @@
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
         <target state="translated">推奨された破棄パターンを使用して、'{0}' が作成したオブジェクトがすべてのパスで破棄されるようにします: using ステートメント/宣言または try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">単純な 'using' ステートメントを使用する</target>
-        <note />
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -705,11 +655,6 @@
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">折り返し</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} を簡略化できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
@@ -915,11 +860,6 @@
       <trans-unit id="Global_Namespace">
         <source>Global Namespace</source>
         <target state="translated">グローバル名前空間</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">インターフェイスを明示的に実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
@@ -1654,18 +1594,13 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: マネージ状態を破棄します (マネージ オブジェクト)。</target>
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="needs-review-translation">TODO: マネージ状態を破棄します (マネージ オブジェクト)。</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null.</source>
-        <target state="translated">TODO: 大きなフィールドを null に設定します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">重複する呼び出しを検出するには</target>
+        <source>TODO: set large fields to null</source>
+        <target state="needs-review-translation">TODO: 大きなフィールドを null に設定します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -1736,11 +1671,6 @@ Do you want to continue?</source>
       <trans-unit id="attribute">
         <source>attribute</source>
         <target state="translated">属性</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">自動プロパティを使用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
@@ -2060,29 +1990,9 @@ This version used in: {2}</source>
         <target state="translated">パスカル ケース</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">coalesce 式を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">null 値の反映を使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">変数の宣言をインライン化できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">明示的に提供されたタプル要素名を優先します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">明示的に提供されたタプル名を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -2180,11 +2090,6 @@ This version used in: {2}</source>
         <target state="translated">Equals/GetHashCode で使用するメンバーを選択する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">式ツリーを変更すると、実行時の動作が変わる可能性があります</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_overrides">
         <source>Generate overrides...</source>
         <target state="translated">上書きを生成する...</target>
@@ -2245,26 +2150,6 @@ This version used in: {2}</source>
         <target state="translated">{0} を実装する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">default' 式を単純化する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'default' 式を単純化できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">書式設定文字列に無効なプレース ホルダーが含まれています</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">無効な書式設定文字列</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">推定メンバーの名前を使用します</target>
@@ -2283,26 +2168,6 @@ This version used in: {2}</source>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">報告された診断 '{0}' のソースの場所はファイル '{2}' 内の '{1}' ですが、これは指定されたファイルの外です。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">到達できないコードが検出されました</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">到達できないコードを削除します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">修飾子が順序付けされていません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">修飾子を順序付けます</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">
@@ -2350,16 +2215,6 @@ This version used in: {2}</source>
         <target state="translated">ラムダとローカル関数を切り替えると、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">変数の宣言を分解</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">変数の宣言を分解できます</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">引数の名前 '{0}' を追加します (末尾の引数を含む)</target>
@@ -2373,26 +2228,6 @@ This version used in: {2}</source>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">インデクサー</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_can_be_removed">
-        <source>Parentheses can be removed</source>
-        <target state="translated">かっこは削除できます</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_parentheses">
-        <source>Remove unnecessary parentheses</source>
-        <target state="translated">不要なかっこの削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_for_clarity">
-        <source>Add parentheses for clarity</source>
-        <target state="translated">わかりやすくするためにかっこを追加</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_should_be_added_for_clarity">
-        <source>Parentheses should be added for clarity</source>
-        <target state="translated">わかりやすくするためにかっこを追加してください</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2415,11 +2250,6 @@ This version used in: {2}</source>
         <target state="translated">警告: 反復処理中にコレクションが変更される可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">条件式に変換します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
         <target state="translated">それを含むメンバーの使用の更新</target>
@@ -2438,11 +2268,6 @@ This version used in: {2}</source>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">依存プロジェクトの使用の更新</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">'using' ステートメントは単純にできます</target>
         <note />
       </trans-unit>
     </body>

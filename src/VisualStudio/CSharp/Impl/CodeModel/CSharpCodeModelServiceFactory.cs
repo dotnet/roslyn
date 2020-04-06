@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCodeModelServiceFactory(
             IEditorOptionsFactoryService editorOptionsFactoryService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
@@ -29,8 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            return new CSharpCodeModelService(provider, _editorOptionsFactoryService, _refactorNotifyServices);
-        }
+            => new CSharpCodeModelService(provider, _editorOptionsFactoryService, _refactorNotifyServices);
     }
 }

@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private int _emptyEditSessionCount;
 
         public DebuggingSessionTelemetry()
-        {
-            _editSessionData = new List<EditSessionTelemetry.Data>();
-        }
+            => _editSessionData = new List<EditSessionTelemetry.Data>();
 
         public Data GetDataAndClear()
         {

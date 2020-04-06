@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
         {
-            Debug.Assert((oldNode == null || oldNode.Equals(default)) == (kind == EditKind.Insert));
-            Debug.Assert((newNode == null || newNode.Equals(default)) == (kind == EditKind.Delete));
+            Debug.Assert((oldNode == null || oldNode.Equals(null)) == (kind == EditKind.Insert));
+            Debug.Assert((newNode == null || newNode.Equals(null)) == (kind == EditKind.Delete));
 
-            Debug.Assert((oldNode == null || oldNode.Equals(default)) ||
-                         (newNode == null || newNode.Equals(default)) ||
+            Debug.Assert((oldNode == null || oldNode.Equals(null)) ||
+                         (newNode == null || newNode.Equals(null)) ||
                          !comparer.TreesEqual(oldNode, newNode));
 
             _comparer = comparer;
@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         public TNode NewNode => _newNode;
 
         public override bool Equals(object obj)
-        {
-            return obj is Edit<TNode> && Equals((Edit<TNode>)obj);
-        }
+            => obj is Edit<TNode> && Equals((Edit<TNode>)obj);
 
         public bool Equals(Edit<TNode> other)
         {
@@ -113,8 +111,6 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         private string DisplayPosition(TNode node)
-        {
-            return "@" + _comparer.GetSpan(node).Start;
-        }
+            => "@" + _comparer.GetSpan(node).Start;
     }
 }

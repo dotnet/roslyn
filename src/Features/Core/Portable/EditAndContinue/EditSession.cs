@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal void Cancel() => _cancellationSource.Cancel();
 
         public void Dispose()
-        {
-            _cancellationSource.Dispose();
-        }
+            => _cancellationSource.Dispose();
 
         /// <summary>
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.

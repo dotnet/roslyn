@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
@@ -15,20 +16,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.Wrapping)>
     Friend Class VisualBasicInitializeMemberFromParameterCodeRefactoringProvider
         Inherits AbstractInitializeMemberFromParameterCodeRefactoringProvider(Of
+            TypeBlockSyntax,
             ParameterSyntax,
             StatementSyntax,
             ExpressionSyntax)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
-        End Function
-
-        Protected Overrides Function GetTypeBlock(node As SyntaxNode) As SyntaxNode
-            Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
         Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
@@ -39,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
 
-        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, method As IMethodSymbol, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
+        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, returnsVoid As Boolean, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
         End Sub
 

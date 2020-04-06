@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly RegexEmbeddedLanguage _language;
 
         public RegexBraceMatcher(RegexEmbeddedLanguage language)
-        {
-            _language = language;
-        }
+            => _language = language;
 
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             }
 
             var ch = virtualChar.Value;
-            switch (ch)
+            switch (ch.Value)
             {
                 case '(':
                 case ')':
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private static BraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
             => open.IsMissing || close.IsMissing
-                ? default(BraceMatchingResult?)
+                ? (BraceMatchingResult?)null
                 : new BraceMatchingResult(open.VirtualChars[0].Span, close.VirtualChars[0].Span);
 
         private static BraceMatchingResult? FindCommentBraces(RegexTree tree, VirtualChar ch)
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             var firstChar = trivia.Value.VirtualChars[0];
             var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
             return firstChar != '(' || lastChar != ')'
-                ? default(BraceMatchingResult?)
+                ? (BraceMatchingResult?)null
                 : new BraceMatchingResult(firstChar.Span, lastChar.Span);
         }
 

@@ -154,10 +154,11 @@ namespace System.Diagnostics.CodeAnalysis
         protected const string MemberNotNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class MemberNotNullAttribute : Attribute
     {
         public MemberNotNullAttribute(params string[] members) { }
+        public MemberNotNullAttribute(string member) { }
     }
 }
 ";
@@ -165,10 +166,11 @@ namespace System.Diagnostics.CodeAnalysis
         protected const string MemberNotNullWhenAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class MemberNotNullWhenAttribute : Attribute
     {
         public MemberNotNullWhenAttribute(bool when, params string[] members) { }
+        public MemberNotNullWhenAttribute(bool when, string member) { }
     }
 }
 ";

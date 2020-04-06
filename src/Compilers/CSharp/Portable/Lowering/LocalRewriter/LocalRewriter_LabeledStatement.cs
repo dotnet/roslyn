@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,11 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            var rewrittenBody = (BoundStatement)Visit(node.Body);
+            var rewrittenBody = VisitStatement(node.Body);
             return MakeLabeledStatement(node, rewrittenBody);
         }
 
-        private BoundStatement MakeLabeledStatement(BoundLabeledStatement node, BoundStatement rewrittenBody)
+        private BoundStatement MakeLabeledStatement(BoundLabeledStatement node, BoundStatement? rewrittenBody)
         {
             BoundStatement labelStatement = new BoundLabelStatement(node.Syntax, node.Label);
 

@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
-            }
+                => Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
         }
     }
 }

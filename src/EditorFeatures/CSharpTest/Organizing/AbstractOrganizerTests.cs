@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         }
 
         protected Task CheckResultAsync(string initial, string final, CSharpParseOptions options = null)
-        {
-            return CheckResultAsync(initial, final, false, options);
-        }
+            => CheckResultAsync(initial, final, false, options);
     }
 }

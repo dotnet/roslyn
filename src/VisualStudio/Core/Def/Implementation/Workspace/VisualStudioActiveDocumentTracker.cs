@@ -80,9 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public void Dispose()
-        {
-            _asyncTasks.Join();
-        }
+            => _asyncTasks.Join();
 
         /// <summary>
         /// Raised when the set of window frames being tracked changes, which means the results from <see cref="TryGetActiveDocument"/> or <see cref="GetVisibleDocuments"/> may change.
@@ -180,9 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         int IVsSelectionEvents.OnSelectionChanged(IVsHierarchy pHierOld, [ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")] uint itemidOld, IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld, IVsHierarchy pHierNew, [ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSITEMID")] uint itemidNew, IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSelectionEvents.OnElementValueChanged([ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSSELELEMID")] uint elementid, object varValueOld, object varValueNew)
         {
@@ -202,9 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         int IVsSelectionEvents.OnCmdUIContextChanged([ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")] uint dwCmdUICookie, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")] int fActive)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         /// <summary>
         /// Listens to frame notifications for a visible frame. When the frame becomes invisible or closes,
@@ -243,9 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             private void NonRoslynTextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-            {
-                _documentTracker.NonRoslynBufferTextChanged?.Invoke(_documentTracker, EventArgs.Empty);
-            }
+                => _documentTracker.NonRoslynBufferTextChanged?.Invoke(_documentTracker, EventArgs.Empty);
 
             /// <summary>
             /// Returns the current DocumentId for this window frame. Care must be made with this value, since "current" could change asynchronously as the document
@@ -263,14 +255,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             int IVsWindowFrameNotify.OnDockableChange(int fDockable)
-            {
-                return VSConstants.S_OK;
-            }
+                => VSConstants.S_OK;
 
             int IVsWindowFrameNotify.OnMove()
-            {
-                return VSConstants.S_OK;
-            }
+                => VSConstants.S_OK;
 
             int IVsWindowFrameNotify.OnShow(int fShow)
             {
@@ -286,14 +274,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             int IVsWindowFrameNotify.OnSize()
-            {
-                return VSConstants.S_OK;
-            }
+                => VSConstants.S_OK;
 
             int IVsWindowFrameNotify2.OnClose(ref uint pgrfSaveOptions)
-            {
-                return Disconnect();
-            }
+                => Disconnect();
 
             private int Disconnect()
             {

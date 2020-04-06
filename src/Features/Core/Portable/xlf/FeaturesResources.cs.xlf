@@ -172,11 +172,6 @@
         <target state="translated">Převést na strukturu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Převést na řazenou kolekci členů</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
         <target state="translated">Typ, který implementuje System.IDisposable, deklaruje pole, která mají typ, který IDisposable implementuje taky. Metoda Dispose deklarujícího typu nevolá metodu Dispose daného pole. Pokud chcete porušení tohoto pravidla opravit a je vaší odpovědností přidělovat a uvolňovat nespravované prostředky, které pole uchovává, zavolejte Dispose pro pole s typy, které implementují IDisposable.</target>
@@ -200,6 +195,11 @@
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
         <target state="translated">Uvolňujte objekty před ztrátou oboru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
@@ -242,11 +242,6 @@
         <target state="translated">Extrahovat metodu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_method_plus_local">
-        <source>Extract method + local</source>
-        <target state="translated">Extrahovat metodu a lokální</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Nepovedlo se analyzovat tok dat pro: {0}</target>
@@ -277,11 +272,6 @@
         <target state="translated">Generovat parametr {0} (a přepsání/implementace)</target>
         <note />
       </trans-unit>
-      <trans-unit id="GetHashCode_implementation_can_be_simplified">
-        <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">Implementace GetHashCode se dá zjednodušit.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">Implementovat rozhraní {0} explicitně</target>
@@ -307,6 +297,11 @@
         <target state="translated">Implementovat všechna rozhraní implicitně</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="new">Implement explicitly</target>
@@ -315,6 +310,11 @@
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implementovat implicitně</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
@@ -342,16 +342,6 @@
         <target state="translated">Odsadit zalomené parametry</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">Indexování se dá zjednodušit.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interpolation_can_be_simplified">
-        <source>Interpolation can be simplified</source>
-        <target state="translated">Interpolace se dá zjednodušit.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Zavést konstantu</target>
@@ -377,24 +367,9 @@
         <target state="translated">Nastavit jako statickou</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">Umožnit zápis do polí jen pro čtení (readonly)</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Převrátit podmínku</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">Místní funkce se dá nastavit jako statická.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">Nastavit místní funkci jako statickou</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -492,11 +467,6 @@
         <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_interpolation">
-        <source>Simplify interpolation</source>
-        <target state="translated">Zjednodušit interpolaci</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
         <target state="translated">Rozdělit do následných příkazů {0}</target>
@@ -512,14 +482,19 @@
         <target state="translated">Stream musí podporovat operace read a seek.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
-        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Potlačit {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -587,19 +562,9 @@
         <target state="translated">Použijte doporučený vzor Dispose, abyste měli jistotu, že objekty, které lze vyřadit v místním oboru, se vyřadí na všech cestách. Pokud je to možné, zabalte vytváření do příkazu nebo deklarace using. Jinak použijte vzor try-finally s vyhrazenou místní proměnnou deklarovanou před oblastí try a nepodmíněným voláním Dispose pro hodnotu, která není null, v oblasti finally, třeba x?.Dispose(). Pokud se objekt explicitně vyřadí v oblasti try nebo se vlastnictví Dispose převede na jiný objekt nebo metodu, přiřaďte ihned po takové operaci místní proměnné hodnotu null, aby ve finally nedošlo k dvojímu Dispose.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_System_HashCode">
-        <source>Use 'System.HashCode'</source>
-        <target state="translated">Použijte System.HashCode.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Pro lambda výrazy používat text bloku</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">Použít složené přiřazení</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -607,19 +572,9 @@
         <target state="translated">Používat text výrazu pro lambda výrazy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">Použít operátor indexu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Použít interpolovaný doslovný řetězec</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">Použít operátor rozsahu</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -631,11 +586,6 @@
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
         <target state="translated">Použijte doporučený vzor Dispose, abyste měli jistotu, že objekt vytvořený pomocí {0} se vyřadí na všech cestách: příkaz/deklarace using nebo výraz try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">Použít jednoduchý příkaz using</target>
-        <note />
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -705,11 +655,6 @@
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Zalamování</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} se dá zjednodušit.</target>
         <note />
       </trans-unit>
       <trans-unit id="discard">
@@ -915,11 +860,6 @@
       <trans-unit id="Global_Namespace">
         <source>Global Namespace</source>
         <target state="translated">Globální obor názvů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">Implementovat rozhraní explicitně</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
@@ -1654,18 +1594,13 @@ Chcete pokračovat?</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: Uvolněte spravovaný stav (spravované objekty).</target>
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="needs-review-translation">TODO: Uvolněte spravovaný stav (spravované objekty).</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null.</source>
-        <target state="translated">TODO: Nastavte velká pole na hodnotu null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Zjištění redundantních volání</target>
+        <source>TODO: set large fields to null</source>
+        <target state="needs-review-translation">TODO: Nastavte velká pole na hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -1736,11 +1671,6 @@ Chcete pokračovat?</target>
       <trans-unit id="attribute">
         <source>attribute</source>
         <target state="translated">atribut</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">Použít automatickou vlastnost</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
@@ -2060,29 +1990,9 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">PascalCase</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">Použít slučovací výraz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">Použít šíření hodnot null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variable_declaration_can_be_inlined">
         <source>Variable declaration can be inlined</source>
         <target state="translated">Deklaraci proměnné je možné vložit do řádku.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Preferovat výslovně zadaný název prvku řazené kolekce členů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Použít výslovně zadaný název řazené kolekce členů</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -2180,11 +2090,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Vyberte členy, kteří se mají použít v Equals/GetHashCode.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">Změny ve stromech výrazů můžou způsobit změny chování za běhu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_overrides">
         <source>Generate overrides...</source>
         <target state="translated">Generovat přepsání...</target>
@@ -2245,26 +2150,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Implementovat {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">Zjednodušit výraz default</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'Výraz default se dá zjednodušit.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">Formátovací řetězec obsahuje neplatný zástupný symbol.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Neplatný formátovací řetězec</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_inferred_member_name">
         <source>Use inferred member name</source>
         <target state="translated">Použít odvozený název člena</target>
@@ -2283,26 +2168,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
         <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
         <target state="translated">Zdroj vykazované diagnostiky {0} má umístění {1} v souboru {2}, což je mimo daný soubor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Byl zjištěn nedosažitelný kód.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Odebrat nedosažitelný kód</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">Modifikátory nejsou seřazené.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">Seřadit modifikátory</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_project_1">
@@ -2350,16 +2215,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Přepínání mezi lambda a lokální funkcí zabrání v pokračování ladicí relace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Dekonstruovat deklaraci proměnné</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">Deklaraci proměnné je možné dekonstruovat.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Přidat název argumentu {0} (včetně koncových argumentů)</target>
@@ -2373,26 +2228,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">indexer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_can_be_removed">
-        <source>Parentheses can be removed</source>
-        <target state="translated">Je možné odebrat závorky.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_parentheses">
-        <source>Remove unnecessary parentheses</source>
-        <target state="translated">Odebrat nadbytečné závorky</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_parentheses_for_clarity">
-        <source>Add parentheses for clarity</source>
-        <target state="translated">Přidat závorky kvůli srozumitelnosti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parentheses_should_be_added_for_clarity">
-        <source>Parentheses should be added for clarity</source>
-        <target state="translated">Kvůli srozumitelnosti by se měly přidat závorky.</target>
         <note />
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
@@ -2415,11 +2250,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Upozornění: Během iterace se kolekce může změnit.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="translated">Převést na podmíněný výraz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
         <target state="translated">aktualizace použití v obsahujícím členu</target>
@@ -2438,11 +2268,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">aktualizace použití v závislých projektech</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">Příkaz using lze zjednodušit.</target>
         <note />
       </trans-unit>
     </body>

@@ -27,13 +27,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             => GetUnnecessaryImports(model, root, predicate, cancellationToken);
 
         bool IEqualityComparer<T>.Equals(T x, T y)
-        {
-            return x.Span == y.Span;
-        }
+            => x.Span == y.Span;
 
         int IEqualityComparer<T>.GetHashCode(T obj)
-        {
-            return obj.Span.GetHashCode();
-        }
+            => obj.Span.GetHashCode();
     }
 }

@@ -32,9 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.AddItem();
-        }
+            => _viewModel.AddItem();
 
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
@@ -51,13 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
+            => DialogResult = true;
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
     }
 }

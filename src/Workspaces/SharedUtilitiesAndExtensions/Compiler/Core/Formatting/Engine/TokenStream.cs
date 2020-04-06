@@ -193,14 +193,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public bool TwoTokensOriginallyOnSameLine(SyntaxToken token1, SyntaxToken token2)
-        {
-            return TwoTokensOnSameLineWorker(token1, token2, _getOriginalTriviaData);
-        }
+            => TwoTokensOnSameLineWorker(token1, token2, _getOriginalTriviaData);
 
         public bool TwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
-        {
-            return TwoTokensOnSameLineWorker(token1, token2, _getTriviaData);
-        }
+            => TwoTokensOnSameLineWorker(token1, token2, _getTriviaData);
 
         private bool TwoTokensOnSameLineWorker(SyntaxToken token1, SyntaxToken token2, Func<TokenData, TokenData, TriviaData> triviaDataGetter)
         {
@@ -272,9 +268,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public int GetCurrentColumn(TokenData tokenData)
-        {
-            return GetColumn(tokenData, _getTriviaData);
-        }
+            => GetColumn(tokenData, _getTriviaData);
 
         public int GetOriginalColumn(SyntaxToken token)
         {
@@ -330,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // get indentation from last line of the text
                 onMultipleLines = true;
-                length = text.GetTextColumn(_options.GetOption(FormattingOptions.TabSize), initialColumn: 0);
+                length = text.GetTextColumn(_options.GetOption(FormattingOptions2.TabSize), initialColumn: 0);
                 return;
             }
 
@@ -340,8 +334,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (text.ContainsTab())
             {
                 // do expansive calculation
-                var initialColumn = _treeData.GetOriginalColumn(_options.GetOption(FormattingOptions.TabSize), token);
-                length = text.ConvertTabToSpace(_options.GetOption(FormattingOptions.TabSize), initialColumn, text.Length);
+                var initialColumn = _treeData.GetOriginalColumn(_options.GetOption(FormattingOptions2.TabSize), token);
+                length = text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), initialColumn, text.Length);
                 return;
             }
 
@@ -570,9 +564,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             private TokenOrderComparer() { }
 
             public int Compare(SyntaxToken x, SyntaxToken y)
-            {
-                return x.FullSpan.CompareTo(y.FullSpan);
-            }
+                => x.FullSpan.CompareTo(y.FullSpan);
         }
     }
 }

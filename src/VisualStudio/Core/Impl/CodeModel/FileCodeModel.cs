@@ -220,9 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         internal void OnCodeElementDeleted(SyntaxNodeKey nodeKey)
-        {
-            _codeElementTable.Remove(nodeKey);
-        }
+            => _codeElementTable.Remove(nodeKey);
 
         internal T GetOrCreateCodeElement<T>(SyntaxNode node)
         {
@@ -426,14 +424,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         internal ProjectId GetProjectId()
-        {
-            return GetDocumentId().ProjectId;
-        }
+            => GetDocumentId().ProjectId;
 
         internal SyntaxNode LookupNode(SyntaxNodeKey nodeKey)
-        {
-            return CodeModelService.LookupNode(nodeKey, GetSyntaxTree());
-        }
+            => CodeModelService.LookupNode(nodeKey, GetSyntaxTree());
 
         internal TSyntaxNode LookupNode<TSyntaxNode>(SyntaxNodeKey nodeKey)
             where TSyntaxNode : SyntaxNode
@@ -474,9 +468,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeFunction AddFunction(string name, EnvDTE.vsCMFunction kind, object type, object position, EnvDTE.vsCMAccess access)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public EnvDTE80.CodeImport AddImport(string name, object position, string alias)
         {
@@ -511,9 +503,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeVariable AddVariable(string name, object type, object position, EnvDTE.vsCMAccess access)
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public EnvDTE.CodeElement CodeElementFromPoint(EnvDTE.TextPoint point, EnvDTE.vsCMElement scope)
         {
@@ -747,9 +737,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public EnvDTE.CodeElement ElementFromID(string id)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public EnvDTE80.vsCMParseStatus ParseStatus
         {
@@ -763,14 +751,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public void Synchronize()
-        {
-            FireEvents();
-        }
+            => FireEvents();
 
         EnvDTE.CodeElements ICodeElementContainer<AbstractCodeElement>.GetCollection()
-        {
-            return CodeElements;
-        }
+            => CodeElements;
 
         internal List<GlobalNodeKey> GetCurrentNodeKeys()
         {

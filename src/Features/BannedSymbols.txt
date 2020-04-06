@@ -1,0 +1,4 @@
+T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption`1; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption2' instead
+T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions2' instead
+T:Microsoft.CodeAnalysis.Options.PerLanguageOption`1; Use 'Microsoft.CodeAnalysis.Options.PerLanguageOption2' instead
+T:Microsoft.CodeAnalysis.Options.Option`1; Use 'Microsoft.CodeAnalysis.Options.Option2' instead

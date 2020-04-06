@@ -60,9 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static ComposableCatalog GetOrCreateAssemblyCatalog(Assembly assembly)
-        {
-            return GetOrCreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
-        }
+            => GetOrCreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
 
         public static ComposableCatalog GetOrCreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
         {
@@ -110,38 +108,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static PartDiscovery CreatePartDiscovery(Resolver resolver)
-        {
-            return PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
-        }
+            => PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
 
         public static ComposableCatalog WithParts(this ComposableCatalog @this, ComposableCatalog catalog)
-        {
-            return @this.AddParts(catalog.DiscoveredParts);
-        }
+            => @this.AddParts(catalog.DiscoveredParts);
 
         public static ComposableCatalog WithParts(this ComposableCatalog catalog, IEnumerable<Type> types)
-        {
-            return catalog.WithParts(CreateTypeCatalog(types));
-        }
+            => catalog.WithParts(CreateTypeCatalog(types));
 
         public static ComposableCatalog WithParts(this ComposableCatalog catalog, params Type[] types)
-        {
-            return WithParts(catalog, (IEnumerable<Type>)types);
-        }
+            => WithParts(catalog, (IEnumerable<Type>)types);
 
         public static ComposableCatalog WithPart(this ComposableCatalog catalog, Type t)
-        {
-            return catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
-        }
+            => catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
 
         /// <summary>
         /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
         /// parts assignable to type <paramref name="t"/> removed from the catalog.
         /// </summary>
         public static ComposableCatalog WithoutPartsOfType(this ComposableCatalog catalog, Type t)
-        {
-            return catalog.WithoutPartsOfTypes(SpecializedCollections.SingletonEnumerable(t));
-        }
+            => catalog.WithoutPartsOfTypes(SpecializedCollections.SingletonEnumerable(t));
 
         /// <summary>
         /// Creates a <see cref="ComposableCatalog"/> derived from <paramref name="catalog"/>, but with all exported
@@ -293,9 +279,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public static readonly IAssemblyLoader Instance = new SimpleAssemblyLoader();
 
             public Assembly LoadAssembly(AssemblyName assemblyName)
-            {
-                return Assembly.Load(assemblyName);
-            }
+                => Assembly.Load(assemblyName);
 
             public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
             {

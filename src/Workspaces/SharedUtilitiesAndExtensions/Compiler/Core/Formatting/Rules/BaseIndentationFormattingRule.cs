@@ -129,13 +129,11 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         }
 
         private TextSpan AdjustTextSpan(TextSpan textSpan)
-        {
-            return TextSpan.FromBounds(Math.Max(_span.Start, textSpan.Start), Math.Min(_span.End, textSpan.End));
-        }
+            => TextSpan.FromBounds(Math.Max(_span.Start, textSpan.Start), Math.Min(_span.End, textSpan.End));
 
         private void SetInnermostNodeForSpan(SyntaxNode root, ref TextSpan span, out SyntaxToken token1, out SyntaxToken token2, out SyntaxNode commonNode)
         {
-            commonNode = default;
+            commonNode = null;
 
             GetTokens(root, span, out token1, out token2);
 

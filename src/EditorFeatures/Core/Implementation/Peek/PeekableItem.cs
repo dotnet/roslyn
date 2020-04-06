@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         protected readonly IPeekResultFactory PeekResultFactory;
 
         protected PeekableItem(IPeekResultFactory peekResultFactory)
-        {
-            this.PeekResultFactory = peekResultFactory;
-        }
+            => this.PeekResultFactory = peekResultFactory;
 
         public string DisplayName =>
                 // This is unused, and was supposed to have been removed from IPeekableItem.

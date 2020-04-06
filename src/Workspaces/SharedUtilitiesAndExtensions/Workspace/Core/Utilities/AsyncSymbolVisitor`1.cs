@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis
 
         public override ValueTask<TResult> Visit(ISymbol symbol)
         {
+#pragma warning disable CA2012 // Use ValueTasks correctly (https://github.com/dotnet/roslyn-analyzers/issues/3384)
             return symbol?.Accept(this) ?? new ValueTask<TResult>(DefaultResult);
+#pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
         public override ValueTask<TResult> DefaultVisit(ISymbol symbol)
-        {
-            return new ValueTask<TResult>(DefaultResult);
-        }
+            => new ValueTask<TResult>(DefaultResult);
     }
 }

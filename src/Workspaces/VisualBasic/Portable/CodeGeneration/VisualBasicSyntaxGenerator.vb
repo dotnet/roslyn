@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -21,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Shared ReadOnly Instance As SyntaxGenerator = New VisualBasicSyntaxGenerator()
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
         Public Sub New()
         End Sub
 
@@ -28,8 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
         Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
-
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Friend Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
@@ -39,6 +39,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function Whitespace(text As String) As SyntaxTrivia
             Return SyntaxFactory.Whitespace(text)
+        End Function
+
+        Friend Overrides Function SingleLineComment(text As String) As SyntaxTrivia
+            Return SyntaxFactory.CommentTrivia("'" + text)
         End Function
 
         Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(list As SyntaxNodeOrTokenList) As SeparatedSyntaxList(Of TElement)
@@ -67,12 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AddressOf AsSimpleArgument)))
         End Function
 
-        Friend Overrides Function AddParentheses(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode
-            Return Parenthesize(expression, addSimplifierAnnotation)
-        End Function
-
         Private Function Parenthesize(expression As SyntaxNode, Optional addSimplifierAnnotation As Boolean = True) As ParenthesizedExpressionSyntax
-            Return DirectCast(expression, ExpressionSyntax).Parenthesize(addSimplifierAnnotation)
+            Return VisualBasicSyntaxGeneratorInternal.Parenthesize(expression, addSimplifierAnnotation)
         End Function
 
         Public Overrides Function AddExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
@@ -131,35 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TypedConstantExpression(value As TypedConstant) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(value)
-        End Function
-
-        Friend Overrides Function InterpolatedStringExpression(startToken As SyntaxToken, content As IEnumerable(Of SyntaxNode), endToken As SyntaxToken) As SyntaxNode
-            Return SyntaxFactory.InterpolatedStringExpression(
-                startToken, SyntaxFactory.List(content.Cast(Of InterpolatedStringContentSyntax)), endToken)
-        End Function
-
-        Friend Overrides Function InterpolatedStringText(textToken As SyntaxToken) As SyntaxNode
-            Return SyntaxFactory.InterpolatedStringText(textToken)
-        End Function
-
-        Friend Overrides Function InterpolatedStringTextToken(content As String) As SyntaxToken
-            Return SyntaxFactory.InterpolatedStringTextToken(content, "")
-        End Function
-
-        Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
-        End Function
-
-        Friend Overrides Function InterpolationAlignmentClause(alignment As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.InterpolationAlignmentClause(
-                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                DirectCast(alignment, ExpressionSyntax))
-        End Function
-
-        Friend Overrides Function InterpolationFormatClause(format As String) As SyntaxNode
-            Return SyntaxFactory.InterpolationFormatClause(
-                SyntaxFactory.Token(SyntaxKind.ColonToken),
-                SyntaxFactory.InterpolatedStringTextToken(format, format))
         End Function
 
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
@@ -293,13 +264,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function ConditionalAccessExpression(expression As SyntaxNode, whenNotNull As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.ConditionalAccessExpression(
-                DirectCast(expression, ExpressionSyntax),
-                DirectCast(whenNotNull, ExpressionSyntax))
+            Return SyntaxGeneratorInternal.ConditionalAccessExpression(expression, whenNotNull)
         End Function
 
         Public Overrides Function MemberBindingExpression(name As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.SimpleMemberAccessExpression(DirectCast(name, SimpleNameSyntax))
+            Return SyntaxGeneratorInternal.MemberBindingExpression(name)
         End Function
 
         Public Overrides Function ElementBindingExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -371,10 +340,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ReturnStatement(Optional expressionOpt As SyntaxNode = Nothing) As SyntaxNode
             Return SyntaxFactory.ReturnStatement(DirectCast(expressionOpt, ExpressionSyntax))
-        End Function
-
-        Friend Overrides Function YieldReturnStatement(expression As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.YieldStatement(DirectCast(expression, ExpressionSyntax))
         End Function
 
         Public Overrides Function ThisExpression() As SyntaxNode
@@ -673,10 +638,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function ScopeBlock(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Throw New NotSupportedException()
-        End Function
-
-        Friend Overrides Function RefExpression(expression As SyntaxNode) As SyntaxNode
-            Return expression
         End Function
 
 #End Region
@@ -3728,12 +3689,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 #Region "Patterns"
 
         Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean
-            Return False
-        End Function
-
-        Friend Overrides Function RequiresLocalDeclarationType() As Boolean
-            ' VB supports `dim x = ...` as well as `dim x as Y = ...`.  The local declaration type
-            ' is not required.
             Return False
         End Function
 

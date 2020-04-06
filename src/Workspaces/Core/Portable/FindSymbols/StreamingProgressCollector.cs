@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -24,6 +25,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private readonly Dictionary<SymbolAndProjectId, List<ReferenceLocation>> _symbolToLocations =
             new Dictionary<SymbolAndProjectId, List<ReferenceLocation>>();
+
+        public IStreamingProgressTracker ProgressTracker => _underlyingProgress.ProgressTracker;
+
+        public StreamingProgressCollector()
+            : this(NoOpStreamingFindReferencesProgress.Instance)
+        {
+        }
 
         public StreamingProgressCollector(
             IStreamingFindReferencesProgress underlyingProgress)
@@ -47,7 +55,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public Task OnStartedAsync() => _underlyingProgress.OnStartedAsync();
         public Task OnCompletedAsync() => _underlyingProgress.OnCompletedAsync();
-        public Task ReportProgressAsync(int current, int maximum) => _underlyingProgress.ReportProgressAsync(current, maximum);
 
         public Task OnFindInDocumentCompletedAsync(Document document) => _underlyingProgress.OnFindInDocumentCompletedAsync(document);
         public Task OnFindInDocumentStartedAsync(Document document) => _underlyingProgress.OnFindInDocumentStartedAsync(document);

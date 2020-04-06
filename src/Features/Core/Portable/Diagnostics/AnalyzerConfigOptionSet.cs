@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _optionSet = optionSet;
         }
 
-        public override object GetOption(OptionKey optionKey)
+        private protected override object GetOptionCore(OptionKey optionKey)
         {
             // First try to find the option from the .editorconfig options parsed by the compiler.
             if (_analyzerConfigOptions.TryGetEditorConfigOption<object>(optionKey.Option, out var value))
@@ -35,9 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
         {
@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

@@ -8,7 +8,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -83,12 +82,12 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         public bool OpenFileOnly(OptionSet options)
         {
             var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
+                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
             var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
+                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
 
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
+            return !(preferTypeKeywordInDeclarationOption == NotificationOption2.Warning || preferTypeKeywordInDeclarationOption == NotificationOption2.Error ||
+                     preferTypeKeywordInMemberAccessOption == NotificationOption2.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption2.Error);
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         internal static Diagnostic CreateDiagnostic(SemanticModel model, OptionSet optionSet, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
         {
-            PerLanguageOption<CodeStyleOption<bool>> option;
+            PerLanguageOption2<CodeStyleOption2<bool>> option;
             DiagnosticDescriptor descriptor;
             ReportDiagnostic severity;
             switch (diagnosticId)
@@ -160,8 +159,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
                 case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
                     option = inDeclaration
-                        ? CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration
-                        : CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
+                        ? CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration
+                        : CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
 
                     var optionValue = optionSet.GetOption(option, model.Language)!;
@@ -173,7 +172,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             var tree = model.SyntaxTree;
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
+            builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
             var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
 
@@ -234,9 +233,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 = new ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)>();
 
             public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> analyzer)
-            {
-                _analyzer = analyzer;
-            }
+                => _analyzer = analyzer;
 
             public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
             {

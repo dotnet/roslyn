@@ -466,9 +466,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
         [Fact]
         public void TestAssignmentStatement()
-        {
-            VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = (y)");
-        }
+            => VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = (y)");
 
         [Fact]
         public void TestExpressionStatement()
@@ -507,15 +505,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
         [Fact]
         public void TestAwaitExpressions()
-        {
-            VerifySyntax<AwaitExpressionSyntax>(Generator.AwaitExpression(Generator.IdentifierName("x")), "await x");
-        }
+            => VerifySyntax<AwaitExpressionSyntax>(Generator.AwaitExpression(Generator.IdentifierName("x")), "await x");
 
         [Fact]
         public void TestNameOfExpressions()
-        {
-            VerifySyntax<InvocationExpressionSyntax>(Generator.NameOfExpression(Generator.IdentifierName("x")), "nameof(x)");
-        }
+            => VerifySyntax<InvocationExpressionSyntax>(Generator.NameOfExpression(Generator.IdentifierName("x")), "nameof(x)");
 
         [Fact]
         public void TestTupleExpression()
@@ -1822,19 +1816,13 @@ public class C { } // end").Members[0];
         }
 
         private void AssertNamesEqual(string name, IEnumerable<SyntaxNode> actualNodes)
-        {
-            AssertNamesEqual(new[] { name }, actualNodes);
-        }
+            => AssertNamesEqual(new[] { name }, actualNodes);
 
         private void AssertMemberNamesEqual(string[] expectedNames, SyntaxNode declaration)
-        {
-            AssertNamesEqual(expectedNames, Generator.GetMembers(declaration));
-        }
+            => AssertNamesEqual(expectedNames, Generator.GetMembers(declaration));
 
         private void AssertMemberNamesEqual(string expectedName, SyntaxNode declaration)
-        {
-            AssertNamesEqual(new[] { expectedName }, Generator.GetMembers(declaration));
-        }
+            => AssertNamesEqual(new[] { expectedName }, Generator.GetMembers(declaration));
 
         [Fact]
         public void TestAddNamespaceImports()
@@ -1857,9 +1845,7 @@ public class C { } // end").Members[0];
         }
 
         private void TestRemoveAllNamespaceImports(SyntaxNode declaration)
-        {
-            Assert.Equal(0, Generator.GetNamespaceImports(Generator.RemoveNodes(declaration, Generator.GetNamespaceImports(declaration))).Count);
-        }
+            => Assert.Equal(0, Generator.GetNamespaceImports(Generator.RemoveNodes(declaration, Generator.GetNamespaceImports(declaration))).Count);
 
         private void TestRemoveNamespaceImport(SyntaxNode declaration, string name, string[] remainingNames)
         {
@@ -1996,9 +1982,7 @@ public class C
         }
 
         private void TestRemoveAllMembers(SyntaxNode declaration)
-        {
-            Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count);
-        }
+            => Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count);
 
         private void TestRemoveMember(SyntaxNode declaration, string name, string[] remainingNames)
         {
@@ -3413,6 +3397,92 @@ public class C : IDisposable
 
             var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
+        }
+
+        #endregion
+
+        #region DeclarationModifiers
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestNamespaceModifiers()
+        {
+            TestModifiersAsync(DeclarationModifiers.None,
+                @"
+[|namespace N1
+{
+}|]");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestClassModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Static,
+                @"
+[|static class C
+{
+}|]");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestMethodModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
+                @"
+class C
+{
+    [|public sealed override void M() { }|]
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestPropertyModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
+                @"
+class C
+{
+    [|public virtual int X => 0;|]
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestFieldModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Static,
+                @"
+class C
+{
+    public static int [|X|];
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestEvent1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Virtual,
+                @"
+class C
+{
+    public virtual event System.Action [|X|];
+}");
+        }
+
+        private void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
+        {
+            MarkupTestFile.GetSpan(markup, out var code, out var span);
+
+            var compilation = Compile(code);
+            var tree = compilation.SyntaxTrees.Single();
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var node = root.FindNode(span, getInnermostNodeForTie: true);
+
+            var declaration = semanticModel.GetDeclaredSymbol(node);
+            Assert.NotNull(declaration);
+
+            Assert.Equal(modifiers, DeclarationModifiers.From(declaration));
         }
 
         #endregion

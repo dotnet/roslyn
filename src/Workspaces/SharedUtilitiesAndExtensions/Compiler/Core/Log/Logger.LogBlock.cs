@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -41,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             private int _blockId;
 
             public RoslynLogBlock(ObjectPool<RoslynLogBlock> pool)
-            {
-                _pool = pool;
-            }
+                => _pool = pool;
 
             public void Construct(ILogger logger, FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
             {

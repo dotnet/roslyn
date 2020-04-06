@@ -4,9 +4,11 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal class EmbeddedLanguageCompletionProvider : AbstractEmbeddedLanguageCompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EmbeddedLanguageCompletionProvider()
         {
         }

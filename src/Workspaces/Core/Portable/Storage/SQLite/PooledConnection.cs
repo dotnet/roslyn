@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             public void Dispose()
-            {
-                sqlitePersistentStorage.ReleaseConnection(Connection);
-            }
+                => sqlitePersistentStorage.ReleaseConnection(Connection);
         }
     }
 }

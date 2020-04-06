@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Storage
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PersistenceStorageServiceFactory()
         {
         }
@@ -32,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 case StorageDatabase.SQLite:
                     var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
                     if (locationService != null)
-                    {
-                        return new SQLitePersistentStorageService(optionService, locationService);
-                    }
+                        return new SQLitePersistentStorageService(locationService);
 
                     break;
             }
