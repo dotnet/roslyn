@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
-    Roslyn.Diagnostics.Analyzers.AvoidOptSuffixForNullableEnableCode,
+    Roslyn.Diagnostics.CSharp.Analyzers.CSharpAvoidOptSuffixForNullableEnableCode,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
