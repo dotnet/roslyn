@@ -302,11 +302,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var sourceFiles = new List<(string filename, SourceText content)>();
             var diagnostics = new List<DiagnosticResult>(explicitDiagnostics.Select(diagnostic => diagnostic.WithDefaultPath(defaultPath)));
+            var markupLocations = ImmutableDictionary<string, FileLinePositionSpan>.Empty;
             foreach ((var filename, var content) in sources)
             {
                 TestFileMarkupParser.GetPositionsAndSpans(content.ToString(), out var output, out var positions, out var namedSpans);
                 sourceFiles.Add((filename, content.Replace(new TextSpan(0, content.Length), output)));
-                if (positions.Count == 0 && namedSpans.Count == 0)
+                if (positions.IsEmpty && namedSpans.IsEmpty)
                 {
                     // No markup notation in this input
                     continue;
@@ -330,8 +331,22 @@ namespace Microsoft.CodeAnalysis.Testing
                     diagnostics.Add(diagnostic.Value);
                 }
 
-                foreach ((var name, var spans) in namedSpans)
+                foreach ((var name, var spans) in namedSpans.OrderBy(pair => pair.Key, StringComparer.Ordinal))
                 {
+                    if (name.StartsWith("#"))
+                    {
+                        // This is an indexed location. Keep track of it for later processing.
+                        if (markupLocations.ContainsKey(name)
+                            || spans.Length != 1)
+                        {
+                            throw new InvalidOperationException($"Input contains multiple markup locations with key '{name}'");
+                        }
+
+                        var linePositionSpan = sourceText.Lines.GetLinePositionSpan(spans[0]);
+                        markupLocations = markupLocations.Add(name, new FileLinePositionSpan(filename, linePositionSpan));
+                        continue;
+                    }
+
                     foreach (var span in spans)
                     {
                         var diagnostic = CreateDiagnosticForSpan(markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, name, filename, sourceText, span);
@@ -343,6 +358,11 @@ namespace Microsoft.CodeAnalysis.Testing
                         diagnostics.Add(diagnostic.Value);
                     }
                 }
+            }
+
+            for (var i = 0; i < diagnostics.Count; i++)
+            {
+                diagnostics[i] = diagnostics[i].WithAppliedMarkupLocations(markupLocations);
             }
 
             return (diagnostics.ToArray(), sourceFiles.ToArray());
