@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The symbol that is calling the symbol being called.
         /// </summary>
-        public ISymbol CallingSymbol => CallingSymbolAndProjectId.Symbol;
-
-        internal SymbolAndProjectId CallingSymbolAndProjectId { get; }
+        public ISymbol CallingSymbol { get; }
 
         /// <summary>
         /// The locations inside the calling symbol where the called symbol is referenced.
@@ -32,9 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The symbol being called.
         /// </summary>
-        public ISymbol CalledSymbol => CalledSymbolAndProjectId.Symbol;
-
-        internal SymbolAndProjectId CalledSymbolAndProjectId { get; }
+        public ISymbol CalledSymbol { get; }
 
         /// <summary>
         /// True if the CallingSymbol is directly calling CalledSymbol.  False if it is calling a
@@ -45,13 +41,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool IsDirect { get; }
 
         internal SymbolCallerInfo(
-            SymbolAndProjectId callingSymbol,
-            SymbolAndProjectId calledSymbol,
+            ISymbol callingSymbol,
+            ISymbol calledSymbol,
             IEnumerable<Location> locations,
             bool isDirect)
         {
-            CallingSymbolAndProjectId = callingSymbol;
-            CalledSymbolAndProjectId = calledSymbol;
+            CallingSymbol = callingSymbol;
+            CalledSymbol = calledSymbol;
             this.IsDirect = isDirect;
             this.Locations = locations;
         }

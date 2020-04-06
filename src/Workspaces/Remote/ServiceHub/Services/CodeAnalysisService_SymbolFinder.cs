@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                    var symbolAndProjectId = await symbolAndProjectIdArg.TryRehydrateAsync(
+                    var symbol = await symbolAndProjectIdArg.TryRehydrateAsync(
                         solution, cancellationToken).ConfigureAwait(false);
 
                     var progressCallback = new FindReferencesProgressCallback(solution, EndPoint, cancellationToken);
 
-                    if (!symbolAndProjectId.HasValue)
+                    if (symbol == null)
                     {
                         await progressCallback.OnStartedAsync().ConfigureAwait(false);
                         await progressCallback.OnCompletedAsync().ConfigureAwait(false);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
                                                  .ToImmutableHashSet();
 
                     await SymbolFinder.FindReferencesInCurrentProcessAsync(
-                        symbolAndProjectId.Value, solution, progressCallback,
+                        symbol, solution, progressCallback,
                         documents, options.Rehydrate(), cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private ImmutableArray<SerializableSymbolAndProjectId> Convert(ImmutableArray<SymbolAndProjectId> items, Solution solution, CancellationToken cancellationToken)
+        private ImmutableArray<SerializableSymbolAndProjectId> Convert(ImmutableArray<ISymbol> items, Solution solution, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SerializableSymbolAndProjectId>.GetInstance(out var result);
 
             foreach (var item in items)
-                result.Add(SerializableSymbolAndProjectId.Dehydrate(solution, item.Symbol, cancellationToken));
+                result.Add(SerializableSymbolAndProjectId.Dehydrate(solution, item, cancellationToken));
 
             return result.ToImmutable();
         }

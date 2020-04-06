@@ -12,13 +12,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
-        public async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects,
+        public async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            var linkedSymbols = new HashSet<SymbolAndProjectId>();
+            var linkedSymbols = new HashSet<ISymbol>();
 
-            var symbol = symbolAndProjectId.Symbol;
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
                 var originalDocument = solution.GetDocument(location.SyntaxTree);
@@ -54,11 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         linkedSymbol.Kind == symbol.Kind &&
                         linkedSymbol.Name == symbol.Name)
                     {
-                        var linkedSymbolAndProjectId = SymbolAndProjectId.Create(linkedSymbol, linkedDocument.Project.Id);
-                        if (!linkedSymbols.Contains(linkedSymbolAndProjectId))
-                        {
-                            linkedSymbols.Add(linkedSymbolAndProjectId);
-                        }
+                        linkedSymbols.Add(linkedSymbol);
                     }
                 }
             }
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             => SpecializedTasks.EmptyImmutableArray<Project>();
 
         public Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,
+            ISymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<FinderLocation>();

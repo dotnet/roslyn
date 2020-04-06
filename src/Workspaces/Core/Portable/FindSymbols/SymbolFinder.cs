@@ -89,23 +89,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds the definition symbol declared in source code for a corresponding reference symbol. 
         /// Returns null if no such symbol can be found in the specified solution.
         /// </summary>
-        public static async Task<ISymbol> FindSourceDefinitionAsync(
+        public static Task<ISymbol> FindSourceDefinitionAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken = default)
         {
-            var result = await FindSourceDefinitionAsync(
-                SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, cancellationToken).ConfigureAwait(false);
-            return result.Symbol;
-        }
-
-        internal static Task<SymbolAndProjectId> FindSourceDefinitionAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken = default)
-        {
-            var symbol = symbolAndProjectId.Symbol;
             if (symbol != null)
             {
                 symbol = symbol.GetOriginalUnreducedDefinition();
-                symbolAndProjectId = symbolAndProjectId.WithSymbol(symbol);
                 switch (symbol.Kind)
                 {
                     case SymbolKind.Event:
@@ -117,19 +106,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     case SymbolKind.Property:
                     case SymbolKind.TypeParameter:
                     case SymbolKind.Namespace:
-                        return FindSourceDefinitionWorkerAsync(symbolAndProjectId, solution, cancellationToken);
+                        return FindSourceDefinitionWorkerAsync(symbol, solution, cancellationToken);
                 }
             }
 
-            return SpecializedTasks.Default<SymbolAndProjectId>();
+            return SpecializedTasks.Null<ISymbol>();
         }
 
-        private static async Task<SymbolAndProjectId> FindSourceDefinitionWorkerAsync(
-            SymbolAndProjectId symbolAndProjectId,
+        private static async Task<ISymbol> FindSourceDefinitionWorkerAsync(
+            ISymbol symbol,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             // If it's already in source, then we might already be done
             if (InSource(symbol))
             {
@@ -137,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // symbol somewhere else. The common case for this is a merged INamespaceSymbol that spans assemblies.
                 if (symbol.ContainingAssembly == null)
                 {
-                    return symbolAndProjectId;
+                    return symbol;
                 }
 
                 // Just because it's a source symbol doesn't mean we have the final symbol we actually want. In retargeting cases,
@@ -146,7 +134,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // then we have a retargeting scenario and want to take our usual path below as if it was a metadata reference
                 foreach (var sourceProject in solution.Projects)
                 {
-
                     // If our symbol is actually a "regular" source symbol, then we know the compilation is holding the symbol alive
                     // and thus TryGetCompilation is sufficient. For another example of this pattern, see Solution.GetProject(IAssemblySymbol)
                     // which we happen to call below.
@@ -154,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (symbol.ContainingAssembly.Equals(compilation.Assembly))
                         {
-                            return SymbolAndProjectId.Create(symbol, sourceProject.Id);
+                            return symbol;
                         }
                     }
                 }
@@ -162,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (!symbol.Locations.Any(loc => loc.IsInMetadata))
             {
                 // We have a symbol that's neither in source nor metadata
-                return default;
+                return null;
             }
 
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
@@ -174,15 +161,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (result.Symbol != null && InSource(result.Symbol))
                 {
-                    return SymbolAndProjectId.Create(result.Symbol, project.Id);
+                    return result.Symbol;
                 }
                 else
                 {
-                    return SymbolAndProjectId.Create(result.CandidateSymbols.FirstOrDefault(InSource), project.Id);
+                    return result.CandidateSymbols.FirstOrDefault(InSource);
                 }
             }
 
-            return default;
+            return null;
         }
 
         private static bool InSource(ISymbol symbol)

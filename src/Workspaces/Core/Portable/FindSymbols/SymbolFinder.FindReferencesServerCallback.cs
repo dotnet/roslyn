@@ -22,13 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly CancellationToken _cancellationToken;
 
             private readonly object _gate = new object();
-
-            /// <summary>
-            /// Note: for purposes of Equality/Hashing, all that we use is the underlying SymbolKey.  That's because FAR
-            /// only cares if it is looking at the same symbol, it don't care if the symbol came from a different
-            /// project or not.
-            /// </summary>
-            private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap;
+            private readonly Dictionary<SerializableSymbolAndProjectId, ISymbol> _definitionMap;
 
             public FindReferencesServerCallback(
                 Solution solution,
@@ -38,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _solution = solution;
                 _progress = progress;
                 _cancellationToken = cancellationToken;
-                _definitionMap = new Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId>(this);
+                _definitionMap = new Dictionary<SerializableSymbolAndProjectId, ISymbol>(this);
             }
 
             public Task AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
@@ -61,35 +55,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
             {
-                var symbolAndProjectId = await definition.TryRehydrateAsync(
+                var symbol = await definition.TryRehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
 
-                if (!symbolAndProjectId.HasValue)
-                {
+                if (symbol == null)
                     return;
-                }
 
                 lock (_gate)
                 {
-                    _definitionMap[definition] = symbolAndProjectId.Value;
+                    _definitionMap[definition] = symbol;
                 }
 
-                await _progress.OnDefinitionFoundAsync(symbolAndProjectId.Value).ConfigureAwait(false);
+                await _progress.OnDefinitionFoundAsync(symbol).ConfigureAwait(false);
             }
 
             public async Task OnReferenceFoundAsync(
                 SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
             {
-                SymbolAndProjectId symbolAndProjectId;
+                ISymbol symbol;
                 lock (_gate)
                 {
-                    symbolAndProjectId = _definitionMap[definition];
+                    symbol = _definitionMap[definition];
                 }
 
                 var referenceLocation = await reference.RehydrateAsync(
                     _solution, _cancellationToken).ConfigureAwait(false);
 
-                await _progress.OnReferenceFoundAsync(symbolAndProjectId, referenceLocation).ConfigureAwait(false);
+                await _progress.OnReferenceFoundAsync(symbol, referenceLocation).ConfigureAwait(false);
             }
 
             bool IEqualityComparer<SerializableSymbolAndProjectId>.Equals(SerializableSymbolAndProjectId x, SerializableSymbolAndProjectId y)

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
             };
         }
 
-        public async Task<SymbolAndProjectId?> TryRehydrateAsync(
+        public async Task<ISymbol> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            return new SymbolAndProjectId(symbol, projectId);
+            return symbol;
         }
     }
 
@@ -194,12 +194,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Solution solution, CancellationToken cancellationToken)
         {
             if (Alias == null)
-            {
                 return null;
-            }
 
-            var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            return symbolAndProjectId.GetValueOrDefault().Symbol as IAliasSymbol;
+            var symbol = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            return symbol as IAliasSymbol;
         }
     }
 

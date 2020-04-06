@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
             var normalFindReferencesTask = SymbolFinder.FindReferencesAsync(
-                SymbolAndProjectId.Create(symbol, project.Id),
+                symbol,
                 project.Solution,
                 new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options),
                 documents: null,
