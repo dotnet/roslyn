@@ -725,14 +725,16 @@ namespace Microsoft.CodeAnalysis
             {
                 RecordSourceAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
-                foreach (var reference in compilation.References)
+                foreach (var kvp in metadataReferenceToProjectId)
                 {
-                    var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
+                    var metadataReference = kvp.Key;
+                    var projectId = kvp.Value;
+
+                    var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
                     if (symbol == null)
                         continue;
 
-                    if (metadataReferenceToProjectId.TryGetValue(reference, out var projectId))
-                        RecordSourceAssemblySymbol(symbol, projectId);
+                    RecordSourceAssemblySymbol(symbol, projectId);
                 }
             }
 
