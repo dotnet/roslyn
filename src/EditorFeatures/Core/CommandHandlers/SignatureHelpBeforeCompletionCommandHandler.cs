@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     // Ensure roslyn comes after LSP to allow them to provide results.
     // https://github.com/dotnet/roslyn/issues/42338
-    [Order(After = PredefinedCommandHandlerNames.LSPSignatureHelp)]
+    [Order(After = "LSP SignatureHelpCommandHandler")]
     internal class SignatureHelpBeforeCompletionCommandHandler :
         AbstractSignatureHelpCommandHandler,
         IChainedCommandHandler<TypeCharCommandArgs>,
