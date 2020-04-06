@@ -277,6 +277,12 @@
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
   </data>
+  <data name="Interpolation_can_be_simplified" xml:space="preserve">
+    <value>Interpolation can be simplified</value>
+  </data>
+  <data name="Simplify_interpolation" xml:space="preserve">
+    <value>Simplify interpolation</value>
+  </data>
   <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
     <value>Format string contains invalid placeholder</value>
   </data>

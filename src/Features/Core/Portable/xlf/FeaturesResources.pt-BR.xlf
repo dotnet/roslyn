@@ -342,11 +342,6 @@
         <target state="translated">Recuar parâmetros encapsulados</target>
         <note />
       </trans-unit>
-      <trans-unit id="Interpolation_can_be_simplified">
-        <source>Interpolation can be simplified</source>
-        <target state="translated">A interpolação pode ser simplificada</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Introduzir a constante</target>
@@ -470,11 +465,6 @@
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
         <target state="new">Simplify conditional expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_interpolation">
-        <source>Simplify interpolation</source>
-        <target state="translated">Simplificar interpolação</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
