@@ -21,7 +21,6 @@
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
-    <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.Analyzers.targets" />
   </ItemGroup>
 
   <ItemGroup>
