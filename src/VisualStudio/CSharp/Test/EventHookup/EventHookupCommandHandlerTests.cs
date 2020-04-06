@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -16,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
     [UseExportProvider]
     public class EventHookupCommandHandlerTests
     {
+        private readonly NamingStylesTestOptionSets _namingOptions = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HandlerName_EventInThisClass()
         {
@@ -32,6 +36,27 @@ class C
             testState.SendTypeChar('=');
             await testState.WaitForAsynchronousOperationsAsync();
             testState.AssertShowing("C_MyEvent");
+        }
+
+        [WorkItem(20999, "https://github.com/dotnet/roslyn/issues/20999")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task HandlerName_EventInThisClass_CamelCaseRule()
+        {
+            var markup = @"
+class C
+{
+    event System.Action MyEvent;
+    void M()
+    {
+        MyEvent +$$
+    }
+}";
+            using var testState = new EventHookupTestState(
+                EventHookupTestState.GetWorkspaceXml(markup), _namingOptions.MethodNamesAreCamelCase);
+
+            testState.SendTypeChar('=');
+            await testState.WaitForAsynchronousOperationsAsync();
+            testState.AssertShowing("c_MyEvent");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]

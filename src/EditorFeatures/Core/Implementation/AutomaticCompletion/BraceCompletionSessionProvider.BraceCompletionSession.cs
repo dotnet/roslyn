@@ -258,9 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             public void PreReturn(out bool handledCommand)
-            {
-                handledCommand = false;
-            }
+                => handledCommand = false;
 
             public void PostReturn()
             {
@@ -286,9 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             public void PostTab() { }
 
             public void PreDelete(out bool handledCommand)
-            {
-                handledCommand = false;
-            }
+                => handledCommand = false;
 
             public void PostDelete() { }
 
@@ -350,9 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             internal ITextUndoTransaction CreateUndoTransaction()
-            {
-                return _undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion);
-            }
+                => _undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion);
 
             private void MoveCaretToClosingPoint()
             {

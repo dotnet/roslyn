@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
     using IOptionsCollection = IDictionary<OptionKey2, object>;
 #endif
 
-    public sealed class NamingStylesTestOptionSets
+    internal sealed class NamingStylesTestOptionSets
     {
         private readonly string _languageName;
         private readonly OptionKey2 _optionKey;
@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             _languageName = languageName;
             _optionKey = NamingStyleOptions.GetNamingPreferencesOptionKey(languageName);
         }
+
+        public OptionKey2 OptionKey => _optionKey;
 
         internal IOptionsCollection MergeStyles(IOptionsCollection first, IOptionsCollection second, string languageName)
         {
@@ -57,6 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
         internal IOptionsCollection MethodNamesArePascalCase =>
             Options(_optionKey, MethodNamesArePascalCaseOption());
+
+        internal IOptionsCollection MethodNamesAreCamelCase =>
+            Options(_optionKey, MethodNamesAreCamelCaseOption());
 
         internal IOptionsCollection ParameterNamesAreCamelCase =>
             Options(_optionKey, ParameterNamesAreCamelCaseOption());
@@ -300,6 +305,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         }
 
         private static NamingStylePreferences MethodNamesArePascalCaseOption()
+            => MethodNamesAreCasedOption(Capitalization.PascalCase);
+
+        internal static NamingStylePreferences MethodNamesAreCamelCaseOption()
+            => MethodNamesAreCasedOption(Capitalization.CamelCase);
+
+        private static NamingStylePreferences MethodNamesAreCasedOption(Capitalization capitalization)
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -310,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
+                capitalizationScheme: capitalization,
                 name: "Name",
                 prefix: "",
                 suffix: "",

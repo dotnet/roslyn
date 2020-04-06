@@ -85,19 +85,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         private Task<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
-        {
-            return SpecializedTasks.FromResult(_colorSchemes.ToImmutableDictionary(kvp => kvp.Key, kvp => RegistryItemConverter.Convert(kvp.Value)));
-        }
+            => SpecializedTasks.FromResult(_colorSchemes.ToImmutableDictionary(kvp => kvp.Key, kvp => RegistryItemConverter.Convert(kvp.Value)));
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-        {
-            QueueColorSchemeUpdate(themeChanged: true);
-        }
+            => QueueColorSchemeUpdate(themeChanged: true);
 
         private async Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
-        {
-            await QueueColorSchemeUpdate();
-        }
+            => await QueueColorSchemeUpdate();
 
         private IVsTask QueueColorSchemeUpdate(bool themeChanged = false)
         {
@@ -164,9 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsSupportedTheme()
-        {
-            return IsSupportedTheme(_settings.GetThemeId());
-        }
+            => IsSupportedTheme(_settings.GetThemeId());
 
         public bool IsSupportedTheme(Guid themeId)
         {
@@ -176,9 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsThemeCustomized()
-        {
-            return !_colorDefaulter.AreClassificationsDefaultable(_settings.GetThemeId());
-        }
+            => !_colorDefaulter.AreClassificationsDefaultable(_settings.GetThemeId());
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]

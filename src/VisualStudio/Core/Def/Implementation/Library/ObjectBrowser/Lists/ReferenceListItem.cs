@@ -40,8 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         public IAssemblySymbol GetAssembly(Compilation compilation)
-        {
-            return compilation.GetAssemblyOrModuleSymbol(_reference) as IAssemblySymbol;
-        }
+            => compilation.GetAssemblyOrModuleSymbol(_reference) as IAssemblySymbol;
     }
 }

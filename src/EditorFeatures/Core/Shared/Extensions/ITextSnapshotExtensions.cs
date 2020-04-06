@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// format given snapshot and apply text changes to buffer
         /// </summary>
         public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, CancellationToken cancellationToken)
-        {
-            snapshot.FormatAndApplyToBuffer(span, rules: null, cancellationToken: cancellationToken);
-        }
+            => snapshot.FormatAndApplyToBuffer(span, rules: null, cancellationToken: cancellationToken);
 
         /// <summary>
         /// format given snapshot and apply text changes to buffer

@@ -75,9 +75,7 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestUsingDirective()
-        {
-            await VerifyAbsenceAsync("using $$");
-        }
+            => await VerifyAbsenceAsync("using $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForeachStatement()

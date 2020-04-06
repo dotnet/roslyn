@@ -36,29 +36,19 @@ namespace Microsoft.CodeAnalysis.Formatting
         public SyntaxToken Token { get; }
 
         public TokenData GetPreviousTokenData()
-        {
-            return this.TokenStream.GetPreviousTokenData(this);
-        }
+            => this.TokenStream.GetPreviousTokenData(this);
 
         public TokenData GetNextTokenData()
-        {
-            return this.TokenStream.GetNextTokenData(this);
-        }
+            => this.TokenStream.GetNextTokenData(this);
 
         public bool Equals(TokenData x, TokenData y)
-        {
-            return x.Equals(y);
-        }
+            => x.Equals(y);
 
         public int GetHashCode(TokenData obj)
-        {
-            return obj.GetHashCode();
-        }
+            => obj.GetHashCode();
 
         public override int GetHashCode()
-        {
-            return this.Token.GetHashCode();
-        }
+            => this.Token.GetHashCode();
 
         public override bool Equals(object obj)
         {
@@ -82,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public int Compare(TokenData x, TokenData y)
-        {
-            return x.CompareTo(y);
-        }
+            => x.CompareTo(y);
 
         public int CompareTo(TokenData other)
         {
@@ -138,23 +126,15 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public static bool operator <(TokenData left, TokenData right)
-        {
-            return left.CompareTo(right) < 0;
-        }
+            => left.CompareTo(right) < 0;
 
         public static bool operator >(TokenData left, TokenData right)
-        {
-            return left.CompareTo(right) > 0;
-        }
+            => left.CompareTo(right) > 0;
 
         public static bool operator ==(TokenData left, TokenData right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(TokenData left, TokenData right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
     }
 }

@@ -219,6 +219,9 @@
   <data name="The_project_already_references_the_target_project" xml:space="preserve">
     <value>The project already references the target project.</value>
   </data>
+  <data name="The_project_already_contains_the_specified_reference" xml:space="preserve">
+    <value>The project already contains the specified reference.</value>
+  </data>
   <data name="The_project_already_transitively_references_the_target_project" xml:space="preserve">
     <value>The project already transitively references the target project.</value>
   </data>
@@ -275,6 +278,9 @@
   </data>
   <data name="This_submission_already_references_another_submission_project" xml:space="preserve">
     <value>This submission already references another submission project.</value>
+  </data>
+  <data name="Only_submission_project_can_reference_submission_projects" xml:space="preserve">
+    <value>Only submission project can reference submission projects.</value>
   </data>
   <data name="_0_still_contains_open_documents" xml:space="preserve">
     <value>{0} still contains open documents.</value>
@@ -1313,5 +1319,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="_0_is_in_a_different_project" xml:space="preserve">
     <value>{0} is in a different project.</value>
+  </data>
+  <data name="Project_does_not_contain_specified_reference" xml:space="preserve">
+    <value>Project does not contain specified reference</value>
   </data>
 </root>

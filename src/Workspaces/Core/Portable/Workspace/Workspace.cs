@@ -12,10 +12,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Transactions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         // Current solution.
         private Solution _latestSolution;
 
-        private readonly IWorkspaceTaskScheduler _taskQueue;
+        private readonly TaskQueue _taskQueue;
 
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
@@ -83,8 +81,9 @@ namespace Microsoft.CodeAnalysis
             _optionService.RegisterWorkspace(this);
 
             // queue used for sending events
-            var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
-            _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
+            var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
+            var listenerProvider = _services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
@@ -97,18 +96,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal void LogTestMessage(string message)
-        {
-            _testMessageLogger?.Invoke(message);
-        }
+            => _testMessageLogger?.Invoke(message);
 
         /// <summary>
         /// Sets an internal logger that will receive some messages.
         /// </summary>
         /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
         internal void SetTestLogger(Action<string>? writeLineMessageLogger)
-        {
-            _testMessageLogger = writeLineMessageLogger;
-        }
+            => _testMessageLogger = writeLineMessageLogger;
 
         /// <summary>
         /// Services provider by the host for implementing workspace features.
@@ -152,9 +147,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new empty solution instance associated with this workspace.
         /// </summary>
         protected internal Solution CreateSolution(SolutionId id)
-        {
-            return CreateSolution(SolutionInfo.Create(id, VersionStamp.Create()));
-        }
+            => CreateSolution(SolutionInfo.Create(id, VersionStamp.Create()));
 
         /// <summary>
         /// The current solution.
@@ -285,19 +278,15 @@ namespace Microsoft.CodeAnalysis
         /// Executes an action as a background task, as part of a sequential queue of tasks.
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        protected internal Task ScheduleTask(Action action, string taskName = "Workspace.Task")
-        {
-            return _taskQueue.ScheduleTask(action, taskName);
-        }
+        protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
+            => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
 
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        protected internal Task<T> ScheduleTask<T>(Func<T> func, string taskName = "Workspace.Task")
-        {
-            return _taskQueue.ScheduleTask(func, taskName);
-        }
+        protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
+            => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
 
         /// <summary>
         /// Override this method to act immediately when the text of a document has changed, as opposed
@@ -350,9 +339,7 @@ namespace Microsoft.CodeAnalysis
         /// Call the base method at the end of your method.
         /// </summary>
         protected virtual void ClearProjectData(ProjectId projectId)
-        {
-            this.ClearOpenDocuments(projectId);
-        }
+            => this.ClearOpenDocuments(projectId);
 
         /// <summary>
         /// This method is called to clear an individual document is removed.
@@ -361,17 +348,13 @@ namespace Microsoft.CodeAnalysis
         /// Call the base method at the end of your method.
         /// </summary>
         protected internal virtual void ClearDocumentData(DocumentId documentId)
-        {
-            this.ClearOpenDocument(documentId);
-        }
+            => this.ClearOpenDocument(documentId);
 
         /// <summary>
         /// Disposes this workspace. The workspace can longer be used after it is disposed.
         /// </summary>
         public void Dispose()
-        {
-            this.Dispose(finalize: false);
-        }
+            => this.Dispose(finalize: false);
 
         /// <summary>
         /// Call this method when the workspace is disposed.
@@ -458,9 +441,7 @@ namespace Microsoft.CodeAnalysis
         /// Call this method to respond to a project being added/opened in the host environment.
         /// </summary>
         protected internal void OnProjectAdded(ProjectInfo projectInfo)
-        {
-            this.OnProjectAdded(projectInfo, silent: false);
-        }
+            => this.OnProjectAdded(projectInfo, silent: false);
 
         private void OnProjectAdded(ProjectInfo projectInfo, bool silent)
         {
@@ -1144,18 +1125,14 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges(Solution)"/> method.
         /// </summary>
         public virtual bool CanApplyChange(ApplyChangesKind feature)
-        {
-            return false;
-        }
+            => false;
 
         /// <summary>
         /// Returns <see langword="true"/> if a reference to referencedProject can be added to
         /// referencingProject.  <see langword="false"/> otherwise.
         /// </summary>
         internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
-        {
-            return false;
-        }
+            => false;
 
         /// <summary>
         /// Apply changes made to a solution back to the workspace.
@@ -1168,9 +1145,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
-        {
-            return TryApplyChanges(newSolution, new ProgressTracker());
-        }
+            => TryApplyChanges(newSolution, new ProgressTracker());
 
         internal virtual bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
         {
@@ -1589,9 +1564,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
-        {
-            return CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
-        }
+            => CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
 
         internal DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
         {

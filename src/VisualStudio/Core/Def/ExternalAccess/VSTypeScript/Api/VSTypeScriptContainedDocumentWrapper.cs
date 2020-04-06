@@ -17,9 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         private readonly ContainedDocument _underlyingObject;
 
         public VSTypeScriptContainedDocumentWrapper(ContainedDocument underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public bool IsDefault => _underlyingObject == null;
 

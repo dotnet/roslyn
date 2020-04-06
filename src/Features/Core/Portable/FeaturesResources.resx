@@ -816,9 +816,6 @@ Do you want to continue?</value>
   <data name="attribute" xml:space="preserve">
     <value>attribute</value>
   </data>
-  <data name="Use_auto_property" xml:space="preserve">
-    <value>Use auto property</value>
-  </data>
   <data name="Replace_0_and_1_with_property" xml:space="preserve">
     <value>Replace '{0}' and '{1}' with property</value>
   </data>
@@ -1021,12 +1018,6 @@ This version used in: {2}</value>
   <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
     <value>Variable declaration can be inlined</value>
   </data>
-  <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
-    <value>Prefer explicitly provided tuple element name</value>
-  </data>
-  <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
-    <value>Use explicitly provided tuple name</value>
-  </data>
   <data name="Remove_document_0" xml:space="preserve">
     <value>Remove document '{0}'</value>
   </data>
@@ -1132,12 +1123,6 @@ This version used in: {2}</value>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
   </data>
-  <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
-    <value>Format string contains invalid placeholder</value>
-  </data>
-  <data name="Invalid_format_string" xml:space="preserve">
-    <value>Invalid format string</value>
-  </data>
   <data name="Use_inferred_member_name" xml:space="preserve">
     <value>Use inferred member name</value>
   </data>
@@ -1168,32 +1153,14 @@ This version used in: {2}</value>
   <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
     <value>Generate constructor in '{0}' (without fields)</value>
   </data>
-  <data name="Parentheses_can_be_removed" xml:space="preserve">
-    <value>Parentheses can be removed</value>
-  </data>
-  <data name="Remove_unnecessary_parentheses" xml:space="preserve">
-    <value>Remove unnecessary parentheses</value>
-  </data>
   <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
     <value>Warning: Method overrides symbol from metadata</value>
-  </data>
-  <data name="Add_parentheses_for_clarity" xml:space="preserve">
-    <value>Add parentheses for clarity</value>
-  </data>
-  <data name="Parentheses_should_be_added_for_clarity" xml:space="preserve">
-    <value>Parentheses should be added for clarity</value>
   </data>
   <data name="Use_0" xml:space="preserve">
     <value>Use {0}</value>
   </data>
   <data name="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Switching between a lambda and a local function will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Deconstruct_variable_declaration" xml:space="preserve">
-    <value>Deconstruct variable declaration</value>
-  </data>
-  <data name="Variable_declaration_can_be_deconstructed" xml:space="preserve">
-    <value>Variable declaration can be deconstructed</value>
   </data>
   <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
     <value>Add argument name '{0}' (including trailing arguments)</value>
@@ -1216,14 +1183,8 @@ This version used in: {2}</value>
   <data name="Warning_colon_Collection_may_be_modified_during_iteration" xml:space="preserve">
     <value>Warning: Collection may be modified during iteration.</value>
   </data>
-  <data name="Convert_to_conditional_expression" xml:space="preserve">
-    <value>Convert to conditional expression</value>
-  </data>
   <data name="Convert_to_linq" xml:space="preserve">
     <value>Convert to LINQ</value>
-  </data>
-  <data name="Convert_to_tuple" xml:space="preserve">
-    <value>Convert to tuple</value>
   </data>
   <data name="Convert_to_class" xml:space="preserve">
     <value>Convert to class</value>
@@ -1281,9 +1242,6 @@ This version used in: {2}</value>
   </data>
   <data name="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
     <value>Warning: Changing namespace may produce invalid code and change code meaning.</value>
-  </data>
-  <data name="Use_compound_assignment" xml:space="preserve">
-    <value>Use compound assignment</value>
   </data>
   <data name="Invert_conditional" xml:space="preserve">
     <value>Invert conditional</value>
@@ -1369,18 +1327,6 @@ This version used in: {2}</value>
   <data name="Merge_with_previous_0_statement" xml:space="preserve">
     <value>Merge with previous '{0}' statement</value>
   </data>
-  <data name="Indexing_can_be_simplified" xml:space="preserve">
-    <value>Indexing can be simplified</value>
-  </data>
-  <data name="Use_index_operator" xml:space="preserve">
-    <value>Use index operator</value>
-  </data>
-  <data name="Use_range_operator" xml:space="preserve">
-    <value>Use range operator</value>
-  </data>
-  <data name="_0_can_be_simplified" xml:space="preserve">
-    <value>{0} can be simplified</value>
-  </data>
   <data name="Unwrap_expression" xml:space="preserve">
     <value>Unwrap expression</value>
   </data>
@@ -1416,22 +1362,6 @@ This version used in: {2}</value>
   </data>
   <data name="Wrap_and_align_expression" xml:space="preserve">
     <value>Wrap and align expression</value>
-  </data>
-  <data name="Local_function_can_be_made_static" xml:space="preserve">
-    <value>Local function can be made static</value>
-  </data>
-  <data name="Make_local_function_static" xml:space="preserve">
-    <value>Make local function 'static'</value>
-  </data>
-  <data name="Use_simple_using_statement" xml:space="preserve">
-    <value>Use simple 'using' statement</value>
-  </data>
-  <data name="using_statement_can_be_simplified" xml:space="preserve">
-    <value>'using' statement can be simplified</value>
-  </data>
-  <data name="Make_readonly_fields_writable" xml:space="preserve">
-    <value>Make readonly fields writable</value>
-    <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
   <data name="Move_contents_to_namespace" xml:space="preserve">
     <value>Move contents to namespace...</value>
@@ -1524,12 +1454,6 @@ This version used in: {2}</value>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
   </data>
-  <data name="Use_System_HashCode" xml:space="preserve">
-    <value>Use 'System.HashCode'</value>
-  </data>
-  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
-    <value>'GetHashCode' implementation can be simplified</value>
-  </data>
   <data name="Implement_0_implicitly" xml:space="preserve">
     <value>Implement '{0}' implicitly</value>
   </data>
@@ -1562,10 +1486,6 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
-  </data>
-  <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
-    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
-    <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
   </data>
   <data name="Resolve_conflict_markers" xml:space="preserve">
     <value>Resolve conflict markers</value>

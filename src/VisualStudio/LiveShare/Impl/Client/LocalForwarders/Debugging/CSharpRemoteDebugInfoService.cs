@@ -19,14 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     internal class CSharpLspDebugInfoServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspDebugInfoServiceFactory()
         {
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpRemoteDebugInfoService(languageServices);
-        }
+            => new CSharpRemoteDebugInfoService(languageServices);
     }
 
     internal class CSharpRemoteDebugInfoService : ILanguageDebugInfoService
@@ -34,9 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         private readonly HostLanguageServices languageServices;
 
         public CSharpRemoteDebugInfoService(HostLanguageServices languageServices)
-        {
-            this.languageServices = languageServices;
-        }
+            => this.languageServices = languageServices;
 
         public async Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -68,8 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
         }
 
         public Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            return this.languageServices.GetOriginalLanguageService<ILanguageDebugInfoService>().GetLocationInfoAsync(document, position, cancellationToken);
-        }
+            => this.languageServices.GetOriginalLanguageService<ILanguageDebugInfoService>().GetLocationInfoAsync(document, position, cancellationToken);
     }
 }

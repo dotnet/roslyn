@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -16,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Options
         public string KeyName { get; }
 
         public LocalUserProfileStorageLocation(string keyName)
-        {
-            KeyName = keyName;
-        }
+            => KeyName = keyName;
     }
 }

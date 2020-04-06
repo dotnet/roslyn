@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
         protected AbstractPopulateSwitchCodeFixProvider(string diagnosticId)
-        {
-            FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
-        }
+            => FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
 
         protected abstract ITypeSymbol GetSwitchType(TSwitchOperation switchStatement);
         protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation switchOperation);

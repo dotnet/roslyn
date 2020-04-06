@@ -94,9 +94,7 @@ class c
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DelegateTypeExpected2()
-        {
-            await VerifyBuilderAsync(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
-        }
+            => await VerifyBuilderAsync(AddUsingDirectives("using System;", AddInsideMethod(@"Func<int, int, int> f = $$")));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObjectInitializerDelegateType()
@@ -1104,14 +1102,10 @@ public static class Repro
         }
 
         private async Task VerifyNotBuilderAsync(string markup)
-        {
-            await VerifyWorkerAsync(markup, isBuilder: false);
-        }
+            => await VerifyWorkerAsync(markup, isBuilder: false);
 
         private async Task VerifyBuilderAsync(string markup)
-        {
-            await VerifyWorkerAsync(markup, isBuilder: true);
-        }
+            => await VerifyWorkerAsync(markup, isBuilder: true);
 
         private async Task VerifyWorkerAsync(string markup, bool isBuilder)
         {

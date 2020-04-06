@@ -22,7 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TupleElementNamesInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VBImportScopeKind.cs" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != ''">
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>

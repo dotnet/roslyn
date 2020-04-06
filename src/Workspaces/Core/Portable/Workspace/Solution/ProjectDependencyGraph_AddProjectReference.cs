@@ -14,9 +14,20 @@ namespace Microsoft.CodeAnalysis
 {
     partial class ProjectDependencyGraph
     {
-        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyList<ProjectId> referencedProjectIds)
+        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+
+            if (projectReferences.Count == 0)
+            {
+                return this;
+            }
+
+            // only add references to projects that are contained in the solution/graph
+            var referencedProjectIds = projectReferences
+                .Where(r => _projectIds.Contains(r.ProjectId))
+                .Select(r => r.ProjectId)
+                .ToList();
 
             if (referencedProjectIds.Count == 0)
             {

@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // True, Remove the RootNamespace
                 // False, Add Global to the Namespace
                 Debug.Assert(targetProject.Language == LanguageNames.VisualBasic);
-                IGenerateTypeService targetLanguageService = null;
+                IGenerateTypeService targetLanguageService;
                 if (_semanticDocument.Project.Language == LanguageNames.VisualBasic)
                 {
                     targetLanguageService = _service;
@@ -222,9 +222,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
-            {
-                return "Global." + namespaceToBeGenerated;
-            }
+                => "Global." + namespaceToBeGenerated;
 
             // Returns the length of the meaningful rootNamespace substring part of namespaceToGenerateInto
             private int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)
@@ -319,7 +317,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     triggeringProject,
                     documentName,
                     newRoot,
-                    _semanticDocument.Document,
                     includeUsingsOrImports,
                     adjustedContainer,
                     SourceCodeKind.Regular,
@@ -331,7 +328,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 Project triggeringProject,
                 string documentName,
                 SyntaxNode root,
-                Document generatingDocument,
                 string includeUsingsOrImports,
                 IList<string> containers,
                 SourceCodeKind sourceCodeKind,
@@ -404,24 +400,24 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var containers = namespaceContainersAndUsings.containers;
                 var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;
 
-                Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location> enclosingNamespaceGeneratedTypeToAddAndLocation = null;
+                (INamespaceSymbol, INamespaceOrTypeSymbol, Location) enclosingNamespaceGeneratedTypeToAddAndLocation;
                 if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)
                 {
                     enclosingNamespaceGeneratedTypeToAddAndLocation = await _service.GetOrGenerateEnclosingNamespaceSymbolAsync(
-                     namedType,
-                     containers,
-                     generateTypeOptionsResult.ExistingDocument,
-                     root,
-                     _cancellationToken).ConfigureAwait(false);
+                        namedType,
+                        containers,
+                        generateTypeOptionsResult.ExistingDocument,
+                        root,
+                        _cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     enclosingNamespaceGeneratedTypeToAddAndLocation = await _targetLanguageService.GetOrGenerateEnclosingNamespaceSymbolAsync(
-                     namedType,
-                     containers,
-                     generateTypeOptionsResult.ExistingDocument,
-                     root,
-                     _cancellationToken).ConfigureAwait(false);
+                        namedType,
+                        containers,
+                        generateTypeOptionsResult.ExistingDocument,
+                        root,
+                        _cancellationToken).ConfigureAwait(false);
                 }
 
                 var solution = _semanticDocument.Project.Solution;
@@ -489,7 +485,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                             ? _service.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim()
                             : _targetLanguageService.GetRootNamespace(_generateTypeOptionsResult.Project.CompilationOptions).Trim();
 
-                    var projectManagementService = _semanticDocument.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
                     var defaultNamespace = _generateTypeOptionsResult.DefaultNamespace;
 
                     // Case 1 : If the type is generated into the same C# project or

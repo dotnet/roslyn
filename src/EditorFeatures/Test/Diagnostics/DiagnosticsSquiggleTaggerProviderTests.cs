@@ -185,9 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
             public MockDiagnosticService(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
+                => _workspace = workspace;
 
             public IEnumerable<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
@@ -235,14 +233,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             private DocumentId GetDocumentId()
-            {
-                return _workspace.CurrentSolution.Projects.Single().Documents.Single().Id;
-            }
+                => _workspace.CurrentSolution.Projects.Single().Documents.Single().Id;
 
             private ProjectId GetProjectId()
-            {
-                return _workspace.CurrentSolution.Projects.Single().Id;
-            }
+                => _workspace.CurrentSolution.Projects.Single().Id;
         }
 
         private class Analyzer : DiagnosticAnalyzer
@@ -266,9 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             public void ChangeSeverity()
-            {
-                _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
-            }
+                => _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
         }
     }
 }

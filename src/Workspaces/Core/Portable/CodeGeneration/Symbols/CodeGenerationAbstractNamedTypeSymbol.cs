@@ -39,14 +39,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override SymbolKind Kind => SymbolKind.NamedType;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitNamedType(this);
-        }
+            => visitor.VisitNamedType(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitNamedType(this);
-        }
+            => visitor.VisitNamedType(this);
 
         public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
         {
