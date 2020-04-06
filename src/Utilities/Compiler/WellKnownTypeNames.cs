@@ -269,6 +269,7 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyX509CertificatesX509Certificate2 = "System.Security.Cryptography.X509Certificates.X509Certificate2";
         public const string SystemSecurityCryptographyX509CertificatesX509Chain = "System.Security.Cryptography.X509Certificates.X509Chain";
         public const string SystemSecurityCryptographyX509CertificatesX509Store = "System.Security.Cryptography.X509Certificates.X509Store";
+        public const string SystemSecurityPermissionsSecurityPermissionAttribute = "System.Security.Permissions.SecurityPermissionAttribute";
         public const string SystemSerializableAttribute = "System.SerializableAttribute";
         public const string SystemSingle = "System.Single";
         public const string SystemStackOverflowException = "System.StackOverflowException";
@@ -487,7 +488,6 @@ namespace Analyzer.Utilities
         public const string SystemXmlXslXslCompiledTransform = "System.Xml.Xsl.XslCompiledTransform";
         public const string SystemXmlXslXslTransform = "System.Xml.Xsl.XslTransform";
         public const string SystemXmlXslXsltSettings = "System.Xml.Xsl.XsltSettings";
-        public const string SystemSecurityPermissionsSecurityPermissionAttribute = "System.Security.Permissions.SecurityPermissionAttribute";
         public const string XunitAssert = "Xunit.Assert";
         public const string XunitFactAttribute = "Xunit.FactAttribute";
         public const string XunitTheoryAttribute = "Xunit.TheoryAttribute";
