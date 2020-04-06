@@ -29,5 +29,11 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             return source.Where<T?>(s_notNullTest)!;
         }
+
+        public static T? SingleOrNull<T>(this IEnumerable<T> source)
+            where T : struct
+        {
+            return source.Select(value => (T?)value).SingleOrDefault();
+        }
     }
 }

@@ -70,6 +70,52 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
             await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
 
+        [Fact]
+        [WorkItem(411, "https://github.com/dotnet/roslyn-sdk/issues/411")]
+        public async Task TestCSharpNestedMarkupBraceWithCombinedSyntax()
+        {
+            var testCode = @"
+class TestClass {|#0:{|}
+  void TestMethod() {|#1:{|} }
+}
+";
+
+            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: false)
+            {
+                TestCode = testCode,
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(HighlightBracesAnalyzer.DescriptorOuter).WithLocation(0),
+                    new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0),
+                    new DiagnosticResult(HighlightBracesAnalyzer.DescriptorOuter).WithLocation(1),
+                    new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(1),
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(411, "https://github.com/dotnet/roslyn-sdk/issues/411")]
+        public async Task TestCSharpNestedMarkupBraceWithCombinedSyntaxAndAdditionalLocations()
+        {
+            var testCode = @"
+class TestClass {|#0:{|}
+  void TestMethod() {|#1:{|} {|#2:}|}
+{|#3:}|}
+";
+
+            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: true)
+            {
+                TestCode = testCode,
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(HighlightBracesAnalyzer.DescriptorOuter).WithLocation(0).WithLocation(3),
+                    new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0).WithLocation(3),
+                    new DiagnosticResult(HighlightBracesAnalyzer.DescriptorOuter).WithLocation(1).WithLocation(2),
+                    new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(1).WithLocation(2),
+                },
+            }.RunAsync();
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestCSharpNestedMarkupBraceUnspecifiedIdWithoutDefault(bool reportAdditionalLocations)
