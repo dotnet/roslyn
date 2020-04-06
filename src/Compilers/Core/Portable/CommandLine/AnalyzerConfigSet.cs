@@ -191,27 +191,29 @@ namespace Microsoft.CodeAnalysis
                 var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
                 var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
 
-                int sectionIndex = 0;
+                int sectionKeyIndex = 0;
                 for (int analyzerConfigIndex = 0;
-                    analyzerConfigIndex < _analyzerConfigs.Length && sectionIndex < sectionKey.Count;
+                    analyzerConfigIndex < _analyzerConfigs.Length && sectionKeyIndex < sectionKey.Count;
                     analyzerConfigIndex++)
                 {
                     AnalyzerConfig config = _analyzerConfigs[analyzerConfigIndex];
                     ImmutableArray<SectionNameMatcher?> matchers = _analyzerMatchers[analyzerConfigIndex];
                     for (int matcherIndex = 0; matcherIndex < matchers.Length; matcherIndex++)
                     {
-                        if (sectionKey[sectionIndex] == config.NamedSections[matcherIndex])
+                        if (sectionKey[sectionKeyIndex] == config.NamedSections[matcherIndex])
                         {
                             addOptions(
-                                sectionKey[sectionIndex],
+                                sectionKey[sectionKeyIndex],
                                 treeOptionsBuilder,
                                 analyzerOptionsBuilder,
                                 diagnosticBuilder,
                                 config.PathToFile,
                                 _diagnosticIdCache);
-                            sectionIndex++;
-                            if (sectionIndex == sectionKey.Count)
+                            sectionKeyIndex++;
+                            if (sectionKeyIndex == sectionKey.Count)
                             {
+                                // Exit the inner 'for' loop now that work is done. The outer loop is handled by a
+                                // top-level condition.
                                 break;
                             }
                         }
@@ -223,11 +225,6 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
                     diagnosticBuilder.ToImmutableAndFree());
 
-                treeOptionsBuilder.Clear();
-                analyzerOptionsBuilder.Clear();
-                _treeOptionsPool.Free(treeOptionsBuilder);
-                _analyzerOptionsPool.Free(analyzerOptionsBuilder);
-
                 if (_optionsCache.TryAdd(sectionKey, result))
                 {
                     // Release the pooled object to be used as a key
@@ -237,6 +234,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     freeKey(sectionKey, _sectionKeyPool);
                 }
+
+                treeOptionsBuilder.Clear();
+                analyzerOptionsBuilder.Clear();
+                _treeOptionsPool.Free(treeOptionsBuilder);
+                _analyzerOptionsPool.Free(analyzerOptionsBuilder);
             }
             else
             {
