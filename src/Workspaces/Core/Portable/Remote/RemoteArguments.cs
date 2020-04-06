@@ -51,21 +51,26 @@ namespace Microsoft.CodeAnalysis.Remote
         public bool Equals(SerializableSymbolAndProjectId other)
             => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
 
-        public static SerializableSymbolAndProjectId Dehydrate(
-            IAliasSymbol alias, Document document)
+        public static async Task<SerializableSymbolAndProjectId> DehydrateAsync(
+            IAliasSymbol alias, Document document, CancellationToken cancellationToken)
         {
             return alias == null
                 ? null
-                : Dehydrate(new SymbolAndProjectId(alias, document.Project.Id));
+                : await DehydrateAsync(document.Project.Solution, new SymbolAndProjectId(alias, document.Project.Id), cancellationToken).ConfigureAwait(false);
         }
 
-        public static SerializableSymbolAndProjectId Dehydrate(
-            SymbolAndProjectId symbolAndProjectId)
+        public static async Task<SerializableSymbolAndProjectId> DehydrateAsync(
+            Solution solution, SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
+            var symbolKey = symbolAndProjectId.Symbol.GetSymbolKey(cancellationToken);
+            var projectId = await solution.GetExactProjectIdAsync(symbolAndProjectId.Symbol, cancellationToken).ConfigureAwait(false);
+            if (projectId == null)
+                throw new InvalidOperationException("SymbolKeys used for OOP operations must have a ProjectId");
+
             return new SerializableSymbolAndProjectId
             {
-                SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = symbolAndProjectId.ProjectId
+                SymbolKeyData = symbolKey.ToString(),
+                ProjectId = projectId,
             };
         }
 
@@ -162,13 +167,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public CandidateReason CandidateReason { get; set; }
 
-        public static SerializableReferenceLocation Dehydrate(
-            ReferenceLocation referenceLocation)
+        public static async Task<SerializableReferenceLocation> DehydrateAsync(
+            ReferenceLocation referenceLocation, CancellationToken cancellationToken)
         {
             return new SerializableReferenceLocation
             {
                 Document = referenceLocation.Document.Id,
-                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
+                Alias = await SerializableSymbolAndProjectId.DehydrateAsync(referenceLocation.Alias, referenceLocation.Document, cancellationToken).ConfigureAwait(false),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             solution,
                             new object[]
                             {
-                                SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
+                                await SerializableSymbolAndProjectId.DehydrateAsync(solution, symbolAndProjectId, cancellationToken).ConfigureAwait(false),
                                 documents?.Select(d => d.Id).ToArray(),
                                 SerializableFindReferencesSearchOptions.Dehydrate(options),
                             },
