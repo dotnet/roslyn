@@ -32,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\CSharpRemoveUnnecessaryParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\CSharpRemoveUnusedValuesCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundCoalesceAssignmentCodeFixProvider.cs" />

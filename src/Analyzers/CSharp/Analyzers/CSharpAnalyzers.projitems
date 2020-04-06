@@ -35,6 +35,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchStatementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\CSharpRemoveUnreachableCodeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\RemoveUnreachableCodeHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentDiagnosticAnalyzer.cs" />

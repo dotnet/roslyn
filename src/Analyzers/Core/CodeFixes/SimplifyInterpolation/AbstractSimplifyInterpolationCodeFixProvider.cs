@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         {
             var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
+            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             foreach (var diagnostic in diagnostics)
             {
                 var loc = diagnostic.AdditionalLocations[0];
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
                 {
                     Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                        document.GetRequiredLanguageService<IVirtualCharService>(),
+                        document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
                         document.GetRequiredLanguageService<ISyntaxFactsService>(), interpolation, out var unwrapped,
                         out var alignment, out var negate, out var formatString, out _);
 
@@ -75,13 +76,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
                     editor.ReplaceNode(
                         interpolationSyntax,
-                        Update(generator, interpolatedString, interpolationSyntax, unwrapped, alignment, formatString));
+                        Update(generatorInternal, interpolatedString, interpolationSyntax, unwrapped, alignment, formatString));
                 }
             }
         }
 
         private TInterpolationSyntax Update(
-            SyntaxGenerator generator, TInterpolatedStringExpressionSyntax interpolatedString,
+            SyntaxGeneratorInternal generator, TInterpolatedStringExpressionSyntax interpolatedString,
             TInterpolationSyntax interpolation, TExpressionSyntax unwrapped,
             TExpressionSyntax? alignment, string? formatString)
         {
@@ -103,10 +104,10 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             return result;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Simplify_interpolation, createChangedDocument, FeaturesResources.Simplify_interpolation)
+                : base(AnalyzersResources.Simplify_interpolation, createChangedDocument, AnalyzersResources.Simplify_interpolation)
             {
             }
         }
