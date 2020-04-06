@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 locations.Add(new ReferenceLocation());
             }
 
-            var referencedSymbol = new ReferencedSymbol(
-                SymbolAndProjectId.Create(symbol, projectId: null), locations);
+            var referencedSymbol = new ReferencedSymbol(symbol, locations);
             return referencedSymbol;
         }
 

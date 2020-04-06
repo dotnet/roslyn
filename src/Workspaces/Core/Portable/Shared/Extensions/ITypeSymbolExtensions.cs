@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsForInterfaceMemberAsync(
-            this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
-            SymbolAndProjectId interfaceMemberAndProjectId,
+        public static async Task<ImmutableArray<ISymbol>> FindImplementationsForInterfaceMemberAsync(
+            this ITypeSymbol typeSymbol,
+            ISymbol interfaceMember,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -43,12 +43,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // If you're looking for the implementations of IGoo<X>.Goo then you want to find both
             // results in C.
 
-            var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-            var interfaceMember = interfaceMemberAndProjectId.Symbol;
+            var arrBuilder = ArrayBuilder<ISymbol>.GetInstance();
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
-            var typeSymbol = typeSymbolAndProjectId.Symbol;
             if (typeSymbol == null || interfaceMember == null)
             {
                 return arrBuilder.ToImmutableAndFree();
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                         if (result != null)
                         {
-                            arrBuilder.Add(typeSymbolAndProjectId.WithSymbol(result));
+                            arrBuilder.Add(result);
                             break;
                         }
                     }

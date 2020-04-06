@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     public static partial class SymbolFinder
     {
         internal static async Task FindReferencesAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
@@ -28,47 +28,42 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                // If ProjectId is null then this is a call through our old public API.  We don't have
-                // the necessary data to effectively run the call out of proc.
-                if (symbolAndProjectId.ProjectId != null)
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                    if (client != null)
-                    {
-                        // Create a callback that we can pass to the server process to hear about the 
-                        // results as it finds them.  When we hear about results we'll forward them to
-                        // the 'progress' parameter which will then update the UI.
-                        var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
+                    // Create a callback that we can pass to the server process to hear about the 
+                    // results as it finds them.  When we hear about results we'll forward them to
+                    // the 'progress' parameter which will then update the UI.
+                    var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
-                        var success = await client.TryRunRemoteAsync(
-                            WellKnownServiceHubServices.CodeAnalysisService,
-                            nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                            solution,
-                            new object[]
-                            {
-                                SerializableSymbolAndProjectId.Dehydrate(solution, symbolAndProjectId.Symbol, cancellationToken),
-                                documents?.Select(d => d.Id).ToArray(),
-                                SerializableFindReferencesSearchOptions.Dehydrate(options),
-                            },
-                            serverCallback,
-                            cancellationToken).ConfigureAwait(false);
-
-                        if (success)
+                    var success = await client.TryRunRemoteAsync(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                        solution,
+                        new object[]
                         {
-                            return;
-                        }
+                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
+                            documents?.Select(d => d.Id).ToArray(),
+                            SerializableFindReferencesSearchOptions.Dehydrate(options),
+                        },
+                        serverCallback,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (success)
+                    {
+                        return;
                     }
                 }
 
                 // Couldn't effectively search in OOP. Perform the search in-proc.
                 await FindReferencesInCurrentProcessAsync(
-                    symbolAndProjectId, solution, progress,
+                    symbol, solution, progress,
                     documents, options, cancellationToken).ConfigureAwait(false);
             }
         }
 
         internal static Task FindReferencesInCurrentProcessAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbolAndProjectId,
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,

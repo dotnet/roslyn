@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>>;
+    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progressTracker = progress.ProgressTracker;
         }
 
-        public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)
+        public async Task FindReferencesAsync(ISymbol symbol)
         {
             await _progress.OnStartedAsync().ConfigureAwait(false);
             try
             {
                 await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
 
-                var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
+                var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
                 var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void ValidateProjectToDocumentMap(
             ProjectToDocumentMap projectToDocumentMap)
         {
-            var set = new HashSet<(SymbolAndProjectId symbolAndProjectId, IReferenceFinder finder)>();
+            var set = new HashSet<(ISymbol symbol, IReferenceFinder finder)>();
 
             foreach (var documentMap in projectToDocumentMap.Values)
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
-            => _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
+        private Task HandleLocationAsync(ISymbol symbol, ReferenceLocation location)
+            => _progress.OnReferenceFoundAsync(symbol, location);
     }
 }

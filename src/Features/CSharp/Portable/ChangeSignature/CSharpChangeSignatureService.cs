@@ -625,12 +625,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return permutedParams;
         }
 
-        public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
-            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+        public override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
+            IMethodSymbol symbol,
             Document document,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -661,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     })
                 .SelectAsArray(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
-            return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
+            return convertedMethodGroups;
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)

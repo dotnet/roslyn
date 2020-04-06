@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var progress = new StreamingProgressCollector();
 
             await SymbolFinder.FindReferencesAsync(
-                symbolAndProjectId: SymbolAndProjectId.Create(method, invocationDocument.Project.Id),
+                symbol: method,
                 solution: invocationDocument.Project.Solution,
                 documents: null,
                 progress: progress,

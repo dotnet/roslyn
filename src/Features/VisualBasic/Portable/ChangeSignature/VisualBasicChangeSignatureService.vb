@@ -551,11 +551,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Public Overrides Async Function DetermineCascadedSymbolsFromDelegateInvokeAsync(
-                methodAndProjectId As SymbolAndProjectId(Of IMethodSymbol),
+                method As IMethodSymbol,
                 document As Document,
-                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
 
-            Dim symbol = methodAndProjectId.Symbol
+            Dim symbol = method
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
@@ -601,8 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
             Next
 
-            Return results.ToImmutableAndFree().
-                           SelectAsArray(Function(s) SymbolAndProjectId.Create(s, document.Project.Id))
+            Return results.ToImmutableAndFree()
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)

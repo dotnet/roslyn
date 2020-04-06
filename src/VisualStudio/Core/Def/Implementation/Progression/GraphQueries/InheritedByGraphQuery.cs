@@ -19,14 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbolAndProjectId = graphBuilder.GetSymbolAndProjectId(node);
-                if (!(symbolAndProjectId.Symbol is INamedTypeSymbol namedType))
+                var symbol = graphBuilder.GetSymbol(node);
+                if (!(symbol is INamedTypeSymbol namedType))
                     continue;
 
                 if (namedType.TypeKind == TypeKind.Class)
                 {
                     var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedClassesAsync(
-                        symbolAndProjectId.WithSymbol(namedType), solution, cancellationToken).ConfigureAwait(false);
+                        namedType, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 else if (namedType.TypeKind == TypeKind.Interface)
                 {
                     var derivedTypes = await DependentTypeFinder.FindImmediatelyDerivedAndImplementingTypesAsync(
-                        symbolAndProjectId.WithSymbol(namedType), solution, cancellationToken).ConfigureAwait(false);
+                        namedType, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var derivedType in derivedTypes)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(

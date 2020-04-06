@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             foreach (var baseSymbol in bases)
             {
                 var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-                   SymbolAndProjectId.Create(baseSymbol, null), solution, cancellationToken).ConfigureAwait(false);
-                if (sourceDefinition.Symbol != null)
+                   baseSymbol, solution, cancellationToken).ConfigureAwait(false);
+                if (sourceDefinition != null)
                 {
-                    var projectId = solution.GetExactProjectId(sourceDefinition.Symbol);
-                    var definitionItem = await sourceDefinition.Symbol.ToClassifiedDefinitionItemAsync(
+                    var projectId = solution.GetExactProjectId(sourceDefinition);
+                    var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
                         solution.GetProject(projectId), includeHiddenLocations: false,
                         FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
                         .ConfigureAwait(false);

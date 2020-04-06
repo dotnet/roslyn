@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             public readonly ImmutableHashSet<RenameLocation> Locations;
             public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
-            public readonly ImmutableArray<SymbolAndProjectId> ReferencedSymbols;
+            public readonly ImmutableArray<ISymbol> ReferencedSymbols;
 
             public SearchResult(
                 ImmutableHashSet<RenameLocation> locations,
                 ImmutableArray<ReferenceLocation> implicitLocations,
-                ImmutableArray<SymbolAndProjectId> referencedSymbols)
+                ImmutableArray<ISymbol> referencedSymbols)
             {
                 this.Locations = locations;
                 this.ImplicitLocations = implicitLocations;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         // never null fields
-        private readonly SymbolAndProjectId _symbolAndProjectId;
+        private readonly ISymbol _symbol;
         private readonly Solution _solution;
         private readonly SearchResult _mergedResult;
         internal OptionSet Options { get; }
@@ -56,20 +56,20 @@ namespace Microsoft.CodeAnalysis.Rename
 
         internal RenameLocations(
             ImmutableHashSet<RenameLocation> locations,
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
-            ImmutableArray<SymbolAndProjectId> referencedSymbols,
+            ImmutableArray<ISymbol> referencedSymbols,
             ImmutableArray<ReferenceLocation> implicitLocations,
             OptionSet options)
         {
-            _symbolAndProjectId = symbolAndProjectId;
+            _symbol = symbol;
             _solution = solution;
             _mergedResult = new SearchResult(locations, implicitLocations, referencedSymbols);
             Options = options;
         }
 
         private RenameLocations(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             OptionSet options,
             SearchResult originalSymbolResult,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableArray<RenameLocation> stringsResult,
             ImmutableArray<RenameLocation> commentsResult)
         {
-            _symbolAndProjectId = symbolAndProjectId;
+            _symbol = symbol;
             _solution = solution;
             Options = options;
             _originalSymbolResult = originalSymbolResult;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Rename
             _commentsResult = commentsResult;
 
             var mergedLocations = ImmutableHashSet.CreateBuilder<RenameLocation>();
-            using var _1 = ArrayBuilder<SymbolAndProjectId>.GetInstance(out var mergedReferencedSymbols);
+            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var mergedReferencedSymbols);
             using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(out var mergedImplicitLocations);
 
             if (options.GetOption(RenameOptions.RenameInStrings))
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             var renameMethodGroupReferences =
-                options.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbolAndProjectId).Any();
+                options.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbol).Any();
             var overloadsToMerge = options.GetOption(RenameOptions.RenameOverloads)
                 ? overloadsResult.NullToEmpty()
                 : ImmutableArray<SearchResult>.Empty;
@@ -119,25 +119,24 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         public ISet<RenameLocation> Locations => _mergedResult.Locations;
-        public SymbolAndProjectId SymbolAndProjectId => _symbolAndProjectId;
-        public ISymbol Symbol => _symbolAndProjectId.Symbol;
+        public ISymbol Symbol => _symbol;
         public Solution Solution => _solution;
-        public ImmutableArray<SymbolAndProjectId> ReferencedSymbols => _mergedResult.ReferencedSymbols;
+        public ImmutableArray<ISymbol> ReferencedSymbols => _mergedResult.ReferencedSymbols;
         public ImmutableArray<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
 
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>
         internal static async Task<RenameLocations> FindAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, OptionSet optionSet, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(symbolAndProjectId.Symbol);
+            Contract.ThrowIfNull(symbol);
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
-                symbolAndProjectId = await ReferenceProcessing.FindDefinitionSymbolAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
-                var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
+                symbol = await ReferenceProcessing.FindDefinitionSymbolAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
                 var intermediateResult = new RenameLocations(
-                    symbolAndProjectId, solution, optionSet, originalSymbolResult, overloadsResult: default, stringsResult: default, commentsResult: default);
+                    symbol, solution, optionSet, originalSymbolResult, overloadsResult: default, stringsResult: default, commentsResult: default);
 
                 return await intermediateResult.FindWithUpdatedOptionsAsync(optionSet, cancellationToken).ConfigureAwait(false);
             }
@@ -151,11 +150,11 @@ namespace Microsoft.CodeAnalysis.Rename
                 var overloadsResult = !_overloadsResult.IsDefault
                     ? _overloadsResult
                     : optionSet.GetOption(RenameOptions.RenameOverloads)
-                        ? await GetOverloadsAsync(_symbolAndProjectId, _solution, cancellationToken).ConfigureAwait(false)
+                        ? await GetOverloadsAsync(_symbol, _solution, cancellationToken).ConfigureAwait(false)
                         : default;
 
                 var stringsAndComments = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
-                    _symbolAndProjectId.Symbol,
+                    _symbol,
                     _solution,
                     _originalSymbolResult.Locations,
                     optionSet.GetOption(RenameOptions.RenameInStrings) && _stringsResult.IsDefault,
@@ -163,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     cancellationToken).ConfigureAwait(false);
 
                 return new RenameLocations(
-                    _symbolAndProjectId, _solution, optionSet, _originalSymbolResult,
+                    _symbol, _solution, optionSet, _originalSymbolResult,
                     _overloadsResult.IsDefault ? overloadsResult : _overloadsResult,
                     _stringsResult.IsDefault ? stringsAndComments.Item1 : _stringsResult,
                     _commentsResult.IsDefault ? stringsAndComments.Item2 : _commentsResult);
@@ -171,19 +170,17 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         private static async Task<ImmutableArray<SearchResult>> GetOverloadsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SearchResult>.GetInstance(out var overloadsResult);
-            foreach (var overloadedSymbol in GetOverloadedSymbols(symbolAndProjectId))
+            foreach (var overloadedSymbol in GetOverloadedSymbols(symbol))
                 overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, cancellationToken).ConfigureAwait(false));
 
             return overloadsResult.ToImmutable();
         }
 
-        internal static IEnumerable<SymbolAndProjectId> GetOverloadedSymbols(
-            SymbolAndProjectId symbolAndProjectId)
+        internal static IEnumerable<ISymbol> GetOverloadedSymbols(ISymbol symbol)
         {
-            var symbol = symbolAndProjectId.Symbol;
             if (symbol is IMethodSymbol)
             {
                 var containingType = symbol.ContainingType;
@@ -193,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         if (string.Equals(member.MetadataName, symbol.MetadataName, StringComparison.Ordinal) && member is IMethodSymbol && !member.Equals(symbol))
                         {
-                            yield return symbolAndProjectId.WithSymbol(member);
+                            yield return member;
                         }
                     }
                 }
@@ -201,14 +198,13 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         private static async Task<SearchResult> AddLocationsReferenceSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             var locations = ImmutableHashSet.CreateBuilder<RenameLocation>();
             var referenceSymbols = await SymbolFinder.FindRenamableReferencesAsync(
-                symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
+                symbol, solution, cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedSymbol in referenceSymbols)
             {
@@ -222,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             var implicitLocations = referenceSymbols.SelectMany(refSym => refSym.Locations).Where(loc => loc.IsImplicit).ToImmutableArray();
-            var referencedSymbols = referenceSymbols.Select(r => r.DefinitionAndProjectId).Where(r => !r.Symbol.Equals(symbol)).ToImmutableArray();
+            var referencedSymbols = referenceSymbols.Select(r => r.Definition).Where(r => !r.Equals(symbol)).ToImmutableArray();
 
             return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
         }
@@ -230,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public RenameLocations Filter(Func<Location, bool> filter)
             => new RenameLocations(
                 this.Locations.Where(loc => filter(loc.Location)).ToImmutableHashSet(),
-                this.SymbolAndProjectId, this.Solution,
+                this.Symbol, this.Solution,
                 this.ReferencedSymbols, this.ImplicitLocations.WhereAsArray(loc => filter(loc.Location)),
                 this.Options);
     }

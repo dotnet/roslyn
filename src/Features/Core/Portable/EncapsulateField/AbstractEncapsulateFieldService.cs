@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 if (finalFieldName != field.Name && constructorLocations.Count > 0)
                 {
                     solution = await RenameAsync(
-                        solution, SymbolAndProjectId.Create(field, projectId), finalFieldName,
+                        solution, field, finalFieldName,
                         location => IntersectsWithAny(location, constructorLocations),
                         cancellationToken).ConfigureAwait(false);
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
                 // Outside the constructor we want to rename references to the field to final property name.
                 return await RenameAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId), generatedPropertyName,
+                    solution, field, generatedPropertyName,
                     location => !IntersectsWithAny(location, constructorLocations),
                     cancellationToken).ConfigureAwait(false);
             }
@@ -270,13 +270,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId), generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
+                    solution, field, generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<Solution> RenameAsync(
             Solution solution,
-            SymbolAndProjectId<IFieldSymbol> field,
+            IFieldSymbol field,
             string finalName,
             Func<Location, bool> filter,
             CancellationToken cancellationToken)
