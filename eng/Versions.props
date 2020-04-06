@@ -32,7 +32,7 @@
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20126.2</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.6.0-2.20157.5</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
-    <ILToolsPackageVersion>5.0.0-preview.4.20202.18</ILToolsPackageVersion>
+    <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerPackagesVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerPackagesVersion>
   </PropertyGroup>
   <!-- 
