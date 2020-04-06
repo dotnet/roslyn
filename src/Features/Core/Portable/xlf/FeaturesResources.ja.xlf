@@ -720,11 +720,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">折り返し</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} を簡略化できます。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
         <source>10,000,000ths of a second</source>
         <target state="new">10,000,000ths of a second</target>
@@ -2957,11 +2952,6 @@ Although the result string should express a time as Coordinated Universal Time (
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">依存プロジェクトの使用の更新</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">'using' ステートメントは単純にできます</target>
         <note />
       </trans-unit>
       <trans-unit id="utc_hour_and_minute_offset">
