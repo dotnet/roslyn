@@ -111,7 +111,25 @@ namespace Microsoft.CodeAnalysis
 
             ProjectId? ComputeProjectIdForModuleOrAssembly(ISymbol symbol)
             {
-                // Look through each project to see if we can find the one that produced this compilation.
+                // First, check if this was the source assembly symbol for a specific project.
+                if (symbol is IAssemblySymbol assemblySymbol)
+                {
+                    foreach (var (id, _) in this.ProjectStates)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // A symbol can only belong to a project if that project actually produced it from it's compilation.
+                        // So, if we have no compilation, this definitely isn't a match.
+                        if (!this.TryGetCompilation(id, out var compilation))
+                            continue;
+
+                        // See if this is a reference to the source assembly for this compilation itself.
+                        if (compilation.Assembly.Equals(symbol))
+                            return id;
+                    }
+                }
+
+                // Now, see if this was an assembly symbol created for a metadata reference.
                 foreach (var (id, _) in this.ProjectStates)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -120,10 +138,6 @@ namespace Microsoft.CodeAnalysis
                     // So, if we have no compilation, this definitely isn't a match.
                     if (!this.TryGetCompilation(id, out var compilation))
                         continue;
-
-                    // See if this is a reference to the source assembly for this compilation itself.
-                    if (compilation.Assembly.Equals(symbol))
-                        return id;
 
                     // Now, see if it was a reference to to any of the metadata assembly symbols for this project.
                     foreach (var metadataReference in compilation.References)

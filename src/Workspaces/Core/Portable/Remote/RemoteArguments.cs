@@ -62,14 +62,15 @@ namespace Microsoft.CodeAnalysis.Remote
         public static SerializableSymbolAndProjectId Dehydrate(
             Solution solution, SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
-            var symbolKey = symbolAndProjectId.Symbol.GetSymbolKey(solution, cancellationToken);
-            if (symbolKey.ProjectId == null)
+            var symbolKey = symbolAndProjectId.Symbol.GetSymbolKey(null, cancellationToken);
+            var projectId = solution.GetExactProjectId(symbolAndProjectId.Symbol, cancellationToken);
+            if (projectId == null)
                 throw new InvalidOperationException("SymbolKeys used for OOP operations must have a ProjectId");
 
             return new SerializableSymbolAndProjectId
             {
                 SymbolKeyData = symbolKey.ToString(),
-                ProjectId = symbolKey.ProjectId,
+                ProjectId = projectId,
             };
         }
 
