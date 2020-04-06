@@ -527,12 +527,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     {
                         var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
 
-                        if (symbol != null && _renamedSymbol.Kind != SymbolKind.Local && _renamedSymbol.Kind != SymbolKind.RangeVariable)
+                        if (symbol != null && _renamedSymbol.Kind != SymbolKind.Local && _renamedSymbol.Kind != SymbolKind.RangeVariable &&
+                            (Equals(symbol, _renamedSymbol) || SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(symbol.GetSymbolKey(), _renamedSymbol.GetSymbolKey())))
                         {
-                            if (Equals(symbol, _renamedSymbol) || SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(symbol, _renamedSymbol))
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
 

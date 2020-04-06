@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        internal class SymbolKeyComparer : IEqualityComparer<SymbolKey>, IEqualityComparer<ISymbol>
+        private class SymbolKeyComparer : IEqualityComparer<SymbolKey>
         {
             private readonly ComparisonOptions _options;
 
@@ -17,12 +17,6 @@ namespace Microsoft.CodeAnalysis
                 => _options = options;
 
             public bool Equals(SymbolKey x, SymbolKey y)
-                => Equals(x._symbolKeyData, y._symbolKeyData);
-
-            public bool Equals(ISymbol x, ISymbol y)
-                => Equals(CreateString(x), CreateString(y));
-
-            private bool Equals(string xData, string yData)
             {
                 var comparer = _options.IgnoreCase
                     ? StringComparer.OrdinalIgnoreCase
@@ -31,14 +25,14 @@ namespace Microsoft.CodeAnalysis
                 if (!_options.IgnoreAssemblyKey)
                 {
                     // Easiest case.  We can directly compare the raw contents of the keys.
-                    return comparer.Equals(xData, yData);
+                    return comparer.Equals(x._symbolKeyData, y._symbolKeyData);
                 }
                 else
                 {
                     // This is harder.  To compare these we need to remove the entries related to 
                     // assemblies.
-                    var data1 = RemoveAssemblyKeys(xData);
-                    var data2 = RemoveAssemblyKeys(yData);
+                    var data1 = RemoveAssemblyKeys(x._symbolKeyData);
+                    var data2 = RemoveAssemblyKeys(y._symbolKeyData);
 
                     return comparer.Equals(data1, data2);
                 }
@@ -52,33 +46,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             public int GetHashCode(SymbolKey obj)
-                => GetHashCode(obj._symbolKeyData);
+                => obj.GetHashCode();
 
-            public int GetHashCode(ISymbol obj)
-                => GetHashCode(CreateString(obj));
-
-            private int GetHashCode(string data)
-            {
-                var comparer = _options.IgnoreCase
-                    ? StringComparer.OrdinalIgnoreCase
-                    : StringComparer.Ordinal;
-
-                if (!_options.IgnoreAssemblyKey)
-                {
-                    // Easiest case.  We can directly hash the raw contents of the keys.
-                    return comparer.GetHashCode(data);
-                }
-                else
-                {
-                    // This is harder.  To compare these we need to remove the entries related to 
-                    // assemblies.
-                    var data1 = RemoveAssemblyKeys(data);
-
-                    return comparer.GetHashCode(data1);
-                }
-            }
-
-            public static SymbolKeyComparer GetComparer(bool ignoreCase, bool ignoreAssemblyKey)
+            public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKey)
                 => GetComparer(new ComparisonOptions(ignoreCase, ignoreAssemblyKey));
 
             private static readonly SymbolKeyComparer[] s_cachedComparers = new SymbolKeyComparer[4];
@@ -86,10 +56,10 @@ namespace Microsoft.CodeAnalysis
             private static SymbolKeyComparer EnsureInitialized(ref SymbolKeyComparer location, ComparisonOptions options)
             {
                 // This doesn't need to be interlocked since comparers store no state
-                return location ??= new SymbolKeyComparer(options);
+                return location ?? (location = new SymbolKeyComparer(options));
             }
 
-            private static SymbolKeyComparer GetComparer(ComparisonOptions options)
+            public static IEqualityComparer<SymbolKey> GetComparer(ComparisonOptions options)
                 => EnsureInitialized(ref s_cachedComparers[options.FlagsValue], options);
         }
     }

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 // This is a VB event that declares its own type.  i.e. "Public Event E(x As Object)"
                 // We also have to generate "public void delegate EEventHandler(object x)"
                 var compilation = await newDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var newDestinationSymbol = SymbolKey.Resolve(destination, compilation).Symbol;
+                var newDestinationSymbol = destination.GetSymbolKey().Resolve(compilation).Symbol;
 
                 if (newDestinationSymbol?.ContainingType != null)
                 {

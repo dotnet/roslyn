@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     // Return symbols from skeleton assembly in this case so that symbols have 
                     // the same language as startingCompilation.
-                    symbolsWithName = symbolsWithName.Select(s => s.WithSymbol(SymbolKey.Resolve(s.Symbol, startingCompilation, cancellationToken: cancellationToken).Symbol))
+                    symbolsWithName = symbolsWithName.Select(s => s.WithSymbol(s.Symbol.GetSymbolKey().Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol))
                                                      .Where(s => s.Symbol != null)
                                                      .ToImmutableArray();
                 }
