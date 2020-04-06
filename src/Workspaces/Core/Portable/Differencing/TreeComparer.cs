@@ -32,17 +32,13 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Returns an edit script that transforms <paramref name="oldRoot"/> to <paramref name="newRoot"/>.
         /// </summary>
         public EditScript<TNode> ComputeEditScript(TNode oldRoot, TNode newRoot)
-        {
-            return new Match<TNode>(oldRoot, newRoot, this, knownMatches: null).GetTreeEdits();
-        }
+            => new Match<TNode>(oldRoot, newRoot, this, knownMatches: null).GetTreeEdits();
 
         /// <summary>
         /// Returns a match map of <paramref name="oldRoot"/> descendants to <paramref name="newRoot"/> descendants.
         /// </summary>
         public Match<TNode> ComputeMatch(TNode oldRoot, TNode newRoot, IEnumerable<KeyValuePair<TNode, TNode>>? knownMatches = null)
-        {
-            return new Match<TNode>(oldRoot, newRoot, this, knownMatches);
-        }
+            => new Match<TNode>(oldRoot, newRoot, this, knownMatches);
 
         /// <summary>
         /// Calculates the distance [0..1] of two nodes.
@@ -104,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             var hasParent = TryGetParent(node, out var parent);
             Debug.Assert(hasParent);
-            return parent;
+            return parent!;
         }
 
         internal TNode GetAncestor(TNode node, int level)

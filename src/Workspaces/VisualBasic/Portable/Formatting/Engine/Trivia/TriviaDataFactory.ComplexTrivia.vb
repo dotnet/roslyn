@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Sub
 
             Protected Overrides Sub ExtractLineAndSpace(text As String, ByRef lines As Integer, ByRef spaces As Integer)
-                text.ProcessTextBetweenTokens(Me.TreeInfo, Me.Token1, Me.Options.GetOption(FormattingOptions.TabSize), lines, spaces)
+                text.ProcessTextBetweenTokens(Me.TreeInfo, Me.Token1, Me.Options.GetOption(FormattingOptions2.TabSize), lines, spaces)
             End Sub
 
             Protected Overrides Function CreateComplexTrivia(line As Integer, space As Integer) As TriviaData
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 Debug.Assert(Me.SecondTokenIsFirstTokenOnLine OrElse beginningOfNewLine)
 
-                If Me.Options.GetOption(FormattingOptions.UseTabs) Then
+                If Me.Options.GetOption(FormattingOptions2.UseTabs) Then
                     Return True
                 End If
 
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function GetTriviaList(cancellationToken As Threading.CancellationToken) As List(Of SyntaxTrivia)
+            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As SyntaxTriviaList
                 Throw New NotImplementedException()
             End Function
         End Class

@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {

@@ -92,6 +92,11 @@
         <target state="translated">Mostra elementi da spazi dei nomi non importati (sperimentale)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_remarks_in_Quick_Info">
+        <source>Show remarks in Quick Info</source>
+        <target state="new">Show remarks in Quick Info</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">Ordina using</target>

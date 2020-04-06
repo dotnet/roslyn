@@ -220,9 +220,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     private static void DisposeProjectCache(IDisposable projectCache)
-                    {
-                        projectCache?.Dispose();
-                    }
+                        => projectCache?.Dispose();
 
                     private void DisposeProjectCache()
                     {
@@ -452,9 +450,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     private Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
-                    {
-                        return RemoveDocumentAsync(Analyzers, documentId, cancellationToken);
-                    }
+                        => RemoveDocumentAsync(Analyzers, documentId, cancellationToken);
 
                     private static async Task RemoveDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId, CancellationToken cancellationToken)
                     {
@@ -553,7 +549,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // this shouldn't happen. would like to get some diagnostic
                         while (_workItemQueue.HasAnyWork)
                         {
-                            Environment.FailFast("How?");
+                            FailFast.Fail("How?");
                         }
                     }
                 }

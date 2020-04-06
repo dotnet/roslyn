@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.SelectKeyword:
                     if (currentToken.GetAncestor<QueryExpressionSyntax>() != null)
                     {
-                        if (options.GetOption(CSharpFormattingOptions.NewLineForClausesInQuery))
+                        if (options.GetOption(CSharpFormattingOptions2.NewLineForClausesInQuery))
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }

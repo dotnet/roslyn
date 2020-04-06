@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public override string Title => FeaturesResources.Change_signature;
 
         public override object GetOptions(CancellationToken cancellationToken)
-        {
-            return _changeSignatureService.GetChangeSignatureOptions(_context);
-        }
+            => _changeSignatureService.GetChangeSignatureOptions(_context);
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {

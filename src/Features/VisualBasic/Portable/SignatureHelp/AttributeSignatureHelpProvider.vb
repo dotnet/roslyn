@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.DocumentationComments
@@ -18,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Inherits AbstractVisualBasicSignatureHelpProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -68,11 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             Dim accessibleConstructors = attributeType.InstanceConstructors.
                                                        WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
                                                        FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
-                                                       Sort(symbolDisplayService, semanticModel, attribute.SpanStart)
+                                                       Sort(semanticModel, attribute.SpanStart)
 
             If Not accessibleConstructors.Any() Then
                 Return Nothing
@@ -87,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo)
 
             Return CreateSignatureHelpItems(accessibleConstructors.Select(
-                Function(c) Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                Function(c) Convert(c, within, attribute, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
         End Function
 
@@ -106,7 +107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                            within As ISymbol,
                                            attribute As AttributeSyntax,
                                            semanticModel As SemanticModel,
-                                           symbolDisplayService As ISymbolDisplayService,
                                            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                            documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                            cancellationToken As CancellationToken) As SignatureHelpItem
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim item = CreateItem(
                 constructor, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 isVariadic,
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                 GetPreambleParts(constructor, semanticModel, position),

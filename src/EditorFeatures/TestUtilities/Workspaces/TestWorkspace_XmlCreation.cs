@@ -121,14 +121,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         private static XElement CreateMetadataReference(string path)
-        {
-            return new XElement(MetadataReferenceElementName, path);
-        }
+            => new XElement(MetadataReferenceElementName, path);
 
         private static XElement CreateProjectReference(string projectName)
-        {
-            return new XElement(ProjectReferenceElementName, projectName);
-        }
+            => new XElement(ProjectReferenceElementName, projectName);
 
         protected static XElement CreateDocumentElement(string code, string filePath, ParseOptions parseOptions = null)
         {

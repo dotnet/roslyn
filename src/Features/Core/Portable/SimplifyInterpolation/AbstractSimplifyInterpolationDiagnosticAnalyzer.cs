@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     {
         protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
-                  CodeStyleOptions.PreferSimplifiedInterpolation,
+                  CodeStyleOptions2.PreferSimplifiedInterpolation,
                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_interpolation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                   new LocalizableResourceString(nameof(FeaturesResources.Interpolation_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -27,13 +28,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         protected abstract IVirtualCharService GetVirtualCharService();
 
+        protected abstract ISyntaxFacts GetSyntaxFacts();
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
-        }
+            => context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
 
         private void AnalyzeInterpolation(OperationAnalysisContext context)
         {
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             var language = interpolation.Language;
-            var option = optionSet.GetOption(CodeStyleOptions.PreferSimplifiedInterpolation, language);
+            var option = optionSet.GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, language);
             if (!option.Value)
             {
                 // No point in analyzing if the option is off.
@@ -56,8 +57,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                GetVirtualCharService(), interpolation, out _, out var alignment, out _, out var formatString,
-                out var unnecessaryLocations);
+                GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
+                out var formatString, out var unnecessaryLocations);
 
             if (alignment == null && formatString == null)
             {

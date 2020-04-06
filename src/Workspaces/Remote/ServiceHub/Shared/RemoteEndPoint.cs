@@ -356,9 +356,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private void LogError(string message)
-        {
-            _logger.TraceEvent(TraceEventType.Error, 1, message);
-        }
+            => _logger.TraceEvent(TraceEventType.Error, 1, message);
 
         private void LogDisconnectInfo(JsonRpcDisconnectedEventArgs? e, string? callstack)
         {

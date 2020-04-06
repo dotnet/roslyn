@@ -145,9 +145,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogWorkspaceEvent(LogAggregator logAggregator, int kind)
-        {
-            logAggregator.IncreaseCount(kind);
-        }
+            => logAggregator.IncreaseCount(kind);
 
         public static void LogWorkCoordinatorShutdown(int correlationId, LogAggregator logAggregator)
         {
@@ -164,19 +162,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogGlobalOperation(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(GlobalOperation);
-        }
+            => logAggregator.IncreaseCount(GlobalOperation);
 
         public static void LogActiveFileEnqueue(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(ActiveFileEnqueue);
-        }
+            => logAggregator.IncreaseCount(ActiveFileEnqueue);
 
         public static void LogWorkItemEnqueue(LogAggregator logAggregator, ProjectId projectId)
-        {
-            logAggregator.IncreaseCount(ProjectEnqueue);
-        }
+            => logAggregator.IncreaseCount(ProjectEnqueue);
 
         public static void LogWorkItemEnqueue(
             LogAggregator logAggregator, string language, DocumentId documentId, InvocationReasons reasons, bool lowPriority, SyntaxPath activeMember, bool added)
@@ -208,9 +200,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogResetStates(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(ResetStates);
-        }
+            => logAggregator.IncreaseCount(ResetStates);
 
         public static void LogIncrementalAnalyzerProcessorStatistics(int correlationId, Solution solution, LogAggregator logAggregator, ImmutableArray<IIncrementalAnalyzer> analyzers)
         {
@@ -275,9 +265,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         private static string CreateProperty(string parent, string child)
-        {
-            return parent + "." + child;
-        }
+            => parent + "." + child;
 
         public static void LogProcessCloseDocument(LogAggregator logAggregator, Guid documentId)
         {
@@ -318,9 +306,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogProcessDocumentNotExist(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(DocumentNotExist);
-        }
+            => logAggregator.IncreaseCount(DocumentNotExist);
 
         public static void LogProcessProject(LogAggregator logAggregator, Guid projectId, bool processed)
         {
@@ -337,8 +323,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public static void LogProcessProjectNotExist(LogAggregator logAggregator)
-        {
-            logAggregator.IncreaseCount(ProjectNotExist);
-        }
+            => logAggregator.IncreaseCount(ProjectNotExist);
     }
 }

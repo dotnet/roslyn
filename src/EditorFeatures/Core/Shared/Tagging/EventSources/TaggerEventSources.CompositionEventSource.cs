@@ -22,14 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             public void Connect()
-            {
-                _providers.Do(p => p.Connect());
-            }
+                => _providers.Do(p => p.Connect());
 
             public void Disconnect()
-            {
-                _providers.Do(p => p.Disconnect());
-            }
+                => _providers.Do(p => p.Disconnect());
 
             public event EventHandler<TaggerEventArgs> Changed
             {

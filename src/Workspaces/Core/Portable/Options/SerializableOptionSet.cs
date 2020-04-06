@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
-        public override object? GetOption(OptionKey optionKey)
+        private protected override object? GetOptionCore(OptionKey optionKey)
         {
             if (_serializableOptionValues.TryGetValue(optionKey, out var value))
             {
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Options
                             continue;
                         }
 
-                        var parsedCodeStyleOption = CodeStyleOption<object>.FromXElement(XElement.Parse((string)readValue));
+                        var parsedCodeStyleOption = CodeStyleOption2<object>.FromXElement(XElement.Parse((string)readValue));
                         var value = parsedCodeStyleOption.Value;
                         var type = optionKey.Option.Type.GenericTypeArguments[0];
                         var convertedValue = type.IsEnum ? Enum.ToObject(type, value) : Convert.ChangeType(value, type);

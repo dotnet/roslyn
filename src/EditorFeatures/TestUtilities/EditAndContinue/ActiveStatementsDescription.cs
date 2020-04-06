@@ -85,14 +85,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
 
         internal static IEnumerable<int> GetIds(Match match)
-        {
-            return match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
-        }
+            => match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
 
         internal static int[] GetIds(string ids)
-        {
-            return ids.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
-        }
+            => ids.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
 
         internal static IEnumerable<ValueTuple<int, int>> GetDottedIds(Match match)
         {

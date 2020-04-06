@@ -10,7 +10,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
+using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
+using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             AssertSmartIndent(
                 code,
                 indentationLine: 4,
-                expectedIndentation: 4);
+                expectedIndentation: 0);
         }
 
         [WpfFact]
@@ -2793,6 +2794,62 @@ class C
                 code: code,
                 indentationLine: 5,
                 expectedIndentation: 12);
+        }
+
+        [WorkItem(28752, "https://github.com/dotnet/roslyn/issues/28752")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EnterAfterBlankLineAfterCommentedOutCode1()
+        {
+            var code = @"class Test
+{
+    public void Test()
+    {
+        // comment
+
+
+    }
+}";
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 5,
+                expectedIndentation: 8);
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 6,
+                expectedIndentation: 8);
+        }
+
+        [WorkItem(28752, "https://github.com/dotnet/roslyn/issues/28752")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EnterAfterBlankLineAfterCommentedOutCode2()
+        {
+            var code = @"
+class T
+{
+    // comment
+
+
+
+    // comment
+    int i = 1;
+}";
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 4,
+                expectedIndentation: 4);
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 5,
+                expectedIndentation: 4);
+
+            AssertSmartIndent(
+                code: code,
+                indentationLine: 6,
+                expectedIndentation: 4);
         }
 
         [WorkItem(38819, "https://github.com/dotnet/roslyn/issues/38819")]

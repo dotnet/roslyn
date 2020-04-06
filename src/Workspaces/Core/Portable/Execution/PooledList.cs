@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
@@ -23,13 +22,9 @@ namespace Microsoft.CodeAnalysis.Execution
         }
 
         public static PooledObject<List<T>> CreateList<T>()
-        {
-            return SharedPools.Default<List<T>>().GetPooledObject();
-        }
+            => SharedPools.Default<List<T>>().GetPooledObject();
 
         public static PooledObject<Dictionary<Checksum, object>> CreateResultSet()
-        {
-            return SharedPools.Default<Dictionary<Checksum, object>>().GetPooledObject();
-        }
+            => SharedPools.Default<Dictionary<Checksum, object>>().GetPooledObject();
     }
 }

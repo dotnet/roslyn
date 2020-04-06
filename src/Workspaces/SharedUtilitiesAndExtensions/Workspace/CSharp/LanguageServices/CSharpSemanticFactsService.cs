@@ -79,19 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsTypeContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
-        }
+            => semanticModel.SyntaxTree.IsTypeContext(position, cancellationToken, semanticModel);
 
         public bool IsNamespaceContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsNamespaceContext(position, cancellationToken, semanticModel);
-        }
+            => semanticModel.SyntaxTree.IsNamespaceContext(position, cancellationToken, semanticModel);
 
         public bool IsNamespaceDeclarationNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken);
-        }
+            => semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken);
 
         public bool IsTypeDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
@@ -112,19 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsGlobalStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsGlobalStatementContext(position, cancellationToken);
-        }
+            => semanticModel.SyntaxTree.IsGlobalStatementContext(position, cancellationToken);
 
         public bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsLabelContext(position, cancellationToken);
-        }
+            => semanticModel.SyntaxTree.IsLabelContext(position, cancellationToken);
 
         public bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            return semanticModel.SyntaxTree.IsAttributeNameContext(position, cancellationToken);
-        }
+            => semanticModel.SyntaxTree.IsAttributeNameContext(position, cancellationToken);
 
         public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsWrittenTo();
@@ -142,9 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (node as ExpressionSyntax).IsInInContext();
 
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
-        {
-            return (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
-        }
+            => (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
 
         public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
             => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);

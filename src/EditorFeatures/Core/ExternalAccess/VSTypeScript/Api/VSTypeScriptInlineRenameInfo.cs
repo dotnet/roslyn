@@ -61,9 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         }
 
         public string GetFinalSymbolName(string replacementText)
-        {
-            return _info.GetFinalSymbolName(replacementText);
-        }
+            => _info.GetFinalSymbolName(replacementText);
 
         public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
         {
@@ -72,13 +70,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         }
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
-        {
-            return _info.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, replacementText);
-        }
+            => _info.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, replacementText);
 
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
-        {
-            return _info.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, replacementText);
-        }
+            => _info.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, replacementText);
     }
 }

@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -25,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         public StreamingProgressTracker(Func<int, int, Task> updateActionOpt)
-        {
-            _updateActionOpt = updateActionOpt;
-        }
+            => _updateActionOpt = updateActionOpt;
 
         public Task AddItemsAsync(int count)
         {

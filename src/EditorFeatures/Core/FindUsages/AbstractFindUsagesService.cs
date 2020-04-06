@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,14 +18,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
-    internal abstract partial class AbstractFindUsagesService : IFindUsagesService
+    internal abstract partial class AbstractFindUsagesService : IFindUsagesService, IFindUsagesLSPService
     {
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractFindUsagesService(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public async Task FindImplementationsAsync(
             Document document, int position, IFindUsagesContext context)
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        public async Task FindReferencesAsync(
+        async Task IFindUsagesService.FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
@@ -88,6 +88,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
+        async Task IFindUsagesLSPService.FindReferencesAsync(
+            Document document, int position, IFindUsagesContext context)
+        {
+            // We don't need to get third party definitions when finding references in LSP.
+            // Currently, 3rd party definitions = XAML definitions, and XAML will provide
+            // references via LSP instead of hooking into Roslyn.
+            // This also means that we don't need to be on the UI thread.
+            var definitionTrackingContext = new DefinitionTrackingContext(context);
+            await FindLiteralOrSymbolReferencesAsync(
+                document, position, definitionTrackingContext).ConfigureAwait(false);
+        }
+
         private async Task FindLiteralOrSymbolReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
@@ -110,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             ImmutableArray<DefinitionItem> definitions,
             CancellationToken cancellationToken)
         {
-            var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+            var factory = solution.Workspace.Services.GetRequiredService<IDefinitionsAndReferencesFactory>();
             return definitions.Select(d => factory.GetThirdPartyDefinitionItem(solution, d, cancellationToken))
                               .WhereNotNull()
                               .ToImmutableArray();
@@ -126,13 +138,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
             if (symbolAndProject == null)
-            {
                 return;
-            }
 
             await FindSymbolReferencesAsync(
-                _threadingContext,
-                context, symbolAndProject?.symbol, symbolAndProject?.project, cancellationToken).ConfigureAwait(false);
+                _threadingContext, context, symbolAndProject.Value.symbol, symbolAndProject.Value.project, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -140,26 +149,36 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// and want to push all the references to it into the Streaming-Find-References window.
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
-            IThreadingContext threadingContext,
-            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+            IThreadingContext threadingContext, IFindUsagesContext context,
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
+            var monikerUsagesService = project.Solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
+
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
             var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
-            var progressAdapter = new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
-            await SymbolFinder.FindReferencesAsync(
+            var normalFindReferencesTask = SymbolFinder.FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, project.Id),
                 project.Solution,
-                progressAdapter,
+                new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options),
                 documents: null,
-                options: options,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                options,
+                cancellationToken);
+
+            // Kick off work to search the online code index system in parallel
+            var codeIndexReferencesTask = FindSymbolMonikerReferencesAsync(
+                monikerUsagesService,
+                symbol,
+                context,
+                cancellationToken);
+
+            await Task.WhenAll(normalFindReferencesTask, codeIndexReferencesTask).ConfigureAwait(false);
         }
 
         private async Task<bool> TryFindLiteralReferencesAsync(
@@ -168,8 +187,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var cancellationToken = context.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
 
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Currently we only support FAR for numbers, strings and characters.  We don't
             // bother with true/false/null as those are likely to have way too many results
@@ -190,20 +209,19 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // for numeric values, and a decimal won't fit within that.
             var tokenValue = token.Value;
             if (tokenValue == null || tokenValue is decimal)
-            {
                 return false;
-            }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (token.Parent is null)
+                return false;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetSymbolInfo(token.Parent).Symbol ?? semanticModel.GetDeclaredSymbol(token.Parent);
 
             // Numeric labels are available in VB.  In that case we want the normal FAR engine to
             // do the searching.  For these literals we want to find symbolic results and not 
             // numeric matches.
             if (symbol is ILabelSymbol)
-            {
                 return false;
-            }
 
             // Use the literal to make the title.  Trim literal if it's too long.
             var title = syntaxFacts.ConvertToSingleLine(token.Parent).ToString();

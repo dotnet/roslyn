@@ -33,9 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             }
 
             public void Dispose()
-            {
-                _disposed = true;
-            }
+                => _disposed = true;
 
             public async Task<INavigableSymbol> GetNavigableSymbolAsync(SnapshotSpan triggerSpan, CancellationToken cancellationToken)
             {

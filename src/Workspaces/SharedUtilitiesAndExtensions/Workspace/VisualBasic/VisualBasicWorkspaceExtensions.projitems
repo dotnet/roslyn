@@ -22,14 +22,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxGeneratorVisitor.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamespaceOrTypeSymbolExtensions.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\InvocationExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NameSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectCreationExpressionExtensions.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParameterSyntaxExtensions.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleNameSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.vb" />
@@ -46,7 +43,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicAddImportsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicGeneratedCodeRecognitionService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicCommandLineParserService.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicPrecedenceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSemanticFactsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSymbolDeclarationService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxFactsService.vb" />
@@ -73,5 +69,8 @@
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)VisualBasicWorkspaceExtensionsResources.resx" GenerateSource="true" Link="VisualBasicWorkspaceExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)VisualBasicWorkspaceExtensionsResources.resx" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
+    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
 </Project>
