@@ -1673,11 +1673,6 @@ Continuare?</target>
         <target state="translated">attributo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">Usa la proprietà automatica</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
         <target state="translated">Sostituisci '{0}' e '{1}' con la proprietà</target>

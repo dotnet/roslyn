@@ -816,9 +816,6 @@ Do you want to continue?</value>
   <data name="attribute" xml:space="preserve">
     <value>attribute</value>
   </data>
-  <data name="Use_auto_property" xml:space="preserve">
-    <value>Use auto property</value>
-  </data>
   <data name="Replace_0_and_1_with_property" xml:space="preserve">
     <value>Replace '{0}' and '{1}' with property</value>
   </data>

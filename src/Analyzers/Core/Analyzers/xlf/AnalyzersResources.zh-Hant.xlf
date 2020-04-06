@@ -267,6 +267,11 @@
         <target state="new">Use 'System.HashCode'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_auto_property">
+        <source>Use auto property</source>
+        <target state="new">Use auto property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_coalesce_expression">
         <source>Use coalesce expression</source>
         <target state="new">Use coalesce expression</target>

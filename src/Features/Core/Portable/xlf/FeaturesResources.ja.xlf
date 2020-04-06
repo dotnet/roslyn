@@ -1673,11 +1673,6 @@ Do you want to continue?</source>
         <target state="translated">属性</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">自動プロパティを使用する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
         <target state="translated">{0}' および '{1}' をプロパティと置換する</target>

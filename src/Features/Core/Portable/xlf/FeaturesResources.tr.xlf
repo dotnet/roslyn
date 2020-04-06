@@ -1673,11 +1673,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">öznitelik</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">Otomatik özellik kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
         <target state="translated">{0}' ve '{1}' öğesini özellikle değiştir</target>

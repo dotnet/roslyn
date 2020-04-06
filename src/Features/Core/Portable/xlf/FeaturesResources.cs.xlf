@@ -1673,11 +1673,6 @@ Chcete pokračovat?</target>
         <target state="translated">atribut</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">Použít automatickou vlastnost</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
         <target state="translated">Nahradit {0} a {1} vlastností</target>

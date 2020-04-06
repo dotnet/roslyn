@@ -29,6 +29,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\VisualBasicSimplifyInterpolationDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\Utilities.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\VisualBasicUseAutoPropertyAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\VisualBasicUseCoalesceExpressionDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\VisualBasicUseCoalesceExpressionForNullableDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\VisualBasicUseCollectionInitializerDiagnosticAnalyzer.vb" />
