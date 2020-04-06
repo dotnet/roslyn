@@ -1,9 +1,0 @@
-<Project>
-  <!-- Workaround for https://github.com/dotnet/roslyn/issues/4655 -->
-  <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)\AnalyzerReleases.Shipped.md')" >
-	  <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
-  </ItemGroup>
-  <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)\AnalyzerReleases.Unshipped.md')" >
-	  <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
-  </ItemGroup>
-</Project>
