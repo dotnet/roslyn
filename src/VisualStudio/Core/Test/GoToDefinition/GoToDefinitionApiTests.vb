@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 Assert.NotNull(symbol)
 
-                Dim symbolId = symbol.GetSymbolKey(solution)
+                Dim symbolId = symbol.GetSymbolKey()
                 Dim project = document.Project
                 Dim compilation = Await project.GetCompilationAsync()
                 Dim symbolInfo = symbolId.Resolve(compilation)

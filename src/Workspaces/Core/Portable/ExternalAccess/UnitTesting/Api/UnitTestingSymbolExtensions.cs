@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
     internal static class UnitTestingSymbolExtensions
     {
         public static UnitTestingSymbolKeyWrapper GetSymbolKey(this ISymbol symbol, CancellationToken cancellationToken)
-            => new UnitTestingSymbolKeyWrapper(SymbolKey.Create(solution: null, symbol, cancellationToken));
+            => new UnitTestingSymbolKeyWrapper(SymbolKeyExtensions.GetSymbolKey(symbol, cancellationToken));
     }
 }

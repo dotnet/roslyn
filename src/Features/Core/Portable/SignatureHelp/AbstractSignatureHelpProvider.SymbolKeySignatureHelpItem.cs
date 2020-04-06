@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 IEnumerable<TaggedText> descriptionParts)
                 : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
-                if (symbol != null)
-                    // Signature-help symbol keys are only kept in-process, so it's safe to make one without a project-id.
-                    SymbolKey = CodeAnalysis.SymbolKey.Create(solution: null, symbol);
+                SymbolKey = symbol?.GetSymbolKey();
             }
 
             public override bool Equals(object obj)

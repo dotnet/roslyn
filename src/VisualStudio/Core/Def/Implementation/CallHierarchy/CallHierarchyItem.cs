@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly ProjectId _projectId;
         private readonly string _sortText;
 
-        public CallHierarchyItem(Solution solution, ISymbol symbol, ProjectId projectId, IEnumerable<AbstractCallFinder> finders, Func<ImageSource> glyphCreator, CallHierarchyProvider provider, IEnumerable<Location> callsites, Workspace workspace)
+        public CallHierarchyItem(ISymbol symbol, ProjectId projectId, IEnumerable<AbstractCallFinder> finders, Func<ImageSource> glyphCreator, CallHierarchyProvider provider, IEnumerable<Location> callsites, Workspace workspace)
         {
-            _symbolId = symbol.GetSymbolKey(solution);
+            _symbolId = symbol.GetSymbolKey();
             _projectId = projectId;
             _finders = finders;
             _containingTypeName = symbol.ContainingType.ToDisplayString(ContainingTypeFormat);

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             public async Task<SymbolMappingResult?> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
             {
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                return await MapSymbolAsync(document, SymbolKey.Create(document.Project.Solution, symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
+                return await MapSymbolAsync(document, SymbolKey.Create(symbol, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
         }
     }

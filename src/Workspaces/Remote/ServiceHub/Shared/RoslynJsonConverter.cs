@@ -165,16 +165,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private class SymbolKeyJsonConverter : BaseJsonConverter<SymbolKey>
         {
             protected override SymbolKey ReadValue(JsonReader reader, JsonSerializer serializer)
-                => new SymbolKey(ReadProperty<ProjectId>(reader), ReadProperty<string>(reader));
+                => new SymbolKey((string)reader.Value);
 
             protected override void WriteValue(JsonWriter writer, SymbolKey value, JsonSerializer serializer)
-            {
-                writer.WritePropertyName(nameof(SymbolKey.ProjectId));
-                writer.WriteValue(value.ProjectId);
-
-                writer.WritePropertyName("value");
-                writer.WriteValue(value.ToString());
-            }
+                => writer.WriteValue(value.ToString());
         }
 
         private class ChecksumJsonConverter : BaseJsonConverter<Checksum>

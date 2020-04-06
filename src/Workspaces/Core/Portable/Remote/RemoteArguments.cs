@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task<SerializableSymbolAndProjectId> DehydrateAsync(
             Solution solution, SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
-            var symbolKey = symbolAndProjectId.Symbol.GetSymbolKey(null, cancellationToken);
+            var symbolKey = symbolAndProjectId.Symbol.GetSymbolKey(cancellationToken);
             var projectId = await solution.GetExactProjectIdAsync(symbolAndProjectId.Symbol, cancellationToken).ConfigureAwait(false);
             if (projectId == null)
                 throw new InvalidOperationException("SymbolKeys used for OOP operations must have a ProjectId");

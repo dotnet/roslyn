@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         protected SymbolListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden)
             : base(projectId, symbol.GetGlyph().GetStandardGlyphGroup(), symbol.GetGlyph().GetStandardGlyphItem(), isHidden)
         {
-            _symbolKey = SymbolKey.Create(solution: null, symbol);
+            _symbolKey = symbol.GetSymbolKey();
             _accessibility = symbol.DeclaredAccessibility;
             _displayText = displayText;
             _fullNameText = fullNameText;

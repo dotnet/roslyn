@@ -207,9 +207,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 var node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
 
-                node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey(_solution);
+                node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey();
                 node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
-                node[RoslynGraphProperties.ExplicitInterfaceImplementations] = symbol.ExplicitInterfaceImplementations().Select(s => s.GetSymbolKey(_solution)).ToList();
+                node[RoslynGraphProperties.ExplicitInterfaceImplementations] = symbol.ExplicitInterfaceImplementations().Select(s => s.GetSymbolKey()).ToList();
                 node[RoslynGraphProperties.DeclaredAccessibility] = symbol.DeclaredAccessibility;
                 node[RoslynGraphProperties.SymbolModifiers] = symbol.GetSymbolModifiers();
                 node[RoslynGraphProperties.SymbolKind] = symbol.Kind;

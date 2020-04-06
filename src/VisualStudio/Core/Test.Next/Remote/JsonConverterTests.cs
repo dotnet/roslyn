@@ -95,7 +95,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestSymbolKey()
         {
-            VerifyJsonSerialization(new SymbolKey(projectId: null, "TEST"));
+            VerifyJsonSerialization(new SymbolKey("TEST"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]

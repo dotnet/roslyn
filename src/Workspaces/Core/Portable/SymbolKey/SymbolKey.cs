@@ -6,9 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -96,7 +94,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal const int FormatVersion = 1;
 
-        public ProjectId ProjectId { get; }
         private readonly string _symbolKeyData;
 
         /// <summary>
@@ -104,17 +101,14 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="ToString()"/> from this same session.  Instantiating with a string 
         /// from any other source is not supported.
         /// </summary>
-        public SymbolKey(ProjectId projectId, string data)
-        {
-            ProjectId = projectId;
-            _symbolKeyData = data ?? throw new ArgumentNullException(nameof(data));
-        }
+        public SymbolKey(string data)
+            => _symbolKeyData = data ?? throw new ArgumentNullException();
 
         /// <summary>
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
         /// </summary>
-        internal static SymbolKey Create(Solution solution, ISymbol symbol, CancellationToken cancellationToken = default)
-            => new SymbolKey(null, CreateString(symbol, cancellationToken));
+        internal static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
+            => new SymbolKey(CreateString(symbol, cancellationToken));
 
         /// <summary>
         /// Returns an <see cref="IEqualityComparer{T}"/> that determines if two <see cref="SymbolKey"/>s
@@ -131,6 +125,12 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         internal static SymbolKeyComparer GetComparer(bool ignoreCase = false, bool ignoreAssemblyKeys = false)
             => SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
+
+        public static SymbolKeyResolution Resolve(
+            ISymbol symbol, Compilation compilation, bool ignoreAssemblyKey = false, bool resolveLocations = false, CancellationToken cancellationToken = default)
+        {
+            return ResolveString(CreateString(symbol, cancellationToken), compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
+        }
 
         internal static SymbolKeyResolution ResolveString(
             string symbolKey, Compilation compilation,
@@ -175,16 +175,9 @@ namespace Microsoft.CodeAnalysis
             return ResolveString(_symbolKeyData, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
         }
 
-        public static SymbolKeyResolution Resolve(
-            ISymbol symbol, Compilation compilation, bool ignoreAssemblyKey = false, bool resolveLocations = false, CancellationToken cancellationToken = default)
-        {
-            return ResolveString(CreateString(symbol, cancellationToken), compilation, ignoreAssemblyKey, resolveLocations, cancellationToken);
-        }
-
-
         /// <summary>
         /// Returns this <see cref="SymbolKey"/> encoded as a string.  This can be persisted
-        /// and used later with <see cref="SymbolKey(ProjectId, string)"/> to then try to resolve back
+        /// and used later with <see cref="SymbolKey(string)"/> to then try to resolve back
         /// to the corresponding <see cref="ISymbol"/> in a future <see cref="Compilation"/>.
         /// 
         /// This string form is not guaranteed to be reusable across all future versions of 

@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             Debug.Assert(symbol != null);
 
             this.ProjectId = projectId;
-            this.SymbolKey = SymbolKey.Create(solution: null, symbol);
+            this.SymbolKey = symbol.GetSymbolKey();
         }
 
         internal Compilation GetCompilation()

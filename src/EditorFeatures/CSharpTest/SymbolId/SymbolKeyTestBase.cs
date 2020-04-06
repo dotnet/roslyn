@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
         internal static ISymbol ResolveSymbol(ISymbol originalSymbol, Compilation targetCompilation, SymbolKeyComparison comparison)
         {
-            var sid = SymbolKey.Create(solution: null, originalSymbol, CancellationToken.None);
+            var sid = SymbolKey.Create(originalSymbol, CancellationToken.None);
 
             // Verify that serialization works.
             var serialized = sid.ToString();
-            var deserialized = new SymbolKey(projectId: null, serialized);
+            var deserialized = new SymbolKey(serialized);
             var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
             Assert.True(comparer.Equals(sid, deserialized));
 
@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
         internal static void AssertSymbolKeysEqual(ISymbol symbol1, ISymbol symbol2, SymbolKeyComparison comparison, bool expectEqual = true)
         {
-            var sid1 = SymbolKey.Create(solution: null, symbol1, CancellationToken.None);
-            var sid2 = SymbolKey.Create(solution: null, symbol2, CancellationToken.None);
+            var sid1 = SymbolKey.Create(symbol1, CancellationToken.None);
+            var sid2 = SymbolKey.Create(symbol2, CancellationToken.None);
 
             // default is Insensitive
             var ignoreCase = (comparison & SymbolKeyComparison.IgnoreCase) == SymbolKeyComparison.IgnoreCase;

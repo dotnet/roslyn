@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
             using var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource));
             var metadataSymbol = await context.ResolveSymbolAsync(symbolName);
-            var metadataSymbolId = SymbolKey.Create(solution: null, metadataSymbol);
+            var metadataSymbolId = metadataSymbol.GetSymbolKey();
             var generatedFile = await context.GenerateSourceAsync(symbolName);
             var generatedDocument = context.GetDocument(generatedFile);
             var generatedCompilation = await generatedDocument.Project.GetCompilationAsync();
             var generatedSymbol = generatedCompilation.Assembly.GetTypeByMetadataName(symbolName);
             Assert.False(generatedSymbol.Locations.Where(loc => loc.IsInSource).IsEmpty());
-            Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(metadataSymbolId, generatedSymbol.GetSymbolKey(solution: null)));
+            Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(metadataSymbolId, generatedSymbol.GetSymbolKey()));
         }
     }
 }

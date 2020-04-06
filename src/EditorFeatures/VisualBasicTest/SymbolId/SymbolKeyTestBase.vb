@@ -69,11 +69,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
         End Sub
 
         Friend Shared Function ResolveSymbol(originalSymbol As ISymbol, targetCompilation As Compilation, comparison As SymbolIdComparison) As ISymbol
-            Dim sid = SymbolKey.Create(solution:=Nothing, originalSymbol, CancellationToken.None)
+            Dim sid = SymbolKey.Create(originalSymbol, CancellationToken.None)
 
             ' Verify that serialization works.
             Dim serialized = sid.ToString()
-            Dim deserialized = New SymbolKey(projectId:=Nothing, serialized)
+            Dim deserialized = New SymbolKey(serialized)
 
             Dim comparer = SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False)
             Assert.True(comparer.Equals(sid, deserialized))
@@ -83,8 +83,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
         End Function
 
         Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
-            Dim sid1 = SymbolKey.Create(solution:=Nothing, symbol1, CancellationToken.None)
-            Dim sid2 = SymbolKey.Create(solution:=Nothing, symbol2, CancellationToken.None)
+
+            Dim sid1 = SymbolKey.Create(symbol1, CancellationToken.None)
+            Dim sid2 = SymbolKey.Create(symbol2, CancellationToken.None)
 
             Dim ignoreCase = (comparison And SymbolIdComparison.IgnoreCase) = SymbolIdComparison.IgnoreCase
             Dim ignoreAssemblyIds = (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds

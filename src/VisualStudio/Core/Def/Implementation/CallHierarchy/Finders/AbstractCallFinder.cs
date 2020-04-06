@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         // For Testing only
         internal IImmutableSet<Document> Documents;
 
-        protected AbstractCallFinder(ISymbol symbol, Project project, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+        protected AbstractCallFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
         {
             _asyncListener = asyncListener;
-            _symbolKey = symbol.GetSymbolKey(project.Solution);
+            _symbolKey = symbol.GetSymbolKey();
             this.SymbolName = symbol.Name;
-            _projectId = project.Id;
+            _projectId = projectId;
             this.Provider = provider;
         }
 

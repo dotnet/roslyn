@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
             var typesInFile = await GetTypesInFileAsync(document, cancellationToken).ConfigureAwait(false);
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return GetMembersInTypes(document.Project.Solution, tree, typesInFile, cancellationToken);
+            return GetMembersInTypes(tree, typesInFile, cancellationToken);
         }
 
         private IList<NavigationBarItem> GetMembersInTypes(
-            Solution solution, SyntaxTree tree, IEnumerable<INamedTypeSymbol> types, CancellationToken cancellationToken)
+            SyntaxTree tree, IEnumerable<INamedTypeSymbol> types, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetMembersInTypes_CSharp, cancellationToken))
             {
@@ -82,16 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                         if (method != null && method.PartialImplementationPart != null)
                         {
                             memberItems.Add(CreateItemForMember(
-                                solution,
                                 method,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(method.GetSymbolKey(solution)),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(method.GetSymbolKey()),
                                 tree,
                                 cancellationToken));
 
                             memberItems.Add(CreateItemForMember(
-                                solution,
                                 method.PartialImplementationPart,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(method.PartialImplementationPart.GetSymbolKey(solution)),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(method.PartialImplementationPart.GetSymbolKey()),
                                 tree,
                                 cancellationToken));
                         }
@@ -100,9 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                             Debug.Assert(method == null || method.PartialDefinitionPart == null, "NavBar expected GetMembers to return partial method definition parts but the implementation part was returned.");
 
                             memberItems.Add(CreateItemForMember(
-                                solution,
                                 member,
-                                memberSymbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(solution)),
+                                memberSymbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey()),
                                 tree,
                                 cancellationToken));
                         }
@@ -114,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                         return textComparison != 0 ? textComparison : x.Grayed.CompareTo(y.Grayed);
                     });
 
-                    var symbolId = type.GetSymbolKey(solution);
+                    var symbolId = type.GetSymbolKey();
                     items.Add(new NavigationBarSymbolItem(
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
@@ -201,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return false;
         }
 
-        private NavigationBarItem CreateItemForMember(Solution solution, ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
+        private NavigationBarItem CreateItemForMember(ISymbol member, int symbolIndex, SyntaxTree tree, CancellationToken cancellationToken)
         {
             var spans = GetSpansInDocument(member, tree, cancellationToken);
 
@@ -209,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 spans,
-                member.GetSymbolKey(solution),
+                member.GetSymbolKey(),
                 symbolIndex,
                 grayed: spans.Count == 0);
         }

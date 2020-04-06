@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class SymbolKeyExtensions
     {
-        public static SymbolKey GetSymbolKey(this ISymbol symbol, Solution solution, CancellationToken cancellationToken = default)
-            => SymbolKey.Create(solution, symbol, cancellationToken);
+        public static SymbolKey GetSymbolKey(this ISymbol symbol, CancellationToken cancellationToken = default)
+            => SymbolKey.Create(symbol, cancellationToken);
     }
 }

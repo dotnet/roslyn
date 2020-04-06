@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 var compilation = await currentProject.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 return ImmutableHashSet.CreateRange(
-                    _nonConflictSymbols.Select(s => SymbolKey.Resolve(s, compilation).GetAnySymbol()).WhereNotNull());
+                    _nonConflictSymbols.Select(s => SymbolKey.Resolve(s, compilation, cancellationToken: _cancellationToken).GetAnySymbol()).WhereNotNull());
             }
 
             private bool IsConflictFreeChange(
