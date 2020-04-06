@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken);
 
                 var newArguments = PermuteAttributeArgumentList(declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation);
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded);
+                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: true);
                 return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 

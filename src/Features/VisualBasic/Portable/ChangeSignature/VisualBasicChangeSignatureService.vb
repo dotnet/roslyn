@@ -324,15 +324,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return eventBlock
             End If
 
-            ' TODO: NEEDS TESTED
             If vbnode.IsKind(SyntaxKind.RaiseEventStatement) Then
                 Dim raiseEventStatement = DirectCast(vbnode, RaiseEventStatementSyntax)
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))
-                Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
+                Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
 
                 Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature, declarationSymbol)
-                updatedArguments = AddNewArgumentsToList(methodSymbol, updatedArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False)
+                updatedArguments = AddNewArgumentsToList(delegateInvokeMethod, updatedArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False)
                 Return raiseEventStatement.WithArgumentList(raiseEventStatement.ArgumentList.WithArguments(updatedArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -360,20 +358,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return constructor.WithParameterList(constructor.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
-            ' TODO: NEEDS TESTED
             If vbnode.IsKind(SyntaxKind.Attribute) Then
                 Dim attribute = DirectCast(vbnode, AttributeSyntax)
 
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))
+                Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, AttributeSyntax))
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
 
                 Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature, declarationSymbol)
-                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False)
+                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False, generateAttributeArguments:=True)
                 Return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
-            ' TODO: NEEDS TESTED
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
@@ -545,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Private Function UpdateParamNodesInLeadingTrivia(document As Document, node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxTrivia)
             If Not node.HasLeadingTrivia Then
-                Return Nothing
+                Return ImmutableArray(Of SyntaxTrivia).Empty
             End If
 
             Dim paramNodes = node _

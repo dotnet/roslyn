@@ -174,7 +174,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var declarationDocument = solution.GetRequiredDocument(declarationLocation.SourceTree!);
             var declarationChangeSignatureService = declarationDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
 
-            int insertPosition = declarationChangeSignatureService.GetPositionBeforeParameterListClosingBrace(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax());
+            int insertPosition;
+            var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
+
+            if (reference != null)
+            {
+                insertPosition = declarationChangeSignatureService.GetPositionBeforeParameterListClosingBrace(reference.GetSyntax());
+            }
+            else
+            {
+                // We may have some indirection, like an event declaration backed by an invisible delegate invoke method.
+                // In the worst case, still continue on.
+                insertPosition = 0;
+            }
 
             var parameterConfiguration = ParameterConfiguration.Create(
                 symbol.GetParameters().Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
@@ -726,7 +738,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SeparatedSyntaxList<SyntaxNode> newArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
-            bool isParamsArrayExpanded)
+            bool isParamsArrayExpanded,
+            bool generateAttributeArguments = false)
         {
             var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
             var separators = ArrayBuilder<SyntaxToken>.GetInstance();
@@ -764,17 +777,24 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             continue;
                         }
 
-                        fullList.Add(
+                        // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
+                        var argument = generateAttributeArguments ?
+                            Generator.AttributeArgument(
+                                name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : null,
+                                expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue)) :
                             Generator.Argument(
                                 name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : null,
                                 refKind: RefKind.None,
-                                expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue)));
+                                expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue));
+
+                        fullList.Add(argument);
                         separators.Add(CommaTokenWithElasticSpace());
                     }
                     else
                     {
-                        if (indexInListOfPreexistingArguments == (declarationSymbol as IMethodSymbol).Parameters.Length - 1 &&
-                            (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].IsParams)
+                        var parameters = declarationSymbol.GetParameters();
+                        if (indexInListOfPreexistingArguments == parameters.Length - 1 &&
+                            parameters[indexInListOfPreexistingArguments].IsParams)
                         {
                             // Handling params array
                             if (seenOmitted)
@@ -782,14 +802,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                                 // Need to ensure the params array is an actual array, and that the argument is named.
                                 if (isParamsArrayExpanded)
                                 {
-                                    var newArgument = CreateExplicitParamsArrayFromIndividualArguments(newArguments, indexInListOfPreexistingArguments, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments]);
-                                    newArgument = AddNameToArgument(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
+                                    var newArgument = CreateExplicitParamsArrayFromIndividualArguments(newArguments, indexInListOfPreexistingArguments, parameters[indexInListOfPreexistingArguments]);
+                                    newArgument = AddNameToArgument(newArgument, parameters[indexInListOfPreexistingArguments].Name);
                                     fullList.Add(newArgument);
                                 }
                                 else if (indexInListOfPreexistingArguments < newArguments.Count)
                                 {
                                     var newArgument = newArguments[indexInListOfPreexistingArguments];
-                                    newArgument = AddNameToArgument(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
+                                    newArgument = AddNameToArgument(newArgument, parameters[indexInListOfPreexistingArguments].Name);
                                     fullList.Add(newArgument);
                                 }
 
@@ -816,7 +836,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                             if (seenNamedArguments && !SyntaxFacts.IsNamedParameter(newArgument))
                             {
-                                newArgument = AddNameToArgument(newArgument, (declarationSymbol as IMethodSymbol).Parameters[indexInListOfPreexistingArguments].Name);
+                                newArgument = AddNameToArgument(newArgument, parameters[indexInListOfPreexistingArguments].Name);
                             }
 
                             fullList.Add(newArgument);
