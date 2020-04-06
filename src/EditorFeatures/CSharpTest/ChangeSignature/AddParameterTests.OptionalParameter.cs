@@ -26,7 +26,7 @@ class C
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", "", isRequired: false, defaultValue: "1", isCallsiteOmitted: true), "System.Int32") };
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired: false, defaultValue: "1", isCallsiteOmitted: true) };
             var updatedCode = @"
 class C
 {
@@ -52,7 +52,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", "", isRequired: false, defaultValue: "1", isCallsiteOmitted: true), "System.Int32") };
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired: false, defaultValue: "1", isCallsiteOmitted: true) };
             var updatedCode = @"
 class C
 {
@@ -79,7 +79,7 @@ class C
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", "", isRequired: false, defaultValue: "1", isCallsiteOmitted: true), "System.Int32"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired: false, defaultValue: "1", isCallsiteOmitted: true),
                 new AddedParameterOrExistingIndex(0) };
             var updatedCode = @"
 class C
@@ -110,7 +110,7 @@ class C
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", "", isRequired: false, defaultValue: "1", isCallsiteOmitted: true), "System.Int32"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired: false, defaultValue: "1", isCallsiteOmitted: true),
                 new AddedParameterOrExistingIndex(0) };
             var updatedCode = @"
 class C

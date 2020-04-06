@@ -36,6 +36,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
             _addedParameterFullyQualifiedTypeName = addedParameterFullyQualifiedTypeName;
         }
 
+        internal static AddedParameterOrExistingIndex CreateAdded(
+            string fullTypeName,
+            string parameterName,
+            string callSiteValue = "",
+            bool isRequired = true,
+            string defaultValue = "",
+            bool useNamedArguments = false,
+            bool isCallsiteOmitted = false,
+            bool isCallsiteError = false,
+            bool typeBinds = true)
+        {
+            var parameter = new AddedParameter(
+                type: null!, // Filled in later based on the fullTypeName
+                typeName: null!, // Not needed for engine testing
+                parameterName,
+                callSiteValue,
+                isRequired,
+                defaultValue,
+                useNamedArguments,
+                isCallsiteOmitted,
+                isCallsiteError,
+                typeBinds);
+
+            return new AddedParameterOrExistingIndex(parameter, fullTypeName);
+        }
+
         public override string ToString()
             => IsExisting ? OldIndex.ToString() : (_addedParameterWithoutTypeSymbol?.ToString() ?? string.Empty);
 

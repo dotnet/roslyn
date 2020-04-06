@@ -21,7 +21,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "a", "", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True), "System.Int32")}
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True)}
 
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -44,7 +44,7 @@ End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
                         New AddedParameterOrExistingIndex(0),
-                        New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "a", "", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True), "System.Int32")}
+                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True)}
 
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -68,7 +68,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
-                        New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "a", "", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True), "System.Int32"),
+                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True),
                         New AddedParameterOrExistingIndex(0)}
 
             Dim updatedCode = <Text><![CDATA[
@@ -98,7 +98,7 @@ End Class]]></Text>.NormalizedValue()
             ' This is an illegal configuration in VB, but can happen if cascaded from the legal C#
             ' version of this configuration. We reinterpret OMIT as TODO in this case.
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
-                        New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "a", "", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True), "System.Int32"),
+                        AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired:=False, defaultValue:="1", isCallsiteOmitted:=True),
                         New AddedParameterOrExistingIndex(0)}
 
             Dim updatedCode = <Text><![CDATA[
