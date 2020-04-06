@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     Imports System
                     Imports I = System.Int32
                     Module Program
-                        Public Dim x = 5
+                        Public Dim x As Integer = 5
                         Function Goo() As Integer
                         End Function
                         Sub Main(args As String())
