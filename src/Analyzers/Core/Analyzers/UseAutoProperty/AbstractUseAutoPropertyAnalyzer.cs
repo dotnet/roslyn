@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         where TExpression : SyntaxNode
     {
         private static readonly LocalizableString s_title =
-            new LocalizableResourceString(nameof(FeaturesResources.Use_auto_property),
-                FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property),
+                AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
             : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions2.PreferAutoProperties, s_title, s_title)

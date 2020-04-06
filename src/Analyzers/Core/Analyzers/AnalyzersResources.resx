@@ -277,6 +277,9 @@
   <data name="Use_null_propagation" xml:space="preserve">
     <value>Use null propagation</value>
   </data>
+  <data name="Use_auto_property" xml:space="preserve">
+    <value>Use auto property</value>
+  </data>
   <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
     <value>Format string contains invalid placeholder</value>
   </data>
