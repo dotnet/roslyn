@@ -8,6 +8,8 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -22,14 +24,14 @@ namespace Microsoft.CodeAnalysis
         /// cref="Compilation.GetAssemblyOrModuleSymbol"/> given one of the project's <see
         /// cref="Project.MetadataReferences"/>.
         /// </summary>
-        private readonly ConditionalWeakTable<ISymbol, ProjectId?> _moduleOrAssemblySymbolToProjectId =
-            new ConditionalWeakTable<ISymbol, ProjectId?>();
+        private readonly ConditionalWeakTable<IAssemblySymbol, AsyncLazy<ProjectId?>> _assemblySymbolToProjectId =
+            new ConditionalWeakTable<IAssemblySymbol, AsyncLazy<ProjectId?>>();
 
         /// <summary>
         /// Weak cache from a <see cref="Compilation"/> to the ID of the <see cref="Project"/> it was created from. Only
         /// used for mapping a <see cref="Project"/>'s <see cref="Compilation.GlobalNamespace"/> back.  These <see
         /// cref="INamespaceSymbol"/>'s do not belong to a <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>
-        /// and thus cannot be tracked with <see cref="_moduleOrAssemblySymbolToProjectId"/>.
+        /// and thus cannot be tracked with <see cref="_assemblySymbolToProjectId"/>.
         /// </summary>
         private readonly ConditionalWeakTable<Compilation, ProjectId?> _compilationToProjectId =
             new ConditionalWeakTable<Compilation, ProjectId?>();
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="ProjectId"/> associated with an arbitrary symbol.
         /// </summary>
-        public ProjectId? GetExactProjectId(ISymbol? symbol, CancellationToken cancellationToken)
+        public async ValueTask<ProjectId?> GetExactProjectIdAsync(ISymbol? symbol, CancellationToken cancellationToken)
         {
             // Walk up the symbol so we can get to the containing namespace/module/assembly that will be used to map
             // back to a project.
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var result = GetProjectIdDirectly(symbol);
+                var result = await GetProjectIdDirectlyAsync(symbol, cancellationToken).ConfigureAwait(false);
                 if (result != null)
                     return result;
 
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis
 
             return null;
 
-            ProjectId? GetProjectIdDirectly(ISymbol symbol)
+            async ValueTask<ProjectId?> GetProjectIdDirectlyAsync(ISymbol symbol, CancellationToken cancellationToken)
             {
                 if (symbol.IsKind(SymbolKind.Namespace, out INamespaceSymbol? ns))
                 {
@@ -68,10 +70,9 @@ namespace Microsoft.CodeAnalysis
                             : _compilationToProjectId.GetValue(ns.ContainingCompilation, c => ComputeProjectIdForCompilation(c));
                     }
                 }
-                else if (symbol.IsKind(SymbolKind.NetModule) ||
-                         symbol.IsKind(SymbolKind.Assembly))
+                else if (symbol.IsKind(SymbolKind.Assembly, out IAssemblySymbol? assemblySymbol))
                 {
-                    var result = GetProjectIdForModuleOrAssembly(symbol);
+                    var result = await GetProjectIdForAssemblyAsync(assemblySymbol, cancellationToken).ConfigureAwait(false);
                     if (result != null)
                         return result;
                 }
@@ -79,15 +80,16 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            ProjectId? GetProjectIdForModuleOrAssembly(ISymbol symbol)
+            Task<ProjectId?> GetProjectIdForAssemblyAsync(IAssemblySymbol symbol, CancellationToken cancellationToken)
             {
-                Debug.Assert(symbol.Kind == SymbolKind.NetModule || symbol.Kind == SymbolKind.Assembly);
-
                 // Check our cache first (non-allocating).  If not there, go the more expensive route and compute the
                 // corresponding project.
-                return _moduleOrAssemblySymbolToProjectId.TryGetValue(symbol, out var projectId)
-                    ? projectId
-                    : _moduleOrAssemblySymbolToProjectId.GetValue(symbol, sym => ComputeProjectIdForModuleOrAssembly(sym));
+                var lazy = _assemblySymbolToProjectId.TryGetValue(symbol, out var existingLazy)
+                    ? existingLazy
+                    : _assemblySymbolToProjectId.GetValue(
+                        symbol, sym => new AsyncLazy<ProjectId?>(c => ComputeProjectIdForAssemblyAsync(sym, c), cacheResult: true));
+
+                return lazy.GetValueAsync(cancellationToken);
             }
 
             ProjectId? ComputeProjectIdForCompilation(Compilation compilation)
@@ -95,8 +97,6 @@ namespace Microsoft.CodeAnalysis
                 // Look through each project to see if we can find the one that produced this compilation.
                 foreach (var (id, _) in this.ProjectStates)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     // No need to create the compilation for the project.  If the project didn't have a compilation, it
                     // couldn't have produced this compilation we're looking for.
                     if (this.TryGetCompilation(id, out var otherCompilation) &&
@@ -109,27 +109,9 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            ProjectId? ComputeProjectIdForModuleOrAssembly(ISymbol symbol)
+            async Task<ProjectId?> ComputeProjectIdForAssemblyAsync(IAssemblySymbol symbol, CancellationToken cancellationToken)
             {
                 // First, check if this was the source assembly symbol for a specific project.
-                if (symbol is IAssemblySymbol assemblySymbol)
-                {
-                    foreach (var (id, _) in this.ProjectStates)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        // A symbol can only belong to a project if that project actually produced it from it's compilation.
-                        // So, if we have no compilation, this definitely isn't a match.
-                        if (!this.TryGetCompilation(id, out var compilation))
-                            continue;
-
-                        // See if this is a reference to the source assembly for this compilation itself.
-                        if (compilation.Assembly.Equals(symbol))
-                            return id;
-                    }
-                }
-
-                // Now, see if this was an assembly symbol created for a metadata reference.
                 foreach (var (id, _) in this.ProjectStates)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -139,8 +121,26 @@ namespace Microsoft.CodeAnalysis
                     if (!this.TryGetCompilation(id, out var compilation))
                         continue;
 
-                    // Now, see if it was a reference to to any of the metadata assembly symbols for this project.
-                    foreach (var metadataReference in compilation.References)
+                    // See if this is a reference to the source assembly for this compilation itself.
+                    if (compilation.Assembly.Equals(symbol))
+                        return id;
+                }
+
+                // Now, see if this was an assembly symbol created for a metadata reference.
+                foreach (var (id, state) in this.ProjectStates)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!state.SupportsCompilation)
+                        continue;
+
+                    // Unfortunately, an assembly symbol for a metadata reference could be created for a compilation and
+                    // then the compilation could be released.  So we actually have to realize the compilations here to
+                    // try to find a match.  However, this will only happen once per unique IAssemblySymbol as we cache
+                    // the results.  So this should not be too bad.
+                    var compilation = await this.GetCompilationAsync(state, cancellationToken).ConfigureAwait(false);
+
+                    // Now, see if it was a reference to any of the metadata assembly symbols for this project.
+                    foreach (var metadataReference in compilation!.References)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 

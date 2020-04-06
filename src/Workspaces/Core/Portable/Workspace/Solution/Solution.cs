@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis
         /// features this is an acceptable abstraction.  However, for some cases (Find-References in particular) it is
         /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
         /// </remarks>
-        internal ProjectId? GetExactProjectId(ISymbol symbol, CancellationToken cancellationToken)
-            => _state.GetExactProjectId(symbol, cancellationToken);
+        internal ValueTask<ProjectId?> GetExactProjectIdAsync(ISymbol symbol, CancellationToken cancellationToken)
+            => _state.GetExactProjectIdAsync(symbol, cancellationToken);
 
         /// <summary>
         /// True if the solution contains the document in one of its projects
