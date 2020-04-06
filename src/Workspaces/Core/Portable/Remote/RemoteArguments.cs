@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public ProjectId ProjectId;
 
         public override int GetHashCode()
-            => SymbolKeyData.GetHashCode();
+            => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
 
         public override bool Equals(object obj)
             => Equals(obj as SerializableSymbolAndProjectId);
 
         public bool Equals(SerializableSymbolAndProjectId other)
-            => other != null && SymbolKeyData.Equals(other.SymbolKeyData);
+            => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
 
         public static async Task<SerializableSymbolAndProjectId> DehydrateAsync(
             IAliasSymbol alias, Document document, CancellationToken cancellationToken)
