@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
-                        FeaturesResources.Use_auto_property,
+                        AnalyzersResources.Use_auto_property,
                         c => ProcessResultAsync(context, diagnostic, c),
                         priority),
                     diagnostic);
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return true;
         }
 
-        private class UseAutoPropertyCodeAction : CodeAction.SolutionChangeAction
+        private class UseAutoPropertyCodeAction : CustomCodeActions.SolutionChangeAction
         {
             public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, CodeActionPriority priority)
                 : base(title, createChangedSolution, title)

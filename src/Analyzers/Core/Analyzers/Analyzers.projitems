@@ -47,6 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.BlockAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\AbstractObjectCreationExpressionAnalyzer.cs" />

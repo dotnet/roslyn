@@ -10,11 +10,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
+using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -237,6 +239,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         // https://github.com/dotnet/roslyn/issues/43056 blocks porting the fixer to CodeStyle layer.
         protected static CodeFixProvider GetMakeLocalFunctionStaticCodeFixProvider() => new MakeLocalFunctionStaticCodeFixProvider();
+
+        // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
+        protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();
+
+        // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
+        protected static CodeFixProvider GetVisualBasicUseAutoPropertyCodeFixProvider() => new VisualBasicUseAutoPropertyCodeFixProvider();
 
         #endregion
     }
