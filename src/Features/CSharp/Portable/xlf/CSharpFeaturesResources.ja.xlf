@@ -142,11 +142,6 @@
         <target state="translated">'ref struct' を作成します</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Pass_in_captured_variables_as_arguments">
-        <source>Pass in captured variables as arguments</source>
-        <target state="translated">キャプチャされた変数を引数として渡す</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">不要なキャストを削除する</target>
@@ -185,11 +180,6 @@
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">警告: 一時メソッド呼び出しを条件付きメソッド呼び出しにインライン展開しています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
-        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="translated">警告: ローカル関数の宣言にパラメーターを追加すると、無効なコードが生成される可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -765,31 +755,6 @@
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">'using' ステートメントを導入します</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Misplaced_using_directive">
-        <source>Misplaced using directive</source>
-        <target state="translated">using ディレクティブが正しく配置されていません</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Move_misplaced_using_directives">
-        <source>Move misplaced using directives</source>
-        <target state="translated">誤って配置された using ディレクティブを移動します</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
-        <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="translated">using ディレクティブを namespace 宣言の中に配置する必要があります</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
-        <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="translated">using ディレクティブを namespace 宣言の外に配置する必要があります</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
-        <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="translated">警告: using ディレクティブを移動すると、コードの意味が変わる可能性があります。</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">
