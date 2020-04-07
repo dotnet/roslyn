@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            return new CSharpDecompiledSourceService(provider);
-        }
+            => new CSharpDecompiledSourceService(provider);
     }
 }

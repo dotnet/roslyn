@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             public DocumentAnalysisData ToPersistData()
-            {
-                return new DocumentAnalysisData(Version, Items);
-            }
+                => new DocumentAnalysisData(Version, Items);
 
             public bool FromCache
             {
@@ -111,9 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
-            {
-                return GetResultOrEmpty(Result, analyzer, ProjectId, Version);
-            }
+                => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
 
             public static async Task<ProjectAnalysisData> CreateAsync(IPersistentStorageService persistentService, Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {

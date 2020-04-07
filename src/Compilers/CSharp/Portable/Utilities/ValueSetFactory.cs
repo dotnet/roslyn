@@ -4,6 +4,8 @@
 
 #nullable enable
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -25,8 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly IValueSetFactory<double> ForDouble = FloatingValueSetFactory<double, DoubleTC>.Instance;
         internal static readonly IValueSetFactory<string> ForString = EnumeratedValueSetFactory<string, StringTC>.Instance;
         internal static readonly IValueSetFactory<decimal> ForDecimal = DecimalValueSetFactory.Instance;
+        internal static readonly IValueSetFactory<int> ForNint = NintValueSetFactory.Instance;
+        internal static readonly IValueSetFactory<uint> ForNuint = NuintValueSetFactory.Instance;
 
-        public static IValueSetFactory? ForSpecialType(SpecialType specialType)
+        public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
         {
             switch (specialType)
             {
@@ -58,9 +62,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ForString;
                 case SpecialType.System_Decimal:
                     return ForDecimal;
+                case SpecialType.System_IntPtr when isNative:
+                    return ForNint;
+                case SpecialType.System_UIntPtr when isNative:
+                    return ForNuint;
                 default:
                     return null;
             }
+        }
+
+        public static IValueSetFactory? ForType(TypeSymbol type)
+        {
+            return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
         }
     }
 }

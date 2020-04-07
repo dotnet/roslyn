@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
             output = MakeConvertToType(input, rel.Syntax, rel.Value.Type!, isExplicitTest: false, tests);
-            var fac = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
+            var fac = ValueSetFactory.ForType(input.Type);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
             {
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             resultForRelation(BinaryOperatorKind relation, ConstantValue value)
             {
                 var input = test.Input;
-                IValueSetFactory? valueFac = ValueSetFactory.ForSpecialType(input.Type.EnumUnderlyingTypeOrSelf().SpecialType);
+                IValueSetFactory? valueFac = ValueSetFactory.ForType(input.Type.EnumUnderlyingTypeOrSelf());
                 if (valueFac == null || value.IsBad)
                 {
                     // If it is a type we don't track yet, assume all values are possible

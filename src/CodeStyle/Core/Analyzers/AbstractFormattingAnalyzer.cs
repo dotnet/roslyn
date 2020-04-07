@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
-        }
+            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {

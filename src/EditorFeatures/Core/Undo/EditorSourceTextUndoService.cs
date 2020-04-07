@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-        }
+            => _undoHistoryRegistry = undoHistoryRegistry;
 
         public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
         {

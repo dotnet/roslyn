@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
         }
 
         protected override ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation)
-        {
-            return symbol;
-        }
+            => symbol;
     }
 }

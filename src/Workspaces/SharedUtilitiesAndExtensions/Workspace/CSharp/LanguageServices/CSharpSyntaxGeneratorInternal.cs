@@ -4,9 +4,12 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -20,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static readonly SyntaxGeneratorInternal Instance = new CSharpSyntaxGeneratorInternal();
+
+        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
         {
@@ -52,5 +57,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode MemberBindingExpression(SyntaxNode name)
             => SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)name);
+
+        internal override SyntaxNode RefExpression(SyntaxNode expression)
+            => SyntaxFactory.RefExpression((ExpressionSyntax)expression);
+
+        internal override SyntaxNode AddParentheses(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        {
+            return Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
+        }
+
+        internal static ExpressionSyntax Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
+        {
+            return ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia, addSimplifierAnnotation);
+        }
+
+        internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
+            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);
     }
 }

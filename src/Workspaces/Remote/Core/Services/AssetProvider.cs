@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
-        {
-            return _assetStorage.GetGlobalAssetsOfType<T>(cancellationToken);
-        }
+            => _assetStorage.GetGlobalAssetsOfType<T>(cancellationToken);
 
         public override async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {

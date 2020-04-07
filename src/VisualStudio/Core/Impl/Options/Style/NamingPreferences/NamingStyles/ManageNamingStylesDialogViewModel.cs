@@ -33,9 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         internal void RemoveNamingStyle(NamingStyleViewModel namingStyle)
-        {
-            Items.Remove(namingStyle);
-        }
+            => Items.Remove(namingStyle);
 
         public void AddItem()
         {
@@ -50,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         public void RemoveItem(INamingStylesInfoDialogViewModel item)
-        {
-            Items.Remove(item);
-        }
+            => Items.Remove(item);
 
         public void EditItem(INamingStylesInfoDialogViewModel item)
         {

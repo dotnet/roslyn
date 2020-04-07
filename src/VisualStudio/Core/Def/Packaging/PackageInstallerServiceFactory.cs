@@ -275,9 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         private static string GetStatusBarText(string packageName, string installedVersion)
-        {
-            return installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
-        }
+            => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
         private bool TryUninstallPackage(
             string packageName, EnvDTE.DTE dte, EnvDTE.Project dteProject)
@@ -673,9 +671,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         }
 
         public void ReportResult(IVsSearchTask pTask, IVsSearchItemResult pSearchItemResult)
-        {
-            pSearchItemResult.InvokeAction();
-        }
+            => pSearchItemResult.InvokeAction();
 
         public void ReportResults(IVsSearchTask pTask, uint dwResults, IVsSearchItemResult[] pSearchItemResults)
         {
@@ -684,18 +680,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private class SearchQuery : IVsSearchQuery
         {
             public SearchQuery(string packageName)
-            {
-                this.SearchString = packageName;
-            }
+                => this.SearchString = packageName;
 
             public string SearchString { get; }
 
             public uint ParseError => 0;
 
             public uint GetTokens(uint dwMaxTokens, IVsSearchToken[] rgpSearchTokens)
-            {
-                return 0;
-            }
+                => 0;
         }
     }
 }

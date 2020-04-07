@@ -23,25 +23,19 @@ namespace Microsoft.CodeAnalysis
         /// pool that uses default constructor with 100 elements pooled
         /// </summary>
         public static ObjectPool<T> BigDefault<T>() where T : class, new()
-        {
-            return DefaultBigPool<T>.Instance;
-        }
+            => DefaultBigPool<T>.Instance;
 
         /// <summary>
         /// pool that uses default constructor with 20 elements pooled
         /// </summary>
         public static ObjectPool<T> Default<T>() where T : class, new()
-        {
-            return DefaultNormalPool<T>.Instance;
-        }
+            => DefaultNormalPool<T>.Instance;
 
         /// <summary>
         /// pool that uses string as key with StringComparer.OrdinalIgnoreCase as key comparer
         /// </summary>
         public static ObjectPool<Dictionary<string, T>> StringIgnoreCaseDictionary<T>()
-        {
-            return StringIgnoreCaseDictionaryNormalPool<T>.Instance;
-        }
+            => StringIgnoreCaseDictionaryNormalPool<T>.Instance;
 
         /// <summary>
         /// pool that uses string as element with StringComparer.OrdinalIgnoreCase as element comparer

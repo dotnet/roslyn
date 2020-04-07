@@ -24,8 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         protected override string ProjectKind => VSLangProj.PrjKind.prjKindCSharpProject;
 
         protected override CommandID GetResetInteractiveFromProjectCommandID()
-        {
-            return new CommandID(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
-        }
+            => new CommandID(ID.InteractiveCommands.CSharpInteractiveCommandSetId, ID.InteractiveCommands.ResetInteractiveFromProject);
     }
 }

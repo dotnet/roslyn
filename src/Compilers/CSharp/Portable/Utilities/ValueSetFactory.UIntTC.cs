@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             uint INumericTC<uint>.MaxValue => uint.MaxValue;
 
-            bool INumericTC<uint>.Related(BinaryOperatorKind relation, uint left, uint right)
+            public bool Related(BinaryOperatorKind relation, uint left, uint right)
             {
                 switch (relation)
                 {
@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value + 1;
             }
 
-            uint INumericTC<uint>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt32Value;
+            public uint FromConstantValue(ConstantValue constantValue) => constantValue.UInt32Value;
+
+            public ConstantValue ToConstantValue(uint value) => ConstantValue.Create(value);
 
             string INumericTC<uint>.ToString(uint value) => value.ToString();
 
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value - 1;
             }
 
-            uint INumericTC<uint>.Random(Random random)
+            public uint Random(Random random)
             {
                 return (uint)((random.Next() << 10) ^ random.Next());
             }

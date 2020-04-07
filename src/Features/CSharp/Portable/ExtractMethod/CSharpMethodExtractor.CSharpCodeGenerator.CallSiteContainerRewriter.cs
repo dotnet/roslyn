@@ -50,9 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 public SyntaxNode Generate()
-                {
-                    return Visit(_outmostCallSiteContainer);
-                }
+                    => Visit(_outmostCallSiteContainer);
 
                 private SyntaxNode ContainerOfStatementsOrFieldToReplace => _firstStatementOrFieldToReplace.Parent;
 
@@ -271,9 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 private TNode VisitNode<TNode>(TNode node) where TNode : SyntaxNode
-                {
-                    return (TNode)Visit(node);
-                }
+                    => (TNode)Visit(node);
 
                 private StatementSyntax ReplaceStatementIfNeeded(StatementSyntax statement)
                 {

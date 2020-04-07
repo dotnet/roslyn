@@ -62,6 +62,11 @@
         <target state="translated">Nuevas preferencias de línea</target>
         <note />
       </trans-unit>
+      <trans-unit id="Only_submission_project_can_reference_submission_projects">
+        <source>Only submission project can reference submission projects.</source>
+        <target state="new">Only submission project can reference submission projects.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">Las opciones no procedían de la solución especificada.</target>

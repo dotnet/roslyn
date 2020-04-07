@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt64Value;
 
+            ConstantValue INumericTC<ulong>.ToConstantValue(ulong value) => ConstantValue.Create(value);
+
             string INumericTC<ulong>.ToString(ulong value) => value.ToString();
 
             ulong INumericTC<ulong>.Random(Random random)

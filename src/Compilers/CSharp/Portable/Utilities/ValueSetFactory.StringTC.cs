@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(next == count);
                 return result;
             }
+
+            ConstantValue IEquatableValueTC<string>.ToConstantValue(string value) => ConstantValue.Create(value);
         }
     }
 }

@@ -140,9 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         }
 
         public void SendEscape()
-        {
-            _commandHandler.ExecuteCommand(new EscapeKeyCommandArgs(_view, _view.TextBuffer), TestCommandExecutionContext.Create());
-        }
+            => _commandHandler.ExecuteCommand(new EscapeKeyCommandArgs(_view, _view.TextBuffer), TestCommandExecutionContext.Create());
 
         public void MoveCaret(int delta)
         {
@@ -211,14 +209,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         }
 
         public void AssertNoNotificationMessage()
-        {
-            Assert.Null(_notificationMessage);
-        }
+            => Assert.Null(_notificationMessage);
 
         public void AssertNotificationMessage()
-        {
-            Assert.NotNull(_notificationMessage);
-        }
+            => Assert.NotNull(_notificationMessage);
 
         private async Task WaitForAsyncOperationsAsync()
         {
@@ -231,8 +225,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         }
 
         public void Dispose()
-        {
-            Workspace.Dispose();
-        }
+            => Workspace.Dispose();
     }
 }

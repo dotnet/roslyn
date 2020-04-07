@@ -25,19 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             public override void Connect()
-            {
-                _textView.Caret.PositionChanged += OnCaretPositionChanged;
-            }
+                => _textView.Caret.PositionChanged += OnCaretPositionChanged;
 
             public override void Disconnect()
-            {
-                _textView.Caret.PositionChanged -= OnCaretPositionChanged;
-            }
+                => _textView.Caret.PositionChanged -= OnCaretPositionChanged;
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
-            {
-                this.RaiseChanged();
-            }
+                => this.RaiseChanged();
         }
     }
 }

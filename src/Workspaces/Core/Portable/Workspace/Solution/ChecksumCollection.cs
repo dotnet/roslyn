@@ -25,14 +25,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum this[int index] => (Checksum)Children[index];
 
         public IEnumerator<Checksum> GetEnumerator()
-        {
-            return this.Children.Cast<Checksum>().GetEnumerator();
-        }
+            => this.Children.Cast<Checksum>().GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
     }
 
     // we have a type for each kind so that we can distinguish these later

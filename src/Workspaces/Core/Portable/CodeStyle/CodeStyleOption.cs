@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
 
         internal CodeStyleOption(CodeStyleOption2<T> codeStyleOptionImpl)
-        {
-            _codeStyleOptionImpl = codeStyleOptionImpl;
-        }
+            => _codeStyleOptionImpl = codeStyleOptionImpl;
 
         public CodeStyleOption(T value, NotificationOption notification)
             : this(new CodeStyleOption2<T>(value, (NotificationOption2)notification))
@@ -35,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption<T>(Value, (NotificationOption)notification);
         ICodeStyleOption ICodeStyleOption.AsCodeStyleOption<TCodeStyleOption>()
             => this is TCodeStyleOption ? this : (ICodeStyleOption)_codeStyleOptionImpl;
+        ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => this;
 
         public NotificationOption Notification
         {

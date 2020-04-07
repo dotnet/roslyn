@@ -195,10 +195,19 @@
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
   </data>
+  <data name="if_statement_can_be_simplified" xml:space="preserve">
+    <value>'if' statement can be simplified</value>
+  </data>
   <data name="Simplify_default_expression" xml:space="preserve">
     <value>Simplify 'default' expression</value>
   </data>
   <data name="default_expression_can_be_simplified" xml:space="preserve">
     <value>'default' expression can be simplified</value>
+  </data>
+  <data name="Deconstruct_variable_declaration" xml:space="preserve">
+    <value>Deconstruct variable declaration</value>
+  </data>
+  <data name="Variable_declaration_can_be_deconstructed" xml:space="preserve">
+    <value>Variable declaration can be deconstructed</value>
   </data>
 </root>

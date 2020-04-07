@@ -115,9 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             public event EventHandler Disposed;
 
             public void Dispose()
-            {
-                Disposed?.Invoke(this, null);
-            }
+                => Disposed?.Invoke(this, null);
         }
 
         /// <summary>

@@ -68,19 +68,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public event EventHandler<string> Updated;
 
             public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
-            {
-                return Task.FromResult<DynamicFileInfo>(null);
-            }
+                => Task.FromResult<DynamicFileInfo>(null);
 
             public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             private void OnUpdate()
-            {
-                Updated?.Invoke(this, "test");
-            }
+                => Updated?.Invoke(this, "test");
         }
         #endregion
     }

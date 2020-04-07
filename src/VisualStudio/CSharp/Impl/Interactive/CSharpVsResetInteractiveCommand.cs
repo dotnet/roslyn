@@ -31,13 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         }
 
         protected override string CreateReference(string referenceName)
-        {
-            return string.Format("#r \"{0}\"", referenceName);
-        }
+            => string.Format("#r \"{0}\"", referenceName);
 
         protected override string CreateImport(string namespaceName)
-        {
-            return string.Format("using {0};", namespaceName);
-        }
+            => string.Format("using {0};", namespaceName);
     }
 }

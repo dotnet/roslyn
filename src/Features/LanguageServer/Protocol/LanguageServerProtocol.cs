@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
-        {
-            _requestHandlers = CreateMethodToHandlerMap(requestHandlers);
-        }
+            => _requestHandlers = CreateMethodToHandlerMap(requestHandlers);
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {

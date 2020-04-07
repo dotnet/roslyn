@@ -114,9 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         }
 
         private void OnSnapshotAdded()
-        {
-            SnapshotAdded?.Invoke(this, EventArgs.Empty);
-        }
+            => SnapshotAdded?.Invoke(this, EventArgs.Empty);
 
         private static string SnapshotLogger(IEnumerable<AnalyzerPerformanceInfo> snapshots, int unitCount)
         {

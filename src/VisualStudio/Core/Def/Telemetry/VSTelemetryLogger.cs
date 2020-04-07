@@ -25,9 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         }
 
         public bool IsEnabled(FunctionId functionId)
-        {
-            return true;
-        }
+            => true;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {

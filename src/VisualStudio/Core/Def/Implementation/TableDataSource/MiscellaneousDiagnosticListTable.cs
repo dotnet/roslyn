@@ -23,14 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousDiagnosticListTableWorkspaceEventListener(ITableManagerProvider tableManagerProvider)
-        {
-            _tableManagerProvider = tableManagerProvider;
-        }
+            => _tableManagerProvider = tableManagerProvider;
 
         public void StartListening(Workspace workspace, IDiagnosticService diagnosticService)
-        {
-            new MiscellaneousDiagnosticListTable(workspace, diagnosticService, _tableManagerProvider);
-        }
+            => new MiscellaneousDiagnosticListTable(workspace, diagnosticService, _tableManagerProvider);
 
         private sealed class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
         {
@@ -66,9 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             protected override void ShutdownSource()
-            {
-                _source.Shutdown();
-            }
+                => _source.Shutdown();
         }
     }
 }

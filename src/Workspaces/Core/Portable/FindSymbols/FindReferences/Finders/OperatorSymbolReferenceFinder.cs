@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class OperatorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.UserDefinedOperator;
-        }
+            => symbol.MethodKind == MethodKind.UserDefinedOperator;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,

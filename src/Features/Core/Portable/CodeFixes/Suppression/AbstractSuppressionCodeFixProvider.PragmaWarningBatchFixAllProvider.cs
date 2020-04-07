@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
 
             public PragmaWarningBatchFixAllProvider(AbstractSuppressionCodeFixProvider suppressionFixProvider)
-            {
-                _suppressionFixProvider = suppressionFixProvider;
-            }
+                => _suppressionFixProvider = suppressionFixProvider;
 
             protected override async Task AddDocumentFixesAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics,

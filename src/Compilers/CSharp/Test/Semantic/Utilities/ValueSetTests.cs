@@ -501,6 +501,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(ForDecimal, ForSpecialType(SpecialType.System_Decimal));
             Assert.Same(ForChar, ForSpecialType(SpecialType.System_Char));
             Assert.Same(ForBool, ForSpecialType(SpecialType.System_Boolean));
+            Assert.Same(ForNint, ForSpecialType(SpecialType.System_IntPtr, isNative: true));
+            Assert.Same(ForNuint, ForSpecialType(SpecialType.System_UIntPtr, isNative: true));
             Assert.Null(ForSpecialType(SpecialType.System_Enum));
         }
 
@@ -511,6 +513,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("[-79228162514264337593543950335..0.0000000000000000000000000000]", ForDecimal.Related(LessThanOrEqual, 0.0m).ToString());
             Assert.Equal("[0.0000000000000000000000000001..79228162514264337593543950335]", ForDecimal.Related(GreaterThan, 0.0m).ToString());
             Assert.Equal("[0.0000000000000000000000000000..79228162514264337593543950335]", ForDecimal.Related(GreaterThanOrEqual, 0.0m).ToString());
+        }
+
+        [Fact]
+        public void TestNintRelations_01()
+        {
+            Assert.Equal("Small,[-2147483648..9]", ForNint.Related(LessThan, 10).ToString());
+            Assert.Equal("Small,[-2147483648..10]", ForNint.Related(LessThanOrEqual, 10).ToString());
+            Assert.Equal("[11..2147483647],Large", ForNint.Related(GreaterThan, 10).ToString());
+            Assert.Equal("[10..2147483647],Large", ForNint.Related(GreaterThanOrEqual, 10).ToString());
+        }
+
+        [Fact]
+        public void TestNuintRelations_01()
+        {
+            Assert.Equal("[0..9]", ForNuint.Related(LessThan, 10).ToString());
+            Assert.Equal("[0..10]", ForNuint.Related(LessThanOrEqual, 10).ToString());
+            Assert.Equal("[11..4294967295],Large", ForNuint.Related(GreaterThan, 10).ToString());
+            Assert.Equal("[10..4294967295],Large", ForNuint.Related(GreaterThanOrEqual, 10).ToString());
         }
 
         [Fact]
@@ -565,18 +585,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestDouble_Fuzz_01()
+        public void TestNumbers_Fuzz_01()
         {
-            for (int i = 0; i < 100; i++)
+            var Random = new Random(123445);
+
+            foreach (var fac in new IValueSetFactory[] {
+                ForByte, ForSByte, ForShort, ForUShort,
+                ForInt, ForUInt, ForLong, ForULong,
+                ForFloat, ForDouble, ForDecimal, ForNint,
+                ForNuint, ForChar
+                })
             {
-                var s1 = ForDouble.Random(10, Random);
-                var s2 = ForDouble.Random(10, Random);
-                var u1 = s1.Union(s2);
-                var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
-                Assert.Equal(u1, u2);
-                var i1 = s1.Intersect(s2);
-                var i2 = s1.Complement().Union(s2.Complement()).Complement();
-                Assert.Equal(i1, i2);
+                for (int i = 0; i < 100; i++)
+                {
+                    var s1 = fac.Random(10, Random);
+                    var s2 = fac.Random(10, Random);
+                    var u1 = s1.Union(s2);
+                    var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
+                    Assert.Equal(u1, u2);
+                    var i1 = s1.Intersect(s2);
+                    var i2 = s1.Complement().Union(s2.Complement()).Complement();
+                    Assert.Equal(i1, i2);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNumbers_Fuzz_02()
+        {
+            foreach (var fac in new IValueSetFactory[] {
+                ForByte, ForSByte, ForShort, ForUShort,
+                ForInt, ForUInt, ForLong, ForULong,
+                ForDecimal, ForNint,
+                ForNuint, ForChar })
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    ConstantValue value = fac.RandomValue(Random);
+                    var s1 = fac.Related(LessThan, value);
+                    var s2 = fac.Related(GreaterThanOrEqual, value);
+                    Assert.Equal(s1.Complement(), s2);
+                    Assert.Equal(s2.Complement(), s1);
+                    Assert.True(s2.Any(Equal, value));
+                    Assert.False(s1.Any(Equal, value));
+                    Assert.True(s1.All(LessThan, value));
+                    Assert.False(s2.Any(LessThan, value));
+                    Assert.True(s2.All(GreaterThanOrEqual, value));
+                    Assert.False(s1.Any(GreaterThanOrEqual, value));
+
+                    s1 = fac.Related(GreaterThan, value);
+                    s2 = fac.Related(LessThanOrEqual, value);
+                    Assert.Equal(s1.Complement(), s2);
+                    Assert.Equal(s2.Complement(), s1);
+                    Assert.True(s2.Any(Equal, value));
+                    Assert.False(s1.Any(Equal, value));
+                    Assert.True(s1.All(GreaterThan, value));
+                    Assert.False(s2.Any(GreaterThan, value));
+                    Assert.True(s2.All(LessThanOrEqual, value));
+                    Assert.False(s1.Any(LessThanOrEqual, value));
+                }
             }
         }
 
@@ -641,38 +708,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(i1, i2);
                 Assert.Equal(i1, i3);
                 Assert.Equal(i1, i4);
-            }
-        }
-
-        [Fact]
-        public void TestChar_Fuzz_03()
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                var s1 = ForChar.Random(10, Random);
-                var s2 = ForChar.Random(10, Random);
-                var u1 = s1.Union(s2);
-                var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
-                Assert.Equal(u1, u2);
-                var i1 = s1.Intersect(s2);
-                var i2 = s1.Complement().Union(s2.Complement()).Complement();
-                Assert.Equal(i1, i2);
-            }
-        }
-
-        [Fact]
-        public void TestDecimal_Fuzz_01()
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                var s1 = ForDecimal.Random(10, Random);
-                var s2 = ForDecimal.Random(10, Random);
-                var u1 = s1.Union(s2);
-                var u2 = s1.Complement().Intersect(s2.Complement()).Complement();
-                Assert.Equal(u1, u2);
-                var i1 = s1.Intersect(s2);
-                var i2 = s1.Complement().Union(s2.Complement()).Complement();
-                Assert.Equal(i1, i2);
             }
         }
 

@@ -4,21 +4,28 @@
 
 #nullable enable
 
+using System;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ValueSetFactory
     {
-        private sealed class DecimalValueSetFactory : NumericValueSetFactory<decimal, DecimalTC>, IValueSetFactory<decimal>, IValueSetFactory
+        private sealed class DecimalValueSetFactory : IValueSetFactory<decimal>, IValueSetFactory
         {
-            public static new readonly DecimalValueSetFactory Instance = new DecimalValueSetFactory();
+            public static readonly DecimalValueSetFactory Instance = new DecimalValueSetFactory();
 
-            public new IValueSet<decimal> Related(BinaryOperatorKind relation, decimal value)
-            {
-                return base.Related(relation, DecimalTC.Normalize(value));
-            }
+            private readonly IValueSetFactory<decimal> _underlying = NumericValueSetFactory<decimal, DecimalTC>.Instance;
+
+            public IValueSet<decimal> Related(BinaryOperatorKind relation, decimal value) => _underlying.Related(relation, DecimalTC.Normalize(value));
+
+            IValueSet IValueSetFactory.Random(int expectedSize, Random random) => _underlying.Random(expectedSize, random);
+
+            ConstantValue IValueSetFactory.RandomValue(Random random) => ConstantValue.Create(default(DecimalTC).Random(random));
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? NumericValueSet<decimal, DecimalTC>.AllValues : Related(relation, default(DecimalTC).FromConstantValue(value));
+
+            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right) => _underlying.Related(relation, left, right);
         }
     }
 }

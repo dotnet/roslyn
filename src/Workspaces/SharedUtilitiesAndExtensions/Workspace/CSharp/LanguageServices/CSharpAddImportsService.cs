@@ -76,9 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             };
 
         protected override bool IsEquivalentImport(SyntaxNode a, SyntaxNode b)
-        {
-            return SyntaxFactory.AreEquivalent(a, b, kind => kind == SyntaxKind.NullableDirectiveTrivia);
-        }
+            => SyntaxFactory.AreEquivalent(a, b, kind => kind == SyntaxKind.NullableDirectiveTrivia);
 
         private class Rewriter : CSharpSyntaxRewriter
         {

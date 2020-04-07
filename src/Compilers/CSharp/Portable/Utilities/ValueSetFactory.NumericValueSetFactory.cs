@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// parameterized by a type class
         /// <see cref="INumericTC{T}"/> that provides the primitives for that type.
         /// </summary>
-        private class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, INumericTC<T>
+        private sealed class NumericValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, INumericTC<T>
         {
             public static readonly NumericValueSetFactory<T, TTC> Instance = new NumericValueSetFactory<T, TTC>();
 
-            protected NumericValueSetFactory() { }
+            private NumericValueSetFactory() { }
 
             public IValueSet<T> Related(BinaryOperatorKind relation, T value)
             {
@@ -51,8 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? NumericValueSet<T, TTC>.AllValues : Related(relation, default(TTC).FromConstantValue(value));
 
-            public IValueSet<T> Random(int expectedSize, Random random) =>
+            public IValueSet Random(int expectedSize, Random random) =>
                 NumericValueSet<T, TTC>.Random(expectedSize, random);
+
+            ConstantValue IValueSetFactory.RandomValue(Random random)
+            {
+                var tc = default(TTC);
+                return tc.ToConstantValue(tc.Random(random));
+            }
 
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {

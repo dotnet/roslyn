@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// The implementation of a value set for an numeric type <typeparamref name="T"/>.
-        /// The implementation is based loosely on <em>interval trees</em>.
-        /// When used for floating-point values, only numeric values are represented (i.e. values between
-        /// MinValue and MaxValue, inclusive).
         /// </summary>
         private sealed class NumericValueSet<T, TTC> : IValueSet<T> where TTC : struct, INumericTC<T>
         {
@@ -201,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(tc.Related(GreaterThanOrEqual, first, tc.MinValue));
                 Debug.Assert(tc.Related(LessThanOrEqual, last, tc.MaxValue));
                 Debug.Assert(builder.Count == 0 || tc.Related(LessThanOrEqual, builder.Last().first, first));
-                if (builder.Count > 0 && tc.Related(GreaterThanOrEqual, builder.Last().last, tc.Prev(first)))
+                if (builder.Count > 0 && (tc.Related(Equal, tc.MinValue, first) || tc.Related(GreaterThanOrEqual, builder.Last().last, tc.Prev(first))))
                 {
                     // merge with previous interval when adjacent
                     var oldLastInterval = builder.Pop();

@@ -1262,7 +1262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
-            bool hasErrors = ReferenceEquals(constantValue, null) && ReportUnsafeIfNotAllowed(node, diagnostics, type);
+            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, type);
             return new BoundSizeOfOperator(node, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
@@ -1421,29 +1421,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (node.IsKind(SyntaxKind.IdentifierName) && FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
+                expression = null;
+                if (node is IdentifierNameSyntax identifier)
                 {
-                    lookupResult.Free();
-                    return new BoundDiscardExpression(node, type: null);
+                    var type = BindNativeIntegerSymbolIfAny(identifier, diagnostics);
+                    if (type is { })
+                    {
+                        expression = new BoundTypeExpression(node, null, type);
+                    }
+                    else if (FallBackOnDiscard(identifier, diagnostics))
+                    {
+                        expression = new BoundDiscardExpression(node, type: null);
+                    }
                 }
 
                 // Otherwise, the simple-name is undefined and a compile-time error occurs.
-                expression = BadExpression(node);
-                if (lookupResult.Error != null)
+                if (expression is null)
                 {
-                    Error(diagnostics, lookupResult.Error, node);
-                }
-                else if (IsJoinRangeVariableInLeftKey(node))
-                {
-                    Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, name);
-                }
-                else if (IsInJoinRightKey(node))
-                {
-                    Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, name);
-                }
-                else
-                {
-                    Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, name);
+                    expression = BadExpression(node);
+                    if (lookupResult.Error != null)
+                    {
+                        Error(diagnostics, lookupResult.Error, node);
+                    }
+                    else if (IsJoinRangeVariableInLeftKey(node))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, name);
+                    }
+                    else if (IsInJoinRightKey(node))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, name);
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, name);
+                    }
                 }
             }
 

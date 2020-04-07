@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             float INumericTC<float>.FromConstantValue(ConstantValue constantValue) => constantValue.SingleValue;
 
+            ConstantValue INumericTC<float>.ToConstantValue(float value) => ConstantValue.Create(value);
+
             /// <summary>
             /// Produce a string for testing purposes that is likely to be the same independent of platform and locale.
             /// </summary>

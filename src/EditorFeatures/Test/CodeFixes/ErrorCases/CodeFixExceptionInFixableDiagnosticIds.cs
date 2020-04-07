@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes.ErrorCases
         }
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            return Task.FromResult(true);
-        }
+            => Task.FromResult(true);
     }
 }

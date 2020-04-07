@@ -190,12 +190,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLocalFunctionAttributes = MessageBase + 12766,
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
         IDS_FeatureMemberNotNull = MessageBase + 12768,
-        IDS_FeatureTypePattern = MessageBase + 12769,
-        IDS_FeatureParenthesizedPattern = MessageBase + 12770,
-        IDS_FeatureOrPattern = MessageBase + 12771,
-        IDS_FeatureAndPattern = MessageBase + 12772,
-        IDS_FeatureNotPattern = MessageBase + 12773,
-        IDS_FeatureRelationalPattern = MessageBase + 12774,
+        IDS_FeatureNativeInt = MessageBase + 12769,
+        IDS_FeatureTypePattern = MessageBase + 12770,
+        IDS_FeatureParenthesizedPattern = MessageBase + 12771,
+        IDS_FeatureOrPattern = MessageBase + 12772,
+        IDS_FeatureAndPattern = MessageBase + 12773,
+        IDS_FeatureNotPattern = MessageBase + 12774,
+        IDS_FeatureRelationalPattern = MessageBase + 12775,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -313,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureParenthesizedPattern:
                 case MessageID.IDS_FeatureTypePattern:
                 case MessageID.IDS_FeatureRelationalPattern:
+                case MessageID.IDS_FeatureNativeInt:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

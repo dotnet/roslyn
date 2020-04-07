@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
             => _ws ?? (_ws = new AdhocWorkspace());
 
         protected override SyntaxNode ParseCompilation(string text, ParseOptions parseOptions)
-        {
-            return SyntaxFactory.ParseCompilationUnit(text, options: (CSharpParseOptions)parseOptions);
-        }
+            => SyntaxFactory.ParseCompilationUnit(text, options: (CSharpParseOptions)parseOptions);
 
         protected Task AssertFormatAsync(
             string expected,

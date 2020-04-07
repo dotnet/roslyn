@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Notification
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
     }
 }

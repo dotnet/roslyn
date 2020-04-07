@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -35,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
         }
 
         public abstract ImmutableArray<ISymbol> GetSymbols();
+
+        public abstract bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(returnValue: true)] out ITypeSymbol explicitLambdaParameterType);
 
         // This code is to help give intellisense in the following case: 
         // query.Include(a => a.SomeProperty).ThenInclude(a => a.
@@ -74,13 +77,22 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var ordinalInInvocation = arguments.IndexOf(lambdaSyntax.Parent);
             var expressionOfInvocationExpression = syntaxFactsService.GetExpressionOfInvocationExpression(invocationExpression);
 
-            // Get all members potentially matching the invocation expression.
-            // We filter them out based on ordinality later.
-            var candidateSymbols = _context.SemanticModel.GetMemberGroup(expressionOfInvocationExpression, _cancellationToken);
+            var parameterTypeSymbols = ImmutableArray<ITypeSymbol>.Empty;
 
-            // parameter.Ordinal is the ordinal within (a,b,c) => b.
-            // For candidate symbols of (a,b,c) => b., get types of all possible b.
-            var parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+            if (TryGetExplicitTypeOfLambdaParameter(lambdaSyntax, parameter.Ordinal, out var explicitLambdaParameterType))
+            {
+                parameterTypeSymbols = ImmutableArray.Create(explicitLambdaParameterType);
+            }
+            else
+            {
+                // Get all members potentially matching the invocation expression.
+                // We filter them out based on ordinality later.
+                var candidateSymbols = _context.SemanticModel.GetMemberGroup(expressionOfInvocationExpression, _cancellationToken);
+
+                // parameter.Ordinal is the ordinal within (a,b,c) => b.
+                // For candidate symbols of (a,b,c) => b., get types of all possible b.
+                parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+            }
 
             // For each type of b., return all suitable members.
             return parameterTypeSymbols
@@ -141,10 +153,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
                             continue;
                         }
 
-                        type = parameters[ordinalInLambda].Type;
+                        builder.Add(parameters[ordinalInLambda].Type);
                     }
-
-                    builder.Add(type);
                 }
             }
 

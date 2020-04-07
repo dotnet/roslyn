@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new CodeActionHelpersService();
-        }
+            => new CodeActionHelpersService();
 
         private class CodeActionHelpersService : ICodeRefactoringHelpersService
         {

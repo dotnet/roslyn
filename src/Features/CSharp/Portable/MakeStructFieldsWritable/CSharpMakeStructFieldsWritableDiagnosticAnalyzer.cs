@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             private bool _hasTypeInstanceAssigment;
 
             private SymbolAnalyzer(INamedTypeSymbol namedTypeSymbol)
-            {
-                _namedTypeSymbol = namedTypeSymbol;
-            }
+                => _namedTypeSymbol = namedTypeSymbol;
 
             public static void CreateAndRegisterActions(CompilationStartAnalysisContext compilationStartContext)
             {

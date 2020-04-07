@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     {
         private const string _patternName = "pattern";
 
+        /// <summary>
+        /// Cache so that we can reuse the same <see cref="RegexPatternDetector"/> when analyzing a particular semantic
+        /// model.  This saves the time from having to recreate this for every string literal that features examine for
+        /// a particular semantic model.
+        /// </summary>
         private static readonly ConditionalWeakTable<SemanticModel, RegexPatternDetector> _modelToDetector =
             new ConditionalWeakTable<SemanticModel, RegexPatternDetector>();
 
