@@ -218,17 +218,6 @@ dotnet_diagnostic.RS0037.severity = none
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none
 
-[*.{cs,vb}]
-# Temporarily disable IDE0005 and the underlying compiler diagnostics for unnecessary usings for entire repo.
-# This enables us to use a FixAll in solution operation to fix all violations in the layers we care about.
-dotnet_diagnostic.IDE0005.severity = none
-dotnet_diagnostic.CS8019.severity = none
-dotnet_diagnostic.BC50000.severity = none
-dotnet_diagnostic.BC50001.severity = none
-
 [src/{Analyzers,CodeStyle,Features,Workspaces}/**/*.{cs,vb}]
 # IDE0005: Remove unnecessary usings/imports
 dotnet_diagnostic.IDE0005.severity = warning
-dotnet_diagnostic.CS8019.severity = silent
-dotnet_diagnostic.BC50000.severity = silent
-dotnet_diagnostic.BC50001.severity = silent
