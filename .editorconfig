@@ -136,6 +136,9 @@ dotnet_naming_symbols.all_members.applicable_kinds = *
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
+# error RS2008: Enable analyzer release tracking for the analyzer project containing rule '{0}'
+dotnet_diagnostic.RS2008.severity = none
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings
@@ -206,7 +209,5 @@ csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
 
-# error RS2008: Enable analyzer release tracking for the analyzer project containing rule '{0}'
-dotnet_diagnostic.RS2008.severity = none
 # warning RS0037: PublicAPI.txt is missing '#nullable enable'
 dotnet_diagnostic.RS0037.severity = none
