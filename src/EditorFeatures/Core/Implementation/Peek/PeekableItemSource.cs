@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     {
                         return;
                     }
-                    
+
                     var navigableItems = goToDefinitionService.FindDefinitionsAsync(document, triggerPoint.Value.Position, cancellationToken)
                                                               .WaitAndGetResult(cancellationToken);
 
@@ -96,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
                     // Get the symbol back from the originating workspace
                     var symbolMappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
+                    if (symbolMappingService == null)
+                    {
+                        return;
+                    }
+
                     var mappingResult = symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken)
                                                             .WaitAndGetResult(cancellationToken);
 
@@ -118,6 +125,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             {
                 var workspace = project.Solution.Workspace;
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+                if (navigationService == null)
+                {
+                    yield break;
+                }
 
                 foreach (var item in navigableItems)
                 {
@@ -126,9 +137,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     {
                         var text = document.GetTextSynchronously(cancellationToken);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
-                        yield return new ExternalFilePeekableItem(
-                            new FileLinePositionSpan(document.FilePath, linePositionSpan),
-                            PredefinedPeekRelationships.Definitions, peekResultFactory);
+                        if (document.FilePath != null)
+                        {
+                            yield return new ExternalFilePeekableItem(
+                                new FileLinePositionSpan(document.FilePath, linePositionSpan),
+                                PredefinedPeekRelationships.Definitions, peekResultFactory);
+                        }
                     }
                 }
             }
