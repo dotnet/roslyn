@@ -223,8 +223,9 @@ namespace Microsoft.CodeAnalysis.Testing
                     // Is it starting a new match, or ending an existing match.  As a workaround, we
                     // special case these and consider it ending a match if we have something on the
                     // stack already.
-                    if ((matches[0].key == SpanStartString && matches[1].key == SpanEndString && startPositionsBuilder.Last().key.Length == 0) ||
-                        (matches[0].key == SpanStartString && matches[1].key == NamedSpanEndString && startPositionsBuilder.Last().key != string.Empty))
+                    var (_, _, lastUnmatchedStartKey) = GetLastUnmatchedSpanStart(startPositionsBuilder, endPositionsBuilder);
+                    if ((matches[0].key == SpanStartString && matches[1].key == SpanEndString && lastUnmatchedStartKey.Length == 0) ||
+                        (matches[0].key == SpanStartString && matches[1].key == NamedSpanEndString && lastUnmatchedStartKey != string.Empty))
                     {
                         orderedMatches.RemoveAt(0);
                     }
@@ -281,6 +282,15 @@ namespace Microsoft.CodeAnalysis.Testing
             positions = positionsBuilder.ToImmutable();
             startPositions = startPositionsBuilder.ToImmutable();
             endPositions = endPositionsBuilder.ToImmutable();
+            return;
+
+            // Local functions
+            static (int inputPosition, int outputPosition, string key) GetLastUnmatchedSpanStart(ImmutableArray<(int inputPosition, int outputPosition, string key)>.Builder startPositionsBuilder, ImmutableArray<(int inputPosition, int outputPosition, string key)>.Builder endPositionsBuilder)
+            {
+                // For disambiguating [|] and [|}, assume that the start and end tags are behaving like a stack
+                Debug.Assert(startPositionsBuilder.Count > endPositionsBuilder.Count, "Assertion failed: startPositionsBuilder.Count > endPositionsBuilder.Count");
+                return startPositionsBuilder[startPositionsBuilder.Count - endPositionsBuilder.Count - 1];
+            }
         }
 
         private static void PopSpan(
