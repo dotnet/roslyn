@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.NotEqual<TValue>(default, validNonDefaultValue);
 
-
             var instanceWithValue = factory(instance, validNonDefaultValue);
             Assert.Equal(validNonDefaultValue, getter(instanceWithValue));
 
+            // the factory returns the unchanged instance if the value is unchanged:
             var instanceWithValue2 = factory(instanceWithValue, validNonDefaultValue);
             Assert.Same(instanceWithValue2, instanceWithValue);
 
@@ -36,13 +36,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        public static void TestListProperty<T, TValue>(T instance, Func<T, IEnumerable<TValue>, T> factory, Func<T, IEnumerable<TValue>> getter, TValue item)
+        public static void TestListProperty<T, TValue>(T instance, Func<T, IEnumerable<TValue>, T> factory, Func<T, IEnumerable<TValue>> getter, TValue item, bool allowDuplicates)
             where T : class
         {
             var boxedItems = (IEnumerable<TValue>)ImmutableArray.Create(item);
             TestProperty(instance, factory, getter, boxedItems, defaultThrows: false);
 
-            var instanceWithNoItem = factory(instance, default);
+            var instanceWithNoItem = factory(instance, null);
             Assert.Empty(getter(instanceWithNoItem));
 
             var instanceWithItem = factory(instanceWithNoItem, boxedItems);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // the factory preserves the identity of a boxed immutable array:
             Assert.Same(boxedItems, getter(instanceWithItem));
 
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, default));
+            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, null));
             Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, Array.Empty<TValue>()));
             Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, ImmutableArray<TValue>.Empty));
 
@@ -60,7 +60,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var items = getter(instanceWithMutableItems);
             Assert.NotSame(mutableItems, items);
 
+            // null item:
             Assert.Throws<ArgumentNullException>(() => factory(instanceWithNoItem, new TValue[] { item, default }));
+
+            // duplicate item:
+            if (allowDuplicates)
+            {
+                var boxedDupItems = (IEnumerable<TValue>)ImmutableArray.Create(item, item);
+                Assert.Same(boxedDupItems, getter(factory(instanceWithNoItem, boxedDupItems)));
+            }
+            else
+            {
+                Assert.Throws<ArgumentException>(() => factory(instanceWithNoItem, new TValue[] { item, item }));
+            }
         }
     }
 }

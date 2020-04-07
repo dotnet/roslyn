@@ -104,9 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         }
 
         private void HandleRenamedEvent(object sender, RenamedEventArgs e)
-        {
-            ContextFileMoved?.Invoke(this, new ContextFileMovedEventArgs(e.OldFullPath, e.FullPath));
-        }
+            => ContextFileMoved?.Invoke(this, new ContextFileMovedEventArgs(e.OldFullPath, e.FullPath));
 
         public void StopWatching(string fileName, string directoryPath)
         {

@@ -16,22 +16,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             MyBase.New(provider.GetService(Of IAnonymousTypeDisplayService)())
         End Sub
 
-        Public Overrides Function ToDisplayParts(symbol As ISymbol, Optional format As SymbolDisplayFormat = Nothing) As ImmutableArray(Of SymbolDisplayPart)
-            Return Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay.ToDisplayParts(symbol, format)
-        End Function
-
-        Public Overrides Function ToMinimalDisplayParts(semanticModel As SemanticModel,
-                                                        position As Integer,
-                                                        symbol As ISymbol,
-                                                        format As SymbolDisplayFormat) As ImmutableArray(Of SymbolDisplayPart)
-            Return symbol.ToMinimalDisplayParts(semanticModel, position, format)
-        End Function
-
         Protected Overrides Function CreateDescriptionBuilder(workspace As Workspace,
                                                               semanticModel As SemanticModel,
                                                               position As Integer,
                                                               cancellationToken As CancellationToken) As AbstractSymbolDescriptionBuilder
-            Return New SymbolDescriptionBuilder(Me, semanticModel, position, workspace, Me.AnonymousTypeDisplayService, cancellationToken)
+            Return New SymbolDescriptionBuilder(semanticModel, position, workspace, Me.AnonymousTypeDisplayService, cancellationToken)
         End Function
     End Class
 End Namespace

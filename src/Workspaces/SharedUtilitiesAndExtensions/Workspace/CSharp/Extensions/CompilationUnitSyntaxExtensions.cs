@@ -139,9 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool IsDocCommentOrElastic(SyntaxTrivia t)
-        {
-            return t.IsDocComment() || t.IsElastic();
-        }
+            => t.IsDocComment() || t.IsElastic();
 
         private static List<UsingDirectiveSyntax> AddUsingDirectives(
             CompilationUnitSyntax root, IList<UsingDirectiveSyntax> usingDirectives)

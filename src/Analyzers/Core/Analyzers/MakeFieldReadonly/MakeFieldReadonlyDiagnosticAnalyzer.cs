@@ -10,10 +10,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -23,7 +19,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         public MakeFieldReadonlyDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
-                CodeStyleOptions.PreferReadonly,
+                CodeStyleOptions2.PreferReadonly,
                 new LocalizableResourceString(nameof(AnalyzersResources.Add_readonly_modifier), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                 new LocalizableResourceString(nameof(AnalyzersResources.Make_field_readonly), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -217,9 +213,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             return false;
         }
 
-        private static CodeStyleOption<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            return options.GetOption(CodeStyleOptions.PreferReadonly, field.Language, field.Locations[0].SourceTree, cancellationToken);
-        }
+        private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
+            => options.GetOption(CodeStyleOptions2.PreferReadonly, field.Language, field.Locations[0].SourceTree, cancellationToken);
     }
 }

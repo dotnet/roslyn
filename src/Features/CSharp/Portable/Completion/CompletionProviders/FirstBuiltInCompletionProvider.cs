@@ -4,9 +4,11 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal sealed class FirstBuiltInCompletionProvider : CompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FirstBuiltInCompletionProvider()
         {
         }

@@ -1245,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
-            bool hasErrors = ReferenceEquals(constantValue, null) && ReportUnsafeIfNotAllowed(node, diagnostics, type);
+            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, type);
             return new BoundSizeOfOperator(node, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
@@ -1404,29 +1404,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (node.IsKind(SyntaxKind.IdentifierName) && FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
+                expression = null;
+                if (node is IdentifierNameSyntax identifier)
                 {
-                    lookupResult.Free();
-                    return new BoundDiscardExpression(node, type: null);
+                    var type = BindNativeIntegerSymbolIfAny(identifier, diagnostics);
+                    if (type is { })
+                    {
+                        expression = new BoundTypeExpression(node, null, type);
+                    }
+                    else if (FallBackOnDiscard(identifier, diagnostics))
+                    {
+                        expression = new BoundDiscardExpression(node, type: null);
+                    }
                 }
 
                 // Otherwise, the simple-name is undefined and a compile-time error occurs.
-                expression = BadExpression(node);
-                if (lookupResult.Error != null)
+                if (expression is null)
                 {
-                    Error(diagnostics, lookupResult.Error, node);
-                }
-                else if (IsJoinRangeVariableInLeftKey(node))
-                {
-                    Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, name);
-                }
-                else if (IsInJoinRightKey(node))
-                {
-                    Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, name);
-                }
-                else
-                {
-                    Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, name);
+                    expression = BadExpression(node);
+                    if (lookupResult.Error != null)
+                    {
+                        Error(diagnostics, lookupResult.Error, node);
+                    }
+                    else if (IsJoinRangeVariableInLeftKey(node))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, name);
+                    }
+                    else if (IsInJoinRightKey(node))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, name);
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, name);
+                    }
                 }
             }
 
@@ -7415,33 +7426,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDynamicIndexer(
              SyntaxNode syntax,
-             BoundExpression receiverOpt,
+             BoundExpression receiver,
              AnalyzedArguments arguments,
              ImmutableArray<PropertySymbol> applicableProperties,
              DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
-            if (receiverOpt != null)
+            BoundKind receiverKind = receiver.Kind;
+            if (receiverKind == BoundKind.BaseReference)
             {
-                BoundKind receiverKind = receiverOpt.Kind;
-                if (receiverKind == BoundKind.BaseReference)
-                {
-                    Error(diagnostics, ErrorCode.ERR_NoDynamicPhantomOnBaseIndexer, syntax);
-                    hasErrors = true;
-                }
-                else if (receiverKind == BoundKind.TypeOrValueExpression)
-                {
-                    var typeOrValue = (BoundTypeOrValueExpression)receiverOpt;
+                Error(diagnostics, ErrorCode.ERR_NoDynamicPhantomOnBaseIndexer, syntax);
+                hasErrors = true;
+            }
+            else if (receiverKind == BoundKind.TypeOrValueExpression)
+            {
+                var typeOrValue = (BoundTypeOrValueExpression)receiver;
 
-                    // Unfortunately, the runtime binder doesn't have APIs that would allow us to pass both "type or value".
-                    // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
-                    // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
-                    bool inStaticContext;
-                    bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                // Unfortunately, the runtime binder doesn't have APIs that would allow us to pass both "type or value".
+                // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
+                // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
+                bool inStaticContext;
+                bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
-                    receiverOpt = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
-                }
+                receiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
             }
 
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
@@ -7451,7 +7459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicIndexerAccess(
                 syntax,
-                receiverOpt,
+                receiver,
                 argArray,
                 arguments.GetNames(),
                 refKindsArray,

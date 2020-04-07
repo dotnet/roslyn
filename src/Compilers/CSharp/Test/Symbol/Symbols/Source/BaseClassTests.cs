@@ -1430,9 +1430,33 @@ public class B : N { }
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
-        [Fact]
-        public void NamespaceClassInterfaceEscapedIdentifier()
+        [Fact, WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        public void NamespaceClassInterfaceEscapedIdentifier1()
+        {
+            var text = @"
+namespace @if
+{
+    public interface @break { }
+    public class @int<@string> { }
+    public class @float : @int<@break>, @if.@break { }
+}";
+            var comp = CreateCompilation(Parse(text));
+            NamespaceSymbol nif = (NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMembers("if").Single();
+            Assert.Equal("if", nif.Name);
+            Assert.Equal("@if", nif.ToString());
+            NamedTypeSymbol cfloat = (NamedTypeSymbol)nif.GetMembers("float").Single();
+            Assert.Equal("float", cfloat.Name);
+            Assert.Equal("@if.@float", cfloat.ToString());
+            NamedTypeSymbol cint = cfloat.BaseType();
+            Assert.Equal("int", cint.Name);
+            Assert.Equal("@if.@int<@if.@break>", cint.ToString());
+            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
+            Assert.Equal("break", ibreak.Name);
+            Assert.Equal("@if.@break", ibreak.ToString());
+        }
+
+        [Fact, WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        public void NamespaceClassInterfaceEscapedIdentifier2()
         {
             var text = @"
 namespace @if
@@ -1451,9 +1475,9 @@ namespace @if
             NamedTypeSymbol cint = cfloat.BaseType();
             Assert.Equal("int", cint.Name);
             Assert.Equal("@if.@int<@if.@break>", cint.ToString());
-            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
-            Assert.Equal("break", ibreak.Name);
-            Assert.Equal("@if.@break", ibreak.ToString());
+
+            // No interfaces as the above doesn't parse due to the errant : in the base list.
+            Assert.Empty(cfloat.Interfaces());
         }
 
         [WorkItem(539328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539328")]

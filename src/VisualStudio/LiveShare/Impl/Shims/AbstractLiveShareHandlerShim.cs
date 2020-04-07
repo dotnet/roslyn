@@ -24,18 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         protected readonly Lazy<IRequestHandler, IRequestHandlerMetadata> LazyRequestHandler;
 
         public AbstractLiveShareHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
-        {
-            LazyRequestHandler = GetRequestHandler(requestHandlers, methodName);
-        }
+            => LazyRequestHandler = GetRequestHandler(requestHandlers, methodName);
 
         public virtual Task<ResponseType> HandleAsync(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-        {
-            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<VSClientCapabilities>(), cancellationToken);
-        }
+            => ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<VSClientCapabilities>(), cancellationToken);
 
         protected Lazy<IRequestHandler, IRequestHandlerMetadata> GetRequestHandler(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
-        {
-            return requestHandlers.First(handler => handler.Metadata.MethodName == methodName);
-        }
+            => requestHandlers.First(handler => handler.Metadata.MethodName == methodName);
     }
 }

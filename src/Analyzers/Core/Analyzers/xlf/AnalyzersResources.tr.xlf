@@ -22,6 +22,11 @@
         <target state="new">Add accessibility modifiers</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="new">Add parentheses for clarity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
         <target state="new">Add readonly modifier</target>
@@ -42,6 +47,26 @@
         <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
+        <source>Changes to expression trees may result in behavior changes at runtime</source>
+        <target state="new">Changes to expression trees may result in behavior changes at runtime</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="new">Convert to conditional expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
         <target state="new">Expression value is never used</target>
@@ -50,6 +75,26 @@
       <trans-unit id="Collection_initialization_can_be_simplified">
         <source>Collection initialization can be simplified</source>
         <target state="new">Collection initialization can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_string_contains_invalid_placeholder">
+        <source>Format string contains invalid placeholder</source>
+        <target state="new">Format string contains invalid placeholder</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="new">Interpolation can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_format_string">
+        <source>Invalid format string</source>
+        <target state="new">Invalid format string</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
@@ -67,6 +112,11 @@
         <target state="new">Add missing cases</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifiers_are_not_ordered">
+        <source>Modifiers are not ordered</source>
+        <target state="new">Modifiers are not ordered</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Naming_Styles">
         <source>Naming Styles</source>
         <target state="new">Naming Styles</target>
@@ -80,6 +130,11 @@
       <trans-unit id="Null_check_can_be_simplified">
         <source>Null check can be simplified</source>
         <target state="new">Null check can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Order_modifiers">
+        <source>Order modifiers</source>
+        <target state="new">Order modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
@@ -97,9 +152,24 @@
         <target state="new">Object initialization can be simplified</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="new">Parentheses can be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="new">Parentheses should be added for clarity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Populate_switch">
         <source>Populate switch</source>
         <target state="new">Populate switch</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
+        <source>Prefer explicitly provided tuple element name</source>
+        <target state="new">Prefer explicitly provided tuple element name</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -125,6 +195,11 @@
       <trans-unit id="Remove_Unnecessary_Cast">
         <source>Remove Unnecessary Cast</source>
         <target state="new">Remove Unnecessary Cast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="new">Remove unnecessary parentheses</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -162,6 +237,16 @@
         <target state="new">Simplify collection initialization</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="new">Simplify interpolation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_object_initialization">
         <source>Simplify object initialization</source>
         <target state="new">Simplify object initialization</target>
@@ -185,6 +270,36 @@
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
         <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_auto_property">
+        <source>Use auto property</source>
+        <target state="new">Use auto property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_coalesce_expression">
+        <source>Use coalesce expression</source>
+        <target state="new">Use coalesce expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_compound_assignment">
+        <source>Use compound assignment</source>
+        <target state="new">Use compound assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicitly_provided_tuple_name">
+        <source>Use explicitly provided tuple name</source>
+        <target state="new">Use explicitly provided tuple name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_null_propagation">
+        <source>Use null propagation</source>
+        <target state="new">Use null propagation</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_throw_expression">

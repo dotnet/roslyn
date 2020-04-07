@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface
@@ -29,6 +27,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
         {
             protected readonly bool Explicitly;
             protected readonly bool Abstractly;
+            private readonly bool _onlyRemaining;
             protected readonly ISymbol ThroughMember;
             protected readonly Document Document;
             protected readonly State State;
@@ -41,15 +40,17 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 bool explicitly,
                 bool abstractly,
+                bool onlyRemaining,
                 ISymbol throughMember)
             {
                 Service = service;
                 Document = document;
                 State = state;
                 Abstractly = abstractly;
+                _onlyRemaining = onlyRemaining;
                 Explicitly = explicitly;
                 ThroughMember = throughMember;
-                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, throughMember, GetType().FullName);
+                _equivalenceKey = ComputeEquivalenceKey(state, explicitly, abstractly, onlyRemaining, throughMember, GetType().FullName);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementAbstractlyCodeAction(
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Document document,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: true, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: true, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementCodeAction(
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Document document,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementExplicitlyCodeAction(
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 Document document,
                 State state)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, throughMember: null);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: false, throughMember: null);
             }
 
             public static ImplementInterfaceCodeAction CreateImplementThroughMemberCodeAction(
@@ -82,7 +83,15 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 ISymbol throughMember)
             {
-                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, throughMember: throughMember);
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: false, abstractly: false, onlyRemaining: false, throughMember: throughMember);
+            }
+
+            public static ImplementInterfaceCodeAction CreateImplementRemainingExplicitlyCodeAction(
+                AbstractImplementInterfaceService service,
+                Document document,
+                State state)
+            {
+                return new ImplementInterfaceCodeAction(service, document, state, explicitly: true, abstractly: false, onlyRemaining: true, throughMember: null);
             }
 
             public override string Title
@@ -91,7 +100,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     if (Explicitly)
                     {
-                        return FeaturesResources.Implement_interface_explicitly;
+                        if (_onlyRemaining)
+                        {
+                            return FeaturesResources.Implement_remaining_members_explicitly;
+                        }
+                        else
+                        {
+                            return FeaturesResources.Implement_all_members_explicitly;
+                        }
                     }
                     else if (Abstractly)
                     {
@@ -112,6 +128,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 State state,
                 bool explicitly,
                 bool abstractly,
+                bool onlyRemaining,
                 ISymbol throughMember,
                 string codeActionTypeName)
             {
@@ -119,7 +136,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 var assemblyName = interfaceType.ContainingAssembly.Name;
 
-                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, throughMember, codeActionTypeName);
+                return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, onlyRemaining, throughMember, codeActionTypeName);
             }
 
             private static string GetCodeActionEquivalenceKey(
@@ -127,6 +144,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 string interfaceTypeFullyQualifiedName,
                 bool explicitly,
                 bool abstractly,
+                bool onlyRemaining,
                 ISymbol throughMember,
                 string codeActionTypeName)
             {
@@ -137,6 +155,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 return explicitly.ToString() + ";" +
                     abstractly.ToString() + ";" +
+                    onlyRemaining.ToString() + ":" +
                     interfaceTypeAssemblyName + ";" +
                     interfaceTypeFullyQualifiedName + ";" +
                     codeActionTypeName;
@@ -145,23 +164,36 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public override string EquivalenceKey => _equivalenceKey;
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return GetUpdatedDocumentAsync(cancellationToken);
-            }
+                => GetUpdatedDocumentAsync(cancellationToken);
 
             public Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
                 var unimplementedMembers = Explicitly
-                    ? State.UnimplementedExplicitMembers
-                    : State.UnimplementedMembers;
+                    ? _onlyRemaining
+                        ? State.MembersWithoutExplicitOrImplicitImplementation
+                        : State.MembersWithoutExplicitImplementation
+                    : State.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented;
                 return GetUpdatedDocumentAsync(Document, unimplementedMembers, State.ClassOrStructType, State.ClassOrStructDecl, cancellationToken);
             }
 
-            public virtual async Task<Document> GetUpdatedDocumentAsync(
+            public virtual Task<Document> GetUpdatedDocumentAsync(
                 Document document,
                 ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
                 INamedTypeSymbol classOrStructType,
                 SyntaxNode classOrStructDecl,
+                CancellationToken cancellationToken)
+            {
+                return GetUpdatedDocumentAsync(
+                    document, unimplementedMembers, classOrStructType, classOrStructDecl,
+                    ImmutableArray<ISymbol>.Empty, cancellationToken);
+            }
+
+            protected async Task<Document> GetUpdatedDocumentAsync(
+                Document document,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
+                INamedTypeSymbol classOrStructType,
+                SyntaxNode classOrStructDecl,
+                ImmutableArray<ISymbol> extraMembers,
                 CancellationToken cancellationToken)
             {
                 var result = document;
@@ -181,15 +213,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var groupMembers = !isComImport &&
                     insertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
-                result = await CodeGenerator.AddMemberDeclarationsAsync(
-                    result.Project.Solution, classOrStructType, memberDefinitions,
+                return await CodeGenerator.AddMemberDeclarationsAsync(
+                    result.Project.Solution, classOrStructType,
+                    memberDefinitions.Concat(extraMembers),
                     new CodeGenerationOptions(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
-
-                return result;
             }
 
             private ImmutableArray<ISymbol> GenerateMembers(
@@ -299,7 +330,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 // Check if we need to add 'unsafe' to the signature we're generating.
                 var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
-                var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(State.Location);
+                var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.Location);
 
                 return GenerateMember(
                     compilation, member, memberName, generateInvisibleMember, generateAbstractly,

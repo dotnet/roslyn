@@ -12,6 +12,11 @@
         <target state="translated">Ajouter une expression await</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_usings">
         <source>Add missing usings</source>
         <target state="translated">Ajouter les instructions using manquantes</target>
@@ -67,6 +72,16 @@
         <target state="translated">Assigner des paramètres 'out' (au début)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="new">Assign to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="new">Compare to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Convertir en méthode</target>
@@ -90,6 +105,11 @@
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
         <target state="new">Convert to verbatim string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_type_to_0">
+        <source>Convert type to '{0}'</source>
+        <target state="new">Convert type to '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -121,11 +141,6 @@
         <source>Make 'ref struct'</source>
         <target state="translated">Définir 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Pass_in_captured_variables_as_arguments">
-        <source>Pass in captured variables as arguments</source>
-        <target state="translated">Passer les variables capturées en tant qu'arguments</target>
-        <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
@@ -167,11 +182,6 @@
         <target state="translated">Avertissement : Inlining temporaire dans un appel de méthode conditionnel.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
-        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="translated">Avertissement : L'ajout de paramètres à la déclaration de fonction locale peut produire du code non valide.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' n'a pas une valeur null ici.</target>
@@ -191,11 +201,6 @@
         <source>asynchronous using declaration</source>
         <target state="translated">déclaration using asynchrone</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">L'instruction 'if' peut être simplifiée</target>
-        <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
@@ -395,31 +400,6 @@
       <trans-unit id="Generate_implicit_conversion_operator_in_0">
         <source>Generate implicit conversion operator in '{0}'</source>
         <target state="translated">Générer l’opérateur de conversion implicite dans « {0} »</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above">
-        <source>Do not change this code. Put cleanup code in Dispose(bool disposing) above.</source>
-        <target state="translated">Ne modifiez pas ce code. Placez le code de nettoyage dans Dispose(bool disposing) ci-dessus.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</source>
-        <target state="translated">TODO: libérer les ressources non managées (objets non managés) et remplacer un finaliseur ci-dessous.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: remplacer un finaliseur seulement si la fonction Dispose(bool disposing) ci-dessus a du code pour libérer les ressources non managées.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_to_correctly_implement_the_disposable_pattern">
-        <source>This code added to correctly implement the disposable pattern.</source>
-        <target state="translated">Ce code est ajouté pour implémenter correctement le modèle supprimable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
-        <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
-        <target state="translated">TODO: supprimer les marques de commentaire pour la ligne suivante si le finaliseur est remplacé ci-dessus.</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">
@@ -742,11 +722,6 @@
         <target state="translated">Supprimer la fonction inutilisée</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_is_null_check">
-        <source>Use 'is null' check</source>
-        <target state="translated">Utiliser la vérification 'is null'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
         <target state="translated">Ajouter des parenthèses</target>
@@ -780,31 +755,6 @@
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
         <target state="translated">Introduire l’instruction 'using'</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Misplaced_using_directive">
-        <source>Misplaced using directive</source>
-        <target state="translated">Directive using mal placée</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Move_misplaced_using_directives">
-        <source>Move misplaced using directives</source>
-        <target state="translated">Déplacer les directives using mal placées</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
-        <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="translated">Les directives using doivent être placées dans une déclaration namespace</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
-        <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="translated">Les directives using doivent être placées en dehors d'une déclaration namespace</target>
-        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
-        <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="translated">Avertissement : Le déplacement des directives using peut changer la signification du code.</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">

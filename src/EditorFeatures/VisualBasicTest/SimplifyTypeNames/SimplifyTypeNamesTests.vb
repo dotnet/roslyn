@@ -21,32 +21,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                     New SimplifyTypeNamesCodeFixProvider())
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeEverywhere() As IDictionary(Of OptionKey, Object)
+        Private Function PreferIntrinsicPredefinedTypeEverywhere() As IDictionary(Of OptionKey2, Object)
             Dim language = GetLanguage()
 
             Return OptionsSet(
-                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error),
-                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language))
+                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error),
+                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language))
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IDictionary(Of OptionKey, Object)
+        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IDictionary(Of OptionKey2, Object)
             Dim language = GetLanguage()
 
             Return OptionsSet(
-                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption.Error),
-                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent, language))
+                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error),
+                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent, language))
         End Function
 
-        Private Function PreferIntrinsicTypeInMemberAccess() As IDictionary(Of OptionKey, Object)
+        Private Function PreferIntrinsicTypeInMemberAccess() As IDictionary(Of OptionKey2, Object)
             Dim language = GetLanguage()
 
             Return OptionsSet(
-                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption.Error),
-                SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent, language))
+                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption2.Error),
+                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent, language))
         End Function
 
-        Private ReadOnly onWithError As New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
-        Private ReadOnly offWithSilent As New CodeStyleOption(Of Boolean)(False, NotificationOption.Silent)
+        Private ReadOnly onWithError As New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)
+        Private ReadOnly offWithSilent As New CodeStyleOption2(Of Boolean)(False, NotificationOption2.Silent)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericNames() As Task
@@ -2190,7 +2190,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error)))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error)))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2205,7 +2205,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error)))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error)))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2220,7 +2220,7 @@ Class Program
     End Sub
 End Class
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error)))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error)))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2303,7 +2303,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error)))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Error)))
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2318,7 +2318,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error)))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Error)))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -2331,7 +2331,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error)))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Error)))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>
@@ -2364,7 +2364,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption.Error)))
+            Await TestMissingInRegularAndScriptAsync(source.Value, New TestParameters(options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Error)))
         End Function
 
         <WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")>

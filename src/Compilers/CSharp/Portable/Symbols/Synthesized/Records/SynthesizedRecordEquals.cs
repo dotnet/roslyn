@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     other,
                     recordProperties,
                     F);
-                retExpr = F.LogicalAnd(retExpr, comparisons);
+                retExpr = retExpr is null ? comparisons : F.LogicalAnd(retExpr, comparisons);
             }
             recordProperties.Free();
 

@@ -8,12 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
 using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -36,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For Method Declaration
             if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.IdentifierToken)
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpacingAfterMethodDeclarationName);
             }
 
             // For Generic Method Declaration
             if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.GreaterThanToken && previousParentKind == SyntaxKind.TypeParameterList)
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpacingAfterMethodDeclarationName);
             }
 
             // Case: public static implicit operator string(Program p) { return null; }
@@ -54,28 +49,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if ((previousToken.IsKeyword() || previousToken.IsKind(SyntaxKind.QuestionToken, SyntaxKind.AsteriskToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken, SyntaxKind.GreaterThanToken))
                 && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpacingAfterMethodDeclarationName);
             }
 
             // Case: public static Program operator !(Program p) { return null; }
             if (previousToken.Parent.IsKind(SyntaxKind.OperatorDeclaration) && currentToken.IsOpenParenInParameterListOfAOperationDeclaration())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpacingAfterMethodDeclarationName);
             }
 
             if (previousToken.IsOpenParenInParameterList() && currentToken.IsCloseParenInParameterList())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses);
             }
 
             if (previousToken.IsOpenParenInParameterList())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis);
             }
 
             if (currentToken.IsCloseParenInParameterList())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis);
             }
 
             // For Method Call
@@ -84,38 +79,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             //   x is TypeName ( args )
             if (currentToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterMethodCallName);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterMethodCallName);
             }
 
             if (previousToken.IsOpenParenInArgumentListOrPositionalPattern() && currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses);
             }
 
             if (previousToken.IsOpenParenInArgumentListOrPositionalPattern())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinMethodCallParentheses);
             }
 
             if (currentToken.IsCloseParenInArgumentListOrPositionalPattern())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinMethodCallParentheses);
             }
 
             // For spacing around: typeof, default, and sizeof; treat like a Method Call
             if (currentKind == SyntaxKind.OpenParenToken && IsFunctionLikeKeywordExpressionKind(currentParentKind))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterMethodCallName);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterMethodCallName);
             }
 
             if (previousKind == SyntaxKind.OpenParenToken && IsFunctionLikeKeywordExpressionKind(previousParentKind))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinMethodCallParentheses);
             }
 
             if (currentKind == SyntaxKind.CloseParenToken && IsFunctionLikeKeywordExpressionKind(currentParentKind))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinMethodCallParentheses);
             }
 
             // For Spacing b/n control flow keyword and paren. Parent check not needed.
@@ -125,21 +120,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 previousKind == SyntaxKind.UsingKeyword || previousKind == SyntaxKind.WhenKeyword || previousKind == SyntaxKind.LockKeyword ||
                 previousKind == SyntaxKind.FixedKeyword))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword);
             }
 
             // For spacing between parenthesis and expression
             if ((previousParentKind == SyntaxKind.ParenthesizedExpression && previousKind == SyntaxKind.OpenParenToken) ||
                 (currentParentKind == SyntaxKind.ParenthesizedExpression && currentKind == SyntaxKind.CloseParenToken))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinExpressionParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinExpressionParentheses);
             }
 
             // For spacing between the parenthesis and the cast expression
             if ((previousParentKind == SyntaxKind.CastExpression && previousKind == SyntaxKind.OpenParenToken) ||
                 (currentParentKind == SyntaxKind.CastExpression && currentKind == SyntaxKind.CloseParenToken))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinCastParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinCastParentheses);
             }
 
             // Semicolons in an empty for statement.  i.e.   for(;;)
@@ -148,35 +143,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (currentKind == SyntaxKind.SemicolonToken
                     && (previousKind != SyntaxKind.SemicolonToken
-                        || options.GetOption<bool>(CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement)))
+                        || options.GetOption<bool>(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement)))
                 {
-                    return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement);
+                    return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement);
                 }
 
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement);
             }
 
             // For spacing between the parenthesis and the expression inside the control flow expression
             if (previousKind == SyntaxKind.OpenParenToken && IsControlFlowLikeKeywordStatementKind(previousParentKind))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinOtherParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinOtherParentheses);
             }
 
             if (currentKind == SyntaxKind.CloseParenToken && IsControlFlowLikeKeywordStatementKind(currentParentKind))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinOtherParentheses);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinOtherParentheses);
             }
 
             // For spacing after the cast
             if (previousParentKind == SyntaxKind.CastExpression && previousKind == SyntaxKind.CloseParenToken)
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterCast);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterCast);
             }
 
             // For spacing Before Square Braces
             if (currentKind == SyntaxKind.OpenBracketToken && HasFormattableBracketParent(currentToken) && !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBeforeOpenSquareBracket);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket);
             }
 
             // For spacing empty square braces, also treat [,] as empty
@@ -184,18 +179,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 || currentKind == SyntaxKind.OmittedArraySizeExpressionToken)
                 && HasFormattableBracketParent(previousToken))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets);
             }
 
             // For spacing square brackets within
             if (previousKind == SyntaxKind.OpenBracketToken && HasFormattableBracketParent(previousToken))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinSquareBrackets);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinSquareBrackets);
             }
 
             if (currentKind == SyntaxKind.CloseBracketToken && previousKind != SyntaxKind.OmittedArraySizeExpressionToken && HasFormattableBracketParent(currentToken))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceWithinSquareBrackets);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceWithinSquareBrackets);
             }
 
             // attribute case ] *
@@ -212,13 +207,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For spacing delimiters - after colon
             if (previousToken.IsColonInTypeBaseList())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration);
             }
 
             // For spacing delimiters - before colon
             if (currentToken.IsColonInTypeBaseList())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBeforeColonInBaseTypeDeclaration);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration);
             }
 
             // For spacing delimiters - after comma
@@ -228,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     && currentKind != SyntaxKind.OmittedArraySizeExpressionToken
                     && HasFormattableBracketParent(previousToken)))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterComma);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterComma);
             }
 
             // For spacing delimiters - before comma
@@ -238,31 +233,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     && previousKind != SyntaxKind.OmittedArraySizeExpressionToken
                     && HasFormattableBracketParent(currentToken)))
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBeforeComma);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBeforeComma);
             }
 
             // For Spacing delimiters - after Dot
             if (previousToken.IsDotInMemberAccessOrQualifiedName())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterDot);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterDot);
             }
 
             // For spacing delimiters - before Dot
             if (currentToken.IsDotInMemberAccessOrQualifiedName())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBeforeDot);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBeforeDot);
             }
 
             // For spacing delimiters - after semicolon
             if (previousToken.IsSemicolonInForStatement() && currentKind != SyntaxKind.CloseParenToken)
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement);
             }
 
             // For spacing delimiters - before semicolon
             if (currentToken.IsSemicolonInForStatement())
             {
-                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement);
+                return AdjustSpacesOperationZeroOrOne(options, CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement);
             }
 
             // For spacing around the binary operators
@@ -271,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 currentToken.Parent is AssignmentExpressionSyntax ||
                 previousToken.Parent is AssignmentExpressionSyntax)
             {
-                switch (options.GetOption(CSharpFormattingOptions.SpacingAroundBinaryOperator))
+                switch (options.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator))
                 {
                     case BinaryOperatorSpacingOptions.Single:
                         return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -393,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement) ||
                 node.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
-                if (options.GetOption(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration))
+                if (options.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration))
                 {
                     var firstToken = node.GetFirstToken(includeZeroWidth: true);
                     var lastToken = node.GetLastToken(includeZeroWidth: true);
@@ -403,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private AdjustSpacesOperation AdjustSpacesOperationZeroOrOne(AnalyzerConfigOptions options, Option<bool> option, AdjustSpacesOption explicitOption = AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+        private AdjustSpacesOperation AdjustSpacesOperationZeroOrOne(AnalyzerConfigOptions options, Option2<bool> option, AdjustSpacesOption explicitOption = AdjustSpacesOption.ForceSpacesIfOnSingleLine)
         {
             if (options.GetOption(option))
             {
@@ -416,14 +411,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private bool HasFormattableBracketParent(SyntaxToken token)
-        {
-            return token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
-        }
+            => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
 
         private bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
-        {
-            return (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
-        }
+            => (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
 
         private bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
         {

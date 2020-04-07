@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public event EventHandler<string>? Updated;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorDynamicFileInfoProviderWrapper(
             Lazy<IRazorDynamicFileInfoProvider> innerDynamicFileInfoProvider)
         {

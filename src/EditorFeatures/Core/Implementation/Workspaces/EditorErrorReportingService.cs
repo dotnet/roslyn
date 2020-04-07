@@ -11,18 +11,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     internal class EditorErrorReportingService : IErrorReportingService
     {
         public void ShowDetailedErrorInfo(Exception exception)
-        {
-            Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
-        }
+            => Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
 
         public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
-        {
-            ShowGlobalErrorInfo(message, items);
-        }
+            => ShowGlobalErrorInfo(message, items);
 
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
-        {
-            Logger.Log(FunctionId.Extension_Exception, message);
-        }
+            => Logger.Log(FunctionId.Extension_Exception, message);
     }
 }

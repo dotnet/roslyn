@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal class ObjectInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ObjectInitializerCompletionProvider()
         {
         }
@@ -93,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         protected override Tuple<ITypeSymbol, Location> GetInitializedType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -187,8 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override string EscapeIdentifier(ISymbol symbol)
-        {
-            return symbol.Name.EscapeIdentifier();
-        }
+            => symbol.Name.EscapeIdentifier();
     }
 }

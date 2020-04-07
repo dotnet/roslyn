@@ -69,14 +69,19 @@ namespace Microsoft.CodeAnalysis.Collections
             return _set.Contains(item);
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public ArrayBuilder<T>.Enumerator GetEnumerator()
         {
             return _list.GetEnumerator();
         }
 
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return ((IEnumerable<T>)_list).GetEnumerator();
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _list.GetEnumerator();
+            return ((IEnumerable)_list).GetEnumerator();
         }
 
         public void Clear()

@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractPartialTypeCompletionProvider : CommonCompletionProvider
+    internal abstract partial class AbstractPartialTypeCompletionProvider : LSPCompletionProvider
     {
         protected AbstractPartialTypeCompletionProvider()
         {
@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool InSameProject(INamedTypeSymbol symbol, Compilation compilation)
-        {
-            return symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
-        }
+            => symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
 
         private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, SyntaxContext context)
         {

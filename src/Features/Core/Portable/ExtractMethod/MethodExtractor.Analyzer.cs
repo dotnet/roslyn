@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                    return (parameters, returnType, default(VariableInfo), unsafeAddressTakenUsed);
+                    return (parameters, returnType, (VariableInfo?)null, unsafeAddressTakenUsed);
                 }
                 else
                 {
@@ -510,9 +510,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
-            {
-                variableInfoMap.Add(localOrParameter, variableInfo);
-            }
+                => variableInfoMap.Add(localOrParameter, variableInfo);
 
             private bool TryGetVariableStyle(
                 bool bestEffort,
@@ -569,7 +567,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 // don't blindly always return. make sure there is a write inside of the selection
-                if (SelectionResult.AllowMovingDeclaration || !writtenInside)
+                if (!writtenInside)
                 {
                     return true;
                 }
@@ -630,7 +628,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return false;
                 }
 
-                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
+                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
                 if (cancellationTokenType != null && cancellationTokenType.Equals(type))
                 {
                     return true;

@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected abstract SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken);
 
         protected SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> GetFormattingSpans()
-        {
-            return _formattingSpans ?? SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), _formattingResults.Select(r => r.FormattedSpan));
-        }
+            => _formattingSpans ?? SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), _formattingResults.Select(r => r.FormattedSpan));
 
         #region IFormattingResult implementation
 
@@ -61,14 +59,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public IList<TextChange> GetTextChanges(CancellationToken cancellationToken)
-        {
-            return _lazyTextChanges.GetValue(cancellationToken);
-        }
+            => _lazyTextChanges.GetValue(cancellationToken);
 
         public SyntaxNode GetFormattedRoot(CancellationToken cancellationToken)
-        {
-            return _lazyNode.GetValue(cancellationToken);
-        }
+            => _lazyNode.GetValue(cancellationToken);
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)
         {

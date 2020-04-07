@@ -2082,7 +2082,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 class Class2
@@ -2114,7 +2114,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 using System;

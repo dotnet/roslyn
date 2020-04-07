@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var dependencyGraph = solution.GetProjectDependencyGraph();
             var projectAId = solution.GetProjectsByName("A").Single().Id;
             var projectBId = solution.GetProjectsByName("B").Single().Id;
-            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { projectBId });
+            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { new ProjectReference(projectBId) });
 
             VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults: new string[] { "B" });
         }
@@ -743,9 +743,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         }
 
         private Solution CreateSolution()
-        {
-            return new AdhocWorkspace().CurrentSolution;
-        }
+            => new AdhocWorkspace().CurrentSolution;
 
         #endregion
     }

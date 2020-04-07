@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
@@ -178,8 +179,8 @@ namespace Roslyn.Test.Utilities
         /// Creates a solution with a document.
         /// </summary>
         /// <returns>the solution and the annotated ranges in the document.</returns>
-        protected (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string markup)
-            => CreateTestSolution(new string[] { markup });
+        protected Workspace CreateTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestWorkspace(new string[] { markup }, out locations);
 
         /// <summary>
         /// Create a solution with multiple documents.
@@ -187,29 +188,28 @@ namespace Roslyn.Test.Utilities
         /// <returns>
         /// the solution with the documents plus a list for each document of all annotated ranges in the document.
         /// </returns>
-        protected (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string[] markups)
+        protected Workspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markups, exportProvider: GetExportProvider());
+            var workspace = TestWorkspace.CreateCSharp(markups, exportProvider: GetExportProvider());
             var solution = workspace.CurrentSolution;
-            var locations = new Dictionary<string, IList<LSP.Location>>();
+            locations = new Dictionary<string, IList<LSP.Location>>();
 
             foreach (var document in workspace.Documents)
             {
                 var text = solution.GetDocument(document.Id).GetTextSynchronously(CancellationToken.None);
-                foreach (var kvp in document.AnnotatedSpans)
+                foreach (var (name, spans) in document.AnnotatedSpans)
                 {
-                    locations.GetOrAdd(kvp.Key, CreateLocation)
-                        .AddRange(kvp.Value.Select(s => ProtocolConversions.TextSpanToLocation(s, text, new Uri(GetDocumentFilePathFromName(document.Name)))));
+                    locations
+                        .GetOrAdd(name, _ => new List<LSP.Location>())
+                        .AddRange(spans.Select(span => ProtocolConversions.TextSpanToLocation(span, text, new Uri(GetDocumentFilePathFromName(document.Name)))));
                 }
 
-                // Pass in the text without markup.
-                workspace.ChangeSolution(ChangeDocumentFilePathToValidURI(workspace.CurrentSolution, document, text));
+                solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
             }
 
-            return (workspace.CurrentSolution, locations);
+            workspace.ChangeSolution(solution);
 
-            // local functions
-            static List<LSP.Location> CreateLocation(string s) => new List<LSP.Location>();
+            return workspace;
         }
 
         // Private protected because LanguageServerProtocol is internal
@@ -221,21 +221,5 @@ namespace Roslyn.Test.Utilities
 
         private static string GetDocumentFilePathFromName(string documentName)
             => "C:\\" + documentName;
-
-        /// <summary>
-        /// Changes the document file path.
-        /// Adds/Removes the document instead of updating file path due to
-        /// https://github.com/dotnet/roslyn/issues/34837
-        /// </summary>
-        private static Solution ChangeDocumentFilePathToValidURI(Solution originalSolution, TestHostDocument originalDocument, SourceText text)
-        {
-            var documentName = originalDocument.Name;
-            var documentPath = GetDocumentFilePathFromName(documentName);
-
-            var solution = originalSolution.RemoveDocument(originalDocument.Id);
-
-            var newDocumentId = DocumentId.CreateNewId(originalDocument.Project.Id);
-            return solution.AddDocument(newDocumentId, documentName, text, filePath: documentPath);
-        }
     }
 }

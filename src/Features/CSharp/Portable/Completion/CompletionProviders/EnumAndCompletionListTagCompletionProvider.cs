@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,9 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(EnumAndCompletionListTagCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(CSharpSuggestionModeCompletionProvider))]
     [Shared]
-    internal partial class EnumAndCompletionListTagCompletionProvider : CommonCompletionProvider
+    internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EnumAndCompletionListTagCompletionProvider()
         {
         }
@@ -47,8 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ch == '[' ||
                 ch == '(' ||
                 ch == '~' ||
-                (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
+                (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -129,10 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // Does type have any aliases?
                     var alias = await type.FindApplicableAliasAsync(position, semanticModel, cancellationToken).ConfigureAwait(false);
 
-                    var displayService = document.GetLanguageService<ISymbolDisplayService>();
                     var displayText = alias != null
                         ? alias.Name
-                        : displayService.ToMinimalDisplayString(semanticModel, position, type);
+                        : type.ToMinimalDisplayString(semanticModel, position);
 
                     var workspace = document.Project.Solution.Workspace;
                     var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);

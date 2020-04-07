@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,9 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<INamedTypeSymbol>
     {
         protected override bool CanFind(INamedTypeSymbol symbol)
-        {
-            return symbol.TypeKind != TypeKind.Error;
-        }
+            => symbol.TypeKind != TypeKind.Error;
 
         protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,

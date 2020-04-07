@@ -16,13 +16,9 @@ namespace Microsoft.CodeAnalysis
         private readonly int _id;
 
         private BranchId(int id)
-        {
-            _id = id;
-        }
+            => _id = id;
 
         internal static BranchId GetNextId()
-        {
-            return new BranchId(Interlocked.Increment(ref s_nextId));
-        }
+            => new BranchId(Interlocked.Increment(ref s_nextId));
     }
 }

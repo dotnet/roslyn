@@ -513,13 +513,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute))
             {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullablePublicOnlyAttribute))
-            {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullablePublicOnlyAttribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 // Should become:
                 //     var a = new { x = 42; };
                 nameEquals = SyntaxFactory.NameEquals(identifier);
-                expression = (ExpressionSyntax)this.Visit(expression);
+                expression = (ExpressionSyntax)Visit(expression);
                 return node.Update(nameEquals, expression).WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
             }
 

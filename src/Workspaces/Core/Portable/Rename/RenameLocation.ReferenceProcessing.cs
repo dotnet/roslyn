@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 return results;
             }
 
-            internal static async Task<Tuple<IEnumerable<RenameLocation>, IEnumerable<RenameLocation>>> GetRenamableLocationsInStringsAndCommentsAsync(
+            internal static async Task<(ImmutableArray<RenameLocation>, ImmutableArray<RenameLocation>)> GetRenamableLocationsInStringsAndCommentsAsync(
                 ISymbol originalSymbol,
                 Solution solution,
                 ISet<RenameLocation> renameLocations,
@@ -435,13 +435,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 CancellationToken cancellationToken)
             {
                 if (!renameInStrings && !renameInComments)
-                {
-                    return new Tuple<IEnumerable<RenameLocation>, IEnumerable<RenameLocation>>(null, null);
-                }
+                    return default;
 
                 var renameText = originalSymbol.Name;
-                var stringLocations = renameInStrings ? new List<RenameLocation>() : null;
-                var commentLocations = renameInComments ? new List<RenameLocation>() : null;
+
+                using var _1 = ArrayBuilder<RenameLocation>.GetInstance(out var stringLocations);
+                using var _2 = ArrayBuilder<RenameLocation>.GetInstance(out var commentLocations);
 
                 foreach (var documentsGroupedByLanguage in RenameUtilities.GetDocumentsAffectedByRename(originalSymbol, solution, renameLocations).GroupBy(d => d.Project.Language))
                 {
@@ -453,7 +452,8 @@ namespace Microsoft.CodeAnalysis.Rename
                         {
                             if (renameInStrings)
                             {
-                                await AddLocationsToRenameInStringsAsync(document, renameText, syntaxFactsLanguageService,
+                                await AddLocationsToRenameInStringsAsync(
+                                    document, renameText, syntaxFactsLanguageService,
                                     stringLocations, cancellationToken).ConfigureAwait(false);
                             }
 
@@ -465,10 +465,13 @@ namespace Microsoft.CodeAnalysis.Rename
                     }
                 }
 
-                return new Tuple<IEnumerable<RenameLocation>, IEnumerable<RenameLocation>>(stringLocations, commentLocations);
+                return (renameInStrings ? stringLocations.ToImmutable() : default,
+                        renameInComments ? commentLocations.ToImmutable() : default);
             }
 
-            private static async Task AddLocationsToRenameInStringsAsync(Document document, string renameText, ISyntaxFactsService syntaxFactsService, List<RenameLocation> renameLocations, CancellationToken cancellationToken)
+            private static async Task AddLocationsToRenameInStringsAsync(
+                Document document, string renameText, ISyntaxFactsService syntaxFactsService,
+                ArrayBuilder<RenameLocation> renameLocations, CancellationToken cancellationToken)
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var renameTextLength = renameText.Length;
@@ -485,7 +488,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
 
-            private static async Task AddLocationsToRenameInCommentsAsync(Document document, string renameText, List<RenameLocation> renameLocations, CancellationToken cancellationToken)
+            private static async Task AddLocationsToRenameInCommentsAsync(
+                Document document, string renameText, ArrayBuilder<RenameLocation> renameLocations, CancellationToken cancellationToken)
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var renameTextLength = renameText.Length;
@@ -507,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 SyntaxTree tree,
                 string renameText,
                 IEnumerable<Tuple<string, int, TextSpan>> renameStringsAndPositions,
-                List<RenameLocation> renameLocations,
+                ArrayBuilder<RenameLocation> renameLocations,
                 bool isRenameInStrings,
                 bool isRenameInComments)
             {

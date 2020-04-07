@@ -309,14 +309,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         protected override void CancelBuildProject()
-        {
-            _dte.ExecuteCommand("Build.Cancel");
-        }
+            => _dte.ExecuteCommand("Build.Cancel");
 
         protected override IWaitIndicator GetWaitIndicator()
-        {
-            return _componentModel.GetService<IWaitIndicator>();
-        }
+            => _componentModel.GetService<IWaitIndicator>();
 
         /// <summary>
         /// Return namespaces that can be resolved in the latest interactive compilation.

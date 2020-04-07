@@ -850,6 +850,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The TypeSymbol for the type 'dynamic' in this Compilation.
         /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
         public ITypeSymbol DynamicType { get { return CommonDynamicType; } }
         protected abstract ITypeSymbol CommonDynamicType { get; }
 
@@ -930,12 +931,24 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new PointerTypeSymbol representing a pointer type tied to a type in this
         /// Compilation.
         /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
         public IPointerTypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
         {
             return CommonCreatePointerTypeSymbol(pointedAtType);
         }
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
+
+        /// <summary>
+        /// Returns a new INamedTypeSymbol representing a native integer.
+        /// </summary>
+        /// <exception cref="NotSupportedException">If the compilation is a VisualBasic compilation.</exception>
+        public INamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return CommonCreateNativeIntegerTypeSymbol(signed);
+        }
+
+        protected abstract INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed);
 
         // PERF: ETW Traces show that analyzers may use this method frequently, often requesting
         // the same symbol over and over again. XUnit analyzers, in particular, were consuming almost
@@ -2268,8 +2281,8 @@ namespace Microsoft.CodeAnalysis
                 manifestResources,
                 options,
                 debugEntryPoint,
-                default(Stream),
-                default(IEnumerable<EmbeddedText>),
+                sourceLinkStream: null,
+                embeddedTexts: null,
                 cancellationToken);
         }
 

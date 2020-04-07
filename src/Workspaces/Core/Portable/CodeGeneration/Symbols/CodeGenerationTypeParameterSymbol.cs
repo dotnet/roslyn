@@ -57,14 +57,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override SymbolKind Kind => SymbolKind.TypeParameter;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitTypeParameter(this);
-        }
+            => visitor.VisitTypeParameter(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitTypeParameter(this);
-        }
+            => visitor.VisitTypeParameter(this);
 
         public override TypeKind TypeKind => TypeKind.TypeParameter;
 

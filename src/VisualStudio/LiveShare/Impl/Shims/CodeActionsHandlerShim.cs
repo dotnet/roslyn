@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -65,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class RoslynCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
@@ -74,6 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class CSharpCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
@@ -83,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class VisualBasicCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }
@@ -92,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     internal class TypeScriptCodeActionsHandlerShim : CodeActionsHandlerShim
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptCodeActionsHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers) : base(requestHandlers)
         {
         }

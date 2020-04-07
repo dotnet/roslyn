@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new EncapsulateFieldRefactoringProvider();
 
-        private IDictionary<OptionKey, object> AllOptionsOff =>
+        private IDictionary<OptionKey2, object> AllOptionsOff =>
             OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            int index = 0, IDictionary<OptionKey, object> options = null)
+            int index = 0, IDictionary<OptionKey2, object> options = null)
         {
-            options = options ?? new Dictionary<OptionKey, object>();
+            options = options ?? new Dictionary<OptionKey2, object>();
             foreach (var kvp in AllOptionsOff)
             {
                 options.Add(kvp);
@@ -210,8 +210,8 @@ class goo
 ";
             await TestInRegularAndScriptAsync(text, expected,
                 options: OptionsSet(
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent),
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -1356,7 +1356,7 @@ class C
         }
     }
 }
-", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+", options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")]
@@ -1384,7 +1384,7 @@ class C
             this.i = value;
         }
     }
-}", options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+}", options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
