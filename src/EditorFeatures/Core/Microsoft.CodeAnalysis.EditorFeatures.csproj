@@ -99,9 +99,6 @@
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
   <ItemGroup>
-    
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="EditorFeaturesResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>

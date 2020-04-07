@@ -597,6 +597,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 case ConstantValueTypeDiscriminator.UInt64:
                     EmitLongConstant(value.Int64Value);
                     break;
+                case ConstantValueTypeDiscriminator.NInt:
+                    EmitNativeIntConstant(value.Int32Value);
+                    break;
+                case ConstantValueTypeDiscriminator.NUInt:
+                    EmitNativeIntConstant(value.UInt32Value);
+                    break;
                 case ConstantValueTypeDiscriminator.Single:
                     EmitSingleConstant(value.SingleValue);
                     break;
@@ -692,6 +698,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 EmitOpCode(ILOpCode.Ldc_i8);
                 EmitInt64(value);
+            }
+        }
+
+        internal void EmitNativeIntConstant(long value)
+        {
+            if (value >= int.MinValue && value <= int.MaxValue)
+            {
+                EmitIntConstant((int)value);
+                EmitOpCode(ILOpCode.Conv_i);
+            }
+            else if (value >= uint.MinValue && value <= uint.MaxValue)
+            {
+                EmitIntConstant(unchecked((int)value));
+                EmitOpCode(ILOpCode.Conv_u);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(value);
             }
         }
 
