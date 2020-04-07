@@ -3273,6 +3273,21 @@ class Program
             { Q: 1 } => 2,
             _ => 3,
         });
+
+        s = new S(1);
+        Console.Write(s switch
+        {
+            { N: 1 } when s[0] => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        Console.Write(new S(1) switch
+        {
+            { N: 1 } s0 when s0[0] => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
     }
 }
 struct S
@@ -3284,9 +3299,10 @@ struct S
 
     public bool No() { N++; return false; }
     public bool Nope { get { N++; return false; } }
+    public bool this[int t] { get { N++; return false; } }
 }
 ";
-            var expectedOutput = "2222";
+            var expectedOutput = "222222";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
