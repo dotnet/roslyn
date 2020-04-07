@@ -283,17 +283,6 @@ namespace Microsoft.CodeAnalysis.Testing
             endPositions = endPositionsBuilder.ToImmutable();
         }
 
-        private static void PopSpan(
-            Stack<Tuple<int, string>> spanStartStack,
-            IDictionary<string, IList<TextSpan>> spans,
-            int finalIndex)
-        {
-            var spanStartTuple = spanStartStack.Pop();
-
-            var span = TextSpan.FromBounds(spanStartTuple.Item1, finalIndex);
-            spans.GetOrAdd(spanStartTuple.Item2, () => new List<TextSpan>()).Add(span);
-        }
-
         private static void AddMatch(string input, string value, int currentIndex, List<(int index, string value)> matches)
         {
             var index = input.IndexOf(value, currentIndex);
