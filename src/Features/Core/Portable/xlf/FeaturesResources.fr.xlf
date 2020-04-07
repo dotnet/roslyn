@@ -2615,11 +2615,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">projet {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_variable_declaration">
-        <source>Inline variable declaration</source>
-        <target state="translated">Déclaration de variable inline</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">{0}' complet</target>
@@ -2658,11 +2653,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Pascal_Case">
         <source>Pascal Case</source>
         <target state="translated">Casse Pascal</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_inlined">
-        <source>Variable declaration can be inlined</source>
-        <target state="translated">La déclaration de variable peut être inlined</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">

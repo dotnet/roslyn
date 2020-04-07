@@ -979,9 +979,6 @@ This version used in: {2}</value>
   <data name="project_0" xml:space="preserve">
     <value>project {0}</value>
   </data>
-  <data name="Inline_variable_declaration" xml:space="preserve">
-    <value>Inline variable declaration</value>
-  </data>
   <data name="Use_interpolated_verbatim_string" xml:space="preserve">
     <value>Use interpolated verbatim string</value>
   </data>
@@ -1011,9 +1008,6 @@ This version used in: {2}</value>
   </data>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
-  </data>
-  <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
-    <value>Variable declaration can be inlined</value>
   </data>
   <data name="Remove_document_0" xml:space="preserve">
     <value>Remove document '{0}'</value>
