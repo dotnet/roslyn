@@ -759,7 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, minLength, span)
         End Function
 
-        Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of KeyValuePair(Of SyntaxNode, Integer))
+        Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of ValueTuple(Of SyntaxNode, Integer))
             Dim direction As Integer = +1
             Dim nodeOrToken As SyntaxNodeOrToken = statement
             Dim propertyOrFieldModifiers As SyntaxTokenList? = GetFieldOrPropertyModifiers(statement)
@@ -804,7 +804,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     If propertyOrFieldModifiers.HasValue Then
-                        Yield KeyValuePairUtil.Create(statement, -1)
+                        Yield ValueTuple.Create(statement, -1)
+                        Return
                     End If
 
                     nodeOrToken = parent
@@ -827,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
                 End If
 
-                Yield KeyValuePairUtil.Create(node, 0)
+                Yield ValueTuple.Create(node, -1)
             End While
         End Function
 
