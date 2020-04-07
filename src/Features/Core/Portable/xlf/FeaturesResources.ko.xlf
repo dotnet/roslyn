@@ -2800,16 +2800,6 @@ This version used in: {2}</source>
         <target state="translated">{0} 구현</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">유추 멤버 이름 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">멤버 이름을 간단하게 줄일 수 있음</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
         <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
         <target state="translated">보고된 진단 '{0}'의 소스 위치가 분석되는 컴파일의 일부가 아닌 '{1}' 파일에 있습니다.</target>

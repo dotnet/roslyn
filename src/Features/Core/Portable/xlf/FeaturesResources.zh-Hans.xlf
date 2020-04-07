@@ -2800,16 +2800,6 @@ This version used in: {2}</source>
         <target state="translated">实现 {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">使用推断的成员名称</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">可简化成员名称</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
         <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
         <target state="translated">报告的诊断“{0}”的源位置位于文件“{1}”中，后者不是要分析的编译的一部分。</target>
