@@ -39,6 +39,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 }";
         }
 
+        #region ParameterList
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("abstract void M(object o$$)", "abstract void M(object o)")]
+        [InlineData("abstract void M($$object o)", "abstract void M(object o)")]
+        [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
+        [InlineData("abstract void M(object o = default($$object))", "abstract void M(object o = default(object))")]
+        [InlineData("abstract void M(object o = $$default(object))", "abstract void M(object o = default(object))")]
+        public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
+        {
+            var code = $@"
+public class Class1
+{{
+    {signature}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    {expectedSignature};$$
+}}";
+
+            // These cases are not currently handled. If support is added in the future, 'expected' should be correct.
+            _ = expected;
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("void M$$(object o)")]
+        [InlineData("void Me$$thod(object o)")]
+        [InlineData("void Method(object o$$")]
+        [InlineData("void Method($$object o")]
+        public void ParameterList_NotHandled(string signature)
+        {
+            var code = $@"
+public class Class1
+{{
+    {signature}
+}}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        #endregion
+
         #region ArgumentListOfMethodInvocation
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
