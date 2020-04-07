@@ -136,7 +136,7 @@
      Code indexing targets to help generating LSIF from indexing builds.
   -->
   <ItemGroup>
-    <PackageReference Include="RichCodeNav.EnvVarDump" Version="0.1.1407-alpha" />
+    <PackageReference Include="RichCodeNav.EnvVarDump" Version="$(RichCodeNavEnvVarDumpVersion)" />
   </ItemGroup>
 
   <!-- 
