@@ -277,5 +277,23 @@ namespace Microsoft.CodeAnalysis.Testing
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 12), y);
         }
+
+        [Fact]
+        public void CDataMarkup()
+        {
+            var markup = "{|X:[|<![CDATA[|]|}text[|]]>|]";
+            var expected = "<![CDATA[text]]>";
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            Assert.Equal(expected, result);
+
+            Assert.Empty(positions);
+            Assert.Equal(2, spans.Count);
+
+            Assert.True(spans.TryGetValue("X", out var named));
+            Assert.Equal(new[] { new TextSpan(0, 9) }, named);
+
+            Assert.True(spans.TryGetValue(string.Empty, out var unnamed));
+            Assert.Equal(new[] { new TextSpan(0, 9), new TextSpan(13, 3) }, unnamed);
+        }
     }
 }
