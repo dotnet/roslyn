@@ -3,7 +3,7 @@ steps:
     dotnet build-server shutdown
     git clean -fdx
   displayName: Cleaning repo for template expansion
-- powershell: |
+- pwsh: |
     git config user.name "test user"
     git config user.email "andrewarnott@gmail.com"
     ./Expand-Template.ps1 -LibraryName Calc -Author "Andrew Arnott"

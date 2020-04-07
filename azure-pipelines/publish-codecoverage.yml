@@ -11,7 +11,7 @@ steps:
   artifact: coverageResults-macOS
   displayName: Download macOS code coverage results
   continueOnError: true
-- powershell: |
+- pwsh: |
     dotnet tool install --tool-path obj dotnet-reportgenerator-globaltool --version 4.2.2 --configfile azure-pipelines/justnugetorg.nuget.config
     Copy-Item -Recurse $(Pipeline.Workspace)/coverageResults-Windows/obj/* $(System.DefaultWorkingDirectory)/obj
     Write-Host "Substituting {reporoot} with $(System.DefaultWorkingDirectory)"
