@@ -3646,6 +3646,51 @@ unsafe class C
 ");
         }
 
+        [Fact]
+        public void InitializeFunctionPointerWithNull()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+         delegate*<string, void>[] ptrs = new delegate*<string, void>[] { null, null, null }; 
+         Console.Write(ptrs[0] is null);
+    }
+}", expectedOutput: "True");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""delegate*<string,void>""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.0
+  IL_0009:  conv.u
+  IL_000a:  stelem.i
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  conv.u
+  IL_000f:  stelem.i
+  IL_0010:  dup
+  IL_0011:  ldc.i4.2
+  IL_0012:  ldc.i4.0
+  IL_0013:  conv.u
+  IL_0014:  stelem.i
+  IL_0015:  ldc.i4.0
+  IL_0016:  ldelem.i
+  IL_0017:  ldnull
+  IL_0018:  ceq
+  IL_001a:  call       ""void System.Console.Write(bool)""
+  IL_001f:  ret
+}
+");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
