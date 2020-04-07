@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.ErrorList;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -28,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
     internal class LoadedSolutionScopeFilterFactory : IReplacingScopeFilterFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LoadedSolutionScopeFilterFactory()
         {
         }
@@ -42,11 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         {
             if (filterIdentifier == PredefinedScopeFilterNames.AllItemsScopeFilter)
             {
-                return new LoadedSolutionFilterHandler("Loaded Items");
+                return new LoadedSolutionFilterHandler(ServicesVSResources.Loaded_items);
             }
             else if (filterIdentifier == PredefinedScopeFilterNames.EntireSolutionScopeFilter)
             {
-                return new LoadedSolutionFilterHandler("Loaded Solution");
+                return new LoadedSolutionFilterHandler(ServicesVSResources.Loaded_solution);
             }
             return null; // Don't replace
         }
@@ -54,21 +57,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
     internal class LoadedSolutionFilterHandler : FilterHandlerBase
     {
-        private readonly string displayName;
-        internal const int LoadedSolutionFilterHandlerFilterId = 20;
+        private const int LoadedSolutionFilterHandlerFilterId = 20;
+
+        private readonly string _displayName;
 
         public LoadedSolutionFilterHandler(string displayName)
         {
-            this.displayName = displayName;
+            _displayName = displayName;
         }
 
         public override int FilterId => LoadedSolutionFilterHandlerFilterId;
 
-        public override string FilterDisplayName => this.displayName;
+        public override string FilterDisplayName => _displayName;
 
         public override IEntryFilter GetFilter(out string displayText)
         {
-            displayText = this.displayName;
+            displayText = _displayName;
             return new ItemOriginFilter(ItemOrigin.ExactMetadata);
         }
     }
@@ -84,6 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         private const string AllSourcesScopeFilter = "All Sources";
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AllSourcesFilterHandlerFactory()
         {
         }
@@ -96,12 +101,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
     internal class AllSourcesFilterHandler : FilterHandlerBase
     {
-        private readonly string displayName;
-        internal const int AllShadowFilterHandlerFilterId = 22;
+        internal const int EntireRepositoryFilterHandlerFilterId = 21;
+
+        private readonly string _displayName;
 
         public AllSourcesFilterHandler()
         {
-            this.displayName = "All Sources";
+            this.displayName = ServicesVSResources.All_sources;
         }
 
         public override int FilterId => AllShadowFilterHandlerFilterId;
@@ -130,6 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
     internal class EntireRepositoryFilterHandlerFactory : IScopeFilterFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EntireRepositoryFilterHandlerFactory()
         {
         }
@@ -142,21 +149,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
     internal class EntireRepositoryFilterHandler : FilterHandlerBase
     {
-        private readonly string displayName;
-        internal const int EntireRepositoryFilterHandlerFilterId = 21;
+        private const int EntireRepositoryFilterHandlerFilterId = 21;
+
+        private readonly string _displayName;
 
         public EntireRepositoryFilterHandler()
         {
-            this.displayName = "Entire Repository";
+            _displayName = ServicesVSResources.Entire_repository;
         }
 
         public override int FilterId => EntireRepositoryFilterHandlerFilterId;
 
-        public override string FilterDisplayName => this.displayName;
+        public override string FilterDisplayName => _displayName;
 
         public override IEntryFilter GetFilter(out string displayText)
         {
-            displayText = this.displayName;
+            displayText = _displayName;
             return new ItemOriginFilter(ItemOrigin.IndexedInRepo);
         }
 
@@ -169,11 +177,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
     internal class ItemOriginFilter : IEntryFilter
     {
-        private readonly ItemOrigin targetOrigin;
+        private readonly ItemOrigin _targetOrigin;
 
         internal ItemOriginFilter(ItemOrigin targetOrigin)
         {
-            this.targetOrigin = targetOrigin;
+            _targetOrigin = targetOrigin;
         }
 
         public bool Match(ITableEntryHandle entry)
@@ -182,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
             if (entry.TryGetValue(StandardTableKeyNames.ItemOrigin, out ItemOrigin entryOrigin))
             {
-                return entryOrigin < targetOrigin;
+                return entryOrigin < _targetOrigin;
             }
 
             // For backwards compatibility, consider items without ItemOrigin to be ItemOrigin.Exact (always matched)

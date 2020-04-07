@@ -1437,4 +1437,40 @@ I agree to all of the foregoing:</value>
   <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
     <value>Razor C# Language Server Client</value>
   </data>
+  <data name="All_sources" xml:space="preserve">
+    <value>All sourcess</value>
+  </data>
+  <data name="Entire_repository" xml:space="preserve">
+    <value>Entire repository</value>
+  </data>
+  <data name="Indexed_in_organization" xml:space="preserve">
+    <value>Indexed in organization</value>
+  </data>
+  <data name="Indexed_in_repo" xml:space="preserve">
+    <value>Indexed in repo</value>
+  </data>
+  <data name="Indexed_in_third_party" xml:space="preserve">
+    <value>Indexed_in_third_party</value>
+  </data>
+  <data name="Item_origin" xml:space="preserve">
+    <value>Item origin</value>
+  </data>
+  <data name="Loaded_items" xml:space="preserve">
+    <value>Loaded items</value>
+  </data>
+  <data name="Loaded_solution" xml:space="preserve">
+    <value>Loaded solution</value>
+  </data>
+  <data name="Local" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="Local_metadata" xml:space="preserve">
+    <value>Local metadata</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Otherss</value>
+  </data>
+  <data name="Repository" xml:space="preserve">
+    <value>Repository</value>
+  </data>
 </root>

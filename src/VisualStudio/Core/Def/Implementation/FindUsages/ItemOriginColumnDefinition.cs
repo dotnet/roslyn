@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -21,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         public const string ColumnName = StandardTableKeyNames.ItemOrigin;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ItemOriginColumnDefinition()
         {
         }
@@ -35,21 +38,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             {
                 content = origin switch
                 {
-                    ItemOrigin.Exact => ServicesVSResources.Origin_exact,
-                    ItemOrigin.ExactMetadata => ServicesVSResources.Origin_exact_metadata,
-                    ItemOrigin.IndexedInRepo => ServicesVSResources.Origin_indexed_repo,
-                    ItemOrigin.IndexedInOrganization => ServicesVSResources.Origin_indexed_organization,
-                    ItemOrigin.IndexedInThirdParty => ServicesVSResources.Origin_indexed_third_party,
-                    _ => ServicesVSResources.Origin_other,
+                    ItemOrigin.Exact => ServicesVSResources.Local,
+                    ItemOrigin.ExactMetadata => ServicesVSResources.Local_metadata,
+                    ItemOrigin.IndexedInRepo => ServicesVSResources.Indexed_in_repo,
+                    ItemOrigin.IndexedInOrganization => ServicesVSResources.Indexed_in_organization,
+                    ItemOrigin.IndexedInThirdParty => ServicesVSResources.Indexed_in_third_party,
+                    _ => ServicesVSResources.Other,
                 };
-                return true;
             }
             else
             {
                 // Assume that items without ItemOrigin are "Exact" matches
-                return ServicesVSResources.Exact_origin;
-                return true;
+                content = ServicesVSResources.Local;
             }
+
+            return true;
         }
     }
 }
