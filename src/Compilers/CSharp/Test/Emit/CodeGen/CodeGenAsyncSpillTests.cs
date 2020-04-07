@@ -4137,11 +4137,14 @@ class Program
     {
         Console.WriteLine(nameof(TestReassignsArrayAndIndexerDuringAwait));
 
-        var arr = new A[1]{ new A() };
+        var a = new A();
+        var arr = new A[1]{ a };
         var index = 0;
         Console.WriteLine(""Before Assignment arr.Length is: "" + arr.Length);
+        Console.WriteLine(""Before Assignment a.x is: "" + a.x);
         arr[index].x = await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment arr.Length is: "" + arr.Length);
+        Console.WriteLine(""After Assignment a.x is: "" + a.x);
 
         async Task<int> WriteAndReassign(string s)
         {
@@ -4157,17 +4160,20 @@ class Program
     {
         Console.WriteLine(nameof(TestReassignsTargetDuringAwait));
 
-        var arr = new A[1]{ new A() };
+        var a = new A();
+        var arr = new A[1]{ a };
         Console.WriteLine(""Before Assignment arr[0].x is: "" + arr[0].x);
         Console.WriteLine(""Before Assignment arr[0].y is: "" + arr[0].y);
+        Console.WriteLine(""Before Assignment a.x is: "" + a.x);
         arr[0].x = await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment arr[0].x is: "" + arr[0].x);
         Console.WriteLine(""After Assignment arr[0].y is: "" + arr[0].y);
+        Console.WriteLine(""After Assignment a.x is: "" + a.x);
 
         async Task<int> WriteAndReassign(string s)
         {
             await Task.Yield();
-            arr[0] = new A{y = true };
+            arr[0] = new A{ y = true };
             Console.WriteLine(s);
             return 42;
         }
@@ -4201,14 +4207,18 @@ RHS
 After Assignment arr[0].x is: 42
 TestReassignsArrayAndIndexerDuringAwait
 Before Assignment arr.Length is: 1
+Before Assignment a.x is: 0
 RHS
 After Assignment arr.Length is: 0
+After Assignment a.x is: 42
 TestReassignsTargetDuringAwait
 Before Assignment arr[0].x is: 0
 Before Assignment arr[0].y is: False
+Before Assignment a.x is: 0
 RHS
 After Assignment arr[0].x is: 0
-After Assignment arr[0].y is: True")
+After Assignment arr[0].y is: True
+After Assignment a.x is: 42")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      181 (0xb5)
@@ -4350,10 +4360,13 @@ class Program
         Console.WriteLine(nameof(TestReassignsArrayAndIndexerDuringAwait));
 
         var arr = new A[1];
+        var arrCopy = arr;
         var index = 0;
         Console.WriteLine(""Before Assignment arr.Length is: "" + arr.Length);
+        Console.WriteLine(""Before Assignment arrCopy[0].x is: "" + arrCopy[0].x);
         arr[index].x = await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment arr.Length is: "" + arr.Length);
+        Console.WriteLine(""After Assignment arrCopy[0].x is: "" + arrCopy[0].x);
 
         async Task<int> WriteAndReassign(string s)
         {
@@ -4409,8 +4422,10 @@ RHS
 After Assignment arr[0].x is: 42
 TestReassignsArrayAndIndexerDuringAwait
 Before Assignment arr.Length is: 1
+Before Assignment arrCopy[0].x is: 0
 RHS
 After Assignment arr.Length is: 0
+After Assignment arrCopy[0].x is: 42
 TestReassignsTargetDuringAwait
 Before Assignment arr[0].x is: 0
 Before Assignment arr[0].y is: False
@@ -4562,9 +4577,12 @@ class Program
         Console.WriteLine(nameof(ReassignADuringAssignment));
 
         var a = new A();
+        var aCopy = a;
         Console.WriteLine(""Before Assignment a is null == "" + (a is null));
+        Console.WriteLine(""Before Assignment aCopy.b.c.x is: "" + aCopy.b.c.x);
         a.b.c.x = await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment a is null == "" + (a is null));
+        Console.WriteLine(""After Assignment aCopy.b.c.x is: "" + aCopy.b.c.x);
 
         async Task<int> WriteAndReassign(string s)
         {
@@ -4607,8 +4625,10 @@ RHS
 After Assignment a.b.c.x is: 42
 ReassignADuringAssignment
 Before Assignment a is null == False
+Before Assignment aCopy.b.c.x is: 0
 RHS
-After Assignment a is null == True")
+After Assignment a is null == True
+After Assignment aCopy.b.c.x is: 42")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      201 (0xc9)
@@ -4742,20 +4762,23 @@ class Program
     {
         Console.WriteLine(nameof(TestAIsNotNull));
 
-        var a = new A{ b = new B() };
-        Console.WriteLine(""Before Assignment a.b.x is: "" + a.b.x);
+        var a = new A{ _b = new B() };
+        Console.WriteLine(""Before Assignment a._b._x is: "" + a._b._x);
         await Assign(a);
-        Console.WriteLine(""After Assignment a.b.x is: "" + a.b.x);
+        Console.WriteLine(""After Assignment a._b._x is: "" + a._b._x);
     }
 
     static async Task ReassignADuringAssignment()
     {
         Console.WriteLine(nameof(ReassignADuringAssignment));
 
-        var a = new A{ b = new B() };
+        var a = new A{ _b = new B() };
+        var aCopy = a;
         Console.WriteLine(""Before Assignment a is null == "" + (a is null));
+        Console.WriteLine(""Before Assignment aCopy._b._x is: "" + aCopy._b._x);
         a.b.x = await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment a is null == "" + (a is null));
+        Console.WriteLine(""After Assignment aCopy._b._x is: "" + aCopy._b._x);
 
         async Task<int> WriteAndReassign(string s)
         {
@@ -4776,33 +4799,33 @@ class Program
 
 class A
 {
-    private B _b;
-    public B b { get { Console.WriteLine(""GetB""); return _b; } set { _b = value; }}
+    public B _b;
+    public B b { get { Console.WriteLine(""GetB""); return _b; } set { Console.WriteLine(""SetB""); _b = value; }}
 }
 
 class B
 {
-    private int _x;
-    public int x { get => _x; set { Console.WriteLine(""SetX""); _x = value; } }
+    public int _x;
+    public int x { get { Console.WriteLine(""GetX""); return _x; } set { Console.WriteLine(""SetX""); _x = value; } }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"TestAIsNull
 Before Assignment
 Caught NullReferenceException
 TestAIsNotNull
-GetB
-Before Assignment a.b.x is: 0
+Before Assignment a._b._x is: 0
 GetB
 RHS
 SetX
-GetB
-After Assignment a.b.x is: 42
+After Assignment a._b._x is: 42
 ReassignADuringAssignment
 Before Assignment a is null == False
+Before Assignment aCopy._b._x is: 0
 GetB
 RHS
 SetX
-After Assignment a is null == True")
+After Assignment a is null == True
+After Assignment aCopy._b._x is: 42")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      184 (0xb8)
@@ -4942,9 +4965,12 @@ class Program
         Console.WriteLine(nameof(ReassignADuringAssignment));
 
         var a = new A();
+        var aCopy = a;
         Console.WriteLine(""Before Assignment a is null == "" + (a is null));
+        Console.WriteLine(""Before Assignment aCopy.x is: "" + aCopy.x);
         a.x = await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment a is null == "" + (a is null));
+        Console.WriteLine(""After Assignment aCopy.x is: "" + aCopy.x);
 
         async Task<int> WriteAndReassign(string s)
         {
@@ -4978,8 +5004,10 @@ RHS
 After Assignment a.x is: 42
 ReassignADuringAssignment
 Before Assignment a is null == False
+Before Assignment aCopy.x is: 0
 RHS
-After Assignment a is null == True")
+After Assignment a is null == True
+After Assignment aCopy.x is: 42")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      179 (0xb3)
@@ -5119,9 +5147,12 @@ class Program
         Console.WriteLine(nameof(ReassignADuringAssignment));
 
         var a = new A(){ x = 1 };
+        var aCopy = a;
         Console.WriteLine(""Before Assignment a is null == "" + (a is null));
-        a.x = await WriteAndReassign(""RHS"");
+        Console.WriteLine(""Before Assignment aCopy.x is: "" + aCopy.x);
+        a.x += await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment a is null == "" + (a is null));
+        Console.WriteLine(""After Assignment aCopy.x is: "" + aCopy.x);
 
         async Task<int> WriteAndReassign(string s)
         {
@@ -5138,7 +5169,7 @@ class Program
 
         var a = new A(){ x = 1 };
         Console.WriteLine(""Before Assignment a.x is: "" + a.x);
-        a.x = await WriteAndReassign(""RHS"");
+        a.x += await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment a.x is: "" + a.x);
 
         async Task<int> WriteAndReassign(string s)
@@ -5172,12 +5203,14 @@ RHS
 After Assignment a.x is: 43
 ReassignADuringAssignment
 Before Assignment a is null == False
+Before Assignment aCopy.x is: 1
 RHS
 After Assignment a is null == True
+After Assignment aCopy.x is: 43
 ReassignXDuringAssignment
 Before Assignment a.x is: 1
 RHS
-After Assignment a.x is: 42")
+After Assignment a.x is: 43")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      202 (0xca)
@@ -5316,20 +5349,23 @@ class Program
     {
         Console.WriteLine(nameof(TestAIsNotNull));
 
-        var a = new A(){ x = 1 };
-        Console.WriteLine(""Before Assignment a.x is: "" + a.x);
+        var a = new A(){ _x = 1 };
+        Console.WriteLine(""Before Assignment a._x is: "" + a._x);
         await Assign(a);
-        Console.WriteLine(""After Assignment a.x is: "" + a.x);
+        Console.WriteLine(""After Assignment a._x is: "" + a._x);
     }
 
     static async Task ReassignADuringAssignment()
     {
         Console.WriteLine(nameof(ReassignADuringAssignment));
 
-        var a = new A(){ x = 1 };
+        var a = new A(){ _x = 1 };
+        var aCopy = a;
         Console.WriteLine(""Before Assignment a is null == "" + (a is null));
-        a.x = await WriteAndReassign(""RHS"");
+        Console.WriteLine(""Before Assignment aCopy._x is: "" + aCopy._x);
+        a.x += await WriteAndReassign(""RHS"");
         Console.WriteLine(""After Assignment a is null == "" + (a is null));
+        Console.WriteLine(""After Assignment aCopy._x is: "" + aCopy._x);
 
         async Task<int> WriteAndReassign(string s)
         {
@@ -5344,15 +5380,15 @@ class Program
     {
         Console.WriteLine(nameof(ReassignXDuringAssignment));
 
-        var a = new A(){ x = 1 };
-        Console.WriteLine(""Before Assignment a.x is: "" + a.x);
-        a.x = await WriteAndReassign(""RHS"");
-        Console.WriteLine(""After Assignment a.x is: "" + a.x);
+        var a = new A(){ _x = 1 };
+        Console.WriteLine(""Before Assignment a._x is: "" + a._x);
+        a.x += await WriteAndReassign(""RHS"");
+        Console.WriteLine(""After Assignment a._x is: "" + a._x);
 
         async Task<int> WriteAndReassign(string s)
         {
             await Task.Yield();
-            a.x = 100;
+            a._x = 100;
             Console.WriteLine(s);
             return 42;
         }
@@ -5368,37 +5404,33 @@ class Program
 
 class A
 {
-    private int _x;
+    public int _x;
     public int x { get { Console.WriteLine(""GetX""); return _x; } set { Console.WriteLine(""SetX""); _x = value; } }
 }";
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"TestAIsNull
-Before Assignment
-Caught NullReferenceException
-TestAIsNotNull
-SetX
-GetX
-Before Assignment a.x is: 1
-GetX
-RHS
-SetX
-GetX
-After Assignment a.x is: 43
-ReassignADuringAssignment
-SetX
-Before Assignment a is null == False
-RHS
-SetX
-After Assignment a is null == True
-ReassignXDuringAssignment
-SetX
-GetX
-Before Assignment a.x is: 1
-SetX
-RHS
-SetX
-GetX
-After Assignment a.x is: 42")
+    Before Assignment
+    Caught NullReferenceException
+    TestAIsNotNull
+    Before Assignment a._x is: 1
+    GetX
+    RHS
+    SetX
+    After Assignment a._x is: 43
+    ReassignADuringAssignment
+    Before Assignment a is null == False
+    Before Assignment aCopy._x is: 1
+    GetX
+    RHS
+    SetX
+    After Assignment a is null == True
+    After Assignment aCopy._x is: 43
+    ReassignXDuringAssignment
+    Before Assignment a._x is: 1
+    GetX
+    RHS
+    SetX
+    After Assignment a._x is: 43")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      202 (0xca)
@@ -5799,7 +5831,7 @@ class Program
     {
         Console.WriteLine(nameof(TestAIsNotNullBIsNull));
         
-        A a = new A{ b = new B() };
+        A a = new A{ _b = new B() };
         B b = null;
         Console.WriteLine(""Before Assignment"");
         try
@@ -5833,13 +5865,13 @@ class Program
     {
         Console.WriteLine(nameof(TestADotBIsNotNullBIsNotNull));
 
-        A a = new A{ b = new B() };
+        A a = new A{ _b = new B() };
         B b = new B();
-        Console.WriteLine(""Before Assignment a.b.x is: "" + a.b.x);
-        Console.WriteLine(""Before Assignment b.x is: "" + b.x);
+        Console.WriteLine(""Before Assignment a._b._x is: "" + a._b._x);
+        Console.WriteLine(""Before Assignment b._x is: "" + b._x);
         await Assign(a, b);
-        Console.WriteLine(""After Assignment a.b.x is: "" + a.b.x);
-        Console.WriteLine(""After Assignment b.x is: "" + b.x);
+        Console.WriteLine(""After Assignment a._b._x is: "" + a._b._x);
+        Console.WriteLine(""After Assignment b._x is: "" + b._x);
     }
 
     static async Task<int> Write(string s)
@@ -5852,14 +5884,14 @@ class Program
 
 class A
 {
-    private B _b;
-    public B b { get { Console.WriteLine(""GetB""); return _b; } set { _b = value; }}
+    public B _b;
+    public B b { get { Console.WriteLine(""GetB""); return _b; } set { Console.WriteLine(""SetB""); _b = value; }}
 }
 
 class B
 {
-    private int _x;
-    public int x { get => _x; set { Console.WriteLine(""SetX""); _x = value; } }
+    public int _x;
+    public int x {  get { Console.WriteLine(""GetX""); return _x; } set { Console.WriteLine(""SetX""); _x = value; } }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"TestAIsNullBIsNull
@@ -5880,16 +5912,14 @@ RHS
 SetX
 Caught NullReferenceException
 TestADotBIsNotNullBIsNotNull
-GetB
-Before Assignment a.b.x is: 0
-Before Assignment b.x is: 0
+Before Assignment a._b._x is: 0
+Before Assignment b._x is: 0
 GetB
 RHS
 SetX
 SetX
-GetB
-After Assignment a.b.x is: 42
-After Assignment b.x is: 42")
+After Assignment a._b._x is: 42
+After Assignment b._x is: 42")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      219 (0xdb)
