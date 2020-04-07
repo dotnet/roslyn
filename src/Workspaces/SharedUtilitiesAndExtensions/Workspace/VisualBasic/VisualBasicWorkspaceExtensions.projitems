@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VisualBasicVirtualCharLanguageServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CallStatementSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CastExpressionSyntaxExtensions.vb" />
