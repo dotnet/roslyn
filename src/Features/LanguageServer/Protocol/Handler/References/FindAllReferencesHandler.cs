@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
 
             // The results have already been reported to the client, so we don't need to return anything here.
+            await context.OnCompletedAsync().ConfigureAwait(false);
             return Array.Empty<LSP.VSReferenceItem>();
         }
     }

@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // references via LSP instead of hooking into Roslyn.
             // This also means that we don't need to be on the UI thread.
             await FindLiteralOrSymbolReferencesAsync(
-                document, position, context).ConfigureAwait(true);
+                document, position, context).ConfigureAwait(false);
         }
 
         private async Task FindLiteralOrSymbolReferencesAsync(

@@ -59,32 +59,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             CancellationToken = cancellationToken;
         }
 
-        public string? Message { get; private set; }
-        public string? SearchTitle { get; private set; }
-
-        public override Task ReportMessageAsync(string message)
-        {
-            Message = message;
-            return Task.CompletedTask;
-        }
-
-        public override Task SetSearchTitleAsync(string title)
-        {
-            SearchTitle = title;
-            return Task.CompletedTask;
-        }
-
         public override Task OnCompletedAsync()
         {
+            var results = Array.Empty<VSReferenceItem>();
             lock (_gate)
             {
-                if (!_resultsChunk.IsEmpty())
+                if (_resultsChunk.IsEmpty())
                 {
-                    _progress.Report(_resultsChunk.ToArray());
+                    return Task.CompletedTask;
                 }
 
-                return Task.CompletedTask;
+                results = _resultsChunk.ToArray();
+                _resultsChunk.Clear();
             }
+
+            _progress.Report(results);
+            return Task.CompletedTask;
         }
 
         public async override Task OnDefinitionFoundAsync(DefinitionItem definition)
@@ -128,15 +118,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         private void AddAndReportResultsIfAtMax(VSReferenceItem item)
         {
+            var results = Array.Empty<VSReferenceItem>();
             lock (_gate)
             {
                 _resultsChunk.Add(item);
-                if (_resultsChunk.Count >= MaxResultsChunkSize)
+                if (_resultsChunk.Count < MaxResultsChunkSize)
                 {
-                    _progress.Report(_resultsChunk.ToArray());
-                    _resultsChunk.Clear();
+                    return;
                 }
+
+                results = _resultsChunk.ToArray();
+                _resultsChunk.Clear();
             }
+
+            _progress.Report(results);
         }
 
         private static async Task<LSP.VSReferenceItem> GenerateVSReferenceItemAsync(
