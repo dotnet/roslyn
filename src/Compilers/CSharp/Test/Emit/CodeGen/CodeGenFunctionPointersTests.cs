@@ -3405,6 +3405,74 @@ unsafe class C
         }
 
         [Fact]
+        public void ArrayElementRef()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    public static void Print() => Console.Write(1);
+
+    public static void M(delegate*<void>[] a)
+    {
+        ref delegate*<void> ptr = ref a[0];
+        ptr = &Print;
+    }
+    
+    public static void Main()
+    {
+        var a = new delegate*<void>[1];
+        M(a);
+        a[0]();
+    }
+}");
+
+            verifier.VerifyIL("C.M", expectedIL: @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""delegate*<void>""
+  IL_0007:  ldftn      ""void C.Print()""
+  IL_000d:  stind.i
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""delegate*<void>""
+  IL_0006:  dup
+  IL_0007:  call       ""void C.M(delegate*<void>[])""
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i
+  IL_000e:  calli      ""delegate*<void>""
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FixedSizeBufferOfFunctionPointers()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe struct S
+{
+    fixed delegate*<void> ptrs[1];
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,11): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     fixed delegate*<void> ptrs[1];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "delegate*<void>").WithLocation(4, 11)
+            );
+        }
+
+        [Fact]
         public void IndirectLoadsAndStores()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -3420,12 +3488,13 @@ unsafe class C
         ref var printer = ref Getter();
         printer = &Printer;
         printer();
+        field();
     }
-}", expectedOutput: "1");
+}", expectedOutput: "11");
 
             verifier.VerifyIL(@"C.Main", expectedIL: @"
 {
-  // Code size       20 (0x14)
+  // Code size       30 (0x1e)
   .maxstack  3
   IL_0000:  call       ""ref delegate*<void> C.Getter()""
   IL_0005:  dup
@@ -3433,7 +3502,9 @@ unsafe class C
   IL_000c:  stind.i
   IL_000d:  ldind.i
   IL_000e:  calli      ""delegate*<void>""
-  IL_0013:  ret
+  IL_0013:  ldsfld     ""delegate*<void> C.field""
+  IL_0018:  calli      ""delegate*<void>""
+  IL_001d:  ret
 }
 ");
         }
@@ -3506,6 +3577,71 @@ unsafe class C
   IL_003e:  conv.i4
   IL_003f:  blt.s      IL_001f
   IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FieldInitializers()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    delegate*<string, void>[] arr1;
+    delegate*<string, void>[] arr2 = new delegate*<string, void>[1];
+    static void Print(string s) => Console.Write(s);
+    static void Main()
+    {
+        var c = new C()
+        {
+            arr1 = new delegate*<string, void>[] { &Print },
+            arr2 = { [0] = &Print }
+        };
+
+        c.arr1[0](""1"");
+        c.arr2[0](""2"");
+    }
+}", expectedOutput: "12");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       82 (0x52)
+  .maxstack  5
+  .locals init (C V_0,
+                delegate*<string,void> V_1)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  newarr     ""delegate*<string,void>""
+  IL_000d:  dup
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldftn      ""void C.Print(string)""
+  IL_0015:  stelem.i
+  IL_0016:  stfld      ""delegate*<string,void>[] C.arr1""
+  IL_001b:  ldloc.0
+  IL_001c:  ldfld      ""delegate*<string,void>[] C.arr2""
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldftn      ""void C.Print(string)""
+  IL_0028:  stelem.i
+  IL_0029:  ldloc.0
+  IL_002a:  dup
+  IL_002b:  ldfld      ""delegate*<string,void>[] C.arr1""
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldelem.i
+  IL_0032:  stloc.1
+  IL_0033:  ldstr      ""1""
+  IL_0038:  ldloc.1
+  IL_0039:  calli      ""delegate*<string,void>""
+  IL_003e:  ldfld      ""delegate*<string,void>[] C.arr2""
+  IL_0043:  ldc.i4.0
+  IL_0044:  ldelem.i
+  IL_0045:  stloc.1
+  IL_0046:  ldstr      ""2""
+  IL_004b:  ldloc.1
+  IL_004c:  calli      ""delegate*<string,void>""
+  IL_0051:  ret
 }
 ");
         }

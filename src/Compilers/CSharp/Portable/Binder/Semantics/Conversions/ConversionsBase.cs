@@ -1888,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol otherType = (s0.SpecialType == SpecialType.System_UIntPtr || s0.SpecialType == SpecialType.System_IntPtr) ? t0 : s0;
 
-            if (otherType.TypeKind == TypeKind.Pointer)
+            if (otherType.IsPointerOrFunctionPointer())
             {
                 return true;
             }

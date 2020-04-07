@@ -264,17 +264,11 @@ unsafe class C
 
             var typeInfoOuter = model.GetTypeInfo(conversions[0]);
             var conversion = model.ClassifyConversion(conversions[0].Expression, typeInfoOuter.Type!);
-            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind);
-            Assert.Equal(ConversionKind.ImplicitPointerToVoid, conversion.UserDefinedFromConversion.Kind);
-            Assert.True(conversion.UserDefinedFromConversion.IsImplicit);
-            Assert.True(conversion.UserDefinedFromConversion.IsPointer);
+            Assert.Equal(ConversionKind.IntPtr, conversion.Kind);
 
             typeInfoOuter = model.GetTypeInfo(conversions[1]);
             conversion = model.ClassifyConversion(conversions[1].Expression, typeInfoOuter.Type!);
-            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind);
-            Assert.Equal(ConversionKind.ExplicitPointerToPointer, conversion.UserDefinedToConversion.Kind);
-            Assert.False(conversion.UserDefinedToConversion.IsImplicit);
-            Assert.True(conversion.UserDefinedToConversion.IsPointer);
+            Assert.Equal(ConversionKind.IntPtr, conversion.Kind);
         }
 
         [Theory]
