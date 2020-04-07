@@ -97,11 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     symbol = symbol.GetOriginalUnreducedDefinition();
 
                     // Get the symbol back from the originating workspace
-                    var symbolMappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
-                    if (symbolMappingService == null)
-                    {
-                        return;
-                    }
+                    var symbolMappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
 
                     var mappingResult = symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken)
                                                             .WaitAndGetResult(cancellationToken);
@@ -124,11 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             if (navigableItems != null)
             {
                 var workspace = project.Solution.Workspace;
-                var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                if (navigationService == null)
-                {
-                    yield break;
-                }
+                var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 foreach (var item in navigableItems)
                 {
