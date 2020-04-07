@@ -5971,5 +5971,36 @@ class C
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.NotReferencable, info.CandidateReason);
         }
+
+        [Fact]
+        [WorkItem(42840, "https://github.com/dotnet/roslyn/issues/42840")]
+        public void DuplicateTypeArgument()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B<T, U, U>
+    where T : A<U>
+    where U : class
+{
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0692: Duplicate type parameter 'U'
+                // class B<T, U, U>
+                Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "U").WithArguments("U").WithLocation(4, 15),
+                // (5,17): error CS0229: Ambiguity between 'U' and 'U'
+                //     where T : A<U>
+                Diagnostic(ErrorCode.ERR_AmbigMember, "U").WithArguments("U", "U").WithLocation(5, 17));
+
+            comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<TypeParameterSyntax>().Last();
+            var symbol = model.GetDeclaredSymbol(syntax);
+            Assert.False(symbol.IsReferenceType);
+        }
     }
 }
