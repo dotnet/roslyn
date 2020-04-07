@@ -161,5 +161,14 @@ namespace Analyzer.Utilities
         /// Allowed option values: One or more fields of <see cref="Microsoft.CodeAnalysis.SymbolKind"/> as a comma separated list.
         /// </summary>
         public const string AnalyzedSymbolKinds = "analyzed_symbol_kinds";
+
+        /// <summary>
+        /// String option to configure names of additional methods (separated by '|') for CA1806 (https://docs.microsoft.com/visualstudio/code-quality/ca1806).
+        /// Allowed method name formats:
+        ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "M:" prefix.
+        /// </summary>
+        public const string AdditionalUseResultsMethods = "additional_use_results_methods";
     }
 }

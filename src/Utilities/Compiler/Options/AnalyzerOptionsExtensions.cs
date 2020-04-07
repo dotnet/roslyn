@@ -259,6 +259,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalInheritanceExcludedSymbolNames, rule, compilation, cancellationToken, optionForcedValue: defaultForcedValue);
 
+        public static SymbolNamesWithValueOption<Unit> GetAdditionalUseResultsMethodsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalUseResultsMethods, rule, compilation, cancellationToken, namePrefixOpt: "M:");
+
         private static SymbolNamesWithValueOption<TValue> GetSymbolNamesWithValueOption<TValue>(
             this AnalyzerOptions options,
             string optionName,
