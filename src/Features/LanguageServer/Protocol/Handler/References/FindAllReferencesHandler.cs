@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // The results have already been reported to the client, so we don't need to return anything here.
             await context.OnCompletedAsync().ConfigureAwait(false);
-            return null;
+            return Array.Empty<LSP.VSReferenceItem>();
         }
     }
 }
