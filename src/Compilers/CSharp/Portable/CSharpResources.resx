@@ -5501,16 +5501,22 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</value>
   </data>
   <data name="WRN_ParameterConditionallyDisallowsNull" xml:space="preserve">
-    <value>Parameter '{0}' may not have a null value when exiting with '{1}'.</value>
+    <value>Parameter '{0}' must have a non-null value when exiting with '{1}'.</value>
   </data>
   <data name="WRN_ParameterConditionallyDisallowsNull_Title" xml:space="preserve">
-    <value>Parameter may not have a null value when exiting in some condition.</value>
+    <value>Parameter must have a non-null value when exiting in some condition.</value>
+  </data>
+  <data name="WRN_ParameterDisallowsNull" xml:space="preserve">
+    <value>Parameter '{0}' must have a non-null value when exiting.</value>
+  </data>
+  <data name="WRN_ParameterDisallowsNull_Title" xml:space="preserve">
+    <value>Parameter must have a non-null value when exiting.</value>
   </data>
   <data name="WRN_MemberNotNull" xml:space="preserve">
-    <value>Member '{0}' may not have a null value when exiting.</value>
+    <value>Member '{0}' must have a non-null value when exiting.</value>
   </data>
   <data name="WRN_MemberNotNull_Title" xml:space="preserve">
-    <value>Member may not have a null value when exiting.</value>
+    <value>Member must have a non-null value when exiting.</value>
   </data>
   <data name="WRN_MemberNotNullBadMember" xml:space="preserve">
     <value>Member '{0}' cannot be used in this attribute.</value>
@@ -5519,10 +5525,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Member cannot be used in this attribute.</value>
   </data>
   <data name="WRN_MemberNotNullWhen" xml:space="preserve">
-    <value>Member '{0}' may not have a null value when exiting with `{1}`.</value>
+    <value>Member '{0}' must have a non-null value when exiting with '{1}'.</value>
   </data>
   <data name="WRN_MemberNotNullWhen_Title" xml:space="preserve">
-    <value>Member may not have a null value when exiting in some condition.</value>
+    <value>Member must have a non-null value when exiting in some condition.</value>
   </data>
   <data name="WRN_ShouldNotReturn" xml:space="preserve">
     <value>A method marked [DoesNotReturn] should not return.</value>
@@ -5812,6 +5818,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureMemberNotNull" xml:space="preserve">
     <value>MemberNotNull attribute</value>
   </data>
+  <data name="IDS_FeatureNativeInt" xml:space="preserve">
+    <value>native-sized integers</value>
+  </data>
   <data name="ERR_BadDynamicAwaitForEach" xml:space="preserve">
     <value>Cannot use a collection of dynamic type in an asynchronous foreach</value>
   </data>
@@ -6036,5 +6045,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExpressionTreeContainsRangeExpression" xml:space="preserve">
     <value>An expression tree may not contain a range ('..') expression.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
+    <value>Generator failed to generate source.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
+    <value>Generator failed to initialize.</value>
   </data>
 </root>

@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly IIndentationService _underlyingObject;
 
         private VSTypeScriptIndentationServiceWrapper(IIndentationService underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public static VSTypeScriptIndentationServiceWrapper Create(Document document)
             => new VSTypeScriptIndentationServiceWrapper(document.Project.LanguageServices.GetRequiredService<IIndentationService>());

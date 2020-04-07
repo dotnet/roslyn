@@ -26,13 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
-        {
-            return new TriviaDataFactory(this.TreeData, this.Options);
-        }
+            => new TriviaDataFactory(this.TreeData, this.Options);
 
         protected override AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream)
-        {
-            return new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
-        }
+            => new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
     }
 }

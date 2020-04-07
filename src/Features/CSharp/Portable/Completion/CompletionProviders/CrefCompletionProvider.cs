@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -63,14 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private Action<SyntaxNode> _testSpeculativeNodeCallbackOpt;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CrefCompletionProvider()
         {
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
@@ -437,9 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             private readonly CrefCompletionProvider _crefCompletionProvider;
 
             public TestAccessor(CrefCompletionProvider crefCompletionProvider)
-            {
-                _crefCompletionProvider = crefCompletionProvider;
-            }
+                => _crefCompletionProvider = crefCompletionProvider;
 
             public void SetSpeculativeNodeCallback(Action<SyntaxNode> value)
                 => _crefCompletionProvider._testSpeculativeNodeCallbackOpt = value;

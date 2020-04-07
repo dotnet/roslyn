@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         protected override HistogramCounter CreateCounter()
-        {
-            return new HistogramCounter(_bucketSize, _maxBucketValue, _bucketCount);
-        }
+            => new HistogramCounter(_bucketSize, _maxBucketValue, _bucketCount);
 
         public void IncreaseCount(object key, decimal value)
         {

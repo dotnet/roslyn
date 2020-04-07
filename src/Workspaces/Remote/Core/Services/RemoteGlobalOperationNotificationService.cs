@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         public event EventHandler<GlobalOperationEventArgs>? Stopped;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteGlobalOperationNotificationService()
         {
         }

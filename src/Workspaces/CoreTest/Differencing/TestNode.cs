@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         }
 
         public override string ToString()
-        {
-            return string.Format("({0}, {1})", Label, Value);
-        }
+            => string.Format("({0}, {1})", Label, Value);
     }
 }

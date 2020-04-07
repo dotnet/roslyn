@@ -54,9 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override IndexerDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, IndexerDeclarationSyntax declaration)
-        {
-            return WithAccessorList(semanticModel, declaration);
-        }
+            => WithAccessorList(semanticModel, declaration);
 
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration) => true;
 

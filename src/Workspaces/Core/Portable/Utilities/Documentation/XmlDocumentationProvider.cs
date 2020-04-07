@@ -35,9 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="xmlDocCommentBytes">The XML document bytes.</param>
         /// <returns>An <see cref="XmlDocumentationProvider"/>.</returns>
         public static XmlDocumentationProvider CreateFromBytes(byte[] xmlDocCommentBytes)
-        {
-            return new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
-        }
+            => new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
 
         private static XmlDocumentationProvider DefaultXmlDocumentationProvider { get; } = new NullXmlDocumentationProvider();
 
@@ -113,9 +111,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return SerializableBytes.CreateReadableStream(_xmlDocCommentBytes);
-            }
+                => SerializableBytes.CreateReadableStream(_xmlDocCommentBytes);
 
             public override bool Equals(object obj)
             {
@@ -149,9 +145,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override int GetHashCode()
-            {
-                return Hash.CombineValues(_xmlDocCommentBytes);
-            }
+                => Hash.CombineValues(_xmlDocCommentBytes);
         }
 
         private sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider
@@ -167,9 +161,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return new FileStream(_filePath, FileMode.Open, FileAccess.Read);
-            }
+                => new FileStream(_filePath, FileMode.Open, FileAccess.Read);
 
             public override bool Equals(object obj)
             {
@@ -178,9 +170,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override int GetHashCode()
-            {
-                return _filePath.GetHashCode();
-            }
+                => _filePath.GetHashCode();
         }
 
         /// <summary>
@@ -189,14 +179,10 @@ namespace Microsoft.CodeAnalysis
         private sealed class NullXmlDocumentationProvider : XmlDocumentationProvider
         {
             protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
-            {
-                return "";
-            }
+                => "";
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return new MemoryStream();
-            }
+                => new MemoryStream();
 
             public override bool Equals(object obj)
             {
@@ -205,9 +191,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override int GetHashCode()
-            {
-                return 0;
-            }
+                => 0;
         }
     }
 }

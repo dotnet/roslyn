@@ -143,8 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         protected override string GetLanguageName()
-        {
-            return LanguageNames.CSharp;
-        }
+            => LanguageNames.CSharp;
     }
 }

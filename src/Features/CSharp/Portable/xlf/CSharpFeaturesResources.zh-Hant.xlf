@@ -212,11 +212,6 @@
         <target state="translated">非同步 using 宣告</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="if_statement_can_be_simplified">
-        <source>'if' statement can be simplified</source>
-        <target state="translated">'if' 陳述式可簡化</target>
-        <note />
-      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;Lambda 運算式&gt;</target>
@@ -735,11 +730,6 @@
       <trans-unit id="Remove_unused_function">
         <source>Remove unused function</source>
         <target state="translated">移除未使用的函式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_is_null_check">
-        <source>Use 'is null' check</source>
-        <target state="translated">使用 'is null' 檢查</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">

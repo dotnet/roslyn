@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // This may not find anything.  However, CanAnalyze checks for this. So
             // we represent the value as non-nullable for all future code.
             var objectGetHashCodeMethod = objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() as IMethodSymbol;
-            var equalityComparerType = compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
+            var equalityComparerType = compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName!);
             var systemHashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
 
             if (systemHashCodeType == null || objectGetHashCodeMethod == null)

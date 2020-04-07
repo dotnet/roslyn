@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddDebuggerDisplay
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicAddDebuggerDisplayCodeRefactoringProvider
+            Return New VisualBasicAddDebuggerDisplayCodeRefactoringProvider()
         End Function
 
         <Fact>

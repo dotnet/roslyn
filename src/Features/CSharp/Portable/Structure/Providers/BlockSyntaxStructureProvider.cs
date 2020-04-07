@@ -73,9 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         private static bool IsNonBlockStatement(SyntaxNode node)
-        {
-            return node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
-        }
+            => node is StatementSyntax && !node.IsKind(SyntaxKind.Block);
 
         private TextSpan GetHintSpan(BlockSyntax node)
         {

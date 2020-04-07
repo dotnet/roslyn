@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public SolutionAttributes WithVersion(VersionStamp versionStamp)
-            {
-                return new SolutionAttributes(Id, versionStamp, FilePath);
-            }
+                => new SolutionAttributes(Id, versionStamp, FilePath);
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
 

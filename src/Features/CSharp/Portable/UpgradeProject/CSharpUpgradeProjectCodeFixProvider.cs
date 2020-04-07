@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UpgradeProject;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
     internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpUpgradeProjectCodeFixProvider()
         {
         }
@@ -50,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
 
         public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
-        {
-            return RequiredVersion(diagnostics).ToDisplayString();
-        }
+            => RequiredVersion(diagnostics).ToDisplayString();
 
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
         {

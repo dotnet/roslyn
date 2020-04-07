@@ -308,9 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         internal string TEST_GetSignatureDisplayText()
-        {
-            return GetSignatureDisplayParts().Select(p => p.ToString()).Join("");
-        }
+            => GetSignatureDisplayParts().Select(p => p.ToString()).Join("");
 
         private List<SymbolDisplayPart> GetSignatureDisplayParts()
         {

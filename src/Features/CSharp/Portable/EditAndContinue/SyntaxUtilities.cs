@@ -177,9 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         public static bool Any(TypeParameterListSyntax listOpt)
-        {
-            return listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
-        }
+            => listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
 
         public static SyntaxNode TryGetEffectiveGetterBody(SyntaxNode declaration)
         {

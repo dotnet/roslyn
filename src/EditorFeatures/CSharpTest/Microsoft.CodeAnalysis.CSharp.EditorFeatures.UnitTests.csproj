@@ -77,8 +77,4 @@
   </ItemGroup>
   <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\ILTools.targets" />
-  <ItemGroup>
-    <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.Omit.cs" />
-    <ExpectedCompile Remove="ChangeSignature\AddParameterTests.OptionalParameter.SymbolKinds.cs" />
-  </ItemGroup>
 </Project>

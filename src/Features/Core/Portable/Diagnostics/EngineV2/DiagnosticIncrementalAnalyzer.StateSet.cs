@@ -6,6 +6,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -125,10 +126,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool FromBuild(ProjectId projectId)
                 => _projectStates.TryGetValue(projectId, out var projectState) && projectState.FromBuild;
 
-            public bool TryGetActiveFileState(DocumentId documentId, out ActiveFileState state)
+            public bool TryGetActiveFileState(DocumentId documentId, [NotNullWhen(true)] out ActiveFileState? state)
                 => _activeFileStates.TryGetValue(documentId, out state);
 
-            public bool TryGetProjectState(ProjectId projectId, out ProjectState state)
+            public bool TryGetProjectState(ProjectId projectId, [NotNullWhen(true)] out ProjectState? state)
                 => _projectStates.TryGetValue(projectId, out state);
 
             public ActiveFileState GetOrCreateActiveFileState(DocumentId documentId)
@@ -280,9 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 public string NonLocalStateName { get; }
 
                 public static PersistentNames Create(DiagnosticAnalyzer diagnosticAnalyzer)
-                {
-                    return s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
-                }
+                    => s_analyzerStateNameCache.GetOrAdd(diagnosticAnalyzer.GetAnalyzerId(), t => new PersistentNames(t));
             }
         }
     }
