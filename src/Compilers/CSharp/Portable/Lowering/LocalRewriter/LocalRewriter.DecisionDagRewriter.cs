@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // or perhaps we are passing a variable by ref and mutating it that way, e.g. `int.Parse(..., out x)`
                         !node.ArgumentRefKindsOpt.IsDefault ||
                         // or perhaps we are calling a mutating method of a value type
-                        MethodMayMutateRecevier(node.ReceiverOpt, node.Method);
+                        MethodMayMutateReceiver(node.ReceiverOpt, node.Method);
 
                     if (mightMutate)
                         _mightAssignSomething = true;
@@ -149,12 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                private static bool MethodMayMutateRecevier(BoundExpression receiver, MethodSymbol method)
+                private static bool MethodMayMutateReceiver(BoundExpression receiver, MethodSymbol method)
                 {
                     return
                         method != null &&
                         !method.IsStatic &&
-                        !method.IsDeclaredReadOnly &&
+                        !method.IsEffectivelyReadOnly &&
                         receiver.Type?.IsReferenceType == false &&
                         // methods of concrete special types do not mutate their receiver
                         (method.ContainingType.SpecialType == SpecialType.None || method.ContainingType.TypeKind == TypeKind.Interface);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bool mightMutate =
                         // We only need to check the get accessor because an assigment would cause _mightAssignSomething to be set to true in the caller
-                        MethodMayMutateRecevier(node.ReceiverOpt, node.PropertySymbol.GetMethod);
+                        MethodMayMutateReceiver(node.ReceiverOpt, node.PropertySymbol.GetMethod);
 
                     if (mightMutate)
                         _mightAssignSomething = true;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool mightMutate =
                         !node.ArgumentRefKindsOpt.IsDefault ||
                         // We only need to check the get accessor because an assigment would cause _mightAssignSomething to be set to true in the caller
-                        MethodMayMutateRecevier(node.ReceiverOpt, node.Indexer.GetMethod);
+                        MethodMayMutateReceiver(node.ReceiverOpt, node.Indexer.GetMethod);
 
                     if (mightMutate)
                         _mightAssignSomething = true;
