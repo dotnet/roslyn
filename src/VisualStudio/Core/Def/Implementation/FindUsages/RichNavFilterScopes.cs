@@ -51,29 +51,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             {
                 return new LoadedSolutionFilterHandler(ServicesVSResources.Loaded_solution);
             }
+
             return null; // Don't replace
         }
     }
 
-    internal class LoadedSolutionFilterHandler : FilterHandlerBase
+    internal abstract class RoslynFilterHandler : FilterHandlerBase
     {
-        private const int LoadedSolutionFilterHandlerFilterId = 20;
-
+        private readonly int _id;
         private readonly string _displayName;
+        private readonly ItemOrigin _origin;
 
-        public LoadedSolutionFilterHandler(string displayName)
+        protected RoslynFilterHandler(int id, string displayName, ItemOrigin origin)
         {
+            _id = id;
             _displayName = displayName;
+            _origin = origin;
         }
 
-        public override int FilterId => LoadedSolutionFilterHandlerFilterId;
+        public sealed override int FilterId => _id;
 
-        public override string FilterDisplayName => _displayName;
+        public sealed override string FilterDisplayName => _displayName;
 
-        public override IEntryFilter GetFilter(out string displayText)
+        public sealed override IEntryFilter GetFilter(out string displayText)
         {
             displayText = _displayName;
-            return new ItemOriginFilter(ItemOrigin.ExactMetadata);
+            return new ItemOriginFilter(_origin);
+        }
+    }
+
+    internal class LoadedSolutionFilterHandler : RoslynFilterHandler
+    {
+        private const int LoadedSolutionFilterHandlerFilterId = 20;
+        public LoadedSolutionFilterHandler(string displayName)
+            : base(LoadedSolutionFilterHandlerFilterId, displayName, ItemOrigin.ExactMetadata)
+        {
         }
     }
 
@@ -99,25 +111,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         }
     }
 
-    internal class AllSourcesFilterHandler : FilterHandlerBase
+    internal class AllSourcesFilterHandler : RoslynFilterHandler
     {
-        internal const int EntireRepositoryFilterHandlerFilterId = 21;
-
-        private readonly string _displayName;
+        private const int AllSourcesFilterHandlerFilterId = 22;
 
         public AllSourcesFilterHandler()
+            : base(AllSourcesFilterHandlerFilterId, ServicesVSResources.All_sources, ItemOrigin.IndexedInThirdParty)
         {
-            this.displayName = ServicesVSResources.All_sources;
-        }
-
-        public override int FilterId => AllShadowFilterHandlerFilterId;
-
-        public override string FilterDisplayName => this.displayName;
-
-        public override IEntryFilter GetFilter(out string displayText)
-        {
-            displayText = this.displayName;
-            return new ItemOriginFilter(ItemOrigin.IndexedInThirdParty);
         }
 
         protected override void OnActivated()
@@ -147,25 +147,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         }
     }
 
-    internal class EntireRepositoryFilterHandler : FilterHandlerBase
+    internal class EntireRepositoryFilterHandler : RoslynFilterHandler
     {
         private const int EntireRepositoryFilterHandlerFilterId = 21;
 
-        private readonly string _displayName;
-
         public EntireRepositoryFilterHandler()
+            : base(EntireRepositoryFilterHandlerFilterId, ServicesVSResources.Entire_repository, ItemOrigin.IndexedInRepo)
         {
-            _displayName = ServicesVSResources.Entire_repository;
-        }
-
-        public override int FilterId => EntireRepositoryFilterHandlerFilterId;
-
-        public override string FilterDisplayName => _displayName;
-
-        public override IEntryFilter GetFilter(out string displayText)
-        {
-            displayText = _displayName;
-            return new ItemOriginFilter(ItemOrigin.IndexedInRepo);
         }
 
         protected override void OnActivated()
