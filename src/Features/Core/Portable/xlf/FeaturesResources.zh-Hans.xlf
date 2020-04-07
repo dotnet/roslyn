@@ -1945,11 +1945,6 @@ This version used in: {2}</source>
         <target state="translated">项目 {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_variable_declaration">
-        <source>Inline variable declaration</source>
-        <target state="translated">内联变量声明</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">完全限定“{0}”</target>
@@ -1988,11 +1983,6 @@ This version used in: {2}</source>
       <trans-unit id="Pascal_Case">
         <source>Pascal Case</source>
         <target state="translated">帕斯卡拼写法</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_inlined">
-        <source>Variable declaration can be inlined</source>
-        <target state="translated">可以内联变量声明</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">

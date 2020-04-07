@@ -262,4 +262,10 @@
   <data name="Use_range_operator" xml:space="preserve">
     <value>Use range operator</value>
   </data>
+  <data name="Inline_variable_declaration" xml:space="preserve">
+    <value>Inline variable declaration</value>
+  </data>
+  <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
+    <value>Variable declaration can be inlined</value>
+  </data>
 </root>

@@ -1945,11 +1945,6 @@ Essa versão é usada no: {2}</target>
         <target state="translated">projeto {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_variable_declaration">
-        <source>Inline variable declaration</source>
-        <target state="translated">Declaração de variável embutida</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">Qualificar '{0}' totalmente</target>
@@ -1988,11 +1983,6 @@ Essa versão é usada no: {2}</target>
       <trans-unit id="Pascal_Case">
         <source>Pascal Case</source>
         <target state="translated">Pascal Case</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_inlined">
-        <source>Variable declaration can be inlined</source>
-        <target state="translated">A declaração de variável pode ser embutida</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">

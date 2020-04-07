@@ -1945,11 +1945,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">proje {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_variable_declaration">
-        <source>Inline variable declaration</source>
-        <target state="translated">Satır içi değişken bildirimi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">{0}' adını tam olarak belirtin</target>
@@ -1988,11 +1983,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Pascal_Case">
         <source>Pascal Case</source>
         <target state="translated">Baş Harfleri Büyük Olmak Üzere Bitişik</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_inlined">
-        <source>Variable declaration can be inlined</source>
-        <target state="translated">Değişken bildirimi satır içine alınabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
