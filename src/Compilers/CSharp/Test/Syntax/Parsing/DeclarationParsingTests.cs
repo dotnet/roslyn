@@ -7355,12 +7355,15 @@ class A : B : C
                 // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
-                // (3,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // (3,1): error CS8652: The feature 'simple programs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // {
-                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(3, 1),
-                // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"{
+}").WithArguments("simple programs").WithLocation(3, 1),
+                // (3,1): error CS9002: Top-level statements must precede namespace and type declarations.
+                // {
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"{
+}").WithLocation(3, 1)
+                );
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7387,6 +7390,14 @@ class A : B : C
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "C");
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
