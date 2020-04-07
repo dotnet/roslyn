@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         private int _id = 0;
 
-        private readonly object _gate = new object();
+        private static readonly SemaphoreSlim s_semaphore = new SemaphoreSlim(1);
 
         private readonly Dictionary<DefinitionItem, int> _definitionToId =
             new Dictionary<DefinitionItem, int>();
@@ -59,26 +59,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             CancellationToken = cancellationToken;
         }
 
-        public override Task OnCompletedAsync()
+        public async override Task OnCompletedAsync()
         {
-            var results = Array.Empty<VSReferenceItem>();
-            lock (_gate)
+            await s_semaphore.WaitAsync(CancellationToken).ConfigureAwait(false);
+            if (_resultsChunk.IsEmpty())
             {
-                if (_resultsChunk.IsEmpty())
-                {
-                    return Task.CompletedTask;
-                }
-
-                results = _resultsChunk.ToArray();
-                _resultsChunk.Clear();
+                return;
             }
 
+            var results = _resultsChunk.ToArray();
+            _resultsChunk.Clear();
+
+            s_semaphore.Release();
             _progress.Report(results);
-            return Task.CompletedTask;
         }
 
         public async override Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
+            await s_semaphore.WaitAsync(CancellationToken).ConfigureAwait(false);
+
             if (!_definitionToId.ContainsKey(definition))
             {
                 // Assinging a new id to the definition
@@ -93,17 +92,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (definitionItem.Location != null)
                 {
                     AddAndReportResultsIfAtMax(definitionItem);
-
-                    lock (_gate)
-                    {
-                        _id++;
-                    }
+                    _id++;
                 }
             }
+
+            s_semaphore.Release();
         }
 
         public async override Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
+            await s_semaphore.WaitAsync(CancellationToken).ConfigureAwait(false);
+
             if (_definitionToId.TryGetValue(reference.Definition, out var definitionId))
             {
                 // Creating a new VSReferenceItem for the reference
@@ -115,31 +114,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (referenceItem.Location != null)
                 {
                     AddAndReportResultsIfAtMax(referenceItem);
-
-                    lock (_gate)
-                    {
-                        _id++;
-                    }
+                    _id++;
                 }
             }
+
+            s_semaphore.Release();
         }
 
         private void AddAndReportResultsIfAtMax(VSReferenceItem item)
         {
-            var results = Array.Empty<VSReferenceItem>();
-            lock (_gate)
+            _resultsChunk.Add(item);
+            if (_resultsChunk.Count < MaxResultsChunkSize)
             {
-                _resultsChunk.Add(item);
-                if (_resultsChunk.Count < MaxResultsChunkSize)
-                {
-                    return;
-                }
-
-                results = _resultsChunk.ToArray();
-                _resultsChunk.Clear();
+                return;
             }
 
-            _progress.Report(results);
+            _progress.Report(_resultsChunk.ToArray());
+            _resultsChunk.Clear();
         }
 
         private static async Task<LSP.VSReferenceItem> GenerateVSReferenceItemAsync(
