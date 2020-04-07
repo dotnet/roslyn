@@ -13,7 +13,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CodeStyle;
+
+#if CODE_STYLE
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType
 {
