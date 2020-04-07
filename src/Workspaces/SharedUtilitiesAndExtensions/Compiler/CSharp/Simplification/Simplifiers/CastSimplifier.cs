@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -35,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // First, check to see if the node ultimately parenting this cast has any
             // syntax errors. If so, we bail.
             if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
-            {
                 return false;
-            }
 
             var castTypeInfo = semanticModel.GetTypeInfo(castNode, cancellationToken);
             var castType = castTypeInfo.Type;
@@ -45,17 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Case:
             // 1 . Console.WriteLine(await (dynamic)task); Any Dynamic Cast will not be removed.
             if (castType == null || castType.Kind == SymbolKind.DynamicType || castType.IsErrorType())
-            {
                 return false;
-            }
 
             var expressionTypeInfo = semanticModel.GetTypeInfo(castedExpressionNode, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
             if (EnumCastDefinitelyCantBeRemoved(castNode, expressionType, castType))
-            {
                 return false;
-            }
 
             // We do not remove any cast on 
             // 1. Dynamic Expressions
@@ -72,14 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             if (PointerCastDefinitelyCantBeRemoved(castNode, castedExpressionNode))
-            {
                 return false;
-            }
 
             if (CastPassedToParamsArrayDefinitelyCantBeRemoved(castNode, castType, semanticModel, cancellationToken))
-            {
                 return false;
-            }
 
             // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
             // in order to call string.Format(...) anyway.
@@ -90,9 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             if (speculationAnalyzer.ReplacementChangesSemantics())
-            {
                 return false;
-            }
 
             var expressionToCastType = semanticModel.ClassifyConversion(castNode.SpanStart, castedExpressionNode, castType, isExplicitInSource: true);
             var outerType = GetOuterCastType(castNode, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
@@ -120,29 +112,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     }
                 }
 
+                if (SameSizedFloatingPointCastMustBePreserved(
+                        semanticModel, castNode, castedExpressionNode,
+                        expressionType, castType, cancellationToken))
+                {
+                    return false;
+                }
+
                 return true;
             }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsReference)
+
+            Debug.Assert(!expressionToCastType.IsIdentity);
+            if (expressionToCastType.IsExplicit)
             {
                 // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
-                return false;
-            }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsUnboxing)
-            {
+                if (expressionToCastType.IsReference)
+                    return false;
+
                 // Unboxing conversions can cause a null ref exception, hence can never be removed.
-                return false;
-            }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric)
-            {
+                if (expressionToCastType.IsUnboxing)
+                    return false;
+
                 // Don't remove any explicit numeric casts.
                 // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
-                return false;
+                if (expressionToCastType.IsNumeric)
+                    return false;
             }
-            else if (expressionToCastType.IsPointer)
+
+            if (expressionToCastType.IsPointer || expressionToCastType.IsIntPtr)
             {
-                // Don't remove any non-identity pointer conversions.
+                // Don't remove any non-identity pointer or IntPtr conversions.
                 // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
                 return expressionType != null && expressionType.Equals(outerType);
+            }
+
+            if (expressionToCastType.IsInterpolatedString)
+            {
+                // interpolation casts are necessary to preserve semantics if our destination type is not itself
+                // FormattableString or some interface of FormattableString.
+
+                return castType.Equals(castTypeInfo.ConvertedType) ||
+                       ImmutableArray<ITypeSymbol>.CastUp(castType.AllInterfaces).Contains(castTypeInfo.ConvertedType);
+            }
+
+            if (castedExpressionNode.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) &&
+                !castType.Equals(outerType) &&
+                outerType.IsNullable())
+            {
+                // We have a cast like `(T?)(X)default`. We can't remove the inner cast as it effects what value
+                // 'default' means in this context.
+                return false;
             }
 
             if (parentIsOrAsExpression)
@@ -292,6 +311,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private static bool SameSizedFloatingPointCastMustBePreserved(
+            SemanticModel semanticModel, ExpressionSyntax castNode, ExpressionSyntax castedExpressionNode,
+            ITypeSymbol expressionType, ITypeSymbol castType, CancellationToken cancellationToken)
+        {
+            // Floating point casts can have subtle runtime behavior, even between the same fp types. For example, a
+            // cast from float-to-float can still change behavior because it may take a higher precision computation and
+            // truncate it to 32bits.
+            //
+            // Because of this we keep floating point conversions unless we can prove that it's safe.  The only safe
+            // times are when we're loading or storing into a location we know has the same size as the cast size
+            // (i.e. reading/writing into a field).
+            if (expressionType.SpecialType != SpecialType.System_Double &&
+                expressionType.SpecialType != SpecialType.System_Single &&
+                castType.SpecialType != SpecialType.System_Double &&
+                castType.SpecialType != SpecialType.System_Single)
+            {
+                // wasn't a floating point conversion.
+                return false;
+            }
+
+            // Identity fp conversion is safe if this is a read from a fp field/array
+            if (IsFieldOrArrayElement(semanticModel, castedExpressionNode, cancellationToken))
+                return false;
+
+            castNode = castNode.WalkUpParentheses();
+            if (castNode.Parent is AssignmentExpressionSyntax assignmentExpression &&
+                assignmentExpression.Right == castNode)
+            {
+                // Identity fp conversion is safe if this is a write to a fp field/array
+                if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
+                    return false;
+            }
+            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
+            {
+                // Identity fp conversion is safe if this is in an array initializer.
+                var typeInfo = semanticModel.GetTypeInfo(arrayInitializer);
+                return typeInfo.Type?.Kind == SymbolKind.ArrayType;
+            }
+            else if (castNode.Parent is EqualsValueClauseSyntax equalsValue &&
+                     equalsValue.Value == castNode &&
+                     equalsValue.Parent is VariableDeclaratorSyntax variableDeclarator)
+            {
+                // Identity fp conversion is safe if this is in a field initializer.
+                var symbol = semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
+                if (symbol?.Kind == SymbolKind.Field)
+                    return false;
+            }
+
+            // We have to preserve this cast.
+            return true;
+        }
+
+        private static bool IsFieldOrArrayElement(
+            SemanticModel semanticModel, ExpressionSyntax expr, CancellationToken cancellationToken)
+        {
+            expr = expr.WalkDownParentheses();
+            var castedExpresionSymbol = semanticModel.GetSymbolInfo(expr, cancellationToken).Symbol;
+
+            // we're reading from a field of the same size.  it's safe to remove this case.
+            if (castedExpresionSymbol?.Kind == SymbolKind.Field)
+                return true;
+
+            if (expr is ElementAccessExpressionSyntax elementAccess)
+            {
+                var locationType = semanticModel.GetTypeInfo(elementAccess.Expression, cancellationToken);
+                return locationType.Type?.Kind == SymbolKind.ArrayType;
             }
 
             return false;

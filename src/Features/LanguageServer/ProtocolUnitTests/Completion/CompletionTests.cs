@@ -25,12 +25,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, CreateCompletionParams(locations["caret"].Single()));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
-            var results = (LSP.CompletionItem[])await RunGetCompletionsAsync(solution, locations["caret"].Single(), clientCapabilities);
-            AssertJsonEquals(expected, results.First());
+            var results = await RunGetCompletionsAsync(workspace.CurrentSolution, locations["caret"].Single(), clientCapabilities).ConfigureAwait(false);
+            var completionItems = (LSP.CompletionItem[])results.Value;
+            AssertJsonEquals(expected, completionItems.First());
         }
 
         [Fact]
@@ -44,7 +45,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+            var solution = workspace.CurrentSolution;
 
             // Make sure the unimported types option is on by default.
             solution = solution.WithOptions(solution.Options
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             Assert.False(results.Any(item => "Console" == item.Label));
         }
 
-        private static async Task<object> RunGetCompletionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)
+        private static async Task<LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?> RunGetCompletionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)
             => await GetLanguageServer(solution).GetCompletionsAsync(solution, CreateCompletionParams(caret), clientCapabilities, CancellationToken.None);
     }
 }

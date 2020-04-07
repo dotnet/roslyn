@@ -6,6 +6,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PickMembers
 
@@ -16,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
         Inherits AbstractGenerateConstructorFromMembersCodeRefactoringProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -26,6 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
         Friend Sub New(pickMembersService_forTesting As IPickMembersService)
             MyBase.New(pickMembersService_forTesting)
         End Sub
+
+        Protected Overrides Function ToDisplayString(parameter As IParameterSymbol, format As SymbolDisplayFormat) As String
+            Return SymbolDisplay.ToDisplayString(parameter, format)
+        End Function
 
         Protected Overrides Function PrefersThrowExpression(options As DocumentOptionSet) As Boolean
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.

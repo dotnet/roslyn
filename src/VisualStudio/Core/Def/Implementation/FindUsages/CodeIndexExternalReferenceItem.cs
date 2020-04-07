@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         private class CodeIndexExternalReferenceItem : ExternalReferenceItem
         {
             private readonly VisualStudioFindSymbolMonikerUsagesService _service;
-            private readonly JObject _resultObject;
+            public readonly JObject ResultObject;
 
             public CodeIndexExternalReferenceItem(
                 VisualStudioFindSymbolMonikerUsagesService service,
@@ -31,35 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                 string text) : base(definition, projectName, displayPath, span, text)
             {
                 _service = service;
-                _resultObject = resultObject;
+                ResultObject = resultObject;
             }
 
             public override bool TryNavigateTo(bool isPreview)
-            {
-                // Cancel the navigation to any previous item the user was trying to navigate to.
-                // Then try to navigate to this. Because it's async, and we're not, just assume it
-                // will succeed.
-                var cancellationToken = _service.CancelLastNavigationAndGetNavigationToken();
-                _ = NavigateToAsync(isPreview: false, cancellationToken);
-                return true;
-            }
-
-            private async Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
-            {
-                // No way to report any errors thrown by OpenNavigationResultInEditorAsync.
-                // So just catch and report through our watson system.
-                try
-                {
-                    await _service._codeIndexProvider!.OpenNavigationResultInEditorAsync(
-                        _resultObject, isPreview, cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-                {
-                }
-            }
+                => _service.TryNavigateTo(this, isPreview);
         }
     }
 }

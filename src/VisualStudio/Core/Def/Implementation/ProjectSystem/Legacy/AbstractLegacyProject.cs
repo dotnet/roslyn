@@ -345,9 +345,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         // from native to managed can end up resulting in boxed ints instead.  Handle both here so 
         // we're resilient to however the IVsHierarchy was actually implemented.
         private static uint UnboxVSItemId(object id)
-        {
-            return id is uint ? (uint)id : unchecked((uint)(int)id);
-        }
+            => id is uint ? (uint)id : unchecked((uint)(int)id);
 
         private static void ComputeFolderNames(uint folderItemID, List<string> names, IVsHierarchy hierarchy)
         {

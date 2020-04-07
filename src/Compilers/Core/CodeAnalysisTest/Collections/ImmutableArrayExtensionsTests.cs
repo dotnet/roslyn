@@ -453,6 +453,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(a.WhereAsArray(i => i % 2 == 1).SequenceEqual(ImmutableArray.Create<int>(1, 3, 5)));
         }
 
+        [Fact]
+        public void WhereAsArray_WithArg()
+        {
+            var x = new C();
+            Assert.Same(x, ImmutableArray.Create<object>(x).WhereAsArray((o, arg) => o == arg, x)[0]);
+
+            var a = ImmutableArray.Create(0, 1, 2, 3, 4, 5);
+            AssertEx.Equal(new[] { 3, 4, 5 }, a.WhereAsArray((i, j) => i > j, 2));
+        }
+
         private class C
         {
         }

@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -9,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.PooledObjects;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,14 +24,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, object[]>
+    internal class CodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, LSP.SumType<LSP.Command, LSP.CodeAction>[]>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
         {
         }
 
-        public async Task<object[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
+        public async Task<LSP.SumType<LSP.Command, LSP.CodeAction>[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var codeActions = await GetCodeActionsAsync(solution,
@@ -38,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
             codeActions = codeActions.Where(c => !(c is CodeActionWithOptions));
 
-            var result = new ArrayBuilder<object>();
+            var result = new ArrayBuilder<LSP.SumType<LSP.Command, LSP.CodeAction>>();
             foreach (var codeAction in codeActions)
             {
                 // Always return the Command instead of a precalculated set of workspace edits. 

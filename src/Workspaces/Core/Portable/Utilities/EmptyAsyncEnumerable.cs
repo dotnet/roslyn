@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
-    internal class EmptyAsyncEnumerable<T> : IAsyncEnumerable<T>
+    internal sealed class EmptyAsyncEnumerable<T> : IAsyncEnumerable<T>
     {
         public static readonly IAsyncEnumerable<T> Instance = new EmptyAsyncEnumerable<T>();
 
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             => EmptyAsyncEnumerator<T>.Instance;
     }
 
-    internal class EmptyAsyncEnumerator<T> : IAsyncEnumerator<T>
+    internal sealed class EmptyAsyncEnumerator<T> : IAsyncEnumerator<T>
     {
         public static readonly IAsyncEnumerator<T> Instance = new EmptyAsyncEnumerator<T>();
 

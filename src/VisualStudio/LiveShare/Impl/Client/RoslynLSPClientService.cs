@@ -15,6 +15,7 @@ using Task = System.Threading.Tasks.Task;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
@@ -96,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         // Uses Roslyn client.
                         CodeActionProvider = true,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
-                        ReferencesProvider = true,
                     })));
 
             var lifeTimeService = LspClientLifeTimeService;
@@ -114,9 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             public event EventHandler Disposed;
 
             public void Dispose()
-            {
-                Disposed?.Invoke(this, null);
-            }
+                => Disposed?.Invoke(this, null);
         }
 
         /// <summary>
@@ -155,6 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     internal class CSharpLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspClientServiceFactory()
         {
         }
@@ -177,6 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     internal class VisualBasicLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualBasicLspClientServiceFactory()
         {
         }
@@ -199,6 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     internal class TypeScriptLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptLspClientServiceFactory()
         {
         }

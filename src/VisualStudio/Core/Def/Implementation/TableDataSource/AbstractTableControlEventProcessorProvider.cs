@@ -11,21 +11,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         where TItem : TableItem
     {
         public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
-        {
-            return CreateEventProcessor();
-        }
+            => CreateEventProcessor();
 
         protected virtual EventProcessor CreateEventProcessor()
-        {
-            return new EventProcessor();
-        }
+            => new EventProcessor();
 
         protected class EventProcessor : TableControlEventProcessorBase
         {
             protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle)
-            {
-                return GetEntriesSnapshot(entryHandle, out var index);
-            }
+                => GetEntriesSnapshot(entryHandle, out var index);
 
             protected static AbstractTableEntriesSnapshot<TItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
             {

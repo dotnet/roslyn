@@ -4,6 +4,7 @@
 
 #nullable enable 
 
+using System;
 using System.Composition;
 using System.Drawing.Text;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
     internal class CSharpParseOptionsChangingService : IParseOptionsChangingService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpParseOptionsChangingService()
         {
         }

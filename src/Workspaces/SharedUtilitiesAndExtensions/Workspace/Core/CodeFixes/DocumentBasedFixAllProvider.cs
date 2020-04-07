@@ -4,18 +4,16 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
     /// Provides a base class to write a <see cref="FixAllProvider"/> that fixes documents independently.
@@ -124,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext, Project project)
-        {
-            return GetSolutionFixesAsync(fixAllContext, project.Documents.ToImmutableArray());
-        }
+            => GetSolutionFixesAsync(fixAllContext, project.Documents.ToImmutableArray());
 
         private Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
         {

@@ -12,6 +12,6 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// This option can be passed to the <see cref="IDocumentNavigationService"/> APIs to request that a provisional (or preview) tab 
         /// be used for any document that needs to be opened, if one is available.
         /// </summary>
-        public static readonly Option<bool> PreferProvisionalTab = new Option<bool>(nameof(NavigationOptions), nameof(PreferProvisionalTab), defaultValue: false);
+        public static readonly Option2<bool> PreferProvisionalTab = new Option2<bool>(nameof(NavigationOptions), nameof(PreferProvisionalTab), defaultValue: false);
     }
 }

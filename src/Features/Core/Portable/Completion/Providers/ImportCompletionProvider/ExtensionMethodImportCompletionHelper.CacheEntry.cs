@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private sealed class CacheServiceFactory : AbstractImportCompletionCacheServiceFactory<CacheEntry, object>
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public CacheServiceFactory()
             {
             }

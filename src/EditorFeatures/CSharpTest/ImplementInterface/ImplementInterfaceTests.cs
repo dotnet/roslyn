@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
 
-        private IDictionary<OptionKey, object> AllOptionsOff =>
+        private IDictionary<OptionKey2, object> AllOptionsOff =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> AllOptionsOn =>
+        private IDictionary<OptionKey2, object> AllOptionsOn =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
-        private IDictionary<OptionKey, object> AccessorOptionsOn =>
+        private IDictionary<OptionKey2, object> AccessorOptionsOn =>
             OptionsSet(
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
@@ -153,6 +153,53 @@ class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task TestMethodWithNativeIntegers()
+        {
+            var nativeIntegerAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.All)]
+    public sealed class NativeIntegerAttribute : System.Attribute
+    {
+        public NativeIntegerAttribute()
+        {
+        }
+        public NativeIntegerAttribute(bool[] flags)
+        {
+        }
+    }
+}";
+
+            // Note: we're putting the attribute by hand to simulate metadata
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
+    (nint, nuint) Method(nint x, nuint x2);
+}
+
+class Class : [|IInterface|]
+{
+}" + nativeIntegerAttributeDefinition,
+    @"using System;
+
+interface IInterface
+{
+    [return: System.Runtime.CompilerServices.NativeInteger(new[] { true, true })]
+    (nint, nuint) Method(nint x, nuint x2);
+}
+
+class Class : IInterface
+{
+    public (nint, nuint) Method(nint x, nuint x2)
+    {
+        throw new NotImplementedException();
+    }
+}" + nativeIntegerAttributeDefinition);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodWithTuple()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
@@ -238,9 +285,10 @@ class Class : IInterface
 }
 ";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNamesInMethod()
         {
+            // Note: we're putting the attribute by hand to simulate metadata
             await TestWithAllCodeStyleOptionsOffAsync(
 @"interface IInterface
 {
@@ -900,7 +948,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return this.x.Compare(x, y);
+        return ((IComparer)this.x).Compare(x, y);
     }
 }",
 index: 1);
@@ -925,7 +973,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return a.Compare(x, y);
+        return ((IComparer)a).Compare(x, y);
     }
 }",
 index: 1);

@@ -183,12 +183,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var addSymbols = semanticModel.LookupSymbols(
                 position, parentType, WellKnownMemberNames.CollectionInitializerAddMethodName, includeReducedExtensionMethods: true);
 
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var addMethods = addSymbols.OfType<IMethodSymbol>()
                                        .Where(m => m.Parameters.Length >= 1)
                                        .ToImmutableArray()
                                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
-                                       .Sort(symbolDisplayService, semanticModel, position);
+                                       .Sort(semanticModel, position);
 
             return addMethods;
         }

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         public const string WhenFalse = nameof(WhenFalse);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SimplifyConditionalCodeFixProvider()
         {
         }
@@ -52,17 +54,17 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
                 var expr = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                syntaxFacts.GetPartsOfConditionalExpression(expr, out var condition, out var whenTrue, out var whenFalse);
+                generator.SyntaxFacts.GetPartsOfConditionalExpression(expr, out var condition, out var whenTrue, out var whenFalse);
 
                 if (diagnostic.Properties.ContainsKey(Negate))
-                    condition = generator.Negate(condition, semanticModel, cancellationToken);
+                    condition = generator.Negate(generatorInternal, condition, semanticModel, cancellationToken);
 
                 var replacement = condition;
                 if (diagnostic.Properties.ContainsKey(Or))

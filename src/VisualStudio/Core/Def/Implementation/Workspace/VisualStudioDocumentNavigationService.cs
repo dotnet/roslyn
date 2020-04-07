@@ -259,9 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         ///     https://devdiv.visualstudio.com/DevDiv/_workitems?id=235409
         /// </summary>
         private static int GetPositionWithinDocumentBounds(int position, int documentLength)
-        {
-            return Math.Min(documentLength, Math.Max(position, 0));
-        }
+            => Math.Min(documentLength, Math.Max(position, 0));
 
         /// <summary>
         /// It is unclear why, but we are sometimes asked to navigate to a <see cref="TextSpan"/>
@@ -272,9 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// See https://github.com/dotnet/roslyn/issues/7660 for more details.
         /// </summary>
         private static TextSpan GetSpanWithinDocumentBounds(TextSpan span, int documentLength)
-        {
-            return TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
-        }
+            => TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
 
         private static Document OpenDocument(Workspace workspace, DocumentId documentId)
         {
@@ -341,9 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private bool CanMapFromSecondaryBufferToPrimaryBuffer(Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer)
-        {
-            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out var spanInPrimaryBuffer);
-        }
+            => spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out var spanInPrimaryBuffer);
 
         private IDisposable OpenNewDocumentStateScope(OptionSet options)
         {

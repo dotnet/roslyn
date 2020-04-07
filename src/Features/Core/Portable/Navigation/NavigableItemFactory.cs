@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         }
 
         public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
-        {
-            return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
-        }
+            => new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
 
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,

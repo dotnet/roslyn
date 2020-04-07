@@ -107,14 +107,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         private AggregateLogger(ImmutableArray<ILogger> loggers)
-        {
-            _loggers = loggers;
-        }
+            => _loggers = loggers;
 
         public bool IsEnabled(FunctionId functionId)
-        {
-            return true;
-        }
+            => true;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {

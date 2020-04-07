@@ -29,9 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         }
 
         public static SyntacticClassificationModeSelector GetModeSelector(AbstractLspClientServiceFactory lspClientServiceFactory, ITextBuffer buffer)
-        {
-            return new SyntacticClassificationModeSelector(lspClientServiceFactory, buffer);
-        }
+            => new SyntacticClassificationModeSelector(lspClientServiceFactory, buffer);
 
         public SyntacticClassificationMode GetMode()
         {

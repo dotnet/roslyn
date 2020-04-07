@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             var editor = new SyntaxEditor(root, generator);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var containingMember = anonymousObject.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodLevelMember) ?? anonymousObject;
+            var containingMember = anonymousObject.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts) ?? anonymousObject;
 
             // Next, go and update any references to these anonymous type properties to match
             // the new PascalCased name we've picked for the new properties that will go in

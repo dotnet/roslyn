@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic,
                 isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.IsUnsafe(),
+                isUnsafe: symbol.RequiresUnsafeModifier(),
                 isVirtual: symbol.IsVirtual,
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed);
@@ -241,9 +242,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static DocumentationComment GetDocumentationComment(this ISymbol symbol, Compilation compilation, CultureInfo? preferredCulture = null, bool expandIncludes = false, bool expandInheritdoc = false, CancellationToken cancellationToken = default)
-        {
-            return GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
-        }
+            => GetDocumentationComment(symbol, visitedSymbols: null, compilation, preferredCulture, expandIncludes, expandInheritdoc, cancellationToken);
 
         private static DocumentationComment GetDocumentationComment(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, CultureInfo? preferredCulture, bool expandIncludes, bool expandInheritdoc, CancellationToken cancellationToken)
         {
@@ -628,9 +627,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool ElementNameIs(XElement element, string name)
-        {
-            return string.IsNullOrEmpty(element.Name.NamespaceName) && DocumentationCommentXmlNames.ElementEquals(element.Name.LocalName, name);
-        }
+            => string.IsNullOrEmpty(element.Name.NamespaceName) && DocumentationCommentXmlNames.ElementEquals(element.Name.LocalName, name);
 
         /// <summary>
         /// First, remove symbols from the set if they are overridden by other symbols in the set.
@@ -656,18 +653,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
-            bool isSymbolDefinedInSource(Location l) => l.IsInSource;
-            return symbols.WhereAsArray(s =>
+            static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
+            return symbols.WhereAsArray((s, arg) =>
                 (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
-                    hideAdvancedMembers,
-                    compilation,
-                    editorBrowsableAttributeConstructor,
-                    typeLibTypeAttributeConstructors,
-                    typeLibFuncAttributeConstructors,
-                    typeLibVarAttributeConstructors,
-                    hideModuleNameAttribute));
+                    arg.hideAdvancedMembers,
+                    arg.compilation,
+                    arg.editorBrowsableAttributeConstructor,
+                    arg.typeLibTypeAttributeConstructors,
+                    arg.typeLibFuncAttributeConstructors,
+                    arg.typeLibVarAttributeConstructors,
+                    arg.hideModuleNameAttribute),
+                (hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor, typeLibTypeAttributeConstructors, typeLibFuncAttributeConstructors, typeLibVarAttributeConstructors, hideModuleNameAttribute));
         }
 
         private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
@@ -690,7 +688,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
         {
             return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
-                .WhereAsArray(s => !s.IsUnsafe());
+                .WhereAsArray(s => !s.RequiresUnsafeModifier());
         }
     }
 }

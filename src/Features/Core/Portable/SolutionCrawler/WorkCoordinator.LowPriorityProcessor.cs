@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public int WorkItemCount => _workItemQueue.WorkItemCount;
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        return _workItemQueue.WaitAsync(cancellationToken);
-                    }
+                        => _workItemQueue.WaitAsync(cancellationToken);
 
                     protected override async Task ExecuteAsync()
                     {
@@ -214,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // this shouldn't happen. would like to get some diagnostic
                         while (_workItemQueue.HasAnyWork)
                         {
-                            Environment.FailFast("How?");
+                            FailFast.Fail("How?");
                         }
                     }
                 }

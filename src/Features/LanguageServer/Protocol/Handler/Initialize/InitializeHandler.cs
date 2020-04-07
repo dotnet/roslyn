@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ImmutableArray<Lazy<CompletionProvider, Completion.Providers.CompletionProviderMetadata>> _completionProviders;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InitializeHandler([ImportMany] IEnumerable<Lazy<CompletionProvider, Completion.Providers.CompletionProviderMetadata>> completionProviders)
         {
             _completionProviders = completionProviders
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     DocumentRangeFormattingProvider = true,
                     DocumentOnTypeFormattingProvider = new LSP.DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
                     DocumentHighlightProvider = true,
+                    ReferencesProvider = true,
                 }
             });
         }

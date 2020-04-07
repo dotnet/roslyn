@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,9 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
         public AbstractGoToDefinitionWithFindUsagesServiceHandler(IMetadataAsSourceFileService metadataAsSourceService)
-        {
-            this._metadataAsSourceService = metadataAsSourceService;
-        }
+            => this._metadataAsSourceService = metadataAsSourceService;
 
         public async Task<object> HandleAsync(LSP.TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
@@ -72,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         /// </summary>
         private async Task<List<LSP.Location>> GetDefinitionsWithFindUsagesServiceAsync(Document document, int pos, CancellationToken cancellationToken)
         {
-            var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
+            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 

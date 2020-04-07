@@ -33,27 +33,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             RegionDirectiveTriviaSyntax regionDirective,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
             var match = regionDirective.GetMatchingDirective(cancellationToken);
             if (match != null)
             {
-                var autoCollapse = options.GetOption(
+                // Always auto-collapse regions for Metadata As Source. These generated files only have one region at
+                // the top of the file, which has content like the following:
+                //
+                //   #region Assembly System.Runtime, Version=4.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+                //   // C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\3.1.0\ref\netcoreapp3.1\System.Runtime.dll
+                //   #endregion
+                //
+                // For other files, auto-collapse regions based on the user option.
+                var autoCollapse = isMetadataAsSource || options.GetOption(
                     BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
+
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
                     textSpan: TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
                     type: BlockTypes.PreprocessorRegion,
                     bannerText: GetBannerText(regionDirective),
                     autoCollapse: autoCollapse,
-                    isDefaultCollapsed: true));
+                    isDefaultCollapsed: !isMetadataAsSource));
             }
-        }
-
-        protected override bool SupportedInWorkspaceKind(string kind)
-        {
-            return kind != WorkspaceKind.MetadataAsSource;
         }
     }
 }

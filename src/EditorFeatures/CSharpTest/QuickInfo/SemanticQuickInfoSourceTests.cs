@@ -1256,9 +1256,7 @@ class D
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNullLiteralWithVar()
-        {
-            await TestInMethodAsync(@"var f = null$$");
-        }
+            => await TestInMethodAsync(@"var f = null$$");
 
         [WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

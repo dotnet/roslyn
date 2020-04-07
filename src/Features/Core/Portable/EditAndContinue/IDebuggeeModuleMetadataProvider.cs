@@ -5,7 +5,8 @@
 #nullable enable
 
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -23,13 +24,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         DebuggeeModuleInfo? TryGetBaselineModuleInfo(Guid mvid);
 
         /// <summary>
-        /// Returns an error message when any instance of a module with given <paramref name="mvid"/> disallows EnC.
+        /// Checks whether EnC is allowed for all loaded instances of module with specified <paramref name="mvid"/>.
         /// </summary>
-        bool IsEditAndContinueAvailable(Guid mvid, out int errorCode, [NotNullWhen(true)]out string localizedMessage);
+        /// <returns>
+        /// Returns <see langword="null"/> if no instance of the module is loaded.
+        /// Returns <code>(0, null)</code> if all loaded instances allow EnC.
+        /// Returns error code and a corresponding localized error message otherwise.
+        /// </returns>
+        Task<(int errorCode, string? errorMessage)?> GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken);
 
         /// <summary>
         /// Notifies the debugger that a document changed that may affect the given module when the change is applied.
         /// </summary>
-        void PrepareModuleForUpdate(Guid mvid);
+        Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken);
     }
 }

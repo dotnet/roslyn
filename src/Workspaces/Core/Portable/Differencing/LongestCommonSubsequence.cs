@@ -179,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             internal void Initialize()
-            {
-                Array.Clear(_buffer, _start, _length);
-            }
+                => Array.Clear(_buffer, _start, _length);
 
             public int this[int index]
             {

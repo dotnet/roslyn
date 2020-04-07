@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly RegexEmbeddedLanguageFeatures _language;
 
         public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguageFeatures language)
-        {
-            _language = language;
-        }
+            => _language = language;
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
@@ -213,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             // see if we have ```\p{```.  If so, offer property categories. This isn't handled 
             // in the above switch because when you just have an incomplete `\p{` then the `{` 
             // will be handled as a normal character and won't have a token for it.
-            if (previousVirtualChar.Char == '{')
+            if (previousVirtualChar == '{')
             {
                 ProvideOpenBraceCompletions(context, context.Tree, previousVirtualChar);
                 return;
@@ -262,8 +260,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             var index = tree.Text.IndexOf(previousVirtualChar);
             if (index >= 2 &&
-                tree.Text[index - 2].Char == '\\' &&
-                tree.Text[index - 1].Char == 'p')
+                tree.Text[index - 2] == '\\' &&
+                tree.Text[index - 1] == 'p')
             {
                 var slashChar = tree.Text[index - 1];
                 var result = FindToken(tree.Root, slashChar);

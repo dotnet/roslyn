@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         internal sealed class CSharpDocumentDifferenceService : RemoteDocumentDifferenceService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public CSharpDocumentDifferenceService()
             {
             }
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
         internal sealed class VisualBasicDocumentDifferenceService : AbstractDocumentDifferenceService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public VisualBasicDocumentDifferenceService()
             {
             }
