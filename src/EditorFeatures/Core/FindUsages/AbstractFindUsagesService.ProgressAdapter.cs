@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
             public Task OnStartedAsync() => Task.CompletedTask;
-            public Task OnCompletedAsync() => Task.CompletedTask;
             public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
             public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
 
@@ -128,6 +127,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 {
                     await _context.OnReferenceFoundAsync(referenceItem).ConfigureAwait(false);
                 }
+            }
+
+            public Task OnCompletedAsync()
+            {
+                if (_context is FindUsagesContext findUsagesContext)
+                {
+                    return findUsagesContext.OnCompletedAsync();
+                }
+
+                return Task.CompletedTask;
             }
         }
     }

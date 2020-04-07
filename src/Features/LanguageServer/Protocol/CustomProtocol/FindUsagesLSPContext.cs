@@ -24,11 +24,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal class FindUsagesLSPContext : FindUsagesContext
     {
-        private readonly object _gate = new object();
 
         private const int MaxResultsChunkSize = 32;
 
         private int _id = 0;
+
+        private readonly object _gate = new object();
 
         private readonly Dictionary<DefinitionItem, int> _definitionToId =
             new Dictionary<DefinitionItem, int>();
@@ -80,11 +81,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (!_resultsChunk.IsEmpty())
                 {
                     _progress.Report(_resultsChunk.ToArray());
-                    _resultsChunk.Clear();
                 }
-            }
 
-            return Task.CompletedTask;
+                return Task.CompletedTask;
+            }
         }
 
         public async override Task OnDefinitionFoundAsync(DefinitionItem definition)
