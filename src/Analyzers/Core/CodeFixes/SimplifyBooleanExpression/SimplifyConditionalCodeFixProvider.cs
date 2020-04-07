@@ -19,15 +19,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
+    using static SimplifyBooleanExpressionConstants;
+
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal sealed class SimplifyConditionalCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public const string Negate = nameof(Negate);
-        public const string Or = nameof(Or);
-        public const string And = nameof(And);
-        public const string WhenTrue = nameof(WhenTrue);
-        public const string WhenFalse = nameof(WhenFalse);
-
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SimplifyConditionalCodeFixProvider()
@@ -54,13 +50,14 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
                 var expr = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                generator.SyntaxFacts.GetPartsOfConditionalExpression(expr, out var condition, out var whenTrue, out var whenFalse);
+                syntaxFacts.GetPartsOfConditionalExpression(expr, out var condition, out var whenTrue, out var whenFalse);
 
                 if (diagnostic.Properties.ContainsKey(Negate))
                     condition = generator.Negate(generatorInternal, condition, semanticModel, cancellationToken);
@@ -78,14 +75,14 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
                 };
 
                 editor.ReplaceNode(
-                    expr, generator.AddParentheses(replacement.WithTriviaFrom(expr)));
+                    expr, generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr)));
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Simplify_conditional_expression, createChangedDocument, FeaturesResources.Simplify_conditional_expression)
+                : base(AnalyzersResources.Simplify_conditional_expression, createChangedDocument, AnalyzersResources.Simplify_conditional_expression)
             {
             }
         }

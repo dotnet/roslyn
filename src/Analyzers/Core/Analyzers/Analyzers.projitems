@@ -47,6 +47,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.BlockAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.SymbolStartAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\AbstractSimplifyConditionalDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyBooleanExpressionConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\AbstractSimplifyInterpolationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\Helpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
