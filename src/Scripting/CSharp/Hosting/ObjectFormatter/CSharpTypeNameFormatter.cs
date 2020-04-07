@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
                 return stateMachineName;
             }
 
+            if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.AnonymousType, out _))
+            {
+                return "";
+            }
+
             return base.FormatTypeName(type, options);
         }
     }

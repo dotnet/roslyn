@@ -159,15 +159,21 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
                 else if (debuggerDisplay != null && !string.IsNullOrEmpty(debuggerDisplay.Value))
                 {
+                    string name = "";
                     if (isRoot)
                     {
-                        result.Append(_formatter.TypeNameFormatter.FormatTypeName(type, _typeNameOptions));
-                        result.Append('(');
+                        name = _formatter.TypeNameFormatter.FormatTypeName(type, _typeNameOptions);
+                        result.Append(name);
+
+                        if (!name.IsEmpty())
+                        {
+                            result.Append('(');
+                        }
                     }
 
                     FormatWithEmbeddedExpressions(result, debuggerDisplay.Value, obj);
 
-                    if (isRoot)
+                    if (isRoot && !name.IsEmpty())
                     {
                         result.Append(')');
                     }

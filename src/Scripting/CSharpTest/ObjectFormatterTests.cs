@@ -68,6 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
+        public void AnonymousType()
+        {
+            Assert.Equal("{ X = 1, Y = 2 }", s_formatter.FormatObject(new { X = 1, Y = 2 }));
+        }
+
+        [Fact]
         public void ArrayOfInt32_NoMembers()
         {
             object o = new int[4] { 3, 4, 5, 6 };
