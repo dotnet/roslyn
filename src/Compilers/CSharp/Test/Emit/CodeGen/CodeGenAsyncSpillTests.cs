@@ -5193,7 +5193,7 @@ class A
 {
     public int x;
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"TestAIsNull
 Before Assignment
 Caught NullReferenceException
@@ -5407,30 +5407,30 @@ class A
     public int _x;
     public int x { get { Console.WriteLine(""GetX""); return _x; } set { Console.WriteLine(""SetX""); _x = value; } }
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"TestAIsNull
-    Before Assignment
-    Caught NullReferenceException
-    TestAIsNotNull
-    Before Assignment a._x is: 1
-    GetX
-    RHS
-    SetX
-    After Assignment a._x is: 43
-    ReassignADuringAssignment
-    Before Assignment a is null == False
-    Before Assignment aCopy._x is: 1
-    GetX
-    RHS
-    SetX
-    After Assignment a is null == True
-    After Assignment aCopy._x is: 43
-    ReassignXDuringAssignment
-    Before Assignment a._x is: 1
-    GetX
-    RHS
-    SetX
-    After Assignment a._x is: 43")
+Before Assignment
+Caught NullReferenceException
+TestAIsNotNull
+Before Assignment a._x is: 1
+GetX
+RHS
+SetX
+After Assignment a._x is: 43
+ReassignADuringAssignment
+Before Assignment a is null == False
+Before Assignment aCopy._x is: 1
+GetX
+RHS
+SetX
+After Assignment a is null == True
+After Assignment aCopy._x is: 43
+ReassignXDuringAssignment
+Before Assignment a._x is: 1
+GetX
+RHS
+SetX
+After Assignment a._x is: 43")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      202 (0xca)
@@ -6060,7 +6060,7 @@ struct B
 {
     public int x;
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"Before Assignment A.b.x is: 0
 RHS
 After Assignment A.b.x is: 42")
