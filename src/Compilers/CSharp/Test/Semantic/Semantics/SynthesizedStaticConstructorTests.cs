@@ -265,6 +265,22 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
+        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [Fact]
+        public void StaticConstructorNullInitializer()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    static string s1 = null!;
+}";
+
+            var typeSymbol = CompileAndExtractTypeSymbol(source);
+            Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
+            Assert.True(IsBeforeFieldInit(typeSymbol));
+        }
+
         private static SourceNamedTypeSymbol CompileAndExtractTypeSymbol(string source)
         {
             var compilation = CreateCompilation(source);
