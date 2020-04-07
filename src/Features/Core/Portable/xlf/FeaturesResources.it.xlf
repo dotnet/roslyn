@@ -272,11 +272,6 @@
         <target state="translated">Generare il parametro '{0}' (e override/implementazioni)</target>
         <note />
       </trans-unit>
-      <trans-unit id="GetHashCode_implementation_can_be_simplified">
-        <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">L'implementazione di 'GetHashCode' può essere semplificata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">Implementa '{0}' in modo esplicito</target>
@@ -347,11 +342,6 @@
         <target state="translated">Imposta rientro per parametri con ritorno a capo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Interpolation_can_be_simplified">
-        <source>Interpolation can be simplified</source>
-        <target state="translated">L'interpolazione può essere semplificata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Introduci costante</target>
@@ -377,24 +367,9 @@
         <target state="translated">Imposta come statici</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">Rendi scrivibili i campi readonly</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Inverti espressione condizionale</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">La funzione locale può essere resa statica</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">Rendi la funzione locale 'static'</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -492,11 +467,6 @@
         <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_interpolation">
-        <source>Simplify interpolation</source>
-        <target state="translated">Semplifica l'interpolazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
         <target state="translated">Dividi in istruzioni '{0}' consecutive</target>
@@ -511,11 +481,6 @@
         <source>Stream must support read and seek operations.</source>
         <target state="translated">Il flusso deve supportare operazioni di lettura e ricerca.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
-        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
@@ -597,19 +562,9 @@
         <target state="translated">Usare il criterio dispose consigliato per garantire che gli oggetti eliminabili con ambito locale vengano eliminati in tutti i percorsi. Se possibile, eseguire il wrapping della creazione in un'istruzione 'using' o una dichiarazione 'using'. In caso contrario, usare un criterio try-finally, con una variabile locale dedicata dichiarata prima dell'area try e una chiamata Dispose non condizionale al valore non Null nell'area 'finally', ad esempio 'x?.Dispose()'. Se l'oggetto viene eliminato in modo esplicito nell'area try oppure la proprietà di dispose viene trasferita a un altro oggetto o metodo, assegnare 'null' alla variabile locale subito dopo una tale operazione per evitare di raddoppiare dispose in 'finally'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_System_HashCode">
-        <source>Use 'System.HashCode'</source>
-        <target state="translated">Usa 'System.HashCode'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">Usa l'assegnazione composta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -631,11 +586,6 @@
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
         <target state="translated">Usare il criterio dispose consigliato per garantire che l'oggetto creato da '{0}' venga eliminato in tutti i percorsi, ovvero istruzione/dichiarazione using o try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">Usa l'istruzione 'using' semplice</target>
-        <note />
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -1723,11 +1673,6 @@ Continuare?</target>
         <target state="translated">attributo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">Usa la proprietà automatica</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
         <target state="translated">Sostituisci '{0}' e '{1}' con la proprietà</target>
@@ -2323,11 +2268,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">aggiornamento degli utilizzi nei progetti dipendenti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">L'istruzione 'using' può essere semplificata</target>
         <note />
       </trans-unit>
     </body>

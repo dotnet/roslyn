@@ -816,9 +816,6 @@ Do you want to continue?</value>
   <data name="attribute" xml:space="preserve">
     <value>attribute</value>
   </data>
-  <data name="Use_auto_property" xml:space="preserve">
-    <value>Use auto property</value>
-  </data>
   <data name="Replace_0_and_1_with_property" xml:space="preserve">
     <value>Replace '{0}' and '{1}' with property</value>
   </data>
@@ -1246,9 +1243,6 @@ This version used in: {2}</value>
   <data name="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
     <value>Warning: Changing namespace may produce invalid code and change code meaning.</value>
   </data>
-  <data name="Use_compound_assignment" xml:space="preserve">
-    <value>Use compound assignment</value>
-  </data>
   <data name="Invert_conditional" xml:space="preserve">
     <value>Invert conditional</value>
   </data>
@@ -1369,22 +1363,6 @@ This version used in: {2}</value>
   <data name="Wrap_and_align_expression" xml:space="preserve">
     <value>Wrap and align expression</value>
   </data>
-  <data name="Local_function_can_be_made_static" xml:space="preserve">
-    <value>Local function can be made static</value>
-  </data>
-  <data name="Make_local_function_static" xml:space="preserve">
-    <value>Make local function 'static'</value>
-  </data>
-  <data name="Use_simple_using_statement" xml:space="preserve">
-    <value>Use simple 'using' statement</value>
-  </data>
-  <data name="using_statement_can_be_simplified" xml:space="preserve">
-    <value>'using' statement can be simplified</value>
-  </data>
-  <data name="Make_readonly_fields_writable" xml:space="preserve">
-    <value>Make readonly fields writable</value>
-    <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
-  </data>
   <data name="Move_contents_to_namespace" xml:space="preserve">
     <value>Move contents to namespace...</value>
   </data>
@@ -1476,12 +1454,6 @@ This version used in: {2}</value>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
   </data>
-  <data name="Use_System_HashCode" xml:space="preserve">
-    <value>Use 'System.HashCode'</value>
-  </data>
-  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
-    <value>'GetHashCode' implementation can be simplified</value>
-  </data>
   <data name="Implement_0_implicitly" xml:space="preserve">
     <value>Implement '{0}' implicitly</value>
   </data>
@@ -1493,12 +1465,6 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_0_explicitly" xml:space="preserve">
     <value>Implement '{0}' explicitly</value>
-  </data>
-  <data name="Interpolation_can_be_simplified" xml:space="preserve">
-    <value>Interpolation can be simplified</value>
-  </data>
-  <data name="Simplify_interpolation" xml:space="preserve">
-    <value>Simplify interpolation</value>
   </data>
   <data name="Make_member_static" xml:space="preserve">
     <value>Make static</value>
@@ -1514,10 +1480,6 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
-  </data>
-  <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
-    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
-    <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
   </data>
   <data name="Resolve_conflict_markers" xml:space="preserve">
     <value>Resolve conflict markers</value>

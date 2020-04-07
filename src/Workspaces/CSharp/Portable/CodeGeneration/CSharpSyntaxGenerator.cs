@@ -2945,12 +2945,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override bool SupportsThrowExpression() => true;
 
-        /// <summary>
-        /// C# always requires a type to be present with a local declaration.  (Even if that type is
-        /// <c>var</c>).
-        /// </summary>
-        internal override bool RequiresLocalDeclarationType() => true;
-
         public override SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null)
         {
             if (falseStatements == null)
@@ -3062,30 +3056,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ElementAccessExpression(SyntaxNode expression, IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.ElementAccessExpression(ParenthesizeLeft((ExpressionSyntax)expression), SyntaxFactory.BracketedArgumentList(CreateArguments(arguments)));
-
-        internal override SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
-            => SyntaxFactory.InterpolatedStringExpression(startToken, SyntaxFactory.List(content.Cast<InterpolatedStringContentSyntax>()), endToken);
-
-        internal override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
-            => SyntaxFactory.InterpolatedStringText(textToken);
-
-        internal override SyntaxToken InterpolatedStringTextToken(string content)
-            => SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(),
-                SyntaxKind.InterpolatedStringTextToken,
-                content, "",
-                SyntaxFactory.TriviaList());
-
-        internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
-            => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
-
-        internal override SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
-            => SyntaxFactory.InterpolationAlignmentClause(SyntaxFactory.Token(SyntaxKind.CommaToken), (ExpressionSyntax)alignment);
-
-        internal override SyntaxNode InterpolationFormatClause(string format)
-            => SyntaxFactory.InterpolationFormatClause(
-                    SyntaxFactory.Token(SyntaxKind.ColonToken),
-                    SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
 
         internal override SyntaxToken NumericLiteralToken(string text, ulong value)
             => SyntaxFactory.Literal(text, value);

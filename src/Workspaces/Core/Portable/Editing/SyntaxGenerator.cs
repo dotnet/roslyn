@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <see cref="LocalDeclarationStatement(ITypeSymbol, string, SyntaxNode, bool)"/>.
         /// <see langword="false"/> if the language allows the type node to be entirely elided.
         /// </summary>
-        internal abstract bool RequiresLocalDeclarationType();
+        internal bool RequiresLocalDeclarationType() => SyntaxGeneratorInternal.RequiresLocalDeclarationType();
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
@@ -1531,12 +1531,18 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxToken NumericLiteralToken(string text, ulong value);
 
-        internal abstract SyntaxToken InterpolatedStringTextToken(string content);
-        internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
-        internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
-        internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
-        internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
-        internal abstract SyntaxNode InterpolationFormatClause(string format);
+        internal SyntaxToken InterpolatedStringTextToken(string content)
+            => SyntaxGeneratorInternal.InterpolatedStringTextToken(content);
+        internal SyntaxNode InterpolatedStringText(SyntaxToken textToken)
+            => SyntaxGeneratorInternal.InterpolatedStringText(textToken);
+        internal SyntaxNode Interpolation(SyntaxNode syntaxNode)
+            => SyntaxGeneratorInternal.Interpolation(syntaxNode);
+        internal SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
+            => SyntaxGeneratorInternal.InterpolatedStringExpression(startToken, content, endToken);
+        internal SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
+            => SyntaxGeneratorInternal.InterpolationAlignmentClause(alignment);
+        internal SyntaxNode InterpolationFormatClause(string format)
+            => SyntaxGeneratorInternal.InterpolationFormatClause(format);
 
         /// <summary>
         /// An expression that represents the default value of a type.
