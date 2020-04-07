@@ -2615,11 +2615,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">projekt {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_variable_declaration">
-        <source>Inline variable declaration</source>
-        <target state="translated">Vložená deklarace proměnné</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">Plně kvalifikovat: {0}</target>
@@ -2658,11 +2653,6 @@ Tato verze se používá zde: {2}.</target>
       <trans-unit id="Pascal_Case">
         <source>Pascal Case</source>
         <target state="translated">PascalCase</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_inlined">
-        <source>Variable declaration can be inlined</source>
-        <target state="translated">Deklaraci proměnné je možné vložit do řádku.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">

@@ -19,12 +19,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 {
@@ -54,7 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken);
+#else
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
             // Gather all statements to be removed
             // We need this to find the statements we can safely attach trivia to
@@ -87,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
                         options, semanticModel, currentRoot, t.declarator,
-                        t.identifier, currentNode, declarationsToRemove),
+                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -111,12 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         private SyntaxNode ReplaceIdentifierWithInlineDeclaration(
             OptionSet options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
-            IdentifierNameSyntax identifier, SyntaxNode currentNode, HashSet<StatementSyntax> declarationsToRemove)
+            IdentifierNameSyntax identifier, SyntaxNode currentNode,
+            HashSet<StatementSyntax> declarationsToRemove, Workspace workspace)
         {
             declarator = currentRoot.GetCurrentNode(declarator);
             identifier = currentRoot.GetCurrentNode(identifier);
 
-            var editor = new SyntaxEditor(currentRoot, CSharpSyntaxGenerator.Instance);
+            var editor = new SyntaxEditor(currentRoot, workspace);
             var sourceText = currentRoot.GetText();
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;
@@ -404,12 +414,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             return false;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Inline_variable_declaration,
+                : base(CSharpAnalyzersResources.Inline_variable_declaration,
                        createChangedDocument,
-                       FeaturesResources.Inline_variable_declaration)
+                       CSharpAnalyzersResources.Inline_variable_declaration)
             {
             }
         }
