@@ -381,24 +381,30 @@ namespace Microsoft.CodeAnalysis.Testing
             span = spans.Single();
         }
 
-        public static string CreateTestFile(string code, int cursor)
+        public static string CreateTestFile(string code, int position)
         {
-            return CreateTestFile(code, new Dictionary<string, IList<TextSpan>>(), cursor);
+            return CreateTestFile(code, ImmutableArray.Create(position), ImmutableDictionary<string, ImmutableArray<TextSpan>>.Empty);
         }
 
-        public static string CreateTestFile(string code, IList<TextSpan> spans, int? cursor)
+        public static string CreateTestFile(string code, int? position, ImmutableArray<TextSpan> spans)
         {
-            return CreateTestFile(code, new Dictionary<string, IList<TextSpan>> { { string.Empty, spans } }, cursor);
+            return CreateTestFile(code, position, ImmutableDictionary<string, ImmutableArray<TextSpan>>.Empty.Add(string.Empty, spans));
         }
 
-        public static string CreateTestFile(string code, IDictionary<string, IList<TextSpan>> spans, int? cursor)
+        public static string CreateTestFile(string code, int? position, ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
+        {
+            var positions = position is object ? ImmutableArray.Create(position.Value) : ImmutableArray<int>.Empty;
+            return CreateTestFile(code, positions, spans.ToImmutableDictionary(pair => pair.Key, pair => pair.Value.ToImmutableArray()));
+        }
+
+        public static string CreateTestFile(string code, ImmutableArray<int> positions, ImmutableDictionary<string, ImmutableArray<TextSpan>> spans)
         {
             var sb = new StringBuilder();
-            var anonymousSpans = spans.GetOrAdd(string.Empty, () => new List<TextSpan>());
+            var anonymousSpans = spans.GetValueOrDefault(string.Empty, ImmutableArray<TextSpan>.Empty);
 
             for (var i = 0; i <= code.Length; i++)
             {
-                if (i == cursor)
+                if (positions.Contains(i))
                 {
                     sb.Append(PositionString);
                 }
@@ -419,30 +425,30 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static void AddSpanString(
             StringBuilder sb,
-            IEnumerable<KeyValuePair<string, IList<TextSpan>>> items,
+            IEnumerable<KeyValuePair<string, ImmutableArray<TextSpan>>> items,
             int position,
             bool start)
         {
-            foreach (var kvp in items)
+            foreach (var (name, spans) in items)
             {
-                foreach (var span in kvp.Value)
+                foreach (var span in spans)
                 {
                     if (start && span.Start == position)
                     {
-                        if (kvp.Key?.Length == 0)
+                        if (name.Length == 0)
                         {
                             sb.Append(SpanStartString);
                         }
                         else
                         {
                             sb.Append(NamedSpanStartString);
-                            sb.Append(kvp.Key);
+                            sb.Append(name);
                             sb.Append(':');
                         }
                     }
                     else if (!start && span.End == position)
                     {
-                        if (kvp.Key?.Length == 0)
+                        if (name.Length == 0)
                         {
                             sb.Append(SpanEndString);
                         }
