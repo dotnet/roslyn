@@ -30,29 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal readonly struct CheckConstraintsArgs
-    {
-        public readonly CSharpCompilation CurrentCompilation;
-        public readonly ConversionsBase Conversions;
-        public readonly bool IncludeNullability;
-        public readonly Location Location;
-        public readonly DiagnosticBag Diagnostics;
-
-        public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, DiagnosticBag diagnostics) :
-            this(currentCompilation, conversions, currentCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes), location, diagnostics)
-        {
-        }
-
-        public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, DiagnosticBag diagnostics)
-        {
-            this.CurrentCompilation = currentCompilation;
-            this.Conversions = conversions;
-            this.IncludeNullability = includeNullability;
-            this.Location = location;
-            this.Diagnostics = diagnostics;
-        }
-    }
-
     /// <summary>
     /// Helper methods for generic type parameter constraints. There are two sets of methods: one
     /// set for resolving constraint "bounds" (that is, determining the effective base type, interface set,
@@ -414,6 +391,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static void CheckAllConstraints(this TypeSymbol type, CheckConstraintsArgs args)
         {
             type.VisitType(s_checkConstraintsSingleTypeFunc, args);
+        }
+
+        internal readonly struct CheckConstraintsArgs
+        {
+            public readonly CSharpCompilation CurrentCompilation;
+            public readonly ConversionsBase Conversions;
+            public readonly bool IncludeNullability;
+            public readonly Location Location;
+            public readonly DiagnosticBag Diagnostics;
+
+            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, Location location, DiagnosticBag diagnostics) :
+                this(currentCompilation, conversions, currentCompilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes), location, diagnostics)
+            {
+            }
+
+            public CheckConstraintsArgs(CSharpCompilation currentCompilation, ConversionsBase conversions, bool includeNullability, Location location, DiagnosticBag diagnostics)
+            {
+                this.CurrentCompilation = currentCompilation;
+                this.Conversions = conversions;
+                this.IncludeNullability = includeNullability;
+                this.Location = location;
+                this.Diagnostics = diagnostics;
+            }
         }
 
         private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, arg);

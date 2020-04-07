@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUseSiteDiagnostics(constructedType.Type.OriginalDefinition, diagnostics, syntax);
                     var type = (NamedTypeSymbol)constructedType.Type;
                     var location = syntax.Location;
-                    type.CheckConstraints(new CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
+                    type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
                 }
                 else if (constructedType.Type.IsTypeParameterDisallowingAnnotation())
                 {

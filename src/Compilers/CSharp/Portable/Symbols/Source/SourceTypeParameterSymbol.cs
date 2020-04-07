@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var args = new CheckConstraintsArgs(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
+            var args = new ConstraintsHelper.CheckConstraintsArgs(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
             foreach (var constraintType in constraintTypes)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
