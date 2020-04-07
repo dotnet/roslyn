@@ -149,9 +149,7 @@ bar();"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterExternKeyword()
-        {
-            await VerifyAbsenceAsync(@"extern $$");
-        }
+            => await VerifyAbsenceAsync(@"extern $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPreviousExternAlias()

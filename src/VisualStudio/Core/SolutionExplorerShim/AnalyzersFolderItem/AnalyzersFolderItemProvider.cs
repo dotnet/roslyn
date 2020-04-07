@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private Workspace _workspace;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public AnalyzersFolderItemProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler)

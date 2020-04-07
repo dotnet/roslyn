@@ -53,14 +53,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         internal override SyntaxNode LookupNode()
-        {
-            return CodeModelService.LookupNode(_nodeKey, GetSyntaxTree());
-        }
+            => CodeModelService.LookupNode(_nodeKey, GetSyntaxTree());
 
         internal override bool TryLookupNode(out SyntaxNode node)
-        {
-            return CodeModelService.TryLookupNode(_nodeKey, GetSyntaxTree(), out node);
-        }
+            => CodeModelService.TryLookupNode(_nodeKey, GetSyntaxTree(), out node);
 
         /// <summary>
         /// This function re-acquires the key for this code element using the given syntax path.

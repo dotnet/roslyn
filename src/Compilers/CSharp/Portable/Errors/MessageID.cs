@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLocalFunctionAttributes = MessageBase + 12766,
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
         IDS_FeatureMemberNotNull = MessageBase + 12768,
-        IDS_FeatureTargetTypedObjectCreation = MessageBase + 12769,
+        IDS_FeatureNativeInt = MessageBase + 12769,
+        IDS_FeatureTargetTypedObjectCreation = MessageBase + 12770,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -303,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
                 case MessageID.IDS_FeatureTargetTypedObjectCreation: // syntax check
                 case MessageID.IDS_FeatureMemberNotNull:
+                case MessageID.IDS_FeatureNativeInt:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

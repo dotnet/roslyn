@@ -368,9 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private volatile int _disposed = 0;
 
             internal BatchScope(VisualStudioProject visualStudioProject)
-            {
-                _project = visualStudioProject;
-            }
+                => _project = visualStudioProject;
 
             public void Dispose()
             {
@@ -562,9 +560,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Source File Addition/Removal
 
         public void AddSourceFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
-        {
-            _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
-        }
+            => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
         public DocumentId AddSourceTextContainer(
             SourceTextContainer textContainer,
@@ -577,19 +573,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public bool ContainsSourceFile(string fullPath)
-        {
-            return _sourceFiles.ContainsFile(fullPath);
-        }
+            => _sourceFiles.ContainsFile(fullPath);
 
         public void RemoveSourceFile(string fullPath)
-        {
-            _sourceFiles.RemoveFile(fullPath);
-        }
+            => _sourceFiles.RemoveFile(fullPath);
 
         public void RemoveSourceTextContainer(SourceTextContainer textContainer)
-        {
-            _sourceFiles.RemoveTextContainer(textContainer);
-        }
+            => _sourceFiles.RemoveTextContainer(textContainer);
 
         #endregion
 
@@ -597,19 +587,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         // TODO: should AdditionalFiles have source code kinds?
         public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
-        }
+            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
 
         public bool ContainsAdditionalFile(string fullPath)
-        {
-            return _additionalFiles.ContainsFile(fullPath);
-        }
+            => _additionalFiles.ContainsFile(fullPath);
 
         public void RemoveAdditionalFile(string fullPath)
-        {
-            _additionalFiles.RemoveFile(fullPath);
-        }
+            => _additionalFiles.RemoveFile(fullPath);
 
         #endregion
 
@@ -622,14 +606,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public bool ContainsAnalyzerConfigFile(string fullPath)
-        {
-            return _analyzerConfigFiles.ContainsFile(fullPath);
-        }
+            => _analyzerConfigFiles.ContainsFile(fullPath);
 
         public void RemoveAnalyzerConfigFile(string fullPath)
-        {
-            _analyzerConfigFiles.RemoveFile(fullPath);
-        }
+            => _analyzerConfigFiles.RemoveFile(fullPath);
 
         #endregion
 
@@ -1046,9 +1026,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void ReorderSourceFiles(ImmutableArray<string> filePaths)
-        {
-            _sourceFiles.ReorderFiles(filePaths);
-        }
+            => _sourceFiles.ReorderFiles(filePaths);
 
         /// <summary>
         /// Clears a list and zeros out the capacity. The lists we use for batching are likely to get large during an initial load, but after
@@ -1426,9 +1404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public void ProcessFileChange(string filePath)
-            {
-                ProcessFileChange(filePath, filePath);
-            }
+                => ProcessFileChange(filePath, filePath);
 
             /// <summary>
             /// Process file content changes
@@ -1619,9 +1595,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 private readonly IDocumentServiceProvider _provider;
 
                 public DynamicFileDocumentServiceProvider(IDocumentServiceProvider provider)
-                {
-                    _provider = provider;
-                }
+                    => _provider = provider;
 
                 TService IDocumentServiceProvider.GetService<TService>()
                 {
@@ -1646,9 +1620,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
-                }
+                    => Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
             }
         }
     }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PasteTracking;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports
         protected override string CodeActionTitle => CSharpFeaturesResources.Add_missing_usings;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
             : base(pasteTrackingService)
         {

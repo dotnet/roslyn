@@ -91,9 +91,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static bool HasDescription(CompletionItem item)
-        {
-            return item.Properties.ContainsKey("Description");
-        }
+            => item.Properties.ContainsKey("Description");
 
         public static CompletionDescription GetDescription(CompletionItem item)
         {
@@ -110,9 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly char[] s_descriptionSeparators = new char[] { '|' };
 
         private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
-        {
-            return EncodeDescription(description.ToTaggedText());
-        }
+            => EncodeDescription(description.ToTaggedText());
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)
         {

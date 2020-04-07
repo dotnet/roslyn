@@ -66,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         internal IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> GetCachedFileCodeModelInstances()
-        {
-            return GetCodeModelCache().GetFileCodeModelInstances();
-        }
+            => GetCodeModelCache().GetFileCodeModelInstances();
 
         internal bool TryGetCachedFileCodeModel(string fileName, out ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle)
         {
@@ -86,19 +84,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// a parent object, this will call back to the project system to provide us the parent object.
         /// </summary>
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath)
-        {
-            return GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
-        }
+            => GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
 
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
-        {
-            return GetCodeModelCache().GetOrCreateFileCodeModel(filePath, parent);
-        }
+            => GetCodeModelCache().GetOrCreateFileCodeModel(filePath, parent);
 
         public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
-        {
-            return GetCodeModelCache().GetOrCreateRootCodeModel(parent);
-        }
+            => GetCodeModelCache().GetOrCreateRootCodeModel(parent);
 
         public void OnSourceFileRemoved(string fileName)
         {
@@ -115,8 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath, object parent)
-        {
-            return this.GetOrCreateFileCodeModel(filePath, parent).Handle;
-        }
+            => this.GetOrCreateFileCodeModel(filePath, parent).Handle;
     }
 }

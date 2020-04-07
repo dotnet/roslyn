@@ -48,9 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public override CompletionRules GetRules()
-        {
-            return CompletionRules.Default;
-        }
+            => CompletionRules.Default;
 
         /// <summary>
         /// Returns the providers always available to the service.
@@ -58,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         [Obsolete("Built-in providers will be ignored in a future release, please make them MEF exports instead.")]
         protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
-        {
-            return ImmutableArray<CompletionProvider>.Empty;
-        }
+            => ImmutableArray<CompletionProvider>.Empty;
 
         private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
         {
@@ -351,9 +347,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private static bool HasAnyItems(CompletionContext cc)
-        {
-            return cc.Items.Count > 0 || cc.SuggestionModeItem != null;
-        }
+            => cc.Items.Count > 0 || cc.SuggestionModeItem != null;
 
         private async Task<(ImmutableArray<CompletionContext>, bool)> ComputeNonEmptyCompletionContextsAsync(
             Document document, int caretPosition, CompletionTrigger trigger,
@@ -596,9 +590,7 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly CompletionServiceWithProviders _completionServiceWithProviders;
 
             public TestAccessor(CompletionServiceWithProviders completionServiceWithProviders)
-            {
-                _completionServiceWithProviders = completionServiceWithProviders;
-            }
+                => _completionServiceWithProviders = completionServiceWithProviders;
 
             internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
                 => _completionServiceWithProviders.GetAllProviders(roles);

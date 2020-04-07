@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -16,13 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static readonly CSharpTypeInferenceService Instance = new CSharpTypeInferenceService();
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpTypeInferenceService()
         {
         }
 
         protected override AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            return new TypeInferrer(semanticModel, cancellationToken);
-        }
+            => new TypeInferrer(semanticModel, cancellationToken);
     }
 }

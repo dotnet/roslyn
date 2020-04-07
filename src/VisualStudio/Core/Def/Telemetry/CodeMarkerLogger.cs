@@ -130,19 +130,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         }
 
         public bool IsEnabled(FunctionId functionId)
-        {
-            return Microsoft.Internal.Performance.CodeMarkers.Instance.IsEnabled && CanHandle(functionId);
-        }
+            => Microsoft.Internal.Performance.CodeMarkers.Instance.IsEnabled && CanHandle(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
-        {
-            FireCodeMarkers(s_map, functionId, s_getter);
-        }
+            => FireCodeMarkers(s_map, functionId, s_getter);
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-        {
-            FireCodeMarkers(s_blockMap, functionId, s_startGetter);
-        }
+            => FireCodeMarkers(s_blockMap, functionId, s_startGetter);
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
@@ -151,9 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         }
 
         private static bool CanHandle(FunctionId functionId)
-        {
-            return s_map.ContainsKey(functionId) || s_blockMap.ContainsKey(functionId);
-        }
+            => s_map.ContainsKey(functionId) || s_blockMap.ContainsKey(functionId);
 
         private static void FireCodeMarkers<T>(Dictionary<FunctionId, List<T>> map, FunctionId functionId, Func<T, int> getter)
         {

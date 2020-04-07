@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInMethodBody()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(@"$$"));
-        }
+            => await VerifyKeywordAsync(AddInsideMethod(@"$$"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInClassDeclaration()
@@ -33,9 +31,7 @@ namespace goo
         [WorkItem(543628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543628")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEnumDeclaration()
-        {
-            await VerifyAbsenceAsync(@"enum Goo { $$ }");
-        }
+            => await VerifyAbsenceAsync(@"enum Goo { $$ }");
 
         [WorkItem(544219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -45,17 +45,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static implicit operator Arg(Diagnostic value) => new Arg(value);
 
             private static string ToString(ProjectAnalysisSummary summary)
-            {
-                switch (summary)
+                => summary switch
                 {
-                    case ProjectAnalysisSummary.CompilationErrors: return nameof(ProjectAnalysisSummary.CompilationErrors);
-                    case ProjectAnalysisSummary.NoChanges: return nameof(ProjectAnalysisSummary.NoChanges);
-                    case ProjectAnalysisSummary.RudeEdits: return nameof(ProjectAnalysisSummary.RudeEdits);
-                    case ProjectAnalysisSummary.ValidChanges: return nameof(ProjectAnalysisSummary.ValidChanges);
-                    case ProjectAnalysisSummary.ValidInsignificantChanges: return nameof(ProjectAnalysisSummary.ValidInsignificantChanges);
-                    default: return null;
-                }
-            }
+                    ProjectAnalysisSummary.CompilationErrors => nameof(ProjectAnalysisSummary.CompilationErrors),
+                    ProjectAnalysisSummary.NoChanges => nameof(ProjectAnalysisSummary.NoChanges),
+                    ProjectAnalysisSummary.RudeEdits => nameof(ProjectAnalysisSummary.RudeEdits),
+                    ProjectAnalysisSummary.ValidChanges => nameof(ProjectAnalysisSummary.ValidChanges),
+                    ProjectAnalysisSummary.ValidInsignificantChanges => nameof(ProjectAnalysisSummary.ValidInsignificantChanges),
+                    _ => null,
+                };
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
@@ -93,9 +91,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public void Write(string str) => Write(str, null);
 
         public void Write(string format, params Arg[] args)
-        {
-            Append(new Entry(format, args));
-        }
+            => Append(new Entry(format, args));
 
         [Conditional("DEBUG")]
         public void DebugWrite(string str) => DebugWrite(str, null);
@@ -116,9 +112,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private readonly TraceLog _traceLog;
 
             public TestAccessor(TraceLog traceLog)
-            {
-                _traceLog = traceLog;
-            }
+                => _traceLog = traceLog;
 
             internal Entry[] Entries => _traceLog._log;
         }

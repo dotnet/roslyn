@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
+    // Ensure roslyn comes after LSP to allow them to provide results.
+    // https://github.com/dotnet/roslyn/issues/42338
+    [Order(After = "LSP SignatureHelpCommandHandler")]
     internal class SignatureHelpAfterCompletionCommandHandler :
         AbstractSignatureHelpCommandHandler,
         IChainedCommandHandler<EscapeKeyCommandArgs>,
@@ -59,19 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public CommandState GetCommandState(UpKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public CommandState GetCommandState(DownKeyCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

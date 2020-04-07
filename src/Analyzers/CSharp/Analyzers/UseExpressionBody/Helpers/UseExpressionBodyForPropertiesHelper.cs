@@ -54,9 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override PropertyDeclarationSyntax WithGenerateBody(SemanticModel semanticModel, PropertyDeclarationSyntax declaration)
-        {
-            return WithAccessorList(semanticModel, declaration);
-        }
+            => WithAccessorList(semanticModel, declaration);
 
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration) => true;
 
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            return this.TryConvertToExpressionBodyForBaseProperty(
+            return TryConvertToExpressionBodyForBaseProperty(
                 declaration, options, conversionPreference,
                 out arrowExpression, out semicolonToken);
         }

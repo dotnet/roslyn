@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class FieldSymbolReferenceFinder : AbstractReferenceFinder<IFieldSymbol>
     {
         protected override bool CanFind(IFieldSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IFieldSymbol> symbolAndProjectId,

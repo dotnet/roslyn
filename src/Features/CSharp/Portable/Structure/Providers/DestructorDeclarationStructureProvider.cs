@@ -15,10 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             DestructorDeclarationSyntax destructorDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, spans, isMetadataAsSource);
 
             // fault tolerance
             if (destructorDeclaration.Body == null ||
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 destructorDeclaration,
                 destructorDeclaration.ParameterList.GetLastToken(includeZeroWidth: true),
+                compressEmptyLines: false,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

@@ -16,24 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal static class CompletionUtilities
     {
         internal static TextSpan GetCompletionItemSpan(SourceText text, int position)
-        {
-            return CommonCompletionUtilities.GetWordSpan(text, position, IsCompletionItemStartCharacter, IsWordCharacter);
-        }
+            => CommonCompletionUtilities.GetWordSpan(text, position, IsCompletionItemStartCharacter, IsWordCharacter);
 
         public static bool IsWordStartCharacter(char ch)
-        {
-            return SyntaxFacts.IsIdentifierStartCharacter(ch);
-        }
+            => SyntaxFacts.IsIdentifierStartCharacter(ch);
 
         public static bool IsWordCharacter(char ch)
-        {
-            return SyntaxFacts.IsIdentifierStartCharacter(ch) || SyntaxFacts.IsIdentifierPartCharacter(ch);
-        }
+            => SyntaxFacts.IsIdentifierStartCharacter(ch) || SyntaxFacts.IsIdentifierPartCharacter(ch);
 
         public static bool IsCompletionItemStartCharacter(char ch)
-        {
-            return ch == '@' || IsWordCharacter(ch);
-        }
+            => ch == '@' || IsWordCharacter(ch);
 
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -74,19 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal static ImmutableHashSet<char> CommonTriggerCharactersWithArgumentList { get; } = ImmutableHashSet.Create('.', '#', '>', ':', '(', '[', ' ');
 
         internal static bool IsTriggerCharacterOrArgumentListCharacter(SourceText text, int characterPosition, OptionSet options)
-        {
-            return IsTriggerCharacter(text, characterPosition, options) || IsArgumentListCharacter(text, characterPosition, options);
-        }
+            => IsTriggerCharacter(text, characterPosition, options) || IsArgumentListCharacter(text, characterPosition);
 
-        private static bool IsArgumentListCharacter(SourceText text, int characterPosition, OptionSet options)
-        {
-            return IsArgumentListCharacter(text[characterPosition]);
-        }
+        private static bool IsArgumentListCharacter(SourceText text, int characterPosition)
+            => IsArgumentListCharacter(text[characterPosition]);
 
         internal static bool IsArgumentListCharacter(char ch)
-        {
-            return ch == '(' || ch == '[' || ch == ' ';
-        }
+            => ch == '(' || ch == '[' || ch == ' ';
 
         internal static bool IsTriggerAfterSpaceOrStartOfWordCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -99,9 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal static ImmutableHashSet<char> SpaceTriggerCharacter => ImmutableHashSet.Create(' ');
 
         private static bool SpaceTypedNotBeforeWord(char ch, SourceText text, int characterPosition)
-        {
-            return ch == ' ' && (characterPosition == text.Length - 1 || !IsWordStartCharacter(text[characterPosition + 1]));
-        }
+            => ch == ' ' && (characterPosition == text.Length - 1 || !IsWordStartCharacter(text[characterPosition + 1]));
 
         public static bool IsStartingNewWord(SourceText text, int characterPosition)
         {

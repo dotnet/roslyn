@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 UseTabs = options.GetOption(FormattingOptions.UseTabs);
                 TabSize = options.GetOption(FormattingOptions.TabSize);
                 NewLine = options.GetOption(FormattingOptions.NewLine);
-                WrappingColumn = options.GetOption(FormattingOptions.PreferredWrappingColumn);
+                WrappingColumn = options.GetOption(FormattingOptions2.PreferredWrappingColumn);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 NewLineTrivia = new SyntaxTriviaList(generator.EndOfLine(NewLine));

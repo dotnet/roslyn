@@ -249,9 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// the command line string.
         /// </summary>
         protected virtual ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
-        {
-            return parseOptions;
-        }
+            => parseOptions;
 
         /// <summary>
         /// Called by a derived class to notify that we need to update the settings in the project system for something that will be provided

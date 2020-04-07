@@ -478,9 +478,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private static bool NotNull(SymbolReference reference)
-        {
-            return reference.SymbolResult.Symbol != null;
-        }
+            => reference.SymbolResult.Symbol != null;
 
         public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
             Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
@@ -554,6 +552,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             => FirstAwaitExpressionAncestor(syntaxFactsService, node) != null;
 
         private SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
-            => node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFactsService.IsAwaitExpression(n));
+            => node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFacts>((n, syntaxFactsService) => syntaxFactsService.IsAwaitExpression(n), syntaxFactsService);
     }
 }

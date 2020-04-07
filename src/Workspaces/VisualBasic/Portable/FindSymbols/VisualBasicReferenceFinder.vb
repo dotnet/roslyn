@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
         Implements ILanguageServiceReferenceFinder
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

@@ -124,6 +124,11 @@ namespace Microsoft.CodeAnalysis
         /// An analyzer config document in the current solution was changed.
         /// </summary>
         AnalyzerConfigDocumentChanged = 21,
+    }
 
+    internal static class WorkspaceChangeKindExtensions
+    {
+        public static bool IsValid(this WorkspaceChangeKind kind)
+            => kind >= WorkspaceChangeKind.SolutionChanged && kind <= WorkspaceChangeKind.AnalyzerConfigDocumentChanged;
     }
 }

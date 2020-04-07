@@ -155,8 +155,6 @@ namespace Microsoft.CodeAnalysis
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void ThrowArgumentItemNullException<T>(IEnumerable<T> sequence, string argumentName) where T : class
-        {
-            throw new ArgumentNullException(MakeIndexedArgumentName(argumentName, sequence.IndexOf(null!)));
-        }
+            => throw new ArgumentNullException(MakeIndexedArgumentName(argumentName, sequence.IndexOf(null!)));
     }
 }

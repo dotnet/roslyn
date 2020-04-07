@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -76,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// Initializes a new instance of the <see cref="RemoteLanguageServiceWorkspace"/> class.
         /// </summary>
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteLanguageServiceWorkspace(ExportProvider exportProvider,
                                               IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
                                               IVsFolderWorkspaceService vsFolderWorkspaceService,
@@ -448,9 +450,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-        }
+            => base.Dispose(disposing);
 
         /// <summary>
         /// Marker class to easily group error reporting for missing live share text buffers.
@@ -514,13 +514,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         private void StartSolutionCrawler()
-        {
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
-        }
+            => DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
 
         private void StopSolutionCrawler()
-        {
-            DiagnosticProvider.Disable(this);
-        }
+            => DiagnosticProvider.Disable(this);
     }
 }
