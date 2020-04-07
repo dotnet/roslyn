@@ -56,17 +56,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             public Session(
                 RenameLocations renameLocationSet,
                 Location renameSymbolDeclarationLocation,
-                string originalText,
                 string replacementText,
-                OptionSet optionSet,
                 ImmutableHashSet<ISymbol> nonConflictSymbols,
                 CancellationToken cancellationToken)
             {
                 _renameLocationSet = renameLocationSet;
                 _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
-                _originalText = originalText;
+                _originalText = renameLocationSet.Symbol.Name;
                 _replacementText = replacementText;
-                _optionSet = optionSet;
+                _optionSet = renameLocationSet.Options;
                 _nonConflictSymbols = nonConflictSymbols;
                 _cancellationToken = cancellationToken;
 

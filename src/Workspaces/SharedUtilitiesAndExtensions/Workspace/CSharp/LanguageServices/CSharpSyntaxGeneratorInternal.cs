@@ -73,5 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode YieldReturnStatement(SyntaxNode expressionOpt = null)
             => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, (ExpressionSyntax)expressionOpt);
+
+        /// <summary>
+        /// C# always requires a type to be present with a local declaration.  (Even if that type is
+        /// <c>var</c>).
+        /// </summary>
+        internal override bool RequiresLocalDeclarationType() => true;
     }
 }

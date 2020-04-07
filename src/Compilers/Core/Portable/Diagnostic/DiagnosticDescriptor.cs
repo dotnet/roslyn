@@ -173,6 +173,11 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(DiagnosticDescriptor? other)
         {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             return
                 other != null &&
                 this.Category == other.Category &&

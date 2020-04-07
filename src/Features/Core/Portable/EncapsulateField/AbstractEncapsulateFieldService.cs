@@ -248,16 +248,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var constructorLocations = GetConstructorLocations(field.ContainingType);
                 if (finalFieldName != field.Name && constructorLocations.Count > 0)
                 {
-                    var initialLocations = await Renamer.GetRenameLocationsAsync(
-                        solution, SymbolAndProjectId.Create(field, projectId), solution.Options, cancellationToken).ConfigureAwait(false);
+                    solution = await RenameAsync(
+                        solution, SymbolAndProjectId.Create(field, projectId), finalFieldName,
+                        location => IntersectsWithAny(location, constructorLocations),
+                        cancellationToken).ConfigureAwait(false);
 
-                    var insideLocations = initialLocations.Filter(
-                        location => IntersectsWithAny(location, constructorLocations));
-
-                    solution = await Renamer.RenameAsync(
-                        insideLocations, finalFieldName, cancellationToken: cancellationToken).ConfigureAwait(false);
                     document = solution.GetDocument(document.Id);
-
                     var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
@@ -265,23 +261,32 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
-
-                var finalLocations = await Renamer.GetRenameLocationsAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId), solution.Options, cancellationToken).ConfigureAwait(false);
-
-                var outsideLocations = finalLocations.Filter(
-                    location => !IntersectsWithAny(location, constructorLocations));
-
-                return await Renamer.RenameAsync(
-                    outsideLocations, generatedPropertyName, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await RenameAsync(
+                    solution, SymbolAndProjectId.Create(field, projectId), generatedPropertyName,
+                    location => !IntersectsWithAny(location, constructorLocations),
+                    cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId),
-                    generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
+                    solution, SymbolAndProjectId.Create(field, projectId), generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private async Task<Solution> RenameAsync(
+            Solution solution,
+            SymbolAndProjectId<IFieldSymbol> field,
+            string finalName,
+            Func<Location, bool> filter,
+            CancellationToken cancellationToken)
+        {
+            var initialLocations = await Renamer.GetRenameLocationsAsync(
+                solution, field, solution.Options, cancellationToken).ConfigureAwait(false);
+
+            return await Renamer.RenameAsync(
+                initialLocations.Filter(filter), finalName,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private bool IntersectsWithAny(Location location, ISet<Location> constructorLocations)

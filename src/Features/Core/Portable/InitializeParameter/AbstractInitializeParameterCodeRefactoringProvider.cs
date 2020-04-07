@@ -31,6 +31,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
+        private readonly Func<SyntaxNode, bool> _isFunctionDeclarationFunc;
+
+        protected AbstractInitializeParameterCodeRefactoringProvider()
+        {
+            _isFunctionDeclarationFunc = IsFunctionDeclaration;
+        }
+
         protected abstract bool IsFunctionDeclaration(SyntaxNode node);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
 
@@ -70,7 +77,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            var functionDeclaration = selectedParameter.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+            var functionDeclaration = selectedParameter.FirstAncestorOrSelf<SyntaxNode>(_isFunctionDeclarationFunc);
             if (functionDeclaration is null)
             {
                 return;
