@@ -65,8 +65,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                            ITypeSymbol type = increment.Type;
                                            Optional<object> constantValue = new Optional<object>(1);
                                            bool isImplicit = increment.IsImplicit;
+#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
                                            var value = new LiteralOperation(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
-
+#pragma warning restore RS1030
                                            AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
                                        }
                                        else
