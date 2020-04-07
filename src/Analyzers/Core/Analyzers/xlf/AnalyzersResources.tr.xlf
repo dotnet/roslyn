@@ -52,6 +52,11 @@
         <target state="new">Changes to expression trees may result in behavior changes at runtime</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="new">Convert to conditional expression</target>
@@ -230,6 +235,11 @@
       <trans-unit id="Simplify_collection_initialization">
         <source>Simplify collection initialization</source>
         <target state="new">Simplify collection initialization</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">

@@ -1491,12 +1491,6 @@ This version used in: {2}</value>
   <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
     <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
   </data>
-  <data name="Simplify_conditional_expression" xml:space="preserve">
-    <value>Simplify conditional expression</value>
-  </data>
-  <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
-    <value>Conditional expression can be simplified</value>
-  </data>
   <data name="AM_PM_abbreviated" xml:space="preserve">
     <value>AM/PM (abbreviated)</value>
   </data>

@@ -295,4 +295,10 @@
   <data name="Convert_to_tuple" xml:space="preserve">
     <value>Convert to tuple</value>
   </data>
+  <data name="Simplify_conditional_expression" xml:space="preserve">
+    <value>Simplify conditional expression</value>
+  </data>
+  <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
+    <value>Conditional expression can be simplified</value>
+  </data>
 </root>
