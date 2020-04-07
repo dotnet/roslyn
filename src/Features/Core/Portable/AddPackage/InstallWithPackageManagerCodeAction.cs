@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             public override string Title => FeaturesResources.Install_with_package_manager;
 
             public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-            {
-                _codeAction._installerService.ShowManagePackagesDialog(_codeAction._packageName);
-            }
+                => _codeAction._installerService.ShowManagePackagesDialog(_codeAction._packageName);
         }
     }
 }

@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
     {
         [System.Diagnostics.DebuggerStepThrough]
         protected string ExpectedContent(params string[] expectedContent)
-        {
-            return expectedContent.Join("\r\n");
-        }
+            => expectedContent.Join("\r\n");
 
         protected string FormatCodeWithDocComments(params string[] code)
         {

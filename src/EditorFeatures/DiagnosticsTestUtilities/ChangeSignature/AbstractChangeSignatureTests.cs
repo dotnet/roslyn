@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
     public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
     {
         protected override ParseOptions GetScriptOptions()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         public async Task TestChangeSignatureViaCodeActionAsync(
             string markup,
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         /// </summary>
         /// <param name="signaturePartCounts">A four element array containing [s, m, n, p] as 
         /// described above.</param>
-        public async Task TestAllSignatureChangesAsync(string languageName, string markup, int[] signaturePartCounts, ParseOptions parseOptions = null)
+        public static IEnumerable<object> GetAllSignatureSpecificationsForTheory(int[] signaturePartCounts)
         {
             Assert.Equal(4, signaturePartCounts.Length);
             Assert.True(signaturePartCounts[0] == 0 || signaturePartCounts[0] == 1);
@@ -169,18 +167,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
             foreach (var signature in GetAllSignatureSpecifications(signaturePartCounts))
             {
-                await TestChangeSignatureViaCommandAsync(
-                    languageName,
-                    markup,
-                    expectedSuccess: true,
-                    updatedSignature: signature,
-                    totalParameters: totalParameters,
-                    verifyNoDiagnostics: true,
-                    parseOptions: parseOptions);
+                yield return new object[] { totalParameters, signature };
             }
         }
 
-        private IEnumerable<int[]> GetAllSignatureSpecifications(int[] signaturePartCounts)
+        private static IEnumerable<int[]> GetAllSignatureSpecifications(int[] signaturePartCounts)
         {
             var regularParameterStartIndex = signaturePartCounts[0];
             var defaultValueParameterStartIndex = signaturePartCounts[0] + signaturePartCounts[1];
@@ -206,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        private IEnumerable<IEnumerable<int>> GetPermutedSubsets(int startIndex, int count)
+        private static IEnumerable<IEnumerable<int>> GetPermutedSubsets(int startIndex, int count)
         {
             foreach (var subset in GetSubsets(Enumerable.Range(startIndex, count)))
             {
@@ -217,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        private IEnumerable<IEnumerable<int>> GetPermutations(IEnumerable<int> list)
+        private static IEnumerable<IEnumerable<int>> GetPermutations(IEnumerable<int> list)
         {
             if (!list.Any())
             {
@@ -238,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        private IEnumerable<int> GetListWithoutElementAtIndex(IEnumerable<int> list, int skippedIndex)
+        private static IEnumerable<int> GetListWithoutElementAtIndex(IEnumerable<int> list, int skippedIndex)
         {
             var index = 0;
             foreach (var x in list)
@@ -252,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        private IEnumerable<IEnumerable<int>> GetSubsets(IEnumerable<int> list)
+        private static IEnumerable<IEnumerable<int>> GetSubsets(IEnumerable<int> list)
         {
             if (!list.Any())
             {

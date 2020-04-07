@@ -202,6 +202,15 @@
     <PackageReference Update="@(PrivateVisualStudioPackage)" PrivateAssets="all"/>
   </ItemGroup>
 
+  <!-- Make sure additional files show up in Solution Explorer -->
+  <ItemGroup>
+    <!--
+      The SDK should automatically add this available item name, but currently does not.
+      https://github.com/dotnet/project-system/issues/2160
+    -->
+    <AvailableItemName Include="AdditionalFiles" />
+  </ItemGroup>
+
   <!--
     Default settings for analyzer packages.    
   -->
@@ -242,6 +251,17 @@
     </ItemGroup>
 
     <Warning Condition="'%(RestrictedInternalsVisibleTo.Partner)' == ''" Text="RestrictedInternalsVisibleTo items must specify the 'Partner' attribute. Target assembly: %(Identity)" />
+  </Target>
+
+  <!-- Make sure expected compile items are included -->
+  <ItemGroup>
+    <UnexpectedCompileExcludes Include="@(ExpectedCompile)" Exclude="@(Compile)" />
+  </ItemGroup>
+
+  <Target Name="_CheckUnexpectedCompileExcludes"
+          BeforeTargets="Build">
+    <Warning Text="Expected source file to be included as a Compile item: %(Identity)"
+             Condition="'@(UnexpectedCompileExcludes)' != ''" />
   </Target>
 
   <!--

@@ -16,14 +16,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private readonly ICollection<INamedTypeSymbol> _namedTypes;
 
             public NormalAnonymousTypeCollectorVisitor(ICollection<INamedTypeSymbol> namedTypes)
-            {
-                _namedTypes = namedTypes;
-            }
+                => _namedTypes = namedTypes;
 
             public override void DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void VisitAlias(IAliasSymbol symbol)
             {
@@ -31,9 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             public override void VisitArrayType(IArrayTypeSymbol symbol)
-            {
-                symbol.ElementType.Accept(this);
-            }
+                => symbol.ElementType.Accept(this);
 
             public override void VisitAssembly(IAssemblySymbol symbol)
             {
@@ -44,18 +38,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             public override void VisitField(IFieldSymbol symbol)
-            {
-                symbol.Type.Accept(this);
-            }
+                => symbol.Type.Accept(this);
 
             public override void VisitLabel(ILabelSymbol symbol)
             {
             }
 
             public override void VisitLocal(ILocalSymbol symbol)
-            {
-                symbol.Type.Accept(this);
-            }
+                => symbol.Type.Accept(this);
 
             public override void VisitMethod(IMethodSymbol symbol)
             {
@@ -113,14 +103,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             public override void VisitParameter(IParameterSymbol symbol)
-            {
-                symbol.Type.Accept(this);
-            }
+                => symbol.Type.Accept(this);
 
             public override void VisitPointerType(IPointerTypeSymbol symbol)
-            {
-                symbol.PointedAtType.Accept(this);
-            }
+                => symbol.PointedAtType.Accept(this);
 
             public override void VisitProperty(IPropertySymbol symbol)
             {
@@ -133,9 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             public override void VisitEvent(IEventSymbol symbol)
-            {
-                symbol.Type.Accept(this);
-            }
+                => symbol.Type.Accept(this);
 
             public override void VisitTypeParameter(ITypeParameterSymbol symbol)
             {

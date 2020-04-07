@@ -15,10 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             PropertyDeclarationSyntax propertyDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(propertyDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(propertyDeclaration, spans, isMetadataAsSource);
 
             // fault tolerance
             if (propertyDeclaration.AccessorList == null ||
@@ -28,9 +29,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
+            SyntaxNodeOrToken current = propertyDeclaration;
+            var nextSibling = current.GetNextSibling();
+
+            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+            //
+            // Properties are grouped together with indexers.
+            var compressEmptyLines = !nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.PropertyDeclaration) || nextSibling.IsKind(SyntaxKind.IndexerDeclaration);
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 propertyDeclaration,
                 propertyDeclaration.Identifier,
+                compressEmptyLines: compressEmptyLines,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

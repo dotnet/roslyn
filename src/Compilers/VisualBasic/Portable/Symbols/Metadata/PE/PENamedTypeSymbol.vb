@@ -803,7 +803,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Public Overloads Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            Return GetTypeMembers(name).WhereAsArray(Function(type) type.Arity = arity)
+            Return GetTypeMembers(name).WhereAsArray(Function(type, arity_) type.Arity = arity_, arity)
         End Function
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)

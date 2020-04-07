@@ -167,9 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             // For screen readers
             public override string ToString()
-            {
-                return Name;
-            }
+                => Name;
         }
     }
 }

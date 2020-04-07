@@ -63,7 +63,10 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 return null;
 
             var unimplementedMembers = classType.GetAllUnimplementedMembers(
-                SpecializedCollections.SingletonEnumerable(abstractClassType), cancellationToken);
+                SpecializedCollections.SingletonEnumerable(abstractClassType),
+                includeMembersRequiringExplicitImplementation: false,
+                cancellationToken);
+
             if (unimplementedMembers.IsEmpty)
                 return null;
 
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 
             // Check if we need to add 'unsafe' to the signature we're generating.
             var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.IsUnsafe() && !syntaxFacts.IsUnsafeContext(_classNode);
+            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(_classNode);
 
             return GenerateMember(compilation, member, throughMember, addUnsafe, propertyGenerationBehavior);
         }
@@ -153,12 +156,12 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
         {
             var modifiers = new DeclarationModifiers(isOverride: true, isUnsafe: addUnsafe);
-            var accessibility = member.ComputeResultantAccessibility(this.ClassType);
+            var accessibility = member.ComputeResultantAccessibility(ClassType);
 
             // only call through one of members for this symbol if we can actually access the symbol
             // from our type.
             if (throughMember != null &&
-                !member.IsAccessibleWithin(this.ClassType, throughMember.GetMemberType()))
+                !member.IsAccessibleWithin(ClassType, throughMember.GetMemberType()))
             {
                 return null;
             }
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 ? generator.CreateThrowNotImplementedStatement(compilation)
                 : generator.GenerateDelegateThroughMemberStatement(method, throughMember);
 
-            method = method.EnsureNonConflictingNames(this.ClassType, syntaxFacts);
+            method = method.EnsureNonConflictingNames(ClassType, syntaxFacts);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 method,
@@ -212,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     property.GetMethod,
                     attributes: default,
-                    accessibility: property.GetMethod.ComputeResultantAccessibility(this.ClassType),
+                    accessibility: property.GetMethod.ComputeResultantAccessibility(ClassType),
                     statements: generator.GetGetAccessorStatements(
                         compilation, property, throughMember, preferAutoProperties))
                 : null;
@@ -221,7 +224,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     property.SetMethod,
                     attributes: default,
-                    accessibility: property.SetMethod.ComputeResultantAccessibility(this.ClassType),
+                    accessibility: property.SetMethod.ComputeResultantAccessibility(ClassType),
                     statements: generator.GetSetAccessorStatements(
                         compilation, property, throughMember, preferAutoProperties))
                 : null;
@@ -264,20 +267,20 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
         }
 
         private bool ShouldGenerateAccessor(IMethodSymbol? method)
-            => method != null && this.ClassType.FindImplementationForAbstractMember(method) == null;
+            => method != null && ClassType.FindImplementationForAbstractMember(method) == null;
 
         public IEnumerable<(ISymbol symbol, bool canDelegateAllMembers)> GetDelegatableMembers()
         {
-            var fields = this.ClassType.GetMembers()
+            var fields = ClassType.GetMembers()
                 .OfType<IFieldSymbol>()
                 .Where(f => !f.IsImplicitlyDeclared)
-                .Where(f => InheritsFromOrEquals(f.Type, this.AbstractClassType))
+                .Where(f => InheritsFromOrEquals(f.Type, AbstractClassType))
                 .OfType<ISymbol>();
 
-            var properties = this.ClassType.GetMembers()
+            var properties = ClassType.GetMembers()
                 .OfType<IPropertySymbol>()
                 .Where(p => !p.IsImplicitlyDeclared && p.Parameters.Length == 0)
-                .Where(p => InheritsFromOrEquals(p.Type, this.AbstractClassType))
+                .Where(p => InheritsFromOrEquals(p.Type, AbstractClassType))
                 .OfType<ISymbol>();
 
             // Have to make sure the field or prop has at least one unimplemented member exposed
@@ -288,7 +291,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var fieldOrPropType = fieldOrProp.GetMemberType();
                 var allUnimplementedMembers = _unimplementedMembers.SelectMany(t => t.members).ToImmutableArray();
 
-                var accessibleCount = allUnimplementedMembers.Count(m => m.IsAccessibleWithin(this.ClassType, throughType: fieldOrPropType));
+                var accessibleCount = allUnimplementedMembers.Count(m => m.IsAccessibleWithin(ClassType, throughType: fieldOrPropType));
                 if (accessibleCount > 0)
                 {
                     // there was at least one unimplemented member that we could implement here

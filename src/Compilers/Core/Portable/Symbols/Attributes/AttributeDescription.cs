@@ -193,6 +193,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[] s_signature_HasThis_Void_SzArray_Byte = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, Byte };
         private static readonly byte[] s_signature_HasThis_Void_SzArray_String = new byte[] { (byte)SignatureAttributes.Instance, 1, Void, SzArray, String };
         private static readonly byte[] s_signature_HasThis_Void_Boolean_SzArray_String = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Boolean, SzArray, String };
+        private static readonly byte[] s_signature_HasThis_Void_Boolean_String = new byte[] { (byte)SignatureAttributes.Instance, 2, Void, Boolean, String };
 
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32 = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32 };
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_Platform = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.Platform };
@@ -271,8 +272,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfMaybeNullAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfMaybeNullWhenAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfNotNullAttribute = { s_signature_HasThis_Void };
-        private static readonly byte[][] s_signaturesOfMemberNotNullAttribute = { s_signature_HasThis_Void_SzArray_String };
-        private static readonly byte[][] s_signaturesOfMemberNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean_SzArray_String };
+        private static readonly byte[][] s_signaturesOfMemberNotNullAttribute = { s_signature_HasThis_Void_String, s_signature_HasThis_Void_SzArray_String };
+        private static readonly byte[][] s_signaturesOfMemberNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean_String, s_signature_HasThis_Void_Boolean_SzArray_String };
         private static readonly byte[][] s_signaturesOfNotNullIfNotNullAttribute = { s_signature_HasThis_Void_String };
         private static readonly byte[][] s_signaturesOfNotNullWhenAttribute = { s_signature_HasThis_Void_Boolean };
         private static readonly byte[][] s_signaturesOfDoesNotReturnIfAttribute = { s_signature_HasThis_Void_Boolean };

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Security;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -280,14 +281,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         protected bool CompareItems(string actualItem, string expectedItem)
-        {
-            return GetStringComparer().Equals(actualItem, expectedItem);
-        }
+            => GetStringComparer().Equals(actualItem, expectedItem);
 
         protected virtual IEqualityComparer<string> GetStringComparer()
-        {
-            return StringComparer.Ordinal;
-        }
+            => StringComparer.Ordinal;
 
         private protected async Task VerifyItemExistsAsync(
             string markup, string expectedItem, string expectedDescriptionOrNull = null,
@@ -616,7 +613,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference, string alias = null)
         {
             return isProjectReference
-                ? CreateMarkupForProjecWithProjectReference(currentFile, referencedFile, sourceLanguage, referenceLanguage)
+                ? CreateMarkupForProjectWithProjectReference(currentFile, referencedFile, sourceLanguage, referenceLanguage)
                 : CreateMarkupForProjectWithMetadataReference(currentFile, referencedFile, sourceLanguage, referenceLanguage);
         }
 
@@ -657,12 +654,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
-            var xmlString = CreateMarkupForProjecWithProjectReference(markup, referencedCode, sourceLanguage, referencedLanguage);
+            var xmlString = CreateMarkupForProjectWithProjectReference(markup, referencedCode, sourceLanguage, referencedLanguage);
 
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
-        protected static string CreateMarkupForProjecWithAliasedProjectReference(string markup, string projectAlias, string referencedCode, string sourceLanguage, string referencedLanguage)
+        protected static string CreateMarkupForProjectWithAliasedProjectReference(string markup, string projectAlias, string referencedCode, string sourceLanguage, string referencedLanguage)
         {
             return string.Format(@"
 <Workspace>
@@ -677,7 +674,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode), SecurityElement.Escape(projectAlias));
         }
 
-        protected static string CreateMarkupForProjecWithProjectReference(string markup, string referencedCode, string sourceLanguage, string referencedLanguage)
+        protected static string CreateMarkupForProjectWithProjectReference(string markup, string referencedCode, string sourceLanguage, string referencedLanguage)
         {
             return string.Format(@"
 <Workspace>
@@ -690,6 +687,43 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
     </Project>
     
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode));
+        }
+
+        protected static string CreateMarkupForProjectWithMultupleProjectReferences(string sourceText, string sourceLanguage, string referencedLanguage, string[] referencedTexts)
+        {
+            return $@"
+<Workspace>
+    <Project Language=""{sourceLanguage}"" CommonReferences=""true"" AssemblyName=""Project1"">
+{GetProjectReferenceElements(referencedTexts)}
+        <Document FilePath=""SourceDocument"">{SecurityElement.Escape(sourceText)}</Document>
+    </Project>
+{GetReferencedProjectElements(referencedLanguage, referencedTexts)}
+</Workspace>";
+
+            static string GetProjectReferenceElements(string[] referencedTexts)
+            {
+                var builder = new StringBuilder();
+                for (var i = 0; i < referencedTexts.Length; ++i)
+                {
+                    builder.AppendLine($"<ProjectReference>ReferencedProject{i}</ProjectReference>");
+                }
+
+                return builder.ToString();
+            }
+
+            static string GetReferencedProjectElements(string language, string[] referencedTexts)
+            {
+                var builder = new StringBuilder();
+                for (var i = 0; i < referencedTexts.Length; ++i)
+                {
+                    builder.Append($@"
+<Project Language=""{language}"" CommonReferences=""true"" AssemblyName=""ReferencedProject{i}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
+  <Document FilePath=""ReferencedDocument{i}"">{SecurityElement.Escape(referencedTexts[i])}</Document>
+</Project>");
+                }
+
+                return builder.ToString();
+            }
         }
 
         protected static string CreateMarkupForProjecWithVBProjectReference(string markup, string referencedCode, string sourceLanguage, string rootNamespace = "")
@@ -940,17 +974,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string markup,
             bool shouldTriggerWithTriggerOnLettersEnabled,
             bool shouldTriggerWithTriggerOnLettersDisabled,
-            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
+            bool showCompletionInArgumentLists = true)
         {
-            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter: true, sourceCodeKind);
-            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter: false, sourceCodeKind);
+            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersEnabled, triggerOnLetter: true, sourceCodeKind, showCompletionInArgumentLists);
+            VerifyTextualTriggerCharacterWorker(markup, expectedTriggerCharacter: shouldTriggerWithTriggerOnLettersDisabled, triggerOnLetter: false, sourceCodeKind, showCompletionInArgumentLists: false);
         }
 
         private void VerifyTextualTriggerCharacterWorker(
             string markup,
             bool expectedTriggerCharacter,
             bool triggerOnLetter,
-            SourceCodeKind sourceCodeKind)
+            SourceCodeKind sourceCodeKind,
+            bool showCompletionInArgumentLists)
         {
             using (var workspace = CreateWorkspace(markup))
             {
@@ -960,8 +996,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 Assert.Same(hostDocument, workspace.Documents.Single());
                 var position = hostDocument.CursorPosition.Value;
                 var text = hostDocument.GetTextBuffer().CurrentSnapshot.AsText();
-                var options = workspace.Options.WithChangedOption(
-                    CompletionOptions.TriggerOnTypingLetters, hostDocument.Project.Language, triggerOnLetter);
+                var options = workspace.Options
+                    .WithChangedOption(CompletionOptions.TriggerOnTypingLetters2, hostDocument.Project.Language, triggerOnLetter)
+                    .WithChangedOption(CompletionOptions.TriggerInArgumentLists, hostDocument.Project.Language, showCompletionInArgumentLists);
                 var trigger = RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(text[position]);
 
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);

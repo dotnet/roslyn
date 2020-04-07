@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private readonly ConflictingIdentifierTracker _tracker;
 
         public LabelConflictVisitor(SyntaxToken tokenBeingRenamed)
-        {
-            _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
-        }
+            => _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
 
         public override void DefaultVisit(SyntaxNode node)
         {

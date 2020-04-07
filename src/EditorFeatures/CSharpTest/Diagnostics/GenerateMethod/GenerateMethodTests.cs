@@ -1724,6 +1724,7 @@ interface ISibling
 }");
         }
 
+        [WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateAbstractIntoSameType()
         {
@@ -1742,7 +1743,7 @@ interface ISibling
         Goo();
     }
 
-    internal abstract void Goo();
+    protected abstract void Goo();
 }",
 index: 1);
         }
@@ -6852,6 +6853,35 @@ class C
         {
             throw new NotImplementedException();
         }
+    }
+}");
+        }
+
+        [WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")]
+        [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInConditionalAccess9()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct C
+{
+    void Main(C? c)
+    {
+        int? v = c?.[|Bar|]();
+    }
+}",
+@"using System;
+
+struct C
+{
+    void Main(C? c)
+    {
+        int? v = c?.Bar();
+    }
+
+    private int Bar()
+    {
+        throw new NotImplementedException();
     }
 }");
         }

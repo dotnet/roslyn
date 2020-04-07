@@ -160,7 +160,7 @@ End Module
             }
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <ProjectReference>CSharpAssembly</ProjectReference>
         <Document>
             Imports N

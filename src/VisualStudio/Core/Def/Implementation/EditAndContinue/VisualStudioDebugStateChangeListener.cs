@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private IEditAndContinueWorkspaceService? _encService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDebugStateChangeListener(VisualStudioWorkspace workspace)
         {
             _workspace = workspace;

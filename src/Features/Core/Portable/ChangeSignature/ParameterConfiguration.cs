@@ -77,8 +77,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         public bool IsChangeable()
-        {
-            return ParametersWithoutDefaultValues.Count > 0 || RemainingEditableParameters.Count > 0 || ParamsParameter != null;
-        }
+            => ParametersWithoutDefaultValues.Count > 0 || RemainingEditableParameters.Count > 0 || ParamsParameter != null;
     }
 }

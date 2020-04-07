@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(ImplementsClauseCompletionProvider), LanguageNames.VisualBasic)>
@@ -24,12 +25,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits AbstractSymbolCompletionProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
+
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Protected Overrides Function IsExclusive() As Boolean
             Return True
@@ -279,10 +283,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(
+        Protected Overrides Function CreateItem(completionContext As CompletionContext,
                 displayText As String, displayTextSuffix As String, insertionText As String,
                 symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim item = MyBase.CreateItem(displayText, displayTextSuffix, insertionText, symbols, context, preselect, supportedPlatformData)
+            Dim item = MyBase.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, preselect, supportedPlatformData)
 
             If IsGenericType(symbols(0)) Then
                 Dim text = symbols(0).ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)

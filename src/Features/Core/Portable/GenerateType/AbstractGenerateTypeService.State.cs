@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             public List<TSimpleNameSyntax> PropertiesToGenerate { get; private set; }
 
             private State(Compilation compilation)
-            {
-                Compilation = compilation;
-            }
+                => Compilation = compilation;
 
             public static async Task<State> GenerateAsync(
                 TService service,
@@ -247,9 +245,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private bool GenerateStruct(TService service, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                return service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
-            }
+                => service.IsInValueTypeConstraintContext(semanticModel, NameOrMemberAccessExpression, cancellationToken);
 
             private bool GenerateInterface(TService service)
             {

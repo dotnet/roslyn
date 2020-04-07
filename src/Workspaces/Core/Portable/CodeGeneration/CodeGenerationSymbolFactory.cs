@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -21,9 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Determines if the symbol is purely a code generation symbol.
         /// </summary>
         public static bool IsCodeGenerationSymbol(this ISymbol symbol)
-        {
-            return symbol is CodeGenerationSymbol;
-        }
+            => symbol is CodeGenerationSymbol;
 
         /// <summary>
         /// Creates an event symbol that can be used to describe an event declaration.
@@ -312,17 +309,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a pointer type symbol that can be used to describe a pointer type reference.
         /// </summary>
         public static IPointerTypeSymbol CreatePointerTypeSymbol(ITypeSymbol pointedAtType)
-        {
-            return new CodeGenerationPointerTypeSymbol(pointedAtType);
-        }
+            => new CodeGenerationPointerTypeSymbol(pointedAtType);
 
         /// <summary>
         /// Creates an array type symbol that can be used to describe an array type reference.
         /// </summary>
         public static IArrayTypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank = 1, NullableAnnotation nullableAnnotation = NullableAnnotation.None)
-        {
-            return new CodeGenerationArrayTypeSymbol(elementType, rank, nullableAnnotation);
-        }
+            => new CodeGenerationArrayTypeSymbol(elementType, rank, nullableAnnotation);
 
         internal static IMethodSymbol CreateAccessorSymbol(
             IMethodSymbol accessor,
@@ -461,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             string name = null,
-            ImmutableArray<IParameterSymbol>? parameters = default,
+            ImmutableArray<IParameterSymbol>? parameters = null,
             ImmutableArray<SyntaxNode> statements = default,
             INamedTypeSymbol containingType = null,
             ITypeSymbol returnType = null,
@@ -485,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal static IPropertySymbol CreatePropertySymbol(
             IPropertySymbol property,
             ImmutableArray<AttributeData> attributes = default,
-            ImmutableArray<IParameterSymbol>? parameters = default,
+            ImmutableArray<IParameterSymbol>? parameters = null,
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
             ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,

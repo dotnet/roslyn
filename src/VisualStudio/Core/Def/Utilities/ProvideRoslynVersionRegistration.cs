@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -27,9 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         }
 
         private string GetKeyName()
-        {
-            return "InstalledProducts\\" + _productName;
-        }
+            => "InstalledProducts\\" + _productName;
 
         public override void Register(RegistrationContext context)
         {
@@ -47,8 +49,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         }
 
         public override void Unregister(RegistrationContext context)
-        {
-            context.RemoveKey(GetKeyName());
-        }
+            => context.RemoveKey(GetKeyName());
     }
 }

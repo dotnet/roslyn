@@ -22,15 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
     {
         [Fact]
         public async Task TestExceptionInComputeRefactorings()
-        {
-            await VerifyRefactoringDisabledAsync<ErrorCases.ExceptionInCodeActions>();
-        }
+            => await VerifyRefactoringDisabledAsync<ErrorCases.ExceptionInCodeActions>();
 
         [Fact]
         public async Task TestExceptionInComputeRefactoringsAsync()
-        {
-            await VerifyRefactoringDisabledAsync<ErrorCases.ExceptionInComputeRefactoringsAsync>();
-        }
+            => await VerifyRefactoringDisabledAsync<ErrorCases.ExceptionInComputeRefactoringsAsync>();
 
         [Fact]
         public async Task TestProjectRefactoringAsync()
@@ -85,14 +81,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             public readonly CodeRefactoringProvider Refactoring;
 
             public StubAnalyzerReference()
-            {
-                Refactoring = new StubRefactoring();
-            }
+                => Refactoring = new StubRefactoring();
 
             public StubAnalyzerReference(CodeRefactoringProvider codeRefactoring)
-            {
-                Refactoring = codeRefactoring;
-            }
+                => Refactoring = codeRefactoring;
 
             public override string Display => nameof(StubAnalyzerReference);
 

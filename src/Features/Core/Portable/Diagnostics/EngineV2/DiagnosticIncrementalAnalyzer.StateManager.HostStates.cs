@@ -19,8 +19,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public IEnumerable<StateSet> GetAllHostStateSets()
                 => _hostAnalyzerStateMap.Values.SelectMany(v => v.OrderedStateSets);
 
-            private HostAnalyzerStateSets GetOrCreateHostStateSets(string language)
+            private HostAnalyzerStateSets GetOrCreateHostStateSets(string language, ProjectAnalyzerStateSets projectStateSets)
             {
+                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, language, CreateLanguageSpecificAnalyzerMap, _hostAnalyzers);
+                return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
+
                 static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, HostDiagnosticAnalyzers hostAnalyzers)
                 {
                     var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
@@ -30,8 +33,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     return new HostAnalyzerStateSets(analyzerMap);
                 }
-
-                return ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, language, CreateLanguageSpecificAnalyzerMap, _hostAnalyzers);
             }
 
             private sealed class HostAnalyzerStateSets
@@ -45,6 +46,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> StateSetMap;
 
+                private HostAnalyzerStateSets(ImmutableDictionary<DiagnosticAnalyzer, StateSet> stateSetMap, ImmutableArray<StateSet> orderedStateSets)
+                {
+                    StateSetMap = stateSetMap;
+                    OrderedStateSets = orderedStateSets;
+                }
+
                 public HostAnalyzerStateSets(ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
                 {
                     StateSetMap = analyzerMap;
@@ -55,10 +62,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     OrderedStateSets = StateSetMap.Values.OrderBy(PriorityComparison).ToImmutableArray();
                 }
 
-                private int PriorityComparison(StateSet state1, StateSet state2)
+                public HostAnalyzerStateSets WithExcludedAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers)
                 {
-                    return GetPriority(state1) - GetPriority(state2);
+                    if (excludedAnalyzers.IsEmpty)
+                    {
+                        return this;
+                    }
+
+                    var stateSetMap = StateSetMap.Where(kvp => !excludedAnalyzers.Contains(kvp.Key)).ToImmutableDictionary();
+                    var orderedStateSets = OrderedStateSets.WhereAsArray(stateSet => !excludedAnalyzers.Contains(stateSet.Analyzer));
+                    return new HostAnalyzerStateSets(stateSetMap, orderedStateSets);
                 }
+
+                private int PriorityComparison(StateSet state1, StateSet state2)
+                    => GetPriority(state1) - GetPriority(state2);
 
                 private int GetPriority(StateSet state)
                 {

@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         private readonly IDocumentNavigationService _underlyingObject;
 
         public VSTypeScriptDocumentNavigationServiceWrapper(IDocumentNavigationService underlyingObject)
-        {
-            _underlyingObject = underlyingObject;
-        }
+            => _underlyingObject = underlyingObject;
 
         public static VSTypeScriptDocumentNavigationServiceWrapper Create(Workspace workspace)
             => new VSTypeScriptDocumentNavigationServiceWrapper(workspace.Services.GetRequiredService<IDocumentNavigationService>());

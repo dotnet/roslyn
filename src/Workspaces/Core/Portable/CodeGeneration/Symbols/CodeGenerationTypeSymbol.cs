@@ -54,24 +54,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => null;
 
         public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public override bool IsNamespace => false;
 
@@ -98,9 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         protected sealed override CodeGenerationSymbol Clone()
-        {
-            return CloneWithNullableAnnotation(this.NullableAnnotation);
-        }
+            => CloneWithNullableAnnotation(this.NullableAnnotation);
 
         protected abstract CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation);
     }

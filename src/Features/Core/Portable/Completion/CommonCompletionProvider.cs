@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,16 +25,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 case CompletionTriggerKind.Insertion when position > 0:
                     var insertedCharacterPosition = position - 1;
                     return IsInsertionTrigger(text, insertedCharacterPosition, options);
-
                 default:
                     return false;
             }
         }
 
         internal virtual bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
-        {
-            return false;
-        }
+            => false;
 
         public sealed override async Task<CompletionDescription> GetDescriptionAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -91,14 +90,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public virtual Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return GetTextChangeAsync(selectedItem, ch, cancellationToken);
-        }
+            => GetTextChangeAsync(selectedItem, ch, cancellationToken);
 
         protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<TextChange?>(null);
-        }
+            => Task.FromResult<TextChange?>(null);
 
         private static readonly CompletionItemRules s_suggestionItemRules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 

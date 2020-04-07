@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     {
                         foreach (var constructor in state.UnimplementedConstructors)
                         {
-                            result.Add(new GenerateDefaultConstructorCodeAction((TService)this, document, state, constructor));
+                            result.Add(new GenerateDefaultConstructorCodeAction(document, state, constructor));
                         }
 
                         if (state.UnimplementedConstructors.Length > 1)
                         {
-                            result.Add(new CodeActionAll((TService)this, document, state, state.UnimplementedConstructors));
+                            result.Add(new CodeActionAll(document, state, state.UnimplementedConstructors));
                         }
                     }
                 }

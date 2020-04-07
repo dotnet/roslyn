@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            return default;
+            return null;
         }
     }
 }

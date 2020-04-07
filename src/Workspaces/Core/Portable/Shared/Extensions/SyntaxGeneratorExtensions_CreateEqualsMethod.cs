@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -17,11 +16,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SyntaxGeneratorExtensions
     {
-        private const string EqualsName = "Equals";
-        private const string DefaultName = "Default";
-        private const string ObjName = "obj";
-        public const string OtherName = "other";
-
         public static IMethodSymbol CreateEqualsMethod(
             this SyntaxGenerator factory,
             Compilation compilation,
@@ -148,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      var myType = (MyType)obj;
 
-                var localDeclaration = factory.SimpleLocalDeclarationStatement(
+                var localDeclaration = factory.SimpleLocalDeclarationStatement(factory.SyntaxGeneratorInternal,
                     containingType, localName, factory.CastExpression(containingType, objNameExpression));
 
                 statements.Add(ifStatement);
@@ -160,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      var myType = obj as MyType;
 
-                var localDeclaration = factory.SimpleLocalDeclarationStatement(
+                var localDeclaration = factory.SimpleLocalDeclarationStatement(factory.SyntaxGeneratorInternal,
                     containingType, localName, factory.TryCastExpression(objNameExpression, containingType));
 
                 statements.Add(localDeclaration);
@@ -367,26 +361,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return false;
         }
-
-        public static SyntaxNode GetDefaultEqualityComparer(
-            this SyntaxGenerator factory,
-            Compilation compilation,
-            ITypeSymbol type)
-        {
-            var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.Construct(type);
-            return factory.MemberAccessExpression(
-                factory.TypeExpression(constructedType),
-                factory.IdentifierName(DefaultName));
-        }
-
-        private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
-            => symbol switch
-            {
-                IFieldSymbol field => field.Type,
-                IPropertySymbol property => property.Type,
-                _ => compilation.GetSpecialType(SpecialType.System_Object),
-            };
 
         private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType)
         {

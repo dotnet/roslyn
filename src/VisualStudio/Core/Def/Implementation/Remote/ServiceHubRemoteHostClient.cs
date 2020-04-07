@@ -86,8 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var snapshotServiceStream = await RequestServiceAsync(workspace, hubClient, WellKnownServiceHubServices.SnapshotService, hostGroup, cancellationToken).ConfigureAwait(false);
                 var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
 
-                var remotableDataRpc = new RemotableDataJsonRpc(workspace, hubClient.Logger, snapshotServiceStream);
-                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
+                var remotableDataProvider = new RemotableDataProvider(workspace, hubClient.Logger, snapshotServiceStream);
+                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection, new ReferenceCountedDisposable<RemotableDataProvider>(remotableDataProvider));
 
                 var client = new ServiceHubRemoteHostClient(workspace, hubClient.Logger, connectionManager, remoteHostStream);
 
@@ -163,14 +163,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public override bool IsRemoteHost64Bit => RemoteHostOptions.IsServiceHubProcess64Bit(Workspace);
 
         public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-        {
-            return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
-        }
+            => _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
 
         protected override void OnStarted()
-        {
-            RegisterGlobalOperationNotifications();
-        }
+            => RegisterGlobalOperationNotifications();
 
         public override void Dispose()
         {
@@ -291,8 +287,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         }
 
         private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            Dispose();
-        }
+            => Dispose();
     }
 }

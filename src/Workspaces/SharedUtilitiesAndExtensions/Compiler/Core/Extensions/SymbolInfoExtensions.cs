@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class SymbolInfoExtensions
     {
         public static ImmutableArray<ISymbol> GetAllSymbols(this SymbolInfo info)
-        {
-            return GetAllSymbolsWorker(info).Distinct();
-        }
+            => GetAllSymbolsWorker(info).Distinct();
 
         private static ImmutableArray<ISymbol> GetAllSymbolsWorker(this SymbolInfo info)
         {
@@ -34,11 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ISymbol? GetAnySymbol(this SymbolInfo info)
-        {
-            return info.Symbol != null
-                ? info.Symbol
-                : info.CandidateSymbols.FirstOrDefault();
-        }
+            => info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
 
         public static ImmutableArray<ISymbol> GetBestOrAllSymbols(this SymbolInfo info)
         {

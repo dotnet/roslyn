@@ -15,28 +15,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected readonly IAnonymousTypeDisplayService AnonymousTypeDisplayService;
 
         protected AbstractSymbolDisplayService(IAnonymousTypeDisplayService anonymousTypeDisplayService)
-        {
-            AnonymousTypeDisplayService = anonymousTypeDisplayService;
-        }
+            => AnonymousTypeDisplayService = anonymousTypeDisplayService;
 
-        public abstract ImmutableArray<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null);
-        public abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDisplayFormat format);
         protected abstract AbstractSymbolDescriptionBuilder CreateDescriptionBuilder(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
-        public string ToDisplayString(ISymbol symbol, SymbolDisplayFormat format = null)
-        {
-            return ToDisplayParts(symbol, format).ToDisplayString();
-        }
-
-        public string ToMinimalDisplayString(SemanticModel semanticModel, int position, ISymbol symbol, SymbolDisplayFormat format = null)
-        {
-            return ToMinimalDisplayParts(semanticModel, position, symbol, format).ToDisplayString();
-        }
-
         public Task<string> ToDescriptionStringAsync(Workspace workspace, SemanticModel semanticModel, int position, ISymbol symbol, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
-        {
-            return ToDescriptionStringAsync(workspace, semanticModel, position, ImmutableArray.Create<ISymbol>(symbol), groups, cancellationToken);
-        }
+            => ToDescriptionStringAsync(workspace, semanticModel, position, ImmutableArray.Create<ISymbol>(symbol), groups, cancellationToken);
 
         public async Task<string> ToDescriptionStringAsync(Workspace workspace, SemanticModel semanticModel, int position, ImmutableArray<ISymbol> symbols, SymbolDescriptionGroups groups, CancellationToken cancellationToken)
         {
