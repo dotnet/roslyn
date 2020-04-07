@@ -93,7 +93,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (definitionItem.Location != null)
                 {
                     AddAndReportResultsIfAtMax(definitionItem);
-                    _id++;
+
+                    lock (_gate)
+                    {
+                        _id++;
+                    }
                 }
             }
         }
@@ -111,7 +115,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (referenceItem.Location != null)
                 {
                     AddAndReportResultsIfAtMax(referenceItem);
-                    _id++;
+
+                    lock (_gate)
+                    {
+                        _id++;
+                    }
                 }
             }
         }
