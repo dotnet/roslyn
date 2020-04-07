@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         private int _id = 0;
 
-        private static readonly SemaphoreSlim s_semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         private readonly Dictionary<DefinitionItem, int> _definitionToId =
             new Dictionary<DefinitionItem, int>();
@@ -61,64 +62,64 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         public async override Task OnCompletedAsync()
         {
-            await s_semaphore.WaitAsync(CancellationToken).ConfigureAwait(false);
-            if (_resultsChunk.IsEmpty())
+            var results = Array.Empty<VSReferenceItem>();
+            using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
-                return;
+                if (_resultsChunk.IsEmpty())
+                {
+                    return;
+                }
+
+                results = _resultsChunk.ToArray();
+                _resultsChunk.Clear();
             }
 
-            var results = _resultsChunk.ToArray();
-            _resultsChunk.Clear();
-
-            s_semaphore.Release();
             _progress.Report(results);
         }
 
         public async override Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
-            await s_semaphore.WaitAsync(CancellationToken).ConfigureAwait(false);
-
-            if (!_definitionToId.ContainsKey(definition))
+            using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
-                // Assinging a new id to the definition
-                _definitionToId.Add(definition, _id);
-
-                // Creating a new VSReferenceItem for the definition
-                var definitionItem = await GenerateVSReferenceItemAsync(
-                    _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
-                    definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
-                    symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
-
-                if (definitionItem.Location != null)
+                if (!_definitionToId.ContainsKey(definition))
                 {
-                    AddAndReportResultsIfAtMax(definitionItem);
-                    _id++;
+                    // Assinging a new id to the definition
+                    _definitionToId.Add(definition, _id);
+
+                    // Creating a new VSReferenceItem for the definition
+                    var definitionItem = await GenerateVSReferenceItemAsync(
+                        _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
+                        definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
+                        symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
+
+                    if (definitionItem.Location != null)
+                    {
+                        AddAndReportResultsIfAtMax(definitionItem);
+                        _id++;
+                    }
                 }
             }
-
-            s_semaphore.Release();
         }
 
         public async override Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
-            await s_semaphore.WaitAsync(CancellationToken).ConfigureAwait(false);
-
-            if (_definitionToId.TryGetValue(reference.Definition, out var definitionId))
+            using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
-                // Creating a new VSReferenceItem for the reference
-                var referenceItem = await GenerateVSReferenceItemAsync(
-                    _id, definitionId, _document, _position, reference.SourceSpan,
-                    reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
-                    reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
-
-                if (referenceItem.Location != null)
+                if (_definitionToId.TryGetValue(reference.Definition, out var definitionId))
                 {
-                    AddAndReportResultsIfAtMax(referenceItem);
-                    _id++;
+                    // Creating a new VSReferenceItem for the reference
+                    var referenceItem = await GenerateVSReferenceItemAsync(
+                        _id, definitionId, _document, _position, reference.SourceSpan,
+                        reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
+                        reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
+
+                    if (referenceItem.Location != null)
+                    {
+                        AddAndReportResultsIfAtMax(referenceItem);
+                        _id++;
+                    }
                 }
             }
-
-            s_semaphore.Release();
         }
 
         private void AddAndReportResultsIfAtMax(VSReferenceItem item)
