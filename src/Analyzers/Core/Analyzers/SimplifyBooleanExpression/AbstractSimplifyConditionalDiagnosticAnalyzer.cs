@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
-    using static SimplifyConditionalCodeFixProvider;
+    using static SimplifyBooleanExpressionConstants;
 
     internal abstract class AbstractSimplifyConditionalDiagnosticAnalyzer<
         TSyntaxKind,
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         protected AbstractSimplifyConditionalDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId,
                    CodeStyleOptions2.PreferSimplifiedBooleanExpressions,
-                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Conditional_expression_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(AnalyzersResources.Simplify_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                   new LocalizableResourceString(nameof(AnalyzersResources.Conditional_expression_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 

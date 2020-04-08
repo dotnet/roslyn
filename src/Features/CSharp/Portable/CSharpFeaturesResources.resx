@@ -439,9 +439,6 @@
   <data name="Hide_base_member" xml:space="preserve">
     <value>Hide base member</value>
   </data>
-  <data name="Delegate_invocation_can_be_simplified" xml:space="preserve">
-    <value>Delegate invocation can be simplified.</value>
-  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
