@@ -218,7 +218,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Else
                         ' We are to the left of an await-containing expression. Spill the arg.
-                        newExpression = SpillValue(arg, isReceiver:=(index = 0 AndAlso firstArgumentIsAReceiverOfAMethodCall), builder:=builder)
+                        newExpression = SpillValue(arg,
+                                                   isReceiver:=(index = 0 AndAlso firstArgumentIsAReceiverOfAMethodCall),
+                                                   shouldCheckSideEffects:=True,
+                                                   sideEffectsAlreadyChecked:=False,
+                                                   builder:=builder)
                     End If
 
                     newArgs(index) = newExpression
@@ -231,23 +235,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return newArgs.AsImmutableOrNull
             End Function
 
-            Private Function SpillValue(expr As BoundExpression, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
-                Return SpillValue(expr, isReceiver:=False, builder:=builder)
+            Private Function SpillValue(expr As BoundExpression, shouldCheckSideEffects As Boolean, sideEffectsAlreadyChecked As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
+                Return SpillValue(expr, isReceiver:=False, shouldCheckSideEffects, sideEffectsAlreadyChecked, builder:=builder)
             End Function
 
-            Private Function SpillValue(expr As BoundExpression, isReceiver As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
+            Private Function SpillValue(expr As BoundExpression, isReceiver As Boolean, shouldCheckSideEffects As Boolean, sideEffectsAlreadyChecked As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
                 If Unspillable(expr) Then
                     Return expr
 
                 ElseIf isReceiver OrElse expr.IsLValue Then
-                    Return SpillLValue(expr, isReceiver, builder)
+                    Return SpillLValue(expr, isReceiver, shouldCheckSideEffects, sideEffectsAlreadyChecked, builder)
 
                 Else
                     Return SpillRValue(expr, builder)
                 End If
             End Function
 
-            Private Function SpillLValue(expr As BoundExpression, isReceiver As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
+            Private Function SpillLValue(expr As BoundExpression, isReceiver As Boolean, shouldCheckSideEffects As Boolean, sideEffectsAlreadyChecked As Boolean, <[In], Out> ByRef builder As SpillBuilder) As BoundExpression
                 Debug.Assert(expr IsNot Nothing)
                 Debug.Assert(isReceiver OrElse expr.IsLValue)
 
@@ -277,13 +281,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Next
                         End If
 
-                        Return SpillLValue(sequence.ValueOpt, isReceiver, builder)
+                        Return SpillLValue(sequence.ValueOpt, shouldCheckSideEffects, sideEffectsAlreadyChecked, isReceiver, builder)
 
                     Case BoundKind.SpillSequence
                         Dim spill = DirectCast(expr, BoundSpillSequence)
                         builder.AddSpill(spill)
                         Debug.Assert(spill.ValueOpt IsNot Nothing)
-                        Return SpillLValue(spill.ValueOpt, isReceiver, builder)
+                        Return SpillLValue(spill.ValueOpt, isReceiver, shouldCheckSideEffects, sideEffectsAlreadyChecked, builder)
 
                     Case BoundKind.ArrayAccess
                         Dim array = DirectCast(expr, BoundArrayAccess)
@@ -298,8 +302,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         array = array.Update(spilledExpression, spilledIndices.AsImmutableOrNull, array.IsLValue, array.Type)
 
-                        ' Make sure side effects are checked
-                        builder.AddStatement(Me.F.ExpressionStatement(array))
+                        If shouldCheckSideEffects And Not sideEffectsAlreadyChecked Then
+                            ' Make sure side effects are checked
+                            builder.AddStatement(Me.F.ExpressionStatement(array))
+                        End If
 
                         Return array
 
@@ -310,7 +316,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return fieldAccess
                         End If
 
-                        Dim newReceiver As BoundExpression = SpillValue(fieldAccess.ReceiverOpt, isReceiver:=True, builder:=builder)
+                        Dim checkSideEffectsHere = shouldCheckSideEffects And Not sideEffectsAlreadyChecked
+
+                        Dim newReceiver As BoundExpression = SpillValue(fieldAccess.ReceiverOpt,
+                                                                        isReceiver:=True,
+                                                                        shouldCheckSideEffects:=True,
+                                                                        sideEffectsAlreadyChecked:=sideEffectsAlreadyChecked Or checkSideEffectsHere,
+                                                                        builder:=builder)
 
                         fieldAccess = fieldAccess.Update(newReceiver,
                                                          fieldAccess.FieldSymbol,
@@ -319,8 +331,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          fieldAccess.ConstantsInProgressOpt,
                                                          fieldAccess.Type)
 
-                        ' Make sure side effects are checked
-                        builder.AddStatement(Me.F.ExpressionStatement(fieldAccess))
+                        If checkSideEffectsHere Then
+                            ' Make sure side effects are checked
+                            builder.AddStatement(Me.F.ExpressionStatement(fieldAccess))
+                        End If
 
                         Return fieldAccess
 
