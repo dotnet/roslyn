@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -292,8 +293,36 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError);
+            string? diagnosticId = null;
+            string? urlFormat = null;
+            foreach (var (name, value) in this.CommonNamedArguments)
+            {
+                if (diagnosticId is null && name == ObsoleteAttributeData.DiagnosticIdPropertyName && IsStringProperty(ObsoleteAttributeData.DiagnosticIdPropertyName))
+                {
+                    diagnosticId = value.ValueInternal as string;
+                }
+                else if (urlFormat is null && name == ObsoleteAttributeData.UrlFormatPropertyName && IsStringProperty(ObsoleteAttributeData.UrlFormatPropertyName))
+                {
+                    urlFormat = value.ValueInternal as string;
+                }
+
+                if (diagnosticId is object && urlFormat is object)
+                {
+                    break;
+                }
+            }
+
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Obsolete, message, isError, diagnosticId, urlFormat);
         }
+
+        // Note: it is disallowed to declare a property and a field
+        // with the same name in C# or VB source, even if it is allowed in IL.
+        //
+        // We use a virtual method and override to prevent having to realize the public symbols just to decode obsolete attributes.
+        // Ideally we would use an abstract method, but that would require making the method visible to
+        // public consumers who inherit from this class, which we don't want to do.
+        // Therefore we just make it a 'private protected virtual' method instead.
+        private protected virtual bool IsStringProperty(string memberName) => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Decode the arguments to DeprecatedAttribute. DeprecatedAttribute can have 3 or 4 arguments.
@@ -316,7 +345,7 @@ namespace Microsoft.CodeAnalysis
                 isError = ((int)args[1].ValueInternal == 1);
             }
 
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, message, isError);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, message, isError, diagnosticId: null, urlFormat: null);
         }
 
         /// <summary>

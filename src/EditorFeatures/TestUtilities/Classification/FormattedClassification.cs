@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         }
 
         public override int GetHashCode()
-        {
-            return ClassificationName.GetHashCode() ^ Text.GetHashCode();
-        }
+            => ClassificationName.GetHashCode() ^ Text.GetHashCode();
 
         public override string ToString()
         {

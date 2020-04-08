@@ -246,8 +246,8 @@
   <data name="Global_Namespace" xml:space="preserve">
     <value>Global Namespace</value>
   </data>
-  <data name="Implement_interface_explicitly" xml:space="preserve">
-    <value>Implement interface explicitly</value>
+  <data name="Implement_all_members_explicitly" xml:space="preserve">
+    <value>Implement all members explicitly</value>
   </data>
   <data name="Implement_interface_abstractly" xml:space="preserve">
     <value>Implement interface abstractly</value>
@@ -610,9 +610,6 @@
   <data name="Extract_method" xml:space="preserve">
     <value>Extract method</value>
   </data>
-  <data name="Extract_method_plus_local" xml:space="preserve">
-    <value>Extract method + local</value>
-  </data>
   <data name="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket" xml:space="preserve">
     <value>Asynchronous method cannot have ref/out parameters : [{0}]</value>
   </data>
@@ -651,9 +648,6 @@ Do you want to continue?</value>
   </data>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
-  </data>
-  <data name="This_signature_does_not_contain_parameters_that_can_be_changed" xml:space="preserve">
-    <value>This signature does not contain parameters that can be changed.</value>
   </data>
   <data name="Unknown_error_occurred" xml:space="preserve">
     <value>Unknown error occurred</value>
@@ -818,9 +812,6 @@ Do you want to continue?</value>
   </data>
   <data name="attribute" xml:space="preserve">
     <value>attribute</value>
-  </data>
-  <data name="Use_auto_property" xml:space="preserve">
-    <value>Use auto property</value>
   </data>
   <data name="Replace_0_and_1_with_property" xml:space="preserve">
     <value>Replace '{0}' and '{1}' with property</value>
@@ -988,9 +979,6 @@ This version used in: {2}</value>
   <data name="project_0" xml:space="preserve">
     <value>project {0}</value>
   </data>
-  <data name="Inline_variable_declaration" xml:space="preserve">
-    <value>Inline variable declaration</value>
-  </data>
   <data name="Use_interpolated_verbatim_string" xml:space="preserve">
     <value>Use interpolated verbatim string</value>
   </data>
@@ -1020,21 +1008,6 @@ This version used in: {2}</value>
   </data>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
-  </data>
-  <data name="Use_coalesce_expression" xml:space="preserve">
-    <value>Use coalesce expression</value>
-  </data>
-  <data name="Use_null_propagation" xml:space="preserve">
-    <value>Use null propagation</value>
-  </data>
-  <data name="Variable_declaration_can_be_inlined" xml:space="preserve">
-    <value>Variable declaration can be inlined</value>
-  </data>
-  <data name="Prefer_explicitly_provided_tuple_element_name" xml:space="preserve">
-    <value>Prefer explicitly provided tuple element name</value>
-  </data>
-  <data name="Use_explicitly_provided_tuple_name" xml:space="preserve">
-    <value>Use explicitly provided tuple name</value>
   </data>
   <data name="Remove_document_0" xml:space="preserve">
     <value>Remove document '{0}'</value>
@@ -1105,9 +1078,6 @@ This version used in: {2}</value>
   <data name="Pick_members_to_be_used_in_Equals_GetHashCode" xml:space="preserve">
     <value>Pick members to be used in Equals/GetHashCode</value>
   </data>
-  <data name="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime" xml:space="preserve">
-    <value>Changes to expression trees may result in behavior changes at runtime</value>
-  </data>
   <data name="Generate_overrides" xml:space="preserve">
     <value>Generate overrides...</value>
   </data>
@@ -1123,11 +1093,11 @@ This version used in: {2}</value>
   <data name="Add_string_IsNullOrWhiteSpace_check" xml:space="preserve">
     <value>Add 'string.IsNullOrWhiteSpace' check</value>
   </data>
-  <data name="Create_and_initialize_field_0" xml:space="preserve">
-    <value>Create and initialize field '{0}'</value>
+  <data name="Create_and_assign_field_0" xml:space="preserve">
+    <value>Create and assign field '{0}'</value>
   </data>
-  <data name="Create_and_initialize_property_0" xml:space="preserve">
-    <value>Create and initialize property '{0}'</value>
+  <data name="Create_and_assign_property_0" xml:space="preserve">
+    <value>Create and assign property '{0}'</value>
   </data>
   <data name="Initialize_field_0" xml:space="preserve">
     <value>Initialize field '{0}'</value>
@@ -1144,41 +1114,11 @@ This version used in: {2}</value>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
   </data>
-  <data name="Simplify_default_expression" xml:space="preserve">
-    <value>Simplify 'default' expression</value>
-  </data>
-  <data name="default_expression_can_be_simplified" xml:space="preserve">
-    <value>'default' expression can be simplified</value>
-  </data>
-  <data name="Format_string_contains_invalid_placeholder" xml:space="preserve">
-    <value>Format string contains invalid placeholder</value>
-  </data>
-  <data name="Invalid_format_string" xml:space="preserve">
-    <value>Invalid format string</value>
-  </data>
-  <data name="Use_inferred_member_name" xml:space="preserve">
-    <value>Use inferred member name</value>
-  </data>
-  <data name="Member_name_can_be_simplified" xml:space="preserve">
-    <value>Member name can be simplified</value>
-  </data>
   <data name="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
   <data name="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
-  </data>
-  <data name="Unreachable_code_detected" xml:space="preserve">
-    <value>Unreachable code detected</value>
-  </data>
-  <data name="Remove_unreachable_code" xml:space="preserve">
-    <value>Remove unreachable code</value>
-  </data>
-  <data name="Modifiers_are_not_ordered" xml:space="preserve">
-    <value>Modifiers are not ordered</value>
-  </data>
-  <data name="Order_modifiers" xml:space="preserve">
-    <value>Order modifiers</value>
   </data>
   <data name="in_0_project_1" xml:space="preserve">
     <value>in {0} (project {1})</value>
@@ -1198,32 +1138,14 @@ This version used in: {2}</value>
   <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
     <value>Generate constructor in '{0}' (without fields)</value>
   </data>
-  <data name="Parentheses_can_be_removed" xml:space="preserve">
-    <value>Parentheses can be removed</value>
-  </data>
-  <data name="Remove_unnecessary_parentheses" xml:space="preserve">
-    <value>Remove unnecessary parentheses</value>
-  </data>
   <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
     <value>Warning: Method overrides symbol from metadata</value>
-  </data>
-  <data name="Add_parentheses_for_clarity" xml:space="preserve">
-    <value>Add parentheses for clarity</value>
-  </data>
-  <data name="Parentheses_should_be_added_for_clarity" xml:space="preserve">
-    <value>Parentheses should be added for clarity</value>
   </data>
   <data name="Use_0" xml:space="preserve">
     <value>Use {0}</value>
   </data>
   <data name="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Switching between a lambda and a local function will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Deconstruct_variable_declaration" xml:space="preserve">
-    <value>Deconstruct variable declaration</value>
-  </data>
-  <data name="Variable_declaration_can_be_deconstructed" xml:space="preserve">
-    <value>Variable declaration can be deconstructed</value>
   </data>
   <data name="Add_argument_name_0_including_trailing_arguments" xml:space="preserve">
     <value>Add argument name '{0}' (including trailing arguments)</value>
@@ -1246,14 +1168,8 @@ This version used in: {2}</value>
   <data name="Warning_colon_Collection_may_be_modified_during_iteration" xml:space="preserve">
     <value>Warning: Collection may be modified during iteration.</value>
   </data>
-  <data name="Convert_to_conditional_expression" xml:space="preserve">
-    <value>Convert to conditional expression</value>
-  </data>
   <data name="Convert_to_linq" xml:space="preserve">
     <value>Convert to LINQ</value>
-  </data>
-  <data name="Convert_to_tuple" xml:space="preserve">
-    <value>Convert to tuple</value>
   </data>
   <data name="Convert_to_class" xml:space="preserve">
     <value>Convert to class</value>
@@ -1311,9 +1227,6 @@ This version used in: {2}</value>
   </data>
   <data name="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
     <value>Warning: Changing namespace may produce invalid code and change code meaning.</value>
-  </data>
-  <data name="Use_compound_assignment" xml:space="preserve">
-    <value>Use compound assignment</value>
   </data>
   <data name="Invert_conditional" xml:space="preserve">
     <value>Invert conditional</value>
@@ -1399,18 +1312,6 @@ This version used in: {2}</value>
   <data name="Merge_with_previous_0_statement" xml:space="preserve">
     <value>Merge with previous '{0}' statement</value>
   </data>
-  <data name="Indexing_can_be_simplified" xml:space="preserve">
-    <value>Indexing can be simplified</value>
-  </data>
-  <data name="Use_index_operator" xml:space="preserve">
-    <value>Use index operator</value>
-  </data>
-  <data name="Use_range_operator" xml:space="preserve">
-    <value>Use range operator</value>
-  </data>
-  <data name="_0_can_be_simplified" xml:space="preserve">
-    <value>{0} can be simplified</value>
-  </data>
   <data name="Unwrap_expression" xml:space="preserve">
     <value>Unwrap expression</value>
   </data>
@@ -1446,22 +1347,6 @@ This version used in: {2}</value>
   </data>
   <data name="Wrap_and_align_expression" xml:space="preserve">
     <value>Wrap and align expression</value>
-  </data>
-  <data name="Local_function_can_be_made_static" xml:space="preserve">
-    <value>Local function can be made static</value>
-  </data>
-  <data name="Make_local_function_static" xml:space="preserve">
-    <value>Make local function 'static'</value>
-  </data>
-  <data name="Use_simple_using_statement" xml:space="preserve">
-    <value>Use simple 'using' statement</value>
-  </data>
-  <data name="using_statement_can_be_simplified" xml:space="preserve">
-    <value>'using' statement can be simplified</value>
-  </data>
-  <data name="Make_readonly_fields_writable" xml:space="preserve">
-    <value>Make readonly fields writable</value>
-    <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
   <data name="Move_contents_to_namespace" xml:space="preserve">
     <value>Move contents to namespace...</value>
@@ -1554,12 +1439,6 @@ This version used in: {2}</value>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
   </data>
-  <data name="Use_System_HashCode" xml:space="preserve">
-    <value>Use 'System.HashCode'</value>
-  </data>
-  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
-    <value>'GetHashCode' implementation can be simplified</value>
-  </data>
   <data name="Implement_0_implicitly" xml:space="preserve">
     <value>Implement '{0}' implicitly</value>
   </data>
@@ -1571,12 +1450,6 @@ This version used in: {2}</value>
   </data>
   <data name="Implement_0_explicitly" xml:space="preserve">
     <value>Implement '{0}' explicitly</value>
-  </data>
-  <data name="Interpolation_can_be_simplified" xml:space="preserve">
-    <value>Interpolation can be simplified</value>
-  </data>
-  <data name="Simplify_interpolation" xml:space="preserve">
-    <value>Simplify interpolation</value>
   </data>
   <data name="Make_member_static" xml:space="preserve">
     <value>Make static</value>
@@ -1593,15 +1466,15 @@ This version used in: {2}</value>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
   </data>
-  <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
-    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
-    <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
-  </data>
   <data name="Resolve_conflict_markers" xml:space="preserve">
     <value>Resolve conflict markers</value>
   </data>
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
+  </data>
+  <data name="Add_DebuggerDisplay_attribute" xml:space="preserve">
+    <value>Add 'DebuggerDisplay' attribute</value>
+    <comment>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</comment>
   </data>
   <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
     <value>Do not change this code. Put cleanup code in '{0}' method</value>
@@ -1612,10 +1485,475 @@ This version used in: {2}</value>
   <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
     <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
   </data>
-  <data name="Simplify_conditional_expression" xml:space="preserve">
-    <value>Simplify conditional expression</value>
+  <data name="AM_PM_abbreviated" xml:space="preserve">
+    <value>AM/PM (abbreviated)</value>
   </data>
-  <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
-    <value>Conditional expression can be simplified</value>
+  <data name="AM_PM_abbreviated_description" xml:space="preserve">
+    <value>The "t" custom format specifier represents the first character of the AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+If the "t" format specifier is used without other custom format specifiers, it's interpreted as the "t" standard date and time format specifier.</value>
+  </data>
+  <data name="AM_PM_full" xml:space="preserve">
+    <value>AM/PM (full)</value>
+  </data>
+  <data name="AM_PM_full_description" xml:space="preserve">
+    <value>The "tt" custom format specifier (plus any number of additional "t" specifiers) represents the entire AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+Make sure to use the "tt" specifier for languages for which it's necessary to maintain the distinction between AM and PM. An example is Japanese, for which the AM and PM designators differ in the second character instead of the first character.</value>
+  </data>
+  <data name="date_separator" xml:space="preserve">
+    <value>date separator</value>
+  </data>
+  <data name="date_separator_description" xml:space="preserve">
+    <value>The "/" custom format specifier represents the date separator, which is used to differentiate years, months, and days. The appropriate localized date separator is retrieved from the DateTimeFormatInfo.DateSeparator property of the current or specified culture.
+
+Note: To change the date separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string mm'/'dd'/'yyyy produces a result string in which "/" is always used as the date separator. To change the date separator for all dates for a culture, either change the value of the DateTimeFormatInfo.DateSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its DateSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the "/" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</value>
+  </data>
+  <data name="day_of_the_month_1_2_digits" xml:space="preserve">
+    <value>day of the month (1-2 digits)</value>
+  </data>
+  <data name="day_of_the_month_1_2_digits_description" xml:space="preserve">
+    <value>The "d" custom format specifier represents the day of the month as a number from 1 through 31. A single-digit day is formatted without a leading zero.
+
+If the "d" format specifier is used without other custom format specifiers, it's interpreted as the "d" standard date and time format specifier.</value>
+  </data>
+  <data name="day_of_the_month_2_digits" xml:space="preserve">
+    <value>day of the month (2 digits)</value>
+  </data>
+  <data name="day_of_the_month_2_digits_description" xml:space="preserve">
+    <value>The "dd" custom format string represents the day of the month as a number from 01 through 31. A single-digit day is formatted with a leading zero.</value>
+  </data>
+  <data name="day_of_the_week_abbreviated" xml:space="preserve">
+    <value>day of the week (abbreviated)</value>
+  </data>
+  <data name="day_of_the_week_abbreviated_description" xml:space="preserve">
+    <value>The "ddd" custom format specifier represents the abbreviated name of the day of the week. The localized abbreviated name of the day of the week is retrieved from the DateTimeFormatInfo.AbbreviatedDayNames property of the current or specified culture.</value>
+  </data>
+  <data name="day_of_the_week_full" xml:space="preserve">
+    <value>day of the week (full)</value>
+  </data>
+  <data name="day_of_the_week_full_description" xml:space="preserve">
+    <value>The "dddd" custom format specifier (plus any number of additional "d" specifiers) represents the full name of the day of the week. The localized name of the day of the week is retrieved from the DateTimeFormatInfo.DayNames property of the current or specified culture.</value>
+  </data>
+  <data name="full_long_date_time" xml:space="preserve">
+    <value>full long date/time</value>
+  </data>
+  <data name="full_long_date_time_description" xml:space="preserve">
+    <value>The "F" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.FullDateTimePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy HH:mm:ss".</value>
+  </data>
+  <data name="full_short_date_time" xml:space="preserve">
+    <value>full short date/time</value>
+  </data>
+  <data name="full_short_date_time_description" xml:space="preserve">
+    <value>The Full Date Short Time ("f") Format Specifier
+
+The "f" standard format specifier represents a combination of the long date ("D") and short time ("t") patterns, separated by a space.</value>
+  </data>
+  <data name="general_long_date_time" xml:space="preserve">
+    <value>general long date/time</value>
+  </data>
+  <data name="general_long_date_time_description" xml:space="preserve">
+    <value>The "G" standard format specifier represents a combination of the short date ("d") and long time ("T") patterns, separated by a space.</value>
+  </data>
+  <data name="general_short_date_time" xml:space="preserve">
+    <value>general short date/time</value>
+  </data>
+  <data name="general_short_date_time_description" xml:space="preserve">
+    <value>The "g" standard format specifier represents a combination of the short date ("d") and short time ("t") patterns, separated by a space.</value>
+  </data>
+  <data name="long_date" xml:space="preserve">
+    <value>long date</value>
+  </data>
+  <data name="long_date_description" xml:space="preserve">
+    <value>The "D" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.LongDatePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy".</value>
+  </data>
+  <data name="long_time" xml:space="preserve">
+    <value>long time</value>
+  </data>
+  <data name="long_time_description" xml:space="preserve">
+    <value>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</value>
+  </data>
+  <data name="minute_1_2_digits" xml:space="preserve">
+    <value>minute (1-2 digits)</value>
+  </data>
+  <data name="minute_1_2_digits_description" xml:space="preserve">
+    <value>The "m" custom format specifier represents the minute as a number from 0 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted without a leading zero.
+
+If the "m" format specifier is used without other custom format specifiers, it's interpreted as the "m" standard date and time format specifier.</value>
+  </data>
+  <data name="minute_2_digits" xml:space="preserve">
+    <value>minute (2 digits)</value>
+  </data>
+  <data name="minute_2_digits_description" xml:space="preserve">
+    <value>The "mm" custom format specifier (plus any number of additional "m" specifiers) represents the minute as a number from 00 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted with a leading zero.</value>
+  </data>
+  <data name="month_1_2_digits" xml:space="preserve">
+    <value>month (1-2 digits)</value>
+  </data>
+  <data name="month_1_2_digits_description" xml:space="preserve">
+    <value>The "M" custom format specifier represents the month as a number from 1 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted without a leading zero.
+
+If the "M" format specifier is used without other custom format specifiers, it's interpreted as the "M" standard date and time format specifier.</value>
+  </data>
+  <data name="month_2_digits" xml:space="preserve">
+    <value>month (2 digits)</value>
+  </data>
+  <data name="month_2_digits_description" xml:space="preserve">
+    <value>The "MM" custom format specifier represents the month as a number from 01 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted with a leading zero.</value>
+  </data>
+  <data name="month_abbreviated" xml:space="preserve">
+    <value>month (abbreviated)</value>
+  </data>
+  <data name="month_abbreviated_description" xml:space="preserve">
+    <value>The "MMM" custom format specifier represents the abbreviated name of the month. The localized abbreviated name of the month is retrieved from the DateTimeFormatInfo.AbbreviatedMonthNames property of the current or specified culture.</value>
+  </data>
+  <data name="month_day" xml:space="preserve">
+    <value>month day</value>
+  </data>
+  <data name="month_day_description" xml:space="preserve">
+    <value>The "M" or "m" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.MonthDayPattern property. For example, the custom format string for the invariant culture is "MMMM dd".</value>
+  </data>
+  <data name="month_full" xml:space="preserve">
+    <value>month (full)</value>
+  </data>
+  <data name="month_full_description" xml:space="preserve">
+    <value>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</value>
+  </data>
+  <data name="period_era" xml:space="preserve">
+    <value>period/era</value>
+  </data>
+  <data name="period_era_description" xml:space="preserve">
+    <value>The "g" or "gg" custom format specifiers (plus any number of additional "g" specifiers) represents the period or era, such as A.D. The formatting operation ignores this specifier if the date to be formatted doesn't have an associated period or era string.
+
+If the "g" format specifier is used without other custom format specifiers, it's interpreted as the "g" standard date and time format specifier.</value>
+  </data>
+  <data name="rfc1123_date_time" xml:space="preserve">
+    <value>rfc1123 date/time</value>
+  </data>
+  <data name="rfc1123_date_time_description" xml:space="preserve">
+    <value>The "R" or "r" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.RFC1123Pattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</value>
+  </data>
+  <data name="round_trip_date_time" xml:space="preserve">
+    <value>round-trip date/time</value>
+  </data>
+  <data name="round_trip_date_time_description" xml:space="preserve">
+    <value>The "O" or "o" standard format specifier represents a custom date and time format string using a pattern that preserves time zone information and emits a result string that complies with ISO 8601. For DateTime values, this format specifier is designed to preserve date and time values along with the DateTime.Kind property in text. The formatted string can be parsed back by using the DateTime.Parse(String, IFormatProvider, DateTimeStyles) or DateTime.ParseExact method if the styles parameter is set to DateTimeStyles.RoundtripKind.
+
+The "O" or "o" standard format specifier corresponds to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string for DateTime values and to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzzz" custom format string for DateTimeOffset values. In this string, the pairs of single quotation marks that delimit individual characters, such as the hyphens, the colons, and the letter "T", indicate that the individual character is a literal that cannot be changed. The apostrophes do not appear in the output string.
+
+The "O" or "o" standard format specifier (and the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string) takes advantage of the three ways that ISO 8601 represents time zone information to preserve the Kind property of DateTime values:
+
+    The time zone component of DateTimeKind.Local date and time values is an offset from UTC (for example, +01:00, -07:00). All DateTimeOffset values are also represented in this format.
+
+    The time zone component of DateTimeKind.Utc date and time values uses "Z" (which stands for zero offset) to represent UTC.
+
+    DateTimeKind.Unspecified date and time values have no time zone information.
+
+Because the "O" or "o" standard format specifier conforms to an international standard, the formatting or parsing operation that uses the specifier always uses the invariant culture and the Gregorian calendar.
+
+Strings that are passed to the Parse, TryParse, ParseExact, and TryParseExact methods of DateTime and DateTimeOffset can be parsed by using the "O" or "o" format specifier if they are in one of these formats. In the case of DateTime objects, the parsing overload that you call should also include a styles parameter with a value of DateTimeStyles.RoundtripKind. Note that if you call a parsing method with the custom format string that corresponds to the "O" or "o" format specifier, you won't get the same results as "O" or "o". This is because parsing methods that use a custom format string can't parse the string representation of date and time values that lack a time zone component or use "Z" to indicate UTC.</value>
+  </data>
+  <data name="second_1_2_digits" xml:space="preserve">
+    <value>second (1-2 digits)</value>
+  </data>
+  <data name="second_1_2_digits_description" xml:space="preserve">
+    <value>The "s" custom format specifier represents the seconds as a number from 0 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted without a leading zero.
+
+If the "s" format specifier is used without other custom format specifiers, it's interpreted as the "s" standard date and time format specifier.</value>
+  </data>
+  <data name="second_2_digits" xml:space="preserve">
+    <value>second (2 digits)</value>
+  </data>
+  <data name="second_2_digits_description" xml:space="preserve">
+    <value>The "ss" custom format specifier (plus any number of additional "s" specifiers) represents the seconds as a number from 00 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted with a leading zero.</value>
+  </data>
+  <data name="short_date" xml:space="preserve">
+    <value>short date</value>
+  </data>
+  <data name="short_date_description" xml:space="preserve">
+    <value>The "d" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.ShortDatePattern property. For example, the custom format string that is returned by the ShortDatePattern property of the invariant culture is "MM/dd/yyyy".</value>
+  </data>
+  <data name="short_time" xml:space="preserve">
+    <value>short time</value>
+  </data>
+  <data name="short_time_description" xml:space="preserve">
+    <value>The "t" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.ShortTimePattern property. For example, the custom format string for the invariant culture is "HH:mm".</value>
+  </data>
+  <data name="sortable_date_time" xml:space="preserve">
+    <value>sortable date/time</value>
+  </data>
+  <data name="sortable_date_time_description" xml:space="preserve">
+    <value>The "s" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.SortableDateTimePattern property. The pattern reflects a defined standard (ISO 8601), and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd'T'HH':'mm':'ss".
+
+The purpose of the "s" format specifier is to produce result strings that sort consistently in ascending or descending order based on date and time values. As a result, although the "s" standard format specifier represents a date and time value in a consistent format, the formatting operation does not modify the value of the date and time object that is being formatted to reflect its DateTime.Kind property or its DateTimeOffset.Offset value. For example, the result strings produced by formatting the date and time values 2014-11-15T18:32:17+00:00 and 2014-11-15T18:32:17+08:00 are identical.
+
+When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</value>
+  </data>
+  <data name="time_separator" xml:space="preserve">
+    <value>time separator</value>
+  </data>
+  <data name="time_separator_description" xml:space="preserve">
+    <value>The ":" custom format specifier represents the time separator, which is used to differentiate hours, minutes, and seconds. The appropriate localized time separator is retrieved from the DateTimeFormatInfo.TimeSeparator property of the current or specified culture.
+
+Note: To change the time separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string hh'_'dd'_'ss produces a result string in which "_" (an underscore) is always used as the time separator. To change the time separator for all dates for a culture, either change the value of the DateTimeFormatInfo.TimeSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its TimeSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the ":" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</value>
+  </data>
+  <data name="time_zone" xml:space="preserve">
+    <value>time zone</value>
+  </data>
+  <data name="time_zone_description" xml:space="preserve">
+    <value>The "K" custom format specifier represents the time zone information of a date and time value. When this format specifier is used with DateTime values, the result string is defined by the value of the DateTime.Kind property:
+
+    For the local time zone (a DateTime.Kind property value of DateTimeKind.Local), this specifier is equivalent to the "zzz" specifier and produces a result string containing the local offset from Coordinated Universal Time (UTC); for example, "-07:00".
+
+    For a UTC time (a DateTime.Kind property value of DateTimeKind.Utc), the result string includes a "Z" character to represent a UTC date.
+
+    For a time from an unspecified time zone (a time whose DateTime.Kind property equals DateTimeKind.Unspecified), the result is equivalent to String.Empty.
+
+For DateTimeOffset values, the "K" format specifier is equivalent to the "zzz" format specifier, and produces a result string containing the DateTimeOffset value's offset from UTC.
+
+If the "K" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</value>
+  </data>
+  <data name="universal_full_date_time" xml:space="preserve">
+    <value>universal full date/time</value>
+  </data>
+  <data name="universal_full_date_time_description" xml:space="preserve">
+    <value>The "U" standard format specifier represents a custom date and time format string that is defined by a specified culture's DateTimeFormatInfo.FullDateTimePattern property. The pattern is the same as the "F" pattern. However, the DateTime value is automatically converted to UTC before it is formatted.</value>
+  </data>
+  <data name="universal_sortable_date_time" xml:space="preserve">
+    <value>universal sortable date/time</value>
+  </data>
+  <data name="universal_sortable_date_time_description" xml:space="preserve">
+    <value>The "u" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.UniversalSortableDateTimePattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd HH':'mm':'ss'Z'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.
+
+Although the result string should express a time as Coordinated Universal Time (UTC), no conversion of the original DateTime value is performed during the formatting operation. Therefore, you must convert a DateTime value to UTC by calling the DateTime.ToUniversalTime method before formatting it.</value>
+  </data>
+  <data name="utc_hour_and_minute_offset" xml:space="preserve">
+    <value>utc hour and minute offset</value>
+  </data>
+  <data name="utc_hour_and_minute_offset_description" xml:space="preserve">
+    <value>With DateTime values, the "zzz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours and minutes. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zzz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours and minutes.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</value>
+  </data>
+  <data name="utc_hour_offset_1_2_digits" xml:space="preserve">
+    <value>utc hour offset (1-2 digits)</value>
+  </data>
+  <data name="utc_hour_offset_1_2_digits_description" xml:space="preserve">
+    <value>With DateTime values, the "z" custom format specifier represents the signed offset of the local operating system's time zone from Coordinated Universal Time (UTC), measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "z" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted without a leading zero.
+
+If the "z" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</value>
+  </data>
+  <data name="utc_hour_offset_2_digits" xml:space="preserve">
+    <value>utc hour offset (2 digits)</value>
+  </data>
+  <data name="utc_hour_offset_2_digits_description" xml:space="preserve">
+    <value>With DateTime values, the "zz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</value>
+  </data>
+  <data name="year_1_2_digits" xml:space="preserve">
+    <value>year (1-2 digits)</value>
+  </data>
+  <data name="year_1_2_digits_description" xml:space="preserve">
+    <value>The "y" custom format specifier represents the year as a one-digit or two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the first digit of a two-digit year begins with a zero (for example, 2008), the number is formatted without a leading zero.
+
+If the "y" format specifier is used without other custom format specifiers, it's interpreted as the "y" standard date and time format specifier.</value>
+  </data>
+  <data name="year_2_digits" xml:space="preserve">
+    <value>year (2 digits)</value>
+  </data>
+  <data name="year_2_digits_description" xml:space="preserve">
+    <value>The "yy" custom format specifier represents the year as a two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the two-digit year has fewer than two significant digits, the number is padded with leading zeros to produce two digits.
+
+In a parsing operation, a two-digit year that is parsed using the "yy" custom format specifier is interpreted based on the Calendar.TwoDigitYearMax property of the format provider's current calendar. The following example parses the string representation of a date that has a two-digit year by using the default Gregorian calendar of the en-US culture, which, in this case, is the current culture. It then changes the current culture's CultureInfo object to use a GregorianCalendar object whose TwoDigitYearMax property has been modified.</value>
+  </data>
+  <data name="year_3_4_digits" xml:space="preserve">
+    <value>year (3-4 digits)</value>
+  </data>
+  <data name="year_3_4_digits_description" xml:space="preserve">
+    <value>The "yyy" custom format specifier represents the year with a minimum of three digits. If the year has more than three significant digits, they are included in the result string. If the year has fewer than three digits, the number is padded with leading zeros to produce three digits.</value>
+  </data>
+  <data name="year_4_digits" xml:space="preserve">
+    <value>year (4 digits)</value>
+  </data>
+  <data name="year_4_digits_description" xml:space="preserve">
+    <value>The "yyyy" custom format specifier represents the year with a minimum of four digits. If the year has more than four significant digits, they are included in the result string. If the year has fewer than four digits, the number is padded with leading zeros to produce four digits.</value>
+  </data>
+  <data name="year_5_digits" xml:space="preserve">
+    <value>year (5 digits)</value>
+  </data>
+  <data name="year_5_digits_description" xml:space="preserve">
+    <value>The "yyyyy" custom format specifier (plus any number of additional "y" specifiers) represents the year with a minimum of five digits. If the year has more than five significant digits, they are included in the result string. If the year has fewer than five digits, the number is padded with leading zeros to produce five digits.
+
+If there are additional "y" specifiers, the number is padded with as many leading zeros as necessary to produce the number of "y" specifiers.</value>
+  </data>
+  <data name="year_month" xml:space="preserve">
+    <value>year month</value>
+  </data>
+  <data name="year_month_description" xml:space="preserve">
+    <value>The "Y" or "y" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.YearMonthPattern property of a specified culture. For example, the custom format string for the invariant culture is "yyyy MMMM".</value>
+  </data>
+  <data name="_10000000ths_of_a_second" xml:space="preserve">
+    <value>10,000,000ths of a second</value>
+  </data>
+  <data name="_10000000ths_of_a_second_description" xml:space="preserve">
+    <value>The "fffffff" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</value>
+  </data>
+  <data name="_10000000ths_of_a_second_non_zero" xml:space="preserve">
+    <value>10,000,000ths of a second (non-zero)</value>
+  </data>
+  <data name="_10000000ths_of_a_second_non_zero_description" xml:space="preserve">
+    <value>The "FFFFFFF" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value. However, trailing zeros or seven zero digits aren't displayed.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</value>
+  </data>
+  <data name="_1000000ths_of_a_second" xml:space="preserve">
+    <value>1,000,000ths of a second</value>
+  </data>
+  <data name="_1000000ths_of_a_second_description" xml:space="preserve">
+    <value>The "ffffff" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</value>
+  </data>
+  <data name="_1000000ths_of_a_second_non_zero" xml:space="preserve">
+    <value>1,000,000ths of a second (non-zero)</value>
+  </data>
+  <data name="_1000000ths_of_a_second_non_zero_description" xml:space="preserve">
+    <value>The "FFFFFF" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value. However, trailing zeros or six zero digits aren't displayed.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</value>
+  </data>
+  <data name="_100000ths_of_a_second" xml:space="preserve">
+    <value>100,000ths of a second</value>
+  </data>
+  <data name="_100000ths_of_a_second_description" xml:space="preserve">
+    <value>The "fffff" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</value>
+  </data>
+  <data name="_100000ths_of_a_second_non_zero" xml:space="preserve">
+    <value>100,000ths of a second (non-zero)</value>
+  </data>
+  <data name="_100000ths_of_a_second_non_zero_description" xml:space="preserve">
+    <value>The "FFFFF" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value. However, trailing zeros or five zero digits aren't displayed.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</value>
+  </data>
+  <data name="_10000ths_of_a_second" xml:space="preserve">
+    <value>10,000ths of a second</value>
+  </data>
+  <data name="_10000ths_of_a_second_description" xml:space="preserve">
+    <value>The "ffff" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT version 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</value>
+  </data>
+  <data name="_10000ths_of_a_second_non_zero" xml:space="preserve">
+    <value>10,000ths of a second (non-zero)</value>
+  </data>
+  <data name="_10000ths_of_a_second_non_zero_description" xml:space="preserve">
+    <value>The "FFFF" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value. However, trailing zeros or four zero digits aren't displayed.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</value>
+  </data>
+  <data name="_1000ths_of_a_second" xml:space="preserve">
+    <value>1,000ths of a second</value>
+  </data>
+  <data name="_1000ths_of_a_second_description" xml:space="preserve">
+    <value>The "fff" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value.</value>
+  </data>
+  <data name="_1000ths_of_a_second_non_zero" xml:space="preserve">
+    <value>1,000ths of a second (non-zero)</value>
+  </data>
+  <data name="_1000ths_of_a_second_non_zero_description" xml:space="preserve">
+    <value>The "FFF" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value. However, trailing zeros or three zero digits aren't displayed.</value>
+  </data>
+  <data name="_100ths_of_a_second" xml:space="preserve">
+    <value>100ths of a second</value>
+  </data>
+  <data name="_100ths_of_a_second_description" xml:space="preserve">
+    <value>The "ff" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value.</value>
+  </data>
+  <data name="_100ths_of_a_second_non_zero" xml:space="preserve">
+    <value>100ths of a second (non-zero)</value>
+  </data>
+  <data name="_100ths_of_a_second_non_zero_description" xml:space="preserve">
+    <value>The "FF" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value. However, trailing zeros or two zero digits aren't displayed.</value>
+  </data>
+  <data name="_10ths_of_a_second" xml:space="preserve">
+    <value>10ths of a second</value>
+  </data>
+  <data name="_10ths_of_a_second_description" xml:space="preserve">
+    <value>The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+
+When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</value>
+  </data>
+  <data name="_10ths_of_a_second_non_zero" xml:space="preserve">
+    <value>10ths of a second (non-zero)</value>
+  </data>
+  <data name="_10ths_of_a_second_non_zero_description" xml:space="preserve">
+    <value>The "F" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value. Nothing is displayed if the digit is zero.
+
+If the "F" format specifier is used without other format specifiers, it's interpreted as the "F" standard date and time format specifier.
+
+The number of "F" format specifiers used with the ParseExact, TryParseExact, ParseExact, or TryParseExact method indicates the maximum number of most significant digits of the seconds fraction that can be present to successfully parse the string.</value>
+  </data>
+  <data name="_12_hour_clock_1_2_digits" xml:space="preserve">
+    <value>12 hour clock (1-2 digits)</value>
+  </data>
+  <data name="_12_hour_clock_1_2_digits_description" xml:space="preserve">
+    <value>The "h" custom format specifier represents the hour as a number from 1 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted without a leading zero. For example, given a time of 5:43 in the morning or afternoon, this custom format specifier displays "5".
+
+If the "h" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</value>
+  </data>
+  <data name="_12_hour_clock_2_digits" xml:space="preserve">
+    <value>12 hour clock (2 digits)</value>
+  </data>
+  <data name="_12_hour_clock_2_digits_description" xml:space="preserve">
+    <value>The "hh" custom format specifier (plus any number of additional "h" specifiers) represents the hour as a number from 01 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted with a leading zero. For example, given a time of 5:43 in the morning or afternoon, this format specifier displays "05".</value>
+  </data>
+  <data name="_24_hour_clock_1_2_digits" xml:space="preserve">
+    <value>24 hour clock (1-2 digits)</value>
+  </data>
+  <data name="_24_hour_clock_1_2_digits_description" xml:space="preserve">
+    <value>The "H" custom format specifier represents the hour as a number from 0 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted without a leading zero.
+
+If the "H" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</value>
+  </data>
+  <data name="_24_hour_clock_2_digits" xml:space="preserve">
+    <value>24 hour clock (2 digits)</value>
+  </data>
+  <data name="_24_hour_clock_2_digits_description" xml:space="preserve">
+    <value>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</value>
+  </data>
+  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
+    <value>Implement remaining members explicitly</value>
+  </data>
+  <data name="Generate_for_0" xml:space="preserve">
+    <value>Generate for '{0}'</value>
+  </data>
+  <data name="Generate_comparison_operators" xml:space="preserve">
+    <value>Generate comparison operators</value>
+  </data>
+  <data name="Create_and_assign_remaining_as_fields" xml:space="preserve">
+    <value>Create and assign remaining as fields</value>
+  </data>
+  <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
+    <value>Create and assign remaining as properties</value>
   </data>
 </root>

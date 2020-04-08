@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public bool IsForeground()
-        {
-            return _threadingContext.JoinableTaskContext.IsOnMainThread;
-        }
+            => _threadingContext.JoinableTaskContext.IsOnMainThread;
 
         public void AssertIsForeground()
         {
@@ -58,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public void AssertIsBackground()
-        {
-            Contract.ThrowIfTrue(IsForeground());
-        }
+            => Contract.ThrowIfTrue(IsForeground());
 
         /// <summary>
         /// A helpful marker method that can be used by deriving classes to indicate that a 

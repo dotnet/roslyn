@@ -91,8 +91,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         }
 
         private static string GetSubmissionFromSelectedSpans(IEditorOptions editorOptions, IEnumerable<SnapshotSpan> selectedSpans)
-        {
-            return string.Join(editorOptions.GetNewLineCharacter(), selectedSpans.Select(ss => ss.GetText()));
-        }
+            => string.Join(editorOptions.GetNewLineCharacter(), selectedSpans.Select(ss => ss.GetText()));
     }
 }

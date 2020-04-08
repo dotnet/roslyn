@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         }
 
         /// <summary>
-        /// Wrapper funtion of [GetInheritanceDistance], also consider the class with explicit conversion operator
+        /// Wrapper function of [GetInheritanceDistance], also consider the class with explicit conversion operator
         /// has the highest priority.
         /// </summary>
         private int GetInheritanceDistance(ITypeSymbol? baseType, ITypeSymbol castType)

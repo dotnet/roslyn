@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
-        }
+            => new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
     }
 
     internal class CSharpCompletionService : CommonCompletionService
@@ -43,9 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         public override string Language => LanguageNames.CSharp;
 
         public override TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
-        {
-            return CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
-        }
+            => CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
 
         private CompletionRules _latestRules = CompletionRules.Default;
 

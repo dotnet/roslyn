@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                                     memberAccess.GetTrailingTrivia()))
 
                             replacementNode = replacementNode.WithAdditionalAnnotations(
-                                    New SyntaxAnnotation(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+                                    New SyntaxAnnotation(NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
 
                             issueSpan = memberAccess.Span
                             Return True

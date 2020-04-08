@@ -173,9 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 
         public SourceTextContainer GetOpenTextContainer()
-        {
-            return this.SubjectBuffer.AsTextContainer();
-        }
+            => this.SubjectBuffer.AsTextContainer();
 
         public void Dispose()
         {
@@ -403,9 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         private bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
-        {
-            return TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
-        }
+            => TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
 
         private bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
         {

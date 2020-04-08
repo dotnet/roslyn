@@ -32,11 +32,6 @@
         <target state="new">Cast '{0}' to '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">A instrução 'If' pode ser simplificada</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
         <target state="translated">Inserir "{0}".</target>
@@ -1790,16 +1785,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Tornar Sub Assíncrona</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Usar a verificação 'Is Nothing'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Usar a verificação 'IsNot Nothing'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

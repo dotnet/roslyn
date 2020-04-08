@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor
         public IEnumerable<string> ContentTypes { get; }
 
         public ContentTypeMetadata(IDictionary<string, object> data)
-        {
-            this.ContentTypes = (IEnumerable<string>)data.GetValueOrDefault("ContentTypes");
-        }
+            => this.ContentTypes = (IEnumerable<string>)data.GetValueOrDefault("ContentTypes");
     }
 }

@@ -73,14 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         protected static void InsertText(ArrayBuilder<TextChange> textChanges, int position, string text)
-        {
-            textChanges.Add(new TextChange(new TextSpan(position, 0), text));
-        }
+            => textChanges.Add(new TextChange(new TextSpan(position, 0), text));
 
         protected static void DeleteText(ArrayBuilder<TextChange> textChanges, TextSpan span)
-        {
-            textChanges.Add(new TextChange(span, string.Empty));
-        }
+            => textChanges.Add(new TextChange(span, string.Empty));
 
         internal bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, TCommand command, CommandExecutionContext context)
         {

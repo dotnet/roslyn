@@ -1568,15 +1568,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return trivia.IsElastic()
         End Function
 
-        Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnTypeHeader
-            Dim node = TryGetAncestorForLocation(Of TypeStatementSyntax)(root, position)
-            typeDeclaration = node
-
-            If node Is Nothing Then
+        Public Function IsOnTypeHeader(
+                root As SyntaxNode,
+                position As Integer,
+                fullHeader As Boolean,
+                ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnTypeHeader
+            Dim typeBlock = TryGetAncestorForLocation(Of TypeBlockSyntax)(root, position)
+            If typeBlock Is Nothing Then
                 Return Nothing
             End If
 
-            Return IsOnHeader(root, position, node, If(node.TypeParameterList?.GetLastToken(), node.Identifier))
+            Dim typeStatement = typeBlock.BlockStatement
+            typeDeclaration = typeStatement
+
+            Dim lastToken = If(typeStatement.TypeParameterList?.GetLastToken(), typeStatement.Identifier)
+            If fullHeader Then
+                lastToken = If(typeBlock.Implements.LastOrDefault()?.GetLastToken(),
+                            If(typeBlock.Inherits.LastOrDefault()?.GetLastToken(),
+                               lastToken))
+            End If
+
+            Return IsOnHeader(root, position, typeBlock, lastToken)
         End Function
 
         Public Function IsOnPropertyDeclarationHeader(root As SyntaxNode, position As Integer, ByRef propertyDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnPropertyDeclarationHeader

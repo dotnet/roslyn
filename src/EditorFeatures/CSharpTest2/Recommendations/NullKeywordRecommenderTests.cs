@@ -298,9 +298,7 @@ class C { }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterIs()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(@"if (x is $$"));
-        }
+            => await VerifyKeywordAsync(AddInsideMethod(@"if (x is $$"));
 
         [WorkItem(25293, "https://github.com/dotnet/roslyn/issues/25293")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractMemberInsertingCompletionProvider : CommonCompletionProvider
+    internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPCompletionProvider
     {
         private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
         private readonly SyntaxAnnotation _otherAnnotation = new SyntaxAnnotation();
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var newDocument = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -206,9 +206,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 enterKeyRule: EnterKeyRule.Never);
 
         internal virtual CompletionItemRules GetRules()
-        {
-            return s_defaultRules;
-        }
+            => s_defaultRules;
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => MemberInsertionCompletionItem.GetDescriptionAsync(item, document, cancellationToken);

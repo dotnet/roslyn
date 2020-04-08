@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override Type GetCompletionProviderType()
-        {
-            return typeof(ExplicitInterfaceMemberCompletionProvider);
-        }
+            => typeof(ExplicitInterfaceMemberCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExplicitInterfaceMember_01()

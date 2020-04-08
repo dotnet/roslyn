@@ -12,9 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly VisualStudioWorkspaceImpl _workspace;
 
         public VisualStudioCompilationOutputsProviderService(VisualStudioWorkspaceImpl workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public CompilationOutputs GetCompilationOutputs(ProjectId projectId)
             => _workspace.GetCompilationOutputs(projectId);

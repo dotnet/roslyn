@@ -20,24 +20,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         private InvocationReasons(ImmutableHashSet<string> reasons)
-        {
-            _reasons = reasons;
-        }
+            => _reasons = reasons;
 
         public bool Contains(string reason)
-        {
-            return _reasons.Contains(reason);
-        }
+            => _reasons.Contains(reason);
 
         public InvocationReasons With(InvocationReasons invocationReasons)
-        {
-            return new InvocationReasons((_reasons ?? ImmutableHashSet<string>.Empty).Union(invocationReasons._reasons));
-        }
+            => new InvocationReasons((_reasons ?? ImmutableHashSet<string>.Empty).Union(invocationReasons._reasons));
 
         public InvocationReasons With(string reason)
-        {
-            return new InvocationReasons((_reasons ?? ImmutableHashSet<string>.Empty).Add(reason));
-        }
+            => new InvocationReasons((_reasons ?? ImmutableHashSet<string>.Empty).Add(reason));
 
         public bool IsEmpty
         {
@@ -48,23 +40,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public ImmutableHashSet<string>.Enumerator GetEnumerator()
-        {
-            return _reasons.GetEnumerator();
-        }
+            => _reasons.GetEnumerator();
 
         IEnumerator<string> IEnumerable<string>.GetEnumerator()
-        {
-            return _reasons.GetEnumerator();
-        }
+            => _reasons.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _reasons.GetEnumerator();
-        }
+            => _reasons.GetEnumerator();
 
         public override string ToString()
-        {
-            return string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
-        }
+            => string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
     }
 }

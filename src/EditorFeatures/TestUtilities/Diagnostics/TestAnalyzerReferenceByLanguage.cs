@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;
 
         public TestAnalyzerReferenceByLanguage(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
-        {
-            _analyzersMap = analyzersMap;
-        }
+            => _analyzersMap = analyzersMap;
 
         public override string FullPath
         {
@@ -41,9 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-        {
-            return _analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
-        }
+            => _analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         {

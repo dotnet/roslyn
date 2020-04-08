@@ -26,7 +26,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractSymbolCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractSymbolCompletionProvider : LSPCompletionProvider
     {
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var symbolGroup in symbolGroups)
             {
                 var arbitraryFirstContext = contextLookup(symbolGroup.First());
-                var item = this.CreateItem(
+                var item = CreateItem(
                     completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
                     symbolGroup.ToList(), arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
 
@@ -238,9 +238,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken);
 
         protected virtual Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-        }
+            => SpecializedTasks.EmptyImmutableArray<ISymbol>();
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
@@ -348,14 +346,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected virtual bool IsExclusive()
-        {
-            return false;
-        }
+            => false;
 
         protected virtual Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.True;
-        }
+            => SpecializedTasks.True;
 
         private Task<ImmutableArray<ISymbol>> GetSymbolsAsync(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)
         {
@@ -482,9 +476,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Override this if you want to provide customized insertion based on the character typed.
         /// </summary>
         protected virtual string GetInsertionText(CompletionItem item, char ch)
-        {
-            return SymbolCompletionItem.GetInsertionText(item);
-        }
+            => SymbolCompletionItem.GetInsertionText(item);
 
         // This is used to decide which provider we'd collect target type completion telemetry from.
         protected virtual bool ShouldCollectTelemetryForTargetTypeCompletion => false;
@@ -495,14 +487,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             private int _tick;
 
             public TelemetryCounter(bool shouldReport)
-            {
-                _shouldReport = shouldReport;
-            }
+                => _shouldReport = shouldReport;
 
             public void AddTick(int tick)
-            {
-                _tick += tick;
-            }
+                => _tick += tick;
 
             public void Dispose()
             {

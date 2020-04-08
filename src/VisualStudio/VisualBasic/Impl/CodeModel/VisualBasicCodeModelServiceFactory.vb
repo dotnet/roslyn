@@ -21,6 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
                         <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
                         commitBufferManagerFactory As CommitBufferManagerFactory)

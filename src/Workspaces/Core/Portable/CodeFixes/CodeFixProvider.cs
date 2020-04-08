@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Otherwise, you can return any of the well known fix all providers from <see cref="WellKnownFixAllProviders"/> or implement your own fix all provider.
         /// </summary>
         public virtual FixAllProvider GetFixAllProvider()
-        {
-            return null;
-        }
+            => null;
     }
 }

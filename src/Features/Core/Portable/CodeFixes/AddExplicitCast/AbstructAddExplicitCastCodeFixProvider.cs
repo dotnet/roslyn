@@ -37,6 +37,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// </summary>
         private const int MaximumConversionOptions = 3;
 
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public AddExplicitCastCodeFixProvider()
+        {
+        }
+
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         // First title is for single option, second title is for multiple options

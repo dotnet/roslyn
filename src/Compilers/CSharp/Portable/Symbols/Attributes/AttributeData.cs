@@ -256,25 +256,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         static internal void DecodeMemberNotNullAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
-            var membersArray = arguments.Attribute.CommonConstructorArguments[0];
-            if (membersArray.IsNull)
+            var value = arguments.Attribute.CommonConstructorArguments[0];
+            if (value.IsNull)
             {
                 return;
             }
 
-            var builder = ArrayBuilder<string>.GetInstance();
-            foreach (var member in membersArray.Values)
+            if (value.Kind != TypedConstantKind.Array)
             {
-                var memberName = member.DecodeValue<string>(SpecialType.System_String);
+                string? memberName = value.DecodeValue<string>(SpecialType.System_String);
                 if (memberName is object)
                 {
-                    builder.Add(memberName);
+                    arguments.GetOrCreateData<T>().AddNotNullMember(memberName);
                     ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
                 }
             }
+            else
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                foreach (var member in value.Values)
+                {
+                    var memberName = member.DecodeValue<string>(SpecialType.System_String);
+                    if (memberName is object)
+                    {
+                        builder.Add(memberName);
+                        ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
+                    }
+                }
 
-            arguments.GetOrCreateData<T>().AddNotNullMember(builder);
-            builder.Free();
+                arguments.GetOrCreateData<T>().AddNotNullMember(builder);
+                builder.Free();
+            }
         }
 
         private static void ReportBadNotNullMemberIfNeeded(TypeSymbol type, DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, string memberName)
@@ -294,26 +306,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         static internal void DecodeMemberNotNullWhenAttribute<T>(TypeSymbol type, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             where T : WellKnownAttributeData, IMemberNotNullAttributeTarget, new()
         {
-            var membersArray = arguments.Attribute.CommonConstructorArguments[1];
-            if (membersArray.IsNull)
+            var value = arguments.Attribute.CommonConstructorArguments[1];
+            if (value.IsNull)
             {
                 return;
             }
 
-            var builder = ArrayBuilder<string>.GetInstance();
-            foreach (var member in membersArray.Values)
+            var sense = arguments.Attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);
+            if (value.Kind != TypedConstantKind.Array)
             {
-                var memberName = member.DecodeValue<string>(SpecialType.System_String);
+                var memberName = value.DecodeValue<string>(SpecialType.System_String);
                 if (memberName is object)
                 {
-                    builder.Add(memberName);
+                    arguments.GetOrCreateData<T>().AddNotNullWhenMember(sense, memberName);
                     ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
                 }
             }
+            else
+            {
+                var builder = ArrayBuilder<string>.GetInstance();
+                foreach (var member in value.Values)
+                {
+                    var memberName = member.DecodeValue<string>(SpecialType.System_String);
+                    if (memberName is object)
+                    {
+                        builder.Add(memberName);
+                        ReportBadNotNullMemberIfNeeded(type, arguments, memberName);
+                    }
+                }
 
-            var sense = arguments.Attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);
-            arguments.GetOrCreateData<T>().AddNotNullWhenMember(sense, builder);
-            builder.Free();
+                arguments.GetOrCreateData<T>().AddNotNullWhenMember(sense, builder);
+                builder.Free();
+            }
         }
 
         private DeclarativeSecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax? nodeOpt, out bool hasErrors, DiagnosticBag diagnostics)
@@ -618,6 +642,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return guidString;
+        }
+
+        private protected sealed override bool IsStringProperty(string memberName)
+        {
+            if (AttributeClass is object)
+            {
+                foreach (var member in AttributeClass.GetMembers(memberName))
+                {
+                    if (member is PropertySymbol { Type: { SpecialType: SpecialType.System_String } })
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion

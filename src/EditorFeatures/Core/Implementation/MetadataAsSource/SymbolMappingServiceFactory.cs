@@ -19,14 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
     internal class SymbolMappingServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolMappingServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new SymbolMappingService();
-        }
+            => new SymbolMappingService();
 
         private sealed class SymbolMappingService : ISymbolMappingService
         {

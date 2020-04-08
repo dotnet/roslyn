@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class SymbolCompletionProvider : AbstractRecommendationServiceBasedCompletionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolCompletionProvider()
         {
         }
@@ -89,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // By default we want to proceed with triggering completion if we have items.
             return true;
         }
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         protected override async Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
@@ -225,9 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static CompletionItemRules MakeRule(int importDirective, int preselect, int tupleLiteral)
-        {
-            return MakeRule(importDirective == 1, preselect == 1, tupleLiteral == 1);
-        }
+            => MakeRule(importDirective == 1, preselect == 1, tupleLiteral == 1);
 
         private static CompletionItemRules MakeRule(bool importDirective, bool preselect, bool tupleLiteral)
         {

@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             AddSpecificNodesSuppressOperations(list, node);
 
-            if (!options.GetOption(CSharpFormattingOptions.WrappingPreserveSingleLine))
+            if (!options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine))
             {
                 RemoveSuppressOperationForBlock(list, node);
             }
 
-            if (!options.GetOption(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine))
+            if (!options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine))
             {
                 RemoveSuppressOperationForStatementMethodDeclaration(list, node);
             }

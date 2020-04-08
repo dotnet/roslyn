@@ -33,16 +33,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         private const string PersistentFolderPrefix = "PersistentStorageTests_";
 
         private readonly Encoding _encoding = Encoding.UTF8;
-        internal readonly IOptionService _persistentEnabledOptionService = new OptionServiceMock(new Dictionary<IOption, object>
-        {
-            { PersistentStorageOptions.Enabled, true },
-        });
 
         private AbstractPersistentStorageService _storageService;
         private readonly string _persistentFolder;
 
-        private const int LargeSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
-        private const int MediumSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength / 2);
+        private const int LargeSize = (int)(SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
+        private const int MediumSize = (int)(SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength / 2);
 
         private const string SmallData1 = "Hello ESENT";
         private const string SmallData2 = "Goodbye ESENT";
@@ -60,11 +56,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             Assert.NotEqual(s_checksum1, s_checksum2);
 
-            Assert.True(MediumData1.Length < SQLitePersistentStorage.MaxPooledByteArrayLength);
-            Assert.True(MediumData2.Length < SQLitePersistentStorage.MaxPooledByteArrayLength);
+            Assert.True(MediumData1.Length < SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength);
+            Assert.True(MediumData2.Length < SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength);
 
-            Assert.True(LargeData1.Length > SQLitePersistentStorage.MaxPooledByteArrayLength);
-            Assert.True(LargeData2.Length > SQLitePersistentStorage.MaxPooledByteArrayLength);
+            Assert.True(LargeData1.Length > SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength);
+            Assert.True(LargeData2.Length > SQLite.v2.SQLitePersistentStorage.MaxPooledByteArrayLength);
         }
 
         protected AbstractPersistentStorageTests()

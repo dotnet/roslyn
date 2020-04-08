@@ -27,14 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
 
             public Task LogInfoAsync(string text)
-            {
-                return LogAsync(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
-            }
+                => LogAsync(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
 
             public Task LogExceptionAsync(string exception, string text)
-            {
-                return LogAsync(text + ". " + exception, __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
-            }
+                => LogAsync(text + ". " + exception, __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
 
             private Task LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)
             {

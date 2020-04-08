@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -54,8 +53,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public ISymbol GetAnySymbol(bool includeType)
-        {
-            return GetSymbols(includeType).FirstOrDefault();
-        }
+            => GetSymbols(includeType).FirstOrDefault();
     }
 }

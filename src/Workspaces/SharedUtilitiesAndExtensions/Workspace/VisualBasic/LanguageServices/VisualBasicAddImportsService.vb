@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             ImportsStatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
