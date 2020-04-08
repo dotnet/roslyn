@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis
                         new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
-                        hasSuccessfullyLoaded: false));
+                        hasSuccessfullyLoaded: false,
+                        inProgressCompilation));
             }
 
             /// <summary>
@@ -710,7 +711,8 @@ namespace Microsoft.CodeAnalysis
                             State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
                             compilationWithoutGeneratedFiles,
                             generatorDriver,
-                            hasSuccessfullyLoaded),
+                            hasSuccessfullyLoaded,
+                            compilation),
                         solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);

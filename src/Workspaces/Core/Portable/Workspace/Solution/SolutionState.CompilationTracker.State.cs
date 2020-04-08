@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
-                public static readonly State Empty = new State(compilation: null, declarationOnlyCompilation: null, generatorDriver: new TrackedGeneratorDriver(null));
+                public static readonly State Empty = new State(compilation: null, declarationOnlyCompilation: null, generatorDriver: new TrackedGeneratorDriver(null), compilationDoNotKeep: null);
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -54,7 +54,11 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public virtual ValueSource<Optional<Compilation>>? FinalCompilation => null;
 
-                protected State(ValueSource<Optional<Compilation>>? compilation, Compilation? declarationOnlyCompilation, TrackedGeneratorDriver generatorDriver)
+                protected State(
+                    ValueSource<Optional<Compilation>>? compilation,
+                    Compilation? declarationOnlyCompilation,
+                    TrackedGeneratorDriver generatorDriver,
+                    Compilation? compilationDoNotKeep)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -62,6 +66,10 @@ namespace Microsoft.CodeAnalysis
                     Compilation = compilation;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratorDriver = generatorDriver;
+
+                    if (compilationDoNotKeep != null)
+                        foreach (var reference in compilationDoNotKeep.References)
+                            compilationDoNotKeep.GetAssemblyOrModuleSymbol(reference);
                 }
 
                 public static State Create(
@@ -103,7 +111,8 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
-                           generatorDriver: inProgressGeneratorDriver)
+                           generatorDriver: inProgressGeneratorDriver,
+                           inProgressCompilation)
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
@@ -118,7 +127,7 @@ namespace Microsoft.CodeAnalysis
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation)
-                    : base(compilation: null, declarationOnlyCompilation: declarationOnlyCompilation, generatorDriver: new TrackedGeneratorDriver(null))
+                    : base(compilation: null, declarationOnlyCompilation: declarationOnlyCompilation, generatorDriver: new TrackedGeneratorDriver(null), compilationDoNotKeep: null)
                 {
                 }
             }
@@ -130,7 +139,7 @@ namespace Microsoft.CodeAnalysis
             private sealed class FullDeclarationState : State
             {
                 public FullDeclarationState(Compilation declarationCompilation, TrackedGeneratorDriver generatorDriver)
-                    : base(new WeakValueSource<Compilation>(declarationCompilation), declarationCompilation.Clone().RemoveAllReferences(), generatorDriver)
+                    : base(new WeakValueSource<Compilation>(declarationCompilation), declarationCompilation.Clone().RemoveAllReferences(), generatorDriver, declarationCompilation)
                 {
                 }
             }
@@ -157,8 +166,9 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     TrackedGeneratorDriver generatorDriver,
-                    bool hasSuccessfullyLoaded)
-                    : base(compilationWithoutGeneratedFilesSource, compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(), generatorDriver)
+                    bool hasSuccessfullyLoaded,
+                    Compilation? compilationDoNotKeep)
+                    : base(compilationWithoutGeneratedFilesSource, compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(), generatorDriver, compilationDoNotKeep)
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilation = finalCompilationSource;
