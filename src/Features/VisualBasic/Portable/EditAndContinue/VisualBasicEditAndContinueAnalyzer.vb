@@ -804,7 +804,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     If propertyOrFieldModifiers.HasValue Then
-                        Yield ValueTuple.Create(statement, -1)
+                        Yield (statement, -1)
                     End If
 
                     nodeOrToken = parent
@@ -827,7 +827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
                 End If
 
-                Yield ValueTuple.Create(node, DefaultStatementPart)
+                Yield (node, DefaultStatementPart)
             End While
         End Function
 

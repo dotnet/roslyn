@@ -314,14 +314,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     switch (node.Kind())
                     {
                         case SyntaxKind.Block:
-                            statementPart = (int)GetStatementPart((BlockSyntax)node!, position);
-                            return node!;
+                            statementPart = (int)GetStatementPart((BlockSyntax)node, position);
+                            return node;
 
                         case SyntaxKind.ForEachStatement:
                         case SyntaxKind.ForEachVariableStatement:
                             Debug.Assert(!isBody);
-                            statementPart = (int)GetStatementPart((CommonForEachStatementSyntax)node!, position);
-                            return node!;
+                            statementPart = (int)GetStatementPart((CommonForEachStatementSyntax)node, position);
+                            return node;
 
                         case SyntaxKind.DoStatement:
                             // The active statement of DoStatement node is the while condition,
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             // The TypeSyntax is considered to be part of the first sequence span.
                             Debug.Assert(!isBody);
 
-                            node = ((VariableDeclarationSyntax)node!).Variables.First();
+                            node = ((VariableDeclarationSyntax)node).Variables.First();
 
                             if (partner != null)
                             {
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             }
 
                             statementPart = DefaultStatementPart;
-                            return node!;
+                            return node;
 
                         case SyntaxKind.SwitchExpression:
                             // An active statement that covers IL generated for the decision tree:
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             {
                                 Debug.Assert(span.End == switchExpression.CloseBraceToken.Span.End);
                                 statementPart = (int)SwitchExpressionPart.SwitchBody;
-                                return node!;
+                                return node;
                             }
 
                             // The switch expression itself can be (a part of) an active statement associated with the containing node
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                         default:
                             statementPart = DefaultStatementPart;
-                            return node!;
+                            return node;
                     }
                 }
 
@@ -405,31 +405,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private static BlockPart GetStatementPart(BlockSyntax node, int position)
-        {
-            return position < node.OpenBraceToken.Span.End ? BlockPart.OpenBrace : BlockPart.CloseBrace;
-        }
+            => position < node.OpenBraceToken.Span.End ? BlockPart.OpenBrace : BlockPart.CloseBrace;
 
         private static TextSpan GetActiveSpan(BlockSyntax node, BlockPart part)
-        {
-            return part switch
+            => part switch
             {
                 BlockPart.OpenBrace => node.OpenBraceToken.Span,
                 BlockPart.CloseBrace => node.CloseBraceToken.Span,
                 _ => throw ExceptionUtilities.UnexpectedValue(part),
             };
-        }
 
         private static ForEachPart GetStatementPart(CommonForEachStatementSyntax node, int position)
-        {
-            return position < node.OpenParenToken.SpanStart ? ForEachPart.ForEach :
-                   position < node.InKeyword.SpanStart ? ForEachPart.VariableDeclaration :
-                   position < node.Expression.SpanStart ? ForEachPart.In :
-                   ForEachPart.Expression;
-        }
+            => position < node.OpenParenToken.SpanStart ? ForEachPart.ForEach :
+               position < node.InKeyword.SpanStart ? ForEachPart.VariableDeclaration :
+               position < node.Expression.SpanStart ? ForEachPart.In :
+               ForEachPart.Expression;
 
         private static TextSpan GetActiveSpan(ForEachStatementSyntax node, ForEachPart part)
-        {
-            return part switch
+            => part switch
             {
                 ForEachPart.ForEach => node.ForEachKeyword.Span,
                 ForEachPart.VariableDeclaration => TextSpan.FromBounds(node.Type.SpanStart, node.Identifier.Span.End),
@@ -437,11 +430,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 ForEachPart.Expression => node.Expression.Span,
                 _ => throw ExceptionUtilities.UnexpectedValue(part),
             };
-        }
 
         private static TextSpan GetActiveSpan(ForEachVariableStatementSyntax node, ForEachPart part)
-        {
-            return part switch
+            => part switch
             {
                 ForEachPart.ForEach => node.ForEachKeyword.Span,
                 ForEachPart.VariableDeclaration => TextSpan.FromBounds(node.Variable.SpanStart, node.Variable.Span.End),
@@ -449,22 +440,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 ForEachPart.Expression => node.Expression.Span,
                 _ => throw ExceptionUtilities.UnexpectedValue(part),
             };
-        }
 
         private static TextSpan GetActiveSpan(SwitchExpressionSyntax node, SwitchExpressionPart part)
-        {
-            return part switch
+            => part switch
             {
                 SwitchExpressionPart.WholeExpression => node.Span,
                 SwitchExpressionPart.SwitchBody => TextSpan.FromBounds(node.SwitchKeyword.SpanStart, node.CloseBraceToken.Span.End),
                 _ => throw ExceptionUtilities.UnexpectedValue(part),
             };
-        }
 
         protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
-        {
-            return SyntaxFactory.AreEquivalent(left, right);
-        }
+            => SyntaxFactory.AreEquivalent(left, right);
 
         private static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode left, SyntaxNode right)
         {
@@ -478,9 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override SyntaxNode FindPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode)
-        {
-            return SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode);
-        }
+            => SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode);
 
         internal override SyntaxNode? FindPartnerInMemberInitializer(SemanticModel leftModel, INamedTypeSymbol leftType, SyntaxNode leftNode, INamedTypeSymbol rightType, CancellationToken cancellationToken)
         {
@@ -524,9 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override bool IsClosureScope(SyntaxNode node)
-        {
-            return LambdaUtilities.IsClosureScope(node);
-        }
+            => LambdaUtilities.IsClosureScope(node);
 
         protected override SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode node)
         {
@@ -547,19 +529,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected override IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
-        {
-            return SpecializedCollections.SingletonEnumerable(lambdaBody);
-        }
+            => SpecializedCollections.SingletonEnumerable(lambdaBody);
 
         protected override SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
-        {
-            return LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
-        }
+            => LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
-        {
-            return TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit);
-        }
+            => TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit);
 
         protected override Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         {
@@ -652,36 +628,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #region Syntax and Semantic Utils
 
         protected override IEnumerable<SequenceEdit> GetSyntaxSequenceEdits(ImmutableArray<SyntaxNode> oldNodes, ImmutableArray<SyntaxNode> newNodes)
-        {
-            return SyntaxComparer.GetSequenceEdits(oldNodes, newNodes);
-        }
+            => SyntaxComparer.GetSequenceEdits(oldNodes, newNodes);
 
         internal override SyntaxNode EmptyCompilationUnit
-        {
-            get
-            {
-                return SyntaxFactory.CompilationUnit();
-            }
-        }
+            => SyntaxFactory.CompilationUnit();
 
+        // there are no experimental features at this time.
         internal override bool ExperimentalFeaturesEnabled(SyntaxTree tree)
-        {
-            // there are no experimental features at this time.
-            return false;
-        }
+            => false;
 
         protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
             => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
 
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
-        {
-            return StatementSyntaxComparer.GetLabelImpl(node1) == StatementSyntaxComparer.GetLabelImpl(node2);
-        }
+            => StatementSyntaxComparer.GetLabelImpl(node1) == StatementSyntaxComparer.GetLabelImpl(node2);
 
         protected override bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
-        {
-            return BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
-        }
+            => BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
 
         protected override bool TryGetActiveSpan(SyntaxNode node, int statementPart, int minLength, out TextSpan span)
         {

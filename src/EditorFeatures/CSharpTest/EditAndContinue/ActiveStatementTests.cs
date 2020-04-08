@@ -6179,8 +6179,8 @@ class C
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "switch { 0 => 10, _ => 20 }"),
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", "method"),
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", "method"));
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method),
+                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
         }
 
         [Fact]
