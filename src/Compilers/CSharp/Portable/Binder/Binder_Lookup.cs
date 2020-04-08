@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
-                if (x.Name != y.Name || mangleName(x) != mangleName(y) || x.GetArity() != y.GetArity())
+                if (x.Name != y.Name || x.GetArity() != y.GetArity())
                 {
                     return false;
                 }
@@ -583,7 +583,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             static bool isRoot(Symbol symbol) => symbol is null || symbol is NamespaceSymbol { IsGlobalNamespace: true };
-            static bool mangleName(Symbol symbol) => (symbol as NamedTypeSymbol)?.MangleName == true;
         }
 
         private bool IsSingleViableAttributeType(LookupResult result, out Symbol symbol)
