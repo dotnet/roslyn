@@ -3009,7 +3009,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hasInstanceConstructor = false;
             var hasParameterlessInstanceConstructor = false;
             var hasStaticConstructor = false;
-            bool hasRecordConstructor = false;
 
             // CONSIDER: if this traversal becomes a bottleneck, the flags could be made outputs of the
             // dictionary construction process.  For now, this is more encapsulated.
@@ -3022,10 +3021,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case MethodKind.Constructor:
                             hasInstanceConstructor = true;
-                            if (method is SynthesizedRecordConstructor)
-                            {
-                                hasRecordConstructor = true;
-                            }
                             hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;
                             break;
 
@@ -3045,8 +3040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: Per section 11.3.8 of the spec, "every struct implicitly has a parameterless instance constructor".
             // We won't insert a parameterless constructor for a struct if there already is one.
             // We don't expect anything to be emitted, but it should be in the symbol table.
-            // PROTOTYPE: struct records do not have a parameterless constructor
-            if ((!hasParameterlessInstanceConstructor && this.IsStructType() && !hasRecordConstructor) ||
+            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) ||
                 (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface))
             {
                 members.Add((this.TypeKind == TypeKind.Submission) ?

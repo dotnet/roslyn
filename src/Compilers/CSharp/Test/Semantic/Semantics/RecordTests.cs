@@ -565,22 +565,21 @@ s");
         }
 
         [Fact]
-        public void StructRecordNoCtor()
+        public void StructRecordDefaultCtor()
         {
-            var src = @"
-data struct S(int X)
+            const string src = @"
+public data struct S(int X);";
+            const string src2 = @"
+class C
 {
-    public static void Main()
-    {
-        var s = new S();
-    }
+    public S M() => new S();
 }";
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (6,21): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'S.S(int)'
-                //         var s = new S();
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "S").WithArguments("X", "S.S(int)").WithLocation(6, 21)
-            );
+            var comp = CreateCompilation(src + src2);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src);
+            var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyDiagnostics();
         }
     }
 }
