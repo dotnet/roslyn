@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -42,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(typeName.Length > 0);
 
             var type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName);
-            Debug.Assert((object)type != null);
+            RoslynDebug.Assert((object)type != null);
 
-            ReadOnlyCollection<byte> dynamicFlags;
-            ReadOnlyCollection<string> tupleElementNames;
+            ReadOnlyCollection<byte>? dynamicFlags;
+            ReadOnlyCollection<string?>? tupleElementNames;
             CustomTypeInfo.Decode(alias.CustomTypeInfoId, alias.CustomTypeInfo, out dynamicFlags, out tupleElementNames);
 
             if (dynamicFlags != null)
@@ -178,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             // NOTE: This conversion can fail if some of the types involved are from not-yet-loaded modules.
             // For example, if System.Exception hasn't been loaded, then this call will fail for $stowedexception.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref useSiteDiagnostics);
             diagnostics.Add(expr.Syntax, useSiteDiagnostics);
             Debug.Assert(conversion.IsValid || diagnostics.HasAnyErrors());
@@ -195,10 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 hasErrors: !conversion.IsValid);
         }
 
-        internal static MethodSymbol GetIntrinsicMethod(CSharpCompilation compilation, string methodName)
+        internal static MethodSymbol? GetIntrinsicMethod(CSharpCompilation compilation, string methodName)
         {
             var type = compilation.GetTypeByMetadataName(ExpressionCompilerConstants.IntrinsicAssemblyTypeMetadataName);
-            if ((object)type == null)
+            if ((object?)type == null)
             {
                 return null;
             }
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 RefKind.None,
                 builder.ToImmutableAndFree(),
                 checkLength: false);
-            Debug.Assert((object)dynamicType != null);
+            RoslynDebug.Assert((object)dynamicType != null);
             Debug.Assert(!TypeSymbol.Equals(dynamicType, type, TypeCompareKind.ConsiderEverything2));
             return dynamicType;
         }

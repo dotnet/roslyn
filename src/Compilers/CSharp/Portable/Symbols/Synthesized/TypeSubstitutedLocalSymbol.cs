@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -16,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeSubstitutedLocalSymbol(LocalSymbol originalVariable, TypeWithAnnotations type, Symbol containingSymbol)
         {
-            Debug.Assert(originalVariable != null);
+            RoslynDebug.Assert(originalVariable != null);
             Debug.Assert(type.HasType);
-            Debug.Assert(containingSymbol != null);
+            RoslynDebug.Assert(containingSymbol != null);
 
             _originalVariable = originalVariable;
             _type = type;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.SynthesizedKind; }
         }
 
-        internal override SyntaxNode ScopeDesignatorOpt
+        internal override SyntaxNode? ScopeDesignatorOpt
         {
             get { return _originalVariable.ScopeDesignatorOpt; }
         }
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal override ConstantValue? GetConstantValue(SyntaxNode? node, LocalSymbol? inProgress, DiagnosticBag? diagnostics)
         {
             return _originalVariable.GetConstantValue(node, inProgress, diagnostics);
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static LocalSymbol ToOtherMethod(this LocalSymbol local, MethodSymbol method, TypeMap typeMap)
         {
             var l = local as EELocalSymbolBase;
-            if ((object)l != null)
+            if ((object?)l != null)
             {
                 return l.ToOtherMethod(method, typeMap);
             }
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal abstract EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap);
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal override ConstantValue? GetConstantValue(SyntaxNode? node, LocalSymbol? inProgress, DiagnosticBag? diagnostics)
         {
             return null;
         }
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return SynthesizedLocalKind.UserDefined; }
         }
 
-        internal override SyntaxNode ScopeDesignatorOpt
+        internal override SyntaxNode? ScopeDesignatorOpt
         {
             get { return null; }
         }
@@ -68,12 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
         {
             var type = this.TypeWithAnnotations;
-            DiagnosticInfo result = null;
+            DiagnosticInfo? result = null;
             if (!DeriveUseSiteDiagnosticFromType(ref result, type) && this.ContainingModule.HasUnifiedReferences)
             {
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.
-                HashSet<TypeSymbol> unificationCheckedTypes = null;
+                HashSet<TypeSymbol>? unificationCheckedTypes = null;
                 type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes);
             }
             return result;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly LocalDeclarationKind _declarationKind;
         private readonly bool _isCompilerGenerated;
         private readonly ImmutableArray<Location> _locations;
-        private readonly string _nameOpt;
+        private readonly string? _nameOpt;
         private readonly int _ordinal; // index in locals of containing block
         private readonly bool _isPinned;
         private readonly RefKind _refKind;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public EELocalSymbol(
             MethodSymbol method,
             ImmutableArray<Location> locations,
-            string nameOpt,
+            string? nameOpt,
             int ordinal,
             LocalDeclarationKind declarationKind,
             TypeSymbol type,
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public EELocalSymbol(
             MethodSymbol method,
             ImmutableArray<Location> locations,
-            string nameOpt,
+            string? nameOpt,
             int ordinal,
             LocalDeclarationKind declarationKind,
             TypeWithAnnotations type,
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             bool isCompilerGenerated,
             bool canScheduleToStack)
         {
-            Debug.Assert(method != null);
+            RoslynDebug.Assert(method != null);
             Debug.Assert(ordinal >= -1);
             Debug.Assert(!locations.IsDefault);
             Debug.Assert((object)type != null);
@@ -91,7 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override string Name
         {
+#nullable disable // 'Name' is explicitly documented as not allowing null returns https://github.com/dotnet/roslyn/issues/39166
             get { return _nameOpt; }
+#nullable enable
         }
 
         internal override SyntaxToken IdentifierToken

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -32,7 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var argument = new BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_address),
+#nullable disable // can 'method' be null here? https://github.com/dotnet/roslyn/issues/39166
                 method.Parameters[0].Type);
+#nullable enable
             var call = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
