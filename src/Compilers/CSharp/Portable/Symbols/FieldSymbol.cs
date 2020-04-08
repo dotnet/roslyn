@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type.IsPointerType();
+                return this.Type.IsPointerOrFunctionPointer();
             }
         }
 

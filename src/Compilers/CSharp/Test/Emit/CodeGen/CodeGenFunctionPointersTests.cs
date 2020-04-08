@@ -4164,6 +4164,25 @@ static unsafe class C
 ");
         }
 
+        [Fact]
+        public void RecusivelyUsedTypeInFunctionPointer()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+namespace Interop
+{
+    public unsafe struct PROPVARIANT
+    {
+        public CAPROPVARIANT ca;
+    }
+    public unsafe struct CAPROPVARIANT
+    {
+        public uint cElems;
+        public delegate*<PROPVARIANT> pElems;
+        public delegate*<PROPVARIANT> pElemsProp { get; }
+    }
+}");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;

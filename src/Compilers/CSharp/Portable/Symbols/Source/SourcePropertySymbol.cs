@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyType != null)
                 {
-                    return _lazyType.Value.DefaultType.IsPointerType();
+                    return _lazyType.Value.DefaultType.IsPointerOrFunctionPointer();
                 }
 
                 var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
