@@ -22,6 +22,11 @@
         <target state="new">Deconstruct variable declaration</target>
         <note />
       </trans-unit>
+      <trans-unit id="Delegate_invocation_can_be_simplified">
+        <source>Delegate invocation can be simplified.</source>
+        <target state="new">Delegate invocation can be simplified.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="new">Indexing can be simplified</target>
