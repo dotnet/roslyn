@@ -9,7 +9,7 @@ jobs:
     clean: true
   - template: install-dependencies.yml
 
-  - pwsh: '& (./azure-pipelines/Get-nbgv.ps1) cloud'
+  - powershell: '& (./azure-pipelines/Get-nbgv.ps1) cloud'
     displayName: Set build number
 
   - template: dotnet.yml
