@@ -223,7 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var updatedCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
                 semanticModel.SyntaxTree, updatedSyntaxTree);
+#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
             return updatedCompilation.GetSemanticModel(updatedSyntaxTree);
+#pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
         }
 
         private SyntaxNode GetContainer(BinaryExpressionSyntax isExpression)

@@ -54,7 +54,12 @@
     <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.1.548</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.1.548</MicrosoftBuildTasksCoreVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
+    <!-- 
+      Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
+      packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
+      other analyzers to ensure it stays on a release version.
+    -->
+    <MicrosoftCodeAnalysisAnalyzersVersion>3.0.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisBuildTasksVersion>2.0.0-rc2-61102-09</MicrosoftCodeAnalysisBuildTasksVersion>
     <MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisCSharpCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisCSharpCodeStyleVersion>

@@ -172,7 +172,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             For Each ref In containingType.DeclaringSyntaxReferences
                 Dim containingNode = ref.GetSyntax(cancellationToken)?.Parent
                 If containingNode IsNot Nothing Then
+#Disable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
                     Dim semanticModel = compilation.GetSemanticModel(containingNode.SyntaxTree)
+#Enable Warning RS1030 ' Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
                     If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, semanticModel, cancellationToken) Then
                         Return False
                     End If
