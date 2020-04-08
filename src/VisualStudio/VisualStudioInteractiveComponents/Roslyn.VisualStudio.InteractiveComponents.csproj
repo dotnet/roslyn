@@ -65,7 +65,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
   </ItemGroup>
 
-   <Import Project="$(VSToolsPath)\vssdk\Microsoft.VsSDK.targets"/>
+  <Import Project="$(VSToolsPath)\vssdk\Microsoft.VsSDK.targets"/>
 
   <Target Name="VsixSourceItemsOutputGroup"
           Returns="@(VSIXSourceItem)"
