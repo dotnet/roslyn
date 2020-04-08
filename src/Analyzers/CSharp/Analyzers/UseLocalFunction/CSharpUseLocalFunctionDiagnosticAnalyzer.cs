@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                    CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
-                       nameof(FeaturesResources.Use_local_function), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                       nameof(CSharpAnalyzersResources.Use_local_function), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
