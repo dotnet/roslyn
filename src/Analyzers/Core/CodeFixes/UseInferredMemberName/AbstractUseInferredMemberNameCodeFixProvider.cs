@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
         }
 
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_inferred_member_name, createChangedDocument, FeaturesResources.Use_inferred_member_name)
+                : base(AnalyzersResources.Use_inferred_member_name, createChangedDocument, AnalyzersResources.Use_inferred_member_name)
             {
             }
         }

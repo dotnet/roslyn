@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             var preference = options.GetOption(
                 CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||
-                !CSharpInferredMemberNameReducer.CanSimplifyTupleElementName(argument, parseOptions))
+                !CSharpInferredMemberNameSimplifier.CanSimplifyTupleElementName(argument, parseOptions))
             {
                 return;
             }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
             var preference = options.GetOption(
                 CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken);
             if (!preference.Value ||
-                !CSharpInferredMemberNameReducer.CanSimplifyAnonymousTypeMemberName(anonCtor))
+                !CSharpInferredMemberNameSimplifier.CanSimplifyAnonymousTypeMemberName(anonCtor))
             {
                 return;
             }

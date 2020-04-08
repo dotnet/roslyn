@@ -155,11 +155,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}' から '{1}' に変更すると、ステート マシンの形状が変わるため、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conditional_expression_can_be_simplified">
-        <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">{0} コード スタイルの構成</target>
@@ -523,11 +518,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Rude 編集</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_conditional_expression">
-        <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2798,16 +2788,6 @@ This version used in: {2}</source>
       <trans-unit id="Implement_0">
         <source>Implement {0}</source>
         <target state="translated">{0} を実装する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">推定メンバーの名前を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">メンバーの名前を単純化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">

@@ -1114,12 +1114,6 @@ This version used in: {2}</value>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
   </data>
-  <data name="Use_inferred_member_name" xml:space="preserve">
-    <value>Use inferred member name</value>
-  </data>
-  <data name="Member_name_can_be_simplified" xml:space="preserve">
-    <value>Member name can be simplified</value>
-  </data>
   <data name="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
@@ -1490,12 +1484,6 @@ This version used in: {2}</value>
   </data>
   <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
     <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
-  </data>
-  <data name="Simplify_conditional_expression" xml:space="preserve">
-    <value>Simplify conditional expression</value>
-  </data>
-  <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
-    <value>Conditional expression can be simplified</value>
   </data>
   <data name="AM_PM_abbreviated" xml:space="preserve">
     <value>AM/PM (abbreviated)</value>

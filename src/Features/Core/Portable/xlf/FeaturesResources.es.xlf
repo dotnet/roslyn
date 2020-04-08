@@ -155,11 +155,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Si se cambia "{0}" a "{1}", la sesión de depuración no podrá continuar porque cambia la forma de la máquina de estados.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conditional_expression_can_be_simplified">
-        <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurar el estilo de código de {0}</target>
@@ -523,11 +518,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edición superficial</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_conditional_expression">
-        <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2798,16 +2788,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Implement_0">
         <source>Implement {0}</source>
         <target state="translated">Implementar {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">Usar nombre de miembro inferido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">El nombre del miembro se puede simplificar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
