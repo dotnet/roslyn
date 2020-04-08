@@ -33,17 +33,13 @@ steps:
     testRunTitle: netcoreapp3.1-$(Agent.JobName)
     workingDirectory: src
 
-- task: PowerShell@2
-  inputs:
-    filePath: azure-pipelines/variables/_pipelines.ps1
-    failOnStderr: true
+- powershell: azure-pipelines/variables/_pipelines.ps1
+  failOnStderr: true
   displayName: Update pipeline variables based on build outputs
   condition: succeededOrFailed()
 
-- task: PowerShell@2
-  inputs:
-    filePath: azure-pipelines/artifacts/_pipelines.ps1
-    arguments: -ArtifactNameSuffix "-$(Agent.JobName)"
+- powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)"
+  failOnStderr: true
   displayName: Publish artifacts
   condition: succeededOrFailed()
 

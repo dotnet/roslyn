@@ -15,8 +15,6 @@ steps:
   displayName: Install procdump
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
-- task: PowerShell@2
-  inputs:
-    filePath: azure-pipelines/variables/_pipelines.ps1
-    failOnStderr: true
+- powershell: azure-pipelines/variables/_pipelines.ps1
+  failOnStderr: true
   displayName: Set pipeline variables based on source
