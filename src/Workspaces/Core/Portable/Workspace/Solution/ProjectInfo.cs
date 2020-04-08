@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis
             public string? OutputRefFilePath { get; }
 
             /// <summary>
-            /// The path to the compiler output file (module or assembly).
+            /// Paths to the compiler output files.
             /// </summary>
             public CompilationOutputFilePaths CompilationOutputFilePaths { get; }
 
