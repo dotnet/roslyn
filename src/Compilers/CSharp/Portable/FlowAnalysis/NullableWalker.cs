@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             EnforceDoesNotReturn(syntaxOpt: null);
             enforceMemberNotNull(syntaxOpt: null, this.State);
-            // Note: we don't enforce NotNull attribute on parameters at exit points, but rather on assignments
+            enforceNotNull(null, this.State);
 
             foreach (var pendingReturn in pendingReturns)
             {
@@ -458,6 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (pendingReturn.Branch is BoundReturnStatement { ExpressionOpt: BoundExpression expr } returnStatement)
                 {
+                    enforceNotNull(returnStatement.Syntax, pendingReturn.State);
                     enforceNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
                     enforceMemberNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
                 }
@@ -493,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (memberHasBadState(member, state))
                     {
-                        // Member '{name}' may not have a null value when exiting.
+                        // Member '{name}' must have a non-null value when exiting.
                         Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
                     }
                 }
@@ -529,8 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (memberHasBadState(member, state))
                             {
-                                // Member '{name}' may not have a null value when exiting with '{sense}'.
-                                Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
+                                // Member '{name}' must have a non-null value when exiting with '{sense}'.
+                                Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense ? "true" : "false");
                             }
                         }
                     }
@@ -617,6 +618,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            void enforceNotNull(SyntaxNode syntaxOpt, LocalState state)
+            {
+                if (!state.Reachable)
+                {
+                    return;
+                }
+
+                foreach (var parameter in this.MethodParameters)
+                {
+                    if (parameterHasBadState(parameter, state))
+                    {
+                        // Parameter '{name}' must have a non-null value when exiting.
+                        Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), parameter.Name);
+                    }
+                }
+            }
+
             void enforceParameterNotNullWhen(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
             {
                 if (!stateWhen.Reachable)
@@ -626,15 +644,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var parameter in parameters)
                 {
-                    if (parameterHasBadState(parameter, sense, stateWhen))
+                    if (parameterHasBadConditionalState(parameter, sense, stateWhen))
                     {
-                        // Parameter '{name}' may not have a null value when exiting with '{sense}'.
+                        // Parameter '{name}' must have a non-null value when exiting with '{sense}'.
                         Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
                     }
                 }
             }
 
-            bool parameterHasBadState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
+            bool parameterHasBadState(ParameterSymbol parameter, LocalState state)
+            {
+                var slot = GetOrCreateSlot(parameter);
+                if (slot > 0)
+                {
+                    var annotations = parameter.FlowAnalysisAnnotations;
+                    bool hasNotNull = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                    return hasNotNull && state[slot].MayBeNull();
+                }
+
+                return false;
+            }
+
+            bool parameterHasBadConditionalState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
             {
                 var refKind = parameter.RefKind;
                 if (refKind != RefKind.Out && refKind != RefKind.Ref)
@@ -2430,6 +2461,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+        {
+            var discardedDiagnostics = new DiagnosticBag();
+            var expr = _binder.BindObjectCreationForErrorRecovery(node, discardedDiagnostics);
+            discardedDiagnostics.Free();
+            Visit(expr);
+            SetResultType(node, TypeWithState.Create(expr.Type, NullableFlowState.NotNull));
+            return null;
+        }
+
 #nullable enable
         private void VisitObjectOrDynamicObjectCreation(
             BoundExpression node,
@@ -3927,12 +3968,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetUpdatedSymbol(node, node.Method, method);
         }
 
+#nullable enable
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitArgumentResult> results)
         {
             // easy out
             var parameterCount = method.ParameterCount;
             var arguments = node.Arguments;
-            if ((parameterCount != 1 && parameterCount != 2)
+            if (node.HasErrors
+                || (parameterCount != 1 && parameterCount != 2)
                 || parameterCount != arguments.Length
                 || method.MethodKind != MethodKind.Ordinary
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
@@ -3955,11 +3998,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isObjectEqualsMethodOrOverride = method.GetLeastOverriddenMethod(accessingTypeOpt: null)
                 .Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__Equals));
-            if (isObjectEqualsMethodOrOverride ||
-                isWellKnownEqualityMethodOrImplementation(compilation, method, receiverType.Type, WellKnownMember.System_IEquatable_T__Equals))
+            if (node.ReceiverOpt is BoundExpression receiver &&
+                    (isObjectEqualsMethodOrOverride ||
+                     isWellKnownEqualityMethodOrImplementation(compilation, method, receiverType.Type, WellKnownMember.System_IEquatable_T__Equals)))
             {
                 Debug.Assert(arguments.Length == 1);
-                learnFromEqualsMethodArguments(node.ReceiverOpt, receiverType, arguments[0], results[0].RValueType);
+                learnFromEqualsMethodArguments(receiver, receiverType, arguments[0], results[0].RValueType);
                 return;
             }
 
@@ -3976,9 +4020,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, TypeSymbol receiverType, WellKnownMember wellKnownMember)
+            static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, TypeSymbol? receiverType, WellKnownMember wellKnownMember)
             {
-                var wellKnownMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(wellKnownMember);
+                var wellKnownMethod = (MethodSymbol?)compilation.GetWellKnownTypeMember(wellKnownMember);
                 if (wellKnownMethod is null || receiverType is null)
                 {
                     return false;
@@ -4089,6 +4133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+#nullable restore
 
         private bool IsCompareExchangeMethod(MethodSymbol method)
         {
@@ -5239,6 +5284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:
                     case BoundKind.UnboundLambda:
+                    case BoundKind.UnconvertedObjectCreationExpression:
                         return NullableAnnotation.NotAnnotated;
                     default:
                         Debug.Assert(false); // unexpected value
@@ -6089,6 +6135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
+                case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                     // The switch expression conversion is not represented as a separate conversion in the bound tree.
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
@@ -6935,7 +6982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
                 BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => getSetterAnnotations(prop),
                 BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => getFieldAnnotations(field),
-                BoundParameter { ParameterSymbol: ParameterSymbol parameter } => ToInwardAnnotations(GetParameterAnnotations(parameter)),
+                BoundParameter { ParameterSymbol: ParameterSymbol parameter }
+                    => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
                 _ => FlowAnalysisAnnotations.None
             };
 

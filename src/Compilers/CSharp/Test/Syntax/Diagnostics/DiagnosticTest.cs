@@ -321,6 +321,7 @@ class X
                         case ErrorCode.WRN_MemberNotNullBadMember:
                         case ErrorCode.WRN_GeneratorFailedDuringInitialization:
                         case ErrorCode.WRN_GeneratorFailedDuringGeneration:
+                        case ErrorCode.WRN_ParameterDisallowsNull:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));

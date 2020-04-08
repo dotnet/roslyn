@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis
 
             public bool IsMatch(string s)
             {
+                if (_numberRangePairs.IsEmpty)
+                {
+                    return Regex.IsMatch(s);
+                }
+
                 var match = Regex.Match(s);
                 if (!match.Success)
                 {

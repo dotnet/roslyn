@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
             nullableWarnings.Add(getId(ErrorCode.WRN_ShouldNotReturn));
             nullableWarnings.Add(getId(ErrorCode.WRN_DoesNotReturnMismatch));
-            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterConditionallyDisallowsNull));
             nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation));
             nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation));
             nullableWarnings.Add(getId(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride));
@@ -75,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNull));
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullBadMember));
             nullableWarnings.Add(getId(ErrorCode.WRN_MemberNotNullWhen));
+            nullableWarnings.Add(getId(ErrorCode.WRN_ParameterDisallowsNull));
 
             NullableWarnings = nullableWarnings.ToImmutable();
 
@@ -452,6 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MemberNotNullWhen:
                 case ErrorCode.WRN_GeneratorFailedDuringInitialization:
                 case ErrorCode.WRN_GeneratorFailedDuringGeneration:
+                case ErrorCode.WRN_ParameterDisallowsNull:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                     return 1;

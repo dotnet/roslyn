@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(Diagnostic? obj)
         {
-            if (this == obj)
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
