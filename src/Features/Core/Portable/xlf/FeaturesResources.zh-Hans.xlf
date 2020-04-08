@@ -2820,11 +2820,6 @@ This version used in: {2}</source>
         <target state="translated">添加可访问性修饰符</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">使用本地函数</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">将声明移动至引用附近</target>

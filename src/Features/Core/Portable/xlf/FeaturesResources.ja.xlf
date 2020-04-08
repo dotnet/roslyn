@@ -2820,11 +2820,6 @@ This version used in: {2}</source>
         <target state="translated">アクセシビリティ修飾子を追加します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">ローカル関数を使用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">宣言を参照の近くに移動します</target>

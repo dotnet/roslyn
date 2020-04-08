@@ -2820,11 +2820,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Přidat Modifikátory dostupnosti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">Použít lokální funkci</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Přesunout deklaraci do blízkosti odkazu</target>
