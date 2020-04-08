@@ -10,7 +10,7 @@
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
-    <!-- 
+    <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
@@ -35,7 +35,7 @@
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerPackagesVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerPackagesVersion>
   </PropertyGroup>
-  <!-- 
+  <!--
     Dependency versions
   -->
   <PropertyGroup>
@@ -54,7 +54,12 @@
     <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.3.409</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.3.409</MicrosoftBuildTasksCoreVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
+    <!--
+      Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
+      packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
+      other analyzers to ensure it stays on a release version.
+    -->
+    <MicrosoftCodeAnalysisAnalyzersVersion>3.0.0</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisBuildTasksVersion>2.0.0-rc2-61102-09</MicrosoftCodeAnalysisBuildTasksVersion>
     <MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisCSharpCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisCSharpCodeStyleVersion>
@@ -241,9 +246,9 @@
     <MicrosoftVisualStudioStaticReviewsEmbeddableVersion>0.1.102-alpha</MicrosoftVisualStudioStaticReviewsEmbeddableVersion>
     <MicrosoftBclAsyncInterfacesVersion>1.1.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
-  <!-- 
-    The following packages are considered implementation details and will not be included 
-    in the list of dependencies of Roslyn packages. They won't flow as package references 
+  <!--
+    The following packages are considered implementation details and will not be included
+    in the list of dependencies of Roslyn packages. They won't flow as package references
     to the projects that reference Roslyn packages.
   -->
   <ItemGroup>
@@ -321,9 +326,9 @@
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
     <DiscoverEditorConfigFiles>true</DiscoverEditorConfigFiles>
-    <!-- 
+    <!--
       When using a bootstrap builder we don't want to use the Microsoft.Net.Compilers.Toolset package but
-      rather explicitly override it. 
+      rather explicitly override it.
     -->
     <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
   </PropertyGroup>
