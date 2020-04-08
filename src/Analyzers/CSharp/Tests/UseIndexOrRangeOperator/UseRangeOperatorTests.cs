@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -126,6 +127,53 @@ class C
             }.RunAsync();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        public async Task TestMultipleDefinitions()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|1, s.Length - 1|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[1..];
+    }
+}";
+
+            // Adding a dependency with internal definitions of Index and Range should not break the feature
+            var source1 = "namespace System { internal struct Index { } internal struct Range { } }";
+            var dependencyReferences = await ReferenceAssemblies.NetStandard.NetStandard20.ResolveAsync(null, CancellationToken.None);
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                SolutionTransforms =
+                {
+                    (solution, projectId) =>
+                    {
+                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.CSharp)
+                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
+                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
+                            .WithMetadataReferences(dependencyReferences)
+                            .AddDocument("Test0.cs", source1, filePath: "Test0.cs").Project;
+
+                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
+                    },
+                },
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestComplexSubstraction()
         {
@@ -224,6 +272,38 @@ class C
             var fixedSource =
 @"
 struct S { public S Slice(int start, int length) => default; public int Length { get; } public S this[System.Range r] { get => default; } }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s[1..^1];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNonStringTypeWithoutRangeIndexer()
+        {
+            var source =
+@"
+struct S { public S Slice(int start, int length) => default; public int Length { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        var v = s.Slice([|1, s.Length - 2|]);
+    }
+}";
+            var fixedSource =
+@"
+struct S { public S Slice(int start, int length) => default; public int Length { get; } }
 class C
 {
     void Goo(S s)

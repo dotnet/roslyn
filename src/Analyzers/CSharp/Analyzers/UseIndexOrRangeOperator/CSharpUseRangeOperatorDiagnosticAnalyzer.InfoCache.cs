@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             public InfoCache(Compilation compilation)
             {
-                RangeType = compilation.GetTypeByMetadataName("System.Range");
+                RangeType = compilation.GetBestTypeByMetadataName("System.Range");
 
                 _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
 

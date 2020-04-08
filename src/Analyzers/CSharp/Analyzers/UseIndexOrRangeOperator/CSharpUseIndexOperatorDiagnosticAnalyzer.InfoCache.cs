@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
 
             public InfoCache(Compilation compilation)
-                => IndexType = compilation.GetTypeByMetadataName("System.Index");
+                => IndexType = compilation.GetBestTypeByMetadataName("System.Index");
 
             public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
             {
