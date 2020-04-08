@@ -3981,6 +3981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
 
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
                         diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
                     goto case TypeKind.Class;

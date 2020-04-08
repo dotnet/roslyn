@@ -1638,5 +1638,57 @@ unsafe class C {
 
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void NestedInvalidTypes()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+static class S {}
+unsafe class C
+{
+    void M1(delegate*<C*, S> ptr) {}
+    void M2<T>(delegate*<T?> ptr) {}
+    void M3<T>(delegate*<D<T>> ptr) {}
+    void M4<T>(delegate*<E<T>> ptr) {}
+}
+class D<T> where T : unmanaged {}
+class E<T> where T : struct {}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //     void M1(delegate*<C*, S> ptr) {}
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
+                // (7,26): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     void M2<T>(delegate*<T?> ptr) {}
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 26),
+                // (8,32): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     void M3<T>(delegate*<D<T>> ptr) {}
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ptr").WithArguments("D<T>", "T", "T").WithLocation(8, 32),
+                // (9,32): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E<T>'
+                //     void M4<T>(delegate*<E<T>> ptr) {}
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ptr").WithArguments("E<T>", "T", "T").WithLocation(9, 32)
+            );
+        }
+
+        [Fact]
+        public void NewFunctionPointerType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M()
+    {
+        _ = new delegate*<void>();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS1919: Unsafe type 'delegate*<void>' cannot be used in object creation
+                //         _ = new delegate*<void>();
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new delegate*<void>()").WithArguments("delegate*<void>").WithLocation(6, 13)
+            );
+        }
     }
 }
