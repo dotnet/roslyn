@@ -5998,9 +5998,11 @@ class B<T, U, U>
             comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var syntax = tree.GetRoot().DescendantNodes().OfType<TypeParameterSyntax>().Last();
-            var symbol = model.GetDeclaredSymbol(syntax);
+            var typeParameters = tree.GetRoot().DescendantNodes().OfType<TypeParameterSyntax>().ToArray();
+            var symbol = model.GetDeclaredSymbol(typeParameters[typeParameters.Length - 1]);
             Assert.False(symbol.IsReferenceType);
+            symbol = model.GetDeclaredSymbol(typeParameters[typeParameters.Length - 2]);
+            Assert.True(symbol.IsReferenceType);
         }
     }
 }

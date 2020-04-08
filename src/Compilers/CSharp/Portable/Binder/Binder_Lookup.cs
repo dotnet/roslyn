@@ -564,21 +564,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool NameAndArityMatchRecursively(Symbol x, Symbol y)
         {
-            if (isRoot(x))
+            while (true)
             {
-                return isRoot(y);
+                if (isRoot(x))
+                {
+                    return isRoot(y);
+                }
+                if (isRoot(y))
+                {
+                    return false;
+                }
+                if (x.Name != y.Name || mangleName(x) != mangleName(y) || x.GetArity() != y.GetArity())
+                {
+                    return false;
+                }
+                x = x.ContainingSymbol;
+                y = y.ContainingSymbol;
             }
-            if (isRoot(y))
-            {
-                return false;
-            }
-            if (!NameAndArityMatchRecursively(x.ContainingSymbol, y.ContainingSymbol))
-            {
-                return false;
-            }
-            return x.Name == y.Name && x.GetArity() == y.GetArity();
 
             static bool isRoot(Symbol symbol) => symbol is null || symbol is NamespaceSymbol { IsGlobalNamespace: true };
+            static bool mangleName(Symbol symbol) => (symbol as NamedTypeSymbol)?.MangleName == true;
         }
 
         private bool IsSingleViableAttributeType(LookupResult result, out Symbol symbol)
