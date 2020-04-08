@@ -4,12 +4,14 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -37,11 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// </summary>
         private const string CS1503 = nameof(CS1503);
 
-        /// <summary>
-        /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix, but logs telemetry 
-        /// </summary>
-        private const int MaximumConversionOptions = 3;
-
         [ImportingConstructor]
         public CSharpAddExplicitCastCodeFixProvider()
         {
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        protected override string GetDescription(CodeFixContext context, SemanticModel semanticModel, ITypeSymbol? conversionType = null)
+        protected override string GetDescription(CodeFixContext context, SemanticModel semanticModel, SyntaxNode? targetNode = null, ITypeSymbol? conversionType = null)
         {
             if (conversionType is object)
             {
@@ -80,53 +77,51 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         /// Base b; Derived d = [||]b;       
         /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
         /// </summary>
-        /// <param name="diagnosticId"> The ID of the diagnostic.</param>
-        /// <param name="targetNode"> The node to be cast.</param>
-        /// <param name="targetNodeType"> Output the type of "targetNode".</param>
         /// <param name="potentialConversionTypes"> Output the potential conversions types that "targetNode" can be cast to</param>
         /// <returns>
         /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
         /// False, if the target node has no conversion type.
         /// </returns>
-        protected override bool TryGetTargetTypeInfo(
-            SemanticModel semanticModel, SyntaxNode root, string diagnosticId, ExpressionSyntax targetNode,
-            CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetNodeType,
-            out ImmutableArray<ITypeSymbol> potentialConversionTypes)
+        protected override bool TryGetTargetTypeInfo(Document document,
+            SemanticModel semanticModel, SyntaxNode root, string diagnosticId, ExpressionSyntax spanNode,
+            CancellationToken cancellationToken, out ImmutableArray<Tuple<ExpressionSyntax, ITypeSymbol>> potentialConversionTypes)
         {
-            potentialConversionTypes = ImmutableArray<ITypeSymbol>.Empty;
+            potentialConversionTypes = ImmutableArray<Tuple<ExpressionSyntax, ITypeSymbol>>.Empty;
 
-            var targetNodeInfo = semanticModel.GetTypeInfo(targetNode, cancellationToken);
-            targetNodeType = targetNodeInfo.Type;
+            var targetNodeInfo = semanticModel.GetTypeInfo(spanNode, cancellationToken);
+            var targetNodeType = targetNodeInfo.Type;
 
             if (targetNodeType == null)
                 return false;
 
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
-            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var mutablePotentialConversionTypes);
+            using var _ = ArrayBuilder<Tuple<ExpressionSyntax, ITypeSymbol>>.GetInstance(out var mutablePotentialConversionTypes);
             if (diagnosticId == CS0266
                 && targetNodeInfo.ConvertedType != null
                 && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
             {
-                mutablePotentialConversionTypes.Add(targetNodeInfo.ConvertedType);
+                mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, targetNodeInfo.ConvertedType));
             }
             else if (diagnosticId == CS1503
-                && targetNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+                && spanNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
                 && targetArgument.Parent is ArgumentListSyntax argumentList
                 && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
             {
-                mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root, targetNodeType,
+                mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
                     targetArgument, argumentList, invocationNode, cancellationToken));
             }
 
             // clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, targetNode, targetNodeType,
-                mutablePotentialConversionTypes);
+            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
         }
 
         protected override bool ClassifyConversionExists(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
             => semanticModel.ClassifyConversion(expression, type).Exists;
+
+        protected override bool IsConversionIdentity(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
+            => semanticModel.ClassifyConversion(expression, type).IsIdentity;
 
         protected override SeparatedSyntaxList<ArgumentSyntax> GetArguments(ArgumentListSyntax argumentList)
             => argumentList.Arguments;
@@ -143,8 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         protected override string? TryGetName(ArgumentSyntax argument)
             => argument.NameColon?.Name.Identifier.ValueText;
 
+        protected override void SortConversionTypes(SemanticModel semanticModel, ArrayBuilder<Tuple<ExpressionSyntax, ITypeSymbol>> conversionTypes, ArgumentListSyntax argumentList)
+            => conversionTypes.Sort(new InheritanceDistanceComparer<ExpressionSyntax, ArgumentSyntax>(semanticModel, argumentList.Arguments));
+
         protected override ArgumentListSyntax GenerateNewArgumentList(
             ArgumentListSyntax oldArgumentList, List<ArgumentSyntax> newArguments)
             => oldArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
+
+        protected override bool IsConversionUserDefined(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
+            => semanticModel.ClassifyConversion(expression, type).IsUserDefined;
     }
 }

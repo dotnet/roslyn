@@ -6,6 +6,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
@@ -30,41 +32,55 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
     /// 
     /// 'Derived1' is less specific than 'Derived2' compared to 'Base'
     /// </summary>
-    internal sealed class InheritanceDistanceComparer : IComparer<ITypeSymbol>
+    internal sealed class InheritanceDistanceComparer<
+        TExpressionSyntax,
+        TArgumentSyntax> : IComparer<Tuple<TExpressionSyntax, ITypeSymbol>>
+        where TExpressionSyntax : SyntaxNode
+        where TArgumentSyntax : SyntaxNode
     {
-        private readonly ITypeSymbol _baseType;
+        private readonly SeparatedSyntaxList<TArgumentSyntax> _arguments;
         private readonly SemanticModel _semanticModel;
 
-        public InheritanceDistanceComparer(SemanticModel semanticModel, ITypeSymbol baseType)
+        public InheritanceDistanceComparer(SemanticModel semanticModel, SeparatedSyntaxList<TArgumentSyntax> arguments)
         {
             _semanticModel = semanticModel;
-            _baseType = baseType;
+            _arguments = arguments;
         }
 
-        public int Compare(ITypeSymbol x, ITypeSymbol y)
+        public int Compare(Tuple<TExpressionSyntax, ITypeSymbol> x, Tuple<TExpressionSyntax, ITypeSymbol> y)
         {
-            var xDist = GetInheritanceDistance(x);
-            var yDist = GetInheritanceDistance(y);
-            return xDist.CompareTo(yDist);
+            if (!x.Item1.Equals(y.Item1))
+            {
+                var argumentX = x.Item1.GetAncestorsOrThis<TArgumentSyntax>().FirstOrDefault();
+                var argumentY = y.Item1.GetAncestorsOrThis<TArgumentSyntax>().FirstOrDefault();
+                return _arguments.IndexOf(argumentX).CompareTo(_arguments.IndexOf(argumentY));
+            }
+            else
+            {
+                var baseType = _semanticModel.GetTypeInfo(x.Item1).Type;
+                var xDist = GetInheritanceDistance(baseType, x.Item2);
+                var yDist = GetInheritanceDistance(baseType, y.Item2);
+                return xDist.CompareTo(yDist);
+            }
         }
 
         /// <summary>
-        /// Calculate the inheritance distance between _baseType and derivedType.
+        /// Calculate the inheritance distance between baseType and derivedType.
         /// </summary>
-        private int GetInheritanceDistanceRecursive(ITypeSymbol? derivedType)
+        private int GetInheritanceDistanceRecursive(ITypeSymbol baseType, ITypeSymbol? derivedType)
         {
             if (derivedType == null)
                 return int.MaxValue;
-            if (derivedType.Equals(_baseType))
+            if (derivedType.Equals(baseType))
                 return 0;
 
-            var distance = GetInheritanceDistanceRecursive(derivedType.BaseType);
+            var distance = GetInheritanceDistanceRecursive(baseType, derivedType.BaseType);
 
             if (derivedType.Interfaces.Length != 0)
             {
                 foreach (var interfaceType in derivedType.Interfaces)
                 {
-                    distance = Math.Min(GetInheritanceDistanceRecursive(interfaceType), distance);
+                    distance = Math.Min(GetInheritanceDistanceRecursive(baseType, interfaceType), distance);
                 }
             }
 
@@ -75,13 +91,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// Wrapper funtion of [GetInheritanceDistance], also consider the class with explicit conversion operator
         /// has the highest priority.
         /// </summary>
-        private int GetInheritanceDistance(ITypeSymbol type)
+        private int GetInheritanceDistance(ITypeSymbol? baseType, ITypeSymbol castType)
         {
-            var conversion = _semanticModel.Compilation.ClassifyCommonConversion(_baseType, type);
+            if (baseType is null)
+                return 0;
+
+            var conversion = _semanticModel.Compilation.ClassifyCommonConversion(baseType, castType);
 
             // If the node has the explicit conversion operator, then it has the shortest distance
             // since explicit conversion operator is defined by users and has the highest priority 
-            var distance = conversion.IsUserDefined ? 0 : GetInheritanceDistanceRecursive(type);
+            var distance = conversion.IsUserDefined ? 0 : GetInheritanceDistanceRecursive(baseType, castType);
             return distance;
         }
     }
