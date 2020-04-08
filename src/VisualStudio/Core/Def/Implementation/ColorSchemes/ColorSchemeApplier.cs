@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
-                QueueColorSchemeUpdate(themeChanged: true);
+                UpdateColorScheme(themeChanged: true);
             }
         }
 
