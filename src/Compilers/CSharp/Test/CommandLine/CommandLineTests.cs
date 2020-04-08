@@ -1424,6 +1424,7 @@ class C
 
             parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "/langversion:?" }, WorkingDirectory, sdkDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.DisplayLangVersions);
 
             parsedArgs = CSharpCommandLineParser.Script.Parse(new[] { "//langversion:?" }, WorkingDirectory, sdkDirectory);
             parsedArgs.Errors.Verify(
