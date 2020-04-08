@@ -178,8 +178,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemovedAsync(
             Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            // Added imports are annotated for simplification too. Therefore, we simplify the document
+            // before removing added member node to preserve those imports in the document.
+            document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var members = root.GetAnnotatedNodesAndTokens(_annotation)
                               .AsImmutable()
                               .Select(m => m.AsNode());
@@ -188,7 +191,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var dismemberedDocument = document.WithSyntaxRoot(root);
 
-            dismemberedDocument = await Simplifier.ReduceAsync(dismemberedDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
             dismemberedDocument = await Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             return await dismemberedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         }
