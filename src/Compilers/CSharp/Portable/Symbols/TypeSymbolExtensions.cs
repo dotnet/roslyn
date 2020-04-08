@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool CanBeAssignedNull(this TypeSymbol type)
         {
-            return type.IsReferenceType || type.IsPointerType() || type.IsNullableType();
+            return type.IsReferenceType || type.IsPointerOrFunctionPointer() || type.IsNullableType();
         }
 
         public static bool CanContainNull(this TypeSymbol type)

@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.False(symbol.IsSealed);
 
                 Assert.True(symbol.IsValueType);
+                Assert.True(symbol.CanBeAssignedNull());
 
                 Assert.Null(symbol.ContainingSymbol);
                 Assert.Null(symbol.BaseTypeNoUseSiteDiagnostics);
