@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\CSharpFileHeaderHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeLocalFunctionStatic\MakeLocalFunctionStaticHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructFieldsWritable\CSharpMakeStructFieldsWritableDiagnosticAnalyzer.cs" />
