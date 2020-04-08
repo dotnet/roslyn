@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected override Task WaitAsync(CancellationToken cancellationToken)
-                {
-                    return _gate.WaitAsync(cancellationToken);
-                }
+                    => _gate.WaitAsync(cancellationToken);
 
                 protected override async Task ExecuteAsync()
                 {
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     using (data.AsyncToken)
                     {
                         // we have a hint. check whether we can take advantage of it
-                        if (await TryEnqueueFromHint(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
+                        if (await TryEnqueueFromHintAsync(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
                         {
                             return;
                         }
@@ -96,11 +94,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private Data Dequeue()
-                {
-                    return DequeueWorker(_workGate, _pendingWork, CancellationToken);
-                }
+                    => DequeueWorker(_workGate, _pendingWork, CancellationToken);
 
-                private async Task<bool> TryEnqueueFromHint(Document document, SyntaxPath changedMember)
+                private async Task<bool> TryEnqueueFromHintAsync(Document document, SyntaxPath changedMember)
                 {
                     if (changedMember == null)
                     {
@@ -176,9 +172,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private Task EnqueueWorkItemAsync(Document document, ISymbol symbol)
-                {
-                    return EnqueueWorkItemAsync(document, symbol.ContainingType != null ? symbol.ContainingType.Locations : symbol.Locations);
-                }
+                    => EnqueueWorkItemAsync(document, symbol.ContainingType != null ? symbol.ContainingType.Locations : symbol.Locations);
 
                 private async Task EnqueueWorkItemAsync(Document thisDocument, ImmutableArray<Location> locations)
                 {
@@ -207,9 +201,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private bool IsType(ISymbol symbol)
-                {
-                    return symbol.Kind == SymbolKind.NamedType;
-                }
+                    => symbol.Kind == SymbolKind.NamedType;
 
                 private bool IsMember(ISymbol symbol)
                 {
@@ -415,9 +407,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        return _gate.WaitAsync(cancellationToken);
-                    }
+                        => _gate.WaitAsync(cancellationToken);
 
                     protected override async Task ExecuteAsync()
                     {
@@ -448,9 +438,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     private Data Dequeue()
-                    {
-                        return DequeueWorker(_workGate, _pendingWork, CancellationToken);
-                    }
+                        => DequeueWorker(_workGate, _pendingWork, CancellationToken);
 
                     private async Task EnqueueWorkItemAsync(Project project)
                     {

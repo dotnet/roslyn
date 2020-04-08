@@ -12,12 +12,11 @@ using Microsoft.CodeAnalysis.Formatting;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
 #endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    extern alias CodeStyle;
-    using Formatter = CodeStyle::Microsoft.CodeAnalysis.Formatting.Formatter;
     using ISyntaxFormattingService = ISyntaxFormattingService;
 
     internal abstract class AbstractFormattingCodeFixProvider : CodeFixProvider
@@ -28,9 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
 
         public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return new FixAll(this);
-        }
+            => new FixAll(this);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -73,9 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             private readonly AbstractFormattingCodeFixProvider _formattingCodeFixProvider;
 
             public FixAll(AbstractFormattingCodeFixProvider formattingCodeFixProvider)
-            {
-                _formattingCodeFixProvider = formattingCodeFixProvider;
-            }
+                => _formattingCodeFixProvider = formattingCodeFixProvider;
 
             protected override string CodeActionTitle => CodeStyleResources.Fix_formatting;
 

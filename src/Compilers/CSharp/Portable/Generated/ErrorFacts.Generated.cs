@@ -228,6 +228,19 @@
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_ShouldNotReturn:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation:
+                case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
+                case ErrorCode.WRN_DoesNotReturnMismatch:
+                case ErrorCode.WRN_MemberNotNull:
+                case ErrorCode.WRN_MemberNotNullWhen:
+                case ErrorCode.WRN_MemberNotNullBadMember:
+                case ErrorCode.WRN_ParameterDisallowsNull:
+                case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                     return true;
                 default:
                     return false;

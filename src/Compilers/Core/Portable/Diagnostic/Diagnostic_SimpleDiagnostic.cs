@@ -146,6 +146,11 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(Diagnostic? obj)
             {
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
                 var other = obj as SimpleDiagnostic;
                 if (other == null)
                 {
@@ -165,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                     && _warningLevel == other._warningLevel;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return this.Equals(obj as Diagnostic);
             }

@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<byte> Value;
 
         public ILDelta(ImmutableArray<byte> value)
-        {
-            Value = value;
-        }
+            => Value = value;
     }
 }

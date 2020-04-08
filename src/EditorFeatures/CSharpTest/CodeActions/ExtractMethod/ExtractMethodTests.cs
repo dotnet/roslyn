@@ -1493,7 +1493,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
@@ -1541,7 +1541,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
@@ -3221,7 +3221,7 @@ class C
     {
         return b != true;
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.FalseWithSuggestionEnforcement));
         }
 
         [Fact, WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -3885,6 +3885,47 @@ class C
     void M()
     {
         [|using System;|]
+    }
+}");
+        }
+
+        [Fact, WorkItem(19461, "https://github.com/dotnet/roslyn/issues/19461")]
+        public async Task TestLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System;
+
+class Program
+{
+    void M()
+    {
+        int y = 0;
+        [|var x = local();
+        
+        int local()
+        {
+            return y;
+        }|]
+    }
+}", @"
+using System;
+
+class Program
+{
+    void M()
+    {
+        int y = 0;
+        {|Rename:NewMethod|}(y);
+    }
+
+    private static void NewMethod(int y)
+    {
+        var x = local();
+
+        int local()
+        {
+            return y;
+        }
     }
 }");
         }

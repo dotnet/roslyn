@@ -47,13 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         protected override SyntaxGenerator GetSyntaxGenerator()
-        {
-            return s_generatorInstance;
-        }
+            => s_generatorInstance;
 
         protected override bool IsValidName(INamedTypeSymbol enumType, string name)
-        {
-            return SyntaxFacts.IsValidIdentifier(name);
-        }
+            => SyntaxFacts.IsValidIdentifier(name);
     }
 }

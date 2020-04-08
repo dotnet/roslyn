@@ -124,9 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             internal void IncrementReferenceCount()
-            {
-                _taggerReferenceCount++;
-            }
+                => _taggerReferenceCount++;
 
             internal void DecrementReferenceCountAndDisposeIfNecessary()
             {
@@ -165,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var document = workspace.CurrentSolution.GetDocument(documentId);
                     if (document != null)
                     {
-                        EnqueueProcessSnapshotAsync(document);
+                        EnqueueProcessSnapshot(document);
                     }
                 }
             }
@@ -186,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private void EnqueueProcessSnapshotAsync(Document newDocument)
+            private void EnqueueProcessSnapshot(Document newDocument)
             {
                 if (newDocument != null)
                 {
@@ -498,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                             // make sure in case of parse config change, we re-colorize whole document. not just edited section.
                             var configChanged = !object.Equals(oldProject.ParseOptions, newProject.ParseOptions);
-                            EnqueueProcessSnapshotAsync(newProject.GetDocument(documentId));
+                            EnqueueProcessSnapshot(newProject.GetDocument(documentId));
                             break;
                         }
 
@@ -583,7 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var openDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
                     if (openDocumentId == documentId)
                     {
-                        EnqueueProcessSnapshotAsync(newSolution.GetDocument(documentId));
+                        EnqueueProcessSnapshot(newSolution.GetDocument(documentId));
                     }
                 }
             }

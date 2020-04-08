@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             public override string Title => _title;
+            internal override CodeActionPriority Priority => CodeActionPriority.High;
 
             protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
@@ -97,14 +98,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 private readonly RenameTrackingCommitter _committer;
 
                 public RenameTrackingCommitterOperation(RenameTrackingCommitter committer)
-                {
-                    _committer = committer;
-                }
+                    => _committer = committer;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-                {
-                    _committer.Commit(cancellationToken);
-                }
+                    => _committer.Commit(cancellationToken);
             }
         }
     }

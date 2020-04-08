@@ -5,15 +5,20 @@
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using System.Composition;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
 {
     [ExportLanguageService(typeof(IRenameTrackingLanguageHeuristicsService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspRenameTrackingLanguageHeuristicsService : IRenameTrackingLanguageHeuristicsService
     {
-        public bool IsIdentifierValidForRenameTracking(string name)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VBLspRenameTrackingLanguageHeuristicsService()
         {
-            return false;
         }
+
+        public bool IsIdentifierValidForRenameTracking(string name)
+            => false;
     }
 }

@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// no members with this name, returns an empty ImmutableArray. Never returns Null.</returns>
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return GetMembers().WhereAsArray(m => m.Name == name);
+            return GetMembers().WhereAsArray((m, name) => m.Name == name, name);
         }
 
         internal sealed override IEnumerable<FieldSymbol> GetFieldsToEmit()

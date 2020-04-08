@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
@@ -26,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         protected AbstractGoToDefinitionService(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
-        {
-            _streamingPresenter = streamingPresenter;
-        }
+            => _streamingPresenter = streamingPresenter;
 
         public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
             Document document, int position, CancellationToken cancellationToken)
@@ -52,9 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
             var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).WaitAndGetResult(cancellationToken);
             if (symbol is null)
-            {
                 return false;
-            }
+
+            // if the symbol only has a single source location, and we're already on it,
+            // try to see if there's a better symbol we could navigate to.
+            var remapped = TryGoToAlternativeLocationIfAlreadyOnDefinition(document, position, symbol, cancellationToken);
+            if (remapped)
+                return true;
 
             var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);
 
@@ -62,8 +66,47 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 document.Project,
                 _streamingPresenter.Value,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
-                throwOnHiddenDefinition: true,
                 cancellationToken: cancellationToken);
+        }
+
+        private bool TryGoToAlternativeLocationIfAlreadyOnDefinition(
+            Document document, int position,
+            ISymbol symbol, CancellationToken cancellationToken)
+        {
+            var project = document.Project;
+            var solution = project.Solution;
+
+            var sourceLocations = symbol.Locations.WhereAsArray(loc => loc.IsInSource);
+            if (sourceLocations.Length != 1)
+                return false;
+
+            var definitionLocation = sourceLocations[0];
+            if (!definitionLocation.SourceSpan.IntersectsWith(position))
+                return false;
+
+            var definitionTree = definitionLocation.SourceTree;
+            var definitionDocument = solution.GetDocument(definitionTree);
+            if (definitionDocument != document)
+                return false;
+
+            // Ok, we were already on the definition. Look for better symbols we could show results
+            // for instead. For now, just see if we're on an interface member impl. If so, we can
+            // instead navigate to the actual interface member.
+            //
+            // In the future we can expand this with other mappings if appropriate.
+            var interfaceImpls = symbol.ExplicitOrImplicitInterfaceImplementations();
+            if (interfaceImpls.Length == 0)
+                return false;
+
+            var definitions = interfaceImpls.SelectMany(
+                i => GoToDefinitionHelpers.GetDefinitions(
+                    i, project, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
+
+            var title = string.Format(EditorFeaturesResources._0_implemented_members,
+                FindUsagesHelpers.GetDisplayName(symbol));
+
+            return _streamingPresenter.Value.TryNavigateToOrPresentItemsAsync(
+                solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)

@@ -19,10 +19,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default), Shared]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TemporaryStorageServiceFactory()
         {
         }
@@ -30,7 +31,13 @@ namespace Microsoft.CodeAnalysis.Host
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var textFactory = workspaceServices.GetService<ITextFactoryService>();
-            return new TemporaryStorageService(textFactory);
+
+            // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
+            // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
+            // until https://github.com/dotnet/roslyn/issues/42178 is fixed.
+            return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
+                ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
+                : TrivialTemporaryStorageService.Instance;
         }
 
         /// <summary>
@@ -105,29 +112,19 @@ namespace Microsoft.CodeAnalysis.Host
             private long _offset;
 
             public TemporaryStorageService(ITextFactoryService textFactory)
-            {
-                _textFactory = textFactory;
-            }
+                => _textFactory = textFactory;
 
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
-            {
-                return new TemporaryTextStorage(this);
-            }
+                => new TemporaryTextStorage(this);
 
             public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding encoding, CancellationToken cancellationToken)
-            {
-                return new TemporaryTextStorage(this, storageName, offset, size, encoding);
-            }
+                => new TemporaryTextStorage(this, storageName, offset, size, encoding);
 
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
-            {
-                return new TemporaryStreamStorage(this);
-            }
+                => new TemporaryStreamStorage(this);
 
             public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size, CancellationToken cancellationToken)
-            {
-                return new TemporaryStreamStorage(this, storageName, offset, size);
-            }
+                => new TemporaryStreamStorage(this, storageName, offset, size);
 
             /// <summary>
             /// Allocate shared storage of a specified size.
@@ -176,9 +173,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public static string CreateUniqueName(long size)
-            {
-                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
-            }
+                => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
             private class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
             {
@@ -187,9 +182,7 @@ namespace Microsoft.CodeAnalysis.Host
                 private MemoryMappedInfo _memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
-                {
-                    _service = service;
-                }
+                    => _service = service;
 
                 public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding encoding)
                 {
@@ -298,9 +291,7 @@ namespace Microsoft.CodeAnalysis.Host
                 private MemoryMappedInfo _memoryMappedInfo;
 
                 public TemporaryStreamStorage(TemporaryStorageService service)
-                {
-                    _service = service;
-                }
+                    => _service = service;
 
                 public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long offset, long size)
                 {
@@ -353,20 +344,13 @@ namespace Microsoft.CodeAnalysis.Host
                 }
 
                 public Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
-                {
-                    return WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
-                }
+                    => WriteStreamMaybeAsync(stream, useAsync: true, cancellationToken: cancellationToken);
 
                 private async Task WriteStreamMaybeAsync(Stream stream, bool useAsync, CancellationToken cancellationToken)
                 {
                     if (_memoryMappedInfo != null)
                     {
                         throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
-                    }
-
-                    if (stream.Length == 0)
-                    {
-                        throw new ArgumentOutOfRangeException();
                     }
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))

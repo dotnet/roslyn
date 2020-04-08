@@ -1417,6 +1417,53 @@ class Program
 chosenSymbols: null);
         }
 
+        [WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestWithDialogInheritedMembers()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+class Base
+{
+    public int C { get; set; }
+}
+
+class Middle : Base
+{
+    public int B { get; set; }
+}
+
+class Derived : Middle
+{
+    public int A { get; set; }
+    [||]
+}",
+@"
+class Base
+{
+    public int C { get; set; }
+}
+
+class Middle : Base
+{
+    public int B { get; set; }
+}
+
+class Derived : Middle
+{
+    public int A { get; set; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is Derived derived &&
+               C == derived.C &&
+               B == derived.B &&
+               A == derived.A;
+    }
+}",
+chosenSymbols: null);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGenerateOperators1()
         {
@@ -2180,6 +2227,117 @@ index: 1,
 parameters: CSharp6Implicit);
         }
 
+        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPublicSystemHashCodeOtherProject()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    [|int j;|]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+using System;
+
+struct S
+{
+    int j;
+
+    public override bool Equals(object obj)
+    {
+        return obj is S s &amp;&amp;
+               j == s.j;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(j);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+index: 1,
+parameters: CSharp6Implicit);
+        }
+
+        [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestInternalSystemHashCode()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { internal struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    [|int j;|]
+}
+        </Document>
+    </Project>
+</Workspace>",
+
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P1"">
+        <Document>
+using System.Collections.Generic;
+namespace System { internal struct HashCode { } }
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" Name=""P2"">
+        <ProjectReference>P1</ProjectReference>
+        <Document>
+struct S
+{
+    int j;
+
+    public override bool Equals(object obj)
+    {
+        return obj is S s &amp;&amp;
+               j == s.j;
+    }
+
+    public override int GetHashCode()
+    {
+        return 1424088837 + j.GetHashCode();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+index: 1,
+parameters: CSharp6Implicit);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSystemHashCodeEightMembers()
         {
@@ -2536,6 +2694,178 @@ namespace N
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: CSharpLatestImplicit);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes1()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+    int bar;
+    [||]
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+
+
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    int bar;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes2()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+    int bar;
+
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+
+[||]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+
+[||]
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+    int bar;
+
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
+        }
+
+        [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestPartialTypes4()
+        {
+            await TestWithPickMembersDialogAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+partial class Goo
+{
+
+
+}
+        </Document>
+        <Document>
+partial class Goo
+{
+    int bar;
+[||]
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+partial class Goo
+{
+    int bar;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Goo goo &&
+               bar == goo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+        ",
+chosenSymbols: new[] { "bar" },
+index: 1);
         }
     }
 }

@@ -3,6 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
+Imports System.Text
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,11 +17,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
         Public Shared ReadOnly Instance As IVirtualCharService = New VisualBasicVirtualCharService()
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function IsStringLiteralToken(token As SyntaxToken) As Boolean
-            Return token.Kind() = SyntaxKind.StringLiteralToken
+        Public Overrides Function TryGetEscapeCharacter(ch As VirtualChar, ByRef escapedChar As Char) As Boolean
+            ' Not needed yet for VB.  Implement when there is an appropriate consumer that needs
+            ' this.
+            Throw New NotImplementedException()
+        End Function
+
+        Protected Overrides Function IsStringOrCharLiteralToken(token As SyntaxToken) As Boolean
+            Return token.Kind() = SyntaxKind.StringLiteralToken OrElse
+                   token.Kind() = SyntaxKind.CharacterLiteralToken
         End Function
 
         Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharSequence

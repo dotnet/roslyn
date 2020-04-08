@@ -6,15 +6,20 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using System.Composition;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
 {
     [ExportLanguageServiceFactory(typeof(IEditorBraceCompletionSessionFactory), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspBraceCompletionServiceFactory : ILanguageServiceFactory
     {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLspBraceCompletionServiceFactory()
         {
-            return languageServices.GetOriginalLanguageService<IEditorBraceCompletionSessionFactory>();
         }
+
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            => languageServices.GetOriginalLanguageService<IEditorBraceCompletionSessionFactory>();
     }
 }

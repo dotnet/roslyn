@@ -79,6 +79,15 @@ namespace Microsoft.CodeAnalysis
 
         internal GreenNode? Node { get; }
 
+        internal GreenNode RequiredNode
+        {
+            get
+            {
+                Debug.Assert(Node is object);
+                return Node;
+            }
+        }
+
         internal int Index { get; }
 
         internal int Position { get; }
@@ -459,17 +468,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new token from this token with the leading trivia specified..
         /// </summary>
-        public SyntaxToken WithLeadingTrivia(params SyntaxTrivia[] trivia)
+        public SyntaxToken WithLeadingTrivia(params SyntaxTrivia[]? trivia)
         {
-            return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+            return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
         /// <summary>
         /// Creates a new token from this token with the leading trivia specified..
         /// </summary>
-        public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
+        public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
+            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
             return Node != null
                 ? new SyntaxToken(null, Node.WithLeadingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
@@ -487,17 +496,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new token from this token with the trailing trivia specified.
         /// </summary>
-        public SyntaxToken WithTrailingTrivia(params SyntaxTrivia[] trivia)
+        public SyntaxToken WithTrailingTrivia(params SyntaxTrivia[]? trivia)
         {
-            return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+            return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>?)trivia);
         }
 
         /// <summary>
         /// Creates a new token from this token with the trailing trivia specified.
         /// </summary>
-        public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia> trivia)
+        public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
+            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
             return Node != null
                 ? new SyntaxToken(null, Node.WithTrailingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
@@ -559,7 +568,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the supplied <see cref="SyntaxToken"/> is equal to this
         /// <see cref="SyntaxToken"/>.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SyntaxToken && Equals((SyntaxToken)obj);
         }

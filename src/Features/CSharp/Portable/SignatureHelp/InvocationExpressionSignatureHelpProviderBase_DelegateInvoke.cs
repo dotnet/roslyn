@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class InvocationExpressionSignatureHelpProviderBase
     {
         private IList<SignatureHelpItem> GetDelegateInvokeItems(
-            InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, ISymbolDisplayService symbolDisplayService, IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, IAnonymousTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, out int? selectedItem, CancellationToken cancellationToken)
         {
             selectedItem = null;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var position = invocationExpression.SpanStart;
             var item = CreateItem(
                 invokeMethod, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                anonymousTypeDisplayService,
                 isVariadic: invokeMethod.IsParams(),
                 documentationFactory: null,
                 prefixParts: GetDelegateInvokePreambleParts(invokeMethod, semanticModel, position),

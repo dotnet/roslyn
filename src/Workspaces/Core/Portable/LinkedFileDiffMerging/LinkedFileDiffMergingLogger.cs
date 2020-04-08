@@ -1,4 +1,8 @@
-﻿using Microsoft.CodeAnalysis.Internal.Log;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.CodeAnalysis.Internal.Log;
 using static Microsoft.CodeAnalysis.LinkedFileDiffMergingSession;
 
 namespace Microsoft.CodeAnalysis
@@ -74,9 +78,7 @@ namespace Microsoft.CodeAnalysis
             Log((int)MergeInfo.InsertedMergeConflictCommentsAtAdjustedLocation, insertedMergeConflictCommentsAtAdjustedLocation);
 
         private static void Log(int mergeInfo, int count)
-        {
-            LogAggregator.IncreaseCountBy(mergeInfo, count);
-        }
+            => LogAggregator.IncreaseCountBy(mergeInfo, count);
 
         internal static void ReportTelemetry()
         {

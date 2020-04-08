@@ -22,13 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public QuickInfoSourceProvider(Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
-        {
-            _streamingPresenter = streamingPresenter;
-        }
+            => _streamingPresenter = streamingPresenter;
 
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
-        {
-            return new QuickInfoSource(textBuffer, _streamingPresenter);
-        }
+            => new QuickInfoSource(textBuffer, _streamingPresenter);
     }
 }

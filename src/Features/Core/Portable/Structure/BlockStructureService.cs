@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Structure
         /// Gets the service corresponding to the specified document.
         /// </summary>
         public static BlockStructureService GetService(Document document)
-        {
-            return document.GetLanguageService<BlockStructureService>();
-        }
+            => document.GetLanguageService<BlockStructureService>();
 
         /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
@@ -34,8 +32,6 @@ namespace Microsoft.CodeAnalysis.Structure
         /// implementations that do not block on async operations if possible.
         /// </summary>
         public virtual BlockStructure GetBlockStructure(Document document, CancellationToken cancellationToken)
-        {
-            return GetBlockStructureAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-        }
+            => GetBlockStructureAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
     }
 }

@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
         }
 
         protected static Task RunCountTest(string input, int cap = 0)
-        {
-            return RunCountTest(XElement.Parse(input), cap);
-        }
+            => RunCountTest(XElement.Parse(input), cap);
 
         protected static async Task RunReferenceTest(XElement input)
         {
@@ -74,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
         }
 
         protected static Task RunReferenceTest(string input)
-        {
-            return RunReferenceTest(XElement.Parse(input));
-        }
+            => RunReferenceTest(XElement.Parse(input));
 
         protected static async Task RunMethodReferenceTest(XElement input)
         {
@@ -104,9 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
         }
 
         protected static Task RunMethodReferenceTest(string input)
-        {
-            return RunMethodReferenceTest(XElement.Parse(input));
-        }
+            => RunMethodReferenceTest(XElement.Parse(input));
 
         protected static async Task RunFullyQualifiedNameTest(XElement input)
         {
@@ -123,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
                         foreach (var span in annotatedSpan.Value)
                         {
                             var declarationSyntaxNode = syntaxNode.FindNode(span);
-                            var actual = await new CodeLensReferencesService().GetFullyQualifiedName(workspace.CurrentSolution,
+                            var actual = await new CodeLensReferencesService().GetFullyQualifiedNameAsync(workspace.CurrentSolution,
                                 annotatedDocument.Id, declarationSyntaxNode, CancellationToken.None);
                             Assert.Equal(expected, actual);
                         }
@@ -133,8 +127,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
         }
 
         protected static Task RunFullyQualifiedNameTest(string input)
-        {
-            return RunFullyQualifiedNameTest(XElement.Parse(input));
-        }
+            => RunFullyQualifiedNameTest(XElement.Parse(input));
     }
 }

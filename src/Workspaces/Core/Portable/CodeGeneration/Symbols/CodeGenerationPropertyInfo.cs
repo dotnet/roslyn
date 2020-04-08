@@ -42,33 +42,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public static SyntaxNode GetInitializer(CodeGenerationPropertyInfo info)
-        {
-            return info == null ? null : info._initializer;
-        }
+            => info?._initializer;
 
         public static SyntaxNode GetInitializer(IPropertySymbol property)
-        {
-            return GetInitializer(GetInfo(property));
-        }
+            => GetInitializer(GetInfo(property));
 
         public static bool GetIsNew(IPropertySymbol property)
-        {
-            return GetIsNew(GetInfo(property));
-        }
+            => GetIsNew(GetInfo(property));
 
         public static bool GetIsUnsafe(IPropertySymbol property)
-        {
-            return GetIsUnsafe(GetInfo(property));
-        }
+            => GetIsUnsafe(GetInfo(property));
 
         private static bool GetIsNew(CodeGenerationPropertyInfo info)
-        {
-            return info != null && info._isNew;
-        }
+            => info != null && info._isNew;
 
         private static bool GetIsUnsafe(CodeGenerationPropertyInfo info)
-        {
-            return info != null && info._isUnsafe;
-        }
+            => info != null && info._isUnsafe;
     }
 }

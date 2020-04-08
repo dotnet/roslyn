@@ -6,16 +6,18 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Module VisualBasicCodeGenerationHelpers
 
-        Friend Sub AddAccessibilityModifiers(accessibility As Accessibility,
-                                                       tokens As IList(Of SyntaxToken),
-                                                       destination As CodeGenerationDestination,
-                                                       options As CodeGenerationOptions,
-                                                       nonStructureAccessibility As Accessibility)
+        Friend Sub AddAccessibilityModifiers(
+                accessibility As Accessibility,
+                tokens As ArrayBuilder(Of SyntaxToken),
+                destination As CodeGenerationDestination,
+                options As CodeGenerationOptions,
+                nonStructureAccessibility As Accessibility)
             options = If(options, CodeGenerationOptions.Default)
             If Not options.GenerateDefaultAccessibility Then
                 If destination = CodeGenerationDestination.StructType AndAlso accessibility = Accessibility.Public Then

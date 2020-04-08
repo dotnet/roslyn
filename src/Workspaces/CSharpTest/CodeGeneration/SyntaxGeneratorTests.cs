@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -21,21 +21,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
                 references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System });
 
-        private readonly INamedTypeSymbol _ienumerableInt;
-
-        private Workspace _ws;
-        private SyntaxGenerator _g;
+        private Workspace _workspace;
+        private SyntaxGenerator _generator;
 
         public SyntaxGeneratorTests()
         {
-            _ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32));
         }
 
         private Workspace Workspace
-            => _ws ?? (_ws = new AdhocWorkspace());
+            => _workspace ??= new AdhocWorkspace();
 
         private SyntaxGenerator Generator
-            => _g ?? (_g = SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp));
+            => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
         public Compilation Compile(string code)
         {
@@ -469,9 +466,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
         [Fact]
         public void TestAssignmentStatement()
-        {
-            VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = (y)");
-        }
+            => VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = (y)");
 
         [Fact]
         public void TestExpressionStatement()
@@ -510,15 +505,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
         [Fact]
         public void TestAwaitExpressions()
-        {
-            VerifySyntax<AwaitExpressionSyntax>(Generator.AwaitExpression(Generator.IdentifierName("x")), "await x");
-        }
+            => VerifySyntax<AwaitExpressionSyntax>(Generator.AwaitExpression(Generator.IdentifierName("x")), "await x");
 
         [Fact]
         public void TestNameOfExpressions()
-        {
-            VerifySyntax<InvocationExpressionSyntax>(Generator.NameOfExpression(Generator.IdentifierName("x")), "nameof(x)");
-        }
+            => VerifySyntax<InvocationExpressionSyntax>(Generator.NameOfExpression(Generator.IdentifierName("x")), "nameof(x)");
 
         [Fact]
         public void TestTupleExpression()
@@ -994,10 +985,18 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
+                "x p\r\n{\r\n    get;\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: Array.Empty<SyntaxNode>()),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly),
+                "x p\r\n{\r\n    set;\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: Array.Empty<SyntaxNode>()),
                 "x p\r\n{\r\n    set\r\n    {\r\n    }\r\n}");
 
             VerifySyntax<PropertyDeclarationSyntax>(
@@ -1014,6 +1013,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), setAccessorStatements: new[] { Generator.IdentifierName("y") }),
+                "x p\r\n{\r\n    get;\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), getAccessorStatements: Array.Empty<SyntaxNode>(), setAccessorStatements: new[] { Generator.IdentifierName("y") }),
                 "x p\r\n{\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n        y;\r\n    }\r\n}");
         }
 
@@ -1813,19 +1816,13 @@ public class C { } // end").Members[0];
         }
 
         private void AssertNamesEqual(string name, IEnumerable<SyntaxNode> actualNodes)
-        {
-            AssertNamesEqual(new[] { name }, actualNodes);
-        }
+            => AssertNamesEqual(new[] { name }, actualNodes);
 
         private void AssertMemberNamesEqual(string[] expectedNames, SyntaxNode declaration)
-        {
-            AssertNamesEqual(expectedNames, Generator.GetMembers(declaration));
-        }
+            => AssertNamesEqual(expectedNames, Generator.GetMembers(declaration));
 
         private void AssertMemberNamesEqual(string expectedName, SyntaxNode declaration)
-        {
-            AssertNamesEqual(new[] { expectedName }, Generator.GetMembers(declaration));
-        }
+            => AssertNamesEqual(new[] { expectedName }, Generator.GetMembers(declaration));
 
         [Fact]
         public void TestAddNamespaceImports()
@@ -1848,9 +1845,7 @@ public class C { } // end").Members[0];
         }
 
         private void TestRemoveAllNamespaceImports(SyntaxNode declaration)
-        {
-            Assert.Equal(0, Generator.GetNamespaceImports(Generator.RemoveNodes(declaration, Generator.GetNamespaceImports(declaration))).Count);
-        }
+            => Assert.Equal(0, Generator.GetNamespaceImports(Generator.RemoveNodes(declaration, Generator.GetNamespaceImports(declaration))).Count);
 
         private void TestRemoveNamespaceImport(SyntaxNode declaration, string name, string[] remainingNames)
         {
@@ -1987,9 +1982,7 @@ public class C
         }
 
         private void TestRemoveAllMembers(SyntaxNode declaration)
-        {
-            Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count);
-        }
+            => Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count);
 
         private void TestRemoveMember(SyntaxNode declaration, string name, string[] remainingNames)
         {
@@ -2210,7 +2203,7 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.DestructorDeclaration("c"), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.MethodDeclaration("m"), allModifiers)));
 
             Assert.Equal(
@@ -2222,11 +2215,11 @@ public class C
                 Generator.GetModifiers(Generator.WithModifiers(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("i") }, Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.New | DeclarationModifiers.Static | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.EventDeclaration("ef", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
-                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+                DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
                 Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
 
             Assert.Equal(
@@ -2370,9 +2363,7 @@ public class C
             var getAccessor = Generator.GetAccessor(prop, DeclarationKind.GetAccessor);
             Assert.NotNull(getAccessor);
             VerifySyntax<AccessorDeclarationSyntax>(getAccessor,
-@"get
-{
-}");
+@"get;");
 
             Assert.NotNull(getAccessor);
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(getAccessor));
@@ -3404,8 +3395,94 @@ public class C : IDisposable
             var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _ws).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
+        }
+
+        #endregion
+
+        #region DeclarationModifiers
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestNamespaceModifiers()
+        {
+            TestModifiersAsync(DeclarationModifiers.None,
+                @"
+[|namespace N1
+{
+}|]");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestClassModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Static,
+                @"
+[|static class C
+{
+}|]");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestMethodModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Sealed | DeclarationModifiers.Override,
+                @"
+class C
+{
+    [|public sealed override void M() { }|]
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestPropertyModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
+                @"
+class C
+{
+    [|public virtual int X => 0;|]
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestFieldModifiers1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Static,
+                @"
+class C
+{
+    public static int [|X|];
+}");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestEvent1()
+        {
+            TestModifiersAsync(DeclarationModifiers.Virtual,
+                @"
+class C
+{
+    public virtual event System.Action [|X|];
+}");
+        }
+
+        private void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
+        {
+            MarkupTestFile.GetSpan(markup, out var code, out var span);
+
+            var compilation = Compile(code);
+            var tree = compilation.SyntaxTrees.Single();
+
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var node = root.FindNode(span, getInnermostNodeForTie: true);
+
+            var declaration = semanticModel.GetDeclaredSymbol(node);
+            Assert.NotNull(declaration);
+
+            Assert.Equal(modifiers, DeclarationModifiers.From(declaration));
         }
 
         #endregion

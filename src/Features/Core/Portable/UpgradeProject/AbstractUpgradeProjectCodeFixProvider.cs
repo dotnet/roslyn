@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         {
             var diagnostics = context.Diagnostics;
 
-            context.RegisterFixes(GetUpgradeProjectCodeActionsAsync(context), diagnostics);
+            context.RegisterFixes(GetUpgradeProjectCodeActions(context), diagnostics);
             return Task.CompletedTask;
         }
 
-        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActionsAsync(CodeFixContext context)
+        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActions(CodeFixContext context)
         {
             var project = context.Document.Project;
             var solution = project.Solution;
@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         }
 
         private bool CanUpgrade(Project project, string language, string version)
-        {
-            return project.Language == language && IsUpgrade(project, version);
-        }
+            => project.Language == language && IsUpgrade(project, version);
     }
 
     internal class ProjectOptionsChangeAction : SolutionChangeAction

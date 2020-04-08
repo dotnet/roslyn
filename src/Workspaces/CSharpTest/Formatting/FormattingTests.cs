@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Format1()
-        {
-            await AssertFormatAsync("namespace A { }", "namespace A{}");
-        }
+            => await AssertFormatAsync("namespace A { }", "namespace A{}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Format2()
@@ -2327,9 +2325,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DontInsertLineBreaksInSingleLineEnum()
-        {
-            await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
-        }
+            => await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task AlreadyFormattedSwitchIsNotFormatted_Bug2588()
@@ -3782,9 +3778,7 @@ public       void       Method      (       )           {
         [WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Tab1()
-        {
-            await AssertFormatAsync(@"using System;", @"			using System;");
-        }
+            => await AssertFormatAsync(@"using System;", @"			using System;");
 
         [WorkItem(538329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538329")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -4435,7 +4429,7 @@ class C
 
             var expected = @"class Program
 {
-    void AddClass(string name, [OptionalAttribute]    object position, [OptionalAttribute]    object bases)
+    void AddClass(string name, [OptionalAttribute] object position, [OptionalAttribute] object bases)
     {
     }
 }";
@@ -4599,7 +4593,7 @@ class innerClass
                 SyntaxFactory.List<AttributeListSyntax>(),
                 SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
                 SyntaxFactory.ParseTypeName("int"),
-                default,
+                null,
                 SyntaxFactory.Identifier("Prop"),
                 SyntaxFactory.AccessorList(
                     SyntaxFactory.List(
@@ -7311,6 +7305,39 @@ class Program
             await AssertFormatAsync(expected, code, changedOptionSet: options);
         }
 
+        [WorkItem(14128, "https://github.com/dotnet/roslyn/issues/14128")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpaceBeforeCommasInLocalFunctionParameters()
+        {
+            var code = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i, string s)
+        {
+        }
+    }
+}";
+
+            var expected = @"
+class Program
+{
+    void Goo()
+    {
+        void LocalFunction(int i , string s)
+        {
+        }
+    }
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBeforeComma, true },
+            };
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task ArrayDeclarationShouldFollowEmptySquareBrackets()
         {
@@ -9127,9 +9154,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
-        {
-            Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
-        }
+            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatIndexExpression()
@@ -9521,6 +9546,46 @@ class C
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;C()
     };
 }".Replace("&nbsp;", "\u00A0"));
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute()
+        {
+            var code = @"class C
+{
+    void M([My]string?[]?[] x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My] string?[]?[] x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_Multiple()
+        {
+            var code = @"class C
+{
+    void M([My][My]  int x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
         }
     }
 }

@@ -274,9 +274,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         internal static async Task VerifySynchronizationObjectInServiceAsync(IRemotableDataService snapshotService, RemotableData syncObject)
-        {
-            await VerifyChecksumInServiceAsync(snapshotService, syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
-        }
+            => await VerifyChecksumInServiceAsync(snapshotService, syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
 
         internal static async Task VerifyChecksumInServiceAsync(IRemotableDataService snapshotService, Checksum checksum, WellKnownSynchronizationKind kind)
         {
@@ -288,9 +286,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         internal static void SynchronizationObjectEqual<T>(T checksumObject1, T checksumObject2) where T : RemotableData
-        {
-            ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
-        }
+            => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
 
         internal static void ChecksumEqual(Checksum checksum1, WellKnownSynchronizationKind kind1, Checksum checksum2, WellKnownSynchronizationKind kind2)
         {
@@ -305,9 +301,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
+                => Assembly.LoadFrom(fullPath);
         }
     }
 }

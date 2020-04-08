@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using System;
 using System.Composition;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
@@ -12,10 +13,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarde
     [ExportLanguageServiceFactory(typeof(IIndentationService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspIndentationServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpLspIndentationServiceFactory()
+        {
+        }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return languageServices.GetOriginalLanguageService<IIndentationService>();
-        }
+            => languageServices.GetOriginalLanguageService<IIndentationService>();
     }
 }

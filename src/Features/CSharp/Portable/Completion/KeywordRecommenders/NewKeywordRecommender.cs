@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -101,9 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
 
             if (token.Kind() == SyntaxKind.CommaToken &&
-                token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
+                token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
             {
-                var constraintClause = token.Parent as TypeParameterConstraintClauseSyntax;
                 if (!constraintClause.Constraints
                         .OfType<ClassOrStructConstraintSyntax>()
                         .Any(c => c.ClassOrStructKeyword.Kind() == SyntaxKind.StructKeyword))

@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -20,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Inherits AbstractAddImportFeatureService(Of SimpleNameSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -33,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Protected Overrides Function CanAddImportForMethod(
                 diagnosticId As String,
-                syntaxFacts As ISyntaxFactsService,
+                syntaxFacts As ISyntaxFacts,
                 node As SyntaxNode,
                 ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
@@ -110,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return False
         End Function
 
-        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
+        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
             Return diagnosticId = AddImportDiagnosticIds.BC36930 AndAlso
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
         End Function
@@ -187,9 +189,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
             Dim importsStatement = GetImportsStatement(symbol)
             Dim addImportService = document.GetLanguageService(Of IAddImportsService)
-
+            Dim generator = SyntaxGenerator.GetGenerator(document)
             Return ($"Imports {symbol.ToDisplayString()}",
-                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement))
+                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement, generator))
         End Function
 
         Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
@@ -288,9 +290,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim importService = document.GetLanguageService(Of IAddImportsService)
+            Dim generator = SyntaxGenerator.GetGenerator(document)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, placeSystemNamespaceFirst, cancellationToken)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, placeSystemNamespaceFirst, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
@@ -321,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function IsViableExtensionMethod(method As IMethodSymbol,
                                                              expression As SyntaxNode,
                                                              semanticModel As SemanticModel,
-                                                             syntaxFacts As ISyntaxFactsService,
+                                                             syntaxFacts As ISyntaxFacts,
                                                              cancellationToken As CancellationToken) As Boolean
             Dim leftExpressionType As ITypeSymbol = Nothing
             If syntaxFacts.IsInvocationExpression(expression) Then

@@ -45,9 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 private readonly Document _oldDocument;
 
                 public MyCodeAction(Document document)
-                {
-                    _oldDocument = document;
-                }
+                    => _oldDocument = document;
 
                 public override string Title
                 {

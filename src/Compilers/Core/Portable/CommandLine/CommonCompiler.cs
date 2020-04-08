@@ -97,9 +97,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
-        protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+
+        protected abstract void ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
-            CommonMessageProvider messageProvider);
+            CommonMessageProvider messageProvider,
+            out ImmutableArray<DiagnosticAnalyzer> analyzers,
+            out ImmutableArray<ISourceGenerator> generators);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -249,8 +252,15 @@ namespace Microsoft.CodeAnalysis
             var filePath = file.Path;
             try
             {
-                using (var data = OpenFileForReadWithSmallBufferOptimization(filePath))
+                if (file.IsInputRedirected)
                 {
+                    using var data = Console.OpenStandardInput();
+                    normalizedFilePath = filePath;
+                    return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
+                }
+                else
+                {
+                    using var data = OpenFileForReadWithSmallBufferOptimization(filePath);
                     normalizedFilePath = data.Name;
                     return EncodedStringText.Create(data, Arguments.Encoding, Arguments.ChecksumAlgorithm, canBeEmbedded: EmbeddedSourcePaths.Contains(file.Path));
                 }
@@ -683,6 +693,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Peform source generation, if the compiler supports it.
+        /// </summary>
+        /// <param name="input">The compilation before any source generation has occured.</param>
+        /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
+        /// <param name="generators">The generators to run</param>
+        /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
+        /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation</param>
+        /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
+        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
+
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             Debug.Assert(!Arguments.IsScriptRunner);
@@ -721,7 +742,7 @@ namespace Microsoft.CodeAnalysis
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            AnalyzerConfigSet analyzerConfigSet = default;
+            AnalyzerConfigSet analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
 
             if (Arguments.AnalyzerConfigPaths.Length > 0)
@@ -748,7 +769,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnosticInfos = new List<DiagnosticInfo>();
-            ImmutableArray<DiagnosticAnalyzer> analyzers = ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider);
+            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, out var analyzers, out var generators);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger))
             {
@@ -762,6 +783,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
+
+            // At this point we have a compilation with nothing yet computed. 
+            // We pass it to the generators, which will realize any symbols they require. 
+            compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, additionalTexts, diagnostics);
 
             CompileAndEmit(
                 touchedFilesLogger,

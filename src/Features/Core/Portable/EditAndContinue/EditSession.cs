@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal void Cancel() => _cancellationSource.Cancel();
 
         public void Dispose()
-        {
-            _cancellationSource.Dispose();
-        }
+            => _cancellationSource.Dispose();
 
         /// <summary>
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
@@ -345,8 +343,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private async Task<(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)>, ImmutableArray<Diagnostic> DocumentDiagnostics)> AnalyzeDocumentsAsync(
             ArrayBuilder<Document> changedDocuments, ArrayBuilder<Document> addedDocuments, CancellationToken cancellationToken)
         {
-            var documentDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
-            var builder = ArrayBuilder<(Document? Old, Document New)>.GetInstance();
+            using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var documentDiagnostics);
+            using var _2 = ArrayBuilder<(Document? Old, Document New)>.GetInstance(out var builder);
 
             foreach (var document in changedDocuments)
             {
@@ -389,8 +387,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            builder.Free();
-            return (result, documentDiagnostics.ToImmutableAndFree());
+            return (result, documentDiagnostics.ToImmutable());
         }
 
         public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document? baseDocument, Document document)
@@ -593,7 +590,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var allEdits = ArrayBuilder<SemanticEdit>.GetInstance();
                 var allLineEdits = ArrayBuilder<(DocumentId, ImmutableArray<LineChange>)>.GetInstance();
                 var activeStatementsInChangedDocuments = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance();
-                var allAddedSymbols = ArrayBuilder<ISymbol>.GetInstance();
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var allAddedSymbols);
 
                 foreach (var (document, asyncResult) in changedDocumentAnalyses)
                 {
@@ -615,7 +612,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         {
                             if (edit.Kind == SemanticEditKind.Insert)
                             {
-                                allAddedSymbols.Add(edit.NewSymbol);
+                                allAddedSymbols.Add(edit.NewSymbol!);
                             }
                         }
                     }
@@ -632,7 +629,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var allAddedSymbolResult = allAddedSymbols.ToImmutableHashSet();
-                allAddedSymbols.Free();
 
                 return new ProjectChanges(
                     allEdits.ToImmutableAndFree(),
@@ -932,6 +928,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     debugInfoReader.IsPortable);
 
                 success = true;
+                return true;
             }
             catch (Exception e)
             {
@@ -947,7 +944,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            return success;
+            return false;
         }
 
         // internal for testing
@@ -961,7 +958,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
             out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
         {
-            var changedNonRemappableSpans = PooledDictionary<(int MethodToken, int MethodVersion, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance();
+            using var _1 = PooledDictionary<(int MethodToken, int MethodVersion, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance(out var changedNonRemappableSpans);
             var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<(Guid, ActiveInstructionId, LinePositionSpan)>.GetInstance();
             var nonRemappableRegionsBuilder = ArrayBuilder<(ActiveMethodId Method, NonRemappableRegion Region)>.GetInstance();
 
@@ -1030,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             activeStatementsInUpdatedMethods = activeStatementsInUpdatedMethodsBuilder.ToImmutableAndFree();
 
             // Gather all active method instances contained in this project/module that are not up-to-date:
-            var unremappedActiveMethods = PooledHashSet<ActiveMethodId>.GetInstance();
+            using var _2 = PooledHashSet<ActiveMethodId>.GetInstance(out var unremappedActiveMethods);
             foreach (var (instruction, baseActiveStatement) in baseActiveStatements.InstructionMap)
             {
                 if (moduleId == instruction.MethodId.ModuleId && !baseActiveStatement.IsMethodUpToDate)
@@ -1075,8 +1072,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             nonRemappableRegions = nonRemappableRegionsBuilder.ToImmutableAndFree();
-            changedNonRemappableSpans.Free();
-            unremappedActiveMethods.Free();
         }
 
         internal void ChangesApplied()

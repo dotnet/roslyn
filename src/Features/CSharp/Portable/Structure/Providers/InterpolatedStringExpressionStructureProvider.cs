@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
     internal sealed class InterpolatedStringExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<InterpolatedStringExpressionSyntax>
     {
-        protected override void CollectBlockSpans(InterpolatedStringExpressionSyntax node, ArrayBuilder<BlockSpan> spans, OptionSet options, CancellationToken cancellationToken)
+        protected override void CollectBlockSpans(InterpolatedStringExpressionSyntax node, ArrayBuilder<BlockSpan> spans, bool isMetadataAsSource, OptionSet options, CancellationToken cancellationToken)
         {
             if (node.StringStartToken.IsMissing ||
                 node.StringEndToken.IsMissing)

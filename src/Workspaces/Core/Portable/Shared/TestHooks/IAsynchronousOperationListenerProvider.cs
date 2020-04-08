@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// Get Waiters for listeners for test
         /// </summary>
         public IAsynchronousOperationWaiter GetWaiter(string featureName)
-        {
-            return (IAsynchronousOperationWaiter)GetListener(featureName);
-        }
+            => (IAsynchronousOperationWaiter)GetListener(featureName);
 
         /// <summary>
         /// Wait for all of the <see cref="IAsynchronousOperationWaiter"/> instances to finish their
@@ -134,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             while (true)
             {
                 var waiters = GetCandidateWaiters(featureNames);
-                tasks = waiters.Select(x => x.CreateExpeditedWaitTask()).Where(t => !t.IsCompleted).ToArray();
+                tasks = waiters.Select(x => x.ExpeditedWaitAsync()).Where(t => !t.IsCompleted).ToArray();
 
                 if (tasks.Length == 0)
                 {
@@ -181,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// Get all saved DiagnosticAsyncToken to investigate tests failure easier
         /// </summary>
         public List<AsynchronousOperationListener.DiagnosticAsyncToken> GetTokens()
-        {
-            return _singletonListeners.Values.Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
-        }
+            => _singletonListeners.Values.Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
 
         private static bool IsEnabled
         {
@@ -232,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             return _singletonListeners.Where(kv => featureNames.Contains(kv.Key)).Select(kv => (IAsynchronousOperationWaiter)kv.Value);
         }
 
-        private class NullOperationListener : IAsynchronousOperationListener
+        private sealed class NullOperationListener : IAsynchronousOperationListener
         {
             public IAsyncToken BeginAsyncOperation(
                 string name,
@@ -247,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        private class NullListenerProvider : IAsynchronousOperationListenerProvider
+        private sealed class NullListenerProvider : IAsynchronousOperationListenerProvider
         {
             public IAsynchronousOperationListener GetListener(string featureName) => NullListener;
         }

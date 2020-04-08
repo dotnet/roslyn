@@ -14,10 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         Inherits AbstractRecommendationService(Of VisualBasicSyntaxContext)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreateContext(
+        Protected Overrides Function CreateContextAsync(
                                                   workspace As Workspace,
                                                   semanticModel As SemanticModel,
                                                   position As Integer,

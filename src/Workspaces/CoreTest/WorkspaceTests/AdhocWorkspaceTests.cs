@@ -476,9 +476,7 @@ language: LanguageNames.CSharp);
             }
 
             public void SetParseOptions(ProjectId id, ParseOptions options)
-            {
-                base.OnParseOptionsChanged(id, options);
-            }
+                => base.OnParseOptionsChanged(id, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                                 aliasReplacement.Name,
                                 name.GetTrailingTrivia());
 
-                        identifierToken = CSharpSimplificationService.TryEscapeIdentifierToken(identifierToken, name, semanticModel);
+                        identifierToken = CSharpSimplificationService.TryEscapeIdentifierToken(identifierToken, name);
                         replacementNode = SyntaxFactory.IdentifierName(identifierToken);
 
                         // Merge annotation to new syntax node
@@ -243,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                             // If not, we'll still fall through and see if we can convert it to Int32.
 
                             var codeStyleOptionName = inDeclarationContext
-                                ? nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
-                                : nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
+                                ? nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                                : nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
 
                             var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
                             if (type != null)
@@ -480,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             out TextSpan issueSpan)
         {
             issueSpan = default;
-            replacementNode = default;
+            replacementNode = null;
 
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))
@@ -641,18 +643,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Can't simplify a type name in a cast expression if it would then cause the cast to be
             // parsed differently.  For example:  (Goo::Bar)+1  is a cast.  But if that simplifies to
             // (Bar)+1  then that's an arithmetic expression.
-            if (expression.IsParentKind(SyntaxKind.CastExpression))
+            if (expression.IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression) &&
+                castExpression.Type == expression)
             {
-                var castExpression = (CastExpressionSyntax)expression.Parent;
-                if (castExpression.Type == expression)
-                {
-                    var newCastExpression = castExpression.ReplaceNode(castExpression.Type, simplifiedNode);
-                    var reparsedCastExpression = SyntaxFactory.ParseExpression(newCastExpression.ToString());
+                var newCastExpression = castExpression.ReplaceNode(castExpression.Type, simplifiedNode);
+                var reparsedCastExpression = SyntaxFactory.ParseExpression(newCastExpression.ToString());
 
-                    if (!reparsedCastExpression.IsKind(SyntaxKind.CastExpression))
-                    {
-                        return true;
-                    }
+                if (!reparsedCastExpression.IsKind(SyntaxKind.CastExpression))
+                {
+                    return true;
                 }
             }
 
@@ -674,8 +673,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 name = (NameSyntax)name.Parent;
             }
 
-            if (name.IsParentKind(SyntaxKind.UsingDirective) &&
-                ((UsingDirectiveSyntax)name.Parent).Alias == null)
+            if (name.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax usingDirective) &&
+                usingDirective.Alias == null)
             {
                 // We're a qualified name in a using.  We don't want to reduce this name as people like
                 // fully qualified names in usings so they can properly tell what the name is resolving

@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     {
         protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
-                  CodeStyleOptions.PreferSimplifiedInterpolation,
+                  CodeStyleOptions2.PreferSimplifiedInterpolation,
                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_interpolation), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                   new LocalizableResourceString(nameof(FeaturesResources.Interpolation_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -26,13 +28,13 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         protected abstract IVirtualCharService GetVirtualCharService();
 
+        protected abstract ISyntaxFacts GetSyntaxFacts();
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
-        }
+            => context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
 
         private void AnalyzeInterpolation(OperationAnalysisContext context)
         {
@@ -40,14 +42,14 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
             var syntaxTree = interpolation.Syntax.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = context.Options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             if (optionSet == null)
             {
                 return;
             }
 
             var language = interpolation.Language;
-            var option = optionSet.GetOption(CodeStyleOptions.PreferSimplifiedInterpolation, language);
+            var option = optionSet.GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, language);
             if (!option.Value)
             {
                 // No point in analyzing if the option is off.
@@ -55,26 +57,27 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-                GetVirtualCharService(), interpolation, out _, out var alignment, out _, out var formatString,
-                out var unnecessaryLocations);
+                GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
+                out var formatString, out var unnecessaryLocations);
 
             if (alignment == null && formatString == null)
             {
                 return;
             }
 
-            var locations = ImmutableArray.Create(interpolation.Syntax.GetLocation());
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                UnnecessaryWithSuggestionDescriptor,
+                unnecessaryLocations.First(),
+                option.Notification.Severity,
+                additionalLocations: ImmutableArray.Create(interpolation.Syntax.GetLocation()),
+                properties: null));
 
-            var severity = option.Notification.Severity;
-
-            for (var i = 0; i < unnecessaryLocations.Length; i++)
+            // We start at 1 because the 0th element was used above to make the main diagnostic descriptor.
+            // All the rest are used to just fade out the correct portions of the user's code.
+            for (var i = 1; i < unnecessaryLocations.Length; i++)
             {
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    i == 0 ? UnnecessaryWithSuggestionDescriptor : UnnecessaryWithoutSuggestionDescriptor,
-                    unnecessaryLocations[i],
-                    severity,
-                    additionalLocations: locations,
-                    properties: null));
+                context.ReportDiagnostic(Diagnostic.Create(
+                    UnnecessaryWithoutSuggestionDescriptor, unnecessaryLocations[i]));
             }
         }
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         private readonly MetadataDecoder _decoder;
         private readonly CustomAttributeHandle _handle;
-        private NamedTypeSymbol _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates uninitialized.
-        private MethodSymbol _lazyAttributeConstructor;
+        private NamedTypeSymbol? _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates uninitialized.
+        private MethodSymbol? _lazyAttributeConstructor;
         private ImmutableArray<TypedConstant> _lazyConstructorArguments;
         private ImmutableArray<KeyValuePair<string, TypedConstant>> _lazyNamedArguments;
         private ThreeState _lazyHasErrors = ThreeState.Unknown;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _handle = handle;
         }
 
-        public override NamedTypeSymbol AttributeClass
+        public override NamedTypeSymbol? AttributeClass
         {
             get
             {
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override MethodSymbol AttributeConstructor
+        public override MethodSymbol? AttributeConstructor
         {
             get
             {
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override SyntaxReference ApplicationSyntaxReference
+        public override SyntaxReference? ApplicationSyntaxReference
         {
             get { return null; }
         }
@@ -73,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private void EnsureClassAndConstructorSymbolsAreLoaded()
         {
 #pragma warning disable 0252
-            if ((object)_lazyAttributeClass == ErrorTypeSymbol.UnknownResultType)
+            if ((object?)_lazyAttributeClass == ErrorTypeSymbol.UnknownResultType)
             {
-                TypeSymbol attributeClass;
-                MethodSymbol attributeConstructor;
+                TypeSymbol? attributeClass;
+                MethodSymbol? attributeConstructor;
 
                 if (!_decoder.GetCustomAttribute(_handle, out attributeClass, out attributeConstructor))
                 {
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 Interlocked.CompareExchange(ref _lazyAttributeConstructor, attributeConstructor, null);
-                Interlocked.CompareExchange(ref _lazyAttributeClass, (NamedTypeSymbol)attributeClass, ErrorTypeSymbol.UnknownResultType); // Serves as a flag, so do it last.
+                Interlocked.CompareExchange(ref _lazyAttributeClass, (NamedTypeSymbol?)attributeClass, ErrorTypeSymbol.UnknownResultType); // Serves as a flag, so do it last.
             }
 #pragma warning restore 0252
         }
@@ -98,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyConstructorArguments.IsDefault || _lazyNamedArguments.IsDefault)
             {
-                TypedConstant[] lazyConstructorArguments = null;
-                KeyValuePair<string, TypedConstant>[] lazyNamedArguments = null;
+                TypedConstant[]? lazyConstructorArguments = null;
+                KeyValuePair<string, TypedConstant>[]? lazyNamedArguments = null;
 
                 if (!_decoder.GetCustomAttribute(_handle, out lazyConstructorArguments, out lazyNamedArguments))
                 {

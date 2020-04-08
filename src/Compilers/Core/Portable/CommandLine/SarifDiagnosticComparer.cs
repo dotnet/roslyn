@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public bool Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
+        public bool Equals(DiagnosticDescriptor? x, DiagnosticDescriptor? y)
         {
             if (ReferenceEquals(x, y))
             {
