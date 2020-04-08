@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,7 +15,7 @@ namespace Test.Utilities.CodeMetrics
 {
     public abstract class CodeMetricsTestBase
     {
-        private static readonly CompilationOptions s_CSharpDefaultOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CompilationOptions s_CSharpDefaultOptions = BuildDefaultCSharpOptions();
         private static readonly CompilationOptions s_visualBasicDefaultOptions = new Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         internal static string DefaultFilePathPrefix = "Test";
@@ -108,6 +110,42 @@ namespace Test.Utilities.CodeMetrics
                 // Dump the entire expected and actual lines for easy update to baseline.
                 Assert.True(false, $"Expected:\r\n{expectedMetricsText}\r\n\r\nActual:\r\n{actualMetricsText}");
             }
+        }
+
+        private static CompilationOptions BuildDefaultCSharpOptions()
+        {
+            // Between the 3.0.0 and 3.5.0 release of Microsoft.CodeAnalysis the
+            // NullableContextOptions type changed namespaces, making the bound constructor from 3.0.0
+            // not resolve in 3.5.0.
+            //
+            // This moves the compile-time decision to runtime to work around that limitation.
+
+            foreach (var ctor in typeof(Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions).GetConstructors())
+            {
+                var parameterInfos = ctor.GetParameters();
+
+                if (parameterInfos.Length < 1 || typeof(OutputKind) != parameterInfos[0].ParameterType)
+                {
+                    continue;
+                }
+
+                if (parameterInfos.Length > 1 && !parameterInfos[1].HasDefaultValue)
+                {
+                    continue;
+                }
+
+                object[] parameters = new object[parameterInfos.Length];
+                parameters.AsSpan().Fill(Type.Missing);
+                parameters[0] = OutputKind.DynamicallyLinkedLibrary;
+
+                return (Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions)ctor.Invoke(
+                    BindingFlags.OptionalParamBinding | BindingFlags.CreateInstance,
+                    null,
+                    parameters,
+                    CultureInfo.InvariantCulture);
+            }
+
+            throw new Exception("Could not find a compatible CSharpCompilationOptions constructor via reflection.");
         }
     }
 }

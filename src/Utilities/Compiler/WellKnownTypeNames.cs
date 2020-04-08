@@ -192,6 +192,7 @@ namespace Analyzer.Utilities
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
         public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemMarshalByRefObject = "System.MarshalByRefObject";
+        public const string SystemMemory1 = "System.Memory`1";
         public const string SystemNetHttpHttpClient = "System.Net.Http.HttpClient";
         public const string SystemNetHttpHttpClientHandler = "System.Net.Http.HttpClientHandler";
         public const string SystemNetHttpWinHttpHandler = "System.Net.Http.WinHttpHandler";
@@ -207,6 +208,9 @@ namespace Analyzer.Utilities
         public const string SystemObsoleteAttribute = "System.ObsoleteAttribute";
         public const string SystemOutOfMemoryException = "System.OutOfMemoryException";
         public const string SystemRandom = "System.Random";
+        public const string SystemRange = "System.Range";
+        public const string SystemReadOnlyMemory1 = "System.ReadOnlyMemory`1";
+        public const string SystemReadOnlySpan1 = "System.ReadOnlySpan`1";
         public const string SystemReflectionAssemblyFullName = "System.Reflection.Assembly";
         public const string SystemReflectionAssemblyVersionAttribute = "System.Reflection.AssemblyVersionAttribute";
         public const string SystemReflectionMemberInfo = "System.Reflection.MemberInfo";
@@ -272,6 +276,7 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyX509CertificatesX509Store = "System.Security.Cryptography.X509Certificates.X509Store";
         public const string SystemSerializableAttribute = "System.SerializableAttribute";
         public const string SystemSingle = "System.Single";
+        public const string SystemSpan1 = "System.Span`1";
         public const string SystemStackOverflowException = "System.StackOverflowException";
         public const string SystemString = "System.String";
         public const string SystemStringComparison = "System.StringComparison";
