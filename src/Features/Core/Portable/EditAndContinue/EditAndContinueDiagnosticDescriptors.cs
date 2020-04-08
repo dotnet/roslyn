@@ -133,6 +133,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.InsertIntoInterface, nameof(FeaturesResources.Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, nameof(FeaturesResources.Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InternalError, nameof(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error));
+            // TODO: remove (https://github.com/dotnet/roslyn/issues/43099)
             AddRudeEdit(RudeEditKind.SwitchExpressionUpdate, nameof(FeaturesResources.Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingFromAsynchronousToSynchronous, nameof(FeaturesResources.Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingStateMachineShape, nameof(FeaturesResources.Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine));
