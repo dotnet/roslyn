@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddDebuggerDisplay;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
 {
