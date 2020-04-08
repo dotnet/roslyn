@@ -1690,5 +1690,24 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new delegate*<void>()").WithArguments("delegate*<void>").WithLocation(6, 13)
             );
         }
+
+        [Fact]
+        public void IndexerAccessOnFunctionPointer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        _ = ptr[0];
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
+                //         _ = ptr[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "ptr[0]").WithArguments("delegate*<void>").WithLocation(6, 13)
+            );
+        }
     }
 }
