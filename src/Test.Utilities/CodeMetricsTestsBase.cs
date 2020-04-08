@@ -53,7 +53,7 @@ namespace Test.Utilities.CodeMetrics
                 count++;
             }
 
-            return solution.GetProject(projectId);
+            return solution.GetProject(projectId)!;
         }
 
         protected void VerifyCSharp(string source, string expectedMetricsText, bool expectDiagnostics = false)
@@ -68,7 +68,7 @@ namespace Test.Utilities.CodeMetrics
         private void Verify(string[] sources, string expectedMetricsText, bool expectDiagnostics, string language)
         {
             var project = CreateProject(sources, language);
-            var compilation = project.GetCompilationAsync(CancellationToken.None).Result;
+            var compilation = project.GetCompilationAsync(CancellationToken.None).Result!;
             var diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Warning || d.Severity == DiagnosticSeverity.Error);
             if (expectDiagnostics)
             {
