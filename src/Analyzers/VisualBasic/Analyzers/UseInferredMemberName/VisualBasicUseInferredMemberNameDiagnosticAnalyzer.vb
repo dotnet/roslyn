@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim preference = options.GetOption(
                 CodeStyleOptions2.PreferInferredTupleNames, context.Compilation.Language, syntaxTree, cancellationToken)
             If Not preference.Value OrElse
-                Not VisualBasicInferredMemberNameReducer.CanSimplifyTupleName(argument, parseOptions) Then
+                Not CanSimplifyTupleName(argument, parseOptions) Then
                 Return
             End If
 
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             Dim preference = options.GetOption(
                 CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language, syntaxTree, cancellationToken)
             If Not preference.Value OrElse
-                Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer) Then
+                Not CanSimplifyNamedFieldInitializer(fieldInitializer) Then
 
                 Return
             End If

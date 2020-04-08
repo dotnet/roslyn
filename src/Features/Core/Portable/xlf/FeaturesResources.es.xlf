@@ -2790,16 +2790,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Implementar {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">Usar nombre de miembro inferido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">El nombre del miembro se puede simplificar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
         <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
         <target state="translated">El diagnóstico notificado "{0}" tiene una ubicación de origen en el archivo "{1}", que no forma parte de la compilación que se está analizando.</target>

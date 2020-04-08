@@ -2790,16 +2790,6 @@ Tato verze se používá zde: {2}.</target>
         <target state="translated">Implementovat {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">Použít odvozený název člena</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">Název člena lze zjednodušit.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
         <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
         <target state="translated">Zdroj vykazované diagnostiky {0} je umístěný v souboru {1}, který není součástí analyzované kompilace.</target>

@@ -2790,16 +2790,6 @@ This version used in: {2}</source>
         <target state="translated">Реализация {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">Использовать имя выводимого элемента</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">Имя члена можно упростить</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
         <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
         <target state="translated">В отчете о диагностике "{0}" используется исходное расположение "{1}", которое не входит в анализируемую компиляцию.</target>
