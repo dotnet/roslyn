@@ -54,9 +54,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
+            await context.OnCompletedAsync().ConfigureAwait(false);
+
+            // This is a temporary workaround to report the last batch of results until an LSP bug is fixed:
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1094786/
+            Thread.Sleep(500);
 
             // The results have already been reported to the client, so we don't need to return anything here.
-            await context.OnCompletedAsync().ConfigureAwait(false);
             return Array.Empty<LSP.VSReferenceItem>();
         }
     }
