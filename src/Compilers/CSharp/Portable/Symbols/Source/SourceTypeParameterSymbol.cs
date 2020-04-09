@@ -256,18 +256,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var corLibrary = this.ContainingAssembly.CorLibrary;
-            var conversions = new TypeConversions(corLibrary);
-            var location = _locations[0];
-
+            var args = new ConstraintsHelper.CheckConstraintsArgs(DeclaringCompilation, new TypeConversions(ContainingAssembly.CorLibrary), _locations[0], diagnostics);
             foreach (var constraintType in constraintTypes)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 constraintType.Type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
 
-                if (!diagnostics.Add(location, useSiteDiagnostics))
+                if (!diagnostics.Add(args.Location, useSiteDiagnostics))
                 {
-                    constraintType.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                    constraintType.Type.CheckAllConstraints(args);
                 }
             }
         }
