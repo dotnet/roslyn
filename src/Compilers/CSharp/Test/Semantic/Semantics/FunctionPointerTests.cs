@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTests : CompilingTestBase
     {
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source)
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null)
         {
-            return CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
         }
 
         private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation)
@@ -82,8 +82,38 @@ unsafe class C
                 Assert.True(typeInfo.ConvertedType is IPointerTypeSymbol { PointedAtType: { SpecialType: SpecialType.System_Void } });
                 Assert.Equal(TypeKind.FunctionPointer, typeInfo.Type!.TypeKind);
                 var conversion = model.GetConversion(initializer1);
-                Assert.Equal(ConversionKind.PointerToVoid, conversion.Kind);
+                Assert.Equal(ConversionKind.ImplicitPointerToVoid, conversion.Kind);
+                Assert.True(conversion.IsImplicit);
+                Assert.True(conversion.IsPointer);
             }
+        }
+
+        [Fact]
+        public void ConversionToVoidAndBackRuns()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void Write() => Console.Write(1);
+    static void* Get() => (delegate*<void>)&Write;
+    static void Main()
+    {
+        void* ptr = Get();
+        ((delegate*<void>)ptr)();
+    }
+}", options: TestOptions.UnsafeReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Skipped);
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       ""void* C.Get()""
+  IL_0005:  calli      ""delegate*<void>""
+  IL_000a:  ret
+}
+");
         }
 
         [Fact]
@@ -130,7 +160,9 @@ unsafe class C
                 var typeInfo = model.GetTypeInfo(literal);
                 Assert.Null(typeInfo.Type);
                 Assert.Equal(TypeKind.FunctionPointer, typeInfo.ConvertedType!.TypeKind);
-                Assert.Equal(ConversionKind.NullToPointer, conversion.Kind);
+                Assert.Equal(ConversionKind.ImplicitNullToPointer, conversion.Kind);
+                Assert.True(conversion.IsImplicit);
+                Assert.True(conversion.IsPointer);
             }
         }
 
@@ -182,12 +214,17 @@ unsafe class C
 
             var typeInfoOuter = model.GetTypeInfo(conversions[0]);
             var conversion = model.ClassifyConversion(conversions[0].Expression, typeInfoOuter.Type!);
-            Assert.Equal(ConversionKind.PointerToInteger, conversion.Kind);
+            Assert.Equal(ConversionKind.ExplicitPointerToInteger, conversion.Kind);
+            Assert.False(conversion.IsImplicit);
+            Assert.True(conversion.IsPointer);
 
             typeInfoOuter = model.GetTypeInfo(conversions[1]);
             conversion = model.ClassifyConversion(conversions[1].Expression, typeInfoOuter.Type!);
             Assert.Equal(ConversionKind.ExplicitNullable, conversion.Kind);
-            Assert.Equal(ConversionKind.PointerToInteger, conversion.UnderlyingConversions.Single().Kind);
+            var underlying = conversion.UnderlyingConversions.Single();
+            Assert.Equal(ConversionKind.ExplicitPointerToInteger, underlying.Kind);
+            Assert.False(underlying.IsImplicit);
+            Assert.True(underlying.IsPointer);
         }
 
         [Theory]
@@ -227,13 +264,11 @@ unsafe class C
 
             var typeInfoOuter = model.GetTypeInfo(conversions[0]);
             var conversion = model.ClassifyConversion(conversions[0].Expression, typeInfoOuter.Type!);
-            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind);
-            Assert.Equal(ConversionKind.PointerToVoid, conversion.UserDefinedFromConversion.Kind);
+            Assert.Equal(ConversionKind.IntPtr, conversion.Kind);
 
             typeInfoOuter = model.GetTypeInfo(conversions[1]);
             conversion = model.ClassifyConversion(conversions[1].Expression, typeInfoOuter.Type!);
-            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind);
-            Assert.Equal(ConversionKind.PointerToPointer, conversion.UserDefinedToConversion.Kind);
+            Assert.Equal(ConversionKind.IntPtr, conversion.Kind);
         }
 
         [Theory]
@@ -280,7 +315,9 @@ unsafe class C
 
             var typeInfoOuter = model.GetTypeInfo(conversions[0]);
             var conversion = model.ClassifyConversion(conversions[0].Expression, typeInfoOuter.Type!);
-            Assert.Equal(ConversionKind.IntegerToPointer, conversion.Kind);
+            Assert.Equal(ConversionKind.ExplicitIntegerToPointer, conversion.Kind);
+            Assert.False(conversion.IsImplicit);
+            Assert.True(conversion.IsPointer);
         }
 
         [Fact]
@@ -328,7 +365,9 @@ unsafe struct S
             {
                 var typeInfoOuter = model.GetTypeInfo(conv);
                 var conversion = model.ClassifyConversion(conv.Expression, typeInfoOuter.Type!);
-                Assert.Equal(ConversionKind.PointerToPointer, conversion.Kind);
+                Assert.Equal(ConversionKind.ExplicitPointerToPointer, conversion.Kind);
+                Assert.False(conversion.IsImplicit);
+                Assert.True(conversion.IsPointer);
             }
         }
 

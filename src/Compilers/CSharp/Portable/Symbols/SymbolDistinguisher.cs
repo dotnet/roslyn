@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     break; // Can sensibly append location, after unwrapping.
                 case SymbolKind.DynamicType: // Can't sensibly append location, but it should never be ambiguous.
-                case SymbolKind.FunctionPointer: // Can't sensible append location
+                case SymbolKind.FunctionPointer: // Can't sensibly append location
                     break;
                 case SymbolKind.Namespace:
                 case SymbolKind.Alias:

@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NoConversion:
                     impliedExplicitConversion = Conversion.NoConversion;
                     break;
-                case ConversionKind.PointerToVoid:
+                case ConversionKind.ImplicitPointerToVoid:
                     impliedExplicitConversion = Conversion.PointerToPointer;
                     break;
 
@@ -1888,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol otherType = (s0.SpecialType == SpecialType.System_UIntPtr || s0.SpecialType == SpecialType.System_IntPtr) ? t0 : s0;
 
-            if (otherType.TypeKind == TypeKind.Pointer)
+            if (otherType.IsPointerOrFunctionPointer())
             {
                 return true;
             }
@@ -2960,16 +2960,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (!hasVariantConversion(sourceParam.RefKind, destinationSig.Parameters[i].Type, sourceSig.Parameters[i].Type, ref useSiteDiagnostics))
+                if (!hasConversion(sourceParam.RefKind, destinationSig.Parameters[i].Type, sourceSig.Parameters[i].Type, ref useSiteDiagnostics))
                 {
                     return false;
                 }
             }
 
             return sourceSig.RefKind == destinationSig.RefKind
-                   && hasVariantConversion(sourceSig.RefKind, sourceSig.ReturnType, destinationSig.ReturnType, ref useSiteDiagnostics);
+                   && hasConversion(sourceSig.RefKind, sourceSig.ReturnType, destinationSig.ReturnType, ref useSiteDiagnostics);
 
-            bool hasVariantConversion(RefKind refKind, TypeSymbol sourceType, TypeSymbol destinationType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+            bool hasConversion(RefKind refKind, TypeSymbol sourceType, TypeSymbol destinationType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
             {
                 switch (refKind)
                 {

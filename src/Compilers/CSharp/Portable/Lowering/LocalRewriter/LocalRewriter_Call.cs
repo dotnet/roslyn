@@ -337,11 +337,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.ImplicitNumeric:
                                 case ConversionKind.ImplicitReference:
                                 case ConversionKind.Unboxing:
-                                case ConversionKind.PointerToInteger:
-                                case ConversionKind.PointerToPointer:
-                                case ConversionKind.PointerToVoid:
-                                case ConversionKind.NullToPointer:
-                                case ConversionKind.IntegerToPointer:
+                                case ConversionKind.ExplicitPointerToInteger:
+                                case ConversionKind.ExplicitPointerToPointer:
+                                case ConversionKind.ImplicitPointerToVoid:
+                                case ConversionKind.ImplicitNullToPointer:
+                                case ConversionKind.ExplicitIntegerToPointer:
                                     current = conv.Operand;
                                     break;
 

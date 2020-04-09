@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                     case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                     case Microsoft.Cci.PrimitiveTypeCode.Pointer:
-                        // PROTOTYPE(func-ptr): Support arrays of function pointers
+                    case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                         _builder.EmitOpCode(ILOpCode.Ldelem_i);
                         break;
 
@@ -1333,6 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                     _builder.EmitOpCode(ILOpCode.Ldind_i);
                     break;
 
@@ -2713,6 +2714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                     _builder.EmitOpCode(ILOpCode.Stelem_i);
                     break;
 
@@ -2802,6 +2804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case Microsoft.Cci.PrimitiveTypeCode.IntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.UIntPtr:
                 case Microsoft.Cci.PrimitiveTypeCode.Pointer:
+                case Microsoft.Cci.PrimitiveTypeCode.FunctionPointer:
                     _builder.EmitOpCode(ILOpCode.Stind_i);
                     break;
 

@@ -526,6 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(func-ptrs): Determine what of these need to be supported and support
         private void GetPointerComparisonOperators(
             BinaryOperatorKind kind,
             ArrayBuilder<BinaryOperatorSignature> operators)

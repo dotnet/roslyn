@@ -5248,7 +5248,7 @@ unsafe struct S
                 var conv = model.GetConversion(node);
                 Assert.Null(typeInfo.Type);
                 Assert.Equal(TypeKind.Pointer, typeInfo.ConvertedType.TypeKind);
-                Assert.Equal(ConversionKind.NullToPointer, conv.Kind);
+                Assert.Equal(ConversionKind.ImplicitNullToPointer, conv.Kind);
             }
         }
 
@@ -5291,7 +5291,7 @@ unsafe struct S
                 Assert.Equal(SpecialType.System_Void, ((IPointerTypeSymbol)convertedType).PointedAtType.SpecialType);
 
                 var conv = model.GetConversion(value);
-                Assert.Equal(ConversionKind.PointerToVoid, conv.Kind);
+                Assert.Equal(ConversionKind.ImplicitPointerToVoid, conv.Kind);
             }
         }
 
