@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
                 }
                 else
                 {
-                    Contract.Fail($"Unable to find asset for {checksum}");
+                    throw ExceptionUtilities.UnexpectedValue(checksum);
                 }
             }
 
@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
         }
 
         public override Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.False;
-        }
+            => SpecializedTasks.False;
     }
 }

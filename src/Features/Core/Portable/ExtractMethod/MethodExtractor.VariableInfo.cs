@@ -112,19 +112,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
 
             public ITypeSymbol GetVariableType(SemanticDocument document)
-            {
-                return document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
-            }
+                => document.SemanticModel.ResolveType(_variableSymbol.OriginalType);
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
-            {
-                return document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
-            }
+                => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
-            {
-                return node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
-            }
+                => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
 
             public static void SortVariables(Compilation compilation, List<VariableInfo> list)
             {

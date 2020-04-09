@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestOfferedInAttributeConstructorArgumentList()
-        {
-            await VerifyKeywordAsync("using System.ComponentModel; [DefaultValue($$ class C { }");
-        }
+            => await VerifyKeywordAsync("using System.ComponentModel; [DefaultValue($$ class C { }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtRoot_Interactive()

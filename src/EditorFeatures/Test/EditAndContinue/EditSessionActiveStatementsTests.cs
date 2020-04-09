@@ -24,17 +24,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public class EditSessionActiveStatementsTests : TestBase
     {
-        internal sealed class TestActiveStatementProvider : IActiveStatementProvider
-        {
-            private readonly ImmutableArray<ActiveStatementDebugInfo> _infos;
-
-            public TestActiveStatementProvider(ImmutableArray<ActiveStatementDebugInfo> infos)
-                => _infos = infos;
-
-            public Task<ImmutableArray<ActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-                => Task.FromResult(_infos);
-        }
-
         internal static ImmutableArray<ActiveStatementDebugInfo> GetActiveStatementDebugInfos(
             string[] markedSources,
             string extension = ".cs",
@@ -113,11 +102,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Workspace.ChangeSolution(adjustSolution(Workspace.CurrentSolution));
                 }
 
-                var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
                 var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
                 var mockCompilationOutputsProvider = new MockCompilationOutputsProviderService();
 
-                var debuggingSession = new DebuggingSession(Workspace, mockDebuggeModuleProvider.Object, activeStatementProvider, mockCompilationOutputsProvider);
+                var debuggingSession = new DebuggingSession(Workspace, mockDebuggeModuleProvider.Object, mockCompilationOutputsProvider);
 
                 if (initialState != CommittedSolution.DocumentState.None)
                 {
@@ -127,7 +115,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
                 var telemetry = new EditSessionTelemetry();
-                EditSession = new EditSession(debuggingSession, telemetry);
+                EditSession = new EditSession(debuggingSession, telemetry, cancellationToken => Task.FromResult(activeStatements));
             }
 
             public ImmutableArray<DocumentId> GetDocumentIds()

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
@@ -15,7 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Const OfSuffix = "(Of"
         Private Const GenericSuffix = OfSuffix + " " & UnicodeEllipsis & ")"
 
-        Private ReadOnly s_defaultTriggerChars As Char() = {"."c, "["c, "#"c, " "c, "="c, "<"c, "{"c}
+        Friend ReadOnly CommonTriggerChars As ImmutableHashSet(Of Char) = ImmutableHashSet.Create("."c, "["c, "#"c, " "c, "="c, "<"c, "{"c)
+
+        Friend ReadOnly CommonTriggerCharsAndParen As ImmutableHashSet(Of Char) = CommonTriggerChars.Add("("c)
+
+        Friend ReadOnly SpaceTriggerChar As ImmutableHashSet(Of Char) = CommonTriggerChars.Add(" "c)
 
         Public Function GetCompletionItemSpan(text As SourceText, position As Integer) As TextSpan
             Return CommonCompletionUtilities.GetWordSpan(
@@ -24,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 AddressOf IsCompletionItemCharacter)
         End Function
 
-        Private Function IsWordStartCharacter(ch As Char) As Boolean
+        Public Function IsWordStartCharacter(ch As Char) As Boolean
             Return SyntaxFacts.IsIdentifierStartCharacter(ch)
         End Function
 
@@ -42,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Function IsDefaultTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Dim ch = text(characterPosition)
-            If s_defaultTriggerChars.Contains(ch) Then
+            If CommonTriggerChars.Contains(ch) Then
                 Return True
             End If
 
@@ -54,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return _
                 ch = "("c OrElse
-                s_defaultTriggerChars.Contains(ch) OrElse
+                CommonTriggerChars.Contains(ch) OrElse
                 IsStartingNewWord(text, characterPosition, options)
         End Function
 
@@ -66,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Function IsStartingNewWord(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
-            If Not options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic) Then
+            If Not options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic) Then
                 Return False
             End If
 

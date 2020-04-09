@@ -1341,7 +1341,7 @@ namespace BoundTreeGenerator
                             foreach (Field field in AllTypeFields(node))
                             {
                                 hadField = true;
-                                WriteLine("TypeSymbol {0} = this.VisitType(node.{1});", ToCamelCase(field.Name), field.Name);
+                                WriteLine("TypeSymbol? {0} = this.VisitType(node.{1});", ToCamelCase(field.Name), field.Name);
                             }
                             if (hadField)
                             {

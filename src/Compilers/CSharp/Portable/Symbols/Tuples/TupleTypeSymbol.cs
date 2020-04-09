@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static NamedTypeSymbol CreateTuple(
             Location? locationOpt,
             ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations,
-            ImmutableArray<Location> elementLocations,
+            ImmutableArray<Location?> elementLocations,
             ImmutableArray<string?> elementNames,
             CSharpCompilation compilation,
             bool shouldCheckConstraints,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = CreateTuple(underlyingType, elementNames, errorPositions, elementLocations, locations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnosticsOpt: diagnostics, nullabilityDiagnosticsOpt: includeNullability ? diagnostics : null);
             }
 
             return constructedType;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol tupleCompatibleType,
             ImmutableArray<string?> elementNames = default,
             ImmutableArray<bool> errorPositions = default,
-            ImmutableArray<Location> elementLocations = default,
+            ImmutableArray<Location?> elementLocations = default,
             ImmutableArray<Location> locations = default)
         {
             Debug.Assert(tupleCompatibleType.IsTupleType);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Drops the inferred positions.
         /// </summary>
         internal NamedTypeSymbol WithElementNames(ImmutableArray<string?> newElementNames,
-                                                  ImmutableArray<Location> newElementLocations,
+                                                  ImmutableArray<Location?> newElementLocations,
                                                   ImmutableArray<bool> errorPositions,
                                                   ImmutableArray<Location> locations)
         {
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<bool> TupleErrorPositions
             => _lazyTupleData is null ? default : _lazyTupleData.ErrorPositions;
 
-        private ImmutableArray<Location> TupleElementLocations
+        private ImmutableArray<Location?> TupleElementLocations
             => _lazyTupleData is null ? default : _lazyTupleData.ElementLocations;
 
         public sealed override ImmutableArray<TypeWithAnnotations> TupleElementTypesWithAnnotations
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol
         {
-            return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : default;
+            return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : null;
         }
 
         protected ArrayBuilder<Symbol>? AddOrWrapTupleMembers(ImmutableArray<Symbol> currentMembers)
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// Declaration locations for individual elements, if provided.
             /// Declaration location for this tuple type symbol
             /// </summary>
-            internal ImmutableArray<Location> ElementLocations { get; }
+            internal ImmutableArray<Location?> ElementLocations { get; }
 
             /// <summary>
             /// Which element names were inferred and therefore cannot be used.
@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             internal TupleExtraData(NamedTypeSymbol underlyingType, ImmutableArray<string?> elementNames,
-                ImmutableArray<Location> elementLocations, ImmutableArray<bool> errorPositions, ImmutableArray<Location> locations)
+                ImmutableArray<Location?> elementLocations, ImmutableArray<bool> errorPositions, ImmutableArray<Location> locations)
                 : this(underlyingType)
             {
                 ElementNames = elementNames;

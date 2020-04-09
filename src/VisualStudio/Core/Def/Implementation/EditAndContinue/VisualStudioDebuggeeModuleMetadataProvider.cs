@@ -2,18 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
@@ -46,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 protected override void OnClose() => _provider.OnModuleInstanceUnload(_mvid);
             }
 
-            DkmCustomMessage IDkmCustomMessageForwardReceiver.SendLower(DkmCustomMessage customMessage)
+            DkmCustomMessage? IDkmCustomMessageForwardReceiver.SendLower(DkmCustomMessage customMessage)
             {
                 var provider = (VisualStudioDebuggeeModuleMetadataProvider)customMessage.Parameter1;
                 var clrModuleInstance = (DkmClrModuleInstance)customMessage.Parameter2;
@@ -58,10 +63,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
+        private readonly IManagedModuleInfoProvider _managedModuleInfoProvider;
         private readonly DebuggeeModuleInfoCache _baselineMetadata;
 
-        public VisualStudioDebuggeeModuleMetadataProvider()
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioDebuggeeModuleMetadataProvider(IManagedModuleInfoProvider managedModuleInfoProvider)
         {
+            _managedModuleInfoProvider = managedModuleInfoProvider;
             _baselineMetadata = new DebuggeeModuleInfoCache();
         }
 
@@ -114,27 +123,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             });
         }
 
-        /// <summary>
-        /// Check that EnC is available for all instances of the given module.
-        /// </summary>
-        public bool IsEditAndContinueAvailable(Guid mvid, out int errorCode, out string localizedMessage)
+        public async Task<(int errorCode, string? errorMessage)?> GetEncAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
         {
-            using (DebuggerComponent.ManagedEditAndContinueService())
+            var availability = await _managedModuleInfoProvider.GetEncAvailability(mvid, cancellationToken).ConfigureAwait(false);
+            return availability.Status switch
             {
-                foreach (var clrModuleInstance in EnumerateClrModuleInstances(mvid))
-                {
-                    var availability = clrModuleInstance.GetEncAvailability(out localizedMessage);
-                    if (availability != DkmEncAvailableStatus.Available)
-                    {
-                        errorCode = (int)availability;
-                        return false;
-                    }
-                }
-            }
-
-            errorCode = -1;
-            localizedMessage = null;
-            return true;
+                DkmEncAvailableStatus.Available => (0, null),
+                DkmEncAvailableStatus.ModuleNotLoaded => null,
+                _ => ((int)availability.Status, availability.LocalizedMessage)
+            };
         }
 
         private static IEnumerable<DkmClrModuleInstance> EnumerateClrModuleInstances(Guid? mvid)
@@ -159,22 +156,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
-        public void PrepareModuleForUpdate(Guid mvid)
-        {
-            // fire and forget
-            _ = Task.Run(new Action(() =>
-            {
-                Contract.ThrowIfFalse(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
 
-                using (DebuggerComponent.ManagedEditAndContinueService())
-                {
-                    var clrModuleInstance = EnumerateClrModuleInstances(mvid).FirstOrDefault();
-                    if (clrModuleInstance != null)
-                    {
-                        ((ISymUnmanagedEncUpdate)clrModuleInstance.GetSymUnmanagedReader()).InitializeForEnc();
-                    }
-                }
-            }));
-        }
+        public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
+            => _managedModuleInfoProvider.PrepareModuleForUpdate(mvid, cancellationToken);
     }
 }

@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         }
 
         private ExtractInterfaceOptionsResult(bool isCancelled)
-        {
-            IsCancelled = isCancelled;
-        }
+            => IsCancelled = isCancelled;
     }
 }

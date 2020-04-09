@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+using System;
 using Microsoft.CodeAnalysis.Options;
 using Xunit;
 
@@ -10,9 +13,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Options
     public class OptionKeyTests
     {
         [Fact]
-        public void ToStringForOption()
+        [Obsolete]
+        public void ToStringForObsoleteOption()
         {
             var option = new Option<bool>("FooFeature", "BarName");
+            var optionKey = new OptionKey(option);
+
+            var toStringResult = optionKey.ToString();
+
+            Assert.Equal("FooFeature - BarName", toStringResult);
+        }
+
+        [Fact]
+        public void ToStringForOption()
+        {
+            var option = new Option<bool>("FooFeature", "BarName", false);
             var optionKey = new OptionKey(option);
 
             var toStringResult = optionKey.ToString();

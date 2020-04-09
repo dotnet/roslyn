@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private readonly PrimaryWorkspace _primaryWorkspace;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NavigateToItemProviderFactory(IAsynchronousOperationListenerProvider listenerProvider, PrimaryWorkspace primaryWorkspace)
         {
             if (listenerProvider == null)

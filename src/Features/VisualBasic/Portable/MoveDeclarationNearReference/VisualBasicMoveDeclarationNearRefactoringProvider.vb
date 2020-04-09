@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.MoveDeclarationNearReference
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,5 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.InlineTemporary)>
     Class VisualBasicMoveDeclarationNearReferenceCodeRefactoringProvider
         Inherits AbstractMoveDeclarationNearReferenceCodeRefactoringProvider(Of LocalDeclarationStatementSyntax)
+
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

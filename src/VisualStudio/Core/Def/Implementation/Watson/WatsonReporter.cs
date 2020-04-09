@@ -2,94 +2,120 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    /// <summary>
-    /// Controls whether or not we actually report the failure.
-    /// There are situations where we know we're in a bad state and any further reports are unlikely to be
-    /// helpful, so we shouldn't send them.
-    /// </summary>
-    internal static class WatsonDisabled
-    {
-        // we have it this way to make debugging easier since VS debugger can't reach
-        // static type with same fully qualified name in multiple dlls.
-        public static bool s_reportWatson = true;
-    }
-
     internal static class WatsonReporter
     {
         /// <summary>
-        /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
-        /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
+        /// Controls whether or not we actually report the failure.
+        /// There are situations where we know we're in a bad state and any further reports are unlikely to be
+        /// helpful, so we shouldn't send them.
         /// </summary>
-        private static readonly Func<IFaultUtility, int> s_defaultCallback = _ => 0;
+        private static bool s_report = true;
 
-        /// <summary>
-        /// Report Non-Fatal Watson
-        /// </summary>
-        /// <param name="exception">Exception that triggered this non-fatal error</param>
-        public static void Report(Exception exception)
+        private static Dictionary<string, string>? s_capturedFileContent;
+
+        private static TelemetrySession? s_telemetrySession;
+        private static TraceSource? s_logger;
+
+        public static void InitializeFatalErrorHandlers(TelemetrySession session)
         {
-            Report("Roslyn NonFatal Watson", exception, WatsonSeverity.Default);
+            Debug.Assert(s_telemetrySession == null);
+            s_telemetrySession = session;
+
+            var fatalReporter = new Action<Exception>(ReportFatal);
+            var nonFatalReporter = new Action<Exception>(ReportNonFatal);
+
+            FatalError.Handler = fatalReporter;
+            FatalError.NonFatalHandler = nonFatalReporter;
+
+            // We also must set the FailFast handler for the compiler layer as well
+            var compilerAssembly = typeof(Compilation).Assembly;
+            var compilerFatalErrorType = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true);
+            var compilerFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public);
+            var compilerNonFatalErrorHandlerProperty = compilerFatalErrorType.GetProperty(nameof(FatalError.NonFatalHandler), BindingFlags.Static | BindingFlags.Public);
+            compilerFatalErrorHandlerProperty.SetValue(null, fatalReporter);
+            compilerNonFatalErrorHandlerProperty.SetValue(null, nonFatalReporter);
+        }
+
+        public static void InitializeLogger(TraceSource logger)
+        {
+            Debug.Assert(s_logger == null);
+            s_logger = logger;
+        }
+
+        public static void ReportFatal(Exception exception)
+        {
+            try
+            {
+                CaptureFilesInMemory(CollectServiceHubLogFilePaths());
+            }
+            catch
+            {
+                // ignore any exceptions (e.g. OOM)
+            }
+
+            FailFast.OnFatalException(exception);
         }
 
         /// <summary>
-        /// Report Non-Fatal Watson
+        /// Report Non-Fatal Watson for a given unhandled exception.
         /// </summary>
         /// <param name="exception">Exception that triggered this non-fatal error</param>
-        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
-        public static void Report(Exception exception, WatsonSeverity severity)
+        public static void ReportNonFatal(Exception exception)
         {
-            Report("Roslyn NonFatal Watson", exception, severity);
-        }
+            if (exception is OutOfMemoryException)
+            {
+                FailFast.OnFatalException(exception);
+            }
 
-        /// <summary>
-        /// Report Non-Fatal Watson
-        /// </summary>
-        /// <param name="description">any description you want to save with this watson report</param>
-        /// <param name="exception">Exception that triggered this non-fatal error</param>
-        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
-        public static void Report(string description, Exception exception, WatsonSeverity severity = WatsonSeverity.Default)
-        {
-            Report(description, exception, s_defaultCallback, severity);
-        }
+            if (!s_report)
+            {
+                return;
+            }
 
-        /// <summary>
-        /// Report Non-Fatal Watson
-        /// </summary>
-        /// <param name="description">any description you want to save with this watson report</param>
-        /// <param name="exception">Exception that triggered this non-fatal error</param>
-        /// <param name="callback">Callback to include extra data with the NFW. Note that we always collect
-        /// a dump of the current process, but this can be used to add further information or files to the
-        /// CAB.</param>
-        /// <param name="severity">indicate <see cref="WatsonSeverity"/> of NFW</param>
-        public static void Report(string description, Exception exception, Func<IFaultUtility, int> callback, WatsonSeverity severity = WatsonSeverity.Default)
-        {
-            var critical = severity == WatsonSeverity.Critical;
             var emptyCallstack = exception.SetCallstackIfEmpty();
+            var currentProcess = Process.GetCurrentProcess();
 
-            if (!WatsonDisabled.s_reportWatson ||
-                !exception.ShouldReport())
+            // write the exception to a log file:
+            s_logger?.TraceEvent(TraceEventType.Error, 1, $"[{currentProcess.ProcessName}:{currentProcess.Id}] Unexpected exception: {exception}");
+
+            var session = s_telemetrySession;
+            if (session == null)
             {
                 return;
             }
 
             var faultEvent = new FaultEvent(
                 eventName: FunctionId.NonFatalWatson.GetEventName(),
-                description: description,
-                critical ? FaultSeverity.Critical : FaultSeverity.Diagnostic,
+                description: "Roslyn NonFatal Watson",
+                FaultSeverity.Diagnostic,
                 exceptionObject: exception,
-                gatherEventDetails: arg =>
+                gatherEventDetails: faultUtility =>
                 {
-                    // always add current processes dump
-                    arg.AddProcessDump(System.Diagnostics.Process.GetCurrentProcess().Id);
+                    // add current process dump
+                    faultUtility.AddProcessDump(currentProcess.Id);
 
-                    return callback(arg);
+                    // add ServiceHub log files:
+                    foreach (var path in CollectServiceHubLogFilePaths())
+                    {
+                        faultUtility.AddFile(path);
+                    }
+
+                    // Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
+                    return 0;
                 });
 
             // add extra bucket parameters to bucket better in NFW
@@ -97,15 +123,80 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             // watson and telemetry. 
             faultEvent.SetExtraParameters(exception, emptyCallstack);
 
-            TelemetryService.DefaultSession.PostEvent(faultEvent);
+            session.PostEvent(faultEvent);
+        }
 
-            if (exception is OutOfMemoryException || critical)
+        private static List<string> CollectServiceHubLogFilePaths()
+        {
+            var paths = new List<string>();
+
+            try
             {
-                // Once we've encountered one OOM or Critial NFW, 
-                // we're likely to see more. There will probably be other
-                // failures as a direct result of the OOM or critical NFW, as well. 
-                // These aren't helpful so we should just stop reporting failures.
-                WatsonDisabled.s_reportWatson = false;
+                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+                if (!Directory.Exists(logPath))
+                {
+                    return paths;
+                }
+
+                // attach all log files that are modified less than 1 day before.
+                var now = DateTime.UtcNow;
+                var oneDay = TimeSpan.FromDays(1);
+
+                foreach (var path in Directory.EnumerateFiles(logPath, "*.log"))
+                {
+                    try
+                    {
+                        var name = Path.GetFileNameWithoutExtension(path);
+
+                        // TODO: https://github.com/dotnet/roslyn/issues/42582 
+                        // name our services more consistently to simplify filtering
+
+                        // filter logs that are not relevant to Roslyn investigation
+                        if (!name.Contains("-" + WellKnownServiceHubServices.NamePrefix) &&
+                            !name.Contains("-CodeLens") &&
+                            !name.Contains("-pythia") &&
+                            !name.Contains("-ManagedLanguage.IDE.RemoteHostClient") &&
+                            !name.Contains("-hub"))
+                        {
+                            continue;
+                        }
+
+                        var lastWrite = File.GetLastWriteTimeUtc(path);
+                        if (now - lastWrite > oneDay)
+                        {
+                            continue;
+                        }
+
+                        paths.Add(path);
+                    }
+                    catch
+                    {
+                        // ignore file that can't be accessed
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // ignore failures
+            }
+
+            return paths;
+        }
+
+        private static void CaptureFilesInMemory(IEnumerable<string> paths)
+        {
+            s_capturedFileContent = new Dictionary<string, string>();
+
+            foreach (var path in paths)
+            {
+                try
+                {
+                    s_capturedFileContent[path] = File.ReadAllText(path);
+                }
+                catch
+                {
+                    // ignore file that can't be read
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,6 +22,9 @@ namespace Microsoft.CodeAnalysis.Options
     [Export(typeof(IGlobalOptionService)), Shared]
     internal class GlobalOptionService : IGlobalOptionService
     {
+        private static readonly ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> s_emptyEditorConfigKeysToOptions
+            = ImmutableDictionary.Create<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)>(AnalyzerConfigOptions.KeyComparer);
+
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
         private readonly ImmutableArray<Lazy<IOptionPersister>> _optionSerializers;
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
@@ -28,10 +32,16 @@ namespace Microsoft.CodeAnalysis.Options
 
         private readonly object _gate = new object();
 
+        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _neutralEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
+        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _csharpEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
+        private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _visualBasicEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
+
         private ImmutableDictionary<OptionKey, object?> _currentValues;
+        private ImmutableHashSet<OptionKey> _changedOptionKeys;
         private ImmutableArray<Workspace> _registeredWorkspaces;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GlobalOptionService(
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersister>> optionSerializers)
@@ -43,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Options
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
 
             _currentValues = ImmutableDictionary.Create<OptionKey, object?>();
+            _changedOptionKeys = ImmutableHashSet<OptionKey>.Empty;
         }
 
         private static ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> CreateLazySerializableOptionsByLanguage(IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
@@ -95,8 +106,70 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public IEnumerable<IOption> GetRegisteredOptions()
+            => _lazyAllOptions.Value;
+
+        public bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey)
         {
-            return _lazyAllOptions.Value;
+            ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> temporaryOptions = s_emptyEditorConfigKeysToOptions;
+            ref var editorConfigToOptionsStorage = ref temporaryOptions;
+            switch (language)
+            {
+                case LanguageNames.CSharp:
+                    // Suppression required due to https://github.com/dotnet/roslyn/issues/42018
+                    editorConfigToOptionsStorage = ref _csharpEditorConfigKeysToOptions!;
+                    break;
+
+                case LanguageNames.VisualBasic:
+                    // Suppression required due to https://github.com/dotnet/roslyn/issues/42018
+                    editorConfigToOptionsStorage = ref _visualBasicEditorConfigKeysToOptions!;
+                    break;
+
+                case null:
+                case "":
+                    // Suppression required due to https://github.com/dotnet/roslyn/issues/42018
+                    editorConfigToOptionsStorage = ref _neutralEditorConfigKeysToOptions!;
+                    break;
+            }
+
+            var (option, storage) = ImmutableInterlocked.GetOrAdd(
+                ref editorConfigToOptionsStorage,
+                key,
+                (key, arg) => MapToOptionIgnorePerLanguage(arg.self, key, arg.language),
+                (self: this, language));
+
+            if (option is object)
+            {
+                RoslynDebug.AssertNotNull(storage);
+                storageLocation = storage;
+                optionKey = option.IsPerLanguage ? new OptionKey(option, language) : new OptionKey(option);
+                return true;
+            }
+
+            storageLocation = null;
+            optionKey = default;
+            return false;
+
+            // Local function
+            static (IOption? option, IEditorConfigStorageLocation2? storageLocation) MapToOptionIgnorePerLanguage(GlobalOptionService service, string key, string? language)
+            {
+                // Use GetRegisteredSerializableOptions instead of GetRegisteredOptions to avoid loading assemblies for
+                // inactive languages.
+                foreach (var option in service.GetRegisteredSerializableOptions(ImmutableHashSet.Create(language ?? "")))
+                {
+                    foreach (var storage in option.StorageLocations)
+                    {
+                        if (!(storage is IEditorConfigStorageLocation2 editorConfigStorage))
+                            continue;
+
+                        if (!AnalyzerConfigOptions.KeyComparer.Equals(key, editorConfigStorage.KeyName))
+                            continue;
+
+                        return (option, editorConfigStorage);
+                    }
+                }
+
+                return (null, null);
+            }
         }
 
         public ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages)
@@ -137,7 +210,8 @@ namespace Microsoft.CodeAnalysis.Options
         {
             var serializableOptionKeys = GetRegisteredSerializableOptions(languages);
             var serializableOptionValues = GetSerializableOptionValues(serializableOptionKeys, languages);
-            return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues);
+            var changedOptionsKeys = _changedOptionKeys.Where(key => serializableOptionKeys.Contains(key.Option)).ToImmutableHashSet();
+            return new SerializableOptionSet(languages, optionService, serializableOptionKeys, serializableOptionValues, changedOptionsKeys);
         }
 
         private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
@@ -178,17 +252,17 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        [return: MaybeNull]
         public T GetOption<T>(Option<T> option)
-        {
-            return (T)GetOption(new OptionKey(option))!;
-        }
+            => OptionsHelpers.GetOption(option, GetOption);
 
-        [return: MaybeNull]
+        public T GetOption<T>(Option2<T> option)
+            => OptionsHelpers.GetOption(option, GetOption);
+
         public T GetOption<T>(PerLanguageOption<T> option, string? language)
-        {
-            return (T)GetOption(new OptionKey(option, language))!;
-        }
+            => OptionsHelpers.GetOption(option, language, GetOption);
+
+        public T GetOption<T>(PerLanguageOption2<T> option, string? language)
+            => OptionsHelpers.GetOption(option, language, GetOption);
 
         public object? GetOption(OptionKey optionKey)
         {
@@ -210,6 +284,12 @@ namespace Microsoft.CodeAnalysis.Options
             _currentValues = _currentValues.Add(optionKey, value);
 
             return value;
+        }
+
+        private void SetOptionCore(OptionKey optionKey, object? newValue)
+        {
+            _currentValues = _currentValues.SetItem(optionKey, newValue);
+            _changedOptionKeys = _changedOptionKeys.Add(optionKey);
         }
 
         public void SetOptions(OptionSet optionSet)
@@ -239,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Options
                     // The value is actually changing, so update
                     changedOptions.Add(new OptionChangedEventArgs(optionKey, setValue));
 
-                    _currentValues = _currentValues.SetItem(optionKey, setValue);
+                    SetOptionCore(optionKey, setValue);
 
                     foreach (var serializer in _optionSerializers)
                     {
@@ -268,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Options
                     }
                 }
 
-                _currentValues = _currentValues.SetItem(optionKey, newValue);
+                SetOptionCore(optionKey, newValue);
             }
 
             UpdateRegisteredWorkspacesAndRaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) });

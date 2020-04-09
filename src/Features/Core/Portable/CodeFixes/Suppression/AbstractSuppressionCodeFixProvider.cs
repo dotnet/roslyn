@@ -35,14 +35,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         public FixAllProvider GetFixAllProvider()
-        {
-            return SuppressionFixAllProvider.Instance;
-        }
+            => SuppressionFixAllProvider.Instance;
 
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
-        {
-            return SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
-        }
+            => SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
 
         protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
         protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
@@ -90,14 +86,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         protected virtual SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
-        {
-            return token;
-        }
+            => token;
 
         protected virtual SyntaxToken GetAdjustedTokenForPragmaRestore(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
-        {
-            return token;
-        }
+            => token;
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(
             Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
@@ -336,8 +328,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         }
 
         protected string GetTargetString(ISymbol targetSymbol)
-        {
-            return "~" + DocumentationCommentId.CreateDeclarationId(targetSymbol);
-        }
+            => "~" + DocumentationCommentId.CreateDeclarationId(targetSymbol);
     }
 }

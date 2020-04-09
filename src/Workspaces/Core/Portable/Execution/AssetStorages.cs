@@ -8,7 +8,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public CustomAsset GetGlobalAsset(object value, CancellationToken cancellationToken)
+        public CustomAsset? GetGlobalAsset(object value, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _globalAssets.TryGetValue(value, out var asset);
@@ -62,9 +61,7 @@ namespace Microsoft.CodeAnalysis.Execution
         }
 
         public Storage CreateStorage(SolutionState solutionState)
-        {
-            return new Storage(solutionState);
-        }
+            => new Storage(solutionState);
 
         public async ValueTask<RemotableData?> GetRemotableDataAsync(int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {

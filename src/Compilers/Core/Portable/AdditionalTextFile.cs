@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly CommandLineSourceFile _sourceFile;
         private readonly CommonCompiler _compiler;
-        private SourceText? _text;
+        private readonly Lazy<SourceText?> _text;
         private IList<DiagnosticInfo> _diagnostics;
-
-        private readonly object _lockObject = new object();
 
         public AdditionalTextFile(CommandLineSourceFile sourceFile, CommonCompiler compiler)
         {
@@ -34,6 +32,15 @@ namespace Microsoft.CodeAnalysis
             _sourceFile = sourceFile;
             _compiler = compiler;
             _diagnostics = SpecializedCollections.EmptyList<DiagnosticInfo>();
+            _text = new Lazy<SourceText?>(ReadText);
+        }
+
+        private SourceText ReadText()
+        {
+            var diagnostics = new List<DiagnosticInfo>();
+            var text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
+            _diagnostics = diagnostics;
+            return text;
         }
 
         /// <summary>
@@ -45,20 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a <see cref="SourceText"/> with the contents of this file, or <c>null</c> if
         /// there were errors reading the file.
         /// </summary>
-        public override SourceText GetText(CancellationToken cancellationToken = default)
-        {
-            lock (_lockObject)
-            {
-                if (_text == null)
-                {
-                    var diagnostics = new List<DiagnosticInfo>();
-                    _text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
-                    _diagnostics = diagnostics;
-                }
-            }
-
-            return _text;
-        }
+        public override SourceText? GetText(CancellationToken cancellationToken = default) => _text.Value;
 
         /// <summary>
         /// Errors encountered when trying to read the additional file. Always empty if

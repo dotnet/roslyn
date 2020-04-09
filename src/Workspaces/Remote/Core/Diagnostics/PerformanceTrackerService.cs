@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -40,12 +41,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public event EventHandler SnapshotAdded;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PerformanceTrackerService() :
             this(DefaultMinLOFValue, DefaultAverageThreshold, DefaultStddevThreshold)
         {
         }
 
         // internal for testing
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal PerformanceTrackerService(double minLOFValue, double averageThreshold, double stddevThreshold)
         {
             _minLOFValue = minLOFValue;
@@ -111,9 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         }
 
         private void OnSnapshotAdded()
-        {
-            SnapshotAdded?.Invoke(this, EventArgs.Empty);
-        }
+            => SnapshotAdded?.Invoke(this, EventArgs.Empty);
 
         private static string SnapshotLogger(IEnumerable<AnalyzerPerformanceInfo> snapshots, int unitCount)
         {

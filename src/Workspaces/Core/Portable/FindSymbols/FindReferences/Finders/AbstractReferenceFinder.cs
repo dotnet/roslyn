@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
@@ -132,9 +133,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
-        {
-            return syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, name);
-        }
+            => syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, name);
 
         protected static Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol symbol,
@@ -169,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
-            var tokens = await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, identifier, cancellationToken).ConfigureAwait(false);
+            var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(document, semanticModel, identifier, cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
@@ -180,6 +179,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 t => IdentifiersMatch(syntaxFacts, identifier, t),
                 symbolsMatch,
                 cancellationToken);
+        }
+
+        protected static async Task<ImmutableArray<SyntaxToken>> GetIdentifierOrGlobalNamespaceTokensWithTextAsync(Document document, SemanticModel semanticModel, string identifier, CancellationToken cancellationToken)
+        {
+            // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
+            // any unicode escapes in it, then we do simple string matching to find the tokens.
+            var info = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            if (!info.ProbablyContainsIdentifier(identifier))
+                return ImmutableArray<SyntaxToken>.Empty;
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFacts == null)
+                return ImmutableArray<SyntaxToken>.Empty;
+
+            var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var version = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            SourceText text = null;
+            if (!info.ProbablyContainsEscapedIdentifier(identifier))
+                text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            return FindReferenceCache.GetIdentifierOrGlobalNamespaceTokensWithText(
+                syntaxFacts, document, version, semanticModel, root, text, identifier, cancellationToken);
         }
 
         protected static Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> GetStandardSymbolsMatchFunction(
@@ -575,7 +597,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     usageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
                 }
-                else if (node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsUsingOrExternOrImport) != null)
+                else if (node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsUsingOrExternOrImport(node), syntaxFacts) != null)
                 {
                     usageInfo |= TypeOrNamespaceUsageInfo.Import;
                 }
@@ -825,8 +847,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
-            if (symbol is TSymbol typedSymbol && CanFind(typedSymbol))
+            if (options.Cascade &&
+                symbolAndProjectId.Symbol is TSymbol typedSymbol &&
+                CanFind(typedSymbol))
             {
                 return DetermineCascadedSymbolsAsync(
                     symbolAndProjectId.WithSymbol(typedSymbol),

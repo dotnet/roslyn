@@ -102,14 +102,14 @@ function InitializeDotNetCli([bool]$install) {
   }
 
   # Don't resolve runtime, shared framework, or SDK from other locations to ensure build determinism
-  $env:DOTNET_MULTILEVEL_LOOKUP=0
+  $env:DOTNET_MULTILEVEL_LOOKUP = 0
 
   # Disable first run since we do not need all ASP.NET packages restored.
-  $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+  $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 1
 
   # Disable telemetry on CI.
   if ($ci) {
-    $env:DOTNET_CLI_TELEMETRY_OPTOUT=1
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT = 1
   }
 
   # Source Build uses DotNetCoreSdkDir variable
@@ -194,7 +194,7 @@ function InstallDotNet([string] $dotnetRoot,
 
   $installScript = GetDotNetInstallScript $dotnetRoot
   $installParameters = @{
-    Version = $version
+    Version    = $version
     InstallDir = $dotnetRoot
   }
 
@@ -225,7 +225,8 @@ function InstallDotNet([string] $dotnetRoot,
         Write-PipelineTelemetryError -Category "InitializeToolset" -Message "Failed to install dotnet runtime '$runtime' from custom location '$runtimeSourceFeed'."
         ExitWithExitCode 1
       }
-    } else {
+    }
+    else {
       ExitWithExitCode 1
     }
   }
@@ -275,12 +276,14 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
     $vsMajorVersion = $vsInfo.installationVersion.Split('.')[0]
 
     InitializeVisualStudioEnvironmentVariables $vsInstallDir $vsMajorVersion
-  } else {
+  }
+  else {
 
     if (Get-Member -InputObject $GlobalJson.tools -Name "xcopy-msbuild") {
       $xcopyMSBuildVersion = $GlobalJson.tools.'xcopy-msbuild'
       $vsMajorVersion = $xcopyMSBuildVersion.Split('.')[0]
-    } else {
+    }
+    else {
       $vsMajorVersion = $vsMinVersion.Major
       $xcopyMSBuildVersion = "$vsMajorVersion.$($vsMinVersion.Minor).0-alpha"
     }
@@ -374,7 +377,7 @@ function LocateVisualStudio([object]$vsRequirements = $null){
     }
   }
 
-  $vsInfo =& $vsWhereExe $args | ConvertFrom-Json
+  $vsInfo = & $vsWhereExe $args | ConvertFrom-Json
 
   if ($lastExitCode -ne 0) {
     return $null

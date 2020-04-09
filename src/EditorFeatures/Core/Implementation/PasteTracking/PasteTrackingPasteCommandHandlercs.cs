@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -30,15 +31,12 @@ namespace Microsoft.CodeAnalysis.PasteTracking
         private readonly PasteTrackingService _pasteTrackingService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PasteTrackingPasteCommandHandler(PasteTrackingService pasteTrackingService)
-        {
-            _pasteTrackingService = pasteTrackingService;
-        }
+            => _pasteTrackingService = pasteTrackingService;
 
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
-        {
-            return nextCommandHandler();
-        }
+            => nextCommandHandler();
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {

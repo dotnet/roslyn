@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         }
 
         public void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip)
-        {
-            LazyToolTip.AttachTo(element, _threadingContext, createToolTip);
-        }
+            => LazyToolTip.AttachTo(element, _threadingContext, createToolTip);
 
         public DisposableToolTip CreateDisposableToolTip(Document baseDocument, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
         {

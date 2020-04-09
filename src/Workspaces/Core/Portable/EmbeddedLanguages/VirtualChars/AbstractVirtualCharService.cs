@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,11 +11,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
-        protected abstract bool IsStringLiteralToken(SyntaxToken token);
+        public abstract bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar);
+
+        protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
-        protected static bool TryAddBraceEscape(
-            ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
+        /// <summary>
+        /// Returns <see langword="true"/> if the next two characters at <c>tokenText[index]</c> are <c>{{</c> or
+        /// <c>}}</c>.  If so, <paramref name="span"/> will contain the span of those two characters (based on <paramref
+        /// name="tokenText"/> starting at <paramref name="offset"/>).
+        /// </summary>
+        protected static bool IsLegalBraceEscape(
+            string tokenText, int index, int offset, out TextSpan span)
         {
             if (index + 1 < tokenText.Length)
             {
@@ -25,11 +31,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 if ((ch == '{' && next == '{') ||
                     (ch == '}' && next == '}'))
                 {
-                    result.Add(new VirtualChar(ch, new TextSpan(offset + index, 2)));
+                    span = new TextSpan(offset + index, 2);
                     return true;
                 }
             }
 
+            span = default;
             return false;
         }
 
@@ -58,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
-                if (IsStringLiteralToken(token))
+                if (IsStringOrCharLiteralToken(token))
                 {
                     var expectedValueText = token.ValueText;
                     var actualValueText = result.CreateString();
@@ -69,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 {
                     var currentVC = result[0];
                     Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
-                    if (IsStringLiteralToken(token))
+                    if (IsStringOrCharLiteralToken(token))
                     {
                         Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
                                      currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
@@ -88,7 +95,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
                     var lastVC = result.Last();
 
-                    if (IsStringLiteralToken(token))
+                    if (IsStringOrCharLiteralToken(token))
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token.");
                     }
@@ -133,46 +140,57 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            var result = ArrayBuilder<VirtualChar>.GetInstance();
+            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
             var offset = token.SpanStart;
-            try
+
+            for (var index = startIndexInclusive; index < endIndexExclusive;)
             {
-                for (var index = startIndexInclusive; index < endIndexExclusive;)
+                if (tokenText[index] == '"' && tokenText[index + 1] == '"')
                 {
-                    if (tokenText[index] == '"' &&
-                        tokenText[index + 1] == '"')
-                    {
-                        result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
-                        index += 2;
-                    }
-                    else if (escapeBraces &&
-                             (tokenText[index] == '{' || tokenText[index] == '}'))
-                    {
-                        if (!TryAddBraceEscape(result, tokenText, offset, index))
-                        {
-                            return default;
-                        }
-
-                        index += result.Last().Span.Length;
-                    }
-                    else
-                    {
-                        result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
-                        index++;
-                    }
+                    result.Add(VirtualChar.Create(new Rune('"'), new TextSpan(offset + index, 2)));
+                    index += 2;
                 }
+                else if (escapeBraces && IsOpenOrCloseBrace(tokenText[index]))
+                {
+                    if (!IsLegalBraceEscape(tokenText, index, offset, out var span))
+                        return default;
 
-                return CreateVirtualCharSequence(
-                    tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+                    result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));
+                    index += result.Last().Span.Length;
+                }
+                else if (Rune.TryCreate(tokenText[index], out var rune))
+                {
+                    // First, see if this was a single char that can become a rune (the common case).
+                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
+                    index += 1;
+                }
+                else if (index + 1 < tokenText.Length &&
+                         Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
+                {
+                    // Otherwise, see if we have a surrogate pair (less common, but possible).
+                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
+                    index += 2;
+                }
+                else
+                {
+                    // Something that couldn't be encoded as runes.
+                    Debug.Assert(char.IsSurrogate(tokenText[index]));
+                    result.Add(VirtualChar.Create(tokenText[index], new TextSpan(offset + index, 1)));
+                    index += 1;
+                }
             }
-            finally
-            {
-                result.Free();
-            }
+
+            return CreateVirtualCharSequence(
+                tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
+        protected static bool IsOpenOrCloseBrace(char ch)
+            => ch == '{' || ch == '}';
+
         protected static VirtualCharSequence CreateVirtualCharSequence(
-            string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result)
+            string tokenText, int offset,
+            int startIndexInclusive, int endIndexExclusive,
+            ArrayBuilder<VirtualChar> result)
         {
             // Check if we actually needed to create any special virtual chars.
             // if not, we can avoid the entire array allocation and just wrap

@@ -279,8 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(INamedTypeSymbol namedType)
-        {
-            return namedType.TypeParameters.GenerateConstraintClauses();
-        }
+            => namedType.TypeParameters.GenerateConstraintClauses();
     }
 }

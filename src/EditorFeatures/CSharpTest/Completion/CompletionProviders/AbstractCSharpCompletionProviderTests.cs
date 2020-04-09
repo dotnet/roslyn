@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -24,13 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected override TestWorkspace CreateWorkspace(string fileContents)
-            => TestWorkspace.CreateCSharp(fileContents);
+            => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
 
-        internal override CompletionServiceWithProviders CreateCompletionService(
-            Workspace workspace, ImmutableArray<CompletionProvider> exclusiveProviders)
-        {
-            return new CSharpCompletionService(workspace, exclusiveProviders);
-        }
+        internal override CompletionServiceWithProviders GetCompletionService(Project project)
+            => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));
 
         private protected override Task BaseVerifyWorkerAsync(
             string code, int position,
@@ -69,9 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         protected override string ItemPartiallyWritten(string expectedItemOrNull)
-        {
-            return expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
-        }
+            => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull.Substring(0, 1);
 
         private Task VerifyInFrontOfCommentAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
@@ -141,10 +135,12 @@ usingDirectives +
 text;
         }
 
-        protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
+        protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
-            using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
+            using var workspace = TestWorkspace.CreateCSharp(initialMarkup, exportProvider: ExportProvider);
             var hostDocument = workspace.DocumentWithCursor;
+            workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
+
             var documentId = workspace.GetDocumentId(hostDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var position = hostDocument.CursorPosition.Value;
@@ -155,7 +151,7 @@ text;
                     LanguageNames.CSharp,
                     sendThroughEnterOption)));
 
-            var service = GetCompletionService(workspace);
+            var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynTrigger.Invoke);
             var item = completionList.Items.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
 

@@ -33,10 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
     Partial Public Class CommandLineTests
         Inherits BasicTestBase
 
-        Private ReadOnly _baseDirectory As String = TempRoot.Root
         Private Shared ReadOnly s_basicCompilerExecutable As String = Path.Combine(
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
+        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMono, "mono", String.Empty)
+
+        Private ReadOnly _baseDirectory As String = TempRoot.Root
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
         Private Shared ReadOnly s_compilerVersion As String = CommonCompiler.GetProductVersion(GetType(CommandLineTests))
 
@@ -603,6 +605,110 @@ SRC.VB(1) : error BC30037: Character is not valid.
 
 
             CleanupAllGeneratedFiles(src)
+        End Sub
+
+        <Fact>
+        Public Sub VbcCompile_WithSourceCodeRedirectedViaStandardInput_ProducesRunnableProgram()
+            Dim result As ProcessResult
+            Dim tempDir As String = Temp.CreateDirectory().Path
+
+            If RuntimeInformation.IsOSPlatform(OSPlatform.Windows) Then
+                Dim sourceFile = Path.GetTempFileName()
+                File.WriteAllText(sourceFile, "
+Module Program
+    Sub Main()
+        System.Console.WriteLine(""Hello World!"")
+    End Sub
+End Module")
+                result = ProcessUtilities.Run("cmd", $"/C {s_basicCompilerExecutable} /nologo /t:exe - < {sourceFile}", workingDirectory:=tempDir)
+
+                File.Delete(sourceFile)
+            Else
+                result = ProcessUtilities.Run("/usr/bin/env", $"sh -c ""echo \
+Module Program                                                               \
+    Sub Main\(\)                                                             \
+        System.Console.WriteLine\(\\\""Hello World\!\\\""\)                  \
+    End Sub                                                                  \
+End Module | {s_basicCompilerExecutable} /nologo /t:exe -""", workingDirectory:=tempDir,
+                redirectStandardInput:=True)
+                ' we are testing shell's piped/redirected stdin behavior explicitly
+                ' instead of using Process.StandardInput.Write(), so we set
+                ' redirectStandardInput to true, which implies that isatty of child
+                ' process is false and thereby Console.IsInputRedirected will return
+                ' true in vbc code.
+            End If
+
+            Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}")
+
+            Dim output As String = If(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+                ProcessUtilities.RunAndGetOutput("cmd.exe", $"/C ""{s_DotnetCscRun} -.exe""", expectedRetCode:=0, startFolder:=tempDir),
+                ProcessUtilities.RunAndGetOutput("sh", $"-c ""{s_DotnetCscRun} -.exe""", expectedRetCode:=0, startFolder:=tempDir))
+
+            Assert.Equal("Hello World!", output.Trim())
+        End Sub
+
+        <Fact>
+        Public Sub VbcCompile_WithSourceCodeRedirectedViaStandardInput_ProducesLibrary()
+            Dim name = Guid.NewGuid().ToString() & ".dll"
+            Dim tempDir As String = Temp.CreateDirectory().Path
+            Dim result As ProcessResult
+
+            If RuntimeInformation.IsOSPlatform(OSPlatform.Windows) Then
+                Dim sourceFile = Path.GetTempFileName()
+                File.WriteAllText(sourceFile, "
+Class A
+    public Function GetVal() As A
+        Return Nothing
+    End Function
+End Class")
+                result = ProcessUtilities.Run("cmd", $"/C {s_basicCompilerExecutable} /nologo /t:library /out:{name} - < {sourceFile}", workingDirectory:=tempDir)
+
+                File.Delete(sourceFile)
+            Else
+                result = ProcessUtilities.Run("/usr/bin/env", $"sh -c ""echo \
+Class A                                                                      \
+    Public Function GetVal\(\) As A                                          \
+        Return Nothing                                                       \
+    End Function                                                             \
+End Class | {s_basicCompilerExecutable} /nologo /t:library /out:{name} -""", workingDirectory:=tempDir,
+                redirectStandardInput:=True)
+                ' we are testing shell's piped/redirected stdin behavior explicitly
+                ' instead of using Process.StandardInput.Write(), so we set
+                ' redirectStandardInput to true, which implies that isatty of child
+                ' process is false and thereby Console.IsInputRedirected will return
+                ' true in vbc code.
+            End If
+
+            Assert.False(result.ContainsErrors, $"Compilation error(s) occurred: {result.Output} {result.Errors}")
+
+            Dim assemblyName = System.Reflection.AssemblyName.GetAssemblyName(Path.Combine(tempDir, name))
+            Assert.Equal(name.Replace(".dll", ", Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                         assemblyName.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub VbcCompile_WithRedirectedInputIndicatorAndStandardInputNotRedirected_ReportsBC56032()
+            If Console.IsInputRedirected Then
+                ' [applicable to both Windows and Unix]
+                ' if our parent (xunit) process itself has input redirected, we cannot test this
+                ' error case because our child process will inherit it and we cannot achieve what
+                ' we are aiming for: isatty(0):true and thereby Console.IsInputerRedirected:false in
+                ' child. running this case will make StreamReader to hang (waiting for input, that
+                ' we do not propagate: parent.In->child.In).
+                '
+                ' note: in Unix we can "close" fd0 by appending `0>&-` in the `sh -c` command below,
+                ' but that will also not impact the result of isatty(), and in turn causes a different
+                ' compiler error.
+                Return
+            End If
+
+            Dim tempDir As String = Temp.CreateDirectory().Path
+            Dim result As ProcessResult = If(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+                ProcessUtilities.Run("cmd", $"/C ""{s_basicCompilerExecutable} /nologo /t:exe -""", workingDirectory:=tempDir),
+                ProcessUtilities.Run("/usr/bin/env", $"sh -c ""{s_basicCompilerExecutable} /nologo /t:exe -""", workingDirectory:=tempDir))
+
+            Assert.True(result.ContainsErrors)
+            Assert.Contains(CInt(ERRID.ERR_StdInOptionProvidedButConsoleInputIsNotRedirected).ToString(), result.Output)
         End Sub
 
         <Fact()>
@@ -6942,7 +7048,7 @@ Imports System
         End Sub
 
         Private Function GetDefaultResponseFilePath() As String
-            Return Temp.CreateFile().WriteAllBytes(CommandLineTestResources.vbc_rsp).Path
+            Return Temp.CreateFile().WriteAllBytes(GetType(CommandLineTests).Assembly.GetManifestResourceStream("vbc.rsp").ReadAllBytes()).Path
         End Function
 
         <Fact>
@@ -9039,10 +9145,10 @@ a
 End Class")
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim csc = New MockVisualBasicCompiler(Nothing, dir.Path,
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
                 {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "/preferreduilang:en", "a.vb"})
 
-            Dim exitCode = csc.Run(outWriter)
+            Dim exitCode = vbc.Run(outWriter)
             Assert.Equal(1, exitCode)
 
             Dim vb = Path.Combine(dir.Path, "a.vb")
@@ -9086,10 +9192,10 @@ outWriter.ToString().Trim())
 End Class")
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Dim csc = New MockVisualBasicCompiler(Nothing, dir.Path,
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
                 {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.vb"})
 
-            Dim exitCode = csc.Run(outWriter)
+            Dim exitCode = vbc.Run(outWriter)
             Assert.Equal(0, exitCode)
 
             Dim refDll = Path.Combine(dir.Path, "a.dll")
@@ -9190,8 +9296,8 @@ End Module
         Public Sub IOFailure_DisposeOutputFile()
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
-            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath})
-            csc.FileOpen = Function(filePath, mode, access, share)
+            Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath})
+            vbc.FileOpen = Function(filePath, mode, access, share)
                                If filePath = exePath Then
                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
                                End If
@@ -9200,7 +9306,7 @@ End Module
                            End Function
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal(1, vbc.Run(outWriter))
             Assert.Equal($"vbc : error BC2012: can't open '{exePath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 
@@ -9209,8 +9315,8 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
             Dim pdbPath = Path.ChangeExtension(exePath, "pdb")
-            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath})
-            csc.FileOpen = Function(filePath, mode, access, share)
+            Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath})
+            vbc.FileOpen = Function(filePath, mode, access, share)
                                If filePath = pdbPath Then
                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
                                End If
@@ -9219,7 +9325,7 @@ End Module
                            End Function
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal(1, vbc.Run(outWriter))
             Assert.Equal($"vbc : error BC2012: can't open '{pdbPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 
@@ -9227,8 +9333,8 @@ End Module
         Public Sub IOFailure_DisposeXmlFile()
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim xmlPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.xml")
-            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath})
-            csc.FileOpen = Function(filePath, mode, access, share)
+            Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath})
+            vbc.FileOpen = Function(filePath, mode, access, share)
                                If filePath = xmlPath Then
                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
                                End If
@@ -9237,7 +9343,7 @@ End Module
                            End Function
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal(1, vbc.Run(outWriter))
             Assert.Equal($"vbc : error BC2012: can't open '{xmlPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 
@@ -9247,8 +9353,8 @@ End Module
         Public Sub IOFailure_DisposeSourceLinkFile(format As String)
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json")
-            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:" & format, $"/sourcelink:{sourceLinkPath}", srcPath})
-            csc.FileOpen = Function(filePath, mode, access, share)
+            Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:" & format, $"/sourcelink:{sourceLinkPath}", srcPath})
+            vbc.FileOpen = Function(filePath, mode, access, share)
                                If filePath = sourceLinkPath Then
                                    Return New TestStream(
                                    backingStream:=New MemoryStream(Encoding.UTF8.GetBytes("
@@ -9265,7 +9371,7 @@ End Module
                            End Function
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
-            Assert.Equal(1, csc.Run(outWriter))
+            Assert.Equal(1, vbc.Run(outWriter))
             Assert.Equal($"vbc : error BC2012: can't open '{sourceLinkPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 

@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.CodeStyle
@@ -13,9 +14,14 @@ Namespace Microsoft.CodeAnalysis.CodeStyle
     Friend Class VisualBasicFormattingCodeFixProvider
         Inherits AbstractFormattingCodeFixProvider
 
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property SyntaxFormattingService As ISyntaxFormattingService
             Get
-                Return New VisualBasicSyntaxFormattingService()
+                Return VisualBasicSyntaxFormattingService.Instance
             End Get
         End Property
     End Class

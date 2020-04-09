@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class ConstructorInitializerSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.Constructor;
-        }
+            => symbol.MethodKind == MethodKind.Constructor;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
@@ -64,7 +62,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
             if (semanticModel.Language == LanguageNames.VisualBasic)
             {
-                tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
+                tokens = tokens.Concat(await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
+                    document, semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
             return FindReferencesInTokens(

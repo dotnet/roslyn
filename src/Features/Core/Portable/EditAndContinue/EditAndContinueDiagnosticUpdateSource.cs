@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -24,11 +24,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
-        {
-            registrationService.Register(this);
-        }
+            => registrationService.Register(this);
 
         // for testing
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal EditAndContinueDiagnosticUpdateSource()
         {
         }
@@ -65,8 +64,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
-            var nonDocumentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
+            using var _1 = ArrayBuilder<DiagnosticData>.GetInstance(out var documentDiagnosticData);
+            using var _2 = ArrayBuilder<DiagnosticData>.GetInstance(out var nonDocumentDiagnosticData);
             var workspace = solution.Workspace;
             var options = solution.Options;
             var project = (projectId != null) ? solution.GetProject(projectId) : null;
@@ -117,9 +116,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     documentId: null,
                     diagnostics: nonDocumentDiagnosticData.ToImmutable()));
             }
-
-            documentDiagnosticData.Free();
-            nonDocumentDiagnosticData.Free();
         }
     }
 }

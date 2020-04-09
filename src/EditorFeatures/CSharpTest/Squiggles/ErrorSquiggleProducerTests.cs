@@ -104,10 +104,10 @@ class Program
 </Workspace>";
 
             using var workspace = TestWorkspace.Create(workspaceXml);
-            var options = new Dictionary<OptionKey, object>();
+            var options = new Dictionary<OptionKey2, object>();
             var language = workspace.Projects.Single().Language;
-            var preferIntrinsicPredefinedTypeOption = new OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
-            var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Error);
+            var preferIntrinsicPredefinedTypeOption = new OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language);
+            var preferIntrinsicPredefinedTypeOptionValue = new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Error);
             options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue);
 
             workspace.ApplyOptions(options);
@@ -134,12 +134,12 @@ class Program
             var third = spans[2];
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
-            Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, first.Tag.ToolTipContent);
+            Assert.Equal(CSharpAnalyzersResources.Using_directive_is_unnecessary, first.Tag.ToolTipContent);
             Assert.Equal(40, first.Span.Start);
             Assert.Equal(25, first.Span.Length);
 
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
-            Assert.Equal(CSharpFeaturesResources.Using_directive_is_unnecessary, second.Tag.ToolTipContent);
+            Assert.Equal(CSharpAnalyzersResources.Using_directive_is_unnecessary, second.Tag.ToolTipContent);
             Assert.Equal(82, second.Span.Start);
             Assert.Equal(60, second.Span.Length);
 

@@ -6,15 +6,20 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CommentSelection;
 using System.Composition;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.LocalForwarders
 {
     [ExportLanguageServiceFactory(typeof(ICommentSelectionService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspCommentSelectionServiceFactory : ILanguageServiceFactory
     {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VBLspCommentSelectionServiceFactory()
         {
-            return languageServices.GetOriginalLanguageService<ICommentSelectionService>();
         }
+
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            => languageServices.GetOriginalLanguageService<ICommentSelectionService>();
     }
 }

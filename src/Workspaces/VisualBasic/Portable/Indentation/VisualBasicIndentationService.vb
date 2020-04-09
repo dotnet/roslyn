@@ -3,7 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Threading
+Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Indentation
@@ -22,22 +23,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
         Public Sub New()
-            Me.New(New SpecialFormattingRule())
+            Me.New(Nothing)
         End Sub
 
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification:="Intentionally used for creating multiple instances")>
         Private Sub New(specializedIndentationRule As AbstractFormattingRule)
             _specializedIndentationRule = specializedIndentationRule
         End Sub
 
-        Protected Overrides Function GetSpecializedIndentationFormattingRule() As AbstractFormattingRule
-            Return _specializedIndentationRule
+        Protected Overrides Function GetSpecializedIndentationFormattingRule(indentStyle As FormattingOptions.IndentStyle) As AbstractFormattingRule
+            Return If(_specializedIndentationRule, New SpecialFormattingRule(indentStyle))
         End Function
 
         Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 formattingRules As IEnumerable(Of AbstractFormattingRule),
                 root As CompilationUnitSyntax,
                 line As TextLine,
+                optionService As IOptionService,
                 optionSet As OptionSet,
                 ByRef token As SyntaxToken,
                 Optional neverUseWhenHavingMissingToken As Boolean = True) As Boolean
@@ -84,8 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 Return statement.GetFirstToken() = token
             End If
 
+            Dim options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language)
+
             ' now, regular case. ask formatting rule to see whether we should use token formatter or not
-            Dim lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet)
+            Dim lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, options)
             If lineOperation IsNot Nothing AndAlso lineOperation.Option <> AdjustNewLinesOption.ForceLinesIfOnSingleLine Then
                 Return True
             End If
@@ -97,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Dim localToken = token
             Do While currentNode IsNot Nothing
                 Dim operations = FormattingOperations.GetAlignTokensOperations(
-                    formattingRules, currentNode, optionSet:=optionSet)
+                    formattingRules, currentNode, options)
 
                 If Not operations.Any() Then
                     currentNode = currentNode.Parent

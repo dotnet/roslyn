@@ -127,9 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public void Dispose()
-        {
-            _registrationService.Unregister(_workspace);
-        }
+            => _registrationService.Unregister(_workspace);
 
         public async Task WaitForTags()
         {
@@ -138,8 +136,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
             }
 
-            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask();
-            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateExpeditedWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
+            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
@@ -147,7 +145,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             internal MyDiagnosticAnalyzerService(
                 ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
                 IAsynchronousOperationListener listener)
-                : base(new DiagnosticAnalyzerInfoCache(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap))),
+                : base(new DiagnosticAnalyzerInfoCache(),
+                      new HostDiagnosticAnalyzers(ImmutableArray.Create<AnalyzerReference>(new TestAnalyzerReferenceByLanguage(analyzersMap))),
                       hostDiagnosticUpdateSource: null,
                       registrationService: new MockDiagnosticUpdateSourceRegistrationService(),
                       listener: listener)

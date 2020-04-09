@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         protected abstract bool IsCaseSensitive { get; }
 
         internal AbstractTypeImportCompletionService(Workspace workspace)
-        {
-            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
-        }
+            => CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
 
         public async Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
             Project currentProject,
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
-            var getCacheResults = await GetCacheEntries(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
+            var getCacheResults = await GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
             if (getCacheResults == null)
             {
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 {
                     if (s_cachingTask.IsCompleted)
                     {
-                        s_cachingTask = Task.Run(() => GetCacheEntries(currentProject, syntaxContext, forceCacheCreation: true, CancellationToken.None));
+                        s_cachingTask = Task.Run(() => GetCacheEntriesAsync(currentProject, syntaxContext, forceCacheCreation: true, CancellationToken.None));
                     }
                 }
 
@@ -74,11 +72,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             }
         }
 
-        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntries(Project currentProject, SyntaxContext syntaxContext, bool forceCacheCreation, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<GetCacheResult>?> GetCacheEntriesAsync(Project currentProject, SyntaxContext syntaxContext, bool forceCacheCreation, CancellationToken cancellationToken)
         {
             var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
 
-            var cacheResult = await GetCacheForProject(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+            var cacheResult = await GetCacheForProjectAsync(currentProject, syntaxContext, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
 
             // We always force create a cache for current project.
             Debug.Assert(cacheResult.HasValue);
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                 if (HasGlobalAlias(metadataReference))
                 {
-                    cacheResult = await GetCacheForProject(
+                    cacheResult = await GetCacheForProjectAsync(
                         referencedProject,
                         syntaxContext,
                         forceCacheCreation,
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// This method is intended to be used for getting types from source only, so the project must support compilation. 
         /// For getting types from PE, use <see cref="TryGetCacheForPEReference"/>.
         /// </summary>
-        private async Task<GetCacheResult?> GetCacheForProject(
+        private async Task<GetCacheResult?> GetCacheForProjectAsync(
             Project project,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
@@ -186,13 +184,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 // making those items repeatedly, so simply not returning anything from this assembly, until 
                 // we have a better understanding on this scenario.
                 // TODO: Add telemetry
-                result = default;
+                result = null;
                 return false;
             }
 
             if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
             {
-                result = default;
+                result = null;
                 return false;
             }
 
@@ -217,6 +215,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             bool forceCacheCreation,
             IDictionary<TKey, CacheEntry> cache,
             CancellationToken cancellationToken)
+            where TKey : notnull
         {
             var language = syntaxContext.SemanticModel.Language;
 
@@ -262,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     VisitNamespace(memberNamespace, containingNamespace, builder, cancellationToken);
                 }
 
-                var overloads = PooledDictionary<string, TypeOverloadInfo>.GetInstance();
+                using var _ = PooledDictionary<string, TypeOverloadInfo>.GetInstance(out var overloads);
                 var types = symbol.GetTypeMembers();
 
                 // Iterate over all top level internal and public types, keep track of "type overloads".
@@ -301,8 +300,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                             overloadInfo.ContainsPublicGenericOverload);
                     }
                 }
-
-                overloads.Free();
             }
         }
 
@@ -376,9 +373,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 => (_properties & ItemPropertyKind.IsAttribute) != 0;
 
             public TypeImportCompletionItemInfo WithItem(CompletionItem item)
-            {
-                return new TypeImportCompletionItemInfo(item, IsPublic, IsGeneric, IsAttribute);
-            }
+                => new TypeImportCompletionItemInfo(item, IsPublic, IsGeneric, IsAttribute);
 
             [Flags]
             private enum ItemPropertyKind : byte

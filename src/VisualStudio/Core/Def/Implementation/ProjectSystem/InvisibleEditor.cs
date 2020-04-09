@@ -190,9 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 #pragma warning disable CA1821 // Remove empty Finalizers
 #if DEBUG
         ~InvisibleEditor()
-        {
-            Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
-        }
+            => Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
 #endif
 #pragma warning restore CA1821 // Remove empty Finalizers
     }

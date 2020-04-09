@@ -5,10 +5,10 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1464,9 +1464,9 @@ class C
 }", parameters: new TestParameters(options: options.MergeStyles(options.PropertyNamesArePascalCase, options.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix, LanguageNames.CSharp)));
         }
 
-        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption.Warning));
-        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption.Warning));
-        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption.Warning));
+        private TestParameters OmitIfDefault_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.OmitIfDefault, NotificationOption2.Warning));
+        private TestParameters Never_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Never, NotificationOption2.Warning));
+        private TestParameters Always_Warning => new TestParameters(options: Option(CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Warning));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestCreateFieldWithTopLevelNullability()
@@ -1516,6 +1516,126 @@ class C
 
     public string? S { get; }
 }", parameters: new TestParameters(options: options.PropertyNamesArePascalCase));
+        }
+
+        [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSingleLineBlock_BraceOnNextLine()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    public C([||]string s) { }
+}",
+@"
+class C
+{
+    public C(string s)
+    {
+        S = s;
+    }
+
+    public string S { get; }
+}");
+        }
+
+        [WorkItem(24526, "https://github.com/dotnet/roslyn/issues/24526")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSingleLineBlock_BraceOnSameLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public C([||]string s) { }
+}",
+@"
+class C
+{
+    public C(string s) {
+        S = s;
+    }
+
+    public string S { get; }
+}", options: this.Option(CSharpFormattingOptions2.NewLinesForBracesInMethods, false));
+        }
+
+        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateFieldIfParameterFollowsExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+
+    public C(string s, [||]int i)
+    {
+        this.s = s;
+    }
+}",
+@"
+class C
+{
+    private readonly string s;
+    private readonly int i;
+
+    public C(string s, int i)
+    {
+        this.s = s;
+        this.i = i;
+    }
+}");
+        }
+
+        [WorkItem(23308, "https://github.com/dotnet/roslyn/issues/23308")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestGenerateFieldIfParameterPrecedesExistingFieldAssignment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private readonly string s;
+
+    public C([||]int i, string s)
+    {
+        this.s = s;
+    }
+}",
+@"
+class C
+{
+    private readonly int i;
+    private readonly string s;
+
+    public C(int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}");
+        }
+
+        [WorkItem(41824, "https://github.com/dotnet/roslyn/issues/41824")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingInArgList()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    private static void M()
+    {
+        M2(__arglist(1, 2, 3, 5, 6));
+    }
+
+    public static void M2([||]__arglist)
+    {
+    }
+}");
         }
     }
 }

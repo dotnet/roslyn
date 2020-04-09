@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
             }
         }
 
-        public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, CodeAnalysis.Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
@@ -94,14 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         }
 
         public ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan)
-        {
-            return _originalService.FixClassification(text, classifiedSpan);
-        }
+            => _originalService.FixClassification(text, classifiedSpan);
 
         public ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
-        {
-            return _originalService.GetDefaultSyntaxClassifiers();
-        }
+            => _originalService.GetDefaultSyntaxClassifiers();
 
         /// <summary>
         /// Check if the experiment should run.
@@ -109,9 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         /// and the experiment flight is enabled.
         /// </summary>
         public bool ShouldRunExperiment(string experimentName)
-        {
-            return ShouldRunExperiment(_roslynLspClientServiceFactory, _experimentationService, experimentName);
-        }
+            => ShouldRunExperiment(_roslynLspClientServiceFactory, _experimentationService, experimentName);
 
         public static bool ShouldRunExperiment(
             AbstractLspClientServiceFactory lspClientServiceFactory,

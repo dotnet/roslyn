@@ -1116,8 +1116,8 @@ class C
             var method_v1 = type1_v1.GetMembers("M").Single();
             var method_v2 = type1_v2.GetMembers("M").Single();
 
-            var trueComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true);
-            var falseComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false);
+            var trueComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: true, tupleNamesMustMatch: false);
+            var falseComp = new SymbolEquivalenceComparer(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
 
             Assert.False(trueComp.Equals(method_v1, method_v2));
             Assert.False(trueComp.Equals(method_v2, method_v1));
@@ -1314,7 +1314,7 @@ End Class
             var tb2 = (ITypeSymbol)b2.GlobalNamespace.GetMembers("T").Single();
             var tb3 = (ITypeSymbol)b3.GlobalNamespace.GetMembers("T").Single();
 
-            var identityComparer = new SymbolEquivalenceComparer(AssemblySymbolIdentityComparer.Instance, distinguishRefFromOut: false);
+            var identityComparer = new SymbolEquivalenceComparer(AssemblySymbolIdentityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
 
             // same name:
             Assert.True(SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(ta1, ta2));
@@ -1342,14 +1342,10 @@ End Class
             public static readonly IEqualityComparer<IAssemblySymbol> Instance = new AssemblySymbolIdentityComparer();
 
             public bool Equals(IAssemblySymbol x, IAssemblySymbol y)
-            {
-                return x.Identity.Equals(y.Identity);
-            }
+                => x.Identity.Equals(y.Identity);
 
             public int GetHashCode(IAssemblySymbol obj)
-            {
-                return obj.Identity.GetHashCode();
-            }
+                => obj.Identity.GetHashCode();
         }
 
         [Fact]
@@ -1404,7 +1400,7 @@ End Class
             var type1 = (ITypeSymbol)c1.GlobalNamespace.GetMembers("C").Single();
             var type2 = (ITypeSymbol)c2.GlobalNamespace.GetMembers("C").Single();
 
-            var identityComparer = new SymbolEquivalenceComparer(AssemblySymbolIdentityComparer.Instance, distinguishRefFromOut: false);
+            var identityComparer = new SymbolEquivalenceComparer(AssemblySymbolIdentityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false);
 
             var f1 = type1.GetMembers("F");
             var f2 = type2.GetMembers("F");

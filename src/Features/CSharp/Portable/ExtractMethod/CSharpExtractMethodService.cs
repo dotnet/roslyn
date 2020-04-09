@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -15,18 +16,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     internal class CSharpExtractMethodService : AbstractExtractMethodService<CSharpSelectionValidator, CSharpMethodExtractor, CSharpSelectionResult>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpExtractMethodService()
         {
         }
 
         protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, OptionSet options)
-        {
-            return new CSharpSelectionValidator(document, textSpan, options);
-        }
+            => new CSharpSelectionValidator(document, textSpan, options);
 
         protected override CSharpMethodExtractor CreateMethodExtractor(CSharpSelectionResult selectionResult, bool localFunction)
-        {
-            return new CSharpMethodExtractor(selectionResult, localFunction);
-        }
+            => new CSharpMethodExtractor(selectionResult, localFunction);
     }
 }

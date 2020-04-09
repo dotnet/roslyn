@@ -28,21 +28,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
 
-        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken)
+        protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(position >= 0);
+            var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
+            Contract.ThrowIfFalse(originalSpanStart >= 0);
 
             var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var basePosition = root.FindToken(position);
+            var basePosition = root.FindToken(originalSpanStart);
 
             if (LocalFunction)
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => node.SpanStart != basePosition.SpanStart);
-                if (localMethodNode is object)
+                var localFunctionNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => (node.Body != null && node.Body.Span.Contains(OriginalSelectionResult.OriginalSpan)) ||
+                                                                                                       (node.ExpressionBody != null && node.ExpressionBody.Span.Contains(OriginalSelectionResult.OriginalSpan)));
+                if (localFunctionNode is object)
                 {
-                    return await InsertionPoint.CreateAsync(document, localMethodNode, cancellationToken).ConfigureAwait(false);
+                    return await InsertionPoint.CreateAsync(document, localFunctionNode, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (memberNode is GlobalStatementSyntax globalStatement)
             {
                 // check whether we are extracting whole global statement out
-                if (this.OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
+                if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
                 {
                     return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
                 }
@@ -74,9 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         protected override async Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
-        {
-            return await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
-        }
+            => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
 
         protected override async Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken)
         {
@@ -91,19 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken)
-        {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
-        }
+            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        {
-            return SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
-        }
+            => SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
 
         protected override SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames)
-        {
-            return (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
-        }
+            => (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
         protected override async Task<OperationStatus> CheckTypeAsync(
             Document document,

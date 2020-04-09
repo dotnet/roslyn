@@ -2001,6 +2001,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LangVersions = 56010
         IDS_ToolName = 56011
 
+        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 56032
+
         ' Feature codes
         FEATURE_AutoProperties
         FEATURE_LineContinuation

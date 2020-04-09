@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         ///   1. myActions: analyzer actions registered in the symbol start actions of containing namespace/type, which are to be executed for this symbol
         ///   2. childActions: analyzer actions registered in this symbol's start actions, which are to be executed for member symbols.
         /// </summary>
-        private ConcurrentDictionary<(ISymbol, DiagnosticAnalyzer), AnalyzerActions> _perSymbolAnalyzerActionsCache;
+        private ConcurrentDictionary<(INamespaceOrTypeSymbol, DiagnosticAnalyzer), AnalyzerActions> _perSymbolAnalyzerActionsCache;
 
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>> _symbolActionsByKind;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>> _semanticModelActionsMap;
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (this.AnalyzerActions.SymbolStartActionsCount > 0)
                     {
-                        _perSymbolAnalyzerActionsCache = new ConcurrentDictionary<(ISymbol, DiagnosticAnalyzer), AnalyzerActions>();
+                        _perSymbolAnalyzerActionsCache = new ConcurrentDictionary<(INamespaceOrTypeSymbol, DiagnosticAnalyzer), AnalyzerActions>();
                     }
 
                 }, cancellationToken);
@@ -758,10 +758,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var suppressors = this.Analyzers.OfType<DiagnosticSuppressor>();
                 if (concurrent)
                 {
-                    Parallel.ForEach(suppressors, suppressor =>
+                    // Kick off tasks to concurrently execute suppressors.
+                    // Note that we avoid using Parallel.ForEach here to avoid wrapped exceptions.
+                    // See https://github.com/dotnet/roslyn/issues/41713 for details.
+                    var tasks = ArrayBuilder<Task>.GetInstance();
+                    try
                     {
-                        AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor));
-                    });
+                        foreach (var suppressor in suppressors)
+                        {
+                            var task = Task.Run(
+                                () => AnalyzerExecutor.ExecuteSuppressionAction(suppressor, getSuppressableDiagnostics(suppressor)),
+                                AnalyzerExecutor.CancellationToken);
+                            tasks.Add(task);
+                        }
+
+                        Task.WaitAll(tasks.ToArray(), AnalyzerExecutor.CancellationToken);
+                    }
+                    finally
+                    {
+                        tasks.Free();
+                    }
                 }
                 else
                 {
@@ -1272,7 +1288,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                _perSymbolAnalyzerActionsCache.TryRemove((symbol, analyzer), out _);
+                if (symbol is INamespaceOrTypeSymbol namespaceOrType)
+                {
+                    _perSymbolAnalyzerActionsCache.TryRemove((namespaceOrType, analyzer), out _);
+                }
 
                 await processContainerOnMemberCompletedAsync(symbol.ContainingNamespace, symbol, analyzer).ConfigureAwait(false);
                 await processContainerOnMemberCompletedAsync(symbol.ContainingType, symbol, analyzer).ConfigureAwait(false);
@@ -1663,9 +1682,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             diagnostic = compilation.Options.FilterDiagnostic(diagnostic);
 
-            // Apply bulk configuration from analyzer options, if applicable.
+            // Apply bulk configuration from analyzer options for analyzer diagnostics, if applicable.
             var tree = diagnostic?.Location.SourceTree;
-            if (tree == null || analyzerOptions == null)
+            if (tree == null || analyzerOptions == null || diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
             {
                 return diagnostic;
             }
@@ -1795,6 +1814,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var allActions = AnalyzerActions.Empty;
             foreach (var analyzer in analysisScope.Analyzers)
             {
+                if (!_symbolStartAnalyzers.Contains(analyzer))
+                {
+                    continue;
+                }
+
                 var analyzerActions = await GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
                 if (!analyzerActions.IsEmpty)
                 {
@@ -1815,24 +1839,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken)
         {
             Debug.Assert(AnalyzerActions.SymbolStartActionsCount > 0);
+            Debug.Assert(_symbolStartAnalyzers.Contains(analyzer));
 
             if (symbol.IsImplicitlyDeclared)
             {
                 return AnalyzerActions.Empty;
             }
 
-            if (_perSymbolAnalyzerActionsCache.TryGetValue((symbol, analyzer), out var actions))
+            // PERF: For containing symbols, we want to cache the computed actions.
+            // For member symbols, we do not want to cache as we will not reach this path again.
+            if (!(symbol is INamespaceOrTypeSymbol namespaceOrType))
+            {
+                return await getAllActionsAsync(this, symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (_perSymbolAnalyzerActionsCache.TryGetValue((namespaceOrType, analyzer), out var actions))
             {
                 return actions;
             }
 
-            // Compute additional inherited actions for this symbol by running the containing symbol's start actions.
-            AnalyzerActions inheritedActions = await getInheritedActionsAsync(this, symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+            var allActions = await getAllActionsAsync(this, symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+            return _perSymbolAnalyzerActionsCache.GetOrAdd((namespaceOrType, analyzer), allActions);
 
-            // Execute the symbol start actions for this symbol to compute additional actions for its members.
-            AnalyzerActions myActions = await getSymbolActionsCoreAsync(this, symbol, analyzer).ConfigureAwait(false);
-            AnalyzerActions allActions = !myActions.IsEmpty ? inheritedActions.Append(in myActions) : inheritedActions;
-            return _perSymbolAnalyzerActionsCache.GetOrAdd((symbol, analyzer), allActions);
+            static async ValueTask<AnalyzerActions> getAllActionsAsync(AnalyzerDriver driver, ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+            {
+                // Compute additional inherited actions for this symbol by running the containing symbol's start actions.
+                AnalyzerActions inheritedActions = await getInheritedActionsAsync(driver, symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+
+                // Execute the symbol start actions for this symbol to compute additional actions for its members.
+                AnalyzerActions myActions = await getSymbolActionsCoreAsync(driver, symbol, analyzer).ConfigureAwait(false);
+                return !myActions.IsEmpty ? inheritedActions.Append(in myActions) : inheritedActions;
+            }
 
             static async ValueTask<AnalyzerActions> getInheritedActionsAsync(AnalyzerDriver driver, ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
             {

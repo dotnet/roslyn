@@ -15,10 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         [Fact]
         public async Task TestProjectsAsync()
         {
-            var (solution, ranges) = CreateTestSolution(string.Empty);
+            using var workspace = CreateTestWorkspace(string.Empty, out var _);
+            var solution = workspace.CurrentSolution;
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 
-            var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null);
+            var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null, CustomProtocol.RoslynMethods.ProjectsName);
             AssertJsonEquals(expected, results);
         }
 

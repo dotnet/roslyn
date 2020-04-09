@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+#nullable enable
+
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,16 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
             ThisExpressionSyntax,
             MemberAccessExpressionSyntax>
     {
-        public CSharpSimplifyThisOrMeDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(SyntaxKind.SimpleMemberAccessExpression))
-        {
-        }
-
         protected override string GetLanguageName()
             => LanguageNames.CSharp;
 
-        protected override ISyntaxFactsService GetSyntaxFactsService()
-            => CSharpSyntaxFactsService.Instance;
+        protected override ISyntaxFacts GetSyntaxFacts()
+            => CSharpSyntaxFacts.Instance;
 
         protected override bool CanSimplifyTypeNameExpression(
             SemanticModel model, MemberAccessExpressionSyntax node, OptionSet optionSet,

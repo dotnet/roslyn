@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new ElementAccessExpressionSignatureHelpProvider();
-        }
+            => new ElementAccessExpressionSignatureHelpProvider();
 
         #region "Regular tests"
 
@@ -808,9 +806,7 @@ class C
             }
 
             internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-            {
-                return new ElementAccessExpressionSignatureHelpProvider();
-            }
+                => new ElementAccessExpressionSignatureHelpProvider();
 
             [WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
             [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]

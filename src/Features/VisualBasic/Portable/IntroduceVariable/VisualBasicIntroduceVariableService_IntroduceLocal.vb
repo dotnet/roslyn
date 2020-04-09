@@ -6,7 +6,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -133,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken)
 
-            Dim complexified = Await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(False)
+            Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
             document = complexified.newSemanticDocument
             matches = complexified.newMatches
 

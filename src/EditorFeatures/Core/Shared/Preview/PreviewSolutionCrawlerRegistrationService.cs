@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewSolutionCrawlerRegistrationServiceFactory(IDiagnosticAnalyzerService analyzerService, IAsynchronousOperationListenerProvider listenerProvider)
         {
             // this service is directly tied to DiagnosticAnalyzerService and
@@ -104,9 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             }
 
             public void Unregister(Workspace workspace, bool blockingShutdown = false)
-            {
-                _ = UnregisterAsync(workspace, blockingShutdown);
-            }
+                => _ = UnregisterAsync(workspace, blockingShutdown);
 
             private async Task UnregisterAsync(Workspace workspace, bool blockingShutdown)
             {

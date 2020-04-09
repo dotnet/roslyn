@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private ImmutableDictionary<object, FixAllProviderInfo> _fixAllProviderMap;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CodeFixService(
             IThreadingContext threadingContext,
             IDiagnosticAnalyzerService service,
@@ -200,10 +202,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     result, addOperationScope, cancellationToken).ConfigureAwait(false);
             }
 
-            if (result.Count > 0)
+            if (result.Count > 0 && _fixerPriorityMap.TryGetValue(document.Project.Language, out var fixersForLanguage))
             {
                 // sort the result to the order defined by the fixers
-                var priorityMap = _fixerPriorityMap[document.Project.Language].Value;
+                ImmutableDictionary<CodeFixProvider, int> priorityMap = fixersForLanguage.Value;
                 result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
 
                 int GetValue(CodeFixCollection c)
@@ -255,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var fixAllService = document.Project.Solution.Workspace.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                fixCollection.FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
 
             return solution.GetDocument(document.Id) ?? throw new NotSupportedException(EditorFeaturesResources.Removal_of_document_not_supported);
         }
@@ -290,6 +292,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                // Prioritize NuGet based project code fixers over VSIX based workspace code fixers.
+                if (hasAnyProjectFixer && projectFixersMap.TryGetValue(diagnosticId, out var projectFixers))
+                {
+                    Debug.Assert(!isInteractive);
+                    allFixers.AddRange(projectFixers);
+                }
+
                 if (hasAnySharedFixer && fixerMap.Value.TryGetValue(diagnosticId, out var workspaceFixers))
                 {
                     if (isInteractive)
@@ -301,51 +310,62 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         allFixers.AddRange(workspaceFixers);
                     }
                 }
-
-                if (hasAnyProjectFixer && projectFixersMap.TryGetValue(diagnosticId, out var projectFixers))
-                {
-                    Debug.Assert(!isInteractive);
-                    allFixers.AddRange(projectFixers);
-                }
             }
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
-            // run each CodeFixProvider to gather individual CodeFixes for reported diagnostics
-            foreach (var fixer in allFixers.Distinct())
+            // Run each CodeFixProvider to gather individual CodeFixes for reported diagnostics
+            // Ensure that each diagnostic only has a unique registered code action for any given equivalance key.
+            // This prevents duplicate registered code actions from NuGet and VSIX code fix providers.
+            // See https://github.com/dotnet/roslyn/issues/18818 for details.
+            var uniqueDiagosticToEquivalenceKeysMap = new Dictionary<Diagnostic, PooledHashSet<string?>>();
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                foreach (var fixer in allFixers.Distinct())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                await AppendFixesOrConfigurationsAsync(
-                    document, span, diagnostics, fixAllForInSpan, result, fixer,
-                    hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
-                    getFixes: dxs =>
-                    {
-                        var fixerName = fixer.GetType().Name;
-                        using (addOperationScope(fixerName))
-                        using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
+                    await AppendFixesOrConfigurationsAsync(
+                        document, span, diagnostics, fixAllForInSpan, result, fixer,
+                        hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
+                        getFixes: dxs =>
                         {
-                            if (fixAllForInSpan)
+                            var fixerName = fixer.GetType().Name;
+                            using (addOperationScope(fixerName))
+                            using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
                             {
-                                var primaryDiagnostic = dxs.First();
-                                return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
+                                if (fixAllForInSpan)
+                                {
+                                    var primaryDiagnostic = dxs.First();
+                                    return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking,
+                                        ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap, cancellationToken);
+                                }
+                                else
+                                {
+                                    return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, uniqueDiagosticToEquivalenceKeysMap, cancellationToken);
+                                }
                             }
-                            else
-                            {
-                                return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, cancellationToken);
-                            }
-                        }
-                    },
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                        },
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // Just need the first result if we are doing fix all in span
-                if (fixAllForInSpan && result.Any()) return;
+                    // Just need the first result if we are doing fix all in span
+                    if (fixAllForInSpan && result.Any()) return;
+                }
+            }
+            finally
+            {
+                foreach (var pooledSet in uniqueDiagosticToEquivalenceKeysMap.Values)
+                {
+                    pooledSet.Free();
+                }
             }
         }
 
         private async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
             Document document, TextSpan span, CodeFixProvider fixer, bool isBlocking,
-            ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+            ImmutableArray<Diagnostic> diagnostics,
+            Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,
+            CancellationToken cancellationToken)
         {
             using var fixesDisposer = ArrayBuilder<CodeFix>.GetInstance(out var fixes);
             var context = new CodeFixContext(document, span, diagnostics,
@@ -355,7 +375,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Serialize access for thread safety - we don't know what thread the fix provider will call this delegate from.
                     lock (fixes)
                     {
-                        fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
+                        // Filter out applicable diagnostics which already have a registered code action with same equivalence key.
+                        applicableDiagnostics = FilterApplicableDiagnostics(applicableDiagnostics, action.EquivalenceKey, uniqueDiagosticToEquivalenceKeysMap);
+
+                        if (!applicableDiagnostics.IsEmpty)
+                        {
+                            fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
+                        }
                     }
                 },
                 verifyArguments: false,
@@ -365,6 +391,34 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
             await task.ConfigureAwait(false);
             return fixes.ToImmutable();
+
+            static ImmutableArray<Diagnostic> FilterApplicableDiagnostics(
+                ImmutableArray<Diagnostic> applicableDiagnostics,
+                string? equivalenceKey,
+                Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap)
+            {
+                using var disposer = ArrayBuilder<Diagnostic>.GetInstance(out var newApplicableDiagnostics);
+                foreach (var diagnostic in applicableDiagnostics)
+                {
+                    if (!uniqueDiagosticToEquivalenceKeysMap.TryGetValue(diagnostic, out var equivalenceKeys))
+                    {
+                        equivalenceKeys = PooledHashSet<string?>.GetInstance();
+                        equivalenceKeys.Add(equivalenceKey);
+                        uniqueDiagosticToEquivalenceKeysMap[diagnostic] = equivalenceKeys;
+                    }
+                    else if (!equivalenceKeys.Add(equivalenceKey))
+                    {
+                        // Diagnostic already has a registered code action with same equivalence key.
+                        continue;
+                    }
+
+                    newApplicableDiagnostics.Add(diagnostic);
+                }
+
+                return newApplicableDiagnostics.Count == applicableDiagnostics.Length
+                    ? applicableDiagnostics
+                    : newApplicableDiagnostics.ToImmutable();
+            }
         }
 
         private async Task AppendConfigurationsAsync(
@@ -624,11 +678,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f));
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception e)
+            catch (Exception e) when (!(e is OperationCanceledException))
             {
                 foreach (var logger in _errorLoggers)
                 {

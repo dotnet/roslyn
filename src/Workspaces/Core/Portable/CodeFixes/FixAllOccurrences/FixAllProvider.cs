@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -24,9 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// (c) <see cref="FixAllScope.Solution"/>
         /// </summary>
         public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-        {
-            return ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
-        }
+            => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution);
 
         /// <summary>
         /// Gets the diagnostic IDs for which fix all occurrences is supported.
@@ -34,27 +31,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         /// <param name="originalCodeFixProvider">Original code fix provider that returned this fix all provider from <see cref="CodeFixProvider.GetFixAllProvider"/> method.</param>
         public virtual IEnumerable<string> GetSupportedFixAllDiagnosticIds(CodeFixProvider originalCodeFixProvider)
-        {
-            return originalCodeFixProvider.FixableDiagnosticIds;
-        }
+            => originalCodeFixProvider.FixableDiagnosticIds;
 
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
         public abstract Task<CodeAction> GetFixAsync(FixAllContext fixAllContext);
-
-        internal virtual Task<CodeAction> GetFixAsync(
-            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<CodeAction>(null);
-        }
-
-        internal virtual Task<CodeAction> GetFixAsync(
-            ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<CodeAction>(null);
-        }
     }
 }
