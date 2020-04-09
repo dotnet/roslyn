@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new EditAndContinueWorkspaceService(
                 workspaceServices.Workspace,
                 workspaceServices.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>(),
-                workspaceServices.Workspace.Services.GetRequiredService<ICompilationOutputsProviderService>(),
                 _diagnosticService,
                 _diagnosticUpdateSource,
                 _activeStatementProviderOpt,
