@@ -238,6 +238,9 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
+  # If we are using msbuild.exe restore using static graph
+  $restoreUseStaticGraphEvaluation = if ($msbuildEngine -ne 'dotnet') { "/p:RestoreUseStaticGraphEvaluation=true" } else { "" }
+  
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -261,7 +264,7 @@ function BuildSolution() {
       /p:VisualStudioIbcDropId=$ibcDropId `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
-      /p:RestoreUseStaticGraphEvaluation=true `
+      $restoreUseStaticGraphEvaluation `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
