@@ -3260,7 +3260,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree(), diagnostics);
+            return new BoundNonConstructorMethodBody(compilationUnit,
+                                                     FinishBindBlockParts(compilationUnit, boundStatements.ToImmutableAndFree(), diagnostics).MakeCompilerGenerated(),
+                                                     expressionBody: null);
         }
 
         private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, DiagnosticBag diagnostics)

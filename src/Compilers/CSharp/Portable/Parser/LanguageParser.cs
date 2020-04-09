@@ -2088,6 +2088,7 @@ tryAgain:
                 // All modifiers that might start an expression are processed above.
                 this.ParseModifiers(modifiers, forAccessors: false);
                 bool haveModifiers = (modifiers.Count > 0);
+                MemberDeclarationSyntax result;
 
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
@@ -2100,7 +2101,7 @@ tryAgain:
                     //            missing ';'
                     //
                     // Unless modifiers or attributes are present this is more likely to be a method call than a method definition.
-                    if ((haveAttributes && IsScript) || haveModifiers)
+                    if (haveAttributes || haveModifiers)
                     {
                         var token = SyntaxFactory.MissingToken(SyntaxKind.VoidKeyword);
                         token = this.AddError(token, ErrorCode.ERR_MemberNeedsType);
@@ -2108,15 +2109,22 @@ tryAgain:
 
                         var identifier = this.EatToken();
 
-                        // PROTOTYPE(SimplePrograms): Should we parse this as a local function for Simple Programs in some scenarios?
-                        return this.ParseMethodDeclaration(attributes, modifiers, voidType, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
+                        if (!IsScript)
+                        {
+                            if (tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(attributes, ref afterAttributesPoint, out result))
+                            {
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            return this.ParseMethodDeclaration(attributes, modifiers, voidType, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
+                        }
                     }
                 }
 
                 // Destructors are disallowed in global code, skipping check for them.
                 // TODO: better error messages for script
-
-                MemberDeclarationSyntax result;
 
                 // Check for constant
                 if (this.CurrentToken.Kind == SyntaxKind.ConstKeyword)

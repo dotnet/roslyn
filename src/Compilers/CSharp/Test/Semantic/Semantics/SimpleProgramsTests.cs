@@ -170,32 +170,36 @@ void local() => System.Console.WriteLine(2);
                 Assert.NotNull(operation1);
                 Assert.IsAssignableFrom<IInvocationOperation>(operation1);
 
-                Assert.NotNull(ControlFlowGraph.Create((IBlockOperation)operation1.Parent.Parent));
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)((IBlockOperation)operation1.Parent.Parent).Parent));
 
                 model1.VerifyOperationTree(unit1,
 @"
-IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local(); ... iteLine(2);')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local();')
-    Expression: 
-      IInvocationOperation (void local()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local()')
-        Instance Receiver: 
-          null
-        Arguments(0)
-  ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null) (Syntax: 'void local( ... iteLine(2);')
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'local(); ... iteLine(2);')
+  BlockBody: 
+    IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'local(); ... iteLine(2);')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local();')
         Expression: 
-          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(2)')
+          IInvocationOperation (void local()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local()')
             Instance Receiver: 
               null
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '2')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '=> System.C ... riteLine(2)')
-        ReturnedValue: 
-          null
+            Arguments(0)
+      ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null) (Syntax: 'void local( ... iteLine(2);')
+        IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
+            Expression: 
+              IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(2)')
+                Instance Receiver: 
+                  null
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '2')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '=> System.C ... riteLine(2)')
+            ReturnedValue: 
+              null
+  ExpressionBody: 
+    null
 ");
                 var localDecl = unit1.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
                 var declSymbol = model1.GetDeclaredSymbol(localDecl);
@@ -294,17 +298,21 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: 'local
                 Assert.NotNull(operation1);
                 Assert.IsAssignableFrom<IInvalidOperation>(operation1);
 
-                Assert.NotNull(ControlFlowGraph.Create((IBlockOperation)operation1.Parent.Parent));
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)((IBlockOperation)operation1.Parent.Parent).Parent));
 
                 model1.VerifyOperationTree(unit1,
 @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: 'local();')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'local();')
-    Expression: 
-      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'local()')
-        Children(1):
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'local')
-              Children(0)
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'local();')
+  BlockBody: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'local();')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'local();')
+        Expression: 
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'local()')
+            Children(1):
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'local')
+                  Children(0)
+  ExpressionBody: 
+    null
 ");
 
                 SyntaxTreeSemanticModel syntaxTreeModel = ((SyntaxTreeSemanticModel)model1);
@@ -328,28 +336,32 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Assert.NotNull(operation2);
                 Assert.IsAssignableFrom<ILocalFunctionOperation>(operation2);
 
-                Assert.NotNull(ControlFlowGraph.Create((IBlockOperation)operation2.Parent));
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)((IBlockOperation)operation2.Parent).Parent));
 
                 var isInvalid = comp.SyntaxTrees[1] == tree2 ? ", IsInvalid" : "";
 
                 model2.VerifyOperationTree(unit2,
 @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null" + isInvalid + @") (Syntax: 'void local( ... iteLine(2);')
-  ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null" + isInvalid + @") (Syntax: 'void local( ... iteLine(2);')
-    IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
-        Expression: 
-          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(2)')
-            Instance Receiver: 
+IMethodBodyOperation (OperationKind.MethodBody, Type: null" + isInvalid + @") (Syntax: 'void local( ... iteLine(2);')
+  BlockBody: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null" + isInvalid + @", IsImplicit) (Syntax: 'void local( ... iteLine(2);')
+      ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null" + isInvalid + @") (Syntax: 'void local( ... iteLine(2);')
+        IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
+          IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
+            Expression: 
+              IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... riteLine(2)')
+                Instance Receiver: 
+                  null
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '2')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '=> System.C ... riteLine(2)')
+            ReturnedValue: 
               null
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '2')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '=> System.C ... riteLine(2)')
-        ReturnedValue: 
-          null
+  ExpressionBody: 
+    null
 ");
 
                 static void verifyModelForGlobalStatements(SyntaxTree tree1, SemanticModel model1)
@@ -4400,6 +4412,68 @@ class Helpers
         }
 
         [Fact]
+        public void ExplicitMain_10()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+System.Console.Write(""Hi!"");
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static async Task Main(string[] args)
+    {
+        await Task.Factory.StartNew(() => 5);
+    }
+}
+
+class Program2
+{
+    static void Main(string[] args)
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: DefaultParseOptions);
+
+            comp.VerifyEmitDiagnostics(
+                // error CS9003: Cannot specify /main if there is a compilation unit with top-level statements.
+                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void ExplicitMain_11()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+System.Console.Write(""Hi!"");
+
+class Program
+{
+    static void Main()
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithMainTypeName(""), parseOptions: DefaultParseOptions);
+
+            comp.VerifyEmitDiagnostics(
+                // error CS7088: Invalid 'MainTypeName' value: ''.
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "").WithLocation(1, 1),
+                // error CS9003: Cannot specify /main if there is a compilation unit with top-level statements.
+                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
         public void Yield_01()
         {
             var text = @"yield break;";
@@ -4753,9 +4827,18 @@ class MyAttribute : System.Attribute
                 // (12,1): error CS7014: Attributes are not valid in this context.
                 // [MyAttribute(i + 3)]
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[MyAttribute(i + 3)]").WithLocation(12, 1),
-                // (15,1): error CS7014: Attributes are not valid in this context.
-                // [MyAttribute(i + 4)]
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[MyAttribute(i + 4)]").WithLocation(15, 1)
+                // (16,1): error CS0246: The type or namespace name 'local' could not be found (are you missing a using directive or an assembly reference?)
+                // local();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "local").WithArguments("local").WithLocation(16, 1),
+                // (16,6): error CS1001: Identifier expected
+                // local();
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(16, 6),
+                // (16,6): error CS8112: Local function '()' must declare a body because it is not marked 'static extern'.
+                // local();
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "").WithArguments("()").WithLocation(16, 6),
+                // (19,6): warning CS8321: The local function 'local' is declared but never used
+                // void local() {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(19, 6)
                 );
 
             var tree1 = comp.SyntaxTrees[0];
@@ -6112,6 +6195,42 @@ class C1
                         break;
                 }
             }
+        }
+
+        [Fact]
+        public void MissingTypes_01()
+        {
+            var text = @"return;";
+
+            var comp = CreateEmptyCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Object' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Object").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Void' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void MissingTypes_02()
+        {
+            var text = @"await Test();";
+
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Minimal, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Threading.Tasks.Task' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Threading.Tasks.Task").WithLocation(1, 1),
+                // (1,1): warning CS0028: '<simple-program-entry-point>' has the wrong signature to be an entry point
+                // await Test();
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "await Test();").WithArguments("<simple-program-entry-point>").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (1,7): error CS0103: The name 'Test' does not exist in the current context
+                // await Test();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(1, 7)
+                );
         }
 
     }

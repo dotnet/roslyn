@@ -1776,6 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 9000,
         ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 9001,
         ERR_TopLevelStatementAfterNamespaceOrType = 9002,
+        ERR_SimpleProgramDisallowsMainType = 9003,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

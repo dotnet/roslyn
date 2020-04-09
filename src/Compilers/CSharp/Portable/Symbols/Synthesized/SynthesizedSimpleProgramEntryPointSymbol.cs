@@ -36,12 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasAwait)
             {
-                // PROTOTYPE(SimplePrograms): Test with missing Task type.
                 _returnType = Binder.GetWellKnownType(containingType.DeclaringCompilation, WellKnownType.System_Threading_Tasks_Task, diagnostics, NoLocation.Singleton);
             }
             else
             {
-                // PROTOTYPE(SimplePrograms): Test with missing Void type.
                 _returnType = Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Void, NoLocation.Singleton, diagnostics);
             }
 
