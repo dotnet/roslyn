@@ -147,10 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             cancellationToken.ThrowIfCancellationRequested();
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Delegate_invocation_can_be_simplified, createChangedDocument)
+                : base(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified, createChangedDocument)
             {
             }
         }

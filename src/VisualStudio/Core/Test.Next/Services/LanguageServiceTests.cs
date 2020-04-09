@@ -96,7 +96,7 @@ End Class";
             {
                 symbolResultsBuilder.AddRange(symbols);
             }, threadingContext.JoinableTaskFactory);
-            workspaceSymbolParams.Progress = awaitableProgress;
+            workspaceSymbolParams.PartialResultToken = awaitableProgress;
 
             using (var jsonRpc = JsonRpc.Attach(await client.RequestServiceAsync(server)))
             {
