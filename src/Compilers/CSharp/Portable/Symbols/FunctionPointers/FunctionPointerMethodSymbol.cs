@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static FunctionPointerMethodSymbol CreateFromMetadata(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes);
 
-        public FunctionPointerMethodSymbol SubstiteParameterSymbols(TypeWithAnnotations substitutedReturnType, ArrayBuilder<TypeWithAnnotations> substitutedParameterTypes)
+        public FunctionPointerMethodSymbol SubstiteParameterSymbols(TypeWithAnnotations substitutedReturnType, ImmutableArray<TypeWithAnnotations> substitutedParameterTypes)
             => new FunctionPointerMethodSymbol(
                 this.CallingConvention,
                 this.RefKind,
@@ -104,15 +105,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.Parameters,
                 substitutedParameterTypes);
 
+        internal FunctionPointerMethodSymbol MergeEquivalentTypes(FunctionPointerMethodSymbol signature, VarianceKind variance)
+        {
+            var mergedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+            bool hasParamChanges = false;
+            if (_parameters.Length > 0)
+            {
+                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(_parameters.Length);
+                var paramVariance = variance switch
+                {
+                    VarianceKind.In => VarianceKind.Out,
+                    VarianceKind.Out => VarianceKind.In,
+                    _ => VarianceKind.None,
+                };
+
+                for (int i = 0; i < _parameters.Length; i++)
+                {
+                    var mergedParameterType = _parameters[i].TypeWithAnnotations.MergeEquivalentTypes(signature._parameters[i].TypeWithAnnotations, paramVariance);
+                    builder.Add(mergedParameterType);
+                    if (!mergedParameterType.IsSameAs(_parameters[i].TypeWithAnnotations))
+                    {
+                        hasParamChanges = true;
+                    }
+                }
+
+                mergedParameterTypes = builder.ToImmutableAndFree();
+            }
+
+            var mergedReturnType = ReturnTypeWithAnnotations.MergeEquivalentTypes(signature.ReturnTypeWithAnnotations, variance);
+            if (hasParamChanges || !mergedReturnType.IsSameAs(ReturnTypeWithAnnotations))
+            {
+                return SubstiteParameterSymbols(mergedReturnType, mergedParameterTypes);
+            }
+            else
+            {
+                return this;
+            }
+        }
+
+        public FunctionPointerMethodSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
+        {
+            var transformedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
+            bool hasParamChanges = false;
+            if (_parameters.Length > 0)
+            {
+                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(_parameters.Length);
+                foreach (var param in _parameters)
+                {
+                    var transformedType = transform(param.TypeWithAnnotations);
+                    builder.Add(transformedType);
+                    if (!transformedType.IsSameAs(param.TypeWithAnnotations))
+                    {
+                        hasParamChanges = true;
+                    }
+                }
+
+                transformedParameterTypes = builder.ToImmutableAndFree();
+            }
+
+            var transformedReturn = transform(ReturnTypeWithAnnotations);
+            if (hasParamChanges || !transformedReturn.IsSameAs(ReturnTypeWithAnnotations))
+            {
+                return SubstiteParameterSymbols(transformedReturn, transformedParameterTypes);
+            }
+            else
+            {
+                return this;
+            }
+        }
+
         private FunctionPointerMethodSymbol(
             CallingConvention callingConvention,
             RefKind refKind,
             TypeWithAnnotations returnType,
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<ParameterSymbol> originalParameters,
-            ArrayBuilder<TypeWithAnnotations> substitutedParameterTypes)
+            ImmutableArray<TypeWithAnnotations> substitutedParameterTypes)
         {
-            Debug.Assert(originalParameters.Length == substitutedParameterTypes.Count);
+            Debug.Assert(originalParameters.Length == substitutedParameterTypes.Length);
             RefCustomModifiers = refCustomModifiers;
             CallingConvention = callingConvention;
             RefKind = refKind;

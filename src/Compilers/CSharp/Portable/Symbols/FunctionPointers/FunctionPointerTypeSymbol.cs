@@ -14,7 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // PROTOTYPE(func-ptr): Support generic substitution and retargeting
     // PROTOTYPE(func-ptr): Match msvc's emitting of custom modifiers for calling convention
     internal sealed partial class FunctionPointerTypeSymbol : TypeSymbol
     {
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => new FunctionPointerTypeSymbol(
                 FunctionPointerMethodSymbol.CreateFromMetadata(callingConvention, retAndParamTypes));
 
-        public FunctionPointerTypeSymbol SubstituteTypeSymbol(TypeWithAnnotations substitutedReturnType, ArrayBuilder<TypeWithAnnotations> substitutedParameterTypes)
+        public FunctionPointerTypeSymbol SubstituteTypeSymbol(TypeWithAnnotations substitutedReturnType, ImmutableArray<TypeWithAnnotations> substitutedParameterTypes)
             => new FunctionPointerTypeSymbol(Signature.SubstiteParameterSymbols(substitutedReturnType, substitutedParameterTypes));
 
         public static (CallingConvention Convention, bool IsValid) GetCallingConvention(string convention) =>
@@ -133,14 +132,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
-            // PROTOTYPE(func-ptr): Implement
-            throw new NotImplementedException();
+            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            var mergedSignature = Signature.MergeEquivalentTypes(((FunctionPointerTypeSymbol)other).Signature, variance);
+            if ((object)mergedSignature != Signature)
+            {
+                return new FunctionPointerTypeSymbol(mergedSignature);
+            }
+
+            return this;
         }
 
         internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
-            // PROTOTYPE(func-ptr): Implement
-            throw new NotImplementedException();
+            var substitutedSignature = Signature.SetNullabilityForReferenceTypes(transform);
+            if ((object)Signature != substitutedSignature)
+            {
+                return new FunctionPointerTypeSymbol(substitutedSignature);
+            }
+
+            return this;
         }
 
     }

@@ -237,26 +237,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private FunctionPointerTypeSymbol SubstituteFunctionPointerType(FunctionPointerTypeSymbol f)
         {
-            bool paramTypesChanged = false;
-            var substitutedParamTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(f.Signature.ParameterCount);
-            foreach (var param in f.Signature.Parameters)
-            {
-                var substitutedType = param.TypeWithAnnotations.SubstituteType(this);
-                if (!param.TypeWithAnnotations.IsSameAs(substitutedType))
-                {
-                    paramTypesChanged = true;
-                }
-                substitutedParamTypes.Add(substitutedType);
-            }
-
+            ImmutableArray<TypeWithAnnotations> substitutedParamTypes = SubstituteTypes(f.Signature.ParameterTypesWithAnnotations);
             var substitutedReturnType = f.Signature.ReturnTypeWithAnnotations.SubstituteType(this);
 
-            if (paramTypesChanged || !f.Signature.ReturnTypeWithAnnotations.IsSameAs(substitutedReturnType))
+            if (substitutedParamTypes != f.Signature.ParameterTypesWithAnnotations || !f.Signature.ReturnTypeWithAnnotations.IsSameAs(substitutedReturnType))
             {
                 f = f.SubstituteTypeSymbol(substitutedReturnType, substitutedParamTypes);
             }
 
-            substitutedParamTypes.Free();
             return f;
         }
 
