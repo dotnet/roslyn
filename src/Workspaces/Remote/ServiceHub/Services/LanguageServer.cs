@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<SymbolInformation>> SearchAsync(Solution solution, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(args.Progress);
+            Contract.ThrowIfNull(args.PartialResultToken);
 
             var tasks = solution.Projects.SelectMany(p => p.Documents).Select(d => SearchDocumentAndReportSymbolsAsync(d, args, cancellationToken));
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private static async Task SearchDocumentAndReportSymbolsAsync(Document document, WorkspaceSymbolParams args, CancellationToken cancellationToken)
         {
             var convertedResults = await SearchDocumentAsync(document, args.Query, cancellationToken).ConfigureAwait(false);
-            args.Progress.Report(convertedResults.ToArray());
+            args.PartialResultToken.Report(convertedResults.ToArray());
         }
 
         private static async Task<ImmutableArray<SymbolInformation>> ConvertAsync(
