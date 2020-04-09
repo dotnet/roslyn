@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Testing
             TestFileMarkupParser.GetPosition(markup, out var output, out var cursorPosition);
             Assert.Equal(expected, output);
             Assert.Equal(markup.IndexOf("$$"), cursorPosition);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, cursorPosition));
         }
 
         [Fact]
@@ -29,9 +32,12 @@ namespace Microsoft.CodeAnalysis.Testing
             var markup = "first$$second[||]";
             var expected = "firstsecond";
 
-            TestFileMarkupParser.GetPositionAndSpan(markup, out var output, out var cursorPosition, out _);
+            TestFileMarkupParser.GetPositionAndSpan(markup, out var output, out var cursorPosition, out var span);
             Assert.Equal(expected, output);
             Assert.Equal(markup.IndexOf("$$"), cursorPosition);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, cursorPosition, ImmutableArray.Create(span)));
         }
 
         [Fact]
@@ -40,9 +46,12 @@ namespace Microsoft.CodeAnalysis.Testing
             var markup = "first$$second";
             var expected = "firstsecond";
 
-            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int cursorPosition, out ImmutableArray<TextSpan> _);
+            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int cursorPosition, out ImmutableArray<TextSpan> spans);
             Assert.Equal(expected, output);
             Assert.Equal(markup.IndexOf("$$"), cursorPosition);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, cursorPosition, spans));
         }
 
         [Fact]
@@ -51,9 +60,12 @@ namespace Microsoft.CodeAnalysis.Testing
             var markup = "first$$second";
             var expected = "firstsecond";
 
-            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(expected, output);
             Assert.Equal(markup.IndexOf("$$"), cursorPosition);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, cursorPosition, spans));
         }
 
         [Fact]
@@ -62,9 +74,12 @@ namespace Microsoft.CodeAnalysis.Testing
             var markup = "first$$second";
             var expected = "firstsecond";
 
-            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int? cursorPosition, out ImmutableArray<TextSpan> _);
+            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int? cursorPosition, out ImmutableArray<TextSpan> spans);
             Assert.Equal(expected, output);
             Assert.Equal(markup.IndexOf("$$"), cursorPosition);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, cursorPosition, spans));
         }
 
         [Fact]
@@ -73,9 +88,12 @@ namespace Microsoft.CodeAnalysis.Testing
             var markup = "first$$second";
             var expected = "firstsecond";
 
-            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(expected, output);
             Assert.Equal(markup.IndexOf("$$"), cursorPosition);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, cursorPosition, spans));
         }
 
         [Fact]
@@ -114,31 +132,42 @@ namespace Microsoft.CodeAnalysis.Testing
         public void MissingOptionalPosition1()
         {
             var markup = "[|first|] {|x:second|}";
-            TestFileMarkupParser.GetPositionAndSpans(markup, out _, out int? cursorPosition, out ImmutableArray<TextSpan> _);
+            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int? cursorPosition, out ImmutableArray<TextSpan> spans);
             Assert.Null(cursorPosition);
+
+            // Test round-trip. In this case, named spans are ignored due to the API used for parsing the original
+            // markup string.
+            var equivalentMarkup = "[|first|] second";
+            Assert.Equal(equivalentMarkup, TestFileMarkupParser.CreateTestFile(output, cursorPosition, spans));
         }
 
         [Fact]
         public void MissingOptionalPosition2()
         {
             var markup = "[|first|] {|x:second|}";
-            TestFileMarkupParser.GetPositionAndSpans(markup, out _, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+            TestFileMarkupParser.GetPositionAndSpans(markup, out var output, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Null(cursorPosition);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, cursorPosition, spans));
         }
 
         [Fact]
         public void MissingOptionalPosition3()
         {
             var markup = "[|first|] {|x:second|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Empty(positions);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void NonOverlappingSpans1()
         {
             var markup = "{|x:first|} {|y:second|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -148,13 +177,16 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("y", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 12), y);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void OverlappingSpans1()
         {
             var markup = "{|x:first {|y:second|}|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -164,13 +196,16 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("y", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 12), y);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void OverlappingSpans2()
         {
             var markup = "{|x:first {|y:seco|}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -180,13 +215,16 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("y", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 10), y);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void OverlappingSpans3A()
         {
             var markup = "{|#0:first {|y:seco|}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("#0", out var xs));
@@ -196,13 +234,16 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("y", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 10), y);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void OverlappingSpans3B()
         {
             var markup = "{|#0:first {|y:seco|}nd|#0}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("#0", out var xs));
@@ -212,13 +253,17 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("y", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 10), y);
+
+            // Test round-trip
+            var equivalentMarkup = "{|#0:first {|y:seco|}nd|}";
+            Assert.Equal(equivalentMarkup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void OverlappingSpans3C()
         {
             var markup = "{|#0:first {|y:seco|#0}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("#0", out var xs));
@@ -228,13 +273,18 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("y", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 12), y);
+
+            // Test round-trip
+            // https://github.com/dotnet/roslyn-sdk/issues/505
+            var unexpectedMarkup = "{|#0:first {|y:seco|}nd|}";
+            Assert.Equal(unexpectedMarkup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void OverlappingSpans4A()
         {
             var markup = "{|x:first {|#0:seco|}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -244,13 +294,16 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("#0", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 10), y);
+
+            // Test round-trip
+            Assert.Equal(markup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void OverlappingSpans4B()
         {
             var markup = "{|x:first {|#0:seco|#0}nd|}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -260,13 +313,17 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("#0", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 10), y);
+
+            // Test round-trip
+            var equivalentMarkup = "{|x:first {|#0:seco|}nd|}";
+            Assert.Equal(equivalentMarkup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
 
         [Fact]
         public void OverlappingSpans4C()
         {
             var markup = "{|x:first {|#0:seco|}nd|#0}";
-            TestFileMarkupParser.GetPositionsAndSpans(markup, out _, out ImmutableArray<int> _, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var output, out ImmutableArray<int> positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
             Assert.Equal(2, spans.Count);
 
             Assert.True(spans.TryGetValue("x", out var xs));
@@ -276,6 +333,11 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue("#0", out var ys));
             var y = Assert.Single(ys);
             Assert.Equal(TextSpan.FromBounds(6, 12), y);
+
+            // Test round-trip
+            // https://github.com/dotnet/roslyn-sdk/issues/505
+            var unexpectedMarkup = "{|x:first {|#0:seco|}nd|}";
+            Assert.Equal(unexpectedMarkup, TestFileMarkupParser.CreateTestFile(output, positions, spans));
         }
     }
 }
