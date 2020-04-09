@@ -51,7 +51,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
             var convertedMonikers = ConvertMonikers(monikers);
             var currentPage = 0;
-            while (true)
+
+            // Only grab the first 500 results.  This keeps server load lower and is acceptable for // build demo purposes.
+            while (currentPage < 5)
             {
                 var referenceItems = await FindReferencesByMonikerAsync(
                     _codeIndexProvider, definition, convertedMonikers, progress, currentPage, cancellationToken).ConfigureAwait(false);
