@@ -100,5 +100,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
                     bannerText: CSharpStructureHelpers.Ellipsis,
                     autoCollapse: false));
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [InlineData("enum")]
+        [InlineData("struct")]
+        [InlineData("class")]
+        [InlineData("interface")]
+        public async Task TestEnum3(string typeKind)
+        {
+            var code = $@"
+$$enum E
+{{
+}}
+
+{typeKind} Following
+{{
+}}";
+
+            await VerifyBlockSpansAsync(code,
+                new BlockSpan(
+                    isCollapsible: true,
+                    textSpan: TextSpan.FromBounds(8, 16),
+                    hintSpan: TextSpan.FromBounds(2, 14),
+                    type: BlockTypes.Nonstructural,
+                    bannerText: CSharpStructureHelpers.Ellipsis,
+                    autoCollapse: false));
+        }
     }
 }

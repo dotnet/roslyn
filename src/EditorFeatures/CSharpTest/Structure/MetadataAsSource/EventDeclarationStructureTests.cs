@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -76,6 +77,35 @@ class Goo
             await VerifyBlockSpansAsync(code,
                 Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestEvent3()
+        {
+            const string code = @"
+class C
+{
+    $$event EventHandler E
+    {
+        add { }
+        remove { }
+    }
+
+    event EventHandler E2
+    {
+        add { }
+        remove { }
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                new BlockSpan(
+                    isCollapsible: true,
+                    textSpan: TextSpan.FromBounds(38, 91),
+                    hintSpan: TextSpan.FromBounds(18, 89),
+                    type: BlockTypes.Nonstructural,
+                    bannerText: CSharpStructureHelpers.Ellipsis,
+                    autoCollapse: true));
         }
     }
 }
