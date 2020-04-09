@@ -861,5 +861,34 @@ class E
                     //         delegate*<C.D> d;
                     Diagnostic(ErrorCode.WRN_UnreferencedVar, "d").WithArguments("d").WithLocation(10, 24));
         }
+
+        [Fact]
+        public void FunctionPointerConstraintIntroducedBySubstitution()
+        {
+            string source = @"
+class R1<T1>
+{
+    public virtual void f<T2>() where T2 : T1 { }
+}
+class R2 : R1<delegate*<void>>
+{
+    public override void f<T2>() { }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        R2 r = new R2();
+        r.f<int>();
+    }
+}";
+
+            var compilation = CreateFunctionPointerCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,7): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                // class R2 : R1<delegate*<void>>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("delegate*<void>").WithLocation(6, 7)
+            );
+        }
     }
 }
