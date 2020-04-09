@@ -51,10 +51,17 @@ namespace Microsoft.CodeAnalysis
 
                 /// <summary>
                 /// Weak table to the assembly symbols that this compilation tracker has created.  This can be used to
-                /// determine which project an assembly symbol came from after the fact.  This is needed as the compilation
-                /// an assembly came from can GC'ed and further requests to get that compilation (or any of it's assemblies)
-                /// may produce new assembly symbols.
+                /// determine which project an assembly symbol came from after the fact.  This is needed as the
+                /// compilation an assembly came from can GC'ed and further requests to get that compilation (or any of
+                /// it's assemblies) may produce new assembly symbols.
                 /// </summary>
+                /// <remarks>
+                /// Ideally this would just be <c>ConditionalWeakSet&lt;ISymbol&gt;</c>.  Effectively we just want to
+                /// hold onto the symbols as long as someone else is keeping them alive.  And we don't actually need
+                /// them to map to anything.  We just use their existence to know if our project was the project it came
+                /// from.  However, ConditionalWeakTable is the best tool we have, so we simulate a set by just using a
+                /// table and mapping the keys to themselves.
+                /// </remarks>
                 public readonly ConditionalWeakTable<ISymbol, ISymbol> CompilationAssembliesAndModules;
 
                 /// <summary>
