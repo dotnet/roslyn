@@ -1709,5 +1709,27 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "ptr[0]").WithArguments("delegate*<void>").WithLocation(6, 13)
             );
         }
+
+        [Fact]
+        public void ClsComplaince()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+[assembly: CLSCompliant(true)]
+[CLSCompliant(true)]
+public class C
+{
+    private unsafe void M1(delegate*<void> m) {}
+    internal unsafe void M2(delegate*<void> m) {}
+    public unsafe void M3(delegate*<void> m) {}
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,43): warning CS3001: Argument type 'delegate*<void>' is not CLS-compliant
+                //     public unsafe void M3(delegate*<void> m) {}
+                Diagnostic(ErrorCode.WRN_CLS_BadArgType, "m").WithArguments("delegate*<void>").WithLocation(9, 43)
+            );
+        }
     }
 }
