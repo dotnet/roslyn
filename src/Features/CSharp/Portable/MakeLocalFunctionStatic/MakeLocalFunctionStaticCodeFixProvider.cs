@@ -48,16 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             {
                 editor.ReplaceNode(
                     localFunction,
-                    (current, generator) => MakeLocalFunctionStaticHelper.AddStaticModifier(current, generator));
+                    (current, generator) => MakeLocalFunctionStaticCodeFixHelper.AddStaticModifier(current, generator));
             }
 
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Make_local_function_static, createChangedDocument, FeaturesResources.Make_local_function_static)
+                : base(CSharpAnalyzersResources.Make_local_function_static, createChangedDocument, CSharpAnalyzersResources.Make_local_function_static)
             {
             }
         }

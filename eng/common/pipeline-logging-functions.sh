@@ -2,7 +2,6 @@
 
 function Write-PipelineTelemetryError {
   local telemetry_category=''
-  local force=false
   local function_args=()
   local message=''
   while [[ $# -gt 0 ]]; do
@@ -11,9 +10,6 @@ function Write-PipelineTelemetryError {
       -category|-c)
         telemetry_category=$2
         shift
-        ;;
-      -force|-f)
-        force=true
         ;;
       -*)
         function_args+=("$1 $2")
@@ -26,22 +22,19 @@ function Write-PipelineTelemetryError {
     shift
   done
 
-  if [[ $force != true ]] && [[ "$ci" != true ]]; then
+  if [[ "$ci" != true ]]; then
     echo "$message" >&2
     return
   fi
 
   message="(NETCORE_ENGINEERING_TELEMETRY=$telemetry_category) $message"
   function_args+=("$message")
-  if [[ $force == true ]]; then
-    function_args+=("-force")
-  fi
 
   Write-PipelineTaskError $function_args
 }
 
 function Write-PipelineTaskError {
-  if [[ $force != true ]] && [[ "$ci" != true ]]; then
+  if [[ "$ci" != true ]]; then
     echo "$@" >&2
     return
   fi

@@ -155,11 +155,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Si se cambia "{0}" a "{1}", la sesión de depuración no podrá continuar porque cambia la forma de la máquina de estados.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conditional_expression_can_be_simplified">
-        <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurar el estilo de código de {0}</target>
@@ -203,11 +198,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Convertir a struct</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_to_tuple">
-        <source>Convert to tuple</source>
-        <target state="translated">Convertir a tupla</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -340,11 +330,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Generar el parámetro "{0}" (y reemplazos/implementaciones)</target>
         <note />
       </trans-unit>
-      <trans-unit id="GetHashCode_implementation_can_be_simplified">
-        <source>'GetHashCode' implementation can be simplified</source>
-        <target state="translated">La implementación de "GetHashCode" se puede simplificar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_0_explicitly">
         <source>Implement '{0}' explicitly</source>
         <target state="translated">Implementar "{0}" de forma explícita</target>
@@ -415,16 +400,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Parámetros con la sangría ajustada</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="translated">La indexación de direcciones puede ser simplificado</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interpolation_can_be_simplified">
-        <source>Interpolation can be simplified</source>
-        <target state="translated">La interpolación se puede simplificar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Introducir la sangría</target>
@@ -450,24 +425,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Hacer estático</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="translated">Convertir en editables los campos readonly</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Invertir condicional</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_function_can_be_made_static">
-        <source>Local function can be made static</source>
-        <target state="translated">La función local se puede convertir en estática</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_local_function_static">
-        <source>Make local function 'static'</source>
-        <target state="translated">Convertir la función local "static"</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
@@ -560,16 +520,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Edición superficial</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_conditional_expression">
-        <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_interpolation">
-        <source>Simplify interpolation</source>
-        <target state="translated">Simplificar la interpolación</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
         <target state="translated">Dividir en instrucciones "{0}" consecutivas</target>
@@ -584,11 +534,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Stream must support read and seek operations.</source>
         <target state="translated">La secuencia debe admitir las operaciones de lectura y búsqueda.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
-        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
@@ -670,19 +615,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Use el patrón de Dispose recomendado para asegurarse de que los objetos descartables de ámbito local se desechan en todas las rutas de acceso. Si es posible, incluya la creación en una instrucción "using" o una declaración "using". En caso contrario, use un patrón try-finally, con la declaración de una variable local dedicada antes de la región "try" y una invocación de Dispose incondicional en un valor no nulo en la región "finally", por ejemplo, "x?.Dispose()". Si el objeto se desecha de forma explícita en la región "try" o la pertenencia de Dispose se transfiere a otro objeto o método, asigne "null" a la variable local justo después de tal operación para evitar un doble Dispose en "finally".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_System_HashCode">
-        <source>Use 'System.HashCode'</source>
-        <target state="translated">Usar "System.HashCode"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Usar cuerpo del bloque para las expresiones lambda</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_compound_assignment">
-        <source>Use compound assignment</source>
-        <target state="translated">Usar la asignación compuesta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -690,19 +625,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Usar órgano de expresión para expresiones lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_index_operator">
-        <source>Use index operator</source>
-        <target state="translated">Usar operador de índice</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">Utilizar cadenas verbatim interpoladas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="translated">Usar el operador de intervalo</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
@@ -714,11 +639,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
         <target state="translated">Use el patrón de Dispose recomendado para asegurarse de que el objeto creado por "{0}" se desecha en todas las rutas de acceso: instrucción o declaración using o try/finally</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_simple_using_statement">
-        <source>Use simple 'using' statement</source>
-        <target state="translated">Use la instrucción "using" simple</target>
-        <note />
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -788,11 +708,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Ajuste</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} se puede simplificar.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -2418,11 +2333,6 @@ If the "K" format specifier is used without other custom format specifiers, it's
         <target state="translated">atributo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">Usar propiedad automática</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
         <target state="translated">Reemplazar '{0}' y '{1}' por la propiedad</target>
@@ -2695,11 +2605,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">proyecto {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_variable_declaration">
-        <source>Inline variable declaration</source>
-        <target state="translated">Declaración de variables alineada</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
         <target state="translated">{0}' completo</target>
@@ -2738,11 +2643,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Pascal_Case">
         <source>Pascal Case</source>
         <target state="translated">Pascal Case</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_inlined">
-        <source>Variable declaration can be inlined</source>
-        <target state="translated">La declaración de variables se puede insertar</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -2890,16 +2790,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Implementar {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">Usar nombre de miembro inferido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">El nombre del miembro se puede simplificar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
         <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
         <target state="translated">El diagnóstico notificado "{0}" tiene una ubicación de origen en el archivo "{1}", que no forma parte de la compilación que se está analizando.</target>
@@ -3032,11 +2922,6 @@ Although the result string should express a time as Coordinated Universal Time (
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">actualización de usos en proyectos dependientes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="using_statement_can_be_simplified">
-        <source>'using' statement can be simplified</source>
-        <target state="translated">La instrucción "using" se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="utc_hour_and_minute_offset">
