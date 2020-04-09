@@ -1135,6 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.TypeKind)
                 {
                     case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
                         return true;
                     case TypeKind.Array:
                         type = ((ArrayTypeSymbol)type).ElementType;

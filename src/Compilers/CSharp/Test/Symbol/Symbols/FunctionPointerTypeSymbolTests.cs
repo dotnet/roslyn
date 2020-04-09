@@ -906,5 +906,24 @@ unsafe static class C
                 Diagnostic(ErrorCode.ERR_BadTypeforThis, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(4, 24)
             );
         }
+
+        [Fact]
+        public void FunctionPointerTypeInAnonymousType()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe static class C
+{
+    static void M(delegate*<void> ptr)
+    {
+        var a = new { Ptr = ptr };
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
+                //         var a = new { Ptr = ptr };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptr = ptr").WithArguments("delegate*<void>").WithLocation(6, 23)
+            );
+        }
     }
 }
