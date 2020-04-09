@@ -890,5 +890,21 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("delegate*<void>").WithLocation(6, 7)
             );
         }
+
+        [Fact]
+        public void FunctionPointerTypeAsThisOfExtensionMethod()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe static class C
+{
+    static void M(this delegate*<void> ptr) {}
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,24): error CS1103: The first parameter of an extension method cannot be of type 'delegate*<void>'
+                //     static void M(this delegate*<void> ptr) {}
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(4, 24)
+            );
+        }
     }
 }
