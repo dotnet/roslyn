@@ -19,8 +19,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <!-- Source: https://github.com/aspnet/AspNetCore-Tooling/tree/master/src/Razor/src/Microsoft.VisualStudio.LanguageServices.Razor -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
-  </ItemGroup>
 </Project>
