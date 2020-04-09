@@ -3160,11 +3160,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParameterSymbol parameter,
                     TypeWithState operandType)
                 {
+                    TypeWithAnnotations targetTypeWithNullability = parameter.TypeWithAnnotations;
+
+                    if (isLifted && targetTypeWithNullability.Type.IsNonNullableValueType())
+                    {
+                        targetTypeWithNullability = TypeWithAnnotations.Create(MakeNullableOf(targetTypeWithNullability));
+                    }
+
                     _ = VisitConversion(
                         expr as BoundConversion,
                         operand,
                         conversion,
-                        parameter.TypeWithAnnotations,
+                        targetTypeWithNullability,
                         operandType,
                         checkConversion: true,
                         fromExplicitCast: false,
@@ -7580,7 +7587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportNullabilityMismatchInArgument(Location argument, TypeSymbol argumentType, ParameterSymbol parameterOpt, TypeSymbol parameterType, bool forOutput)
         {
             ReportDiagnostic(forOutput ? ErrorCode.WRN_NullabilityMismatchInArgumentForOutput : ErrorCode.WRN_NullabilityMismatchInArgument,
-                argument, argumentType, parameterType,
+                argument, argumentType,
+                parameterOpt?.Type.IsNonNullableValueType() == true && parameterType.IsNullableType() ? parameterOpt.Type : parameterType, // Compensate for operator lifting
                 GetParameterAsDiagnosticArgument(parameterOpt),
                 GetContainingSymbolAsDiagnosticArgument(parameterOpt));
         }
