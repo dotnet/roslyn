@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -123,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// check whether given string is either null or whitespace
         /// </summary>
-        protected bool IsNullOrWhitespace(string text)
+        protected bool IsNullOrWhitespace([NotNullWhen(true)] string? text)
         {
             if (text == null)
             {
@@ -407,8 +410,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return defaultRule;
             }
 
-            if (spaceOperation != null &&
-                spaceOperation.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
+            if (spaceOperation.Option == AdjustSpacesOption.DefaultSpacesIfOnSingleLine &&
                 spaceOperation.Space == 1)
             {
                 return defaultRule;
@@ -430,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
             else if (trivia1.HasStructure)
             {
-                var lastToken = trivia1.GetStructure().GetLastToken(includeZeroWidth: true);
+                var lastToken = trivia1.GetStructure()!.GetLastToken(includeZeroWidth: true);
                 if (ContainsOnlyWhitespace(lastToken.Span.End, lastToken.FullSpan.End))
                 {
                     token1 = lastToken;
@@ -444,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
             else if (trivia2.HasStructure)
             {
-                var firstToken = trivia2.GetStructure().GetFirstToken(includeZeroWidth: true);
+                var firstToken = trivia2.GetStructure()!.GetFirstToken(includeZeroWidth: true);
                 if (ContainsOnlyWhitespace(firstToken.FullSpan.Start, firstToken.SpanStart))
                 {
                     token2 = firstToken;
@@ -650,7 +652,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (TryGetMatchingChangeIndex(changes, out var index))
             {
                 // already change exist at same position that contains only whitespace
-                var delta = GetLineColumnDelta(0, changes[index].NewText);
+                var delta = GetLineColumnDelta(0, changes[index].NewText ?? "");
 
                 changes[index] = GetWhitespaceTextChange(
                     LineColumn.Default,
