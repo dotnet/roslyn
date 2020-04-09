@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
-    // Review: this doesn't have any state. should this be a static class and remove
-    // FormattingOperationsFactory property from Formatter?
     internal static class FormattingOperations
     {
         private static readonly AdjustNewLinesOperation s_preserveZeroLine = new AdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);

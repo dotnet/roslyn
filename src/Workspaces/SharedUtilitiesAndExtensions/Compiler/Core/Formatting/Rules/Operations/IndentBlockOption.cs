@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     /// <summary>
-    /// Options for IndentBlockOperation
+    /// Options for <see cref="IndentBlockOperation"/>.
     /// </summary>
     [Flags]
     internal enum IndentBlockOption
@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         RelativeToFirstTokenOnBaseTokenLine = 0x2,
 
         /// <summary>
-        /// IndentationDeltaOrPosition will be interpreted as delta of its enclosing indentation
+        /// <see cref="IndentBlockOperation.IndentationDeltaOrPosition"/> will be interpreted as delta of its enclosing indentation
         /// </summary>
         RelativePosition = 0x4,
 
         /// <summary>
-        /// IndentationDeltaOrPosition will be interpreted as absolute position
+        /// <see cref="IndentBlockOperation.IndentationDeltaOrPosition"/> will be interpreted as absolute position
         /// </summary>
         AbsolutePosition = 0x8,
 

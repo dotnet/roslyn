@@ -6,7 +6,7 @@
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     /// <summary>
-    /// option to control AlignTokensOperation behavior
+    /// option to control <see cref="AlignTokensOperation"/> behavior
     /// </summary>
     internal enum AlignTokensOption
     {
