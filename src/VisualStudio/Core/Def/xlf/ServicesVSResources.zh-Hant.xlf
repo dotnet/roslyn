@@ -48,8 +48,8 @@
         <note />
       </trans-unit>
       <trans-unit id="All_sources">
-        <source>All sourcess</source>
-        <target state="new">All sourcess</target>
+        <source>All sources</source>
+        <target state="new">All sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_colon">
