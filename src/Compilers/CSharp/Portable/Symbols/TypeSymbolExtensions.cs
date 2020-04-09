@@ -1098,6 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Error:
                 case TypeKind.Interface:
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     return true;
 
                 case TypeKind.Enum:

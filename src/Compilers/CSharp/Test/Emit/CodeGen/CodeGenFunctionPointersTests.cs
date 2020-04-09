@@ -4209,6 +4209,37 @@ namespace Interop
 }");
         }
 
+        [Fact]
+        public void VolatileFunctionPointerField()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static volatile delegate*<void> ptr;
+    static void Print() => Console.Write(1);
+    static void Main()
+    {
+        ptr = &Print;
+        ptr();
+    }
+}");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  IL_0000:  ldftn      ""void C.Print()""
+  IL_0006:  volatile.
+  IL_0008:  stsfld     ""delegate*<void> C.ptr""
+  IL_000d:  volatile.
+  IL_000f:  ldsfld     ""delegate*<void> C.ptr""
+  IL_0014:  calli      ""delegate*<void>""
+  IL_0019:  ret
+}
+");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
