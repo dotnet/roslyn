@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class DebuggingSession : IDisposable
     {
         public readonly Workspace Workspace;
-        public readonly IActiveStatementProvider ActiveStatementProvider;
         public readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
         public readonly ICompilationOutputsProviderService CompilationOutputsProvider;
 
@@ -88,7 +87,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal DebuggingSession(
             Workspace workspace,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
-            IActiveStatementProvider activeStatementProvider,
             ICompilationOutputsProviderService compilationOutputsProvider)
         {
             Workspace = workspace;
@@ -98,8 +96,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
             _modulesPreparedForUpdate = new HashSet<Guid>();
 
-            ActiveStatementProvider = activeStatementProvider;
-
             LastCommittedSolution = new CommittedSolution(this, workspace.CurrentSolution);
             NonRemappableRegions = ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
@@ -107,6 +103,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // test only
         internal void Test_SetNonRemappableRegions(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
             => NonRemappableRegions = nonRemappableRegions;
+
+        // test only
+        internal ImmutableHashSet<Guid> Test_GetModulesPreparedForUpdate()
+        {
+            lock (_modulesPreparedForUpdateGuard)
+            {
+                return _modulesPreparedForUpdate.ToImmutableHashSet();
+            }
+        }
 
         // test only
         internal EmitBaseline Test_GetProjectEmitBaseline(ProjectId id)
@@ -139,7 +144,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _cancellationSource.Dispose();
         }
 
-        internal void PrepareModuleForUpdate(Guid mvid)
+        internal void PrepareModuleForUpdate(Guid mvid, CancellationToken cancellationToken)
         {
             lock (_modulesPreparedForUpdateGuard)
             {
@@ -149,7 +154,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            DebugeeModuleMetadataProvider.PrepareModuleForUpdate(mvid);
+            // fire and forget:
+            _ = Task.Run(() => DebugeeModuleMetadataProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
         }
 
         public void CommitSolutionUpdate(PendingSolutionUpdate update)
