@@ -57,9 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         public abstract string SearchText { get; }
 
         public override string ToString()
-        {
-            return DisplayText;
-        }
+            => DisplayText;
 
         public ObjectList ParentList
         {

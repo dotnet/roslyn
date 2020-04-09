@@ -121,14 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override bool ReturnsVoid
-        {
-            get
-            {
-                return _underlyingMethod.ReturnsVoid;
-            }
-        }
-
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get

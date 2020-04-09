@@ -1221,6 +1221,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_NativeIntegerUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.NativeIntegerUnderlyingType
+            Get
+                Return Nothing
+            End Get
+        End Property
+
 #End Region
 
 #Region "ISymbol"

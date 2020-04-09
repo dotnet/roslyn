@@ -34,9 +34,7 @@ namespace Roslyn.Test.Utilities
         public WpfTestSharedData SharedData { get; }
 
         static WpfTestRunner()
-        {
-            _passedTests = TestInfo.GetPassedTestsInfo();
-        }
+            => _passedTests = TestInfo.GetPassedTestsInfo();
 
         public WpfTestRunner(
             WpfTestSharedData sharedData,

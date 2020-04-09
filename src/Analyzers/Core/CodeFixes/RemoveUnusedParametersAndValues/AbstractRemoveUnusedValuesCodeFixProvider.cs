@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -23,12 +24,6 @@ using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-#endif
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 {
@@ -626,10 +621,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             void InsertLocalDeclarationStatement(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)
             {
                 // Find the correct place to insert the given declaration statement based on the node's ancestors.
-                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(n => n.Parent is TSwitchCaseBlockSyntax ||
+                var insertionNode = node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((n, syntaxFacts) => n.Parent is TSwitchCaseBlockSyntax ||
                                                                               syntaxFacts.IsExecutableBlock(n.Parent) &&
                                                                               !(n is TCatchStatementSyntax) &&
-                                                                              !(n is TCatchBlockSyntax));
+                                                                              !(n is TCatchBlockSyntax),
+                                                                              syntaxFacts);
                 if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
                 {
                     InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(insertionNode.GetAncestor<TSwitchCaseBlockSyntax>(), editor, declarationStatement);

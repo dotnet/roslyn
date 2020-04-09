@@ -66,9 +66,7 @@ namespace Roslyn.Utilities
             }
 
             void IEnumerator.Reset()
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
         }
     }
 }

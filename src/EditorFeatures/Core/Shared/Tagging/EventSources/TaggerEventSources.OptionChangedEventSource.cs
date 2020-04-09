@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             private IOptionService _optionService;
 
             public OptionChangedEventSource(ITextBuffer subjectBuffer, IOption option, TaggerDelay delay) : base(subjectBuffer, delay)
-            {
-                _option = option;
-            }
+                => _option = option;
 
             protected override void ConnectToWorkspace(Workspace workspace)
             {

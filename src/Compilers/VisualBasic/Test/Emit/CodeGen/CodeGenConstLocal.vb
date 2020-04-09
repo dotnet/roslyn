@@ -181,7 +181,7 @@ End Module
 
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub TestDoubleConstLocal()
             Dim verifier = CompileAndVerify(
@@ -202,8 +202,8 @@ Dim cul As System.Globalization.CultureInfo = System.Globalization.CultureInfo.I
         console.WriteLine(pi.ToString(cul))
         console.WriteLine(r)
         console.WriteLine((pi*(r^2)).ToString(cul))
-        console.WriteLine(m.ToString(cul))
-        console.WriteLine(double.maxValue.ToString(cul))
+        console.WriteLine(m.ToString("G15", cul))
+        console.WriteLine(double.maxValue.ToString("G15", cul))
 
         SByRef(pi)
         console.writeline(pi.ToString(cul))
@@ -221,8 +221,8 @@ End Module
 
             verifier.VerifyIL("C.Main", <![CDATA[
 {
-  // Code size      167 (0xa7)
-  .maxstack  2
+  // Code size      177 (0xb1)
+  .maxstack  3
   .locals init (Double V_0)
   IL_0000:  ldc.r8     3.1415926
   IL_0009:  stloc.0
@@ -241,26 +241,28 @@ End Module
   IL_0044:  ldc.r8     1.79769313486232E+308
   IL_004d:  stloc.0
   IL_004e:  ldloca.s   V_0
-  IL_0050:  ldsfld     "C.cul As System.Globalization.CultureInfo"
-  IL_0055:  call       "Function Double.ToString(System.IFormatProvider) As String"
-  IL_005a:  call       "Sub System.Console.WriteLine(String)"
-  IL_005f:  ldc.r8     1.79769313486232E+308
-  IL_0068:  stloc.0
-  IL_0069:  ldloca.s   V_0
-  IL_006b:  ldsfld     "C.cul As System.Globalization.CultureInfo"
-  IL_0070:  call       "Function Double.ToString(System.IFormatProvider) As String"
-  IL_0075:  call       "Sub System.Console.WriteLine(String)"
-  IL_007a:  ldc.r8     3.1415926
-  IL_0083:  stloc.0
-  IL_0084:  ldloca.s   V_0
-  IL_0086:  call       "Sub C.SByRef(ByRef Double)"
-  IL_008b:  ldc.r8     3.1415926
-  IL_0094:  stloc.0
-  IL_0095:  ldloca.s   V_0
-  IL_0097:  ldsfld     "C.cul As System.Globalization.CultureInfo"
-  IL_009c:  call       "Function Double.ToString(System.IFormatProvider) As String"
-  IL_00a1:  call       "Sub System.Console.WriteLine(String)"
-  IL_00a6:  ret
+  IL_0050:  ldstr      "G15"
+  IL_0055:  ldsfld     "C.cul As System.Globalization.CultureInfo"
+  IL_005a:  call       "Function Double.ToString(String, System.IFormatProvider) As String"
+  IL_005f:  call       "Sub System.Console.WriteLine(String)"
+  IL_0064:  ldc.r8     1.79769313486232E+308
+  IL_006d:  stloc.0
+  IL_006e:  ldloca.s   V_0
+  IL_0070:  ldstr      "G15"
+  IL_0075:  ldsfld     "C.cul As System.Globalization.CultureInfo"
+  IL_007a:  call       "Function Double.ToString(String, System.IFormatProvider) As String"
+  IL_007f:  call       "Sub System.Console.WriteLine(String)"
+  IL_0084:  ldc.r8     3.1415926
+  IL_008d:  stloc.0
+  IL_008e:  ldloca.s   V_0
+  IL_0090:  call       "Sub C.SByRef(ByRef Double)"
+  IL_0095:  ldc.r8     3.1415926
+  IL_009e:  stloc.0
+  IL_009f:  ldloca.s   V_0
+  IL_00a1:  ldsfld     "C.cul As System.Globalization.CultureInfo"
+  IL_00a6:  call       "Function Double.ToString(System.IFormatProvider) As String"
+  IL_00ab:  call       "Sub System.Console.WriteLine(String)"
+  IL_00b0:  ret
 }
 ]]>)
         End Sub

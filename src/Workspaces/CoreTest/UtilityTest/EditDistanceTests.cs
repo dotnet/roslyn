@@ -75,45 +75,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [Fact]
         public void EditDistance4()
-        {
-            VerifyEditDistance("XlmReade", "XmlReader", 2);
-        }
+            => VerifyEditDistance("XlmReade", "XmlReader", 2);
 
         [Fact]
         public void EditDistance5()
-        {
-            VerifyEditDistance("Zeil", "trials", 4);
-        }
+            => VerifyEditDistance("Zeil", "trials", 4);
 
         [Fact]
         public void EditDistance6()
-        {
-            VerifyEditDistance("barking", "corkliness", 6);
-        }
+            => VerifyEditDistance("barking", "corkliness", 6);
 
         [Fact]
         public void EditDistance7()
-        {
-            VerifyEditDistance("kitten", "sitting", 3);
-        }
+            => VerifyEditDistance("kitten", "sitting", 3);
 
         [Fact]
         public void EditDistance8()
-        {
-            VerifyEditDistance("sunday", "saturday", 3);
-        }
+            => VerifyEditDistance("sunday", "saturday", 3);
 
         [Fact]
         public void EditDistance9()
-        {
-            VerifyEditDistance("meilenstein", "levenshtein", 4);
-        }
+            => VerifyEditDistance("meilenstein", "levenshtein", 4);
 
         [Fact]
         public void EditDistance10()
-        {
-            VerifyEditDistance("rosettacode", "raisethysword", 8);
-        }
+            => VerifyEditDistance("rosettacode", "raisethysword", 8);
 
         [Fact]
         public void EditDistance11()

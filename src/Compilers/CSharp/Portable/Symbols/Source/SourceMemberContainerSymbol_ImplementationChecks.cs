@@ -8,14 +8,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal delegate void ReportMismatchinReturnType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, TArg arg);
-    internal delegate void ReportMismatchInParameterType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool blameAttributes, TArg arg);
+    internal delegate void ReportMismatchinReturnType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, TArg arg);
+    internal delegate void ReportMismatchInParameterType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool topLevel, TArg arg);
 
     internal partial class SourceMemberContainerTypeSymbol
     {
@@ -1060,16 +1059,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         static readonly ReportMismatchinReturnType<Location> ReportBadReturn =
-            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, Location location)
-            => diagnostics.Add(blameAttributes ?
-                ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes :
+            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, Location location)
+            => diagnostics.Add(topLevel ?
+                ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride :
                 ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
                 location);
 
         static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
-            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool blameAttributes, Location location)
+            (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool topLevel, Location location)
             => diagnostics.Add(
-                blameAttributes ? ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
+                topLevel ? ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
                 location,
                 new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
 
@@ -1096,16 +1095,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var conversions = compilation.Conversions.WithNullability(true);
             if (reportMismatchInReturnType != null)
             {
+                // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
                         overridingMethod.RefKind,
-                        overridingMethod.ReturnTypeWithAnnotations,
-                        overriddenMethod.ReturnTypeWithAnnotations))
+                        overridingMethod.ReturnTypeWithAnnotations.Type,
+                        overriddenMethod.ReturnTypeWithAnnotations.Type))
                 {
                     reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
                     return;
                 }
 
+                // check top-level nullability including flow analysis annotations
                 if (!NullableWalker.AreParameterAnnotationsCompatible(
                         overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
                         overriddenMethod.ReturnTypeWithAnnotations,
@@ -1132,14 +1133,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var overriddenParameterType = overriddenParameter.TypeWithAnnotations;
                 var overridingParameter = overridingParameters[i];
                 var overridingParameterType = overridingParameter.TypeWithAnnotations;
+                // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
                         overridingParameter.RefKind,
-                        overriddenParameterType,
-                        overridingParameterType))
+                        overriddenParameterType.Type,
+                        overridingParameterType.Type))
                 {
                     reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, false, extraArgument);
                 }
+                // check top-level nullability including flow analysis annotations
                 else if (!NullableWalker.AreParameterAnnotationsCompatible(
                         overridingParameter.RefKind,
                         overriddenParameterType,
@@ -1154,8 +1157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static bool isValidNullableConversion(
                 ConversionsBase conversions,
                 RefKind refKind,
-                TypeWithAnnotations sourceType,
-                TypeWithAnnotations targetType)
+                TypeSymbol sourceType,
+                TypeSymbol targetType)
             {
                 switch (refKind)
                 {
@@ -1173,7 +1176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default:
                         break;
                 }
-                return conversions.HasAnyNullabilityImplicitConversion(sourceType, targetType);
+
+                Debug.Assert(conversions.IncludeNullability);
+                HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                return conversions.ClassifyImplicitConversionFromType(sourceType, targetType, ref discardedDiagnostics).Kind != ConversionKind.NoConversion;
             }
         }
 

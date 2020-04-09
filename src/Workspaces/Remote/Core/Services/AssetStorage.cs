@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// TODO: change this service to workspace service
     /// </summary>
-    internal class AssetStorage
+    internal sealed class AssetStorage
     {
         // TODO: think of a way to use roslyn option service in OOP
         public static readonly AssetStorage Default =
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private DateTime _lastGCRun;
         private DateTime _lastActivityTime;
 
-        private volatile AssetSource _assetSource;
+        private volatile AssetSource? _assetSource;
 
         // constructor for testing
         public AssetStorage()
@@ -76,15 +79,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public AssetSource AssetSource
-        {
-            get { return _assetSource; }
-        }
+        public AssetSource? AssetSource => _assetSource;
 
         public void SetAssetSource(AssetSource assetSource)
-        {
-            _assetSource = assetSource;
-        }
+            => _assetSource = assetSource;
 
         public bool TryAddGlobalAsset(Checksum checksum, object value)
         {
@@ -116,21 +114,21 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public bool TryGetAsset<T>(Checksum checksum, out T value)
+        public bool TryGetAsset<T>(Checksum checksum, [MaybeNull, NotNullWhen(true)] out T value)
         {
             UpdateLastActivityTime();
 
-            value = default;
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
                 if (!_globalAssets.TryGetValue(checksum, out var entry) &&
                     !_assets.TryGetValue(checksum, out entry))
                 {
+                    value = default;
                     return false;
                 }
 
                 // Update timestamp
-                Update(checksum, entry);
+                Update(entry);
 
                 value = (T)entry.Object;
                 return true;
@@ -138,11 +136,9 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public void UpdateLastActivityTime()
-        {
-            _lastActivityTime = DateTime.UtcNow;
-        }
+            => _lastActivityTime = DateTime.UtcNow;
 
-        private void Update(Checksum checksum, Entry entry)
+        private void Update(Entry entry)
         {
             // entry is reference type. we update it directly. 
             // we don't care about race.
@@ -209,12 +205,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
 
                     // If it fails, we'll just leave it in the asset pool.
-                    _assets.TryRemove(kvp.Key, out var entry);
+                    _assets.TryRemove(kvp.Key, out var _);
                 }
             }
         }
 
-        private class Entry
+        private sealed class Entry
         {
             // mutable field
             public DateTime LastAccessed;

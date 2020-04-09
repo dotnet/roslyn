@@ -74,14 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         public void AddTag(ITagSpan<TTag> tag)
-        {
-            tagSpans.Add(tag);
-        }
+            => tagSpans.Add(tag);
 
         public void ClearTags()
-        {
-            tagSpans.Clear();
-        }
+            => tagSpans.Clear();
 
         /// <summary>
         /// Used to allow taggers to indicate what spans were actually tagged.  This is useful 
@@ -90,9 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// tags from before and after the sub-span and merge them with the newly produced tags.
         /// </summary>
         public void SetSpansTagged(IEnumerable<DocumentSnapshotSpan> spansTagged)
-        {
-            this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
-        }
+            => this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
 
         public IEnumerable<ITagSpan<TTag>> GetExistingContainingTags(SnapshotPoint point)
         {

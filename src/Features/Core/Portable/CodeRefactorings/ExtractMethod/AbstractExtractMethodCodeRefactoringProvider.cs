@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
     internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ExtractMethodCodeRefactoringProvider()
         {
         }
@@ -80,19 +82,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 
-            if (result.Succeeded || result.SucceededWithSuggestion)
-            {
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var description = documentOptions.GetOption(ExtractMethodOptions.AllowMovingDeclaration) ?
-                                      FeaturesResources.Extract_method_plus_local : FeaturesResources.Extract_method;
+            if (!result.Succeeded && !result.SucceededWithSuggestion)
+                return null;
 
-                var codeAction = new MyCodeAction(description, c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
-                var methodBlock = result.MethodDeclarationNode;
-
-                return codeAction;
-            }
-
-            return null;
+            return new MyCodeAction(
+                FeaturesResources.Extract_method,
+                c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
         }
 
         private async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)

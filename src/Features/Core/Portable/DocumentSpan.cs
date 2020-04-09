@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Additional information attached to a document span by it creator.
         /// </summary>
-        public ImmutableDictionary<string, object> Properties { get; }
+        public ImmutableDictionary<string, object>? Properties { get; }
 
         public DocumentSpan(Document document, TextSpan sourceSpan)
             : this(document, sourceSpan, properties: null)
@@ -30,15 +32,15 @@ namespace Microsoft.CodeAnalysis
         public DocumentSpan(
             Document document,
             TextSpan sourceSpan,
-            ImmutableDictionary<string, object> properties)
+            ImmutableDictionary<string, object>? properties)
         {
             Document = document;
             SourceSpan = sourceSpan;
             Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
-        public override bool Equals(object obj)
-            => Equals((DocumentSpan)obj);
+        public override bool Equals(object? obj)
+            => obj is DocumentSpan documentSpan && Equals(documentSpan);
 
         public bool Equals(DocumentSpan obj)
             => Document == obj.Document && SourceSpan == obj.SourceSpan;

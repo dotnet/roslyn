@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
         }
 
         public override Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.False;
-        }
+            => SpecializedTasks.False;
     }
 }

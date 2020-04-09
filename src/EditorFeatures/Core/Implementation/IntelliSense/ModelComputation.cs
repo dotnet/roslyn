@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         /// <summary>
         /// Set when the first compute task completes
         /// </summary>
-        private TModel _initialUnfilteredModel = default;
+        private TModel _initialUnfilteredModel = null;
 
         #endregion
 

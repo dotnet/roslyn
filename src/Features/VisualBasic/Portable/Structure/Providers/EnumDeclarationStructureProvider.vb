@@ -14,9 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(enumDeclaration As EnumStatementSyntax,
                                                   spans As ArrayBuilder(Of BlockSpan),
+                                                  isMetadataAsSource As Boolean,
                                                   options As OptionSet,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(enumDeclaration, spans)
+            CollectCommentsRegions(enumDeclaration, spans, isMetadataAsSource)
 
             Dim block = TryCast(enumDeclaration.Parent, EnumBlockSyntax)
             If Not block?.EndEnumStatement.IsMissing Then
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     block, bannerNode:=enumDeclaration, autoCollapse:=True,
                     type:=BlockTypes.Type, isCollapsible:=True))
 
-                CollectCommentsRegions(block.EndEnumStatement, spans)
+                CollectCommentsRegions(block.EndEnumStatement, spans, isMetadataAsSource)
             End If
         End Sub
     End Class

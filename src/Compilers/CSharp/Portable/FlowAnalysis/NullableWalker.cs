@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Method signature used for return type or parameter types. Distinct from _member
         /// signature when _member is a lambda and type is inferred from MethodTypeInferrer.
         /// </summary>
-        private readonly MethodSymbol _delegateInvokeMethod;
+        private MethodSymbol _delegateInvokeMethod;
 
         /// <summary>
         /// Return statements and the result types from analyzing the returned expressions. Used when inferring lambda return type in MethodTypeInferrer.
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             EnforceDoesNotReturn(syntaxOpt: null);
             enforceMemberNotNull(syntaxOpt: null, this.State);
-            // Note: we don't enforce NotNull attribute on parameters at exit points, but rather on assignments
+            enforceNotNull(null, this.State);
 
             foreach (var pendingReturn in pendingReturns)
             {
@@ -458,6 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (pendingReturn.Branch is BoundReturnStatement { ExpressionOpt: BoundExpression expr } returnStatement)
                 {
+                    enforceNotNull(returnStatement.Syntax, pendingReturn.State);
                     enforceNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
                     enforceMemberNotNullWhenForPendingReturn(pendingReturn, expr, returnStatement);
                 }
@@ -493,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (memberHasBadState(member, state))
                     {
-                        // Member '{name}' may not have a null value when exiting.
+                        // Member '{name}' must have a non-null value when exiting.
                         Diagnostics.Add(ErrorCode.WRN_MemberNotNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name);
                     }
                 }
@@ -529,8 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (memberHasBadState(member, state))
                             {
-                                // Member '{name}' may not have a null value when exiting with '{sense}'.
-                                Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense);
+                                // Member '{name}' must have a non-null value when exiting with '{sense}'.
+                                Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense ? "true" : "false");
                             }
                         }
                     }
@@ -617,6 +618,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            void enforceNotNull(SyntaxNode syntaxOpt, LocalState state)
+            {
+                if (!state.Reachable)
+                {
+                    return;
+                }
+
+                foreach (var parameter in this.MethodParameters)
+                {
+                    if (parameterHasBadState(parameter, state))
+                    {
+                        // Parameter '{name}' must have a non-null value when exiting.
+                        Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), parameter.Name);
+                    }
+                }
+            }
+
             void enforceParameterNotNullWhen(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
             {
                 if (!stateWhen.Reachable)
@@ -626,15 +644,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var parameter in parameters)
                 {
-                    if (parameterHasBadState(parameter, sense, stateWhen))
+                    if (parameterHasBadConditionalState(parameter, sense, stateWhen))
                     {
-                        // Parameter '{name}' may not have a null value when exiting with '{sense}'.
+                        // Parameter '{name}' must have a non-null value when exiting with '{sense}'.
                         Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
                     }
                 }
             }
 
-            bool parameterHasBadState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
+            bool parameterHasBadState(ParameterSymbol parameter, LocalState state)
+            {
+                var slot = GetOrCreateSlot(parameter);
+                if (slot > 0)
+                {
+                    var annotations = parameter.FlowAnalysisAnnotations;
+                    bool hasNotNull = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                    return hasNotNull && state[slot].MayBeNull();
+                }
+
+                return false;
+            }
+
+            bool parameterHasBadConditionalState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
             {
                 var refKind = parameter.RefKind;
                 if (refKind != RefKind.Out && refKind != RefKind.Ref)
@@ -1491,12 +1522,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool canAssignOutputValueWhen(bool sense)
             {
-                var valueWhenTrue = ApplyUnconditionalAnnotations(
+                var valueWhen = ApplyUnconditionalAnnotations(
                     overridingType.ToTypeWithState(),
                     makeUnconditionalAnnotation(overridingAnnotations, sense));
 
-                var destAnnotationsWhenTrue = ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense));
-                if (isBadAssignment(valueWhenTrue, overriddenType, destAnnotationsWhenTrue))
+                var destAnnotationsWhen = ToInwardAnnotations(makeUnconditionalAnnotation(overriddenAnnotations, sense));
+                if (isBadAssignment(valueWhen, overriddenType, destAnnotationsWhen))
                 {
                     // Can't assign value from overriding to overridden in 'sense' case
                     return false;
@@ -2078,7 +2109,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldSymbol = this.CurrentSymbol;
             var localFuncSymbol = localFunc.Symbol;
+            var delegateInvokeMethod = _delegateInvokeMethod;
             this.CurrentSymbol = localFuncSymbol;
+            _delegateInvokeMethod = null;
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -2145,6 +2178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.State = savedState;
             this.CurrentSymbol = oldSymbol;
+            _delegateInvokeMethod = delegateInvokeMethod;
 
             SetInvalidResult();
 
@@ -3914,8 +3948,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LearnFromEqualsMethod(method, node, receiverType, results);
 
-            LearnFromCompareExchangeMethod(method, node, results);
-
             var returnState = GetReturnTypeWithState(method);
             if (returnNotNull)
             {
@@ -3926,17 +3958,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetUpdatedSymbol(node, node.Method, method);
         }
 
+#nullable enable
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitArgumentResult> results)
         {
             // easy out
             var parameterCount = method.ParameterCount;
             var arguments = node.Arguments;
-            if ((parameterCount != 1 && parameterCount != 2)
+            if (node.HasErrors
+                || (parameterCount != 1 && parameterCount != 2)
                 || parameterCount != arguments.Length
                 || method.MethodKind != MethodKind.Ordinary
                 || method.ReturnType.SpecialType != SpecialType.System_Boolean
                 || (method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__Equals).Name
-                    && method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__ReferenceEquals).Name))
+                    && method.Name != SpecialMembers.GetDescriptor(SpecialMember.System_Object__ReferenceEquals).Name
+                    && !anyOverriddenMethodHasExplicitImplementation(method)))
             {
                 return;
             }
@@ -3944,7 +3979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isStaticEqualsMethod = method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__EqualsObjectObject))
                     || method.Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__ReferenceEquals));
             if (isStaticEqualsMethod ||
-                isWellKnownEqualityMethodOrImplementation(compilation, method, WellKnownMember.System_Collections_Generic_IEqualityComparer_T__Equals))
+                isWellKnownEqualityMethodOrImplementation(compilation, method, receiverType.Type, WellKnownMember.System_Collections_Generic_IEqualityComparer_T__Equals))
             {
                 Debug.Assert(arguments.Length == 2);
                 learnFromEqualsMethodArguments(arguments[0], results[0].RValueType, arguments[1], results[1].RValueType);
@@ -3953,18 +3988,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var isObjectEqualsMethodOrOverride = method.GetLeastOverriddenMethod(accessingTypeOpt: null)
                 .Equals(compilation.GetSpecialTypeMember(SpecialMember.System_Object__Equals));
-            if (isObjectEqualsMethodOrOverride ||
-                isWellKnownEqualityMethodOrImplementation(compilation, method, WellKnownMember.System_IEquatable_T__Equals))
+            if (node.ReceiverOpt is BoundExpression receiver &&
+                    (isObjectEqualsMethodOrOverride ||
+                     isWellKnownEqualityMethodOrImplementation(compilation, method, receiverType.Type, WellKnownMember.System_IEquatable_T__Equals)))
             {
                 Debug.Assert(arguments.Length == 1);
-                learnFromEqualsMethodArguments(node.ReceiverOpt, receiverType, arguments[0], results[0].RValueType);
+                learnFromEqualsMethodArguments(receiver, receiverType, arguments[0], results[0].RValueType);
                 return;
             }
 
-            static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, WellKnownMember wellKnownMember)
+            static bool anyOverriddenMethodHasExplicitImplementation(MethodSymbol method)
             {
-                var wellKnownMethod = compilation.GetWellKnownTypeMember(wellKnownMember);
-                if (wellKnownMethod is null)
+                for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
+                {
+                    if (overriddenMethod.IsExplicitInterfaceImplementation)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            static bool isWellKnownEqualityMethodOrImplementation(CSharpCompilation compilation, MethodSymbol method, TypeSymbol? receiverType, WellKnownMember wellKnownMember)
+            {
+                var wellKnownMethod = (MethodSymbol?)compilation.GetWellKnownTypeMember(wellKnownMember);
+                if (wellKnownMethod is null || receiverType is null)
                 {
                     return false;
                 }
@@ -3972,18 +4021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var wellKnownType = wellKnownMethod.ContainingType;
                 var parameterType = method.Parameters[0].TypeWithAnnotations;
                 var constructedType = wellKnownType.Construct(ImmutableArray.Create(parameterType));
-
-                Symbol constructedMethod = null;
-                foreach (var member in constructedType.GetMembers(WellKnownMemberNames.ObjectEquals))
-                {
-                    if (member.OriginalDefinition.Equals(wellKnownMethod))
-                    {
-                        constructedMethod = member;
-                        break;
-                    }
-                }
-
-                Debug.Assert(constructedMethod != null, "the original definition is present but the constructed method isn't present");
+                var constructedMethod = wellKnownMethod.AsMember(constructedType);
 
                 // FindImplementationForInterfaceMember doesn't check if this method is itself the interface method we're looking for
                 if (constructedMethod.Equals(method))
@@ -3991,8 +4029,70 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var implementationMethod = method.ContainingType.FindImplementationForInterfaceMember(constructedMethod);
-                return method.Equals(implementationMethod);
+                // check whether 'method', when called on this receiver, is an implementation of 'constructedMethod'.
+                for (var baseType = receiverType; baseType is object && method is object; baseType = baseType.BaseTypeNoUseSiteDiagnostics)
+                {
+                    var implementationMethod = baseType.FindImplementationForInterfaceMember(constructedMethod);
+                    if (implementationMethod is null)
+                    {
+                        // we know no base type will implement this interface member either
+                        return false;
+                    }
+
+                    if (implementationMethod.ContainingType.IsInterface)
+                    {
+                        // this method cannot be called directly from source because an interface can only explicitly implement a method from its base interface.
+                        return false;
+                    }
+
+                    // could be calling an override of a method that implements the interface method
+                    for (var overriddenMethod = method; overriddenMethod is object; overriddenMethod = overriddenMethod.OverriddenMethod)
+                    {
+                        if (overriddenMethod.Equals(implementationMethod))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // the Equals method being called isn't the method that implements the interface method in this type.
+                    // it could be a method that implements the interface on a base type, so check again with the base type of 'implementationMethod.ContainingType'
+
+                    // e.g. in this hierarchy:
+                    // class A -> B -> C -> D
+                    // method virtual B.Equals -> override D.Equals
+                    //
+                    // we would potentially check:
+                    // 1. D.Equals when called on D, then B.Equals when called on D
+                    // 2. B.Equals when called on C
+                    // 3. B.Equals when called on B
+                    // 4. give up when checking A, since B.Equals is not overriding anything in A
+
+                    // we know that implementationMethod.ContainingType is the same type or a base type of 'baseType',
+                    // and that the implementation method will be the same between 'baseType' and 'implementationMethod.ContainingType'.
+                    // we step through the intermediate bases in order to skip unnecessary override methods.
+                    while (!baseType.Equals(implementationMethod.ContainingType) && method is object)
+                    {
+                        if (baseType.Equals(method.ContainingType))
+                        {
+                            // since we're about to move on to the base of 'method.ContainingType',
+                            // we know the implementation could only be an overridden method of 'method'.
+                            method = method.OverriddenMethod;
+                        }
+
+                        baseType = baseType.BaseTypeNoUseSiteDiagnostics;
+                        // the implementation method must be contained in this 'baseType' or one of its bases.
+                        Debug.Assert(baseType is object);
+                    }
+
+                    // now 'baseType == implementationMethod.ContainingType', so if 'method' is
+                    // contained in that same type we should advance 'method' one more time.
+                    if (method is object && baseType.Equals(method.ContainingType))
+                    {
+                        method = method.OverriddenMethod;
+                    }
+                }
+
+                return false;
             }
 
             void learnFromEqualsMethodArguments(BoundExpression left, TypeWithState leftType, BoundExpression right, TypeWithState rightType)
@@ -4023,21 +4123,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+#nullable restore
 
-        private void LearnFromCompareExchangeMethod(MethodSymbol method, BoundCall node, ImmutableArray<VisitArgumentResult> results)
+        private bool IsCompareExchangeMethod(MethodSymbol method)
         {
-            var isCompareExchangeMethod = method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange), SymbolEqualityComparer.ConsiderEverything.CompareKind)
-                || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T), SymbolEqualityComparer.ConsiderEverything.CompareKind);
-            if (!isCompareExchangeMethod)
+            if (method is null)
             {
-                return;
+                return false;
             }
 
-            var arguments = node.Arguments;
-            if (arguments.Length != method.ParameterCount)
+            return method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange), SymbolEqualityComparer.ConsiderEverything.CompareKind)
+                || method.OriginalDefinition.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T), SymbolEqualityComparer.ConsiderEverything.CompareKind);
+        }
+
+        private readonly struct CompareExchangeInfo
+        {
+            public readonly ImmutableArray<BoundExpression> Arguments;
+            public readonly ImmutableArray<VisitArgumentResult> Results;
+
+            public CompareExchangeInfo(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> results)
             {
-                return;
+                Arguments = arguments;
+                Results = results;
             }
+
+            public bool IsDefault => Arguments.IsDefault || Results.IsDefault;
+        }
+
+        private NullableFlowState LearnFromCompareExchangeMethod(in CompareExchangeInfo compareExchangeInfo, NullableFlowState state)
+        {
+            Debug.Assert(!compareExchangeInfo.IsDefault);
 
             // In general a call to CompareExchange of the form:
             //
@@ -4050,23 +4165,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     location = value;
             // }
 
-            var locationSlot = MakeSlot(arguments[0]);
-            if (locationSlot != -1)
+            var comparand = compareExchangeInfo.Arguments[2];
+            var valueFlowState = compareExchangeInfo.Results[1].RValueType.State;
+            if (comparand.ConstantValue?.IsNull == true)
             {
-                var comparand = arguments[2];
-                var valueFlowState = results[1].RValueType.State;
-                if (comparand.ConstantValue?.IsNull == true)
-                {
-                    // If location contained a null, then the write `location = value` definitely occurred
-                    State[locationSlot] = valueFlowState;
-                }
-                else
-                {
-                    var locationFlowState = results[0].RValueType.State;
-                    // A write may have occurred
-                    State[locationSlot] = valueFlowState.Join(locationFlowState);
-                }
+                // If location contained a null, then the write `location = value` definitely occurred
             }
+            else
+            {
+                var locationFlowState = compareExchangeInfo.Results[0].RValueType.State;
+                // A write may have occurred
+                valueFlowState = valueFlowState.Join(locationFlowState);
+            }
+
+            return valueFlowState;
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -4164,14 +4276,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static TypeWithState ApplyUnconditionalAnnotations(TypeWithState typeWithState, FlowAnalysisAnnotations annotations)
         {
-            if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
-            {
-                return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
-            }
-
             if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
             {
                 return TypeWithState.Create(typeWithState.Type, NullableFlowState.NotNull);
+            }
+
+            if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
+            {
+                return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
             }
 
             return typeWithState;
@@ -4337,6 +4449,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.HasErrors && !parametersOpt.IsDefault)
             {
+                // For CompareExchange method we need more context to determine the state of outbound assignment
+                CompareExchangeInfo compareExchangeInfo = IsCompareExchangeMethod(method) ? new CompareExchangeInfo(arguments, results) : default;
+
                 // Visit outbound assignments and post-conditions
                 // Note: the state may get split in this step
                 for (int i = 0; i < arguments.Length; i++)
@@ -4354,7 +4469,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterType,
                         parameterAnnotations,
                         results[i],
-                        notNullParametersBuilder);
+                        notNullParametersBuilder,
+                        (!compareExchangeInfo.IsDefault && i == 0) ? compareExchangeInfo : default);
                 }
             }
             else
@@ -4718,7 +4834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations parameterType,
             FlowAnalysisAnnotations parameterAnnotations,
             VisitArgumentResult result,
-            ArrayBuilder<ParameterSymbol> notNullParametersOpt)
+            ArrayBuilder<ParameterSymbol> notNullParametersOpt,
+            CompareExchangeInfo compareExchangeInfoOpt)
         {
             // Note: the state may be conditional if a previous argument involved a conditional post-condition
             // The WhenTrue/False states correspond to the invocation returning true/false
@@ -4737,6 +4854,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // assign from a fictional value from the parameter to the argument.
                         parameterAnnotations = notNullBasedOnParameters(parameterAnnotations, notNullParametersOpt, parameter);
                         var parameterWithState = TypeWithState.Create(parameterType, parameterAnnotations);
+                        if (!compareExchangeInfoOpt.IsDefault)
+                        {
+                            var adjustedState = LearnFromCompareExchangeMethod(in compareExchangeInfoOpt, parameterWithState.State);
+                            parameterWithState = TypeWithState.Create(parameterType.Type, adjustedState);
+                        }
+
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         var lValueType = result.LValueType;
                         trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations);
@@ -4744,7 +4867,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // check whether parameter would unsafely let a null out in the worse case
                         if (!argument.IsSuppressed)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations), UseLegacyWarnings(argument, result.LValueType));
+                            var leftAnnotations = GetLValueAnnotations(argument);
+                            ReportNullableAssignmentIfNecessary(
+                                parameterValue,
+                                targetType: ApplyLValueAnnotations(lValueType, leftAnnotations),
+                                valueType: applyPostConditionsUnconditionally(parameterWithState, parameterAnnotations),
+                                UseLegacyWarnings(argument, result.LValueType));
                         }
                     }
                     break;
@@ -4852,7 +4980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
                 {
                     // MaybeNull and MaybeNullWhen
-                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
                 }
 
                 if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
@@ -4873,7 +5001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (maybeNullWhenTrue && !(maybeNullWhenFalse && notNullWhenTrue))
                 {
                     // [MaybeNull, NotNullWhen(true)] means [MaybeNullWhen(false)]
-                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
                 }
                 else if (notNullWhenTrue)
                 {
@@ -4892,7 +5020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (maybeNullWhenFalse && !(maybeNullWhenTrue && notNullWhenFalse))
                 {
                     // [MaybeNull, NotNullWhen(false)] means [MaybeNullWhen(true)]
-                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeNull);
+                    return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
                 }
                 else if (notNullWhenFalse)
                 {
@@ -5576,7 +5704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tupleOpt = (NamedTypeSymbol)node.Type;
             if (tupleOpt is null)
             {
-                SetResultType(node, TypeWithState.Create(default, NullableFlowState.NotNull));
+                SetResultType(node, TypeWithState.Create(null, NullableFlowState.NotNull));
             }
             else
             {
@@ -6842,7 +6970,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess field => getFieldAnnotations(field.FieldSymbol),
                 BoundObjectInitializerMember { MemberSymbol: PropertySymbol prop } => getSetterAnnotations(prop),
                 BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => getFieldAnnotations(field),
-                BoundParameter { ParameterSymbol: ParameterSymbol parameter } => ToInwardAnnotations(GetParameterAnnotations(parameter)),
+                BoundParameter { ParameterSymbol: ParameterSymbol parameter }
+                    => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
                 _ => FlowAnalysisAnnotations.None
             };
 
@@ -7050,7 +7179,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitArgumentOutboundAssignmentsAndPostConditions(
                             variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
-                            new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default), notNullParametersOpt: null);
+                            new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
+                            notNullParametersOpt: null, compareExchangeInfoOpt: default);
                     }
                 }
             }
@@ -8469,7 +8599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            var receiver = node.ReceiverOpt;
+            var receiver = node.Receiver;
             VisitRvalue(receiver);
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
@@ -8647,7 +8777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            var method = _delegateInvokeMethod ?? (MethodSymbol)CurrentSymbol;
+            var method = (MethodSymbol)CurrentSymbol;
             TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None,
                 method.ReturnType, errorLocation: null, diagnostics: null);
 

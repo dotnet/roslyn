@@ -6,13 +6,14 @@
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     /// <summary>
-    /// A class that reports the current progress made when finding references to symbols.  
+    /// A does-nothing version of the <see cref="IFindReferencesProgress"/>. Useful for
+    /// clients that have no need to report progress as they work.
     /// </summary>
-    internal class FindReferencesProgress : IFindReferencesProgress
+    internal class NoOpFindReferencesProgress : IFindReferencesProgress
     {
-        public static readonly IFindReferencesProgress Instance = new FindReferencesProgress();
+        public static readonly IFindReferencesProgress Instance = new NoOpFindReferencesProgress();
 
-        private FindReferencesProgress()
+        private NoOpFindReferencesProgress()
         {
         }
 

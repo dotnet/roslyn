@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestOptionsServiceWithSharedGlobalOptionsServiceFactory(
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
         {

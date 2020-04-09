@@ -9,8 +9,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Async Function TestAllSignatureChanges_1This_3Regular_2Default() As Task
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <MemberData(NameOf(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), New Integer() {1, 3, 2, 0}, MemberType:=GetType(AbstractChangeSignatureTests))>
+        Public Async Function TestAllSignatureChanges_1This_3Regular_2Default(totalParameters As Integer, signature As Integer()) As Task
             Dim markup = <Text><![CDATA[
 Option Strict On
 
@@ -47,12 +48,19 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue()
-            Dim signaturePartCounts = {1, 3, 2, 0}
-            Await TestAllSignatureChangesAsync(LanguageNames.VisualBasic, markup, signaturePartCounts)
+
+            Await TestChangeSignatureViaCommandAsync(
+                LanguageNames.VisualBasic,
+                markup,
+                expectedSuccess:=True,
+                updatedSignature:=signature,
+                totalParameters:=totalParameters,
+                verifyNoDiagnostics:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Async Function TestAllSignatureChanges_1This_3Regular_1ParamArray() As Task
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <MemberData(NameOf(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), New Integer() {1, 3, 0, 1}, MemberType:=GetType(AbstractChangeSignatureTests))>
+        Public Async Function TestAllSignatureChanges_1This_3Regular_1ParamArray(totalParameters As Integer, signature As Integer()) As Task
             Dim markup = <Text><![CDATA[
 Option Strict On
 
@@ -72,12 +80,19 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue()
-            Dim signaturePartCounts = {1, 3, 0, 1}
-            Await TestAllSignatureChangesAsync(LanguageNames.VisualBasic, markup, signaturePartCounts)
+
+            Await TestChangeSignatureViaCommandAsync(
+                LanguageNames.VisualBasic,
+                markup,
+                expectedSuccess:=True,
+                updatedSignature:=signature,
+                totalParameters:=totalParameters,
+                verifyNoDiagnostics:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Async Function TestAllSignatureChanges_Delegate_3() As Task
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <MemberData(NameOf(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), New Integer() {0, 3, 0, 0}, MemberType:=GetType(AbstractChangeSignatureTests))>
+        Public Async Function TestAllSignatureChanges_Delegate_3(totalParameters As Integer, signature As Integer()) As Task
             Dim markup = <Text><![CDATA[
 Option Strict On
 
@@ -135,8 +150,14 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
-            Dim signaturePartCounts = {0, 3, 0, 0}
-            Await TestAllSignatureChangesAsync(LanguageNames.VisualBasic, markup, signaturePartCounts)
+
+            Await TestChangeSignatureViaCommandAsync(
+                LanguageNames.VisualBasic,
+                markup,
+                expectedSuccess:=True,
+                updatedSignature:=signature,
+                totalParameters:=totalParameters,
+                verifyNoDiagnostics:=True)
         End Function
     End Class
 End Namespace

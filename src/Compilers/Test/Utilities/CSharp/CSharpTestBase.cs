@@ -154,10 +154,11 @@ namespace System.Diagnostics.CodeAnalysis
         protected const string MemberNotNullAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class MemberNotNullAttribute : Attribute
     {
         public MemberNotNullAttribute(params string[] members) { }
+        public MemberNotNullAttribute(string member) { }
     }
 }
 ";
@@ -165,10 +166,11 @@ namespace System.Diagnostics.CodeAnalysis
         protected const string MemberNotNullWhenAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class MemberNotNullWhenAttribute : Attribute
     {
         public MemberNotNullWhenAttribute(bool when, params string[] members) { }
+        public MemberNotNullWhenAttribute(bool when, string member) { }
     }
 }
 ";
@@ -525,6 +527,34 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+
+        protected const string NativeIntegerAttributeDefinition =
+@"using System.Collections.Generic;
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(
+        AttributeTargets.Class |
+        AttributeTargets.Event |
+        AttributeTargets.Field |
+        AttributeTargets.GenericParameter |
+        AttributeTargets.Parameter |
+        AttributeTargets.Property |
+        AttributeTargets.ReturnValue,
+        AllowMultiple = false,
+        Inherited = false)]
+    public sealed class NativeIntegerAttribute : Attribute
+    {
+        public NativeIntegerAttribute()
+        {
+            TransformFlags = new[] { true };
+        }
+        public NativeIntegerAttribute(bool[] flags)
+        {
+            TransformFlags = flags;
+        }
+        public readonly IList<bool> TransformFlags;
+    }
+}";
 
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {

@@ -7,9 +7,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal sealed class StatisticLogAggregator : AbstractLogAggregator<StatisticLogAggregator.StatisticCounter>
     {
         protected override StatisticCounter CreateCounter()
-        {
-            return new StatisticCounter();
-        }
+            => new StatisticCounter();
 
         public void AddDataPoint(object key, int value)
         {

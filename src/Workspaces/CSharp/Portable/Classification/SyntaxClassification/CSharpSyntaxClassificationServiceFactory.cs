@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.SyntaxClassification
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpSyntaxClassificationService(languageServices);
-        }
+            => new CSharpSyntaxClassificationService(languageServices);
     }
 }
