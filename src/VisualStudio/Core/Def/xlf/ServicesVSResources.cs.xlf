@@ -233,8 +233,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Indexed_in_third_party">
-        <source>Indexed_in_third_party</source>
-        <target state="new">Indexed_in_third_party</target>
+        <source>Indexed in third party</source>
+        <target state="new">Indexed in third party</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
