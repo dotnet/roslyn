@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
+        private static bool IsAnalyzerReferenceWithShadowCopyLoader(AnalyzerFileReference reference)
+            => reference.AssemblyLoader is ShadowCopyAnalyzerAssemblyLoader;
+
         public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -49,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                 switch (reference)
                 {
                     case AnalyzerFileReference file:
-                        WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
+                        writer.WriteString(file.FullPath);
+                        writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                         break;
 
                     default:
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 case AnalyzerFileReference file:
                     writer.WriteString(nameof(AnalyzerFileReference));
                     writer.WriteString(file.FullPath);
-                    writer.WriteBoolean(file.AssemblyLoader is ShadowCopyAnalyzerAssemblyLoader);
+                    writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                     break;
 
                 default:
@@ -121,31 +125,6 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
 
             throw ExceptionUtilities.UnexpectedValue(type);
-        }
-
-        private void WriteAnalyzerFileReferenceMvid(
-            AnalyzerFileReference file, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                using var stream = new FileStream(file.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
-                using var peReader = new PEReader(stream);
-
-                var metadataReader = peReader.GetMetadataReader();
-
-                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                var guid = metadataReader.GetGuid(mvidHandle);
-
-                writer.WriteGuid(guid);
-            }
-            catch
-            {
-                // we can't load the assembly analyzer file reference is pointing to.
-                // rather than crashing, handle it gracefully
-                WriteUnresolvedAnalyzerReferenceTo(file, writer);
-            }
         }
 
         protected void WritePortableExecutableReferenceHeaderTo(

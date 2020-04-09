@@ -2,16 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -26,10 +29,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         {
             using (var workspace = new TestWorkspace())
             {
+                var lazyWorkspace = new Lazy<VisualStudioWorkspaceImpl>(() => null);
+
+                var hostDiagnosticUpdateSource = new HostDiagnosticUpdateSource(lazyWorkspace, new MockDiagnosticUpdateSourceRegistrationService());
+
                 var project = workspace.CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp);
                 using var analyzer = new VisualStudioAnalyzer(
                     @"PathToAnalyzer",
-                    hostDiagnosticUpdateSource: null,
+                    hostDiagnosticUpdateSource,
                     projectId: project.Id,
                     language: project.Language);
 

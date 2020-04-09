@@ -251,8 +251,9 @@ End Class";
                 var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
 
                 var runner = CreateAnalyzerRunner(workspace);
-                var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
-                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
+
+                var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(analyzers,
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, getSkippedAnalyzersInfo: null, forcedAnalysis: false, cancellationToken: CancellationToken.None);
