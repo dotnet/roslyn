@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class RemoteAnalyzerFileReferenceTest : MarshalByRefObject
     {
-        private Exception _analyzerLoadException;
-
         public override object InitializeLifetimeService()
         {
             return null;
@@ -28,12 +26,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public Exception LoadAnalyzer(string analyzerPath)
         {
-            _analyzerLoadException = null;
+            Exception analyzerLoadException = null;
             var analyzerRef = new AnalyzerFileReference(analyzerPath, FromFileLoader.Instance);
-            analyzerRef.AnalyzerLoadFailed += (s, e) => _analyzerLoadException = e.Exception;
+            analyzerRef.AnalyzerLoadFailed += (s, e) => analyzerLoadException = e.Exception;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             analyzerRef.AddAnalyzers(builder, LanguageNames.CSharp);
-            return _analyzerLoadException;
+            return analyzerLoadException;
         }
     }
 

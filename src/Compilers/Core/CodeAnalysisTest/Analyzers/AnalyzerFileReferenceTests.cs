@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(refA.Equals(null));
             Assert.True(refA.Equals(refA));
             Assert.True(refA.Equals(refB));
+            Assert.Equal(refA.GetHashCode(), refB.GetHashCode());
 
             // paths are compared for exact equality, it's up to the host to normalize them:
             Assert.False(refA.Equals(new AnalyzerFileReference(path2, loader1)));
