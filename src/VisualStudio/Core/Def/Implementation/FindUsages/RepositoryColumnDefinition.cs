@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 
-
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 {
     /// <summary>

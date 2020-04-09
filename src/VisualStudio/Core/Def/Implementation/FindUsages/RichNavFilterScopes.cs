@@ -58,24 +58,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
     internal abstract class RoslynFilterHandler : FilterHandlerBase
     {
-        private readonly int _id;
-        private readonly string _displayName;
         private readonly ItemOrigin _origin;
 
         protected RoslynFilterHandler(int id, string displayName, ItemOrigin origin)
         {
-            _id = id;
-            _displayName = displayName;
+            FilterId = id;
+            FilterDisplayName = displayName;
             _origin = origin;
         }
 
-        public sealed override int FilterId => _id;
+        public sealed override int FilterId { get; }
 
-        public sealed override string FilterDisplayName => _displayName;
+        public sealed override string FilterDisplayName { get; }
 
         public sealed override IEntryFilter GetFilter(out string displayText)
         {
-            displayText = _displayName;
+            displayText = FilterDisplayName;
             return new ItemOriginFilter(_origin);
         }
     }
@@ -106,9 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         }
 
         public IErrorListFilterHandler CreateFilter(IWpfTableControl tableControl)
-        {
-            return new AllSourcesFilterHandler();
-        }
+            => new AllSourcesFilterHandler();
     }
 
     internal class AllSourcesFilterHandler : RoslynFilterHandler
@@ -118,12 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         public AllSourcesFilterHandler()
             : base(AllSourcesFilterHandlerFilterId, ServicesVSResources.All_sources, ItemOrigin.IndexedInThirdParty)
         {
-        }
-
-        protected override void OnActivated()
-        {
-            base.OnActivated();
-            // User just selected the broadest scope. See if we need to re-do the search
         }
     }
 
@@ -142,9 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         }
 
         public IErrorListFilterHandler CreateFilter(IWpfTableControl tableControl)
-        {
-            return new EntireRepositoryFilterHandler();
-        }
+            => new EntireRepositoryFilterHandler();
     }
 
     internal class EntireRepositoryFilterHandler : RoslynFilterHandler
@@ -155,12 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             : base(EntireRepositoryFilterHandlerFilterId, ServicesVSResources.Entire_repository, ItemOrigin.IndexedInRepo)
         {
         }
-
-        protected override void OnActivated()
-        {
-            base.OnActivated();
-            // User just selected a broader scope. See if we need to re-do the search
-        }
     }
 
     internal class ItemOriginFilter : IEntryFilter
@@ -168,18 +150,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         private readonly ItemOrigin _targetOrigin;
 
         internal ItemOriginFilter(ItemOrigin targetOrigin)
-        {
-            _targetOrigin = targetOrigin;
-        }
+            => _targetOrigin = targetOrigin;
 
         public bool Match(ITableEntryHandle entry)
         {
             Requires.NotNull(entry, nameof(entry));
 
             if (entry.TryGetValue(StandardTableKeyNames.ItemOrigin, out ItemOrigin entryOrigin))
-            {
-                return entryOrigin < _targetOrigin;
-            }
+                return entryOrigin <= _targetOrigin;
 
             // For backwards compatibility, consider items without ItemOrigin to be ItemOrigin.Exact (always matched)
             return true;
