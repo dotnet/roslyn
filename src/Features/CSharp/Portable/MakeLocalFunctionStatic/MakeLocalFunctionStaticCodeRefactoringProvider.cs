@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             if (MakeLocalFunctionStaticHelper.TryGetCaputuredSymbolsAndCheckApplicability(localFunction, semanticModel, out var captures))
             {
                 context.RegisterRefactoring(new MyCodeAction(
-                    FeaturesResources.Make_local_function_static,
-                    c => MakeLocalFunctionStaticHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, c)));
+                    CSharpAnalyzersResources.Make_local_function_static,
+                    c => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, c)));
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)

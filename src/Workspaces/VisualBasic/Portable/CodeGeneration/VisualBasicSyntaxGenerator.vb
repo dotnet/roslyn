@@ -8,7 +8,6 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
@@ -160,35 +159,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TypedConstantExpression(value As TypedConstant) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(value)
-        End Function
-
-        Friend Overrides Function InterpolatedStringExpression(startToken As SyntaxToken, content As IEnumerable(Of SyntaxNode), endToken As SyntaxToken) As SyntaxNode
-            Return SyntaxFactory.InterpolatedStringExpression(
-                startToken, SyntaxFactory.List(content.Cast(Of InterpolatedStringContentSyntax)), endToken)
-        End Function
-
-        Friend Overrides Function InterpolatedStringText(textToken As SyntaxToken) As SyntaxNode
-            Return SyntaxFactory.InterpolatedStringText(textToken)
-        End Function
-
-        Friend Overrides Function InterpolatedStringTextToken(content As String) As SyntaxToken
-            Return SyntaxFactory.InterpolatedStringTextToken(content, "")
-        End Function
-
-        Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
-        End Function
-
-        Friend Overrides Function InterpolationAlignmentClause(alignment As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.InterpolationAlignmentClause(
-                SyntaxFactory.Token(SyntaxKind.CommaToken),
-                DirectCast(alignment, ExpressionSyntax))
-        End Function
-
-        Friend Overrides Function InterpolationFormatClause(format As String) As SyntaxNode
-            Return SyntaxFactory.InterpolationFormatClause(
-                SyntaxFactory.Token(SyntaxKind.ColonToken),
-                SyntaxFactory.InterpolatedStringTextToken(format, format))
         End Function
 
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
@@ -3809,12 +3779,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 #Region "Patterns"
 
         Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean
-            Return False
-        End Function
-
-        Friend Overrides Function RequiresLocalDeclarationType() As Boolean
-            ' VB supports `dim x = ...` as well as `dim x as Y = ...`.  The local declaration type
-            ' is not required.
             Return False
         End Function
 

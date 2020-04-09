@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript, bool isInputRedirected) -> void
 Microsoft.CodeAnalysis.CommandLineSourceFile.IsInputRedirected.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.Suppression.Equals(Microsoft.CodeAnalysis.Diagnostics.Suppression other) -> bool
 Microsoft.CodeAnalysis.Compilation.CreateNativeIntegerTypeSymbol(bool signed) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.GeneratorAttribute
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute() -> void
@@ -26,7 +27,12 @@ Microsoft.CodeAnalysis.SourceGeneratorContext.CancellationToken.get -> System.Th
 Microsoft.CodeAnalysis.SourceGeneratorContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.SourceGeneratorContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.SourceGeneratorContext.SyntaxReceiver.get -> Microsoft.CodeAnalysis.ISyntaxReceiver
+Microsoft.CodeAnalysis.SyntaxNode.FirstAncestorOrSelf<TNode, TArg>(System.Func<TNode, TArg, bool> predicate, TArg argument, bool ascendOutOfTrivia = true) -> TNode
 Microsoft.CodeAnalysis.SyntaxReceiverCreator
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>
+override Microsoft.CodeAnalysis.Diagnostics.Suppression.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Diagnostics.Suppression.GetHashCode() -> int
+static Microsoft.CodeAnalysis.Diagnostics.Suppression.operator !=(Microsoft.CodeAnalysis.Diagnostics.Suppression left, Microsoft.CodeAnalysis.Diagnostics.Suppression right) -> bool
+static Microsoft.CodeAnalysis.Diagnostics.Suppression.operator ==(Microsoft.CodeAnalysis.Diagnostics.Suppression left, Microsoft.CodeAnalysis.Diagnostics.Suppression right) -> bool
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator>
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CustomObsolete = "CustomObsolete" -> string
