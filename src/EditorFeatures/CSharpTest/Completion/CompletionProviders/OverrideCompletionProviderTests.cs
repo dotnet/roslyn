@@ -2979,5 +2979,68 @@ public class SomeClass : Base
 
             Assert.Equal(after, actualCodeAfterCommit);
         }
+
+        [WorkItem(39909, "https://github.com/dotnet/roslyn/issues/39909")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitAddsMissingImports()
+        {
+            var markupBeforeCommit = @"
+namespace NS1
+{
+    using NS2;
+
+    public class Foo
+    {
+        public virtual bool Bar(Baz baz) => true;
+    }
+}
+
+namespace NS2
+{
+    public class Baz {}
+}
+
+namespace NS3
+{
+    using NS1;
+
+    class D : Foo
+    {
+        override $$
+    }
+}";
+
+            var expectedCodeAfterCommit = @"
+namespace NS1
+{
+    using NS2;
+
+    public class Foo
+    {
+        public virtual bool Bar(Baz baz) => true;
+    }
+}
+
+namespace NS2
+{
+    public class Baz {}
+}
+
+namespace NS3
+{
+    using NS1;
+    using NS2;
+
+    class D : Foo
+    {
+        public override bool Bar(Baz baz)
+        {
+            return base.Bar(baz);$$
+        }
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Bar(NS2.Baz baz)", expectedCodeAfterCommit);
+        }
     }
 }
