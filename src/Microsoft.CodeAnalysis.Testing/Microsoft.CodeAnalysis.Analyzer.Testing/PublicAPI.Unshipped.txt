@@ -264,9 +264,10 @@ static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandar
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard16.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard21.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans, int? cursor) -> string
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans, int? cursor) -> string
-static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int cursor) -> string
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Immutable.ImmutableArray<int> positions, System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> string
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int position) -> string
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int? position, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> string
+static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int? position, System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> string
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPosition(string input, out string output, out int cursorPosition) -> void
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpan(string input, out string output, out int cursorPosition, out Microsoft.CodeAnalysis.Text.TextSpan span) -> void
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetPositionAndSpans(string input, out int? cursorPosition, out System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
