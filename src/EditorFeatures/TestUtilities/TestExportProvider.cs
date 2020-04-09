@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.Execution.SerializerServiceFactory),
                 typeof(CodeAnalysis.Shared.TestHooks.AsynchronousOperationListenerProvider),
                 typeof(CodeAnalysis.Host.WorkspaceAsynchronousOperationListenerProvider),
+                typeof(CodeAnalysis.Host.DefaultAnalyzerAssemblyLoaderService),
                 typeof(PrimaryWorkspace),
                 typeof(TestExportProvider),
                 typeof(ThreadingContext),

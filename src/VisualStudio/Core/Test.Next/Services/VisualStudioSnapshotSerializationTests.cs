@@ -29,7 +29,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         {
             using (var workspace = new TestWorkspace())
             {
-                var lazyWorkspace = new Lazy<VisualStudioWorkspaceImpl>(() => null);
+                var lazyWorkspace = new Lazy<VisualStudioWorkspaceImpl>(() => throw Utilities.ExceptionUtilities.Unreachable);
 
                 var hostDiagnosticUpdateSource = new HostDiagnosticUpdateSource(lazyWorkspace, new MockDiagnosticUpdateSourceRegistrationService());
 
