@@ -1918,5 +1918,34 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("delegate*<void>", "ToString").WithLocation(6, 13)
             );
         }
+
+        [Fact]
+        public void ArglistCannotBeUsedWithFunctionPointers()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
+    {
+        ptr1(__arglist(string.Empty, 1), 1);
+        ptr2(__arglist(1, 2, 3, ptr1));
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,64): error CS1031: Type expected
+                //     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "__arglist").WithLocation(4, 64),
+                // (4,64): error CS1003: Syntax error, ',' expected
+                //     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "__arglist").WithArguments(",", "__arglist").WithLocation(4, 64),
+                // (6,14): error CS1503: Argument 1: cannot convert from '__arglist' to 'string'
+                //         ptr1(__arglist(string.Empty, 1), 1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("1", "__arglist", "string").WithLocation(6, 14),
+                // (7,14): error CS1503: Argument 1: cannot convert from '__arglist' to '?'
+                //         ptr2(__arglist(1, 2, 3, ptr1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(1, 2, 3, ptr1)").WithArguments("1", "__arglist", "?").WithLocation(7, 14)
+            );
+        }
     }
 }

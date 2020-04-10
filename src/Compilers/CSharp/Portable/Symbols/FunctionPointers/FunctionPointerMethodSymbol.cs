@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || GetUnificationUseSiteDiagnosticRecursive(ref result, Parameters, owner, ref checkedTypes);
         }
 
-        public override bool IsVararg => false; // PROTOTYPE(func-ptr): Varargs
+        public override bool IsVararg => false;
 
         public override Symbol? ContainingSymbol => null;
         // Function pointers cannot have type parameters
