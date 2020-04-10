@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis
         private ConditionalWeakTable<ISymbol, ProjectId?>? _assemblyOrModuleSymbolToProjectId;
         private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
 
-
         private SolutionState(
             BranchId branchId,
             int workspaceVersion,

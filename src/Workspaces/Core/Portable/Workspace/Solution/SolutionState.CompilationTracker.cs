@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(assemblyOrModule.Kind == SymbolKind.Assembly || assemblyOrModule.Kind == SymbolKind.NetModule);
                 var state = this.ReadState();
-                return state.CompilationAssembliesAndModules.TryGetValue(assemblyOrModule, out _);
+                var assemblyAndModuleSet = state.AssemblyAndModuleSet;
+                return assemblyAndModuleSet != null && assemblyAndModuleSet.TryGetValue(assemblyOrModule, out _);
             }
 
             /// <summary>
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
                         hasSuccessfullyLoaded: false,
-                        State.GetCompilationAssembliesAndModules(inProgressCompilation)));
+                        State.GetAssemblyAndModuleSet(inProgressCompilation)));
             }
 
             /// <summary>
@@ -719,7 +720,7 @@ namespace Microsoft.CodeAnalysis
                             compilationWithoutGeneratedFiles,
                             generatorDriver,
                             hasSuccessfullyLoaded,
-                            State.GetCompilationAssembliesAndModules(compilation)),
+                            State.GetAssemblyAndModuleSet(compilation)),
                         solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);

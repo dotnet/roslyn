@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public static readonly State Empty = new State(
                     compilation: null, declarationOnlyCompilation: null,
-                    generatorDriver: new TrackedGeneratorDriver(null), new ConditionalWeakTable<ISymbol, ISymbol>());
+                    generatorDriver: new TrackedGeneratorDriver(null),
+                    assemblyAndModuleSet: null);
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -50,19 +51,19 @@ namespace Microsoft.CodeAnalysis
                 public TrackedGeneratorDriver GeneratorDriver { get; }
 
                 /// <summary>
-                /// Weak table to the assembly symbols that this compilation tracker has created.  This can be used to
-                /// determine which project an assembly symbol came from after the fact.  This is needed as the
-                /// compilation an assembly came from can GC'ed and further requests to get that compilation (or any of
-                /// it's assemblies) may produce new assembly symbols.
+                /// Weak table to the assembly and module symbols that this compilation tracker has created.  This can
+                /// be used to determine which project an assembly symbol came from after the fact.  This is needed as
+                /// the compilation an assembly came from can GC'ed and further requests to get that compilation (or any
+                /// of it's assemblies) may produce new assembly symbols.
                 /// </summary>
                 /// <remarks>
                 /// Ideally this would just be <c>ConditionalWeakSet&lt;ISymbol&gt;</c>.  Effectively we just want to
                 /// hold onto the symbols as long as someone else is keeping them alive.  And we don't actually need
                 /// them to map to anything.  We just use their existence to know if our project was the project it came
                 /// from.  However, ConditionalWeakTable is the best tool we have, so we simulate a set by just using a
-                /// table and mapping the keys to themselves.
+                /// table and mapping the keys to the <see langword="null"/> value.
                 /// </remarks>
-                public readonly ConditionalWeakTable<ISymbol, ISymbol> CompilationAssembliesAndModules;
+                public readonly ConditionalWeakTable<ISymbol, object?>? AssemblyAndModuleSet;
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>>? compilation,
                     Compilation? declarationOnlyCompilation,
                     TrackedGeneratorDriver generatorDriver,
-                    ConditionalWeakTable<ISymbol, ISymbol> compilationAssembliesAndModules)
+                    ConditionalWeakTable<ISymbol, object?>? assemblyAndModuleSet)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation = compilation;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratorDriver = generatorDriver;
-                    CompilationAssembliesAndModules = compilationAssembliesAndModules;
+                    AssemblyAndModuleSet = assemblyAndModuleSet;
                 }
 
                 public static State Create(
@@ -114,9 +115,9 @@ namespace Microsoft.CodeAnalysis
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
 
-                public static ConditionalWeakTable<ISymbol, ISymbol> GetCompilationAssembliesAndModules(Compilation compilation)
+                public static ConditionalWeakTable<ISymbol, object?> GetAssemblyAndModuleSet(Compilation compilation)
                 {
-                    var result = new ConditionalWeakTable<ISymbol, ISymbol>();
+                    var result = new ConditionalWeakTable<ISymbol, object?>();
 
                     var compAssembly = compilation.Assembly;
                     result.Add(compAssembly, compAssembly);
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis
                         if (symbol == null)
                             continue;
 
-                        result.Add(symbol, symbol);
+                        result.Add(symbol, null);
                     }
 
                     return result;
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
                            generatorDriver: inProgressGeneratorDriver,
-                           GetCompilationAssembliesAndModules(inProgressCompilation))
+                           GetAssemblyAndModuleSet(inProgressCompilation))
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilation: null,
                            declarationOnlyCompilation: declarationOnlyCompilation,
                            generatorDriver: new TrackedGeneratorDriver(null),
-                           new ConditionalWeakTable<ISymbol, ISymbol>())
+                           assemblyAndModuleSet: null)
                 {
                 }
             }
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
                            generatorDriver,
-                           GetCompilationAssembliesAndModules(declarationCompilation))
+                           GetAssemblyAndModuleSet(declarationCompilation))
                 {
                 }
             }
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithoutGeneratedFiles,
                     TrackedGeneratorDriver generatorDriver,
                     bool hasSuccessfullyLoaded,
-                    ConditionalWeakTable<ISymbol, ISymbol> compilationAssemblies)
+                    ConditionalWeakTable<ISymbol, object?>? compilationAssemblies)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatorDriver,
