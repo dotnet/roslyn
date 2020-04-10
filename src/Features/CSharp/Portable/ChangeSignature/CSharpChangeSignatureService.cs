@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken);
 
-                var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
                 newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded);
                 return constructorInit.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken);
 
-                var newArguments = PermuteArgumentList(declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
                 newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded);
                 return elementAccess.WithArgumentList(elementAccess.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken);
 
-                var newArguments = PermuteAttributeArgumentList(declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteAttributeArgumentList(declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
                 newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: true);
                 return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }

@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
                 Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
 
-                Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature, declarationSymbol)
+                Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol)
                 updatedArguments = AddNewArgumentsToList(delegateInvokeMethod, updatedArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False)
                 Return raiseEventStatement.WithArgumentList(raiseEventStatement.ArgumentList.WithArguments(updatedArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, AttributeSyntax))
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
 
-                Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature, declarationSymbol)
+                Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol)
                 newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False, generateAttributeArguments:=True)
                 Return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
