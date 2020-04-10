@@ -1072,7 +1072,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is SourceNamedTypeSymbol { IsPartial: true };
         }
 
-        // PROTOTYPE(func-ptr): Follow up on usages of this API and add FunctionPointers where necessary, and type/kind checks.
         public static bool IsPointerType(this TypeSymbol type)
         {
             return type is PointerTypeSymbol;
