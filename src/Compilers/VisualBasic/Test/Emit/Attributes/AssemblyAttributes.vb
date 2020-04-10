@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -468,7 +470,7 @@ public class neutral
 end class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
         Dim neutralRef = New VisualBasicCompilationReference(neutral)
 
@@ -481,7 +483,7 @@ public class en_UK
 end class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
         Dim en_UKRef = New VisualBasicCompilationReference(en_UK)
 
@@ -494,7 +496,7 @@ public class en_us
 end class
 ]]>
     </file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
         Dim en_usRef = New VisualBasicCompilationReference(en_us)
 
@@ -1354,15 +1356,15 @@ End Class
 
         Dim consoleappSource =
             <compilation>
-                        <file name="a.vb">
-                            <![CDATA[
+                <file name="a.vb">
+                    <![CDATA[
 Class Program
 	Private Shared Sub Main(args As String())
 	End Sub
 End Class
                     ]]>
-                        </file>
-                    </compilation>
+                </file>
+            </compilation>
 
         Dim netmoduleCompilation = CreateEmptyCompilationWithReferences(netmoduleSource, references:={MinCorlibRef}, options:=TestOptions.ReleaseModule)
         Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"))
@@ -2034,12 +2036,12 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
     </file>
 </compilation>
 
-        Dim compMod1 = CreateCompilationWithMscorlib40(mod1Source, TestOptions.ReleaseModule)
-        Dim compMod2 = CreateCompilationWithMscorlib40(mod2Source, TestOptions.ReleaseModule)
+        Dim compMod1 = CreateCompilationWithMscorlib40(mod1Source, options:=TestOptions.ReleaseModule)
+        Dim compMod2 = CreateCompilationWithMscorlib40(mod2Source, options:=TestOptions.ReleaseModule)
 
         Dim appCompilation = CreateCompilationWithMscorlib40AndReferences(source,
                                                                         {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
-                                                                        TestOptions.ReleaseDll)
+                                                                        options:=TestOptions.ReleaseDll)
 
         Assert.Equal(3, appCompilation.Assembly.Modules.Length)
 
@@ -2085,8 +2087,8 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
     </file>
 </compilation>
 
-        Dim compMod1 = CreateCompilationWithMscorlib40(mod1Source, TestOptions.ReleaseModule)
-        Dim compMod2 = CreateCompilationWithMscorlib40(mod2Source, TestOptions.ReleaseModule)
+        Dim compMod1 = CreateCompilationWithMscorlib40(mod1Source, options:=TestOptions.ReleaseModule)
+        Dim compMod2 = CreateCompilationWithMscorlib40(mod2Source, options:=TestOptions.ReleaseModule)
 
         Dim appCompilation = CreateCompilationWithMscorlib40AndReferences(source,
                                                                         {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
@@ -2134,8 +2136,8 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M1.netmodule' wil
     </file>
 </compilation>
 
-        Dim compMod1 = CreateCompilationWithMscorlib40(mod1Source, TestOptions.ReleaseModule)
-        Dim compMod2 = CreateCompilationWithMscorlib40(mod2Source, TestOptions.ReleaseModule)
+        Dim compMod1 = CreateCompilationWithMscorlib40(mod1Source, options:=TestOptions.ReleaseModule)
+        Dim compMod2 = CreateCompilationWithMscorlib40(mod2Source, options:=TestOptions.ReleaseModule)
 
         Dim appCompilation = CreateCompilationWithMscorlib40AndReferences(source,
                                                                         {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},
@@ -2184,8 +2186,8 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' wil
     </file>
 </compilation>
 
-        Dim compMod1 = CreateCompilationWithMscorlib40(mod1Source, TestOptions.ReleaseModule)
-        Dim compMod2 = CreateCompilationWithMscorlib40(mod2Source, TestOptions.ReleaseModule)
+        Dim compMod1 = CreateCompilationWithMscorlib40(mod1Source, options:=TestOptions.ReleaseModule)
+        Dim compMod2 = CreateCompilationWithMscorlib40(mod2Source, options:=TestOptions.ReleaseModule)
 
         Dim appCompilation = CreateCompilationWithMscorlib40AndReferences(source,
                                                                         {compMod1.EmitToImageReference(), compMod2.EmitToImageReference()},

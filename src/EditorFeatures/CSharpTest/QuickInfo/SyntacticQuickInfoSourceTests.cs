@@ -1,15 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.CSharp.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -32,21 +38,15 @@ switch (true)
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_1()
-        {
-            await TestInClassAsync("int Property { get; }$$ ", "int Property {");
-        }
+            => await TestInClassAsync("int Property { get; }$$ ", "int Property {");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_2()
-        {
-            await TestInClassAsync("void M()\r\n{ }$$ ", "void M()\r\n{");
-        }
+            => await TestInClassAsync("void M()\r\n{ }$$ ", "void M()\r\n{");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_3()
-        {
-            await TestInMethodAndScriptAsync("var a = new int[] { }$$ ", "new int[] {");
-        }
+            => await TestInMethodAndScriptAsync("var a = new int[] { }$$ ", "new int[] {");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task Brackets_4()
@@ -260,10 +260,8 @@ if (true)
 {");
         }
 
-        private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
-        {
-            return new SyntacticQuickInfoProvider();
-        }
+        private QuickInfoProvider CreateProvider(TestWorkspace workspace)
+            => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(
             TestWorkspace workspace,
@@ -271,25 +269,33 @@ if (true)
             int position)
         {
             var provider = CreateProvider(workspace);
-            Assert.Null(await provider.GetItemAsync(document, position, CancellationToken.None));
+            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None)));
         }
 
         protected override async Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
+            ITextSnapshot snapshot,
             int position,
             string expectedContent,
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider(workspace);
-            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-            Assert.NotNull(state);
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
+            Assert.NotNull(info);
+            Assert.NotEqual(0, info.RelatedSpans.Length);
 
-            var hostingControlFactory = workspace.GetService<DeferredContentFrameworkElementFactory>();
+            var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
+            var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
+            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, snapshot, document, streamingPresenter, CancellationToken.None);
+            var containerElement = quickInfoItem.Item as ContainerElement;
 
-            var viewHostingControl = (ViewHostingControl)hostingControlFactory.CreateElement(state.Content);
-            var actualContent = viewHostingControl.GetText_TestOnly();
-            Assert.Equal(expectedContent, actualContent);
+            var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();
+            Assert.NotEmpty(textElements);
+
+            var textElement = textElements.First();
+            var actualText = string.Concat(textElement.Runs.Select(r => r.Text));
+            Assert.Equal(expectedContent, actualText);
         }
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)
@@ -307,9 +313,7 @@ if (true)
         }
 
         protected override Task TestInScriptAsync(string code, string expectedContent, string expectedDocumentationComment = null)
-        {
-            return TestAsync(code, expectedContent, expectedContent, Options.Script);
-        }
+            => TestAsync(code, expectedContent, expectedContent, Options.Script);
 
         protected override async Task TestAsync(
             string code,
@@ -317,20 +321,19 @@ if (true)
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
 
-                if (string.IsNullOrEmpty(expectedContent))
-                {
-                    await AssertNoContentAsync(workspace, document, position);
-                }
-                else
-                {
-                    await AssertContentIsAsync(workspace, document, position, expectedContent, expectedDocumentationComment);
-                }
+            if (string.IsNullOrEmpty(expectedContent))
+            {
+                await AssertNoContentAsync(workspace, document, position);
+            }
+            else
+            {
+                await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
             }
         }
     }

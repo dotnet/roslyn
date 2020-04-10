@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -304,7 +306,7 @@ End Namespace
             Assert.Equal("Function C1.F1(x As System.Int32) As System.Int32", sortedMethodGroup(1).ToTestDisplayString())
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub ExtensionMethodsLookupSymbols3()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -430,7 +432,7 @@ End Namespace
             Assert.Equal("Sub NS1.NS2.Module1.C1.Test1(Of T1, T2, T3, T4)()", actual_lookupSymbols(0).ToTestDisplayString())
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub ExtensionMethodsLookupSymbols4()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -552,7 +554,7 @@ End Namespace
             Assert.Equal("Sub NS1.NS2.Module1.C1.Test1(Of T1, T2, T3, T4)()", actual_lookupSymbols(0).ToTestDisplayString())
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub ExtensionMethodsLookupSymbols5()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -679,7 +681,7 @@ End Namespace
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub ExtensionMethodsLookupSymbols6()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>

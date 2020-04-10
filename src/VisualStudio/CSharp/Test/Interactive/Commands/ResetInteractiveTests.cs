@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,48 +38,47 @@ namespace ResetInteractiveTestsDocument
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
-        public void TestResetREPLWithProjectContext()
+        public async Task TestResetREPLWithProjectContext()
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider()))
-            {
-                var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
-                var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
-                var replReferenceCommands = GetProjectReferences(workspace, project).Select(r => CreateReplReferenceCommand(r));
+            using var workspace = TestWorkspace.Create(WorkspaceXmlStr, exportProvider: InteractiveWindowTestHost.ExportProviderFactory.CreateExportProvider());
 
-                Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveTestsAssembly.dll""")));
-                Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));
+            var project = workspace.CurrentSolution.Projects.FirstOrDefault(p => p.AssemblyName == "ResetInteractiveTestsAssembly");
+            var document = project.Documents.FirstOrDefault(d => d.FilePath == "ResetInteractiveTestsDocument");
+            var replReferenceCommands = GetProjectReferences(workspace, project).Select(r => CreateReplReferenceCommand(r));
 
-                var expectedReferences = replReferenceCommands.ToList();
-                var expectedUsings = new List<string> { @"using ""System"";", @"using ""ResetInteractiveTestsDocument"";" };
-                AssertResetInteractive(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
+            Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveTestsAssembly.dll""")));
+            Assert.True(replReferenceCommands.Any(rc => rc.EndsWith(@"ResetInteractiveVisualBasicSubproject.dll""")));
 
-                // Test that no submissions are executed if the build fails.
-                AssertResetInteractive(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
-            }
+            var expectedReferences = replReferenceCommands.ToList();
+            var expectedUsings = new List<string> { @"using ""System"";", @"using ""ResetInteractiveTestsDocument"";" };
+            await AssertResetInteractiveAsync(workspace, project, buildSucceeds: true, expectedReferences: expectedReferences, expectedUsings: expectedUsings);
+
+            // Test that no submissions are executed if the build fails.
+            await AssertResetInteractiveAsync(workspace, project, buildSucceeds: false, expectedReferences: new List<string>());
         }
 
-        private async void AssertResetInteractive(
+        private async Task AssertResetInteractiveAsync(
             TestWorkspace workspace,
             Project project,
             bool buildSucceeds,
             List<string> expectedReferences = null,
             List<string> expectedUsings = null)
         {
-            expectedReferences = expectedReferences ?? new List<string>();
-            expectedUsings = expectedUsings ?? new List<string>();
+            expectedReferences ??= new List<string>();
+            expectedUsings ??= new List<string>();
 
-            InteractiveWindowTestHost testHost = new InteractiveWindowTestHost(workspace.ExportProvider);
-            List<string> executedSubmissionCalls = new List<string>();
-            void ExecuteSubmission(object _, string code) { executedSubmissionCalls.Add(code); }
+            var testHost = new InteractiveWindowTestHost(workspace.ExportProvider);
+            var executedSubmissionCalls = new List<string>();
 
-            testHost.Evaluator.OnExecute += ExecuteSubmission;
+            void executeSubmission(object _, string code) => executedSubmissionCalls.Add(code);
+            testHost.Evaluator.OnExecute += executeSubmission;
 
-            IWaitIndicator waitIndicator = workspace.GetService<IWaitIndicator>();
-            IEditorOptionsFactoryService editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
+            var waitIndicator = workspace.GetService<IWaitIndicator>();
+            var editorOptionsFactoryService = workspace.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactoryService.GetOptions(testHost.Window.CurrentLanguageBuffer);
             var newLineCharacter = editorOptions.GetNewLineCharacter();
 
-            TestResetInteractive resetInteractive = new TestResetInteractive(
+            var resetInteractive = new TestResetInteractive(
                 waitIndicator,
                 editorOptionsFactoryService,
                 CreateReplReferenceCommand,
@@ -89,13 +91,23 @@ namespace ResetInteractiveTestsDocument
                 ProjectNamespaces = ImmutableArray.Create("System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"),
                 NamespacesToImport = ImmutableArray.Create("System", "ResetInteractiveTestsDocument"),
                 ProjectDirectory = "pj",
+                Is64Bit = true,
             };
 
-            await resetInteractive.Execute(testHost.Window, "Interactive C#");
+            await resetInteractive.ExecuteAsync(testHost.Window, "Interactive C#");
 
             // Validate that the project was rebuilt.
             Assert.Equal(1, resetInteractive.BuildProjectCount);
             Assert.Equal(0, resetInteractive.CancelBuildProjectCount);
+
+            if (buildSucceeds)
+            {
+                Assert.True(testHost.Evaluator.ResetOptions.Is64Bit);
+            }
+            else
+            {
+                Assert.Null(testHost.Evaluator.ResetOptions);
+            }
 
             var expectedSubmissions = new List<string>();
             if (expectedReferences.Any())
@@ -109,7 +121,7 @@ namespace ResetInteractiveTestsDocument
 
             AssertEx.Equal(expectedSubmissions, executedSubmissionCalls);
 
-            testHost.Evaluator.OnExecute -= ExecuteSubmission;
+            testHost.Evaluator.OnExecute -= executeSubmission;
         }
 
         /// <summary>

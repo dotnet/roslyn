@@ -1,4 +1,8 @@
-﻿using EnvDTE;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
@@ -6,7 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal interface IProjectCodeModel
     {
-        EnvDTE.FileCodeModel GetOrCreateFileCodeModel(string filePath);
         EnvDTE.FileCodeModel GetOrCreateFileCodeModel(string filePath, object parent);
         EnvDTE.CodeModel GetOrCreateRootCodeModel(Project parent);
         void OnSourceFileRemoved(string fileName);

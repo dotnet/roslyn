@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -97,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     }
     static void Report(object o)
     {
-        System.Console.WriteLine(""{0}: {1}"", o.GetType(), o);
+        var value = o is System.DateTime ? ((System.DateTime)o).ToString(""MM'/'dd'/'yyyy HH':'mm':'ss"") : o;
+        System.Console.WriteLine(""{0}: {1}"", o.GetType(), value);
     }
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
@@ -176,7 +179,7 @@ public delegate object D([DecimalConstant(0, 0, 0, 0, 3)]decimal o = 3);
 3");
             var comp2b = CreateCompilation(
                 source2,
-                references: new[] { SystemRef, MetadataReference.CreateFromStream(comp1.EmitToStream()) },
+                references: new[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 options: TestOptions.DebugExe);
             comp2b.VerifyDiagnostics();
             CompileAndVerify(comp2b, expectedOutput:
@@ -213,11 +216,11 @@ partial class C
             var attributes = parameter.GetAttributes();
             if (expectedAttributeName == null)
             {
-                Assert.Equal(attributes.Length, 0);
+                Assert.Equal(0, attributes.Length);
             }
             else
             {
-                Assert.Equal(attributes.Length, 1);
+                Assert.Equal(1, attributes.Length);
                 var attribute = attributes[0];
                 var argument = attribute.ConstructorArguments.Last();
                 Assert.Equal(expectedAttributeName, attribute.AttributeClass.Name);

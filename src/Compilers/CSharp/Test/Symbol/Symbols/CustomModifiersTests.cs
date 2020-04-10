@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -55,9 +58,9 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = (Compilation)CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
+            var test = compilation.GetTypeByMetadataName("Test1").GetMember<IMethodSymbol>("Test");
             var type = (INamedTypeSymbol)test.Parameters.First().Type;
             Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsLong)?", type.ToTestDisplayString());
             Assert.Equal("System.Runtime.CompilerServices.IsLong", type.GetTypeArgumentCustomModifiers(0).Single().Modifier.ToTestDisplayString());
@@ -125,11 +128,11 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = (Compilation)CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
+            var test = compilation.GetTypeByMetadataName("Test1").GetMember<IMethodSymbol>("Test");
             var type = (INamedTypeSymbol)test.Parameters.First().Type;
-            Assert.Equal("System.Collections.Generic.Dictionary<System.Int32, System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>", 
+            Assert.Equal("System.Collections.Generic.Dictionary<System.Int32, System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>",
                          type.ToTestDisplayString());
             Assert.True(type.GetTypeArgumentCustomModifiers(0).IsEmpty);
             var modifiers = type.GetTypeArgumentCustomModifiers(1);
@@ -288,12 +291,17 @@ class CL3
 
             var withModifiers = cl3.BaseType().BaseType();
             var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments());
-            Assert.True(withModifiers.HasTypeArgumentsCustomModifiers);
-            Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers);
+            Assert.True(HasTypeArgumentsCustomModifiers(withModifiers));
+            Assert.False(HasTypeArgumentsCustomModifiers(withoutModifiers));
             Assert.True(withoutModifiers.Equals(withModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.NotEqual(withoutModifiers, withModifiers);
 
             CompileAndVerify(compilation, expectedOutput: "Overridden");
+        }
+
+        private bool HasTypeArgumentsCustomModifiers(NamedTypeSymbol type)
+        {
+            return type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Any(a => a.CustomModifiers.Any());
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -1222,7 +1230,7 @@ class CL3
             var test = cl3.GetMember<PropertySymbol>("Test");
             Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL3.Test { get; set; }", test.ToTestDisplayString());
             Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL3.Test.get", test.GetMethod.ToTestDisplayString());
-            Assert.True(test.GetMethod.ReturnTypeCustomModifiers.SequenceEqual(test.SetMethod.Parameters.First().CustomModifiers));
+            Assert.True(test.GetMethod.ReturnTypeWithAnnotations.CustomModifiers.SequenceEqual(test.SetMethod.Parameters.First().TypeWithAnnotations.CustomModifiers));
 
             CompileAndVerify(compilation, expectedOutput: @"Set Overridden
 Get Overridden");
@@ -1450,12 +1458,12 @@ class Module1
             var base2 = compilation.GetTypeByMetadataName("CL3").BaseType();
             var base3 = compilation.GetTypeByMetadataName("CL4").BaseType();
 
-            Assert.True(base1.HasTypeArgumentsCustomModifiers);
-            Assert.True(base2.HasTypeArgumentsCustomModifiers);
+            Assert.True(HasTypeArgumentsCustomModifiers(base1));
+            Assert.True(HasTypeArgumentsCustomModifiers(base2));
             Assert.True(base1.Equals(base2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.NotEqual(base1, base2);
 
-            Assert.True(base3.HasTypeArgumentsCustomModifiers);
+            Assert.True(HasTypeArgumentsCustomModifiers(base3));
             Assert.True(base1.Equals(base3, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.Equal(base1, base3);
             Assert.NotSame(base1, base3);
@@ -1510,7 +1518,7 @@ class Module1
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
 
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).GetTypeArgumentCustomModifiers(0).First().Modifier.ContainingAssembly);
+            Assert.Same(compilation1.SourceModule.CorLibrary(), ((CSharpCustomModifier)((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First()).ModifierSymbol.ContainingAssembly);
 
             var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
 
@@ -1519,7 +1527,7 @@ class Module1
 
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingAssemblySymbol>(test.ContainingAssembly);
             Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).GetTypeArgumentCustomModifiers(0).First().Modifier.ContainingAssembly);
+            Assert.Same(compilation2.SourceModule.CorLibrary(), ((CSharpCustomModifier)((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First()).ModifierSymbol.ContainingAssembly);
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary());
         }
@@ -1602,7 +1610,7 @@ interface ITest4<T, U>
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [Fact]
         public void TypeUnification_03()
         {
             var ilSource = @"
@@ -1750,7 +1758,7 @@ interface ITest4<T, U>
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void DynamicEncodingDecoding_01()
@@ -1819,7 +1827,7 @@ class CL3 : CL2
 ";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Mscorlib40, references: new[] { SystemCoreRef });
 
-            System.Action<IModuleSymbol> validator = (m) =>
+            System.Action<ModuleSymbol> validator = (m) =>
             {
                 var cl3 = ((ModuleSymbol)m).GlobalNamespace.GetTypeMember("CL3");
                 var test = cl3.GetMember<MethodSymbol>("Test");
@@ -2032,7 +2040,7 @@ class Test11 : Test1
 Overridden");
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_01()
@@ -2247,7 +2255,7 @@ class CL3 : CL2
 Overridden");
         }
 
-        [ConditionalFact(typeof(ClrOnly),typeof(DesktopOnly))]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_04()
@@ -2270,7 +2278,7 @@ class CL2 : CL1
         return c;
     }
 }";
-            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll }, 
+            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll },
                                                             options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
@@ -2324,12 +2332,12 @@ class CL3 : I1
             Assert.Equal("System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(U?) CL3.I1.Test<U>(System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(U?) c)", test.ToTestDisplayString());
             Assert.Equal("System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(T?) I1.Test<T>(System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(T?) x)", test.ExplicitInterfaceImplementations[0].ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"CL2.Test
 CL3.Test");
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_05()
@@ -2386,7 +2394,7 @@ Implemented B",
                 });
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_06()
         {
@@ -2469,14 +2477,18 @@ Implemented B",
             var test2 = cl1.GetMember<MethodSymbol>("Test2");
             Assert.Equal("void CL1<T1>.Test2(CL1<T1> t1)", test2.ToTestDisplayString());
 
-            var t1 = test1.Parameters[0].Type;
-            var t2 = test2.Parameters[0].Type;
+            var t1 = test1.Parameters[0].TypeWithAnnotations;
+            var t2 = test2.Parameters[0].TypeWithAnnotations;
 
-            Assert.False(t1.Equals(t2));
-            Assert.False(t2.Equals(t1));
+            Assert.False(t1.Equals(t2, TypeCompareKind.ConsiderEverything));
+            Assert.False(t2.Equals(t1, TypeCompareKind.ConsiderEverything));
+            Assert.False(t1.Type.Equals(t2.Type));
+            Assert.False(t2.Type.Equals(t1.Type));
 
             Assert.True(t1.Equals(t2, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
             Assert.True(t2.Equals(t1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.True(t1.Type.Equals(t2.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
+            Assert.True(t2.Type.Equals(t1.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -2581,12 +2593,12 @@ class CL3
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<PropertySymbol>("Test");
-            Assert.Equal("dynamic modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL2.Test { get; set; }", 
+            Assert.Equal("dynamic modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL2.Test { get; set; }",
                          test2.ToTestDisplayString());
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test3 = cl3.GetMember<PropertySymbol>("Test");
-            Assert.Equal("System.Object modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL3.Test { get; set; }", 
+            Assert.Equal("System.Object modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL3.Test { get; set; }",
                          test3.ToTestDisplayString());
 
             CompileAndVerify(compilation, expectedOutput: @"Set Overridden2
@@ -2797,7 +2809,7 @@ class CL3 : CL1
             Assert.Equal("event System.Action<System.Object modopt(System.Runtime.CompilerServices.IsConst) []> CL3.Test",
                          test3.ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"Alice and Bob
 Charlie");
         }

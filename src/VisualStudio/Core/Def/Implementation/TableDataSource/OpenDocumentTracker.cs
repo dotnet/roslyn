@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,13 +9,12 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
-    internal class OpenDocumentTracker<T>
+    internal class OpenDocumentTracker<TItem>
+        where TItem : TableItem
     {
         private readonly object _gate = new object();
-        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>> _map =
-            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>>();
+        private readonly Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>> _map =
+            new Dictionary<DocumentId, Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>>();
 
         private readonly Workspace _workspace;
 
@@ -25,13 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<T> snapshot)
+        public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<TItem> snapshot)
         {
             lock (_gate)
             {
                 if (!_map.TryGetValue(documentId, out var secondMap))
                 {
-                    secondMap = new Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>>();
+                    secondMap = new Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<TItem>>>();
                     _map.Add(documentId, secondMap);
                 }
 
@@ -40,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     oldSnapshot.StopTracking();
                 }
 
-                secondMap[id] = new WeakReference<AbstractTableEntriesSnapshot<T>>(snapshot);
+                secondMap[id] = new WeakReference<AbstractTableEntriesSnapshot<TItem>>(snapshot);
             }
         }
 
@@ -112,8 +113,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void OnDocumentClosed(object sender, DocumentEventArgs e)
-        {
-            StopTracking(e.Document.Id);
-        }
+            => StopTracking(e.Document.Id);
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -22,7 +24,7 @@ namespace TestResources
             return stream;
         }
 
-        private static byte[] GetResourceBlob(string name)
+        public static byte[] GetResourceBlob(string name)
         {
             using (var stream = GetResourceStream(name))
             {
@@ -50,16 +52,21 @@ namespace TestResources
         {
             if (resource == null)
             {
-                using (var stream = GetResourceStream(name))
-                {
-                    using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
-                    {
-                        resource = streamReader.ReadToEnd();
-                    }
-                }
+                resource = GetResource(name);
             }
 
             return resource;
+        }
+
+        public static string GetResource(string name)
+        {
+            using (var stream = GetResourceStream(name))
+            {
+                using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+                {
+                    return streamReader.ReadToEnd();
+                }
+            }
         }
     }
 }

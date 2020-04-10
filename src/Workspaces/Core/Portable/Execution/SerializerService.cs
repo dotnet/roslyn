@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService : ISerializerService
     {
+        private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
+
         private readonly HostWorkspaceServices _workspaceServices;
 
         private readonly IReferenceSerializationService _hostSerializationService;
@@ -47,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, kind.ToStringFast(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, s_logKind, kind, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -64,13 +69,14 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.CompilationOptions:
                     case WellKnownSynchronizationKind.ParseOptions:
                     case WellKnownSynchronizationKind.ProjectReference:
+                    case WellKnownSynchronizationKind.OptionSet:
                         return Checksum.Create(kind, value, this);
 
                     case WellKnownSynchronizationKind.MetadataReference:
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.AnalyzerReference:
-                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, cancellationToken));
+                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, usePathFromAssembly: true, cancellationToken));
 
                     case WellKnownSynchronizationKind.SourceText:
                         return Checksum.Create(kind, ((SourceText)value).GetChecksum());
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_Serialize, kind.ToString(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_Serialize, s_logKind, kind, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -133,6 +139,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                         SerializeSourceText(storage: null, text: (SourceText)value, writer: writer, cancellationToken: cancellationToken);
                         return;
 
+                    case WellKnownSynchronizationKind.OptionSet:
+                        SerializeOptionSet((SerializableOptionSet)value, writer, cancellationToken);
+                        return;
+
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
                         // serialize it
@@ -143,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, kind.ToString(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -158,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.Projects:
                     case WellKnownSynchronizationKind.Documents:
                     case WellKnownSynchronizationKind.TextDocuments:
+                    case WellKnownSynchronizationKind.AnalyzerConfigDocuments:
                     case WellKnownSynchronizationKind.ProjectReferences:
                     case WellKnownSynchronizationKind.MetadataReferences:
                     case WellKnownSynchronizationKind.AnalyzerReferences:
@@ -191,9 +202,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)
-        {
-            return _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<IOptionsSerializationService>());
-        }
+            => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<IOptionsSerializationService>());
     }
 
     // TODO: convert this to sub class rather than using enum with if statement.

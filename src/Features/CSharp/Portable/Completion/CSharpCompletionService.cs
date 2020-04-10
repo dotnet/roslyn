@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -15,59 +16,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
     internal class CSharpCompletionServiceFactory : ILanguageServiceFactory
     {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpCompletionServiceFactory()
         {
-            return new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
         }
+
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            => new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
     }
 
     internal class CSharpCompletionService : CommonCompletionService
     {
-        private readonly ImmutableArray<CompletionProvider> _defaultCompletionProviders =
-            ImmutableArray.Create<CompletionProvider>(
-                new AttributeNamedParameterCompletionProvider(),
-                new NamedParameterCompletionProvider(),
-                new KeywordCompletionProvider(),
-                new SymbolCompletionProvider(),
-                new ExplicitInterfaceMemberCompletionProvider(),
-                new ExplicitInterfaceTypeCompletionProvider(),
-                new ObjectCreationCompletionProvider(),
-                new ObjectInitializerCompletionProvider(),
-                new SpeculativeTCompletionProvider(),
-                new CSharpSuggestionModeCompletionProvider(),
-                new EnumAndCompletionListTagCompletionProvider(),
-                new CrefCompletionProvider(),
-                new SnippetCompletionProvider(),
-                new ExternAliasCompletionProvider(),
-                new OverrideCompletionProvider(),
-                new PartialMethodCompletionProvider(),
-                new PartialTypeCompletionProvider(),
-                new XmlDocCommentCompletionProvider(),
-                new TupleNameCompletionProvider(),
-                new DeclarationNameCompletionProvider(),
-                new InternalsVisibleToCompletionProvider()
-            );
-
         private readonly Workspace _workspace;
 
-        public CSharpCompletionService(
-            Workspace workspace, ImmutableArray<CompletionProvider>? exclusiveProviders = null)
-            : base(workspace, exclusiveProviders)
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        public CSharpCompletionService(Workspace workspace)
+            : base(workspace)
         {
             _workspace = workspace;
         }
 
         public override string Language => LanguageNames.CSharp;
 
-        protected override ImmutableArray<CompletionProvider> GetBuiltInProviders()
-        {
-            return _defaultCompletionProviders;
-        }
-
         public override TextSpan GetDefaultCompletionListSpan(SourceText text, int caretPosition)
-        {
-            return CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
-        }
+            => CompletionUtilities.GetCompletionItemSpan(text, caretPosition);
 
         private CompletionRules _latestRules = CompletionRules.Default;
 

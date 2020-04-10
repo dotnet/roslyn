@@ -1,7 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionProvider CreateCompletionProvider() => new TupleNameCompletionProvider();
+        internal override Type GetCompletionProviderType() => typeof(TupleNameCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task AfterOpenParen()
@@ -28,7 +30,7 @@ class Program
     {
         (int word, int zword) t = ($$
     }
-}", "word:");
+}", "word", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -41,7 +43,7 @@ class Program
     {
         (int word, int zword) t = ($$)
     }
-}", "word:");
+}", "word", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -54,7 +56,7 @@ class Program
     {
         (int word, int zword) t = ($$, zword: 2
     }
-}", "word:");
+}", "word", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -67,7 +69,7 @@ class Program
     {
         (int word, int zword) t = ($$, zword: 2
     }
-}", "word:");
+}", "word", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -80,7 +82,7 @@ class Program
     {
         (int word, int zword) t = (1, $$
     }
-}", "zword:");
+}", "zword", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -93,7 +95,7 @@ class Program
     {
         (int word, int zword) t = (1, $$)
     }
-}", "zword:");
+}", "zword", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -106,7 +108,7 @@ class Program
     {
          Main(($$))
     }
-}", "word:");
+}", "word", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -120,8 +122,8 @@ class Program
         Main(($$
     }
 }";
-            await VerifyItemExistsAsync(markup, "word:");
-            await VerifyItemExistsAsync(markup, "number:");
+            await VerifyItemExistsAsync(markup, "word", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "number", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -135,8 +137,8 @@ class Program
         Main((1, $$
     }
 }";
-            await VerifyItemExistsAsync(markup, "zword:");
-            await VerifyItemExistsAsync(markup, "znumber:");
+            await VerifyItemExistsAsync(markup, "zword", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "znumber", displayTextSuffix: ":");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -164,7 +166,7 @@ class C
         (int goat, int moat) x = (g$$)1;
     }
 }";
-            await VerifyItemExistsAsync(markup, "goat:");
+            await VerifyItemExistsAsync(markup, "goat", displayTextSuffix: ":");
         }
     }
 }

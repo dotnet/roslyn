@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -84,7 +86,7 @@ End Class
             Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
-                syntaxTrees:={VisualBasicSyntaxTree.ParseText(My.Resources.Resource.OverloadResolutionTestSource),
+                syntaxTrees:={VisualBasicSyntaxTree.ParseText(SemanticResourceUtil.OverloadResolutionTestSource),
                               optionStrictOnTree,
                               optionStrictOffTree},
                 references:={MscorlibRef, SystemCoreRef})
@@ -3061,7 +3063,7 @@ End Class
             Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
-                syntaxTrees:={Parse(My.Resources.Resource.OverloadResolutionTestSource), optionStrictOffTree},
+                syntaxTrees:={Parse(SemanticResourceUtil.OverloadResolutionTestSource), optionStrictOffTree},
                 references:={TestReferences.NetFx.v4_0_21006.mscorlib},
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
@@ -4958,7 +4960,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
 
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp.EmitToImageReference()})
             CompilationUtils.AssertTheseDiagnostics(comp2,

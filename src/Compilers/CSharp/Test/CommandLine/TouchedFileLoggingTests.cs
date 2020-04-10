@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,10 +17,9 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    public class TouchedFileLoggingTests : CSharpTestBase
+    public class TouchedFileLoggingTests : CommandLineTestBase
     {
         private static readonly string s_libDirectory = Environment.GetEnvironmentVariable("LIB");
-        private readonly string _baseDirectory = TempRoot.Root;
         private const string helloWorldCS = @"using System;
 
 class C
@@ -36,7 +37,7 @@ class C
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
+            var cmd = CreateCSharpCompiler(new[] { "/nologo", hello,
                string.Format(@"/touchedfiles:""{0}""", touchedBase) });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -77,7 +78,7 @@ class C
             var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, _baseDirectory,
+            var cmd = CreateCSharpCompiler(
                 new[] { "/nologo",
                         "/r:" + silverlight,
                         "/r:" + net4_0dll,
@@ -112,7 +113,7 @@ class C
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            var cmd = new MockCSharpCompiler(null, _baseDirectory,
+            var cmd = CreateCSharpCompiler(
                 new[] { "/nologo",
                         "/touchedfiles:" + touchedBase,
                         "/keyfile:" + snkPath,
@@ -150,7 +151,7 @@ public class C { }").Path;
             var touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
-            var cmd = new MockCSharpCompiler(null, _baseDirectory, new[]
+            var cmd = CreateCSharpCompiler(new[]
             {
                 "/nologo",
                 "/target:library",
@@ -235,19 +236,6 @@ public class C { }").Path;
             expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedWritesPath).Trim());
-        }
-
-        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            public void AddDependencyLocation(string fullPath)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

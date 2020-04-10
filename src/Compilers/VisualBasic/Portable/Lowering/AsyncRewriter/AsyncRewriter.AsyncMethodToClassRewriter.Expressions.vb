@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -35,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim spillSeq = DirectCast(valueOpt, BoundSpillSequence)
-                Debug.Assert(rewrittenType = spillSeq.Type)
+                Debug.Assert(TypeSymbol.Equals(rewrittenType, spillSeq.Type, TypeCompareKind.ConsiderEverything))
 
                 Return node.Update(
                     node.Locals.Concat(spillSeq.Locals),
@@ -106,6 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      rewritten.MethodGroupOpt,
                                                                      result.ReceiverOpt,
                                                                      result.Arguments,
+                                                                     rewritten.DefaultArguments,
                                                                      rewritten.ConstantValueOpt,
                                                                      isLValue:=rewritten.IsLValue,
                                                                      suppressObjectClone:=rewritten.SuppressObjectClone,
@@ -127,6 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return builder.BuildSequenceAndFree(Me.F,
                                                     rewritten.Update(rewritten.ConstructorOpt,
                                                                      arguments,
+                                                                     rewritten.DefaultArguments,
                                                                      rewritten.InitializerOpt,
                                                                      rewritten.Type))
             End Function
@@ -162,7 +166,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim builder As New SpillBuilder()
-                If rewritten.OperatorKind = BinaryOperatorKind.AndAlso OrElse rewritten.OperatorKind = BinaryOperatorKind.OrElse Then
+                Dim operatorKind As BinaryOperatorKind = rewritten.OperatorKind And BinaryOperatorKind.OpMask
+                Debug.Assert(operatorKind = (rewritten.OperatorKind And Not (BinaryOperatorKind.IsOperandOfConditionalBranch Or BinaryOperatorKind.OptimizableForConditionalBranch)))
+                If operatorKind = BinaryOperatorKind.AndAlso OrElse operatorKind = BinaryOperatorKind.OrElse Then
                     ' NOTE: Short circuit operators need to evaluate the right optionally
                     Dim spilledLeft = SpillValue(left, builder)
 
@@ -170,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.AddLocal(tempLocal)
 
                     builder.AddStatement(
-                        If(rewritten.OperatorKind = BinaryOperatorKind.AndAlso,
+                        If(operatorKind = BinaryOperatorKind.AndAlso,
                            Me.F.If(condition:=spilledLeft,
                                    thenClause:=MakeAssignmentStatement(right, tempLocal, builder),
                                    elseClause:=MakeAssignmentStatement(Me.F.Literal(False), tempLocal)),

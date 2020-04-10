@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
@@ -47,14 +52,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 }
             }
 
-            private NodeIteration[] _stack;
+            private NodeIteration[]? _stack;
             private int _count;
 
             public DiagnosticInfo Current { get; private set; }
 
-            internal Enumerator(GreenNode node) 
+            internal Enumerator(GreenNode node)
             {
-                Current = null;
+                Current = null!;
                 _stack = null;
                 _count = 0;
                 if (node != null && node.ContainsDiagnostics)
@@ -68,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
                 while (_count > 0)
                 {
-                    var diagIndex = _stack[_count - 1].DiagnosticIndex;
+                    var diagIndex = _stack![_count - 1].DiagnosticIndex;
                     var node = _stack[_count - 1].Node;
                     var diags = node.GetDiagnostics();
                     if (diagIndex < diags.Length - 1)
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                     }
 
                     var slotIndex = _stack[_count - 1].SlotIndex;
-                tryAgain:
+tryAgain:
                     if (slotIndex < node.SlotCount - 1)
                     {
                         slotIndex++;
@@ -132,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             private void Push(GreenNode node)
             {
+                RoslynDebug.Assert(_stack is object);
                 if (_count >= _stack.Length)
                 {
                     var tmp = new NodeIteration[_stack.Length * 2];

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -32,11 +34,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static IUIAutomationElement FindDialogByAutomationId(IntPtr visualStudioHWnd, string dialogAutomationId, bool isOpen, bool wait = true)
         {
-            return Retry(
-                _ => FindDialogWorker(visualStudioHWnd, dialogAutomationId),
-                stoppingCondition: (automationElement, _) => !wait || (isOpen ? automationElement != null : automationElement == null),
-                delay: TimeSpan.FromMilliseconds(250),
-                CancellationToken.None);
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                return Retry(
+                    _ => FindDialogWorker(visualStudioHWnd, dialogAutomationId),
+                    stoppingCondition: (automationElement, _) => !wait || (isOpen ? automationElement != null : automationElement == null),
+                    delay: TimeSpan.FromMilliseconds(250),
+                    cancellationTokenSource.Token);
+            }
         }
 
         /// <summary>
@@ -124,7 +129,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void PressButtonWithNameFromDialogWithName(IntPtr visualStudioHWnd, string dialogName, string buttonName)
         {
-            var dialogAutomationElement = FindDialogByName(visualStudioHWnd, dialogName, isOpen: true, CancellationToken.None);
+            IUIAutomationElement dialogAutomationElement;
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                dialogAutomationElement = FindDialogByName(visualStudioHWnd, dialogName, isOpen: true, cancellationTokenSource.Token);
+            }
 
             var buttonAutomationElement = dialogAutomationElement.FindDescendantByName(buttonName);
             buttonAutomationElement.Invoke();
@@ -137,8 +146,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             => FindDialogByPropertyWorker(visualStudioHWnd, dialogName, AutomationElementIdentifiers.NameProperty);
 
         private static IUIAutomationElement FindDialogByPropertyWorker(
-            IntPtr visualStudioHWnd, 
-            string propertyValue, 
+            IntPtr visualStudioHWnd,
+            string propertyValue,
             AutomationProperty nameProperty)
         {
             var vsAutomationElement = Helper.Automation.ElementFromHandle(visualStudioHWnd);
@@ -156,7 +165,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private static T Retry<T>(Func<CancellationToken, T> action, Func<T, CancellationToken, bool> stoppingCondition, TimeSpan delay, CancellationToken cancellationToken)
         {
             DateTime beginTime = DateTime.UtcNow;
-            T retval = default(T);
+            T retval = default;
 
             do
             {

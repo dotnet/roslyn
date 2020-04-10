@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -545,7 +547,7 @@ End Class
             Dim vbx = <text>
 System.Console.WriteLine(1)
 </text>
-            Dim compilation = CreateCompilationWithMscorlib40(
+            Dim compilation = CreateEmptyCompilation(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -564,7 +566,7 @@ Public Class C
   End Sub
 End Class
 </text>
-            Dim compilation = CreateCompilationWithMscorlib40(
+            Dim compilation = CreateEmptyCompilation(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
                  VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 
@@ -591,7 +593,7 @@ Public Class D
     End Sub
 End Class
 </text>
-            Dim compilation = CreateCompilationWithMscorlib40(
+            Dim compilation = CreateEmptyCompilation(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
                  VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe, references:=LatestVbReferences)
 

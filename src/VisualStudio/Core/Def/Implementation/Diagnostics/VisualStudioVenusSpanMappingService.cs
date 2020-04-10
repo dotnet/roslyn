@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -19,10 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly VisualStudioWorkspaceImpl _workspace;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioVenusSpanMappingService(VisualStudioWorkspaceImpl workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public void GetAdjustedDiagnosticSpan(
             DocumentId documentId, Location location,
@@ -129,15 +130,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return new LinePositionSpan(position2, position1);
         }
 
-        private static LinePosition Max(LinePosition position1, LinePosition position2)
+        public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
-            return position1 > position2 ? position1 : position2;
-        }
-
-        public static LinePosition GetAdjustedLineColumn(Microsoft.CodeAnalysis.Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
-        {
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
+            if (!(workspace is VisualStudioWorkspaceImpl vsWorkspace))
             {
                 return new LinePosition(mappedLine, mappedColumn);
             }
@@ -159,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return false;
             }
 
-            var containedDocument = workspace.GetHostDocument(documentId) as ContainedDocument;
+            var containedDocument = workspace.TryGetContainedDocument(documentId);
             if (containedDocument == null)
             {
                 return false;
@@ -173,9 +168,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 iEndIndex = originalColumn
             };
 
-            var containedLanguage = containedDocument.ContainedLanguage;
-            var bufferCoordinator = containedLanguage.BufferCoordinator;
-            var containedLanguageHost = containedLanguage.ContainedLanguageHost;
+            var bufferCoordinator = containedDocument.BufferCoordinator;
+            var containedLanguageHost = containedDocument.ContainedLanguageHost;
 
             var spansOnPrimaryBuffer = new TextManager.Interop.TextSpan[1];
             if (VSConstants.S_OK == bufferCoordinator.MapSecondaryToPrimarySpan(originalSpanOnSecondaryBuffer, spansOnPrimaryBuffer))

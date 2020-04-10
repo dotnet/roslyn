@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -737,7 +739,7 @@ End Class
 Public Class DD
 End Class
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim sourceMod = DirectCast(compilation.SourceModule, SourceModuleSymbol)
@@ -1149,7 +1151,7 @@ End Class
 Class HT
 End Class
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim expectedErrors = <errors>
 BC31403: Error in project-level import 'HT=System.Collections.HashTable' at 'HT=System.Collections.HashTable' : Imports alias 'HT' conflicts with 'HT' declared in the root namespace.
@@ -1197,7 +1199,7 @@ Namespace Global
     End Namespace
 End Namespace
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim globalNS = compilation.GlobalNamespace
 
@@ -1285,7 +1287,7 @@ Namespace Global.C
     End Class
 End Namespace
     </file>
-</compilation>, options)
+</compilation>, options:=options)
 
             Dim globalNS = compilation.GlobalNamespace
 

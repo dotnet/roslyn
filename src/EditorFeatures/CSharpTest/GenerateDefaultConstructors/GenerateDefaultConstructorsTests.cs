@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -936,9 +938,10 @@ abstract class B
 }");
         }
 
+        [WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")]
         [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        public async Task TestGenerateConstructorFromPublicConstructor()
+        public async Task TestGenerateConstructorInAbstractClassFromPublicConstructor()
         {
             await TestInRegularAndScriptAsync(
 @"abstract class C : [||]B
@@ -953,7 +956,7 @@ abstract class B
 }",
 @"abstract class C : B
 {
-    public C(int x) : base(x)
+    protected C(int x) : base(x)
     {
     }
 }
@@ -1171,6 +1174,96 @@ abstract class B
 abstract class B
 {
     private protected internal B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGeneratePublicConstructorInSealedClassForProtectedBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    protected Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    protected Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    public Program()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateInternalConstructorInSealedClassForProtectedOrInternalBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    protected internal Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    protected internal Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    internal Program()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateInternalConstructorInSealedClassForProtectedAndInternalBase()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    private protected Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    private protected Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    internal Program()
     {
     }
 }");

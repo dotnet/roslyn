@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 extern alias csc;
 extern alias vbc;
@@ -12,10 +14,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    internal struct ServerStats
+    internal readonly struct ServerStats
     {
         internal readonly int Connections;
         internal readonly int CompletedConnections;
@@ -31,15 +34,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         internal CancellationTokenSource CancellationTokenSource { get; }
         internal Task<ServerStats> ServerTask { get; }
+        internal BlockingCollection<CompletionReason> ConnectionCompletionCollection { get; }
         internal Task ListenTask { get; }
         internal string PipeName { get; }
 
-        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, Task<ServerStats> serverTask, Task listenTask)
+        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, Task<ServerStats> serverTask, Task listenTask, BlockingCollection<CompletionReason> connectionCompletionCollection)
         {
             CancellationTokenSource = cancellationTokenSource;
             PipeName = pipeName;
             ServerTask = serverTask;
             ListenTask = listenTask;
+            ConnectionCompletionCollection = connectionCompletionCollection;
         }
 
         internal async Task<ServerStats> Complete()
@@ -68,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
     internal static class ServerUtil
     {
-        internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(DesktopBuildClientTests).Assembly.Location);
+        internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(BuildClientTests).Assembly.Location);
         internal static string DefaultSdkDirectory { get; } = BuildClient.GetSystemSdkDirectory();
 
         internal static BuildPaths CreateBuildPaths(string workingDir, string tempDir)
@@ -80,14 +85,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 tempDir: tempDir);
         }
 
-        internal static ServerData CreateServer(
+        internal static async Task<ServerData> CreateServer(
             string pipeName = null,
             ICompilerServerHost compilerServerHost = null,
-            bool failingServer = false)
+            bool failingServer = false,
+            string tempPath = null)
         {
-            pipeName = pipeName ?? Guid.NewGuid().ToString();
-            compilerServerHost = compilerServerHost ?? DesktopBuildServerController.CreateCompilerServerHost();
-            var clientConnectionHost = DesktopBuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
+            // The total pipe path must be < 92 characters on Unix, so trim this down to 10 chars
+            pipeName = pipeName ?? Guid.NewGuid().ToString().Substring(0, 10);
+            compilerServerHost = compilerServerHost ?? BuildServerController.CreateCompilerServerHost();
+            tempPath = tempPath ?? Path.GetTempPath();
+            var clientConnectionHost = BuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
 
             if (failingServer)
             {
@@ -98,14 +106,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            var thread = new Thread(_ =>
+            var listener = new TestableDiagnosticListener();
+            var task = Task.Run(() =>
             {
-                var listener = new TestableDiagnosticListener();
                 listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
                 try
                 {
-                    DesktopBuildServerController.RunServer(
+                    BuildServerController.CreateAndRunServer(
                         pipeName,
+                        tempPath,
                         clientConnectionHost,
                         listener,
                         keepAlive: TimeSpan.FromMilliseconds(-1),
@@ -118,22 +127,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             });
 
-            thread.Start();
-
             // The contract of this function is that it will return once the server has started.  Spin here until
             // we can verify the server has started or simply failed to start.
-            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && thread.IsAlive)
+            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && !task.IsCompleted)
             {
-                Thread.Yield();
+                await Task.Yield();
             }
 
-            return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task);
+            if (task.IsFaulted)
+            {
+                throw task.Exception;
+            }
+
+            return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task, listener.ConnectionCompletedCollection);
         }
 
         /// <summary>
         /// Create a compiler server that fails all connections.
         /// </summary>
-        internal static ServerData CreateServerFailsConnection(string pipeName = null)
+        internal static Task<ServerData> CreateServerFailsConnection(string pipeName = null)
         {
             return CreateServer(pipeName, failingServer: true);
         }
@@ -153,16 +165,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             return ((ShutdownBuildResponse)response).ServerProcessId;
         }
 
-        internal static DesktopBuildClient CreateBuildClient(
+        internal static BuildClient CreateBuildClient(
             RequestLanguage language,
             CompileFunc compileFunc = null,
             TextWriter textWriter = null,
-            IAnalyzerAssemblyLoader analyzerAssemblyLoader = null)
+            int? timeoutOverride = null)
         {
             compileFunc = compileFunc ?? GetCompileFunc(language);
             textWriter = textWriter ?? new StringWriter();
-            analyzerAssemblyLoader = analyzerAssemblyLoader ?? new Mock<IAnalyzerAssemblyLoader>(MockBehavior.Strict).Object;
-            return new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
+            return new BuildClient(language, compileFunc, timeoutOverride: timeoutOverride);
         }
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)

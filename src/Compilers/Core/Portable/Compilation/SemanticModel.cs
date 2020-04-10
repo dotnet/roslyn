@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -70,7 +76,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="node">The expression or statement syntax node.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns></returns>
-        public IOperation GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
+        public IOperation? GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
@@ -86,13 +92,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Deep Clone given IOperation
-        /// </summary>
-        internal T CloneOperation<T>(T operation) where T : IOperation => (T)CloneOperationCore(operation);
-
-        internal abstract IOperation CloneOperationCore(IOperation operation);
 
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
@@ -283,6 +282,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// If this is a non-speculative member semantic model, then returns the containing semantic model for the entire tree.
+        /// Otherwise, returns this instance of the semantic model.
+        /// </summary>
+        internal abstract SemanticModel ContainingModelOrSelf
+        {
+            get;
+        }
+
+        /// <summary>
         /// Binds the name in the context of the specified location and sees if it resolves to an
         /// alias name. If it does, return the AliasSymbol corresponding to it. Otherwise, return null.
         /// </summary>
@@ -453,8 +461,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<ISymbol> LookupSymbols(
             int position,
-            INamespaceOrTypeSymbol container = null,
-            string name = null,
+            INamespaceOrTypeSymbol? container = null,
+            string? name = null,
             bool includeReducedExtensionMethods = false)
         {
             return LookupSymbolsCore(position, container, name, includeReducedExtensionMethods);
@@ -465,8 +473,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract ImmutableArray<ISymbol> LookupSymbolsCore(
             int position,
-            INamespaceOrTypeSymbol container,
-            string name,
+            INamespaceOrTypeSymbol? container,
+            string? name,
             bool includeReducedExtensionMethods);
 
         /// <summary>
@@ -506,7 +514,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<ISymbol> LookupBaseMembers(
             int position,
-            string name = null)
+            string? name = null)
         {
             return LookupBaseMembersCore(position, name);
         }
@@ -516,7 +524,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract ImmutableArray<ISymbol> LookupBaseMembersCore(
             int position,
-            string name);
+            string? name);
 
         /// <summary>
         /// Gets the available named static member symbols in the context of the specified location and optional container.
@@ -540,8 +548,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<ISymbol> LookupStaticMembers(
             int position,
-            INamespaceOrTypeSymbol container = null,
-            string name = null)
+            INamespaceOrTypeSymbol? container = null,
+            string? name = null)
         {
             return LookupStaticMembersCore(position, container, name);
         }
@@ -551,8 +559,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract ImmutableArray<ISymbol> LookupStaticMembersCore(
             int position,
-            INamespaceOrTypeSymbol container,
-            string name);
+            INamespaceOrTypeSymbol? container,
+            string? name);
 
         /// <summary>
         /// Gets the available named namespace and type symbols in the context of the specified location and optional container.
@@ -574,8 +582,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<ISymbol> LookupNamespacesAndTypes(
             int position,
-            INamespaceOrTypeSymbol container = null,
-            string name = null)
+            INamespaceOrTypeSymbol? container = null,
+            string? name = null)
         {
             return LookupNamespacesAndTypesCore(position, container, name);
         }
@@ -585,8 +593,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract ImmutableArray<ISymbol> LookupNamespacesAndTypesCore(
             int position,
-            INamespaceOrTypeSymbol container,
-            string name);
+            INamespaceOrTypeSymbol? container,
+            string? name);
 
         /// <summary>
         /// Gets the available named label symbols in the context of the specified location and optional container.
@@ -604,7 +612,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<ISymbol> LookupLabels(
             int position,
-            string name = null)
+            string? name = null)
         {
             return LookupLabelsCore(position, name);
         }
@@ -614,7 +622,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract ImmutableArray<ISymbol> LookupLabelsCore(
             int position,
-            string name);
+            string? name);
 
         /// <summary>
         /// Analyze control-flow within a part of a method body.
@@ -884,5 +892,11 @@ namespace Microsoft.CodeAnalysis
         /// Root of this semantic model
         /// </summary>
         protected abstract SyntaxNode RootCore { get; }
+
+        /// <summary>
+        /// Gets the <see cref="NullableContext"/> at a position in the file.
+        /// </summary>
+        /// <param name="position">The position to get the context for.</param>
+        public abstract NullableContext GetNullableContext(int position);
     }
 }

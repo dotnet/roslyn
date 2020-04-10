@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -6,6 +8,7 @@ Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
 Imports Microsoft.VisualStudio.Text.PatternMatching
 
+#Disable Warning BC40000 ' MatchKind is obsolete
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
     Public Class NavigateToTests
         Inherits AbstractNavigateToTests
@@ -738,7 +741,7 @@ Public Class Goo
 End Class
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, createTrackingService:=Nothing)
 
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
                 Dim itemDisplay As INavigateToItemDisplay = item.DisplayFactory.CreateItemDisplay(item)
@@ -758,3 +761,4 @@ End Class
         End Function
     End Class
 End Namespace
+#Enable Warning BC40000 ' MatchKind is obsolete

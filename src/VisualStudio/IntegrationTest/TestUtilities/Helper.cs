@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -63,7 +65,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <param name="delay">the amount of time to wait between retries</param>
         /// <typeparam name="T">type of return value</typeparam>
         /// <returns>the return value of 'action'</returns>
-        public static T Retry<T>(Func<T> action, TimeSpan delay)
+        public static T Retry<T>(Func<T> action, TimeSpan delay, int retryCount = -1)
         {
             return RetryHelper(() =>
                 {
@@ -74,10 +76,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     catch (COMException)
                     {
                         // Devenv can throw COMExceptions if it's busy when we make DTE calls.
-                        return default(T);
+                        return default;
                     }
                 },
-                delay);
+                delay,
+                retryCount);
         }
 
         /// <summary>
@@ -115,7 +118,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <param name="delay">the amount of time to wait between retries in milliseconds</param>
         /// <typeparam name="T">type of return value</typeparam>
         /// <returns>the return value of 'action'</returns>
-        public static T RetryIgnoringExceptions<T>(Func<T> action, TimeSpan delay)
+        public static T RetryIgnoringExceptions<T>(Func<T> action, TimeSpan delay, int retryCount = -1)
         {
             return RetryHelper(() =>
                 {
@@ -125,17 +128,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     }
                     catch (Exception)
                     {
-                        return default(T);
+                        return default;
                     }
                 },
-                delay);
+                delay,
+                retryCount);
         }
 
-        private static T RetryHelper<T>(Func<T> action, TimeSpan delay)
+        private static T RetryHelper<T>(Func<T> action, TimeSpan delay, int retryCount)
         {
-            while (true)
+            for (var i = 0; true; i++)
             {
                 var retval = action();
+                if (i == retryCount)
+                {
+                    return retval;
+                }
 
                 if (!Equals(default(T), retval))
                 {

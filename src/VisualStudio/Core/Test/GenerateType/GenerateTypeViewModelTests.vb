@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading
@@ -195,7 +197,7 @@ namespace A
 
             ' Only 2 Projects can be selected because CS2 and CS3 will introduce cyclic dependency
             Assert.Equal(2, viewModel.ProjectList.Count)
-            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count)
+            Assert.Equal(2, viewModel.DocumentList.Count())
 
             viewModel.DocumentSelectIndex = 1
 
@@ -205,7 +207,7 @@ namespace A
 
             ' Check to see if the values are reset when there is a change in the project selection
             viewModel.SelectedProject = projectToSelect
-            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count())
+            Assert.Equal(2, viewModel.DocumentList.Count())
             Assert.Equal(0, viewModel.DocumentSelectIndex)
             Assert.Equal(1, viewModel.ProjectSelectIndex)
 
@@ -247,7 +249,7 @@ namespace A
 
 
             ' Check if the option for Existing File is disabled
-            Assert.Equal(0, viewModel.GetDocumentList(CancellationToken.None).Count())
+            Assert.Equal(0, viewModel.DocumentList.Count())
             Assert.Equal(False, viewModel.IsExistingFileEnabled)
 
             ' Select the project CS1 which has documents
@@ -255,7 +257,7 @@ namespace A
             viewModel.SelectedProject = projectToSelect
 
             ' Check if the option for Existing File is enabled
-            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count())
+            Assert.Equal(2, viewModel.DocumentList.Count())
             Assert.Equal(True, viewModel.IsExistingFileEnabled)
         End Function
 
@@ -585,7 +587,7 @@ class Program
             Dim viewModel = Await GetViewModelAsync(workspaceXml, LanguageNames.CSharp)
 
             Dim expectedDocuments = {"Test1.cs", "Test2.cs", "AssemblyInfo.cs", "Test3.cs"}
-            Assert.Equal(expectedDocuments, viewModel.GetDocumentList(CancellationToken.None).Select(Function(d) d.Document.Name).ToArray())
+            Assert.Equal(expectedDocuments, viewModel.DocumentList.Select(Function(d) d.Document.Name).ToArray())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -856,7 +858,7 @@ namespace A
                 Dim document = workspace.CurrentSolution.GetDocument(testDoc.Id)
 
                 Dim tree = Await document.GetSyntaxTreeAsync()
-                Dim token = Await tree.GetTouchingWordAsync(testDoc.CursorPosition.Value, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim token = Await tree.GetTouchingWordAsync(testDoc.CursorPosition.Value, document.GetLanguageService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim typeName = token.ToString()
 
                 Dim testProjectManagementService As IProjectManagementService = Nothing
@@ -865,7 +867,7 @@ namespace A
                     testProjectManagementService = New TestProjectManagementService(projectFolders)
                 End If
 
-                Dim syntaxFactsService = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+                Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)()
 
                 Return New GenerateTypeDialogViewModel(
                     document,

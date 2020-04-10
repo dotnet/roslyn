@@ -1,17 +1,20 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions) As Task(Of ImmutableArray(Of ClassifiedSpan))
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+        Protected Overrides Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, outOfProcess As Boolean) As Task(Of ImmutableArray(Of ClassifiedSpan))
+            Using workspace = CreateWorkspace(code, outOfProcess)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
                 Return GetSemanticClassificationsAsync(document, span)
@@ -30,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestImportsType() As Task
             Await TestAsync("Imports System.Console",
+            [Namespace]("System"),
             [Class]("Console"))
         End Function
 
@@ -37,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Public Async Function TestImportsAlias() As Task
             Await TestAsync("Imports M = System.Math",
                 [Class]("M"),
+                [Namespace]("System"),
                 [Class]("Math"))
         End Function
 
@@ -51,8 +56,10 @@ Module Program
 End Module"
 
             Await TestAsync(code,
+                [Namespace]("System"),
                 [Class]("Console"),
-                Method("WriteLine"))
+                Method("WriteLine"),
+                [Static]("WriteLine"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -110,6 +117,7 @@ End Class"
 
             Await TestAsync(code,
                 [Class]("S"),
+                [Namespace]("System"),
                 [Class]("String"),
                 [Class]("S"))
         End Function
@@ -125,6 +133,7 @@ End Class"
 
             Await TestAsync(code,
                 [Interface]("D"),
+                [Namespace]("System"),
                 [Interface]("IDisposable"),
                 [Interface]("D"))
         End Function
@@ -211,6 +220,7 @@ End Class"
 
             Await TestAsync(code,
                 [Class]("E"),
+                [Namespace]("System"),
                 [Class]("Exception"),
                 [Class]("E"))
         End Function
@@ -278,14 +288,17 @@ q = From"
         <Fact, WorkItem(10507, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestArraysInGetType() As Task
             Await TestInMethodAsync("GetType(System.Exception()",
+                [Namespace]("System"),
                 [Class]("Exception"))
             Await TestInMethodAsync("GetType(System.Exception(,)",
+                [Namespace]("System"),
                 [Class]("Exception"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestNewOfInterface() As Task
             Await TestInMethodAsync("Dim a = New System.IDisposable()",
+                [Namespace]("System"),
                 [Interface]("IDisposable"))
         End Function
 
@@ -514,7 +527,8 @@ sub test()
     dim m = Await
 end sub"
 
-            Await TestInClassAsync(code)
+            Await TestInClassAsync(code,
+                Method("Await"))
         End Function
 
         <WorkItem(21524, "https://github.com/dotnet/roslyn/issues/21524")>
@@ -528,7 +542,48 @@ Class Program
 End Class"
 
             Await TestAsync(code,
-                [Class]("AttributeUsage"))
+                [Namespace]("System"), [Class]("AttributeUsage"))
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestRegex1() As Task
+            Await TestAsync(
+"
+imports System.Text.RegularExpressions
+
+class Program
+    sub Goo()
+        ' language=regex
+        var r = ""$(\b\G\z)|(?<name>sub){0,5}?^""
+    end sub
+end class",
+[Namespace]("System"),
+[Namespace]("Text"),
+[Namespace]("RegularExpressions"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -538,7 +593,8 @@ End Class"
 Dim x As Integer = Number"
 
             Await TestInClassAsync(code,
-                Constant("Number"))
+                Constant("Number"),
+                [Static]("Number"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -568,7 +624,8 @@ x$ = ""19"""
 Dim y$ = x$"
 
             Await TestInClassAsync(code,
-                Constant("x$"))
+                Constant("x$"),
+                [Static]("x$"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -603,6 +660,9 @@ Class C
 End Class"
 
             Await TestAsync(code,
+                [Namespace]("System"),
+                [Namespace]("Runtime"),
+                [Namespace]("CompilerServices"),
                 [Class]("Extension"),
                 ExtensionMethod("Square"),
                 Parameter("x"),
@@ -612,6 +672,7 @@ End Class"
                 ExtensionMethod("Square"),
                 [Module]("M"),
                 Method("Square"),
+                [Static]("Square"),
                 Local("x"))
         End Function
 
@@ -641,5 +702,129 @@ End Operator"
             Await TestInClassAsync(code)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape1() As Task
+            Await TestInMethodAsync("dim goo = ""goo""""bar""",
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape2() As Task
+            Await TestInMethodAsync("dim goo = $""goo{{1}}bar""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape3() As Task
+            Await TestInMethodAsync("dim goo = $""goo""""{{1}}""""bar""",
+                Escape(""""""),
+                Escape("{{"),
+                Escape("}}"),
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape4() As Task
+            Await TestInMethodAsync("dim goo = $""goo""""{1}""""bar""",
+                Escape(""""""),
+                Escape(""""""))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestStringEscape5() As Task
+            Await TestInMethodAsync("dim goo = $""{{goo{1}bar}}""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
+
+        <WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestDirectiveStringLiteral() As Task
+            Await TestAsync("#region ""goo""""bar""",
+                Escape(""""""))
+        End Function
+
+        <WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestFormatSpecifierInInterpolation() As Task
+            Await TestInMethodAsync("dim goo = $""goo{{1:0000}}bar""",
+                Escape("{{"),
+                Escape("}}"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestLabelName() As Task
+            Dim code = "
+Sub M()
+E:
+    GoTo E
+End Sub"
+
+            Await TestInClassAsync(code,
+                [Label]("E"))
+        End Function
+
+        <WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestOperatorOverloads_BinaryExpression() As Task
+            Dim code =
+"Class C
+    Public Sub M(a As C)
+        Dim b = 1 + 1
+        Dim c = a + Me
+    End Sub
+
+    Public Shared Operator +(a As C, b As C) As C
+        Return New C
+    End Operator
+End Class"
+
+            Await TestAsync(code,
+                [Class]("C"),
+                Parameter("a"),
+                OverloadedOperators.Plus,
+                [Class]("C"),
+                [Class]("C"),
+                [Class]("C"),
+                [Class]("C"))
+        End Function
+
+        <WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestOperatorOverloads_UnaryExpression() As Task
+            Dim code =
+"Class C
+    Public Sub M()
+        Dim b = -1
+        Dim c = -Me
+    End Sub
+
+    Public Shared Operator -(a As C) As C
+        Return New C
+    End Operator
+End Class"
+
+            Await TestAsync(code,
+                OverloadedOperators.Minus,
+                [Class]("C"),
+                [Class]("C"),
+                [Class]("C"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestCatchStatement() As Task
+            Dim code =
+"Try
+
+Catch ex As Exception
+    Throw ex
+End Try"
+
+            Await TestInMethodAsync(code,
+                Local("ex"),
+                [Class]("Exception"),
+                Local("ex"))
+        End Function
     End Class
 End Namespace

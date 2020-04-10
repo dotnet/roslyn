@@ -1,24 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Composition;
-using System.Globalization;
-using System.Text;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     [ExportWorkspaceServiceFactory(typeof(ICompletionHelperService)), Shared]
     internal class CompletionHelperServiceFactory : IWorkspaceServiceFactory
     {
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CompletionHelperServiceFactory()
         {
-            return new Service(workspaceServices.Workspace);
         }
+
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            => new Service(workspaceServices.Workspace);
 
         private class Service : ICompletionHelperService, IWorkspaceService
         {
@@ -28,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion
             private CompletionHelper _caseInsensitiveInstance;
 
             public Service(Workspace workspace)
-            {
-                workspace.WorkspaceChanged += OnWorkspaceChanged;
-            }
+                => workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             public CompletionHelper GetCompletionHelper(Document document)
             {
@@ -46,15 +47,15 @@ namespace Microsoft.CodeAnalysis.Completion
                     var caseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
 
                     return caseSensitive
-                        ? this._caseSensitiveInstance
-                        : this._caseInsensitiveInstance;
+                        ? _caseSensitiveInstance
+                        : _caseInsensitiveInstance;
                 }
             }
 
             private void CreateInstances()
             {
-                this._caseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
-                this._caseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
+                _caseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
+                _caseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
             }
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)

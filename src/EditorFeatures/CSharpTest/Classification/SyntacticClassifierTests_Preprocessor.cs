@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
@@ -773,6 +776,102 @@ aeu";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnable()
+        {
+            var code = @"#nullable enable";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableWithComment()
+        {
+            var code = @"#nullable enable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableWarnings()
+        {
+            var code = @"#nullable enable warnings";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                PPKeyword("warnings"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableWarningsWithComment()
+        {
+            var code = @"#nullable enable warnings //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                PPKeyword("warnings"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableAnnotations()
+        {
+            var code = @"#nullable enable annotations";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                PPKeyword("annotations"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableEnableAnnotationsWithComment()
+        {
+            var code = @"#nullable enable annotations //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("enable"),
+                PPKeyword("annotations"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableDisable()
+        {
+            var code = @"#nullable disable";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("disable"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task PP_NullableDisableWithComment()
+        {
+            var code = @"#nullable disable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("nullable"),
+                PPKeyword("disable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaChecksum1()
         {
             await TestAsync(
@@ -838,6 +937,20 @@ aeu";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        public async Task PP_PragmaWarningDisableAllWithComment()
+        {
+            var code = @"#pragma warning disable //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("pragma"),
+                PPKeyword("warning"),
+                PPKeyword("disable"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task PP_PragmaWarningRestoreOne()
         {
             var code = @"#pragma warning restore 100";
@@ -861,6 +974,20 @@ aeu";
                 PPKeyword("warning"),
                 PPKeyword("restore"),
                 Number("100"),
+                Comment("//Goo"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WorkItem(30783, "https://github.com/dotnet/roslyn/issues/30783")]
+        public async Task PP_PragmaWarningRestoreAllWithComment()
+        {
+            var code = @"#pragma warning restore //Goo";
+
+            await TestAsync(code,
+                PPKeyword("#"),
+                PPKeyword("pragma"),
+                PPKeyword("warning"),
+                PPKeyword("restore"),
                 Comment("//Goo"));
         }
 
@@ -934,7 +1061,7 @@ aeu";
             await TestInMethodAsync(
                 code: @"M2(out var _);",
                 expected: Classifications(Identifier("M2"), Punctuation.OpenParen, Keyword("out"), Identifier("var"),
-                    Identifier("_"), Punctuation.CloseParen, Punctuation.Semicolon));
+                    Keyword("_"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 
         [Fact]
@@ -942,8 +1069,8 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"switch (1) { case int _: }",
-                expected: Classifications(Keyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
-                    Punctuation.OpenCurly, Keyword("case"), Keyword("int"), Identifier("_"), Punctuation.Colon, Punctuation.CloseCurly));
+                expected: Classifications(ControlKeyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
+                    Punctuation.OpenCurly, ControlKeyword("case"), Keyword("int"), Keyword("_"), Punctuation.Colon, Punctuation.CloseCurly));
         }
 
         [Fact]
@@ -951,8 +1078,8 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"var (x, _) = (1, 2);",
-                expected: Classifications(Identifier("var"), Punctuation.OpenParen, Identifier("x"), Punctuation.Comma,
-                    Identifier("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen, Number("1"),
+                expected: Classifications(Identifier("var"), Punctuation.OpenParen, Local("x"), Punctuation.Comma,
+                    Keyword("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen, Number("1"),
                     Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 
@@ -961,8 +1088,8 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"(var _, var _) = (1, 2);",
-                expected: Classifications(Punctuation.OpenParen, Identifier("var"), Identifier("_"), Punctuation.Comma,
-                    Identifier("var"), Identifier("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen,
+                expected: Classifications(Punctuation.OpenParen, Identifier("var"), Keyword("_"), Punctuation.Comma,
+                    Identifier("var"), Keyword("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen,
                     Number("1"), Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
         }
 
@@ -995,9 +1122,27 @@ aeu";
         }
 
         [Fact]
+        public async Task UnderscoreInLambda()
+        {
+            await TestInMethodAsync(
+                code: @"x = (_) => 1;",
+                expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.CloseParen,
+                    Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
+        public async Task DiscardInLambda()
+        {
+            await TestInMethodAsync(
+                code: @"x = (_, _) => 1;",
+                expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.Comma, Parameter("_"), Punctuation.CloseParen,
+                    Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
+        }
+
+        [Fact]
         public async Task UnderscoreInAssignment()
         {
-            await TestInMethodAsync(code: @"int _; _ = 1;" ,
+            await TestInMethodAsync(code: @"int _; _ = 1;",
                 expected: Classifications(Keyword("int"), Local("_"), Punctuation.Semicolon, Identifier("_"), Operators.Equals,
                     Number("1"), Punctuation.Semicolon));
         }

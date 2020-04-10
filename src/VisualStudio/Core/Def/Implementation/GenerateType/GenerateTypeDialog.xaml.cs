@@ -1,19 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
@@ -24,12 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
     internal partial class GenerateTypeDialog : DialogWindow
     {
         private readonly GenerateTypeDialogViewModel _viewModel;
-
-        /// <summary>
-        /// For test purposes only. The integration tests need to know when the dialog is up and
-        /// ready for automation.
-        /// </summary>
-        internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
         public string GenerateTypeDialogTitle { get { return ServicesVSResources.Generate_Type; } }
@@ -53,17 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 
             InitializeComponent();
             DataContext = viewModel;
-
-            IsVisibleChanged += GenerateTypeDialog_IsVisibleChanged;
-        }
-
-        private void GenerateTypeDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if ((bool)e.NewValue)
-            {
-                IsVisibleChanged -= GenerateTypeDialog_IsVisibleChanged;
-                TEST_DialogLoaded?.Invoke();
-            }
         }
 
         private void SetCommandBindings()
@@ -105,34 +80,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         }
 
         private void Select_Access_Kind(object sender, RoutedEventArgs e)
-        {
-            accessListComboBox.Focus();
-        }
+            => accessListComboBox.Focus();
 
         private void Select_Type_Kind(object sender, RoutedEventArgs e)
-        {
-            kindListComboBox.Focus();
-        }
+            => kindListComboBox.Focus();
 
         private void Select_Project(object sender, RoutedEventArgs e)
-        {
-            projectListComboBox.Focus();
-        }
+            => projectListComboBox.Focus();
 
         private void Create_New_File(object sender, RoutedEventArgs e)
-        {
-            createNewFileRadioButton.Focus();
-        }
+            => createNewFileRadioButton.Focus();
 
         private void Add_To_Existing_File(object sender, RoutedEventArgs e)
-        {
-            addToExistingFileRadioButton.Focus();
-        }
+            => addToExistingFileRadioButton.Focus();
 
         private void FileNameTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            _viewModel.UpdateFileNameExtension();
-        }
+            => _viewModel.UpdateFileNameExtension();
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
@@ -144,8 +107,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
+            => DialogResult = false;
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
         {
-            DialogResult = false;
+            private readonly GenerateTypeDialog _dialog;
+
+            public TestAccessor(GenerateTypeDialog dialog)
+                => _dialog = dialog;
+
+            public Button OKButton => _dialog.OKButton;
+
+            public Button CancelButton => _dialog.CancelButton;
+
+            public ComboBox AccessListComboBox => _dialog.accessListComboBox;
+
+            public ComboBox KindListComboBox => _dialog.kindListComboBox;
+
+            public TextBox TypeNameTextBox => _dialog.TypeNameTextBox;
+
+            public ComboBox ProjectListComboBox => _dialog.projectListComboBox;
+
+            public RadioButton AddToExistingFileRadioButton => _dialog.addToExistingFileRadioButton;
+
+            public ComboBox AddToExistingFileComboBox => _dialog.AddToExistingFileComboBox;
+
+            public RadioButton CreateNewFileRadioButton => _dialog.createNewFileRadioButton;
+
+            public ComboBox CreateNewFileComboBox => _dialog.CreateNewFileComboBox;
         }
     }
 }

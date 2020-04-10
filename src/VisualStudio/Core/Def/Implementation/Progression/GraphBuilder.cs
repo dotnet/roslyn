@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = new Dictionary<GraphNode, Project>();
         private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = new Dictionary<GraphNode, Document>();
-        private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = new Dictionary<GraphNode, ISymbol>();
+        private readonly Dictionary<GraphNode, SymbolAndProjectId> _nodeToSymbolMap = new Dictionary<GraphNode, SymbolAndProjectId>();
 
         /// <summary>
         /// The input solution. Never null.
@@ -119,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 var symbol = symbolId.Value.Resolve(compilation).Symbol;
                 if (symbol != null)
                 {
-                    _nodeToSymbolMap.Add(inputNode, symbol);
+                    _nodeToSymbolMap.Add(inputNode, new SymbolAndProjectId(symbol, project.Id));
                 }
 
                 var documentId = (DocumentId)inputNode[RoslynGraphProperties.ContextDocumentId];
@@ -158,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public ISymbol GetSymbol(GraphNode node)
+        public SymbolAndProjectId GetSymbolAndProjectId(GraphNode node)
         {
             using (_gate.DisposableWait())
             {
@@ -167,15 +170,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public Task<GraphNode> AddNodeForSymbolAsync(ISymbol symbol, GraphNode relatedNode)
+        public Task<GraphNode> AddNodeAsync(SymbolAndProjectId symbol, GraphNode relatedNode)
         {
             // The lack of a lock here is acceptable, since each of the functions lock, and GetContextProject/GetContextDocument
             // never change for the same input.
-            return AddNodeForSymbolAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
+            return AddNodeAsync(symbol, GetContextProject(relatedNode), GetContextDocument(relatedNode));
         }
 
-        public async Task<GraphNode> AddNodeForSymbolAsync(ISymbol symbol, Project contextProject, Document contextDocument)
+        public async Task<GraphNode> AddNodeAsync(SymbolAndProjectId symbolAndProjectId, Project contextProject, Document contextDocument)
         {
+            var symbol = symbolAndProjectId.Symbol;
+
             // Figure out what the location for this node should be. We'll arbitrarily pick the
             // first one, unless we have a contextDocument to restrict it
             var preferredLocation = symbol.Locations.FirstOrDefault(l => l.SourceTree != null);
@@ -200,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             using (_gate.DisposableWait())
             {
-                GraphNode node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
+                var node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
 
                 node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey();
                 node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
@@ -228,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // we won't double-count.
                 _createdNodes.Add(node);
 
-                _nodeToSymbolMap[node] = symbol;
+                _nodeToSymbolMap[node] = symbolAndProjectId;
                 _nodeToContextProjectMap[node] = contextProject;
                 _nodeToContextDocumentMap[node] = contextDocument;
 
@@ -689,18 +694,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             using (_gate.DisposableWait())
             {
-                using (var graphTransaction = new GraphTransactionScope())
+                using var graphTransaction = new GraphTransactionScope();
+                graph.Merge(this.Graph);
+
+                foreach (var deferredProperty in _deferredPropertySets)
                 {
-                    graph.Merge(this.Graph);
-
-                    foreach (var deferredProperty in _deferredPropertySets)
-                    {
-                        var nodeToSet = graph.Nodes.Get(deferredProperty.Item1.Id);
-                        nodeToSet.SetValue(deferredProperty.Item2, deferredProperty.Item3);
-                    }
-
-                    graphTransaction.Complete();
+                    var nodeToSet = graph.Nodes.Get(deferredProperty.Item1.Id);
+                    nodeToSet.SetValue(deferredProperty.Item2, deferredProperty.Item3);
                 }
+
+                graphTransaction.Complete();
             }
         }
 

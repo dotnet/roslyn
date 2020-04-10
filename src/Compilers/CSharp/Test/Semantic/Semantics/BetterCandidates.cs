@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -299,9 +301,6 @@ class MyDeconstructable
                 // (6,26): error CS0121: The call is ambiguous between the following methods or properties: 'MyDeconstructable.Deconstruct(out int, out int)' and 'MyDeconstructable.Deconstruct(out long, out long)'
                 //         (var a, var b) = o;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "o").WithArguments("MyDeconstructable.Deconstruct(out int, out int)", "MyDeconstructable.Deconstruct(out long, out long)").WithLocation(6, 26),
-                // (6,26): error CS8129: No suitable Deconstruct instance or extension method was found for type 'MyDeconstructable', with 2 out parameters and a void return type.
-                //         (var a, var b) = o;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "o").WithArguments("MyDeconstructable", "2").WithLocation(6, 26),
                 // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'a'.
                 //         (var a, var b) = o;
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "a").WithArguments("a").WithLocation(6, 14),
@@ -1001,7 +1000,7 @@ End Class
         D.P[null] = o;   // C# does not support static indexed properties
     }
 }";
-            CreateCompilationWithoutBetterCandidates(source2, references: new[] { reference1  }, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateCompilationWithoutBetterCandidates(source2, references: new[] { reference1 }, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
                 // (13,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.P[A]'
                 //         o = D.P[null];
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "D.P[null]").WithArguments("C.P[A]").WithLocation(13, 13),

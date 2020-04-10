@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Threading;
@@ -18,11 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public bool FireEvents()
         {
-            var needMoreTime = false;
-
             _codeElementTable.CleanUpDeadObjects();
-            needMoreTime = _codeElementTable.NeedsCleanUp;
 
+            var needMoreTime = _codeElementTable.NeedsCleanUp;
             if (this.IsZombied)
             {
                 // file is removed from the solution. this can happen if a fireevent is enqueued to foreground notification service
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return needMoreTime;
             }
 
-            var projectCodeModel = GetAbstractProject().ProjectCodeModel as ProjectCodeModel;
+            var projectCodeModel = this.State.ProjectCodeModelFactory.GetProjectCodeModel(document.Project.Id);
             if (projectCodeModel == null)
             {
                 return needMoreTime;
@@ -69,6 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             var extensibility = (EnvDTE80.IVsExtensibility2)this.State.ServiceProvider.GetService(typeof(EnvDTE.IVsExtensibility));
+            if (extensibility == null)
+                return false;
 
             foreach (var codeModelEvent in eventQueue)
             {
@@ -212,19 +214,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         private EnvDTE.CodeElement GetParameterElementForCodeModelEvent(CodeModelEvent codeModelEvent, object parentElement)
-        {
-            switch (parentElement)
+            => parentElement switch
             {
-                case EnvDTE.CodeDelegate parentDelegate:
-                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentDelegate.Parameters, parentElement);
-                case EnvDTE.CodeFunction parentFunction:
-                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentFunction.Parameters, parentElement);
-                case EnvDTE80.CodeProperty2 parentProperty:
-                    return GetParameterElementForCodeModelEvent(codeModelEvent, parentProperty.Parameters, parentElement);
-            }
-
-            return null;
-        }
+                EnvDTE.CodeDelegate parentDelegate => GetParameterElementForCodeModelEvent(codeModelEvent, parentDelegate.Parameters, parentElement),
+                EnvDTE.CodeFunction parentFunction => GetParameterElementForCodeModelEvent(codeModelEvent, parentFunction.Parameters, parentElement),
+                EnvDTE80.CodeProperty2 parentProperty => GetParameterElementForCodeModelEvent(codeModelEvent, parentProperty.Parameters, parentElement),
+                _ => null,
+            };
 
         private EnvDTE.CodeElement GetParameterElementForCodeModelEvent(CodeModelEvent codeModelEvent, EnvDTE.CodeElements parentParameters, object parentElement)
         {
@@ -310,7 +306,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                int testOrdinal = 0;
+                var testOrdinal = 0;
                 foreach (EnvDTE.CodeElement element in elementsToSearch)
                 {
                     if (element.Kind != EnvDTE.vsCMElement.vsCMElementAttribute)
@@ -350,7 +346,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return null;
             }
 
-            CodeModelService.GetAttributeArgumentParentAndIndex(codeModelEvent.Node, out var attributeNode, out var ordinal);
+            CodeModelService.GetAttributeArgumentParentAndIndex(codeModelEvent.Node, out _, out var ordinal);
 
             if (codeModelEvent.Type == CodeModelEventType.Remove)
             {

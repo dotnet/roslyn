@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -142,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     var lastConst = this.StartConstant;
                     var lastLabel = allLabels[_startLabelIndex].Value;
 
-                    for(int idx = _startLabelIndex + 1; idx <= _endLabelIndex; idx++)
+                    for (int idx = _startLabelIndex + 1; idx <= _endLabelIndex; idx++)
                     {
                         var switchLabel = allLabels[idx];
 
@@ -152,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             if (split != 0)
                             {
                                 // found another discontinuity, so cannot be split
-                                return -1; 
+                                return -1;
                             }
 
                             split = idx;

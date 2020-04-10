@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -85,17 +87,18 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
-        public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+        public Checksum CreateChecksum(AnalyzerReference reference, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
                 switch (reference)
                 {
                     case AnalyzerFileReference file:
-                        WriteAnalyzerFileReferenceMvid(file, writer, cancellationToken);
+                        WriteAnalyzerFileReferenceMvid(file, writer, usePathFromAssembly, cancellationToken);
                         break;
 
                     case UnresolvedAnalyzerReference unresolved:
@@ -114,10 +117,10 @@ namespace Microsoft.CodeAnalysis.Execution
                     default:
                         throw ExceptionUtilities.UnexpectedValue(reference);
                 }
-
-                stream.Position = 0;
-                return Checksum.Create(stream);
             }
+
+            stream.Position = 0;
+            return Checksum.Create(stream);
         }
 
         public void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
@@ -174,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Execution
                         //
                         // analyzer assembly path to load analyzer acts like
                         // snapshot version for analyzer (since it is based on shadow copy)
-                        // we can't send over bits and load analyer from memory (image) due to CLR not being able
+                        // we can't send over bits and load analyzer from memory (image) due to CLR not being able
                         // to find satellite dlls for analyzers.
                         writer.WriteString(file.FullPath);
                         writer.WriteString(assemblyPath);
@@ -231,26 +234,36 @@ namespace Microsoft.CodeAnalysis.Execution
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        private void WriteAnalyzerFileReferenceMvid(AnalyzerFileReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        private void WriteAnalyzerFileReferenceMvid(
+            AnalyzerFileReference file, ObjectWriter writer, bool usePathFromAssembly, CancellationToken cancellationToken)
         {
             try
             {
-                using (var stream = new FileStream(reference.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
-                using (var peReader = new PEReader(stream))
-                {
-                    var metadataReader = peReader.GetMetadataReader();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                    var guid = metadataReader.GetGuid(mvidHandle);
+                // use actual assembly path rather than one returned from reference.FullPath if asked (usePathFromAssembly)
+                // 2 can be different if analyzer loader used for the reference do something like shadow copying
+                // otherwise, use reference.FullPath. we use usePathFromAssembly == false for vsix installed analyzer dlls
+                // to make sure we don't load them up front and they don't get shadow copied.
+                // TryGetAnalyzerAssemblyPath will load the given assembly to find out actual location where CLR
+                // picked up the dll
+                var assemblyPath = usePathFromAssembly ? TryGetAnalyzerAssemblyPath(file) : file.FullPath;
 
-                    writer.WriteGuid(guid);
-                }
+                using var stream = new FileStream(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+                using var peReader = new PEReader(stream);
+
+                var metadataReader = peReader.GetMetadataReader();
+
+                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                var guid = metadataReader.GetGuid(mvidHandle);
+
+                writer.WriteGuid(guid);
             }
             catch
             {
                 // we can't load the assembly analyzer file reference is pointing to.
                 // rather than crashing, handle it gracefully
-                WriteUnresolvedAnalyzerReferenceTo(reference, writer);
+                WriteUnresolvedAnalyzerReferenceTo(file, writer);
             }
         }
 
@@ -271,15 +284,16 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
                 WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
                 WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
-
-                stream.Position = 0;
-                return Checksum.Create(stream);
             }
+
+            stream.Position = 0;
+            return Checksum.Create(stream);
         }
 
         private void WriteMvidsTo(Metadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
@@ -293,9 +307,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
             if (metadata is AssemblyMetadata assemblyMetadata)
             {
+                if (!TryGetModules(assemblyMetadata, out var modules))
+                {
+                    // Gracefully bail out without writing anything to the writer.
+                    return;
+                }
+
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
-                var modules = assemblyMetadata.GetModules();
                 writer.WriteInt32(modules.Length);
 
                 foreach (var module in modules)
@@ -307,6 +326,23 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             WriteMvidTo((ModuleMetadata)metadata, writer, cancellationToken);
+        }
+
+        private static bool TryGetModules(AssemblyMetadata assemblyMetadata, out ImmutableArray<ModuleMetadata> modules)
+        {
+            // Gracefully handle documented exceptions from 'GetModules' invocation.
+            try
+            {
+                modules = assemblyMetadata.GetModules();
+                return true;
+            }
+            catch (Exception ex) when (ex is BadImageFormatException ||
+                                       ex is IOException ||
+                                       ex is ObjectDisposedException)
+            {
+                modules = default;
+                return false;
+            }
         }
 
         private void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
@@ -400,9 +436,15 @@ namespace Microsoft.CodeAnalysis.Execution
 
             if (metadata is AssemblyMetadata assemblyMetadata)
             {
+                if (!TryGetModules(assemblyMetadata, out var modules))
+                {
+                    // Gracefully handle error case where unable to get modules.
+                    writer.WriteInt32(MetadataFailed);
+                    return;
+                }
+
                 writer.WriteInt32((int)assemblyMetadata.Kind);
 
-                var modules = assemblyMetadata.GetModules();
                 writer.WriteInt32(modules.Length);
 
                 foreach (var module in modules)
@@ -419,40 +461,43 @@ namespace Microsoft.CodeAnalysis.Execution
         private bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
             ISupportTemporaryStorage reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
+            if (_storageService == null)
+            {
+                return false;
+            }
+
             var storages = reference.GetStorages();
             if (storages == null)
             {
                 return false;
             }
 
-            using (var pooled = Creator.CreateList<(string name, long offset, long size)>())
+            using var pooled = Creator.CreateList<(string name, long offset, long size)>();
+
+            foreach (var storage in storages)
             {
-                foreach (var storage in storages)
+                if (!(storage is ITemporaryStorageWithName storage2))
                 {
-                    var storage2 = storage as ITemporaryStorageWithName;
-                    if (storage2 == null)
-                    {
-                        return false;
-                    }
-
-                    pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
+                    return false;
                 }
 
-                WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
-
-                writer.WriteInt32((int)MetadataImageKind.Assembly);
-                writer.WriteInt32(pooled.Object.Count);
-
-                foreach (var tuple in pooled.Object)
-                {
-                    writer.WriteInt32((int)MetadataImageKind.Module);
-                    writer.WriteString(tuple.name);
-                    writer.WriteInt64(tuple.offset);
-                    writer.WriteInt64(tuple.size);
-                }
-
-                return true;
+                pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
             }
+
+            WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
+
+            writer.WriteInt32((int)MetadataImageKind.Assembly);
+            writer.WriteInt32(pooled.Object.Count);
+
+            foreach (var (name, offset, size) in pooled.Object)
+            {
+                writer.WriteInt32((int)MetadataImageKind.Module);
+                writer.WriteString(name);
+                writer.WriteInt64(offset);
+                writer.WriteInt64(size);
+            }
+
+            return true;
         }
 
         private (Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storages)? TryReadMetadataFrom(
@@ -466,25 +511,46 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             var metadataKind = (MetadataImageKind)imageKind;
-            if (metadataKind == MetadataImageKind.Assembly)
+            if (_storageService == null)
             {
-                using (var pooledMetadata = Creator.CreateList<ModuleMetadata>())
-                using (var pooledStorage = Creator.CreateList<ITemporaryStreamStorage>())
+                if (metadataKind == MetadataImageKind.Assembly)
                 {
+                    using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
+
                     var count = reader.ReadInt32();
                     for (var i = 0; i < count; i++)
                     {
                         metadataKind = (MetadataImageKind)reader.ReadInt32();
                         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                        var tuple = ReadModuleMetadataFrom(reader, kind, cancellationToken);
-
-                        pooledMetadata.Object.Add(tuple.metadata);
-                        pooledStorage.Object.Add(tuple.storage);
+                        pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
                     }
 
-                    return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
+                    return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
                 }
+
+                Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+                return (ReadModuleMetadataFrom(reader, kind), storages: default);
+            }
+
+            if (metadataKind == MetadataImageKind.Assembly)
+            {
+                using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
+                using var pooledStorage = Creator.CreateList<ITemporaryStreamStorage>();
+
+                var count = reader.ReadInt32();
+                for (var i = 0; i < count; i++)
+                {
+                    metadataKind = (MetadataImageKind)reader.ReadInt32();
+                    Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+
+                    var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+
+                    pooledMetadata.Object.Add(metadata);
+                    pooledStorage.Object.Add(storage);
+                }
+
+                return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
             }
 
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
@@ -497,6 +563,7 @@ namespace Microsoft.CodeAnalysis.Execution
             ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             GetTemporaryStorage(reader, kind, out var storage, out var length, cancellationToken);
 
             var storageStream = storage.ReadStream(cancellationToken);
@@ -511,21 +578,36 @@ namespace Microsoft.CodeAnalysis.Execution
             return (metadata, storage);
         }
 
+        private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
+        {
+            Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
+
+            var array = reader.ReadArray<byte>();
+            var pinnedObject = new PinnedObject(array, array.Length);
+
+            var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
+
+            // make sure we keep storageStream alive while Metadata is alive
+            // we use conditional weak table since we can't control metadata liftetime
+            s_lifetimeMap.Add(metadata, pinnedObject);
+
+            return metadata;
+        }
+
         private void GetTemporaryStorage(
             ObjectReader reader, SerializationKinds kind, out ITemporaryStreamStorage storage, out long length, CancellationToken cancellationToken)
         {
             if (kind == SerializationKinds.Bits)
             {
                 storage = _storageService.CreateTemporaryStreamStorage(cancellationToken);
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    CopyByteArrayToStream(reader, stream, cancellationToken);
+                using var stream = SerializableBytes.CreateWritableStream();
 
-                    length = stream.Length;
+                CopyByteArrayToStream(reader, stream, cancellationToken);
 
-                    stream.Position = 0;
-                    storage.WriteStream(stream, cancellationToken);
-                }
+                length = stream.Length;
+
+                stream.Position = 0;
+                storage.WriteStream(stream, cancellationToken);
 
                 return;
             }
@@ -595,13 +677,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var length = reader.MetadataLength;
-
-            // TODO: any way to avoid allocating byte array here?
-            var bytes = new byte[length];
-            Marshal.Copy((IntPtr)reader.MetadataPointer, bytes, 0, length);
-
-            writer.WriteValue(bytes);
+            writer.WriteValue(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
         }
 
         private static void WriteUnresolvedAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
@@ -644,14 +720,10 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly GCHandle _gcHandle;
 
             public PinnedObject(byte[] array, long length)
-            {
-                _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-            }
+                => _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
 
             internal IntPtr GetPointer()
-            {
-                return _gcHandle.AddrOfPinnedObject();
-            }
+                => _gcHandle.AddrOfPinnedObject();
 
             private void OnDispose()
             {
@@ -662,9 +734,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             ~PinnedObject()
-            {
-                OnDispose();
-            }
+                => OnDispose();
 
             public void Dispose()
             {
@@ -678,10 +748,10 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly DocumentationProvider _provider;
 
             public MissingMetadataReference(
-                MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation) :
-                base(properties, fullPath, initialDocumentation)
+                MetadataReferenceProperties properties, string fullPath, DocumentationProvider initialDocumentation)
+                : base(properties, fullPath, initialDocumentation)
             {
-                // TODO: doc comment provider is a bit wierd.
+                // TODO: doc comment provider is a bit weird.
                 _provider = initialDocumentation;
             }
 
@@ -703,9 +773,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return new MissingMetadataReference(properties, FilePath, _provider);
-            }
+                => new MissingMetadataReference(properties, FilePath, _provider);
         }
 
         [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
@@ -717,8 +785,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
             public SerializedMetadataReference(
                 MetadataReferenceProperties properties, string fullPath,
-                Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation) :
-                base(properties, fullPath, initialDocumentation)
+                Metadata metadata, ImmutableArray<ITemporaryStreamStorage> storagesOpt, DocumentationProvider initialDocumentation)
+                : base(properties, fullPath, initialDocumentation)
             {
                 _metadata = metadata;
                 _storagesOpt = storagesOpt;
@@ -733,19 +801,13 @@ namespace Microsoft.CodeAnalysis.Execution
             }
 
             protected override Metadata GetMetadataImpl()
-            {
-                return _metadata;
-            }
+                => _metadata;
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
-            }
+                => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
             public IEnumerable<ITemporaryStreamStorage> GetStorages()
-            {
-                return _storagesOpt;
-            }
+                => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>)null : _storagesOpt;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Text
@@ -197,7 +199,7 @@ BC30439: Constant expression not representable in type 'Byte'.
 </errors>)
 
 
-            comp = CompilationUtils.CreateCompilationWithMscorlib40(text, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            comp = CompilationUtils.CreateCompilationWithMscorlib40(text, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(comp, <errors>
 BC30512: Option Strict On disallows implicit conversions from 'String' to 'Byte'.
@@ -569,7 +571,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(text, expectedOutput:="0" & vbCr & vbLf & "0" & vbCr & vbLf & "0" & vbCr & vbLf)
+            CompileAndVerify(text, expectedOutput:="0" & Environment.NewLine & "0" & Environment.NewLine & "0" & Environment.NewLine)
         End Sub
 
         ' Derived.
@@ -795,7 +797,7 @@ Class c1
     </file>
 </compilation>
 
-            CompileAndVerify(text, expectedOutput:="True" & vbCr & vbLf & "False" & vbCr & vbLf & "False" & vbCr & vbLf & "True" & vbCr & vbLf & "False" & vbCr & vbLf & "True" & vbCr & vbLf & "False" & vbCr & vbLf & "True" & vbCr & vbLf)
+            CompileAndVerify(text, expectedOutput:="True" & Environment.NewLine & "False" & Environment.NewLine & "False" & Environment.NewLine & "True" & Environment.NewLine & "False" & Environment.NewLine & "True" & Environment.NewLine & "False" & Environment.NewLine & "True" & Environment.NewLine)
         End Sub
 
         ' CLS-Compliant

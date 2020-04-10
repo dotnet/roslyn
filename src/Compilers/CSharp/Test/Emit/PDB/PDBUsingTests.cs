@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET461
-
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -462,7 +462,8 @@ namespace X
 </symbols>");
         }
 
-        [Fact, WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
+        [Fact]
+        [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases2()
         {
             string source1 = @"
@@ -513,7 +514,8 @@ class A { void M() {  } }
 ");
         }
 
-        [Fact, WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
+        [Fact]
+        [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
         public void TestExternAliases3()
         {
             string source1 = @"
@@ -971,7 +973,8 @@ public class C
 ");
         }
 
-        [Fact, WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
+        [Fact]
+        [WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
         public void ReferenceWithGlobalAndDuplicateAliases()
         {
             var source1 = @"
@@ -1458,7 +1461,7 @@ namespace X
         [Fact]
         public void TestFieldInitializerLambdas()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Linq;
 
 class C
@@ -1469,7 +1472,7 @@ class C
         return x % 2 == 0; 
     });
 }
-";
+");
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
@@ -1538,7 +1541,7 @@ class C
         [Fact]
         public void TestAccessors()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1549,7 +1552,7 @@ class C
     event System.Action E1;
     event System.Action E2 { add { } remove { } }
 }
-";
+");
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
@@ -1692,7 +1695,7 @@ class Derived : Base
         [Fact]
         public void TestSynthesizedExplicitImplementation()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Runtime.CompilerServices;
 
 interface I1
@@ -1711,7 +1714,7 @@ class C : I1, I2
 {
     public int this[int x] { get { return 0; } set { } }
 }
-";
+");
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
@@ -2141,7 +2144,7 @@ class D
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40);
             comp.VerifyPdb("D.Main", @"
 <symbols>
     <files>
@@ -2184,7 +2187,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
             var v = CompileAndVerify(comp, validator: (peAssembly) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;
@@ -2287,13 +2290,13 @@ class C
             var peStream2 = new MemoryStream();
             var pdbStream = new MemoryStream();
 
-            var emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
-            var emitResult2 = c.Emit(peStream: peStream2);
+            c.Emit(peStream: peStream1, pdbStream: pdbStream);
+            c.Emit(peStream: peStream2);
 
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
         public void ImportedNoPiaTypes()
         {
             var sourceLib = @"
@@ -2528,7 +2531,7 @@ using System;
 class C6 { void F() {} }
 " };
 
-            var c = CreateCompilation(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
+            var c = CreateCompilationWithMscorlib40(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
             var pdbImage = pdbStream.ToImmutable();
@@ -2558,4 +2561,3 @@ ImportScope (index: 0x35, size: 36):
         }
     }
 }
-#endif

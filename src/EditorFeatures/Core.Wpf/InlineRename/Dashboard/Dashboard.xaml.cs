@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         internal bool ShouldReceiveKeyboardNavigation { get; set; }
 
-        private IEnumerable<string> _renameAccessKeys = new[]
+        private readonly IEnumerable<string> _renameAccessKeys = new[]
             {
                 RenameShortcutKey.RenameOverloads,
                 RenameShortcutKey.SearchInComments,
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _model = model;
             InitializeComponent();
 
-            _tabNavigableChildren = new UIElement[] { this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton }.ToList();
+            _tabNavigableChildren = new UIElement[] { this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton }.ToList();
 
             _textView = textView;
             this.DataContext = model;
@@ -141,19 +144,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _focusedElement = _tabNavigableChildren[current];
             }
 
+            // We have found the next control in _tabNavigableChildren, but not all controls are
+            // visible in all sessions. For example, "Rename Overloads" only applies if there the
+            // symbol has overloads. Therefore, continue searching for the next control in
+            // _tabNavigableChildren that's actually valid in this session.
+            while (!_focusedElement.IsVisible)
+            {
+                var current = _tabNavigableChildren.IndexOf(_focusedElement);
+                current = selector(current);
+                _focusedElement = _tabNavigableChildren[current];
+            }
+
             _focusedElement.Focus();
             ShowCaret();
         }
 
         internal void FocusNextElement()
-        {
-            FocusElement(_tabNavigableChildren.First(), i => i == _tabNavigableChildren.Count - 1 ? 0 : i + 1);
-        }
+            => FocusElement(_tabNavigableChildren.First(), i => i == _tabNavigableChildren.Count - 1 ? 0 : i + 1);
 
         internal void FocusPreviousElement()
-        {
-            FocusElement(_tabNavigableChildren.Last(), i => i == 0 ? _tabNavigableChildren.Count - 1 : i - 1);
-        }
+            => FocusElement(_tabNavigableChildren.Last(), i => i == 0 ? _tabNavigableChildren.Count - 1 : i - 1);
 
         private void OnPresentationSourceChanged(object sender, SourceChangedEventArgs args)
         {
@@ -184,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (_rootDependencyObject != null && _rootInputElement != null)
             {
-                foreach (string accessKey in _renameAccessKeys)
+                foreach (var accessKey in _renameAccessKeys)
                 {
                     AccessKeyManager.Register(accessKey, _rootInputElement);
                 }
@@ -195,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnAccessKeyPressed(object sender, AccessKeyPressedEventArgs args)
         {
-            foreach (string accessKey in _renameAccessKeys)
+            foreach (var accessKey in _renameAccessKeys)
             {
                 if (string.Compare(accessKey, args.Key, StringComparison.OrdinalIgnoreCase) == 0)
                 {
@@ -226,6 +236,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     this.PreviewChangesCheckbox.IsChecked = !this.PreviewChangesCheckbox.IsChecked;
                 }
+                else if (string.Equals(e.Key, RenameShortcutKey.RenameFile, StringComparison.OrdinalIgnoreCase))
+                {
+                    this.FileRenameCheckbox.IsChecked = !this.FileRenameCheckbox.IsChecked;
+                }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
                     this.Commit();
@@ -234,15 +248,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected override AutomationPeer OnCreateAutomationPeer()
-        {
-            return new DashboardAutomationPeer(this);
-        }
+            => new DashboardAutomationPeer(this, _model.OriginalName);
 
         private void DisconnectFromPresentationSource()
         {
             if (_rootInputElement != null)
             {
-                foreach (string registeredKey in _renameAccessKeys)
+                foreach (var registeredKey in _renameAccessKeys)
                 {
                     AccessKeyManager.Unregister(registeredKey, _rootInputElement);
                 }
@@ -256,9 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void FindAdornmentCanvas_LayoutUpdated(object sender, EventArgs e)
-        {
-            PositionDashboard();
-        }
+            => PositionDashboard();
 
         public string RenameOverloads => EditorFeaturesResources.Include_overload_s;
         public Visibility RenameOverloadsVisibility => _model.RenameOverloadsVisibility;
@@ -266,6 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SearchInComments => EditorFeaturesResources.Include_comments;
         public string SearchInStrings => EditorFeaturesResources.Include_strings;
         public string ApplyRename => EditorFeaturesResources.Apply1;
+        public string CancelRename => EditorFeaturesResources.Cancel;
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
         public string RenameInstructions => EditorFeaturesResources.Modify_any_highlighted_location_to_begin_renaming;
         public string ApplyToolTip { get { return EditorFeaturesResources.Apply3 + " (Enter)"; } }
@@ -299,9 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void OnTextViewLostAggregateFocus(object sender, EventArgs e)
-        {
-            this.Visibility = Visibility.Collapsed;
-        }
+            => this.Visibility = Visibility.Collapsed;
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -310,14 +319,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)
-        {
-            Commit();
-        }
+            => Commit();
 
         private void Commit()
         {
-            _model.Session.Commit();
-            _textView.VisualElement.Focus();
+            try
+            {
+                _model.Session.Commit();
+                _textView.VisualElement.Focus();
+            }
+            catch (NotSupportedException ex)
+            {
+                // Session.Commit can throw if it can't commit
+                // rename operation.
+                // handle that case gracefully
+                var notificationService = _model.Session.Workspace.Services.GetService<INotificationService>();
+                notificationService.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            }
         }
 
         public void Dispose()
@@ -374,9 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected override void OnMouseUp(MouseButtonEventArgs e)
-        {
-            e.Handled = true;
-        }
+            => e.Handled = true;
 
         protected override void OnIsKeyboardFocusWithinChanged(DependencyPropertyChangedEventArgs e)
         {

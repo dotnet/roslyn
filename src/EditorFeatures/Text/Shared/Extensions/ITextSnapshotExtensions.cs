@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 return null;
             }
 
-            int end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
+            var end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
             if (end < 0 || end > snapshot.Length)
             {
                 return null;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 
         public static bool TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex, out SnapshotPoint position)
         {
-            int result = 0;
+            var result = 0;
             position = new SnapshotPoint();
 
             if (lineNumber < 0 || lineNumber >= snapshot.LineCount)
@@ -90,9 +92,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         }
 
         public static SnapshotSpan GetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
-        {
-            return TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex).Value;
-        }
+            => TryGetSpan(snapshot, startLine, startIndex, endLine, endIndex).Value;
 
         public static SnapshotSpan? TryGetSpan(this ITextSnapshot snapshot, int startLine, int startIndex, int endLine, int endIndex)
         {
@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             return new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan());
         }
 
-        public static void GetLineAndColumn(this ITextSnapshot snapshot, int position, out int lineNumber, out int columnIndex)
+        public static void GetLineAndCharacter(this ITextSnapshot snapshot, int position, out int lineNumber, out int characterIndex)
         {
             var line = snapshot.GetLineFromPosition(position);
 
             lineNumber = line.LineNumber;
-            columnIndex = position - line.Start.Position;
+            characterIndex = position - line.Start.Position;
         }
 
         /// <summary>

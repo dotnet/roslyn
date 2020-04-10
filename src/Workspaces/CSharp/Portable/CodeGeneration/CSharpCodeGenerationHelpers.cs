@@ -1,16 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -31,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
-            IList<SyntaxToken> tokens,
+            ArrayBuilder<SyntaxToken> tokens,
             CodeGenerationOptions options,
             Accessibility defaultAccessibility)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
             if (!options.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
             {
                 return;
@@ -138,34 +139,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static MemberDeclarationSyntax FirstMember(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.FirstOrDefault();
-        }
+            => members.FirstOrDefault();
 
         public static MemberDeclarationSyntax FirstMethod(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.FirstOrDefault(m => m is MethodDeclarationSyntax);
-        }
+            => members.FirstOrDefault(m => m is MethodDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is FieldDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is FieldDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastConstructor(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is ConstructorDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastMethod(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is MethodDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is MethodDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastOperator(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
-        }
+            => members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
 
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
@@ -196,9 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool AreBracesMissing<TDeclaration>(TDeclaration declaration) where TDeclaration : SyntaxNode
-        {
-            return declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
-        }
+            => declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
 
         public static SyntaxNode GetContextNode(
             Location location, CancellationToken cancellationToken)
@@ -209,9 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? contextLocation.SourceTree
                 : null;
 
-            return contextTree == null
-                ? null
-                : contextTree.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
+            return contextTree?.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
         }
 
         public static ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier(
@@ -223,8 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return null;
             }
 
-            var name = implementation.ContainingType.GenerateTypeSyntax() as NameSyntax;
-            if (name == null)
+            if (!(implementation.ContainingType.GenerateTypeSyntax() is NameSyntax name))
             {
                 return null;
             }
@@ -236,23 +220,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (destination != null)
             {
-                switch (destination.Kind())
+                return destination.Kind() switch
                 {
-                    case SyntaxKind.ClassDeclaration:
-                        return CodeGenerationDestination.ClassType;
-                    case SyntaxKind.CompilationUnit:
-                        return CodeGenerationDestination.CompilationUnit;
-                    case SyntaxKind.EnumDeclaration:
-                        return CodeGenerationDestination.EnumType;
-                    case SyntaxKind.InterfaceDeclaration:
-                        return CodeGenerationDestination.InterfaceType;
-                    case SyntaxKind.NamespaceDeclaration:
-                        return CodeGenerationDestination.Namespace;
-                    case SyntaxKind.StructDeclaration:
-                        return CodeGenerationDestination.StructType;
-                    default:
-                        return CodeGenerationDestination.Unspecified;
-                }
+                    SyntaxKind.ClassDeclaration => CodeGenerationDestination.ClassType,
+                    SyntaxKind.CompilationUnit => CodeGenerationDestination.CompilationUnit,
+                    SyntaxKind.EnumDeclaration => CodeGenerationDestination.EnumType,
+                    SyntaxKind.InterfaceDeclaration => CodeGenerationDestination.InterfaceType,
+                    SyntaxKind.NamespaceDeclaration => CodeGenerationDestination.Namespace,
+                    SyntaxKind.StructDeclaration => CodeGenerationDestination.StructType,
+                    _ => CodeGenerationDestination.Unspecified,
+                };
             }
 
             return CodeGenerationDestination.Unspecified;

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -4909,7 +4911,7 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E
 
 #Region "WindowsRuntimeImportAttribute"
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
         <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
         <WorkItem(531295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531295")>
         Public Sub TestWindowsRuntimeImportAttribute()
@@ -4967,32 +4969,22 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerify(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails)
+            Dim validator = CompileAndVerifyEx(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails, targetFramework:=TargetFramework.Mscorlib45)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 
 #End Region
 
 #Region "STAThreadAttribute, MTAThreadAttribute"
-        Private Sub VerifySynthesizedSTAThreadAttribute(sourceMethod As SourceMethodSymbol, expected As Boolean)
-            Dim synthesizedAttributes = sourceMethod.GetSynthesizedAttributes()
+        Private Sub VerifySTAThreadAttribute(method As MethodSymbol, expected As Boolean)
+            Dim attributes = method.GetAttributes().Where(Function(attribute) attribute.AttributeClass.MetadataName = "STAThreadAttribute")
+
             If expected Then
-                Assert.Equal(1, synthesizedAttributes.Length)
-                Dim attribute = synthesizedAttributes(0)
-
-                Dim compilation = sourceMethod.DeclaringCompilation
-                Dim sysNS = DirectCast(compilation.GlobalNamespace.GetMember("System"), NamespaceSymbol)
-
-                Dim attributeType As NamedTypeSymbol = sysNS.GetTypeMember("STAThreadAttribute")
-                Dim attributeTypeCtor = DirectCast(compilation.GetWellKnownTypeMember(WellKnownMember.System_STAThreadAttribute__ctor), MethodSymbol)
-
-                Assert.Equal(attributeType, attribute.AttributeClass)
-                Assert.Equal(attributeTypeCtor, attribute.AttributeConstructor)
-
-                Assert.Equal(0, attribute.ConstructorArguments.Count)
-                Assert.Equal(0, attribute.NamedArguments.Count)
+                Dim attribute = attributes.Single()
+                Assert.Empty(attribute.ConstructorArguments)
+                Assert.Empty(attribute.NamedArguments)
             Else
-                Assert.Equal(0, synthesizedAttributes.Length)
+                Assert.Empty(attributes)
             End If
         End Sub
 
@@ -5015,16 +5007,16 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
 
-            Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
-                                                                 Dim type = DirectCast(m.GlobalNamespace.GetMember("Module1"), SourceNamedTypeSymbol)
-                                                                 Dim gooMethod = DirectCast(type.GetMember("goo"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(gooMethod, expected:=False)
+            Dim validator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
+                                                           Dim type = m.GlobalNamespace.GetTypeMember("Module1")
+                                                           Dim gooMethod = type.GetMethod("goo")
+                                                           VerifySTAThreadAttribute(gooMethod, expected:=False)
 
-                                                                 Dim mainMethod = DirectCast(type.GetMember("Main"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(mainMethod, expected:=True)
-                                                             End Sub
+                                                           Dim mainMethod = type.GetMethod("Main")
+                                                           VerifySTAThreadAttribute(mainMethod, expected:=True)
+                                                       End Sub
 
-            CompileAndVerify(compilation, sourceSymbolValidator:=sourceValidator, expectedOutput:="")
+            CompileAndVerify(compilation, symbolValidator:=validator, expectedOutput:="")
         End Sub
 
         <Fact>
@@ -5046,16 +5038,16 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll)
             compilation.AssertNoErrors()
 
-            Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
-                                                                 Dim type = DirectCast(m.GlobalNamespace.GetMember("Module1"), SourceNamedTypeSymbol)
-                                                                 Dim gooMethod = DirectCast(type.GetMember("goo"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(gooMethod, expected:=False)
+            Dim validator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
+                                                           Dim type = m.GlobalNamespace.GetTypeMember("Module1")
+                                                           Dim gooMethod = type.GetMethod("goo")
+                                                           VerifySTAThreadAttribute(gooMethod, expected:=False)
 
-                                                                 Dim mainMethod = DirectCast(type.GetMember("Main"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(mainMethod, expected:=False)
-                                                             End Sub
+                                                           Dim mainMethod = type.GetMethod("Main")
+                                                           VerifySTAThreadAttribute(mainMethod, expected:=False)
+                                                       End Sub
 
-            CompileAndVerify(compilation, sourceSymbolValidator:=sourceValidator)
+            CompileAndVerify(compilation, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -5081,15 +5073,24 @@ End Class
             compilation.AssertNoErrors()
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
-                                                                 Dim type = DirectCast(m.GlobalNamespace.GetMember("Module1"), SourceNamedTypeSymbol)
-                                                                 Dim gooMethod = DirectCast(type.GetMember("goo"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(gooMethod, expected:=False)
+                                                                 Dim type = m.GlobalNamespace.GetTypeMember("Module1")
+                                                                 Dim gooMethod = type.GetMethod("goo")
+                                                                 VerifySTAThreadAttribute(gooMethod, expected:=False)
 
-                                                                 Dim mainMethod = DirectCast(type.GetMember("Main"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(mainMethod, expected:=False)
+                                                                 Dim mainMethod = type.GetMethod("Main")
+                                                                 VerifySTAThreadAttribute(mainMethod, expected:=True)
                                                              End Sub
 
-            CompileAndVerify(compilation, sourceSymbolValidator:=sourceValidator)
+            Dim peValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
+                                                             Dim type = m.GlobalNamespace.GetTypeMember("Module1")
+                                                             Dim gooMethod = type.GetMethod("goo")
+                                                             VerifySTAThreadAttribute(gooMethod, expected:=False)
+
+                                                             Dim mainMethod = type.GetMethod("Main")
+                                                             VerifySTAThreadAttribute(mainMethod, expected:=True)
+                                                         End Sub
+
+            CompileAndVerify(compilation, sourceSymbolValidator:=sourceValidator, symbolValidator:=peValidator)
         End Sub
 
         <Fact>
@@ -5114,17 +5115,495 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.AssertNoErrors()
 
-            Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
-                                                                 Dim type = DirectCast(m.GlobalNamespace.GetMember("Module1"), SourceNamedTypeSymbol)
-                                                                 Dim gooMethod = DirectCast(type.GetMember("goo"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(gooMethod, expected:=False)
+            Dim validator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
+                                                           Dim type = m.GlobalNamespace.GetTypeMember("Module1")
+                                                           Dim gooMethod = type.GetMethod("goo")
+                                                           VerifySTAThreadAttribute(gooMethod, expected:=False)
 
-                                                                 Dim mainMethod = DirectCast(type.GetMember("Main"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(mainMethod, expected:=False)
-                                                             End Sub
+                                                           Dim mainMethod = type.GetMethod("Main")
+                                                           VerifySTAThreadAttribute(mainMethod, expected:=False)
+                                                       End Sub
 
-            CompileAndVerify(compilation, sourceSymbolValidator:=sourceValidator)
+            CompileAndVerify(compilation, symbolValidator:=validator)
         End Sub
+#End Region
+
+#Region "SkipLocalsInitAttribute"
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnMethod()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Sub S()
+    End Sub
+
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Function F() As Integer
+        Return 1
+    End Function
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnClass()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Class C
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnProperty()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnAccessors()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Property P As Integer
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+        Get
+            Return 1
+        End Get
+
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+        Set
+        End Set
+    End Property
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnModule()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Module: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<Module: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnAssembly()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Assembly: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<Assembly: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnEnum()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Enum E
+    Member
+End Enum
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnEnumMember()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Enum E
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Member1
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Member2
+End Enum
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnEvent()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Event E(ByVal i As Integer)
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnDelegate()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Delegate Sub D()
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnInterface()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Interface I
+End Interface
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnStructure()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Structure S
+End Structure
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnReturnValue()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Function F() As <System.Runtime.CompilerServices.SkipLocalsInitAttribute> Integer
+        Return 1
+    End Function
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    Function F() As <System.Runtime.CompilerServices.SkipLocalsInitAttribute> Integer
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnParameter()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Sub M(<System.Runtime.CompilerServices.SkipLocalsInitAttribute> ByVal i As Integer)
+    End Sub
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    Sub M(<System.Runtime.CompilerServices.SkipLocalsInitAttribute> ByVal i As Integer)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnField()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Dim i As Integer
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
 #End Region
 
 #Region "RequiredAttributeAttribute"
@@ -5640,6 +6119,71 @@ BC40008: 'BothObsoleteParent.BothObsoleteChild' is obsolete.
 Imports TestAssembly.BothObsoleteParent.BothObsoleteChild
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")>
+        Public Sub WellKnownTypeAsStruct_DefaultConstructor_ParamArrayAttribute()
+            Dim code = <compilation><file name="a.vb"><![CDATA[
+Namespace System
+	public Structure ParamArrayAttribute
+	End Structure
+End Namespace
+Public Class C
+    Public Sub Test(ByVal ParamArray args() As Double)
+    End Sub
+End Class
+]]></file></compilation>
+
+            CreateCompilationWithMscorlib40AndVBRuntime(code).VerifyDiagnostics().AssertTheseEmitDiagnostics(<expected><![CDATA[
+BC31503: 'ParamArrayAttribute' cannot be used as an attribute because it is not a class.
+]]></expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")>
+        Public Sub WellKnownTypeAsStruct_NonDefaultConstructor_TupleElementNamesAttribute()
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(
+<compilation>
+    <file name="errors.vb"><![CDATA[
+Imports System
+
+Namespace System.Runtime.CompilerServices
+    Public Structure TupleElementNamesAttribute
+        Public Sub New(transformNames As String())
+        End Sub
+    End Structure
+End Namespace
+
+Module Program
+    Public Sub Main(args As String())
+        Test(("first", "second"))
+    End Sub
+
+    Public Sub Test(tuple As (a As String, b As String))
+        Console.WriteLine(tuple.a)
+        Console.WriteLine(tuple.b)
+    End Sub
+End Module
+]]></file>
+</compilation>,
+                references:={ValueTupleRef, SystemRuntimeFacadeRef},
+                options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(
+                compilation,
+                expectedOutput:="
+first
+second",
+                symbolValidator:=
+                    Sub([module] As ModuleSymbol)
+                        Dim attribute = [module].ContainingAssembly.GetTypeByMetadataName("Program").GetMethod("Test").Parameters.Single().GetAttributes().Single()
+
+                        Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", attribute.AttributeClass.ToTestDisplayString())
+                        Assert.True(attribute.AttributeClass.IsStructureType())
+                        Assert.Equal([module].ContainingAssembly, attribute.AttributeClass.ContainingAssembly)
+                        Assert.Equal("transformNames", attribute.AttributeConstructor.Parameters.Single().Name)
+                    End Sub)
         End Sub
     End Class
 End Namespace

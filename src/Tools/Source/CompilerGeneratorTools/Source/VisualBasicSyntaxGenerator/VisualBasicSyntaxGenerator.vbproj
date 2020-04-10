@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
     <Platforms>x64</Platforms>
@@ -12,18 +11,16 @@
     <AssemblyName>VBSyntaxGenerator</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
-    <NonShipping>true</NonShipping>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsShipping>false</IsShipping>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
+  <ItemGroup>
+    <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Declarations\DeclarationModifiers.vb" Link="Grammar\DeclarationModifiers.vb" />
+    <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\SyntaxKind.vb" Link="Grammar\SyntaxKind.vb" />
+  </ItemGroup>
   <ItemGroup>
     <Import Include="System.Collections.ObjectModel" />
     <Import Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\Syntax.xml">
@@ -34,5 +31,8 @@
     <EmbeddedResource Include="VBSyntaxModelSchema.xsd">
       <LogicalName>VBSyntaxModelSchema.xsd</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Generated\VisualBasic.Grammar.g4" Link="Grammar\VisualBasic.Grammar.g4" />
   </ItemGroup>
 </Project>

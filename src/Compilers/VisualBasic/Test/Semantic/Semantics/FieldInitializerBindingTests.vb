@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -886,7 +888,7 @@ Class Clazz8(Of T As {Class, IV})
     Public Const F8 = CType(CType(CType(CType(CType(Nothing, T), IV), III), II), I) 'Dev11 - error, Roslyn - OK
 End Class
         </file>
-   </compilation>, TestOptions.ReleaseDll)
+   </compilation>, options:=TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -932,7 +934,7 @@ Class ClazzDateTimeDecimal
     Public Const F7 = CType(CType(CType(1.2345D, Decimal), Decimal), Decimal)
 End Class
         </file>
-   </compilation>, TestOptions.ReleaseDll)
+   </compilation>, options:=TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
@@ -954,7 +956,7 @@ Class Clazz
     Public Const F8 As EB = Nothing
 End Class
         </file>
-   </compilation>, TestOptions.ReleaseDll)
+   </compilation>, options:=TestOptions.ReleaseDll)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
             Dim bytes = compilation.EmitToArray()
@@ -1426,8 +1428,8 @@ End Class
                              </file>
                          </compilation>
 
-            Dim standardCompilation = CompilationUtils.CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
-            Dim strictCompilation = CompilationUtils.CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll,
+            Dim standardCompilation = CompilationUtils.CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
+            Dim strictCompilation = CompilationUtils.CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll,
                                                                                    parseOptions:=TestOptions.Regular.WithStrictFeature())
 
             CompilationUtils.AssertTheseDiagnostics(standardCompilation, <expected>

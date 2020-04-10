@@ -1,9 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
+Imports Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
     Public Class UseAutoPropertyTests
@@ -20,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
-        Public Async Function TestMultiFile_CSharp() As System.Threading.Tasks.Task
+        Public Async Function TestMultiFile_CSharp() As Task
             Dim input =
                 <Workspace>
                     <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='true'>
@@ -58,7 +60,7 @@ partial class C
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
-        Public Async Function TestMultiFile_VisualBasic() As System.Threading.Tasks.Task
+        Public Async Function TestMultiFile_VisualBasic() As Task
             Dim input =
                 <Workspace>
                     <Project Language='Visual Basic' AssemblyName='CSharpAssembly1' CommonReferences='true'>
@@ -97,7 +99,7 @@ end class
 
         <WorkItem(20855, "https://github.com/dotnet/roslyn/issues/20855")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
-        Public Async Function TestLinkedFile() As System.Threading.Tasks.Task
+        Public Async Function TestLinkedFile() As Task
             Dim input =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="LinkedProj" Name="CSProj.1">
@@ -123,7 +125,6 @@ partial class C
             Dim expectedText = "
 partial class C
 {
-
     public int P { get; private set; }
 
     public C()

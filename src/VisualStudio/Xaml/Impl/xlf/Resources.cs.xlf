@@ -12,6 +12,11 @@
         <target state="translated">Odebrat nepotřebné obory názvů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Namespaces">
+        <source>&amp;Sort Namespaces</source>
+        <target state="translated">&amp;Seřadit obory názvů</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -52,13 +54,13 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var simple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
-            Assert.True(((LambdaSymbol)model.GetSymbolInfo(simple).Symbol).IsAsync);
+            Assert.True(((IMethodSymbol)model.GetSymbolInfo(simple).Symbol).IsAsync);
 
             var parens = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>();
             Assert.True(parens.Count() == 2, "Expect exactly two parenthesized lambda expressions in the syntax tree.");
             foreach (var paren in parens)
             {
-                Assert.True(((LambdaSymbol)model.GetSymbolInfo(paren).Symbol).IsAsync);
+                Assert.True(((IMethodSymbol)model.GetSymbolInfo(paren).Symbol).IsAsync);
             }
         }
 
@@ -81,7 +83,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var del = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
-            Assert.True(((LambdaSymbol)model.GetSymbolInfo(del).Symbol).IsAsync);
+            Assert.True(((IMethodSymbol)model.GetSymbolInfo(del).Symbol).IsAsync);
         }
 
         [Fact]
@@ -1232,14 +1234,17 @@ interface IInterface
 {
     async void F();
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,16): error CS0106: The modifier 'async' is not valid for this item
-                //     async void F();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("async"));
+            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (4,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 'preview' or greater.
+                //     async void F(); 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F").WithArguments("async", "7.0", "8.0").WithLocation(4, 16),
+                // (4,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     async void F(); 
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "F").WithLocation(4, 16)
+                );
         }
 
         [Fact]
-
         public void AwaitInQuery_FirstCollectionExpressionOfInitialFrom()
         {
             var source = @"
@@ -2457,10 +2462,10 @@ class Test
                 // (41,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         Meth(1); //warning CS4014
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Meth(1)"),
-                // (47,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (47,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         test.Prop; //error CS0201
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test.Prop"),
-                // (48,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (48,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         test[1]; //error CS0201
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "test[1]"),
                 // (44,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -3189,10 +3194,7 @@ class Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions
                 //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference"),
-                // (9,13): warning CS0219: The variable 'tr' is assigned but its value is never used
-                //         var tr = new TypedReference();
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "tr").WithArguments("tr"));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference"));
         }
 
         [Fact]

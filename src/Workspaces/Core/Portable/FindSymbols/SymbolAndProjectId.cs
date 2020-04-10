@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -80,9 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public SymbolAndProjectId WithSymbol(ISymbol other)
-        {
-            return new SymbolAndProjectId(other, this.ProjectId);
-        }
+            => new SymbolAndProjectId(other, this.ProjectId);
     }
 
     internal struct SymbolAndProjectId<TSymbol> where TSymbol : ISymbol
@@ -97,9 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static implicit operator SymbolAndProjectId(SymbolAndProjectId<TSymbol> value)
-        {
-            return new SymbolAndProjectId(value.Symbol, value.ProjectId);
-        }
+            => new SymbolAndProjectId(value.Symbol, value.ProjectId);
 
         public SymbolAndProjectId<TOther> WithSymbol<TOther>(TOther other)
             where TOther : ISymbol
@@ -108,9 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public SymbolAndProjectId WithSymbol(ISymbol other)
-        {
-            return new SymbolAndProjectId(other, this.ProjectId);
-        }
+            => new SymbolAndProjectId(other, this.ProjectId);
     }
 
     internal static class SymbolAndProjectIdExtensions
@@ -150,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// issue in the future, this underlying comparer can absolutely be changed to something
         /// more appropriate.
         /// </summary>
-        private static readonly IEqualityComparer<ISymbol> _underlyingComparer = 
+        private static readonly IEqualityComparer<ISymbol> _underlyingComparer =
             SymbolEquivalenceComparer.Instance;
 
         private SymbolAndProjectIdComparer()
@@ -158,14 +154,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public bool Equals(SymbolAndProjectId<TSymbol> x, SymbolAndProjectId<TSymbol> y)
-        {
-            return _underlyingComparer.Equals(x.Symbol, y.Symbol);
-        }
+            => _underlyingComparer.Equals(x.Symbol, y.Symbol);
 
         public int GetHashCode(SymbolAndProjectId<TSymbol> obj)
-        {
-            return _underlyingComparer.GetHashCode(obj.Symbol);
-        }
+            => _underlyingComparer.GetHashCode(obj.Symbol);
     }
 
     internal class SymbolAndProjectIdComparer : IEqualityComparer<SymbolAndProjectId>
@@ -178,24 +170,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// issue in the future, this underlying comparer can absolutely be changed to something
         /// more appropriate.
         /// </summary>
-        public static readonly SymbolAndProjectIdComparer SymbolEquivalenceInstance = 
+        public static readonly SymbolAndProjectIdComparer SymbolEquivalenceInstance =
             new SymbolAndProjectIdComparer(SymbolEquivalenceComparer.Instance);
 
         private readonly IEqualityComparer<ISymbol> _underlyingComparer;
 
         public SymbolAndProjectIdComparer(IEqualityComparer<ISymbol> underlyingComparer)
-        {
-            _underlyingComparer = underlyingComparer;
-        }
+            => _underlyingComparer = underlyingComparer;
 
         public bool Equals(SymbolAndProjectId x, SymbolAndProjectId y)
-        {
-            return _underlyingComparer.Equals(x.Symbol, y.Symbol);
-        }
+            => _underlyingComparer.Equals(x.Symbol, y.Symbol);
 
         public int GetHashCode(SymbolAndProjectId obj)
-        {
-            return _underlyingComparer.GetHashCode(obj.Symbol);
-        }
+            => _underlyingComparer.GetHashCode(obj.Symbol);
     }
 }

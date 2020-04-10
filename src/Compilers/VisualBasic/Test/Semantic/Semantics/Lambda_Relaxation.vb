@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1315,7 +1317,7 @@ End Module
                 End If
             End If
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -1428,7 +1430,7 @@ End Module
                 End If
             End If
 
-            CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1768,7 +1770,7 @@ End Module
                     Assert.True(conv.Exists)
                 End If
 
-                Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+                Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -2062,7 +2064,7 @@ End Module
                 Assert.True(conv.Exists)
             End If
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -2154,7 +2156,7 @@ End Module
                 Assert.True(conv.Exists)
             End If
 
-            CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+            CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2237,7 +2239,7 @@ End Module
                     Assert.True(conv.Exists)
                 End If
 
-                Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf)
+                Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine)
 
                 CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -2910,7 +2912,7 @@ End Class
 <expected>
 </expected>)
 
-            CompileAndVerify(compilation, expectedOutput:="F1" & vbCrLf & "L1" & vbCrLf & "L2")
+            CompileAndVerify(compilation, expectedOutput:="F1" & Environment.NewLine & "L1" & Environment.NewLine & "L2")
         End Sub
 
         <WorkItem(543647, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543647")>
@@ -3006,7 +3008,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.DebugDll)
 
             Dim verifier = CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub

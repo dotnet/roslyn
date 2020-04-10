@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -13,14 +17,23 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
-    public class FormattingEngineTests : FormattingEngineTestBase
+    public class FormattingEngineTests : CSharpFormattingEngineTestBase
     {
+        private static Dictionary<OptionKey2, object> SmartIndentButDoNotFormatWhileTyping()
+        {
+            return new Dictionary<OptionKey2, object>
+            {
+                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
+                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+            };
+        }
+
         [WpfFact]
         [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -108,7 +121,7 @@ int y;
         [WpfFact]
         [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatUsingStatementOnReturn()
+        public void DoNotFormatUsingStatementOnReturn()
         {
             var code = @"class Program
 {
@@ -125,12 +138,40 @@ int y;
     static void Main(string[] args)
     {
         using (null)
-        using (null)$$
+                using (null)$$
     }
 }
 ";
 
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
+        }
+
+        [WpfFact]
+        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatUsingStatementWhenTypingCloseParen()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        using (null)
+                using (null)$$
+    }
+}
+";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        using (null)
+        using (null)
+    }
+}
+";
+
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact]
@@ -372,17 +413,15 @@ class Program
         if (true) { }
     }
 }";
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var subjectDocument = workspace.Documents.Single();
-                var spans = subjectDocument.SelectedSpans;
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var subjectDocument = workspace.Documents.Single();
+            var spans = subjectDocument.SelectedSpans;
 
-                var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                var syntaxRoot = await document.GetSyntaxRootAsync();
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var syntaxRoot = await document.GetSyntaxRootAsync();
 
-                var node = Formatter.Format(syntaxRoot, spans, workspace);
-                Assert.Equal(expected, node.ToFullString());
-            }
+            var node = Formatter.Format(syntaxRoot, spans, workspace);
+            Assert.Equal(expected, node.ToFullString());
         }
 
         [WorkItem(987373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/987373")]
@@ -467,18 +506,17 @@ class Program
         if (true) { }
     }
 }";
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var subjectDocument = workspace.Documents.Single();
-                var spans = subjectDocument.SelectedSpans;
-                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.AllowDisjointSpanMerging, true);
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var subjectDocument = workspace.Documents.Single();
+            var spans = subjectDocument.SelectedSpans;
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions2.AllowDisjointSpanMerging, true)));
 
-                var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                var syntaxRoot = await document.GetSyntaxRootAsync();
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var syntaxRoot = await document.GetSyntaxRootAsync();
 
-                var node = Formatter.Format(syntaxRoot, spans, workspace);
-                Assert.Equal(expected, node.ToFullString());
-            }
+            var node = Formatter.Format(syntaxRoot, spans, workspace);
+            Assert.Equal(expected, node.ToFullString());
         }
 
         [WorkItem(1044118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044118")]
@@ -1127,9 +1165,9 @@ class C : Attribute
     class C1<U>
 {
 }";
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
                             {
-                                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                                { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
                             };
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }
@@ -1158,9 +1196,9 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
+                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1190,9 +1228,9 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1202,7 +1240,7 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void KeepTabsInCommentsWhenFormattingIsOff()
         {
-            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should
             // not remove these as we are explicitly testing tab behavior.
             var code =
 @"class Program
@@ -1222,9 +1260,9 @@ class C : Attribute
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1234,7 +1272,7 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void DoNotKeepTabsInCommentsWhenFormattingIsOn()
         {
-            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should
             // not remove these as we are explicitly testing tab behavior.
             var code = @"class Program
 {
@@ -1280,9 +1318,9 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1312,9 +1350,9 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1340,9 +1378,9 @@ class C
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
+                { new OptionKey2(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected);
@@ -1370,9 +1408,9 @@ class C
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey, object>
+            var optionSet = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
+                { new OptionKey2(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected);
@@ -1640,41 +1678,496 @@ class C
 
         [WorkItem(11642, "https://github.com/dotnet/roslyn/issues/11642")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatArbitraryNodeParenthesizedLambdaExpression()
+        public void FormatArbitraryNodeParenthesizedLambdaExpression()
         {
             // code equivalent to an expression synthesized like so:
             // ParenthesizedExpression(ParenthesizedLambdaExpression(ParameterList(), Block()))
             var code = @"(()=>{})";
             var node = SyntaxFactory.ParseExpression(code);
             var expected = @"(() => { })";
-            await AssertFormatOnArbitraryNodeAsync(node, expected);
+            AssertFormatOnArbitraryNode(node, expected);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff1()
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                if (changedOptionSet != null)
-                {
-                    var options = workspace.Options;
-                    foreach (var entry in changedOptionSet)
-                    {
-                        options = options.WithChangedOption(entry.Key, entry.Value);
-                    }
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+            {$$
+    }
+}";
 
-                    workspace.Options = options;
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+        {
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff2()
+        {
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+        {}$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+        { }
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff3()
+        {
+            // We only smart indent the { if it's on it's own line.
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if (true){$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true){
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff4()
+        {
+            // We only smart indent the { if it's on it's own line.
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if (true){}$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true){ }
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff5()
+        {
+            // Typing the { should not affect the formating of the preceding tokens.
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if ( true )
+            {$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if ( true )
+        {
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff6()
+        {
+            // Typing the { should not affect the formating of the preceding tokens.
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if ( true ){$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if ( true ){
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff7()
+        {
+            var code =
+@"class Program
+{
+    void M()
+        {$$
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff1()
+        {
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+        {
+            }$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true)
+        {
+        }
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff2()
+        {
+            // Note that the { is not updated since we are not formatting.
+            var code =
+@"class Program
+{
+    void M()
+    {
+        if (true) {
+            }$$
+    }
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+        if (true) {
+        }
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff3()
+        {
+            var code =
+@"class Program
+{
+    void M()
+    {
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    void M()
+    {
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoSmartIndentCloseBraceEvenWithFormatWhileTypingOff4()
+        {
+            // Should not affect formatting of open brace
+            var code =
+@"class Program
+{
+    void M() {
+        }$$
+}";
+
+            var expected =
+@"class Program
+{
+    void M() {
+    }
+}";
+
+            AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31907, "https://github.com/dotnet/roslyn/issues/31907")]
+        public async Task NullableReferenceTypes()
+        {
+            var code = @"[|
+class MyClass
+{
+    void MyMethod()
+    {
+        var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt !: method).ReturnType;
+    }
+}
+|]";
+            var expected = @"
+class MyClass
+{
+    void MyMethod()
+    {
+        var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt! : method).ReturnType;
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WorkItem(30518, "https://github.com/dotnet/roslyn/issues/30518")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatGeneratedNodeInInitializer()
+        {
+            var code = @"new bool[] {
+    true,
+    true
+}";
+
+            var expected = @"new bool[] {
+    true,
+true == false, true
+}";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script);
+            var root = tree.GetRoot();
+
+            var entry = SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
+            var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), new[] { entry });
+            AssertFormatOnArbitraryNode(newRoot, expected);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        public async Task PositionalPattern()
+        {
+            var code = @"[|
+class MyClass
+{
+    void MyMethod()
+    {
+        var point = new Point (3, 4);
+        if (point is Point (3, 4) _
+            && point is Point{x: 3, y: 4} _)
+        {
+        }
+    }
+}
+|]";
+            var expected = @"
+class MyClass
+{
+    void MyMethod()
+    {
+        var point = new Point(3, 4);
+        if (point is Point(3, 4) _
+            && point is Point { x: 3, y: 4 } _)
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatWithBaseIndentAsync(expected, code, baseIndentation: 4);
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_KeepMultipleLinesBetweenGroups()
+        {
+            var code = @"$$
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"$$
+using System.A;
+using System.B;
+
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_DoNotGroupIfNotSorted()
+        {
+            var code = @"$$
+using System.B;
+using System.A;
+using MS.B;
+using MS.A;
+";
+
+            var expected = @"$$
+using System.B;
+using System.A;
+using MS.B;
+using MS.A;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_GroupIfSorted()
+        {
+            var code = @"$$
+using System.A;
+using System.B;
+using MS.A;
+using MS.B;
+";
+
+            var expected = @"$$
+using System.A;
+using System.B;
+
+using MS.A;
+using MS.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SeparateGroups_GroupIfSorted_RecognizeSystemNotFirst()
+        {
+            var code = @"$$
+using MS.A;
+using MS.B;
+using System.A;
+using System.B;
+";
+
+            var expected = @"$$
+using MS.A;
+using MS.B;
+
+using System.A;
+using System.B;
+";
+
+            AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
+        }
+
+        private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            if (changedOptionSet != null)
+            {
+                var options = workspace.Options;
+                foreach (var entry in changedOptionSet)
+                {
+                    options = options.WithChangedOption(entry.Key, entry.Value);
                 }
 
-                var subjectDocument = workspace.Documents.Single();
-
-                var commandHandler = workspace.GetService<FormatCommandHandler>();
-                var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-                commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
-
-                var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
-
-                Assert.Equal(expected, newSnapshot.GetText());
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
             }
+
+            var subjectDocument = workspace.Documents.Single();
+
+            var commandHandler = workspace.GetService<FormatCommandHandler>();
+            var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
+            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.GetTextBuffer(), typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+
+            var newSnapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
+
+            Assert.Equal(expected, newSnapshot.GetText());
         }
     }
 }

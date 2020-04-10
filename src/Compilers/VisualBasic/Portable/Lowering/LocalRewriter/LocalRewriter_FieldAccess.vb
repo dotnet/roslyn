@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -43,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MakeBadFieldAccess(syntax, tupleField, rewrittenReceiver)
             End If
 
-            If underlyingField.ContainingType <> currentLinkType Then
+            If Not TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything) Then
                 Dim wellKnownTupleRest As WellKnownMember = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition)
                 Dim tupleRestField = DirectCast(TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax), FieldSymbol)
 
@@ -58,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rewrittenReceiver = New BoundFieldAccess(syntax, rewrittenReceiver, nestedFieldSymbol, isLValue, nestedFieldSymbol.Type)
 
                     currentLinkType = currentLinkType.TypeArgumentsNoUseSiteDiagnostics(TupleTypeSymbol.RestPosition - 1).TupleUnderlyingType
-                Loop While underlyingField.ContainingType <> currentLinkType
+                Loop While Not TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything)
 
             End If
 

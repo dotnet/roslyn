@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1021,7 +1023,7 @@ Exception: i != 0");
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort01()
         {
             var source =
@@ -1103,7 +1105,7 @@ catch2
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort02()
         {
             var source =
@@ -1203,7 +1205,7 @@ catch2
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort03()
         {
             var source =
@@ -1322,7 +1324,7 @@ finally2
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort04()
         {
             var source =
@@ -1454,7 +1456,7 @@ finally2
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void NestedExceptionHandlersThreadAbort05()
         {
             var source =
@@ -1587,7 +1589,7 @@ catch3
 }");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort06()
         {
             var source =
@@ -1726,7 +1728,7 @@ catch3
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void NestedExceptionHandlersThreadAbort07()
         {
             var source =
@@ -2381,10 +2383,11 @@ class C
             CompileAndVerify(src, expectedOutput: "TryCatch228Finally").
                 VerifyIL("C.Test", @"
 {
-  // Code size      129 (0x81)
+  // Code size      132 (0x84)
   .maxstack  2
   .locals init (int V_0, //x
-                System.DivideByZeroException V_1) //e
+                System.DivideByZeroException V_1, //e
+                int V_2)
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   .try
@@ -2397,7 +2400,7 @@ class C
       IL_000d:  ldloc.0
       IL_000e:  div
       IL_000f:  stloc.0
-      IL_0010:  leave.s    IL_0080
+      IL_0010:  leave.s    IL_0083
     }
     filter
     {
@@ -2418,7 +2421,7 @@ class C
       IL_002b:  pop
       IL_002c:  ldstr      ""Catch1""
       IL_0031:  call       ""void System.Console.Write(string)""
-      IL_0036:  leave.s    IL_0080
+      IL_0036:  leave.s    IL_0083
     }
     filter
     {
@@ -2443,21 +2446,22 @@ class C
       IL_0059:  ldloc.1
       IL_005a:  callvirt   ""string System.Exception.Message.get""
       IL_005f:  callvirt   ""int string.Length.get""
-      IL_0064:  box        ""int""
-      IL_0069:  call       ""string string.Concat(object, object)""
-      IL_006e:  call       ""void System.Console.Write(string)""
-      IL_0073:  leave.s    IL_0080
+      IL_0064:  stloc.2
+      IL_0065:  ldloca.s   V_2
+      IL_0067:  call       ""string int.ToString()""
+      IL_006c:  call       ""string string.Concat(string, string)""
+      IL_0071:  call       ""void System.Console.Write(string)""
+      IL_0076:  leave.s    IL_0083
     }
   }
   finally
   {
-    IL_0075:  ldstr      ""Finally""
-    IL_007a:  call       ""void System.Console.Write(string)""
-    IL_007f:  endfinally
+    IL_0078:  ldstr      ""Finally""
+    IL_007d:  call       ""void System.Console.Write(string)""
+    IL_0082:  endfinally
   }
-  IL_0080:  ret
-}
-");
+  IL_0083:  ret
+}");
         }
 
         [Fact]
@@ -3682,6 +3686,76 @@ class Program
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(29481, "https://github.com/dotnet/roslyn/issues/29481")]
+        public void Issue29481()
+        {
+            var source = @"
+using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        try
+        {
+            bool b = false;
+            if (b)
+            {
+                try
+                {
+                    return;
+                }
+                finally
+                {
+                    Console.WriteLine(""Prints"");
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
+        finally
+        {
+            GC.KeepAlive(null);
+        }
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe).VerifyIL("Program.Main",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .try
+  {
+    IL_0000:  ldc.i4.0
+    IL_0001:  brfalse.s  IL_0010
+    .try
+    {
+      IL_0003:  leave.s    IL_0019
+    }
+    finally
+    {
+      IL_0005:  ldstr      ""Prints""
+      IL_000a:  call       ""void System.Console.WriteLine(string)""
+      IL_000f:  endfinally
+    }
+    IL_0010:  leave.s    IL_0019
+  }
+  finally
+  {
+    IL_0012:  ldnull
+    IL_0013:  call       ""void System.GC.KeepAlive(object)""
+    IL_0018:  endfinally
+  }
+  IL_0019:  ret
 }
 ");
         }

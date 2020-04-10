@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -11,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -317,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Optional includeSymbols As Boolean = True) As CompilationTestData
 
             Dim compilation0 = CreateEmptyCompilationWithReferences(
-                {Parse(source)},
+                {Parse(source, SyntaxHelpers.ParseOptions)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
                 options:=If(outputKind = OutputKind.DynamicallyLinkedLibrary, TestOptions.DebugDll, TestOptions.DebugExe))
 
@@ -467,14 +470,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Return MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(DirectCast(symReader, ISymUnmanagedReader3), symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion:=1, ilOffset:=ilOffset, isVisualBasicMethod:=True)
         End Function
 
-        Friend Shared Function GetTupleElementNamesAttributeIfAny(method As IMethodSymbol) As SynthesizedAttributeData
-            Return GetAttributeIfAny(method, "System.Runtime.CompilerServices.TupleElementNamesAttribute")
-        End Function
+        Friend Shared Sub CheckAttribute(assembly As IEnumerable(Of Byte), method As IMethodSymbol, description As AttributeDescription, expected As Boolean)
+            Dim [module] = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module
+            Dim typeName = method.ContainingType.Name
+            Dim typeHandle = [module].MetadataReader.TypeDefinitions.Single(Function(handle) [module].GetTypeDefNameOrThrow(handle) = typeName)
 
-        Friend Shared Function GetAttributeIfAny(method As IMethodSymbol, typeName As String) As SynthesizedAttributeData
-            Return DirectCast(method, MethodSymbol).GetSynthesizedAttributes(forReturnType:=True).
-                Where(Function(a) a.AttributeClass.ToTestDisplayString() = typeName).
-                SingleOrDefault()
-        End Function
+            Dim methodName = method.Name
+            Dim methodHandle = [module].GetMethodsOfTypeOrThrow(typeHandle).Single(Function(handle) [module].GetMethodDefNameOrThrow(handle) = methodName)
+
+            Dim returnParamHandle = [module].GetParametersOfMethodOrThrow(methodHandle).FirstOrDefault()
+
+            If returnParamHandle.IsNil Then
+                Assert.False(expected)
+            Else
+                Dim attributes = [module].GetCustomAttributesOrThrow(returnParamHandle).Where(Function(handle) [module].GetTargetAttributeSignatureIndex(handle, description) <> -1)
+
+                If expected Then
+                    Assert.Equal(1, attributes.Count())
+                Else
+                    Assert.Empty(attributes)
+                End If
+            End If
+        End Sub
+
+        Friend Shared Sub CheckAttribute(assembly As IEnumerable(Of Byte), method As IMethodSymbolInternal, description As AttributeDescription, expected As Boolean)
+            CheckAttribute(assembly, DirectCast(method, IMethodSymbol), description, expected)
+        End Sub
+
+        Friend Shared Sub CheckAttribute(assembly As IEnumerable(Of Byte), method As MethodSymbol, description As AttributeDescription, expected As Boolean)
+            CheckAttribute(assembly, DirectCast(method, IMethodSymbolInternal), description, expected)
+        End Sub
     End Class
 End Namespace

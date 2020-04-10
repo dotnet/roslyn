@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
@@ -16,24 +19,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal sealed class ProjectCodeModel : IProjectCodeModel
     {
         private readonly NonReentrantLock _guard = new NonReentrantLock();
+        private readonly IThreadingContext _threadingContext;
         private readonly ProjectId _projectId;
         private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
-        private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
+        private readonly VisualStudioWorkspace _visualStudioWorkspace;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
         private CodeModelProjectCache _codeModelCache;
 
-        public ProjectCodeModel(ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
+        public ProjectCodeModel(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspace visualStudioWorkspace, IServiceProvider serviceProvider, ProjectCodeModelFactory projectCodeModelFactory)
         {
+            _threadingContext = threadingContext;
             _projectId = projectId;
             _codeModelInstanceFactory = codeModelInstanceFactory;
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
+            _projectCodeModelFactory = projectCodeModelFactory;
         }
 
         public void OnProjectClosed()
         {
             _codeModelCache?.OnProjectClosed();
+            _projectCodeModelFactory.OnProjectClosed(_projectId);
         }
 
         private CodeModelProjectCache GetCodeModelCache()
@@ -46,19 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (_codeModelCache == null)
                 {
                     var workspaceProject = _visualStudioWorkspace.CurrentSolution.GetProject(_projectId);
-                    var hostProject = _visualStudioWorkspace.GetHostProject(_projectId);
-                    if (workspaceProject == null && !hostProject.PushingChangesToWorkspace)
-                    {
-                        // if this project hasn't been pushed yet, push it now so that the user gets a useful experience here.
-                        hostProject.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
-
-                        // re-check to see whether we now has the project in the workspace
-                        workspaceProject = _visualStudioWorkspace.CurrentSolution.GetProject(_projectId);
-                    }
 
                     if (workspaceProject != null)
                     {
-                        _codeModelCache = new CodeModelProjectCache(_projectId, _codeModelInstanceFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
+                        _codeModelCache = new CodeModelProjectCache(_threadingContext, _projectId, _codeModelInstanceFactory, _projectCodeModelFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
                     }
                 }
 
@@ -67,9 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         internal IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> GetCachedFileCodeModelInstances()
-        {
-            return GetCodeModelCache().GetFileCodeModelInstances();
-        }
+            => GetCodeModelCache().GetFileCodeModelInstances();
 
         internal bool TryGetCachedFileCodeModel(string fileName, out ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle)
         {
@@ -77,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             fileCodeModelHandle = handle != null
                 ? handle.Value
-                : default(ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>);
+                : default;
 
             return handle != null;
         }
@@ -87,19 +84,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// a parent object, this will call back to the project system to provide us the parent object.
         /// </summary>
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath)
-        {
-            return GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
-        }
+            => GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
 
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
-        {
-            return GetCodeModelCache().GetOrCreateFileCodeModel(filePath, parent);
-        }
+            => GetCodeModelCache().GetOrCreateFileCodeModel(filePath, parent);
 
         public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
-        {
-            return GetCodeModelCache().GetOrCreateRootCodeModel(parent);
-        }
+            => GetCodeModelCache().GetOrCreateRootCodeModel(parent);
 
         public void OnSourceFileRemoved(string fileName)
         {
@@ -115,14 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _codeModelCache?.OnSourceFileRenaming(filePath, newFilePath);
         }
 
-        EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath)
-        {
-            return this.GetOrCreateFileCodeModel(filePath).Handle;
-        }
-
         EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath, object parent)
-        {
-            return this.GetOrCreateFileCodeModel(filePath, parent).Handle;
-        }
+            => this.GetOrCreateFileCodeModel(filePath, parent).Handle;
     }
 }

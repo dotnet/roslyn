@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -86,9 +88,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim assemblyName As String = Nothing
             Dim spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing
-            Dim trees = ParseSourceXml(program, parseOptions, assemblyName, spans)
+            Dim trees = ParseSourceXml(program, parseOptions, assemblyName, spans).ToArray()
 
-            Dim comp = CreateEmptyCompilation(trees, references, Nothing, assemblyName)
+            Dim comp = CreateEmptyCompilation(trees, references, assemblyName:=assemblyName)
 
             If errors IsNot Nothing Then
                 AssertTheseDiagnostics(comp, errors)
@@ -211,6 +213,8 @@ tryAgain:
                 Optional captured() As String = Nothing,
                 Optional dataFlowsIn() As String = Nothing,
                 Optional dataFlowsOut() As String = Nothing,
+                Optional definitelyAssignedOnEntry() As String = Nothing,
+                Optional definitelyAssignedOnExit() As String = Nothing,
                 Optional readInside() As String = Nothing,
                 Optional readOutside() As String = Nothing,
                 Optional variablesDeclared() As String = Nothing,
@@ -225,6 +229,8 @@ tryAgain:
             Assert.Equal(If(captured, {}), analysis.Captured.Select(Function(s) s.Name).ToArray())
             Assert.Equal(If(dataFlowsIn, {}), analysis.DataFlowsIn.Select(Function(s) s.Name).ToArray())
             Assert.Equal(If(dataFlowsOut, {}), analysis.DataFlowsOut.Select(Function(s) s.Name).ToArray())
+            Assert.Equal(If(definitelyAssignedOnEntry, {}), analysis.DefinitelyAssignedOnEntry.Select(Function(s) s.Name).ToArray())
+            Assert.Equal(If(definitelyAssignedOnExit, {}), analysis.DefinitelyAssignedOnExit.Select(Function(s) s.Name).ToArray())
             Assert.Equal(If(readInside, {}), analysis.ReadInside.Select(Function(s) s.Name).ToArray())
             Assert.Equal(If(readOutside, {}), analysis.ReadOutside.Select(Function(s) s.Name).ToArray())
             Assert.Equal(If(variablesDeclared, {}), analysis.VariablesDeclared.Select(Function(s) s.Name).ToArray())

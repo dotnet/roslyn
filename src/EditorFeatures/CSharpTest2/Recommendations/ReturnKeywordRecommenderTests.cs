@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -47,10 +49,58 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestIncompleteStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalFunctionAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr] void local1() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1([$$Attr] int i) { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionTypeParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1<[$$Attr] T>() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAwait()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    async void M()
+    {
+        await $$
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Utilities
@@ -36,19 +42,30 @@ namespace Microsoft.CodeAnalysis.Utilities
             }
         }
 
-        public override bool Equals(object obj)
+        public ParameterName(string nameBasedOnArgument, bool isFixed, NamingRule parameterNamingRule)
         {
-            return Equals((ParameterName)obj);
+            NameBasedOnArgument = nameBasedOnArgument;
+
+            if (isFixed)
+            {
+                // If the parameter name is fixed, we have to accept it as is.
+                BestNameForParameter = NameBasedOnArgument;
+            }
+            else
+            {
+                // Otherwise, massage it a bit to be a more suitable match for
+                // how people actually writing parameters.
+                BestNameForParameter = parameterNamingRule.NamingStyle.MakeCompliant(nameBasedOnArgument).First();
+            }
         }
+
+        public override bool Equals(object obj)
+            => Equals((ParameterName)obj);
 
         public bool Equals(ParameterName other)
-        {
-            return NameBasedOnArgument.Equals(other.NameBasedOnArgument);
-        }
+            => NameBasedOnArgument.Equals(other.NameBasedOnArgument);
 
         public override int GetHashCode()
-        {
-            return NameBasedOnArgument.GetHashCode();
-        }
+            => NameBasedOnArgument.GetHashCode();
     }
 }

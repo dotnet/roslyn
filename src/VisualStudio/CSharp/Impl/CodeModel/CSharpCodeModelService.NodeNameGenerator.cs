@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -13,16 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     internal partial class CSharpCodeModelService
     {
         protected override AbstractNodeNameGenerator CreateNodeNameGenerator()
-        {
-            return new NodeNameGenerator();
-        }
+            => new NodeNameGenerator();
 
         private class NodeNameGenerator : AbstractNodeNameGenerator
         {
             protected override bool IsNameableNode(SyntaxNode node)
-            {
-                return CSharpCodeModelService.IsNameableNode(node);
-            }
+                => CSharpCodeModelService.IsNameableNode(node);
 
             private static void AppendName(StringBuilder builder, NameSyntax name)
             {
@@ -77,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                             AppendTypeName(builder, arrayType.ElementType);
 
                             var specifiers = arrayType.RankSpecifiers;
-                            for (int i = 0; i < specifiers.Count; i++)
+                            for (var i = 0; i < specifiers.Count; i++)
                             {
                                 builder.Append('[');
 

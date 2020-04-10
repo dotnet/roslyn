@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -43,6 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             delegateStyle: SymbolDisplayDelegateStyle.NameAndParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpProgressionLanguageService()
+        {
+        }
+
         public IEnumerable<SyntaxNode> GetTopLevelNodesFromDocument(SyntaxNode root, CancellationToken cancellationToken)
         {
             // We implement this method lazily so we are able to abort as soon as we need to.
@@ -80,14 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
         }
 
         public string GetDescriptionForSymbol(ISymbol symbol, bool includeContainingSymbol)
-        {
-            return GetSymbolText(symbol, includeContainingSymbol, s_descriptionFormat);
-        }
+            => GetSymbolText(symbol, includeContainingSymbol, s_descriptionFormat);
 
         public string GetLabelForSymbol(ISymbol symbol, bool includeContainingSymbol)
-        {
-            return GetSymbolText(symbol, includeContainingSymbol, s_labelFormat);
-        }
+            => GetSymbolText(symbol, includeContainingSymbol, s_labelFormat);
 
         private static string GetSymbolText(ISymbol symbol, bool includeContainingSymbol, SymbolDisplayFormat displayFormat)
         {
@@ -122,8 +126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
         }
 
         private static bool IncludeReturnType(IMethodSymbol f)
-        {
-            return f.MethodKind == MethodKind.Ordinary || f.MethodKind == MethodKind.ExplicitInterfaceImplementation;
-        }
+            => f.MethodKind == MethodKind.Ordinary || f.MethodKind == MethodKind.ExplicitInterfaceImplementation;
     }
 }

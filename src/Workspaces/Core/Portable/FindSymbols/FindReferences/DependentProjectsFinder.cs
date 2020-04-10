@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -46,19 +48,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             public override bool Equals(object obj)
-            {
-                return obj is DependentProject && this.Equals((DependentProject)obj);
-            }
+                => obj is DependentProject && this.Equals((DependentProject)obj);
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(HasInternalsAccess, ProjectId.GetHashCode());
-            }
+                => Hash.Combine(HasInternalsAccess, ProjectId.GetHashCode());
 
             public bool Equals(DependentProject other)
-            {
-                return HasInternalsAccess == other.HasInternalsAccess && ProjectId.Equals(other.ProjectId);
-            }
+                => HasInternalsAccess == other.HasInternalsAccess && ProjectId.Equals(other.ProjectId);
         }
 
         /// <summary>
@@ -310,10 +306,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (HasReferenceTo(sourceAssembly, sourceProject, project, cancellationToken))
+                if (project.SupportsCompilation && HasReferenceTo(sourceAssembly, sourceProject, project, cancellationToken))
                 {
                     var hasInternalsAccess = await HasInternalsAccessAsync(
-                        sourceAssembly, internalsVisibleToMap, 
+                        sourceAssembly, internalsVisibleToMap,
                         sourceAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
 
                     dependentProjects.Add(new DependentProject(project.Id, hasInternalsAccess));
@@ -322,7 +318,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<bool> HasInternalsAccessAsync(
-            IAssemblySymbol sourceAssembly, Lazy<HashSet<string>> internalsVisibleToMap, 
+            IAssemblySymbol sourceAssembly, Lazy<HashSet<string>> internalsVisibleToMap,
             SymbolKey sourceAssemblySymbolKey, Project project, CancellationToken cancellationToken)
         {
             if (internalsVisibleToMap.Value.Contains(project.AssemblyName) &&
@@ -403,18 +399,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return project.ProjectReferences.Any(p => p.ProjectId == sourceProject.Id);
             }
 
-            return project.HasReferenceToAssembly(containingAssembly);
+            return project.HasReferenceToAssembly(containingAssembly, cancellationToken);
         }
 
-        public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol)
-        {
-            return project.HasReferenceToAssembly(assemblySymbol.Name);
-        }
+        public static bool HasReferenceToAssembly(this Project project, IAssemblySymbol assemblySymbol, CancellationToken cancellationToken)
+            => project.HasReferenceToAssembly(assemblySymbol.Name, cancellationToken);
 
-        public static bool HasReferenceToAssembly(this Project project, string assemblyName)
+        public static bool HasReferenceToAssembly(this Project project, string assemblyName, CancellationToken cancellationToken)
         {
-            bool? hasMatch = project.GetAssemblyReferenceType(
-                a => a.Name == assemblyName ? true : (bool?)null);
+            var hasMatch = project.GetAssemblyReferenceType(
+                a => a.Name == assemblyName ? true : (bool?)null,
+                cancellationToken);
 
             return hasMatch == true;
         }
@@ -426,8 +421,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// as the value of this function.  Otherwise 'null' is returned.
         /// </summary>
         private static T? GetAssemblyReferenceType<T>(
-            this Project project, 
-            Func<IAssemblySymbol, T?> predicate) where T : struct
+            this Project project,
+            Func<IAssemblySymbol, T?> predicate,
+            CancellationToken cancellationToken) where T : struct
         {
             // If the project we're looking at doesn't even support compilations, then there's no 
             // way for it to have an IAssemblySymbol.  And without that, there is no way for it
@@ -437,18 +433,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return null;
             }
 
-            // WORKAROUND:
-            // perf check metadata reference using newly created empty compilation with only metadata references.
-            //
-            // TODO(cyrusn): Why don't we call project.TryGetCompilation first?  
-            // wouldn't we want to use that compilation if it's available?
-            var compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
-                project.AssemblyName, project.CompilationOptions);
+            if (!project.TryGetCompilation(out var compilation))
+            {
+                // WORKAROUND:
+                // perf check metadata reference using newly created empty compilation with only metadata references.
+                compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
+                    project.AssemblyName, project.CompilationOptions);
 
-            compilation = compilation.AddReferences(project.MetadataReferences);
+                compilation = compilation.AddReferences(project.MetadataReferences);
+            }
 
             foreach (var reference in project.MetadataReferences)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol)
                 {
                     var result = predicate(symbol);

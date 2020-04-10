@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool FreeLibrary([In] IntPtr hFile);
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void DefaultVersionResource()
         {
             string source = @"
@@ -116,7 +118,7 @@ public class Maine
             Assert.Equal(" ", fileVer.LegalCopyright);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ResourcesInCoff()
         {
             //this is to test that resources coming from a COFF can be added to a binary.
@@ -155,15 +157,15 @@ class C
 
                 uint stringTableSize;
                 IntPtr stringTable = Win32Res.GetResource(lib, "#1", "#6", out stringTableSize);
-                Assert.NotNull(stringTable);
+                Assert.NotEqual(default, stringTable);
 
                 uint elevenSize;
                 IntPtr elevenRsrc = Win32Res.GetResource(lib, "#1", "#11", out elevenSize);
-                Assert.NotNull(elevenRsrc);
+                Assert.NotEqual(default, elevenRsrc);
 
                 uint wevtSize;
                 IntPtr wevtRsrc = Win32Res.GetResource(lib, "#1", "WEVT_TEMPLATE", out wevtSize);
-                Assert.NotNull(wevtRsrc);
+                Assert.NotEqual(default, wevtRsrc);
             }
             finally
             {
@@ -433,7 +435,7 @@ class C
             c1 = null;
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void AddResourceToModule()
         {
             bool metadataOnly = false;
@@ -505,10 +507,10 @@ class C
             var ref_mod1 = mod1.GetReference();
             Assert.Equal(ManifestResourceAttributes.Public, mod1.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
 
-                {
-                    var c2 = CreateCompilation(sourceTree, new[] { ref_mod1 }, TestOptions.ReleaseDll);
-                    var output2 = new MemoryStream();
-                    var result2 = c2.Emit(output2);
+            {
+                var c2 = CreateCompilation(sourceTree, new[] { ref_mod1 }, TestOptions.ReleaseDll);
+                var output2 = new MemoryStream();
+                var result2 = c2.Emit(output2);
 
                 Assert.True(result2.Success);
                 var assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output2.ToArray());
@@ -553,10 +555,10 @@ class C
             Assert.True(result.Success);
             var ref_mod2 = ModuleMetadata.CreateFromImage(output_mod2.ToImmutable()).GetReference();
 
-                {
-                    var c3 = CreateCompilation(sourceTree, new[] { ref_mod2 }, TestOptions.ReleaseDll);
-                    var output3 = new MemoryStream();
-                    var result3 = c3.Emit(output3);
+            {
+                var c3 = CreateCompilation(sourceTree, new[] { ref_mod2 }, TestOptions.ReleaseDll);
+                var output3 = new MemoryStream();
+                var result3 = c3.Emit(output3);
 
                 Assert.True(result3.Success);
                 var assembly = Assembly.ReflectionOnlyLoad(output3.ToArray());
@@ -611,14 +613,14 @@ class C
             var ref_mod3 = mod3.GetReference();
             Assert.Equal(ManifestResourceAttributes.Private, mod3.Module.GetEmbeddedResourcesOrThrow()[0].Attributes);
 
-                {
-                    var c4 = CreateCompilation(sourceTree, new[] { ref_mod3 }, TestOptions.ReleaseDll);
-                    var output4 = new MemoryStream();
-                    var result4 = c4.Emit(output4, manifestResources:
-                        new ResourceDescription[]
-                        {
+            {
+                var c4 = CreateCompilation(sourceTree, new[] { ref_mod3 }, TestOptions.ReleaseDll);
+                var output4 = new MemoryStream();
+                var result4 = c4.Emit(output4, manifestResources:
+                    new ResourceDescription[]
+                    {
                             new ResourceDescription(r1Name, () => new MemoryStream(arrayOfEmbeddedData), false)
-                        });
+                    });
 
                 Assert.True(result4.Success);
                 var assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output4.ToArray());
@@ -654,10 +656,10 @@ class C
                 Assert.Equal(resourceFileData, rBytes);
             }
 
-                {
-                    var c5 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod3 }, TestOptions.ReleaseDll);
-                    var output5 = new MemoryStream();
-                    var result5 = emit(c5, output5, null);
+            {
+                var c5 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod3 }, TestOptions.ReleaseDll);
+                var output5 = new MemoryStream();
+                var result5 = emit(c5, output5, null);
 
                 Assert.True(result5.Success);
                 var assembly = Assembly.ReflectionOnlyLoad(output5.ToArray());
@@ -698,10 +700,10 @@ class C
                 Assert.Equal(resourceFileData, rBytes);
             }
 
-                {
-                    var c6 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseDll);
-                    var output6 = new MemoryStream();
-                    var result6 = emit(c6, output6, null);
+            {
+                var c6 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseDll);
+                var output6 = new MemoryStream();
+                var result6 = emit(c6, output6, null);
 
                 if (metadataOnly)
                 {
@@ -737,7 +739,7 @@ class C
                         );
                 }
 
-                    c6 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseModule);
+                c6 = CreateCompilation(sourceTree, new[] { ref_mod1, ref_mod2 }, TestOptions.ReleaseModule);
 
                 result6 = emit(c6, output6,
                     new ResourceDescription[]
@@ -803,7 +805,7 @@ public class Maine
             Assert.Equal((int)ErrorCode.ERR_CantReadResource, result.Diagnostics.ToArray()[0].Code);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void ResourceWithAttrSettings()
         {
             string source = @"

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
@@ -669,6 +671,29 @@ class C
                     </Document>
                 </Project>
             </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestRegexReference1() As Task
+
+            Dim input =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+using System.Text.RegularExpressions;
+
+class C
+{
+    void Goo()
+    {
+        var r = new Regex(@"{|Reference:(a)|}\0{|Reference:\$$1|}");
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
 
             Await VerifyHighlightsAsync(input)
         End Function

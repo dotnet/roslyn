@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -28,16 +30,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         <Fact>
         Public Sub ErrorsWithAssemblySymbolArguments()
             Dim identity = New AssemblyIdentity(GetUniqueName())
-            Dim assembly = CreateEmptyCompilation(identity, {}, {}).Assembly
+            Dim assembly = CreateEmptyCompilation(identity, source:=Nothing).Assembly
             Assert.Same(identity, GetMissingAssemblyIdentities(ERRID.ERR_UnreferencedAssemblyEvent3, assembly).Single())
         End Sub
 
         <Fact>
         Public Sub ErrorsWithAssemblyMultipleSymbolArguments()
             Dim identity1 = New AssemblyIdentity(GetUniqueName())
-            Dim assembly1 = CreateEmptyCompilation(identity1, {}, {}).Assembly
+            Dim assembly1 = CreateEmptyCompilation(identity1, source:=Nothing).Assembly
             Dim identity2 = New AssemblyIdentity(GetUniqueName())
-            Dim assembly2 = CreateEmptyCompilation(identity2, {}, {}).Assembly
+            Dim assembly2 = CreateEmptyCompilation(identity2, source:=Nothing).Assembly
             Assert.Same(identity2, GetMissingAssemblyIdentities(ERRID.ERR_ForwardedTypeUnavailable3, "dummy", assembly1, assembly2).Single())
             Assert.Same(identity1, GetMissingAssemblyIdentities(ERRID.ERR_ForwardedTypeUnavailable3, "dummy", assembly2, assembly1).Single())
             Assert.True(GetMissingAssemblyIdentities(ERRID.ERR_ForwardedTypeUnavailable3, "dummy", assembly1).IsDefault)

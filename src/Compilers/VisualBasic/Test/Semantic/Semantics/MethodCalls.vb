@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -5100,7 +5102,8 @@ S1
 ]]>)
         End Sub
 
-        <Fact, WorkItem(531448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531448")>
+        <WorkItem(531448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531448")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug18133_1()
             Dim source =
 <compilation>
@@ -5129,7 +5132,8 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(531448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531448")>
+        <WorkItem(531448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531448")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug18133_2()
             Dim source =
 <compilation>
@@ -5433,7 +5437,7 @@ Public Class Test2
     End Sub
 End Class
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(library)
 

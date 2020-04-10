@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -1436,7 +1439,7 @@ public class C
     {
         Student s = new Student();
         s.Name = ""Bozo"";
-        s.GPA = 2.3;
+        s.GPA = s.Name switch { _ => 2.3 }; // switch expression is not instrumented
         Operate(s);
     }
      
@@ -1543,7 +1546,7 @@ public class C
     public void Deconstruct(out int x, out int y) // Method 5
     {
         x = 1;
-        y = 2;
+        y = 1 switch { 1 => 2, 3 => 4, _ => 5 }; // switch expression is not instrumented
     }
 }
 ";
@@ -2410,6 +2413,113 @@ class C
         }
 
         [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionAttributes()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    static void M1()
+    {
+        L1();
+
+        [ExcludeFromCodeCoverage]
+        void L1() { new Action(() => { Console.WriteLine(1); }).Invoke(); }
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.RegularPreview);
+
+            AssertInstrumented(verifier, "C.M1");
+            AssertNotInstrumented(verifier, "C.<M1>g__L1|0_0()");
+            AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_1()");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionAttributes_Multiple()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    static void M1()
+    {
+#pragma warning disable 8321 // Unreferenced local function
+        void L1() { Console.WriteLine(1); }
+
+        [ExcludeFromCodeCoverage]
+        void L2() { Console.WriteLine(2); }
+
+        void L3() { Console.WriteLine(3); }
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.RegularPreview);
+
+            AssertInstrumented(verifier, "C.M1");
+            AssertInstrumented(verifier, "C.<M1>g__L1|0_0(ref C.<>c__DisplayClass0_0)");
+            AssertNotInstrumented(verifier, "C.<M1>g__L2|0_1()");
+            AssertInstrumented(verifier, "C.<M1>g__L3|0_2(ref C.<>c__DisplayClass0_0)");
+        }
+
+        [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LocalFunctionAttributes_Nested()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    static void M1()
+    {
+        L1();
+
+        void L1()
+        {
+            new Action(() =>
+            {
+                L2();
+
+                [ExcludeFromCodeCoverage]
+                void L2()
+                {
+                    new Action(() =>
+                    {
+                        L3();
+
+                        void L3()
+                        {
+                            Console.WriteLine(1);
+                        }
+                    }).Invoke();
+                }
+            }).Invoke();
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.RegularPreview);
+
+            AssertInstrumented(verifier, "C.M1");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass0_0.<M1>g__L1|0()");
+            AssertInstrumented(verifier, "C.<>c__DisplayClass0_0.<M1>b__1()");
+            AssertNotInstrumented(verifier, "C.<M1>g__L2|0_2()");
+            AssertNotInstrumented(verifier, "C.<>c.<M1>b__0_3");
+            AssertNotInstrumented(verifier, "C.<M1>g__L3|0_4()");
+        }
+
+        [Fact]
         public void ExcludeFromCodeCoverageAttribute_LocalFunctionsAndLambdas_InInitializers()
         {
             string source = @"
@@ -3211,9 +3321,15 @@ True
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = Verification.Passes)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)), verify: verify);
+            return base.CompileAndVerify(
+                source,
+                expectedOutput: expectedOutput,
+                options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true),
+                parseOptions: parseOptions,
+                emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)),
+                verify: verify);
         }
 
         private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)

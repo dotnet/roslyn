@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -18,15 +20,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// <summary>
         /// This delegate allows test code to override the behavior of <see cref="Create(IEnumerable{Assembly})"/>.
         /// </summary>
-        /// <seealso cref="HookServiceCreation"/>
+        /// <seealso cref="TestAccessor.HookServiceCreation"/>
         private static CreationHook s_CreationHook;
 
         private readonly CompositionContext _compositionContext;
 
         public MefHostServices(CompositionContext compositionContext)
-        {
-            _compositionContext = compositionContext;
-        }
+            => _compositionContext = compositionContext;
 
         public static MefHostServices Create(CompositionContext compositionContext)
         {
@@ -59,14 +59,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-        {
-            return new MefWorkspaceServices(this, workspace);
-        }
+            => new MefWorkspaceServices(this, workspace);
 
         IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-        {
-            return _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
-        }
+            => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
 
         IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
         {
@@ -82,17 +78,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         #region Defaults
-
-        /// <summary>
-        /// For test use only. Injects replacement behavior for the <see cref="Create(IEnumerable{Assembly})"/> method.
-        /// </summary>
-        internal static void HookServiceCreation(CreationHook hook)
-        {
-            s_CreationHook = hook;
-
-            // The existing host, if any, is not retained past this call.
-            s_defaultHost = null;
-        }
 
         private static MefHostServices s_defaultHost;
         public static MefHostServices DefaultHost
@@ -123,11 +108,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
         }
 
-        private static ImmutableArray<Assembly> LoadDefaultAssemblies()
-        {
-            // build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
-            // updated: includes feature assemblies since they now have public API's.
-            var assemblyNames = new string[]
+        // Used to build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
+        // updated: includes feature assemblies since they now have public API's.
+        private static readonly string[] s_defaultAssemblyNames = new string[]
             {
                 "Microsoft.CodeAnalysis.Workspaces",
                 "Microsoft.CodeAnalysis.CSharp.Workspaces",
@@ -137,49 +120,29 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 "Microsoft.CodeAnalysis.VisualBasic.Features"
             };
 
-            return LoadNearbyAssemblies(assemblyNames);
-        }
-
-        internal static ImmutableArray<Assembly> LoadNearbyAssemblies(string[] assemblyNames)
+        internal static bool IsDefaultAssembly(Assembly assembly)
         {
-            var assemblies = new List<Assembly>();
-
-            foreach (var assemblyName in assemblyNames)
-            {
-                var assembly = TryLoadNearbyAssembly(assemblyName);
-                if (assembly != null)
-                {
-                    assemblies.Add(assembly);
-                }
-            }
-
-            return assemblies.ToImmutableArray();
+            var name = assembly.GetName().Name;
+            return s_defaultAssemblyNames.Contains(name);
         }
 
-        private static Assembly TryLoadNearbyAssembly(string assemblySimpleName)
-        {
-            var thisAssemblyName = typeof(MefHostServices).GetTypeInfo().Assembly.GetName();
-            var assemblyShortName = thisAssemblyName.Name;
-            var assemblyVersion = thisAssemblyName.Version;
-            var publicKeyToken = thisAssemblyName.GetPublicKeyToken().Aggregate(string.Empty, (s, b) => s + b.ToString("x2"));
-
-            if (string.IsNullOrEmpty(publicKeyToken))
-            {
-                publicKeyToken = "null";
-            }
-
-            var assemblyName = new AssemblyName(string.Format("{0}, Version={1}, Culture=neutral, PublicKeyToken={2}", assemblySimpleName, assemblyVersion, publicKeyToken));
-
-            try
-            {
-                return Assembly.Load(assemblyName);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        private static ImmutableArray<Assembly> LoadDefaultAssemblies()
+            => MefHostServicesHelpers.LoadNearbyAssemblies(s_defaultAssemblyNames);
 
         #endregion
+
+        internal readonly struct TestAccessor
+        {
+            /// <summary>
+            /// Injects replacement behavior for the <see cref="Create(IEnumerable{Assembly})"/> method.
+            /// </summary>
+            internal static void HookServiceCreation(CreationHook hook)
+            {
+                s_CreationHook = hook;
+
+                // The existing host, if any, is not retained past this call.
+                s_defaultHost = null;
+            }
+        }
     }
 }

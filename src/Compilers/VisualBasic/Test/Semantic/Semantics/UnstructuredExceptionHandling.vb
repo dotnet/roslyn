@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Roslyn.Test.Utilities
@@ -8,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class UnstructuredExceptionHandling
         Inherits BasicTestBase
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_Goto0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -152,7 +154,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_GotoM1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -231,7 +233,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_GotoLabel()
             Dim source =
 <compilation name="ErrorHandling">
@@ -319,7 +321,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_ResumeNext()
             Dim source =
 <compilation name="ErrorHandling">
@@ -425,7 +427,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestOnError_ResumeNext_2()
             Dim source =
 <compilation name="ErrorHandling">
@@ -561,7 +563,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestResume()
             Dim source =
 <compilation name="ErrorHandling">
@@ -675,7 +677,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestResumeNext()
             Dim source =
 <compilation name="ErrorHandling">
@@ -787,7 +789,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub TestResumeLabel()
             Dim source =
 <compilation name="ErrorHandling">
@@ -866,7 +868,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub BaseCtor()
             Dim source =
 <compilation name="ErrorHandling">
@@ -1465,7 +1467,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </expected>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_If_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -3096,7 +3098,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Select_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -3514,7 +3516,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Select_2()
             Dim source =
 <compilation name="ErrorHandling">
@@ -3867,7 +3869,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Select_4()
             Dim source =
 <compilation name="ErrorHandling">
@@ -4296,7 +4298,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Select_6()
             Dim source =
 <compilation name="ErrorHandling">
@@ -6557,7 +6559,8 @@ End Module
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Do_Loop_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11039,7 +11042,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_SyncLock_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11149,7 +11152,7 @@ M(3) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Using_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11301,7 +11304,7 @@ M(3) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Using_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11486,7 +11489,7 @@ M(3) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_VariableDeclaration_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11668,7 +11671,7 @@ M(14) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_With_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11802,7 +11805,7 @@ M(4) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ReDim_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -11957,7 +11960,7 @@ y(0) is Changed = System.Int32[]; Content is preserved]]>
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ReDim_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12092,7 +12095,7 @@ y(0) is Changed = System.Int32[]
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Erase_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12254,7 +12257,7 @@ y(0) is Nothing
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Erase_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12368,7 +12371,7 @@ x(0) is Nothing
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Goto_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12476,8 +12479,7 @@ M(3) - 0
             CompileAndVerify(compilation, expectedOutput:=expected)
 
         End Sub
-
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ExitSelect_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -12989,7 +12991,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_AddRaiseRemove_Event_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13173,7 +13175,7 @@ M(6) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ObjectConstruction_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13331,7 +13333,7 @@ M(TestInstance.New(x As Integer) 2) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_ObjectConstruction_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13459,7 +13461,7 @@ M(TestInstance.New 2) - 0
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_TypeInitialization_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -13578,7 +13580,7 @@ Exception - System.TypeInitializationException
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Resume_in_Lambda_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14277,7 +14279,7 @@ BC36597: 'On Error Goto Label2' is not valid because 'Label2' is inside a scope 
 </expected>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorStatement_0()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14317,7 +14319,7 @@ System.InvalidOperationException: Resume without error.
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorStatement_1()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14550,7 +14552,8 @@ BC42105: Function 'test1' doesn't return a value on all code paths. A null refer
 </expected>)
         End Sub
 
-        <Fact(), WorkItem(547095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547095")>
+        <WorkItem(547095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547095")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Bug17937()
             Dim source =
 <compilation name="AscW">
@@ -14589,7 +14592,7 @@ after throw
         End Sub
 
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub SingleLabelErrorHandler()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14626,7 +14629,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="Test2goo")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub MultipleLabelErrorHandler()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14664,7 +14667,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="Test3googooReturn")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_In_Single_Method_With_Resume_Next()
             Dim source =
 <compilation name="ErrorHandling">
@@ -14874,7 +14877,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub Multi_OnError_In_Single_Method_1()
             'This will work because of the correct reset of event handler and using Throw rather than Error 
             'statement to trigger the Errors
@@ -15162,7 +15165,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_With_Explicit_Throw()
             Dim source =
     <compilation name="ErrorHandling">
@@ -15189,7 +15192,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="StartHandler")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_With_Explicit_Error()
             Dim source =
     <compilation name="ErrorHandling">
@@ -15216,7 +15219,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="StartHandler")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Error()
             Dim source =
     <compilation name="ErrorHandling">
@@ -15243,7 +15246,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="Start")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Exception()
             'This ensures that the Handler is not called
             Dim source =
@@ -15346,7 +15349,7 @@ End Module
         End Sub
 
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Exception_AndLabel_Next()
             'This ensures that the Handler is not called
             Dim source =
@@ -15449,7 +15452,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_Resume_Next_With_Explicit_Exception_2()
             'This ensures that the Handler is not called as the current handler should be the last one
             Dim source =
@@ -16362,7 +16365,7 @@ End Module
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_GotoMinusBaselineInhandler()
             'The difference on the resetting the error in the handler and the resume is important as this one
             'will resume in the Handler and hence the 2nd error will not be generated
@@ -16552,7 +16555,7 @@ Goo
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_GotoMinusBaselineInMainBlock()
             'The difference on the resetting the error in the handler and the resume is important as this one
             'will resume in the Handler and hence the 2nd error will not be generated
@@ -16741,7 +16744,7 @@ Goo]]>)
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_GotoMinusBaselineInMainBlock_ThrowException()
             Dim source =
     <compilation name="ErrorHandling">
@@ -16898,7 +16901,8 @@ After 2 Exception]]>)
 }]]>)
         End Sub
 
-        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_WithSyncLock_1()
             'This is the typical scenario documented in the spec to ensure that infinite
             'recursion does not occur
@@ -17223,7 +17227,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_WithSyncLock_3()
             'This verifies that resume next will resume outside the sync block
             Dim source =
@@ -17365,7 +17369,8 @@ End Module
 ]]>)
         End Sub
 
-        <Fact, WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <WorkItem(1005639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1005639")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithConditionBlocks()
             'This verifies that resume next will resume inside the IF block when an error occurs in the
             'IF statement / ELSEIF and also and multiple condition IF With ANDALSO
@@ -17781,7 +17786,7 @@ End]]>)
 }]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithSelectCase()
             'This verifies that resume next will resumes outside the select caser block rather than at the next case statement or within the block            
             Dim source =
@@ -17956,7 +17961,7 @@ After Case]]>)
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithSelectCase_Error_On_Case()
             'This verifies that resume next will resumes 
             Dim source =
@@ -18003,7 +18008,7 @@ After Case]]>)
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition()
             Dim source =
     <compilation name="ErrorHandling">
@@ -18048,7 +18053,7 @@ In Handler
 After Case]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub OnError_ResumeWithSelectCase_Error_On_Case_Condition_Multiple()
 
             Dim source =
@@ -18095,8 +18100,8 @@ After Case]]>)
 
         End Sub
 
-        <Fact()>
-        Public Sub ErrorOject()
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        Public Sub ErrorObject()
             'We are causing the error by throwing an exception or by using the Error or Err.Raise
             Dim source =
     <compilation name="ErrorHandling">
@@ -18163,7 +18168,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[StartHandler11Attempted to divide by zero.StartHandler11Division by zero.StartHandler12Application-defined or object-defined error.]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_ResumeNext_ErrorObjectFunctionality()
             Dim compilationDef =
     <compilation name="ErrorHandlerTest">
@@ -18220,7 +18225,7 @@ Procedure call or argument is not valid.
 ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_InCollectionInitializer()
 
 
@@ -18268,7 +18273,7 @@ End Module
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_InCollectionInitializer_2()
             'As we are handling the error in the Add, we should handle two items to the collection
             'This should result in Nothing - All or nothing 
@@ -18295,7 +18300,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="Nothing")
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorHandler_InCollectionInitializer_3()
             'As we are handling the error in the Add, we should handle two items to the collection
             'This should result in Nothing - All or nothing 
@@ -18468,7 +18473,7 @@ Erl:0
 GetException:Nothing]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorObject_Properties()
             Dim source =
     <compilation name="ErrorHandling">
@@ -18555,7 +18560,7 @@ Erl:0
 GetException:Nothing]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorObject_Properties_AfterGeneratedInDifferentWays()
             Dim source =
     <compilation name="ErrorHandling">
@@ -18685,7 +18690,7 @@ Erl:0
 GetException:Nothing]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ErrorObject_Properties__DLLLastError()
             'The Err.LastDllError is reset without having to call the Err.Clear
             'Unsure why...
@@ -18740,7 +18745,7 @@ Invalid window handle.    Error!
 1400]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_01()
             Dim source =
 <compilation>
@@ -18787,7 +18792,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_02()
             Dim source =
 <compilation>
@@ -18835,7 +18840,7 @@ L500
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_03()
             Dim source =
 <compilation>
@@ -18874,7 +18879,7 @@ End Module
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_04()
             Dim source =
 <compilation>
@@ -18922,7 +18927,7 @@ L500
 ]]>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
         Public Sub ERL_05()
             Dim source =
 <compilation>

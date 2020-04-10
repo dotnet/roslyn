@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -7,7 +9,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
@@ -38,29 +39,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             foreach (var classifiedSpan in list)
             {
-                IClassificationType classificationType;
-                switch (classifiedSpan.ClassificationType) // filter out unsupported classification types
-                {
-                    case ClassificationTypeNames.FieldName:
-                    case ClassificationTypeNames.EnumMemberName:
-                    case ClassificationTypeNames.ConstantName:
-                    case ClassificationTypeNames.LocalName:
-                    case ClassificationTypeNames.ParameterName:
-                    case ClassificationTypeNames.MethodName:
-                    case ClassificationTypeNames.ExtensionMethodName:
-                    case ClassificationTypeNames.PropertyName:
-                    case ClassificationTypeNames.EventName:
-                        classificationType = typeMap.GetClassificationType(ClassificationTypeNames.Identifier);
-                        break;
-                    default:
-                        classificationType = typeMap.GetClassificationType(classifiedSpan.ClassificationType);
-                        break;
-                }
-
-                addTag(new TagSpan<IClassificationTag>(
-                    classifiedSpan.TextSpan.ToSnapshotSpan(snapshot),
-                    new ClassificationTag(classificationType)));
+                addTag(Convert(typeMap, snapshot, classifiedSpan));
             }
+        }
+
+        public static TagSpan<IClassificationTag> Convert(ClassificationTypeMap typeMap, ITextSnapshot snapshot, ClassifiedSpan classifiedSpan)
+        {
+            return new TagSpan<IClassificationTag>(
+                classifiedSpan.TextSpan.ToSnapshotSpan(snapshot),
+                new ClassificationTag(typeMap.GetClassificationType(classifiedSpan.ClassificationType)));
         }
 
         public static List<ITagSpan<IClassificationTag>> ConvertAndReturnList(ClassificationTypeMap typeMap, ITextSnapshot snapshot, List<ClassifiedSpan> classifiedSpans)

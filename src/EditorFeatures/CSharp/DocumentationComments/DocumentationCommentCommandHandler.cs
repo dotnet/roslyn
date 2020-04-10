@@ -1,35 +1,39 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.DocumentationComments)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class DocumentationCommentCommandHandler
         : AbstractDocumentationCommentCommandHandler<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DocumentationCommentCommandHandler(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService) 
+            IEditorOperationsFactoryService editorOperationsFactoryService)
             : base(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         {
         }
@@ -75,9 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         }
 
         protected override bool HasDocumentationComment(MemberDeclarationSyntax member)
-        {
-            return member.GetFirstToken().LeadingTrivia.Any(SyntaxKind.SingleLineDocumentationCommentTrivia, SyntaxKind.MultiLineDocumentationCommentTrivia);
-        }
+            => member.GetFirstToken().LeadingTrivia.Any(SyntaxKind.SingleLineDocumentationCommentTrivia, SyntaxKind.MultiLineDocumentationCommentTrivia);
 
         protected override int GetPrecedingDocumentationCommentCount(MemberDeclarationSyntax member)
         {
@@ -95,17 +97,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         }
 
         protected override bool IsMemberDeclaration(MemberDeclarationSyntax member)
-        {
-            return true;
-        }
+            => true;
 
         protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member)
         {
-            var list = new List<string>();
-
-            list.Add("/// <summary>");
-            list.Add("/// ");
-            list.Add("/// </summary>");
+            var list = new List<string>
+            {
+                "/// <summary>",
+                "/// ",
+                "/// </summary>"
+            };
 
             var typeParameterList = member.GetTypeParameterList();
             if (typeParameterList != null)
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             {
                 var returnType = member.GetMemberType();
                 if (returnType != null &&
-                    !(returnType.IsKind(SyntaxKind.PredefinedType) && ((PredefinedTypeSyntax)returnType).Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
+                    !(returnType.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) && predefinedType.Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
                 {
                     list.Add("/// <returns></returns>");
                 }
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         {
             if (position >= syntaxTree.GetText(cancellationToken).Length)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnRightOfPosition(
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         {
             if (position < 1)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
@@ -166,14 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         }
 
         protected override bool IsDocCommentNewLine(SyntaxToken token)
-        {
-            return token.RawKind == (int)SyntaxKind.XmlTextLiteralNewLineToken;
-        }
+            => token.RawKind == (int)SyntaxKind.XmlTextLiteralNewLineToken;
 
         protected override bool IsEndOfLineTrivia(SyntaxTrivia trivia)
-        {
-            return trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
-        }
+            => trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
 
         protected override bool IsSingleExteriorTrivia(DocumentationCommentTriviaSyntax documentationComment, bool allowWhitespace = false)
         {
@@ -192,8 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            var xmlText = documentationComment.Content[0] as XmlTextSyntax;
-            if (xmlText == null)
+            if (!(documentationComment.Content[0] is XmlTextSyntax xmlText))
             {
                 return false;
             }
@@ -256,8 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            var xmlText = documentationComment.Content.LastOrDefault() as XmlTextSyntax;
-            if (xmlText == null)
+            if (!(documentationComment.Content.LastOrDefault() is XmlTextSyntax xmlText))
             {
                 return false;
             }
@@ -280,9 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         }
 
         protected override bool IsMultilineDocComment(DocumentationCommentTriviaSyntax documentationComment)
-        {
-            return documentationComment.IsMultilineDocComment();
-        }
+            => documentationComment.IsMultilineDocComment();
 
         protected override bool AddIndent
         {

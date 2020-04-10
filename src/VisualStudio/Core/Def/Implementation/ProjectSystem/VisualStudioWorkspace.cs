@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -6,20 +10,18 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// A Workspace specific to Visual Studio.
     /// </summary>
     public abstract class VisualStudioWorkspace : Workspace
     {
-        private BackgroundCompiler _backgroundCompiler;
+        private BackgroundCompiler? _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
 
         internal VisualStudioWorkspace(HostServices hostServices)
@@ -59,42 +61,37 @@ namespace Microsoft.VisualStudio.LanguageServices
         }
 
         protected override void OnDocumentTextChanged(Document document)
-        {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.Parse(document);
-            }
-        }
+            => _backgroundParser.Parse(document);
 
         protected override void OnDocumentClosing(DocumentId documentId)
-        {
-            if (_backgroundParser != null)
-            {
-                _backgroundParser.CancelParse(documentId);
-            }
-        }
+            => _backgroundParser.CancelParse(documentId);
+
+        internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges => true;
 
         /// <summary>
         /// Returns the hierarchy for a given project. 
         /// </summary>
         /// <param name="projectId">The <see cref="ProjectId"/> for the project.</param>
         /// <returns>The <see cref="IVsHierarchy"/>, or null if the project doesn't have one.</returns>
-        public abstract IVsHierarchy GetHierarchy(ProjectId projectId);
-        public abstract string GetFilePath(DocumentId documentId);
+        public abstract IVsHierarchy? GetHierarchy(ProjectId projectId);
+
+        internal abstract Guid GetProjectGuid(ProjectId projectId);
+
+        public virtual string? GetFilePath(DocumentId documentId)
+            => CurrentSolution.GetTextDocument(documentId)?.FilePath;
 
         /// <summary>
         /// Given a document id, opens an invisible editor for the document.
         /// </summary>
         /// <returns>A unique instance of IInvisibleEditor that must be disposed by the caller.</returns>
         internal abstract IInvisibleEditor OpenInvisibleEditor(DocumentId documentId);
-        internal abstract IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument document);
 
         /// <summary>
         /// Returns the <see cref="EnvDTE.FileCodeModel"/> for a given document.
         /// </summary>
         public abstract EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId);
 
-        internal abstract object GetBrowseObject(SymbolListItem symbolListItem);
+        internal abstract object? GetBrowseObject(SymbolListItem symbolListItem);
 
         public abstract bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken);
         public abstract bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken);
@@ -108,8 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <param name="filePath">The file path of the assembly or module.</param>
         /// <param name="properties">The properties for the reference.</param>
         public PortableExecutableReference CreatePortableExecutableReference(string filePath, MetadataReferenceProperties properties)
-        {
-            return this.Services.GetService<IMetadataService>().GetReference(filePath, properties);
-        }
+            => this.Services.GetRequiredService<IMetadataService>().GetReference(filePath, properties);
+
+        internal abstract string? TryGetRuleSetPathForProject(ProjectId projectId);
     }
 }

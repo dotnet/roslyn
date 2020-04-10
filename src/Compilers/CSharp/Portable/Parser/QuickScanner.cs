@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // to be able to detect exiting conditions in one "state >= Done" test.
             // And we are also relying on this to be the last item in the enum.
             Done,
-            Bad = Done + 1    
+            Bad = Done + 1
         }
 
         private enum CharFlags : byte
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (byte)QuickScanState.Done,                // Letter
                 (byte)QuickScanState.Number,              // Digit
                 (byte)QuickScanState.Done,                // Punct
-                (byte)QuickScanState.Done,                // Dot
+                (byte)QuickScanState.Bad,                 // Dot (DotDot range token, exit so that we handle it in subsequent scanning code)
                 (byte)QuickScanState.Done,                // Compound
                 (byte)QuickScanState.Bad,                 // Slash
                 (byte)QuickScanState.Bad,                 // Complex
@@ -227,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             state = QuickScanState.Bad; // ran out of characters in window
-        exitWhile:
+exitWhile:
 
             TextWindow.AdvanceChar(i - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");

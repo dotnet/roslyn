@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -766,7 +768,7 @@ class D { }
 
 
 
-            c = CreateCompilation(source, new[] { r1, r2 });
+            c = createCompilationCore(source, new[] { r1, r2 });
             Assert.Null(c.GetReferencedAssemblySymbol(r1));
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2));
             c.VerifyDiagnostics();
@@ -775,19 +777,19 @@ class D { }
 class D : C { }
             ";
 
-            c = CreateCompilation(source, new[] { r1, r2 });
+            c = createCompilationCore(source, new[] { r1, r2 });
             Assert.Null(c.GetReferencedAssemblySymbol(r1));
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2));
             c.VerifyDiagnostics();
 
-            c = CreateCompilation(source, new[] { rGoo, r2 });
+            c = createCompilationCore(source, new[] { rGoo, r2 });
             Assert.Null(c.GetReferencedAssemblySymbol(rGoo));
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2));
             AssertEx.SetEqual(new[] { "goo", "global" }, c.ExternAliases);
             c.VerifyDiagnostics();
 
             // 2 aliases for the same path, aliases not used to qualify name
-            c = CreateCompilation(source, new[] { rGoo, rBar });
+            c = createCompilationCore(source, new[] { rGoo, rBar });
             Assert.Null(c.GetReferencedAssemblySymbol(rGoo));
             Assert.NotNull(c.GetReferencedAssemblySymbol(rBar));
             AssertEx.SetEqual(new[] { "goo", "bar" }, c.ExternAliases);
@@ -801,7 +803,7 @@ class D : C { }
             ";
 
             // /l and /r with the same path
-            c = CreateCompilation(source, new[] { rGoo, rEmbed });
+            c = createCompilationCore(source, new[] { rGoo, rEmbed });
             Assert.Null(c.GetReferencedAssemblySymbol(rGoo));
             Assert.NotNull(c.GetReferencedAssemblySymbol(rEmbed));
 
@@ -824,10 +826,16 @@ public class D : goo::C { }
 public class E : bar::C { }
 ";
             // 2 aliases for the same path, aliases used
-            c = CreateCompilation(source, new[] { rGoo, rBar });
+            c = createCompilationCore(source, new[] { rGoo, rBar });
             Assert.Null(c.GetReferencedAssemblySymbol(rGoo));
             Assert.NotNull(c.GetReferencedAssemblySymbol(rBar));
             c.VerifyDiagnostics();
+
+            CSharpCompilation createCompilationCore(string s, IEnumerable<MetadataReference> references)
+            {
+                references = TargetFrameworkUtil.StandardReferences.AddRange(references);
+                return CreateEmptyCompilation(s, references);
+            }
         }
 
         // "<path>\x\y.dll" -> "<path>\x\..\x\y.dll"
@@ -956,7 +964,7 @@ public class E : bar::C { }
             var ref1 = AssemblyMetadata.CreateFromImage(TestResources.General.C2).GetReference(embedInteropTypes: true, filePath: @"R:\A\MTTestLib1.dll");
             var ref2 = AssemblyMetadata.CreateFromImage(TestResources.General.C2).GetReference(embedInteropTypes: false, filePath: @"R:\B\MTTestLib1.dll");
 
-            var c = CreateCompilation("class C {}", new[] { ref1, ref2 });
+            var c = CreateEmptyCompilation("class C {}", TargetFrameworkUtil.StandardReferences.AddRange(new[] { ref1, ref2 }));
             c.VerifyDiagnostics(
                 // error CS1760: Assemblies 'R:\B\MTTestLib1.dll' and 'R:\A\MTTestLib1.dll' refer to the same metadata but only one is a linked reference (specified using /link option); consider removing one of the references.
                 Diagnostic(ErrorCode.ERR_AssemblySpecifiedForLinkAndRef).WithArguments(@"R:\B\MTTestLib1.dll", @"R:\A\MTTestLib1.dll"));
@@ -978,7 +986,7 @@ public interface I {}";
             var ref1 = lib1.ToMetadataReference(embedInteropTypes: true);
             var ref2 = lib2.ToMetadataReference(embedInteropTypes: false);
 
-            var c = CreateCompilation("class C {}", new[] { ref1, ref2 });
+            var c = CreateEmptyCompilation("class C {}", TargetFrameworkUtil.StandardReferences.AddRange(new[] { ref1, ref2 }));
             c.VerifyDiagnostics(
                 // error CS1760: Assemblies 'Lib' and 'Lib' refer to the same metadata but only one is a linked reference (specified using /link option); consider removing one of the references.
                 Diagnostic(ErrorCode.ERR_AssemblySpecifiedForLinkAndRef).WithArguments("Lib", "Lib"));
@@ -1013,7 +1021,7 @@ public interface I {}";
 
             var comp = CSharpCompilation.Create(
                 "DupSignedRefs",
-                new[] { SyntaxFactory.ParseSyntaxTree(text) },
+                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular) },
                 new[] { MetadataReference.CreateFromFile(p1), MetadataReference.CreateFromFile(p2) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
@@ -1051,7 +1059,7 @@ class C : A2::A { }
             // Dev12 reports CS1704. An assembly with the same simple name '...' has already been imported. 
             // We consider the second reference a duplicate and ignore it (merging the aliases).
 
-            CreateCompilation(source, new[] { ref1, ref2 }).VerifyDiagnostics();
+            CreateEmptyCompilation(source, TargetFrameworkUtil.StandardReferences.AddRange(new[] { ref1, ref2 })).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1127,8 +1135,8 @@ public class Q
                 var mdRefLib1 = metadataLib1.GetReference(filePath: @"C:\W1.dll");
                 var mdRefLib2 = metadataLib2.GetReference(filePath: @"C:\W2.dll");
 
-                var main = CreateCompilation(sourceMain,
-                    new[] { mdRefLib1, mdRefLib2 });
+                var main = CreateEmptyCompilation(sourceMain,
+                    TargetFrameworkUtil.StandardReferences.AddRange(new[] { mdRefLib1, mdRefLib2 }));
 
                 // Dev12 reports CS1704. An assembly with the same simple name '...' has already been imported. 
                 // We consider the second reference a duplicate and ignore it.
@@ -1192,8 +1200,8 @@ public class Q
                 var mdRefLib1 = metadataLib1.GetReference(filePath: @"C:\WB.dll");
                 var mdRefLib2 = metadataLib2.GetReference(filePath: @"C:\WB_Version1.dll");
 
-                var main = CreateCompilation(sourceMain,
-                    new[] { mdRefLib1, mdRefLib2 });
+                var main = CreateEmptyCompilation(sourceMain,
+                    TargetFrameworkUtil.StandardReferences.AddRange(new[] { mdRefLib1, mdRefLib2 }));
 
                 main.VerifyDiagnostics(
                     // error CS1704: An assembly with the same simple name 'WB' has already been imported. Try removing one of the references (e.g. 'C:\WB.dll') or sign them to enable side-by-side.
@@ -1220,7 +1228,7 @@ public class A
 }
 ";
 
-            var compilation = CreateCompilation(source, references: new[] { arSA, enUS });
+            var compilation = CreateEmptyCompilation(source, TargetFrameworkUtil.StandardReferences.AddRange(new[] { arSA, enUS }));
             var arSA_sym = compilation.GetReferencedAssemblySymbol(arSA);
             var enUS_sym = compilation.GetReferencedAssemblySymbol(enUS);
 
@@ -2185,21 +2193,25 @@ public class Source
             var refVectors40 = vectors40.EmitToImageReference();
             var refVectors41 = vectors41.EmitToImageReference();
 
-            var c1 = CreateCompilation("", new[] { refVectors40, refVectors41 }, options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+            var c1 = CreateEmptyCompilation("",
+                TargetFrameworkUtil.StandardReferences.AddRange(new[] { refVectors40, refVectors41 }),
+                options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
             c1.VerifyDiagnostics();
 
             var a0 = c1.GetAssemblyOrModuleSymbol(refVectors40);
             var a1 = c1.GetAssemblyOrModuleSymbol(refVectors41);
-            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
-            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a0).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a1).Identity.GetDisplayName());
 
-            var c2 = CreateCompilation("", new[] { refVectors41, refVectors40 }, options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
+            var c2 = CreateEmptyCompilation("",
+                TargetFrameworkUtil.StandardReferences.AddRange(new[] { refVectors41, refVectors40 }),
+                options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
             c2.VerifyDiagnostics();
 
             a0 = c2.GetAssemblyOrModuleSymbol(refVectors40);
             a1 = c2.GetAssemblyOrModuleSymbol(refVectors41);
-            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
-            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a0).Identity.GetDisplayName());
+            Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((AssemblySymbol)a1).Identity.GetDisplayName());
         }
 
         [Fact]
@@ -2543,7 +2555,7 @@ public class P
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_Aliases()
         {
             // c - a -> b with alias X
@@ -2570,7 +2582,7 @@ public class C : A
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_AliasesMerge()
         {
             // c - a -> "b, V1" resolved to "b, V3" with alias X
@@ -2865,7 +2877,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
         {
             // c - a -> d -> "b,v2"
@@ -2931,7 +2943,7 @@ public class C : A
         /// <summary>
         /// Don't try to resolve AssemblyRefs that already match explicitly specified definition.
         /// </summary>
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
         {
             // c - a -> d -> "b,v2"

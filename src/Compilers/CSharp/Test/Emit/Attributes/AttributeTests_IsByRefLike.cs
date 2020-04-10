@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -657,7 +659,7 @@ class Test
             void validate(ModuleSymbol module)
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var assemblyName = module.ContainingAssembly.Name;
 
@@ -741,7 +743,7 @@ class Test
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var attribute = type.GetAttributes().Single();
                 Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attribute.AttributeClass.ToDisplayString());
@@ -788,7 +790,7 @@ class Test
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsByRefLikeType);
+                Assert.True(type.IsRefLikeType);
 
                 var attributes = type.GetAttributes();
 
@@ -991,19 +993,19 @@ namespace System
         private static void AssertReferencedIsByRefLike(TypeSymbol type, bool hasObsolete = true)
         {
             var peType = (PENamedTypeSymbol)type;
-            Assert.True(peType.IsByRefLikeType);
+            Assert.True(peType.IsRefLikeType);
 
             // there is no [Obsolete] or [IsByRef] attribute returned
             Assert.Empty(peType.GetAttributes());
 
             var peModule = (PEModuleSymbol)peType.ContainingModule;
-            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, ignoreByRefLikeMarker: false);
+            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, new MetadataDecoder(peModule), ignoreByRefLikeMarker: false);
 
             if (hasObsolete)
             {
                 Assert.NotNull(obsoleteAttribute);
                 Assert.Equal("Types with embedded references are not supported in this version of your compiler.", obsoleteAttribute.Message);
-                Assert.Equal(true, obsoleteAttribute.IsError);
+                Assert.True(obsoleteAttribute.IsError);
             }
             else
             {

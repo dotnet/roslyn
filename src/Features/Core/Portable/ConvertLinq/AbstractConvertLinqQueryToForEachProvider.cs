@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
@@ -26,15 +27,14 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             CancellationToken cancellationToken,
             out DocumentUpdateInfo documentUpdate);
 
-        protected abstract TQueryExpression FindNodeToRefactor(SyntaxNode root, TextSpan span);
+        protected abstract Task<TQueryExpression> FindNodeToRefactorAsync(CodeRefactoringContext context);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
+            var (document, _, cancellationToken) = context;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var queryExpression = FindNodeToRefactor(root, context.Span);
+            var queryExpression = await FindNodeToRefactorAsync(context).ConfigureAwait(false);
             if (queryExpression == null)
             {
                 return;
@@ -42,12 +42,13 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-            if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out DocumentUpdateInfo documentUpdateInfo))
+            if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out var documentUpdateInfo))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         Title,
-                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root)))));
+                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root)))),
+                    queryExpression.Span);
             }
         }
 
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             }
 
             /// <summary>
-            /// Updates the root of the docuemtn with the document update.
+            /// Updates the root of the document with the document update.
             /// </summary>
             public SyntaxNode UpdateRoot(SyntaxNode root)
             {

@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Globalization;
-using System.IO;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -14,6 +18,11 @@ namespace Microsoft.CodeAnalysis
     internal abstract class CommonMessageProvider
     {
         /// <summary>
+        /// Caches the return values for <see cref="GetIdForErrorCode(int)"/>.
+        /// </summary>
+        private static readonly ConcurrentDictionary<(string prefix, int code), string> s_errorIdCache = new ConcurrentDictionary<(string prefix, int code), string>();
+
+        /// <summary>
         /// Given an error code, get the severity (warning or error) of the code.
         /// </summary>
         public abstract DiagnosticSeverity GetSeverity(int code);
@@ -23,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// "fill-in" placeholders, those should be expressed in standard string.Format notation
         /// and be in the string.
         /// </summary>
-        public abstract string LoadMessage(int code, CultureInfo language);
+        public abstract string LoadMessage(int code, CultureInfo? language);
 
         /// <summary>
         /// Get an optional localizable title for the given diagnostic code.
@@ -89,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// Given a message identifier (e.g., CS0219), severity, warning as error and a culture, 
         /// get the entire prefix (e.g., "error CS0219: Warning as Error:" for C# or "error BC42024:" for VB) used on error messages.
         /// </summary>
-        public abstract string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture);
+        public abstract string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo? culture);
 
         /// <summary>
         /// Convert given symbol to string representation.
@@ -99,9 +108,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Given an error code (like 1234) return the identifier (CS1234 or BC1234).
         /// </summary>
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/31964",
+            AllowCaptures = false,
+            Constraint = "Frequently called by error list filtering; avoid allocations")]
         public string GetIdForErrorCode(int errorCode)
         {
-            return CodePrefix + errorCode.ToString("0000");
+            return s_errorIdCache.GetOrAdd((CodePrefix, errorCode), key => key.prefix + key.code.ToString("0000"));
         }
 
         /// <summary>
@@ -117,7 +130,7 @@ namespace Microsoft.CodeAnalysis
         /// Filter a <see cref="DiagnosticInfo"/> based on the compilation options so that /nowarn and /warnaserror etc. take effect.options
         /// </summary>
         /// <returns>A <see cref="DiagnosticInfo"/> with effective severity based on option or null if suppressed.</returns>
-        public DiagnosticInfo FilterDiagnosticInfo(DiagnosticInfo diagnosticInfo, CompilationOptions options)
+        public DiagnosticInfo? FilterDiagnosticInfo(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
             var report = this.GetDiagnosticReport(diagnosticInfo, options);
             switch (report)
@@ -140,6 +153,7 @@ namespace Microsoft.CodeAnalysis
         // Common error messages 
 
         public abstract int ERR_FailedToCreateTempFile { get; }
+        public abstract int ERR_MultipleAnalyzerConfigsInSameDir { get; }
 
         // command line:
         public abstract int ERR_ExpectedSingleScript { get; }
@@ -222,6 +236,10 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
+
+        // Generators:
+        public abstract int WRN_GeneratorFailedDuringInitialization { get; }
+        public abstract int WRN_GeneratorFailedDuringGeneration { get; }
 
         /// <summary>
         /// Takes an exception produced while writing to a file stream and produces a diagnostic.

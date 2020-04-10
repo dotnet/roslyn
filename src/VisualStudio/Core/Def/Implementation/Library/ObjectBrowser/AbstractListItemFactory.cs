@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -71,14 +73,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         protected MemberListItem CreateInheritedMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden)
-        {
-            return CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: true);
-        }
+            => CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: true);
 
         protected MemberListItem CreateSimpleMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden)
-        {
-            return CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: false);
-        }
+            => CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: false);
 
         private MemberListItem CreateMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden, bool isInherited)
         {
@@ -241,8 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            var parentTypeItem = parentListItem as TypeListItem;
-            if (parentTypeItem == null)
+            if (!(parentListItem is TypeListItem parentTypeItem))
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -410,8 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            var parentTypeItem = parentListItem as TypeListItem;
-            if (parentTypeItem == null)
+            if (!(parentListItem is TypeListItem parentTypeItem))
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -477,14 +473,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private class AssemblySymbolComparer : IEqualityComparer<Tuple<ProjectId, IAssemblySymbol>>
         {
             public bool Equals(Tuple<ProjectId, IAssemblySymbol> x, Tuple<ProjectId, IAssemblySymbol> y)
-            {
-                return x.Item2.Identity.Equals(y.Item2.Identity);
-            }
+                => x.Item2.Identity.Equals(y.Item2.Identity);
 
             public int GetHashCode(Tuple<ProjectId, IAssemblySymbol> obj)
-            {
-                return obj.Item2.Identity.GetHashCode();
-            }
+                => obj.Item2.Identity.GetHashCode();
         }
 
         public ImmutableHashSet<Tuple<ProjectId, IAssemblySymbol>> GetAssemblySet(Solution solution, string languageName, CancellationToken cancellationToken)
@@ -620,6 +612,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var projectListItemBuilder = ImmutableArray.CreateBuilder<ObjectListItem>();
             var referenceListItemBuilder = ImmutableArray.CreateBuilder<ObjectListItem>();
             HashSet<AssemblyIdentity> assemblyIdentitySet = null;
+            var visitedAssemblies = new Dictionary<string, AssemblyIdentity>();
 
             foreach (var projectId in projectIds)
             {
@@ -647,7 +640,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     {
                         if (reference is PortableExecutableReference portableExecutableReference)
                         {
-                            var assemblyIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(portableExecutableReference.FilePath);
+                            var assemblyIdentity = visitedAssemblies.GetOrAdd(portableExecutableReference.FilePath, filePath => AssemblyIdentityUtils.TryGetAssemblyIdentity(filePath));
                             if (assemblyIdentity != null && !assemblyIdentitySet.Contains(assemblyIdentity))
                             {
                                 assemblyIdentitySet.Add(assemblyIdentity);

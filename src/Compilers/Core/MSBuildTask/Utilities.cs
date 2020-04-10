@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -148,92 +152,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
         }
 
-        internal static string TryGetAssemblyPath(Assembly assembly)
+        internal static string? TryGetAssemblyPath(Assembly assembly)
         {
-            if ((bool?)typeof(Assembly).GetTypeInfo()
-                .GetDeclaredProperty("GlobalAssemblyCache")
-                ?.GetMethod.Invoke(assembly, parameters: null) == true)
+            if (assembly.GlobalAssemblyCache)
             {
                 return null;
             }
 
-            var codebase = (string)typeof(Assembly)
-                .GetTypeInfo()
-                .GetDeclaredProperty("CodeBase")
-                ?.GetMethod.Invoke(assembly, parameters: null);
-
-            if (codebase != null)
+            if (assembly.CodeBase is { } codebase)
             {
                 var uri = new Uri(codebase);
-                if (uri.IsFile)
-                {
-                    return uri.LocalPath;
-                }
-                else
-                {
-                    var callingAssembly = (Assembly)typeof(Assembly)
-                        .GetTypeInfo()
-                        .GetDeclaredMethod("GetCallingAssembly")
-                        ?.Invoke(null, null);
-
-                    var location = (string)typeof(Assembly).GetTypeInfo()
-                        .GetDeclaredProperty("Location")
-                        ?.GetMethod.Invoke(assembly, parameters: null);
-
-                    if (location != null)
-                    {
-                        return location;
-                    }
-                }
+                return uri.IsFile ? uri.LocalPath : assembly.Location;
             }
 
             return null;
         }
 
         /// <summary>
-        /// Try to get the directory this assembly is in. Returns null if assembly
-        /// was in the GAC or DLL location can not be retrieved.
+        /// Generate the full path to the tool that is deployed with our build tasks.
         /// </summary>
-        public static string GenerateFullPathToTool(string toolName)
+        internal static string GenerateFullPathToTool(string toolName)
         {
-            string toolLocation = null;
-
             var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
-            var assemblyPath = TryGetAssemblyPath(buildTask);
+            var assemblyPath = buildTask.Location;
+            var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
 
-            if (assemblyPath != null)
-            {
-                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                var desktopToolLocalLocation = Path.Combine(assemblyDirectory, toolName);
-                var cliToolLocalLocation = Path.Combine(assemblyDirectory, "bincore", toolName);
-
-                if (File.Exists(desktopToolLocalLocation))
-                {
-                    toolLocation = desktopToolLocalLocation;
-                }
-                else if (File.Exists(cliToolLocalLocation))
-                {
-                    toolLocation = cliToolLocalLocation;
-                }
-            }
-
-            if (toolLocation == null)
-            {
-                // Roslyn only deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
-                var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion, DotNetFrameworkArchitecture.Bitness32);
-
-                if (pathToBuildTools != null)
-                {
-                    var toolMSBuildLocation = Path.Combine(pathToBuildTools, MSBuildRoslynFolderName, toolName);
-
-                    if (File.Exists(toolMSBuildLocation))
-                    {
-                        toolLocation = toolMSBuildLocation;
-                    }
-                }
-            }
-
-            return toolLocation;
+            return RuntimeHostInfo.IsDesktopRuntime
+                ? Path.Combine(assemblyDirectory!, toolName)
+                : Path.Combine(assemblyDirectory!, "bincore", toolName);
         }
     }
 }

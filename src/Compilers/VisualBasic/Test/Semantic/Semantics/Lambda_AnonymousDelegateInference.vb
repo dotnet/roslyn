@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -472,7 +474,7 @@ End Module
                 Assert.True(conv.Exists)
             End If
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & vbCrLf & "2" & vbCrLf & "3")
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="1" & Environment.NewLine & "2" & Environment.NewLine & "3")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -552,7 +554,7 @@ End Module
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="3" & vbCrLf & "5" & vbCrLf & "7")
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="3" & Environment.NewLine & "5" & Environment.NewLine & "7")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 

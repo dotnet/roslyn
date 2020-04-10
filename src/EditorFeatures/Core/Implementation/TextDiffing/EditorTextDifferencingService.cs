@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -17,17 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
     [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
     internal class EditorTextDifferencingService : IDocumentTextDifferencingService
     {
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
 
         [ImportingConstructor]
-        public EditorTextDifferencingService(ITextBufferFactoryService textBufferFactoryService, ITextDifferencingSelectorService differenceSelectorService)
-        {
-            _textBufferFactoryService = textBufferFactoryService;
-            _differenceSelectorService = differenceSelectorService;
-        }
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService)
+            => _differenceSelectorService = differenceSelectorService;
 
-        public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+            => GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
+
+        public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
         {
             var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -35,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
             var diffService = _differenceSelectorService.GetTextDifferencingService(oldDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType())
                 ?? _differenceSelectorService.DefaultTextDifferencingService;
 
-            var differenceOptions = new StringDifferenceOptions()
-            {
-                DifferenceType = StringDifferenceTypes.Word
-            };
+            var differenceOptions = GetDifferenceOptions(preferredDifferenceType);
 
             var oldTextSnapshot = oldText.FindCorrespondingEditorTextSnapshot();
             var newTextSnapshot = newText.FindCorrespondingEditorTextSnapshot();
@@ -52,6 +52,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing
                 new TextChange(
                     diffResult.LeftDecomposition.GetSpanInOriginal(d.Left).ToTextSpan(),
                     newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString())).ToImmutableArray();
+        }
+
+        private StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)
+        {
+            StringDifferenceTypes stringDifferenceTypes = default;
+
+            if (differenceTypes.HasFlag(TextDifferenceTypes.Line))
+            {
+                stringDifferenceTypes |= StringDifferenceTypes.Line;
+            }
+
+            if (differenceTypes.HasFlag(TextDifferenceTypes.Word))
+            {
+                stringDifferenceTypes |= StringDifferenceTypes.Word;
+            }
+
+            if (differenceTypes.HasFlag(TextDifferenceTypes.Character))
+            {
+                stringDifferenceTypes |= StringDifferenceTypes.Character;
+            }
+
+            return new StringDifferenceOptions()
+            {
+                DifferenceType = stringDifferenceTypes
+            };
         }
     }
 }

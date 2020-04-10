@@ -1,8 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
@@ -145,8 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 tokens.Add(DirectCast(controlVariable, VariableDeclaratorSyntax).Names.First().Identifier)
             Else
                 Dim semanticModel = _newSolution.GetDocument(controlVariable.SyntaxTree).GetSemanticModelAsync(_cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
-                Dim identifierToken = DirectCast(controlVariable, IdentifierNameSyntax).Identifier
-                Dim symbol = semanticModel.GetSymbolInfo(identifierToken).Symbol
+                Dim symbol = semanticModel.GetSymbolInfo(controlVariable).Symbol
 
                 ' if it is a field we don't care
                 If symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.Local) Then
@@ -155,7 +155,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     ' is this local declared in the for or for each loop?
                     ' if not it was already added to the tracker before.
                     If local.IsFor OrElse local.IsForEach Then
-                        tokens.Add(identifierToken)
+                        If controlVariable.Kind = SyntaxKind.IdentifierName Then
+                            tokens.Add(DirectCast(controlVariable, IdentifierNameSyntax).Identifier)
+                        Else
+                            Debug.Fail($"Unexpected control variable kind '{controlVariable.Kind}'")
+                        End If
                     End If
                 End If
             End If

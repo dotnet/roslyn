@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -43,9 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private readonly IAsynchronousOperationListener _waiter;
 
         public AbstractSnippetInfoService(
+            IThreadingContext threadingContext,
             Shell.SVsServiceProvider serviceProvider,
             Guid languageGuidForSnippets,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             AssertIsForeground();
 
@@ -75,9 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         public int OnAfterSnippetsKeyBindingChange([ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")]uint dwCmdGuid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")]uint dwCmdId, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")]int fBound)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
         {
@@ -105,9 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         public virtual bool ShouldFormatSnippet(SnippetInfo snippetInfo)
-        {
-            return false;
-        }
+            => false;
 
         private void PopulateSnippetCaches()
         {
@@ -140,10 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             // The rest of the process requires being on the UI thread, see the explanation on
             // PopulateSnippetCacheFromExpansionEnumeration for details
-            await Task.Factory.StartNew(() => PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator),
-                CancellationToken.None,
-                TaskCreationOptions.None,
-                ForegroundTaskScheduler).ConfigureAwait(false);
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator);
         }
 
         /// <remarks>
@@ -158,14 +156,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// eventually calls into the native CExpansionEnumeratorShim::Next method, which has the
         /// same contract of expecting a non-null rgelt that it can drop expansion data into. When
         /// we call from the UI thread, this transition from managed code to the
-        /// CExpansionEnumeratorShim` goes smoothly and everything works.
+        /// CExpansionEnumeratorShim goes smoothly and everything works.
         ///
         /// When we call from a background thread, the COM marshaller has to move execution to the
         /// UI thread, and as part of this process it uses the interface as defined in the idl to
         /// set up the appropriate arguments to pass. The same parameter from the idl is defined as
         ///    [out, size_is(celt), length_is(*pceltFetched)] VsExpansion **rgelt
         ///
-        /// Because rgelt is specified as an `out` parameter, the marshaller is discarding the
+        /// Because rgelt is specified as an <c>out</c> parameter, the marshaller is discarding the
         /// pointer we passed and substituting the null reference. This then causes a null
         /// reference exception in the shim. Calling from the UI thread avoids this marshaller.
         /// </remarks>
@@ -191,8 +189,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             uint count = 0;
             uint fetched = 0;
-            VsExpansion snippetInfo = new VsExpansion();
-            IntPtr[] pSnippetInfo = new IntPtr[1];
+            var snippetInfo = new VsExpansion();
+            var pSnippetInfo = new IntPtr[1];
 
             try
             {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -32,15 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             while (true)
             {
                 var task = _tasks.Take();
-                bool ret = this.TryExecuteTask(task);
+                var ret = this.TryExecuteTask(task);
                 Debug.Assert(ret);
             }
         }
 
         protected override void QueueTask(Task task)
-        {
-            _tasks.Add(task);
-        }
+            => _tasks.Add(task);
 
         // A class derived from TaskScheduler implements this function to support inline execution
         // of a task on a thread that initiates a wait on that task object.

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -431,7 +433,7 @@ BC37220: Name '<%= s_longSymbolName %>1' exceeds the maximum length allowed in m
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub Locals()
             Dim sourceTemplate = <![CDATA[
 Class C
@@ -454,7 +456,7 @@ BC42373: Local name '<%= s_longLocalName %>1' is too long for PDB.  Consider sho
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ConstantLocals()
             Dim sourceTemplate = <![CDATA[
 Class C

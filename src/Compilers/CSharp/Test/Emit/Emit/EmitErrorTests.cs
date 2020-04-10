@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Linq;
@@ -234,8 +236,8 @@ public class B
 
                 result.Diagnostics.Verify(expectedDiagnostics.Concat(new[]
                 {
-                    // error CS7038: Failed to emit module 'Test'.
-                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation2.AssemblyName)
+                    // error CS7038: Failed to emit module 'Test': Unable to determine specific cause of the failure.
+                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation2.AssemblyName, "Unable to determine specific cause of the failure.")
                 }).ToArray());
             }
 
@@ -268,7 +270,7 @@ public class B
                 Diagnostic(ErrorCode.ERR_NetModuleNameMismatch).WithArguments("ModuleNameMismatch.netmodule", "ModuleNameMismatch.mod"));
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void CS0204_ERR_TooManyLocals()
         {
             var builder = new System.Text.StringBuilder();
@@ -331,6 +333,6 @@ public class A
                 );
         }
 
-#endregion
+        #endregion
     }
 }

@@ -84,12 +84,7 @@
       </trans-unit>
       <trans-unit id="Visual_Basic_Pretty_List">
         <source>Visual Basic Pretty List</source>
-        <target state="translated">Lista Pretty języka Visual Basic</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;Wiele typów&gt;</target>
+        <target state="translated">Formatowanie kodu języka Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="not_supported">
@@ -107,19 +102,9 @@
         <target state="translated">Zatwierdzenie wiersza</target>
         <note />
       </trans-unit>
-      <trans-unit id="Commit_Command_Handler">
-        <source>Line Commit Command Handler</source>
-        <target state="new">Line Commit Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="End_Construct_Command_Handler">
-        <source>End Construct Command Handler</source>
-        <target state="new">End Construct Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Abstract_Class_Or_Interface_Command_Handler">
-        <source>Implement Abstract Class Or Interface Command Handler</source>
-        <target state="new">Implement Abstract Class Or Interface Command Handler</target>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="translated">Implementuj klasę abstrakcyjną lub interfejs</target>
         <note />
       </trans-unit>
     </body>

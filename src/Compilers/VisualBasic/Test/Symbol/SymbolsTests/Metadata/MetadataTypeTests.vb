@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports CompilationCreationTestHelpers
@@ -6,6 +8,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -69,20 +72,19 @@ End Module
 </compilation>, TestOptions.ReleaseDll)
 
             CompileAndVerify(compilation,
-                             symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim a = m.GlobalNamespace.GetTypeMember("A")
-                                                  Assert.Equal(TypeKind.Module, a.TypeKind)
-                                                  Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
-                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit(New ModuleCompilationState).Single().ToString())
-                                              End Sub)
+                             sourceSymbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim a = m.GlobalNamespace.GetTypeMember("A")
+                                                        Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
+                                                        Assert.Equal(TypeKind.Module, a.TypeKind)
+                                                    End Sub,
+                            symbolValidator:=Sub(m As ModuleSymbol)
+                                                 Dim a = m.GlobalNamespace.GetTypeMember("A")
+                                                 Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
+                                                 Assert.Equal(TypeKind.Module, a.TypeKind)
 
-            CompileAndVerify(compilation,
-                             symbolValidator:=Sub(m As ModuleSymbol)
-                                                  Dim a = m.GlobalNamespace.GetTypeMember("A")
-                                                  Assert.Equal(0, a.GetAttributes().Length) ' Should not have StandardModule attribute
-                                                  Assert.Equal(TypeKind.Module, a.TypeKind)
-                                                  Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", a.GetCustomAttributesToEmit(New ModuleCompilationState).Single().ToString())
-                                              End Sub)
+                                                 Dim emittedAttributes = DirectCast(m, PEModuleSymbol).GetCustomAttributesForToken(DirectCast(a, PENamedTypeSymbol).Handle)
+                                                 Assert.Equal("Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute", emittedAttributes.Single().ToString())
+                                             End Sub)
         End Sub
 
         <WorkItem(537324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537324")>
@@ -257,7 +259,7 @@ End Class
 Public Class A
 End Class
     </file>
-</compilation>, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
+</compilation>, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
             Dim mscorNS = compilation.GetReferencedAssemblySymbol(compilation.References(0))
             Assert.Equal("mscorlib", mscorNS.Name)

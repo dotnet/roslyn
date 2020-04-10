@@ -1,11 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -15,9 +19,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         private const string FileName = "Program.cs";
 
-        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpSendToInteractive(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             var project = new Project(ProjectName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ConsoleApplication, Microsoft.CodeAnalysis.LanguageNames.CSharp);
@@ -53,13 +63,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
          }
      }
  }
-", 
+",
                 open: true);
 
             VisualStudio.InteractiveWindow.SubmitText("using System;");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void SendSingleLineSubmissionToInteractive()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 1");
@@ -75,7 +85,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"1\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void SendMultipleLineSubmissionToInteractive()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 2");
@@ -93,7 +103,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"3\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void SendMultipleLineBlockSelectedSubmissionToInteractive()
         {
             VisualStudio.InteractiveWindow.SubmitText("int x = 1;");
@@ -114,7 +124,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("4");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void SendToInteractiveWithKeyboardShortcut()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 4");
@@ -130,7 +140,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("\"7\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void ExecuteSingleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 5");
@@ -146,7 +156,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("1");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void ExecuteMultipleLineSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 6");
@@ -164,7 +174,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("3");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void ExecuteMultipleLineBlockSelectedSubmissionInInteractiveWhilePreservingReplSubmissionBuffer()
         {
             VisualStudio.InteractiveWindow.SubmitText("int x = 1;");
@@ -187,7 +197,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("4");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void ExecuteInInteractiveWithKeyboardShortcut()
         {
             VisualStudio.InteractiveWindow.InsertCode("// scenario 8");
@@ -203,7 +213,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("7");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void AddAssemblyReferenceAndTypesToInteractive()
         {
             VisualStudio.InteractiveWindow.ClearReplText();
@@ -214,10 +224,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("public class MyClass { public string MyFunc() { return \"MyClass.MyFunc()\"; } }");
             VisualStudio.InteractiveWindow.SubmitText("(new MyClass()).MyFunc()");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"MyClass.MyFunc()\"");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20868")]
+        [WpfFact]
         public void ResetInteractiveFromProjectAndVerify()
         {
             var assembly = new ProjectUtils.AssemblyReference("System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
@@ -242,7 +252,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.SubmitText("System.Windows.Forms.Form f = new System.Windows.Forms.Form(); f.Text = \"goo\";");
             VisualStudio.InteractiveWindow.SubmitText("f.Text");
             VisualStudio.InteractiveWindow.WaitForLastReplOutput("\"goo\"");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
         }
     }
 }

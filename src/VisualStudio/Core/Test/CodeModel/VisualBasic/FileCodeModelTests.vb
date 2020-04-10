@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -939,7 +941,7 @@ End Class
                 fileCodeModel.BeginBatch()
 
                 ' Make an outside edit not through the CodeModel APIs
-                Dim buffer = state.Workspace.Documents.Single().TextBuffer
+                Dim buffer = state.Workspace.Documents.Single().GetTextBuffer()
                 buffer.Replace(New Text.Span(0, 1), "c")
 
                 WpfTestRunner.RequireWpfFact($"Test requires {NameOf(EnvDTE80.FileCodeModel2)}.{NameOf(EnvDTE80.FileCodeModel2.EndBatch)}")
@@ -1249,6 +1251,29 @@ End Class
                     Assert.Equal(1, member1.NodeKey.Ordinal)
                     Assert.Equal("C.E As System.EventHandler", member2.NodeKey.Name)
                     Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
+        End Sub
+
+
+        <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub RenameShouldWorkAndElementsShouldBeUsableAfter()
+            Dim code =
+<code>
+Class C
+End Class
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim codeElement = DirectCast(fileCodeModel.CodeElements(0), EnvDTE80.CodeElement2)
+                    Assert.Equal("C", codeElement.Name)
+
+                    codeElement.RenameSymbol("D")
+
+                    ' This not only asserts that the rename happened successfully, but that the element was correctly updated
+                    ' so the underlying node key is still valid.
+                    Assert.Equal("D", codeElement.Name)
                 End Sub)
         End Sub
 

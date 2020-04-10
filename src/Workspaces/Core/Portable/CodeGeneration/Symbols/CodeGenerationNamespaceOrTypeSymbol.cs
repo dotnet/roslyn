@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -19,29 +20,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public virtual ImmutableArray<ISymbol> GetMembers()
-        {
-            return ImmutableArray.Create<ISymbol>();
-        }
+            => ImmutableArray.Create<ISymbol>();
 
         public ImmutableArray<ISymbol> GetMembers(string name)
-        {
-            return GetMembers().WhereAsArray(s => s.Name == name);
-        }
+            => GetMembers().WhereAsArray(s => s.Name == name);
 
         public virtual ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-        {
-            return ImmutableArray.Create<INamedTypeSymbol>();
-        }
+            => ImmutableArray.Create<INamedTypeSymbol>();
 
         public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
-        {
-            return GetTypeMembers().WhereAsArray(s => s.Name == name);
-        }
+            => GetTypeMembers().WhereAsArray(s => s.Name == name);
 
         public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
-        {
-            return GetTypeMembers(name).WhereAsArray(n => n.Arity == arity);
-        }
+            => GetTypeMembers(name).WhereAsArray(n => n.Arity == arity);
 
         public abstract bool IsNamespace { get; }
 

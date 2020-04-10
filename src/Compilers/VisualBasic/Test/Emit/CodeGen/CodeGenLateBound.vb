@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -358,7 +360,7 @@ End Module
     ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub LateIndexRValue()
             CompileAndVerify(
     <compilation>
@@ -2801,7 +2803,7 @@ End Module
                     Diagnostic(ERRID.ERR_NameNotMember2, "I4.GoHome").WithArguments("GoHome", "Module1.II4"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Regress14722()
             CompileAndVerify(
 <compilation>
@@ -3202,7 +3204,8 @@ hello
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
+        <WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Bug18274()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3220,7 +3223,8 @@ End Module
 </compilation>)
         End Sub
 
-        <Fact(), WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
+        <WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Bug18274_1()
             Dim verifier = CompileAndVerify(
 <compilation>

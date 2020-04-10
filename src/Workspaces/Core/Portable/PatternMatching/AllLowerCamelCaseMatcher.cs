@@ -1,13 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                         matchedSpansInReverse: matchedSpansInReverse);
                 }
 
-                var bestResult = default(CamelCaseResult?);
+                var bestResult = (CamelCaseResult?)null;
 
                 // Look for a hump in the candidate that matches the current letter we're on.
                 var patternCharacter = _patternText[patternIndex];
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             private CamelCaseResult? TryConsumePatternOrMatchNextHump(
                 int patternIndex, int humpIndex, bool contiguous)
             {
-                var bestResult = default(CamelCaseResult?);
+                var bestResult = (CamelCaseResult?)null;
 
                 var candidateHump = _candidateHumps[humpIndex];
 

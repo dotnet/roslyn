@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -47,7 +49,7 @@ class C
                 filelist.Add(source1);
                 var outWriter = new StringWriter();
                 var cmd = new CSharpCompilerServer(
-                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
+                    CompilerServerHost.SharedAssemblyReferenceProvider,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     new BuildPaths(null, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
                     s_libDirectory,
@@ -116,19 +118,6 @@ class C
             expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedWritesPath).Trim());
-        }
-
-        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            public void AddDependencyLocation(string fullPath)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

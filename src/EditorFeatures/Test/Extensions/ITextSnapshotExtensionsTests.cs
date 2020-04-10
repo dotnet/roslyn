@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -132,10 +134,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var span = snapshot.GetSpan(0, 2, 1, 1);
 
             // column 0, index 2 = (0 * 5) + 2 = 2
-            Assert.Equal(span.Start, 2);
+            Assert.Equal(2, span.Start);
 
             // column 1, index 1 = (1 * 5) + 1 = 6
-            Assert.Equal(span.End, 6);
+            Assert.Equal(6, span.End);
         }
 
         [Fact]
@@ -173,12 +175,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         }
 
         [Fact]
-        public void GetLineAndColumnTest()
+        public void GetLineAndCharacterTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            snapshot.GetLineAndColumn(16, out var line, out var col);
+            snapshot.GetLineAndCharacter(16, out var line, out var character);
             Assert.Equal(3, line);
-            Assert.Equal(1, col);
+            Assert.Equal(1, character);
         }
 
         private string GetLeadingWhitespaceOfLineAtPosition(string code, int position)

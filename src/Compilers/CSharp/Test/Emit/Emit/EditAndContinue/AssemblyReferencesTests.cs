@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         /// The baseline metadata might have less (or even different) references than
         /// the current compilation. We shouldn't assume that the reference sets are the same.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CompilationReferences_Less()
         {
             // Add some references that are actually not used in the source.
@@ -71,7 +73,7 @@ class C
 
             var edits = new[]
             {
-                new SemanticEdit(
+                SemanticEdit.Create(
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
@@ -97,7 +99,7 @@ class C
         /// The baseline metadata might have more references than the current compilation. 
         /// References that aren't found in the compilation are treated as missing.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void CompilationReferences_More()
         {
             string src1 = @"
@@ -142,7 +144,7 @@ class C
 
             var edits = new[]
             {
-                new SemanticEdit(
+                SemanticEdit.Create(
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
@@ -169,7 +171,7 @@ class C
         /// <summary>
         /// Symbol matcher considers two source types that only differ in the declaring compilations different.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ChangingCompilationDependencies()
         {
             string srcLib = @"
@@ -220,19 +222,19 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             diff1.EmitResult.Diagnostics.Verify();
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2)));
 
             diff2.EmitResult.Diagnostics.Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcards_Compilation()
         {
             TestDependencyVersionWildcards(
@@ -325,13 +327,13 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    new SemanticEdit(SemanticEditKind.Update, f1, f2),
-                    new SemanticEdit(SemanticEditKind.Insert, null, g2)));
+                    SemanticEdit.Create(SemanticEditKind.Update, f1, f2),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, g2)));
 
             var md1 = diff1.GetMetadata();
             var md2 = diff2.GetMetadata();
@@ -350,7 +352,7 @@ class C
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcards_Metadata()
         {
             string srcLib = @"
@@ -408,14 +410,18 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module 'C'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
+                // error CS7038: Failed to emit module 'C': Changing the version of an assembly reference is not allowed during debugging: 
+                // 'Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null' changed version to '1.0.2000.1002'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C",
+                    string.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")));
         }
 
-        [Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
+        [WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void DependencyVersionWildcardsCollisions()
         {
             string srcLib01 = @"
@@ -483,12 +489,14 @@ class C
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1)));
 
-            // TODO: message should be: Changing the version of an assembly reference is not allowed during debugging
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module 'C'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C"));
+                // error CS7038: Failed to emit module 'C': Changing the version of an assembly reference is not allowed during debugging: 
+                // 'Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null' changed version to '1.0.0.2'.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("C",
+                    string.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "1.0.0.2")));
         }
 
         private void VerifyAssemblyReferences(AggregatedMetadataReader reader, string[] expected)
@@ -496,7 +504,7 @@ class C
             AssertEx.Equal(expected, reader.GetAssemblyReferences().Select(aref => $"{reader.GetString(aref.Name)}, {aref.Version}"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(202017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/202017")]
         public void CurrentCompilationVersionWildcards()
         {
@@ -592,7 +600,7 @@ class C
             // First update adds some new synthesized members (lambda related)
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -601,7 +609,7 @@ class C
             // Second update is to a method that doesn't produce any synthesized members 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
@@ -613,7 +621,7 @@ class C
             // hence we need to account for wildcards when comparing the versions.
             var diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, m2, m3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
 
             diff3.VerifySynthesizedMembers(
                 "C: {<>c}",

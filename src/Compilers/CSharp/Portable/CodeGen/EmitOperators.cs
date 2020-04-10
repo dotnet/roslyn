@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -572,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BinaryOperatorKind.EnumAnd:
                 case BinaryOperatorKind.EnumOr:
                 case BinaryOperatorKind.EnumXor:
-                    Debug.Assert(expression.Left.Type == expression.Right.Type);
+                    Debug.Assert(TypeSymbol.Equals(expression.Left.Type, expression.Right.Type, TypeCompareKind.ConsiderEverything2));
                     enumType = null;
                     break;
                 case BinaryOperatorKind.UnderlyingAndEnumSubtraction:
@@ -703,6 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return IsUnsigned(Binder.GetEnumPromotedType(op.Right.Type.GetEnumUnderlyingType().SpecialType));
 
                 case BinaryOperatorKind.UInt:
+                case BinaryOperatorKind.NUInt:
                 case BinaryOperatorKind.ULong:
                 case BinaryOperatorKind.ULongAndPointer:
                 case BinaryOperatorKind.PointerAndInt:

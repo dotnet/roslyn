@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -21,18 +24,12 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// back to VS, which will then bounce back out to OOP to perform the Nuget/ReferenceAssembly
         /// portion of the search.  Ideally we could keep this all OOP.
         /// </summary>
-        private class RemoteSymbolSearchService : IRemoteSymbolSearchUpdateEngine
+        private sealed class RemoteSymbolSearchService : IRemoteSymbolSearchUpdateEngine
         {
             private readonly ISymbolSearchService _symbolSearchService;
-            private readonly CancellationToken _shutdownCancellation;
 
-            public RemoteSymbolSearchService(
-                ISymbolSearchService symbolSearchService,
-                CancellationToken shutdownCancellationToken)
-            {
-                _symbolSearchService = symbolSearchService;
-                _shutdownCancellation = shutdownCancellationToken;
-            }
+            public RemoteSymbolSearchService(ISymbolSearchService symbolSearchService)
+                => _symbolSearchService = symbolSearchService;
 
             public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
             {

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -123,12 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               Location.None,
                                                               diagnosticInfo.Category,
                                                               options.WarningLevel,
+                                                              ((CSharpCompilationOptions)options).NullableContextOptions,
                                                               options.GeneralDiagnosticOption,
                                                               options.SpecificDiagnosticOptions,
                                                               out hasPragmaSuppression);
         }
 
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;
+        public override int ERR_MultipleAnalyzerConfigsInSameDir => (int)ErrorCode.ERR_MultipleAnalyzerConfigsInSameDir;
 
         // command line:
         public override int ERR_ExpectedSingleScript => (int)ErrorCode.ERR_ExpectedSingleScript;
@@ -210,9 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PDB Writer:
         public override int ERR_EncodinglessSyntaxTree => (int)ErrorCode.ERR_EncodinglessSyntaxTree;
-        public override int WRN_PdbUsingNameTooLong => (int)ErrorCode.WRN_DebugFullNameTooLong; 
+        public override int WRN_PdbUsingNameTooLong => (int)ErrorCode.WRN_DebugFullNameTooLong;
         public override int WRN_PdbLocalNameTooLong => (int)ErrorCode.WRN_PdbLocalNameTooLong;
-        public override int ERR_PdbWritingFailed => (int)ErrorCode.FTL_DebugEmitFailure; 
+        public override int ERR_PdbWritingFailed => (int)ErrorCode.FTL_DebugEmitFailure;
 
         // PE Writer:
         public override int ERR_MetadataNameTooLong => (int)ErrorCode.ERR_MetadataNameTooLong;
@@ -222,6 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_ModuleEmitFailure => (int)ErrorCode.ERR_ModuleEmitFailure;
         public override int ERR_EncUpdateFailedMissingAttribute => (int)ErrorCode.ERR_EncUpdateFailedMissingAttribute;
         public override int ERR_InvalidDebugInfo => (int)ErrorCode.ERR_InvalidDebugInfo;
+
+        // Generators:
+        public override int WRN_GeneratorFailedDuringInitialization => (int)ErrorCode.WRN_GeneratorFailedDuringInitialization;
+        public override int WRN_GeneratorFailedDuringGeneration => (int)ErrorCode.WRN_GeneratorFailedDuringGeneration;
 
         public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {

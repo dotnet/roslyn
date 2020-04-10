@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -386,9 +388,9 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = (Compilation)CreateCompilation(source);
 
-            var destructor = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName);
+            var destructor = compilation.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>(WellKnownMemberNames.DestructorName);
             Assert.Equal(MethodKind.Destructor, destructor.MethodKind);
             Assert.Equal(WellKnownMemberNames.DestructorName, destructor.Name);
 
@@ -405,7 +407,7 @@ class C
             Assert.Equal(WellKnownMemberNames.DestructorName, finalizeSyntax.ToString());
 
             var info = model.GetSymbolInfo(finalizeSyntax);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(destructor, info.Symbol);
 
             var lookupSymbols = model.LookupSymbols(finalizeSyntax.SpanStart, name: WellKnownMemberNames.DestructorName);

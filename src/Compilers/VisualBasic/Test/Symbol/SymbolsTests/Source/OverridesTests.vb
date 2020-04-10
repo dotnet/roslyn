@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -2874,7 +2876,7 @@ End Class
             'Base::M1_1
             'Derived.M1
             'Base::M1_3
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & Environment.NewLine & "Derived.M1" & Environment.NewLine & "Base::M1_3")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -2987,7 +2989,7 @@ End Class
             'Base::M1_1
             'Derived.M1
             'Base::M1_3
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & Environment.NewLine & "Derived.M1" & Environment.NewLine & "Base::M1_3")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -3320,7 +3322,7 @@ End Class
             'Base::M1_1
             'Derived.M1
             'Base::M1_3
-            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & vbCrLf & "Derived.M1" & vbCrLf & "Base::M1_3")
+            Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:="Base::M1_1" & Environment.NewLine & "Derived.M1" & Environment.NewLine & "Base::M1_3")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -4235,8 +4237,8 @@ End Class
                 </compilation>
 
             Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe,
-                                                        expectedOutput:="Derived.M1" & vbCrLf & "Derived.M2" & vbCrLf & "Derived.M3" & vbCrLf &
-                                                                        "Derived.M11" & vbCrLf & "Derived.M12" & vbCrLf & "Derived.M13" & vbCrLf &
+                                                        expectedOutput:="Derived.M1" & Environment.NewLine & "Derived.M2" & Environment.NewLine & "Derived.M3" & Environment.NewLine &
+                                                                        "Derived.M11" & Environment.NewLine & "Derived.M12" & Environment.NewLine & "Derived.M13" & Environment.NewLine &
                                                                         "Derived.M4")
             compilation.VerifyDiagnostics()
 
@@ -4427,13 +4429,13 @@ End Class
             'Base.P2_get
             'Base.P2_set
             Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
-"Derived1.P1_get" & vbCrLf &
-"Derived1.P1_set" & vbCrLf &
-"Derived1.P2_get" & vbCrLf &
-"Derived1.P2_set" & vbCrLf &
-"Derived2.P1_get" & vbCrLf &
-"Derived2.P1_set" & vbCrLf &
-"Derived2.P2_get" & vbCrLf &
+"Derived1.P1_get" & Environment.NewLine &
+"Derived1.P1_set" & Environment.NewLine &
+"Derived1.P2_get" & Environment.NewLine &
+"Derived1.P2_set" & Environment.NewLine &
+"Derived2.P1_get" & Environment.NewLine &
+"Derived2.P1_set" & Environment.NewLine &
+"Derived2.P2_get" & Environment.NewLine &
 "Derived2.P2_set")
             compilation.VerifyDiagnostics()
 
@@ -4616,13 +4618,13 @@ End Class
             'Base.P2_get
             'Base.P2_set
             Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
-"Derived1.P1_get" & vbCrLf &
-"Derived1.P1_set" & vbCrLf &
-"Derived1.P2_get" & vbCrLf &
-"Derived1.P2_set" & vbCrLf &
-"Derived2.P1_get" & vbCrLf &
-"Derived2.P1_set" & vbCrLf &
-"Derived2.P2_get" & vbCrLf &
+"Derived1.P1_get" & Environment.NewLine &
+"Derived1.P1_set" & Environment.NewLine &
+"Derived1.P2_get" & Environment.NewLine &
+"Derived1.P2_set" & Environment.NewLine &
+"Derived2.P1_get" & Environment.NewLine &
+"Derived2.P1_set" & Environment.NewLine &
+"Derived2.P2_get" & Environment.NewLine &
 "Derived2.P2_set")
             compilation.VerifyDiagnostics()
 
@@ -4838,13 +4840,13 @@ End Class
             'Base.P2_get
             'Base.P2_set
             Dim verifier = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
-"Derived1.P1_get" & vbCrLf &
-"Derived1.P1_set" & vbCrLf &
-"Base.P2_get" & vbCrLf &
-"Base.P2_set" & vbCrLf &
-"Derived2.P1_get" & vbCrLf &
-"Derived2.P1_set" & vbCrLf &
-"Base.P2_get" & vbCrLf &
+"Derived1.P1_get" & Environment.NewLine &
+"Derived1.P1_set" & Environment.NewLine &
+"Base.P2_get" & Environment.NewLine &
+"Base.P2_set" & Environment.NewLine &
+"Derived2.P1_get" & Environment.NewLine &
+"Derived2.P1_set" & Environment.NewLine &
+"Base.P2_get" & Environment.NewLine &
 "Base.P2_set")
             verifier.VerifyDiagnostics()
 
@@ -5696,13 +5698,13 @@ End Class
             'Base1.P2_get
             'Base1.P2_set
             Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
-"Base2.P1_get" & vbCrLf &
-"Base2.P1_set" & vbCrLf &
-"Base2.P2_get" & vbCrLf &
-"Base2.P2_set" & vbCrLf &
-"Derived.P1_get" & vbCrLf &
-"Derived.P1_set" & vbCrLf &
-"Derived.P2_get" & vbCrLf &
+"Base2.P1_get" & Environment.NewLine &
+"Base2.P1_set" & Environment.NewLine &
+"Base2.P2_get" & Environment.NewLine &
+"Base2.P2_set" & Environment.NewLine &
+"Derived.P1_get" & Environment.NewLine &
+"Derived.P1_set" & Environment.NewLine &
+"Derived.P2_get" & Environment.NewLine &
 "Derived.P2_set"
 )
             compilation.VerifyDiagnostics()
@@ -6523,13 +6525,13 @@ End Class
             'Base.P2_get
             'Base.P2_set
             Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
-"Derived1.P1_get" & vbCrLf &
-"Derived1.P1_set" & vbCrLf &
-"Derived1.P2_get" & vbCrLf &
-"Derived1.P2_set" & vbCrLf &
-"Derived2.P1_get" & vbCrLf &
-"Derived2.P1_set" & vbCrLf &
-"Derived2.P2_get" & vbCrLf &
+"Derived1.P1_get" & Environment.NewLine &
+"Derived1.P1_set" & Environment.NewLine &
+"Derived1.P2_get" & Environment.NewLine &
+"Derived1.P2_set" & Environment.NewLine &
+"Derived2.P1_get" & Environment.NewLine &
+"Derived2.P1_set" & Environment.NewLine &
+"Derived2.P2_get" & Environment.NewLine &
 "Derived2.P2_set")
             compilation.VerifyDiagnostics()
 
@@ -6712,13 +6714,13 @@ End Class
             'Base.P2_get
             'Base.P2_set
             Dim compilation = CompileWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe, expectedOutput:=
-"Derived1.P1_get" & vbCrLf &
-"Derived1.P1_set" & vbCrLf &
-"Derived1.P2_get" & vbCrLf &
-"Derived1.P2_set" & vbCrLf &
-"Derived2.P1_get" & vbCrLf &
-"Derived2.P1_set" & vbCrLf &
-"Derived2.P2_get" & vbCrLf &
+"Derived1.P1_get" & Environment.NewLine &
+"Derived1.P1_set" & Environment.NewLine &
+"Derived1.P2_get" & Environment.NewLine &
+"Derived1.P2_set" & Environment.NewLine &
+"Derived2.P1_get" & Environment.NewLine &
+"Derived2.P1_set" & Environment.NewLine &
+"Derived2.P2_get" & Environment.NewLine &
 "Derived2.P2_set")
             compilation.VerifyDiagnostics()
 
@@ -6767,7 +6769,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(comp).VerifyDiagnostics()
         End Sub
@@ -6789,7 +6791,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib40(code1, TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40(code1, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(comp1).VerifyDiagnostics()
 
@@ -6954,7 +6956,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
             Dim doValidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
@@ -7023,7 +7025,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             compilation.AssertTheseDiagnostics(
                 <expected>
@@ -7083,7 +7085,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
@@ -7137,7 +7139,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="void ValidatorBase<T>.DoValidate(object objectToValidate)
 void Validator<T>.DoValidate(T objectToValidate)")
@@ -7193,7 +7195,7 @@ End Class
         ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40(code, options:=TestOptions.ReleaseExe)
 
             Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
             Dim doValidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")

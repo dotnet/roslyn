@@ -1,17 +1,22 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Execution
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
     <ExportLanguageService(GetType(IOptionsSerializationService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicOptionsSerializationService
         Inherits AbstractOptionsSerializationService
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Public Overrides Sub WriteTo(options As CompilationOptions, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteCompilationOptionsTo(options, writer, cancellationToken)
@@ -26,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             writer.WriteBoolean(vbOptions.OptionCompareText)
             writer.WriteBoolean(vbOptions.EmbedVbCoreRuntime)
 
-            ' save parse option for embeded types - My types
+            ' save parse option for embedded types - My types
             writer.WriteBoolean(vbOptions.ParseOptions IsNot Nothing)
             If vbOptions.ParseOptions IsNot Nothing Then
                 WriteTo(vbOptions.ParseOptions, writer, cancellationToken)
@@ -48,11 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Next
         End Sub
 
-        Public Overrides Sub WriteTo(options As OptionSet, writer As ObjectWriter, cancellationToken As CancellationToken)
-            WriteOptionSetTo(options, LanguageNames.VisualBasic, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken)
-        End Sub
-
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
             Dim outputKind As OutputKind
             Dim reportSuppressedDiagnostics As Boolean
@@ -72,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Dim concurrentBuild As Boolean
             Dim deterministic As Boolean
             Dim publicSign As Boolean
+            Dim metadataImportOptions As MetadataImportOptions = Nothing
             Dim xmlReferenceResolver As XmlReferenceResolver = Nothing
             Dim sourceReferenceResolver As SourceReferenceResolver = Nothing
             Dim metadataReferenceResolver As MetadataReferenceResolver = Nothing
@@ -81,8 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             ReadCompilationOptionsFrom(reader, outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                 optimizationLevel, checkOverflow, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, concurrentBuild, deterministic,
-                publicSign, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider,
-                cancellationToken)
+                publicSign, metadataImportOptions, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
+                assemblyIdentityComparer, strongNameProvider, cancellationToken)
 
             Dim globalImports = GlobalImport.Parse(reader.ReadArray(Of String)())
             Dim rootNamespace = reader.ReadString()
@@ -102,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
                                                      cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                                                      platform, generalDiagnosticOption, specificDiagnosticOptions, concurrentBuild, deterministic,
                                                      xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider,
-                                                     publicSign, reportSuppressedDiagnostics)
+                                                     publicSign, reportSuppressedDiagnostics, metadataImportOptions)
         End Function
 
         Public Overrides Function ReadParseOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As ParseOptions
@@ -118,19 +119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             For i = 0 To count - 1
                 Dim key = reader.ReadString()
                 Dim value = reader.ReadValue()
-                builder.Add(KeyValuePair.Create(key, value))
+                builder.Add(KeyValuePairUtil.Create(key, value))
             Next
             Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)
-        End Function
-
-        Public Overrides Function ReadOptionSetFrom(reader As ObjectReader, cancellationToken As CancellationToken) As OptionSet
-            Dim options As OptionSet = New SerializedPartialOptionSet()
-
-            options = ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken)
-
-            Return options
         End Function
     End Class
 End Namespace

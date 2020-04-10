@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -40,6 +42,15 @@ End Module
             Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
+        End Sub
+
+        <Fact, WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")>
+        Public Sub DefaultAwaitExpressionInfo()
+            Dim awaitInfo As AwaitExpressionInfo = Nothing
+
+            Assert.Null(awaitInfo.GetAwaiterMethod)
+            Assert.Null(awaitInfo.IsCompletedProperty)
+            Assert.Null(awaitInfo.GetResultMethod)
         End Sub
 
         <Fact()>
@@ -5482,7 +5493,7 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-        <%= My.Resources.Resource.Async_Overload_Change_3_vb %>
+        <%= SemanticResourceUtil.Async_Overload_Change_3_vb %>
     </file>
 </compilation>
 

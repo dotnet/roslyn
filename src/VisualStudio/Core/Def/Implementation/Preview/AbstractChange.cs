@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -14,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         protected PreviewEngine engine;
 
         public AbstractChange(PreviewEngine engine)
+            : base(engine.ThreadingContext)
         {
             this.engine = engine;
             if (engine.ShowCheckBoxes)
@@ -33,9 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public IVsPreviewChangesList GetChildren()
-        {
-            return Children;
-        }
+            => Children;
 
         internal abstract void GetDisplayData(VSTREEDISPLAYDATA[] pData);
 
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             if (engine.ShowCheckBoxes)
             {
-                __PREVIEWCHANGESITEMCHECKSTATE newState = __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked;
+                var newState = __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked;
                 if (CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Checked)
                 {
                     newState = __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked;
@@ -86,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             if (engine.ShowCheckBoxes)
             {
-                __PREVIEWCHANGESITEMCHECKSTATE newState = Children.Changes[0].CheckState;
+                var newState = Children.Changes[0].CheckState;
                 foreach (var child in Children.Changes)
                 {
                     if (newState != child.CheckState)

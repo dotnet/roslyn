@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
@@ -754,6 +756,7 @@ Interface ISibling
 End Interface")
         End Function
 
+        <WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateAbstractIntoSameType() As Task
             Await TestInRegularAndScriptAsync(
@@ -767,7 +770,7 @@ End Class",
         Goo()
     End Sub
 
-    Friend MustOverride Sub Goo()
+    Protected MustOverride Sub Goo()
 End Class",
 index:=1)
         End Function
@@ -3752,6 +3755,29 @@ End Class",
 index:=1)
         End Function
 
+        <WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodConditionalAccess5() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?[|.B|]()
+    End Sub
+End Structure",
+"Imports System
+
+Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?.B()
+    End Sub
+
+    Private Function B() As Integer
+        Throw New NotImplementedException()
+    End Function
+End Structure")
+        End Function
+
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodConditionalInPropertyInitializer() As Task
             Await TestInRegularAndScriptAsync(
@@ -3902,7 +3928,7 @@ Module M
         Dim x As Boolean = Await [|F|]().ConfigureAwait(False)
     End Sub 
 End Module",
-"Imports System
+"Imports System 
 Imports System.Linq
 Imports System.Threading.Tasks
 
@@ -4189,6 +4215,183 @@ Class Program
         Throw New NotImplementedException()
     End Function
 End Class")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName1() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Enum Goo
+    One
+End Enum",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Enum Goo
+    One
+End Enum")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Delegate Sub Goo()",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Delegate Sub Goo()")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName3() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+
+End Class
+
+Class Goo
+    
+End Class",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Class Goo
+    
+End Class")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName4() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Structure Goo
+
+End Structure",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Structure Goo
+
+End Structure")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName5() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Interface Goo
+    
+End Interface",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Interface Goo
+    
+End Interface")
+        End Function
+
+        <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestWithSameMethodNameAsTypeName6() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Class C
+    Sub Bar()
+        [|Goo|]()
+    End Sub
+End Class
+
+Namespace Goo
+
+End Namespace",
+"Imports System
+Class C
+    Sub Bar()
+        Goo()
+    End Sub
+
+    Private Sub Goo()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Namespace Goo
+
+End Namespace")
         End Function
 
         Public Class GenerateConversionTests

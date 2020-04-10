@@ -32,11 +32,6 @@
         <target state="translated">診断のプロパティ</target>
         <note />
       </trans-unit>
-      <trans-unit id="Could_not_find_project_0">
-        <source>Could not find project {0}.</source>
-        <target state="translated">プロジェクト {0} が見つかりませんでした。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_rule_set_file_is_specified_or_the_file_does_not_exist">
         <source>No rule set file is specified, or the file does not exist.</source>
         <target state="translated">ルール セット ファイルが指定されていないか、ファイルが存在しません。</target>

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +30,7 @@ namespace Roslyn.Test.PdbUtilities
         public override void CloseTokensToSourceSpansMap() => _target.CloseTokensToSourceSpansMap();
         public override void DefineCustomMetadata(byte[] metadata) => _target.DefineCustomMetadata(metadata);
 
-        public override int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, byte[] checksum, byte[] source)
+        public override int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, ReadOnlySpan<byte> checksum, ReadOnlySpan<byte> source)
             => _target.DefineDocument(name, language, vendor, type, algorithmId, checksum, source);
 
         public override bool DefineLocalConstant(string name, object value, int constantSignatureToken)
@@ -58,7 +60,7 @@ namespace Roslyn.Test.PdbUtilities
         public override void OpenTokensToSourceSpansMap()
             => _target.OpenTokensToSourceSpansMap();
 
-        public override void SetAsyncInfo(int moveNextMethodToken, int kickoffMethodToken, int catchHandlerOffset, int[] yieldOffsets, int[] resumeOffsets)
+        public override void SetAsyncInfo(int moveNextMethodToken, int kickoffMethodToken, int catchHandlerOffset, ReadOnlySpan<int> yieldOffsets, ReadOnlySpan<int> resumeOffsets)
             => _target.SetAsyncInfo(moveNextMethodToken, kickoffMethodToken, catchHandlerOffset, yieldOffsets, resumeOffsets);
 
         public override void SetEntryPoint(int entryMethodToken)

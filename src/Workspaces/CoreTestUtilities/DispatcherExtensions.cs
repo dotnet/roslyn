@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Windows.Threading;
@@ -17,7 +21,9 @@ namespace Roslyn.Test.Utilities
             // Executes the specified delegate asynchronously.  When it is 
             // complete mark the frame as complete so the dispatcher loop
             // pops out (stops).
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             var operation = dispatcher.BeginInvoke(
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
                 DispatcherPriority.ApplicationIdle, callback, frame);
 
             // Start the loop.  It will process all items in the queue, then 

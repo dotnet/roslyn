@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -71,9 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         public void AddTag(ITagSpan<TTag> tag)
-        {
-            tagSpans.Add(tag);
-        }
+            => tagSpans.Add(tag);
+
+        public void ClearTags()
+            => tagSpans.Clear();
 
         /// <summary>
         /// Used to allow taggers to indicate what spans were actually tagged.  This is useful 
@@ -82,15 +86,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// tags from before and after the sub-span and merge them with the newly produced tags.
         /// </summary>
         public void SetSpansTagged(IEnumerable<DocumentSnapshotSpan> spansTagged)
-        {
-            this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
-        }
+            => this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
 
-        public IEnumerable<ITagSpan<TTag>> GetExistingTags(SnapshotSpan span)
+        public IEnumerable<ITagSpan<TTag>> GetExistingContainingTags(SnapshotPoint point)
         {
-            return _existingTags != null && _existingTags.TryGetValue(span.Snapshot.TextBuffer, out var tree)
-                ? tree.GetIntersectingSpans(span)
-                : SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+            if (_existingTags != null && _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree))
+            {
+                return tree.GetIntersectingSpans(new SnapshotSpan(point.Snapshot, new Span(point, 0)))
+                           .Where(s => s.Span.Contains(point));
+            }
+
+            return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
         }
     }
 }

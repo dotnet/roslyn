@@ -1,14 +1,15 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Threading.Tasks
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
@@ -25,14 +26,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             _outputHelper = outputHelper
         End Sub
 
-        Private Async Function TestAPIAndFeature(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly)
-            Await TestStreamingFeature(definition, searchSingleFileOnly, uiVisibleOnly)
+        Public Enum TestKind
+            API
+            StreamingFeature
+        End Enum
+
+        Public Enum TestHost
+            InProcess
+            OutOfProcess
+        End Enum
+
+        Private Async Function TestAPIAndFeature(definition As XElement, kind As TestKind, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            If kind = TestKind.API Then
+                Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, options:=Nothing)
+            Else
+                Assert.Equal(TestKind.StreamingFeature, kind)
+                Await TestStreamingFeature(definition, host, searchSingleFileOnly, uiVisibleOnly)
+            End If
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
-            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        Private Async Function TestStreamingFeature(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=host = TestHost.OutOfProcess)
         End Function
 
         Private Async Function TestStreamingFeature(element As XElement,
@@ -45,9 +59,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End If
 
             Using workspace = TestWorkspace.Create(element)
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
-                                                      WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
-                                                      WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
 
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
@@ -148,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Me.Definitions.Add(definition)
                 End SyncLock
 
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
 
             Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem) As Task
@@ -156,24 +169,28 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     References.Add(reference)
                 End SyncLock
 
-                Return SpecializedTasks.EmptyTask
+                Return Task.CompletedTask
             End Function
         End Class
 
-        Private Async Function TestAPI(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        Private Async Function TestAPI(
+                definition As XElement,
+                host As TestHost,
+                Optional searchSingleFileOnly As Boolean = False,
+                Optional uiVisibleOnly As Boolean = False,
+                Optional options As FindReferencesSearchOptions = Nothing) As Task
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, options, outOfProcess:=host = TestHost.OutOfProcess)
         End Function
 
         Private Async Function TestAPI(definition As XElement,
                                        searchSingleFileOnly As Boolean,
                                        uiVisibleOnly As Boolean,
+                                       options As FindReferencesSearchOptions,
                                        outOfProcess As Boolean) As Task
+            options = If(options, FindReferencesSearchOptions.Default)
             Using workspace = TestWorkspace.Create(definition)
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
-                                                      WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
-                                                      WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
-
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -188,11 +205,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                         Dim scope = If(searchSingleFileOnly, ImmutableHashSet.Create(Of Document)(document), Nothing)
 
-                        result = result.Concat(Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=scope))
+                        Dim project = document.Project
+                        result = result.Concat(
+                            Await SymbolFinder.TestAccessor.FindReferencesAsync(
+                                symbol, project.Solution,
+                                progress:=Nothing, documents:=scope, options, CancellationToken.None))
                     End If
 
                     Dim actualDefinitions =
-                        result.FilterToItemsToShow().
+                        result.FilterToItemsToShow(options).
                                Where(Function(s) Not IsImplicitNamespace(s)).
                                SelectMany(Function(r) r.Definition.GetDefinitionLocationsToShow()).
                                Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
@@ -214,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Next
 
                     Dim actualReferences =
-                        result.FilterToItemsToShow().
+                        result.FilterToItemsToShow(options).
                                SelectMany(Function(r) r.Locations.Select(Function(loc) loc.Location)).
                                Where(Function(loc) IsInSource(workspace, loc, uiVisibleOnly)).
                                Distinct().

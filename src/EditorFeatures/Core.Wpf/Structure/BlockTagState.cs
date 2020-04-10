@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Windows.Media;
@@ -24,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private const string Ellipsis = "...";
         private const int MaxPreviewText = 1000;
 
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
@@ -38,12 +41,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         public readonly BlockSpan BlockSpan;
 
         public BlockTagState(
+            IThreadingContext threadingContext,
             ITextEditorFactoryService textEditorFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextSnapshot snapshot,
             BlockSpan blockSpan)
         {
+            _threadingContext = threadingContext;
             _textEditorFactoryService = textEditorFactoryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
@@ -68,9 +73,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             => new ViewHostingControl(CreateElisionBufferView, CreateElisionBuffer);
 
         private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
-            => CreateShrunkenTextView(_textEditorFactoryService, finalBuffer);
+            => CreateShrunkenTextView(_threadingContext, _textEditorFactoryService, finalBuffer);
 
         internal static IWpfTextView CreateShrunkenTextView(
+            IThreadingContext threadingContext,
             ITextEditorFactoryService textEditorFactoryService,
             ITextBuffer finalBuffer)
         {
@@ -79,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
             view.Background = Brushes.Transparent;
 
-            view.SizeToFit();
+            view.SizeToFit(threadingContext);
 
             // Zoom out a bit to shrink the text.
             view.ZoomLevel *= 0.75;

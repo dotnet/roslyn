@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -26,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         }
 
         public bool AllowOverType(IBraceCompletionSession session, CancellationToken cancellationToken)
-        {
-            return true;
-        }
+            => true;
 
         public bool CheckOpeningPoint(IBraceCompletionSession session, CancellationToken cancellationToken)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         public static bool IsContext(Document document, int position, CancellationToken cancellationToken)
         {
             // Check to see if we're to the right of an $ or an @$
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
 
             var start = position - 1;
             if (start < 0)

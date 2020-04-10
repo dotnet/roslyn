@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedLanguage
+    internal partial class ContainedLanguage : IVsContainedLanguage
     {
         public int GetColorizer(out IVsColorizer colorizer)
         {
@@ -19,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public int GetLanguageServiceID(out Guid guidLangService)
         {
-            guidLangService = _languageService.LanguageServiceId;
+            guidLangService = _languageServiceGuid;
             return VSConstants.S_OK;
         }
 
@@ -36,8 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return VSConstants.E_FAIL;
             }
 
-            var commandHandlerServiceFactory = ComponentModel.GetService<ICommandHandlerServiceFactory>();
-            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService>(_languageService, wpfTextView, commandHandlerServiceFactory, SubjectBuffer, nextCmdTarget, _editorAdaptersFactoryService);
+            textViewFilter = new VenusCommandFilter(wpfTextView, SubjectBuffer, nextCmdTarget, ComponentModel);
 
             return VSConstants.S_OK;
         }
@@ -55,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return null;
             }
 
-            var view = field.GetValue(intellisenseHost) as IVsTextView;
-            if (view == null)
+            if (!(field.GetValue(intellisenseHost) is IVsTextView view))
             {
                 return null;
             }
@@ -65,9 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         public int Refresh(uint refreshMode)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int SetBufferCoordinator(IVsTextBufferCoordinator pBC)
         {
@@ -77,19 +74,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public int SetHost(IVsContainedLanguageHost host)
         {
+            if (ContainedDocument.ContainedLanguageHost == host)
+            {
+                return VSConstants.S_OK;
+            }
+
+            ContainedDocument.ContainedLanguageHost = host;
+
             // Are we going away due to the contained language being disconnected?
-            if (this.ContainedLanguageHost != null && host == null)
+            if (host == null)
             {
                 OnDisconnect();
             }
 
-            this.ContainedLanguageHost = host;
             return VSConstants.S_OK;
         }
 
         public int WaitForReadyState()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
     }
 }

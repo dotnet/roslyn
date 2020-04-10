@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -31,7 +33,7 @@ End Class
     </file>
 </compilation>, OutputKind.ConsoleApplication)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "String()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="s", ReadInsideSymbol:="arr, s", ReadOutsideSymbol:="arr",
                                              WrittenInsideSymbol:="s", WrittenOutsideSymbol:="arr",
@@ -60,7 +62,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Long()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Long()", "Long()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="number", ReadInsideSymbol:="number", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="number", WrittenOutsideSymbol:="",
@@ -93,7 +95,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Long()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Long()", "Long()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="number", ReadInsideSymbol:="number", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="number", WrittenOutsideSymbol:="",
@@ -158,7 +160,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="x", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -255,7 +257,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()()", "Integer()()")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="i, x, y", ReadInsideSymbol:="c, i, x, y", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="i, x, y", WrittenOutsideSymbol:="c",
@@ -265,7 +267,7 @@ End Class
             ClassfiConversionTestForeach(compilation1)
             VerifyForeachSemanticInfo(compilation1)
 
-            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "Integer()")
             GetDeclareSymbolTestForeach(compilation1, Nothing, 2)
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="y", ReadInsideSymbol:="x, y", ReadOutsideSymbol:="c, i, x",
                                              WrittenInsideSymbol:="y", WrittenOutsideSymbol:="c, i, x",
@@ -296,7 +298,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "String()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x, y", ReadInsideSymbol:="S, x, y", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x, y", WrittenOutsideSymbol:="S",
@@ -341,7 +343,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "String()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x, y", ReadInsideSymbol:="S, x, y", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x, y", WrittenOutsideSymbol:="S",
@@ -385,7 +387,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "String()", "String()")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x, y", ReadInsideSymbol:="S, x, y", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x, y", WrittenOutsideSymbol:="S",
@@ -506,15 +508,15 @@ End Class
         </file>
     </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 2, "Long()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 3, "Double()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 4, "Double()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 5, "Decimal()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 6, "Long()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 7, "Double()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 8, "Decimal()", "System.Collections.IEnumerable")
-            SemanticInfoTypeTestForeach(compilation1, 9, "Long()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
+            SemanticInfoTypeTestForeach(compilation1, 2, "Long()", "Long()")
+            SemanticInfoTypeTestForeach(compilation1, 3, "Double()", "Double()")
+            SemanticInfoTypeTestForeach(compilation1, 4, "Double()", "Double()")
+            SemanticInfoTypeTestForeach(compilation1, 5, "Decimal()", "Decimal()")
+            SemanticInfoTypeTestForeach(compilation1, 6, "Long()", "Long()")
+            SemanticInfoTypeTestForeach(compilation1, 7, "Double()", "Double()")
+            SemanticInfoTypeTestForeach(compilation1, 8, "Decimal()", "Decimal()")
+            SemanticInfoTypeTestForeach(compilation1, 9, "Long()", "Long()")
             For i As Integer = 1 To 9
 
                 AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
@@ -564,7 +566,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="", ReadInsideSymbol:="Me", ReadOutsideSymbol:="B, Me",
                                              WrittenInsideSymbol:="", WrittenOutsideSymbol:="A, B, Me",
@@ -592,7 +594,7 @@ Class C
 End Class
     </file>
 </compilation>)
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="me",
@@ -602,7 +604,7 @@ End Class
             ClassfiConversionTestForeach(compilation1)
             VerifyForeachSemanticInfo(compilation1)
 
-            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="me", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="me", WrittenOutsideSymbol:="x",
@@ -628,7 +630,7 @@ End Class
         </file>
     </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x, x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -661,7 +663,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()", "Integer()")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="goo", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="goo", WrittenOutsideSymbol:="Me",
@@ -671,7 +673,7 @@ End Class
             ClassfiConversionTestForeach(compilation1)
             VerifyForeachSemanticInfo(compilation1)
 
-            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 2, "Integer()", "Integer()")
             GetDeclareSymbolTestForeach(compilation1, Nothing, 2)
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="goo1", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="goo1", WrittenOutsideSymbol:="Me",
@@ -723,7 +725,7 @@ End Class
     </file>
 </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Integer()()", "Integer()()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="numbers2D, x", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="numbers2D",
@@ -867,7 +869,7 @@ End Class
     </file>
     </compilation>)
 
-            SemanticInfoTypeTestForeach(compilation1, 1, "Date()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "Date()", "Date()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="x", ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",
@@ -982,7 +984,7 @@ End Class
     </file>
 </compilation>)
             compilation1.VerifyDiagnostics()
-            SemanticInfoTypeTestForeach(compilation1, 1, "System.Action()", "System.Collections.IEnumerable")
+            SemanticInfoTypeTestForeach(compilation1, 1, "System.Action()", "System.Action()")
 
             AnalyzeRegionDataFlowTestForeach(compilation1, VariablesDeclaredSymbol:="", ReadInsideSymbol:="x", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="x", WrittenOutsideSymbol:="",

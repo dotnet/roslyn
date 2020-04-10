@@ -2,6 +2,64 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="AM_PM_abbreviated">
+        <source>AM/PM (abbreviated)</source>
+        <target state="new">AM/PM (abbreviated)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AM_PM_abbreviated_description">
+        <source>The "t" custom format specifier represents the first character of the AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+If the "t" format specifier is used without other custom format specifiers, it's interpreted as the "t" standard date and time format specifier.</source>
+        <target state="new">The "t" custom format specifier represents the first character of the AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+If the "t" format specifier is used without other custom format specifiers, it's interpreted as the "t" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AM_PM_full">
+        <source>AM/PM (full)</source>
+        <target state="new">AM/PM (full)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AM_PM_full_description">
+        <source>The "tt" custom format specifier (plus any number of additional "t" specifiers) represents the entire AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+Make sure to use the "tt" specifier for languages for which it's necessary to maintain the distinction between AM and PM. An example is Japanese, for which the AM and PM designators differ in the second character instead of the first character.</source>
+        <target state="new">The "tt" custom format specifier (plus any number of additional "t" specifiers) represents the entire AM/PM designator. The appropriate localized designator is retrieved from the DateTimeFormatInfo.AMDesignator or DateTimeFormatInfo.PMDesignator property of the current or specific culture. The AM designator is used for all times from 0:00:00 (midnight) to 11:59:59.999. The PM designator is used for all times from 12:00:00 (noon) to 23:59:59.999.
+
+Make sure to use the "tt" specifier for languages for which it's necessary to maintain the distinction between AM and PM. An example is Japanese, for which the AM and PM designators differ in the second character instead of the first character.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_DebuggerDisplay_attribute">
+        <source>Add 'DebuggerDisplay' attribute</source>
+        <target state="new">Add 'DebuggerDisplay' attribute</target>
+        <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_member_name">
+        <source>Add member name</source>
+        <target state="translated">Ajouter le nom du membre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_null_checks_for_all_parameters">
+        <source>Add null checks for all parameters</source>
+        <target state="translated">Ajouter des vérifications de valeur null pour tous les paramètres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_optional_parameter_to_constructor">
+        <source>Add optional parameter to constructor</source>
+        <target state="translated">Ajouter un paramètre optionnel au constructeur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
+        <source>Add parameter to '{0}' (and overrides/implementations)</source>
+        <target state="translated">Ajouter un paramètre à '{0}' (et aux remplacements/implémentations)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_constructor">
+        <source>Add parameter to constructor</source>
+        <target state="translated">Ajouter un paramètre au constructeur</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
         <target state="translated">Ajoutez une référence de projet à '{0}'.</target>
@@ -17,6 +75,988 @@
         <target state="translated">Les actions ne peuvent pas être vides.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_tuple_element_name_0">
+        <source>Add tuple element name '{0}'</source>
+        <target state="translated">Ajouter le nom d'élément tuple '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
+        <target state="translated">L'ajout de '{0}' à une méthode d'interface empêche la session de débogage de se poursuivre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
+        <target state="translated">L'ajout de '{0}' à une interface empêche la session de débogage de se poursuivre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
+        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
+        <target state="translated">L'ajout d'une méthode avec un spécificateur d'interface explicite empêche la session de débogage de continuer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_arguments">
+        <source>Align wrapped arguments</source>
+        <target state="translated">Aligner les arguments enveloppés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Align_wrapped_parameters">
+        <source>Align wrapped parameters</source>
+        <target state="translated">Aligner les paramètres enveloppés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="translated">La tâche attendue retourne '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="translated">La tâche attendue ne retourne aucune valeur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotApplyChangesUnexpectedError">
+        <source>Cannot apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Impossible d'appliquer les changements -- Erreur inattendue : '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_namespace_to_0">
+        <source>Change namespace to '{0}'</source>
+        <target state="translated">Remplacer l’espace de noms par '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_global_namespace">
+        <source>Change to global namespace</source>
+        <target state="translated">Remplacer par l'espace de noms général</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesDisallowedWhileStoppedAtException">
+        <source>Changes are not allowed while stopped at exception</source>
+        <target state="translated">Aucun changement n'est autorisé en cas d'arrêt à la suite d'une exception</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAppliedWhileRunning">
+        <source>Changes made in project '{0}' will not be applied while the application is running</source>
+        <target state="translated">Les changements apportés au projet '{0}' ne sont pas appliqués tant que l'application est en cours d'exécution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
+        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
+        <target state="translated">Si vous changez '{0}' en le faisant passer d'asynchrone à synchrone, vous allez empêcher la session de débogage de se poursuivre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
+        <target state="translated">Le remplacement de '{0}' par '{1}' va empêcher la session de débogage de se poursuivre, car cela change la forme de la machine à états.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_code_style">
+        <source>Configure {0} code style</source>
+        <target state="translated">Configurer le style de code {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_0_severity">
+        <source>Configure {0} severity</source>
+        <target state="translated">Configurer la gravité {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_0_analyzers">
+        <source>Configure severity for all '{0}' analyzers</source>
+        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_severity_for_all_analyzers">
+        <source>Configure severity for all analyzers</source>
+        <target state="new">Configure severity for all analyzers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq">
+        <source>Convert to LINQ</source>
+        <target state="translated">Convertir en LINQ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_0">
+        <source>Add to '{0}'</source>
+        <target state="translated">Ajouter à '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_class">
+        <source>Convert to class</source>
+        <target state="translated">Convertir en classe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_linq_call_form">
+        <source>Convert to LINQ (call form)</source>
+        <target state="translated">Convertir en LINQ (formulaire d'appel)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_struct">
+        <source>Convert to struct</source>
+        <target state="translated">Convertir en struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_field_0">
+        <source>Create and assign field '{0}'</source>
+        <target state="new">Create and assign field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_property_0">
+        <source>Create and assign property '{0}'</source>
+        <target state="new">Create and assign property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_fields">
+        <source>Create and assign remaining as fields</source>
+        <target state="new">Create and assign remaining as fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_assign_remaining_as_properties">
+        <source>Create and assign remaining as properties</source>
+        <target state="new">Create and assign remaining as properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
+        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
+        <target state="translated">Un type qui implémente System.IDisposable déclare des champs dont les types implémentent également IDisposable. La méthode Dispose du champ n'est pas appelée par la méthode Dispose du type déclarant. Pour corriger toute violation de cette règle, appelez Dispose sur les champs dont les types implémentent IDisposable si vous êtes responsable de l'allocation et de la libération des ressources non managées détenues par le champ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_field_0_is_never_disposed">
+        <source>Disposable field '{0}' is never disposed</source>
+        <target state="translated">Le champ supprimable '{0}' n'est jamais supprimé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_fields_should_be_disposed">
+        <source>Disposable fields should be disposed</source>
+        <target state="translated">Les champs supprimables doivent l'être</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
+        <source>Disposable object created by '{0}' is never disposed</source>
+        <target state="translated">L'objet supprimable créé par '{0}' n'est jamais supprimé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dispose_objects_before_losing_scope">
+        <source>Dispose objects before losing scope</source>
+        <target state="translated">Supprimer les objets avant la mise hors de portée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="translated">Le contenu actuel du fichier source '{0}' ne correspond pas à la source générée. Les changements apportés à ce fichier durant le débogage ne seront pas appliqués tant que son contenu ne correspondra pas à la source générée.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Modifier et continuer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByModule">
+        <source>Edit and Continue disallowed by module</source>
+        <target state="translated">Fonctionnalité Modifier et Continuer interdite par le module</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByProject">
+        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
+        <target state="translated">Les changements apportés au projet '{0}' empêchent la session de débogage de se poursuivre : {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ErrorReadingFile">
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">Erreur durant la lecture du fichier '{0}' : {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_interface">
+        <source>Extract interface...</source>
+        <target state="translated">Extraire l'interface...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_local_function">
+        <source>Extract local function</source>
+        <target state="translated">Extraire la fonction locale</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method">
+        <source>Extract method</source>
+        <target state="translated">Extraire une méthode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_analyze_data_flow_for_0">
+        <source>Failed to analyze data-flow for: {0}</source>
+        <target state="translated">Impossible d’analyser le flux de données pour : {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_formatting">
+        <source>Fix formatting</source>
+        <target state="translated">Corriger la mise en forme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_typo_0">
+        <source>Fix typo '{0}'</source>
+        <target state="translated">Corriger la faute de frappe '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_document">
+        <source>Formatting document</source>
+        <target state="translated">Mise en forme du document</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_comparison_operators">
+        <source>Generate comparison operators</source>
+        <target state="new">Generate comparison operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_for_0">
+        <source>Generate for '{0}'</source>
+        <target state="new">Generate for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0">
+        <source>Generate parameter '{0}'</source>
+        <target state="translated">Générer le paramètre '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
+        <source>Generate parameter '{0}' (and overrides/implementations)</source>
+        <target state="translated">Générer le paramètre '{0}' (et les substitutions/implémentations)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_0_explicitly">
+        <source>Implement '{0}' explicitly</source>
+        <target state="translated">Implémenter '{0}' explicitement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_0_implicitly">
+        <source>Implement '{0}' implicitly</source>
+        <target state="translated">Implémenter '{0}' implicitement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_explicitly">
+        <source>Implement all interfaces explicitly</source>
+        <target state="new">Implement all interfaces explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_interfaces_implicitly">
+        <source>Implement all interfaces implicitly</source>
+        <target state="translated">Implémenter toutes les interfaces implicitement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_explicitly">
+        <source>Implement explicitly</source>
+        <target state="new">Implement explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_implicitly">
+        <source>Implement implicitly</source>
+        <target state="translated">Implémenter implicitement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_arguments">
+        <source>Indent all arguments</source>
+        <target state="translated">Mettre en retrait tous les arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_parameters">
+        <source>Indent all parameters</source>
+        <target state="translated">Mettre en retrait tous les paramètres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_arguments">
+        <source>Indent wrapped arguments</source>
+        <target state="translated">Mettre en retrait les arguments enveloppés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_parameters">
+        <source>Indent wrapped parameters</source>
+        <target state="translated">Mettre en retrait les paramètres enveloppés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant">
+        <source>Introduce constant</source>
+        <target state="translated">Introduire une constante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field">
+        <source>Introduce field</source>
+        <target state="translated">Introduire le champ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local">
+        <source>Introduce local</source>
+        <target state="translated">Introduire un élément local</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable">
+        <source>Introduce query variable</source>
+        <target state="translated">Introduire la variable de requête</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="translated">Rendre statique</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="translated">Inverser un élément conditionnel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_nested_0_statement">
+        <source>Merge with nested '{0}' statement</source>
+        <target state="translated">Fusionner avec l'instruction '{0}' imbriquée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_next_0_statement">
+        <source>Merge with next '{0}' statement</source>
+        <target state="translated">Fusionner avec la prochaine instruction '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_outer_0_statement">
+        <source>Merge with outer '{0}' statement</source>
+        <target state="translated">Fusionner avec l'instruction '{0}' externe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_previous_0_statement">
+        <source>Merge with previous '{0}' statement</source>
+        <target state="translated">Fusionner avec la précédente instruction '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
+        <source>{0} must return a stream that supports read and seek operations.</source>
+        <target state="translated">{0} doit retourner un flux qui prend en charge les opérations de lecture et de recherche.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
+        <target state="translated">La modification de '{0}', qui contient une expression de switch, va empêcher la session de débogage de se poursuivre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_contents_to_namespace">
+        <source>Move contents to namespace...</source>
+        <target state="translated">Déplacer le contenu vers un espace de noms...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_0">
+        <source>Move file to '{0}'</source>
+        <target state="translated">Déplacer le fichier vers '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_file_to_project_root_folder">
+        <source>Move file to project root folder</source>
+        <target state="translated">Déplacer le fichier dans le dossier racine du projet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to namespace...</source>
+        <target state="translated">Déplacer vers un espace de noms...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
+        <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
+        <target state="translated">Le fait de modifier le fichier source {0} empêche la session de débogage de se poursuivre en raison de l’erreur interne : {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up">
+        <source>Pull '{0}' up</source>
+        <target state="translated">Tirer '{0}' vers le haut</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_0_up_to_1">
+        <source>Pull '{0}' up to '{1}'</source>
+        <target state="translated">Tirer '{0}' jusqu'à '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pull_members_up_to_base_type">
+        <source>Pull members up to base type...</source>
+        <target state="translated">Tirer les membres jusqu'au type de base...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
+        <source>Related method signatures found in metadata will not be updated.</source>
+        <target state="translated">Les signatures de méthode associées dans les métadonnées ne sont pas mises à jour.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_1">
+        <source>Replace '{0}' with '{1}' </source>
+        <target state="translated">Remplacer '{0}' par '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolve_conflict_markers">
+        <source>Resolve conflict markers</source>
+        <target state="new">Resolve conflict markers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RudeEdit">
+        <source>Rude edit</source>
+        <target state="translated">Modification non applicable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_into_consecutive_0_statements">
+        <source>Split into consecutive '{0}' statements</source>
+        <target state="translated">Diviser en instructions '{0}' consécutives</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_into_nested_0_statements">
+        <source>Split into nested '{0}' statements</source>
+        <target state="translated">Diviser en instructions '{0}' imbriquées</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">Le flux doit prendre en charge les opérations de lecture et de recherche.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="translated">Supprimer {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_type_matches">
+        <source>Target type matches</source>
+        <target state="translated">Cibler les correspondances de types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
+        <source>The selection contains a local function call without its declaration.</source>
+        <target state="translated">La sélection contient un appel de fonction locale sans sa déclaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="translated">Impossible de lire le fichier source '{0}' ou le PDB généré pour le projet conteneur. Les changements apportés à ce fichier durant le débogage ne seront pas appliqués tant que son contenu ne correspondra pas à la source générée.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_arguments">
+        <source>Unwrap all arguments</source>
+        <target state="translated">Désenvelopper tous les arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_all_parameters">
+        <source>Unwrap all parameters</source>
+        <target state="translated">Désenvelopper tous les paramètres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_arguments">
+        <source>Unwrap and indent all arguments</source>
+        <target state="translated">Désenvelopper et mettre en retrait tous les arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_parameters">
+        <source>Unwrap and indent all parameters</source>
+        <target state="translated">Désenvelopper et mettre en retrait tous les paramètres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_argument_list">
+        <source>Unwrap argument list</source>
+        <target state="translated">Désenvelopper la liste d'arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_call_chain">
+        <source>Unwrap call chain</source>
+        <target state="translated">Désenvelopper la chaîne d'appels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_expression">
+        <source>Unwrap expression</source>
+        <target state="translated">Désenvelopper l'expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_parameter_list">
+        <source>Unwrap parameter list</source>
+        <target state="translated">Désenvelopper la liste de paramètres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">La mise à jour de '{0}' autour d'une instruction active va empêcher la session de débogage de se poursuivre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UseRecommendedDisposePatternDescription">
+        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
+        <target state="translated">Utilisez le modèle Dispose recommandé pour vérifier que les objets supprimables de l'étendue locale sont bien supprimés sur tous les chemins. Si possible, enveloppez la création dans une instruction 'using' ou une déclaration 'using'. Sinon, utilisez un modèle try-finally avec une variable locale dédiée déclarée avant la région try et un appel inconditionnel de Dispose sur une valeur non null dans la région 'finally', par exemple 'x?.Dispose()'. Si l'objet est explicitement supprimé dans la région try ou si la propriété de suppression est transférée vers un autre objet ou une autre méthode, affectez la valeur 'null' à la variable locale juste après cette opération pour éviter une double suppression dans 'finally'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">Utiliser le corps de bloc pour les expressions lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">Utiliser le corps d'expression pour les expressions lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="translated">Utiliser une chaîne verbatim interpolée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recommended_dispose_pattern">
+        <source>Use recommended dispose pattern</source>
+        <target state="translated">Utilisez le modèle Dispose recommandé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
+        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
+        <target state="translated">Utilisez le modèle Dispose recommandé pour vérifier que l'objet créé par '{0}' est supprimé sur tous les chemins : instruction/déclaration using ou try/finally</target>
+        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
+        <target state="translated">Avertissement : Le changement d’espace de noms peut produire du code non valide et changer la signification du code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
+        <source>Warning: Semantics may change when converting statement.</source>
+        <target state="translated">Avertissement : La sémantique peut changer durant la conversion d'une instruction.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="translated">Envelopper et aligner la chaîne d'appels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_expression">
+        <source>Wrap and align expression</source>
+        <target state="translated">Envelopper et aligner l'expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_long_call_chain">
+        <source>Wrap and align long call chain</source>
+        <target state="translated">Envelopper et aligner la longue chaîne d'appels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_call_chain">
+        <source>Wrap call chain</source>
+        <target state="translated">Envelopper la chaîne d'appels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_argument">
+        <source>Wrap every argument</source>
+        <target state="translated">Envelopper chaque argument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_every_parameter">
+        <source>Wrap every parameter</source>
+        <target state="translated">Envelopper chaque paramètre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_expression">
+        <source>Wrap expression</source>
+        <target state="translated">Envelopper l'expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_argument_list">
+        <source>Wrap long argument list</source>
+        <target state="translated">Envelopper la longue liste d'arguments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_call_chain">
+        <source>Wrap long call chain</source>
+        <target state="translated">Envelopper la longue chaîne d'appels</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_parameter_list">
+        <source>Wrap long parameter list</source>
+        <target state="translated">Envelopper la longue liste de paramètres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping">
+        <source>Wrapping</source>
+        <target state="translated">Enveloppement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000000ths_of_a_second">
+        <source>10,000,000ths of a second</source>
+        <target state="new">10,000,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000000ths_of_a_second_description">
+        <source>The "fffffff" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "fffffff" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000000ths_of_a_second_non_zero">
+        <source>10,000,000ths of a second (non-zero)</source>
+        <target state="new">10,000,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000000ths_of_a_second_non_zero_description">
+        <source>The "FFFFFFF" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value. However, trailing zeros or seven zero digits aren't displayed.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "FFFFFFF" custom format specifier represents the seven most significant digits of the seconds fraction; that is, it represents the ten millionths of a second in a date and time value. However, trailing zeros or seven zero digits aren't displayed.
+
+Although it's possible to display the ten millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000000ths_of_a_second">
+        <source>1,000,000ths of a second</source>
+        <target state="new">1,000,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000000ths_of_a_second_description">
+        <source>The "ffffff" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "ffffff" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000000ths_of_a_second_non_zero">
+        <source>1,000,000ths of a second (non-zero)</source>
+        <target state="new">1,000,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000000ths_of_a_second_non_zero_description">
+        <source>The "FFFFFF" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value. However, trailing zeros or six zero digits aren't displayed.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "FFFFFF" custom format specifier represents the six most significant digits of the seconds fraction; that is, it represents the millionths of a second in a date and time value. However, trailing zeros or six zero digits aren't displayed.
+
+Although it's possible to display the millionths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100000ths_of_a_second">
+        <source>100,000ths of a second</source>
+        <target state="new">100,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100000ths_of_a_second_description">
+        <source>The "fffff" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "fffff" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100000ths_of_a_second_non_zero">
+        <source>100,000ths of a second (non-zero)</source>
+        <target state="new">100,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100000ths_of_a_second_non_zero_description">
+        <source>The "FFFFF" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value. However, trailing zeros or five zero digits aren't displayed.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "FFFFF" custom format specifier represents the five most significant digits of the seconds fraction; that is, it represents the hundred thousandths of a second in a date and time value. However, trailing zeros or five zero digits aren't displayed.
+
+Although it's possible to display the hundred thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000ths_of_a_second">
+        <source>10,000ths of a second</source>
+        <target state="new">10,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000ths_of_a_second_description">
+        <source>The "ffff" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT version 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "ffff" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT version 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000ths_of_a_second_non_zero">
+        <source>10,000ths of a second (non-zero)</source>
+        <target state="new">10,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10000ths_of_a_second_non_zero_description">
+        <source>The "FFFF" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value. However, trailing zeros or four zero digits aren't displayed.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</source>
+        <target state="new">The "FFFF" custom format specifier represents the four most significant digits of the seconds fraction; that is, it represents the ten thousandths of a second in a date and time value. However, trailing zeros or four zero digits aren't displayed.
+
+Although it's possible to display the ten thousandths of a second component of a time value, that value may not be meaningful. The precision of date and time values depends on the resolution of the system clock. On the Windows NT 3.5 (and later) and Windows Vista operating systems, the clock's resolution is approximately 10-15 milliseconds.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000ths_of_a_second">
+        <source>1,000ths of a second</source>
+        <target state="new">1,000ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000ths_of_a_second_description">
+        <source>The "fff" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value.</source>
+        <target state="new">The "fff" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000ths_of_a_second_non_zero">
+        <source>1,000ths of a second (non-zero)</source>
+        <target state="new">1,000ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1000ths_of_a_second_non_zero_description">
+        <source>The "FFF" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value. However, trailing zeros or three zero digits aren't displayed.</source>
+        <target state="new">The "FFF" custom format specifier represents the three most significant digits of the seconds fraction; that is, it represents the milliseconds in a date and time value. However, trailing zeros or three zero digits aren't displayed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100ths_of_a_second">
+        <source>100ths of a second</source>
+        <target state="new">100ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100ths_of_a_second_description">
+        <source>The "ff" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value.</source>
+        <target state="new">The "ff" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100ths_of_a_second_non_zero">
+        <source>100ths of a second (non-zero)</source>
+        <target state="new">100ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_100ths_of_a_second_non_zero_description">
+        <source>The "FF" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value. However, trailing zeros or two zero digits aren't displayed.</source>
+        <target state="new">The "FF" custom format specifier represents the two most significant digits of the seconds fraction; that is, it represents the hundredths of a second in a date and time value. However, trailing zeros or two zero digits aren't displayed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10ths_of_a_second">
+        <source>10ths of a second</source>
+        <target state="new">10ths of a second</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10ths_of_a_second_description">
+        <source>The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+
+When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+
+When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10ths_of_a_second_non_zero">
+        <source>10ths of a second (non-zero)</source>
+        <target state="new">10ths of a second (non-zero)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_10ths_of_a_second_non_zero_description">
+        <source>The "F" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value. Nothing is displayed if the digit is zero.
+
+If the "F" format specifier is used without other format specifiers, it's interpreted as the "F" standard date and time format specifier.
+
+The number of "F" format specifiers used with the ParseExact, TryParseExact, ParseExact, or TryParseExact method indicates the maximum number of most significant digits of the seconds fraction that can be present to successfully parse the string.</source>
+        <target state="new">The "F" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value. Nothing is displayed if the digit is zero.
+
+If the "F" format specifier is used without other format specifiers, it's interpreted as the "F" standard date and time format specifier.
+
+The number of "F" format specifiers used with the ParseExact, TryParseExact, ParseExact, or TryParseExact method indicates the maximum number of most significant digits of the seconds fraction that can be present to successfully parse the string.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_12_hour_clock_1_2_digits">
+        <source>12 hour clock (1-2 digits)</source>
+        <target state="new">12 hour clock (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_12_hour_clock_1_2_digits_description">
+        <source>The "h" custom format specifier represents the hour as a number from 1 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted without a leading zero. For example, given a time of 5:43 in the morning or afternoon, this custom format specifier displays "5".
+
+If the "h" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The "h" custom format specifier represents the hour as a number from 1 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted without a leading zero. For example, given a time of 5:43 in the morning or afternoon, this custom format specifier displays "5".
+
+If the "h" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_12_hour_clock_2_digits">
+        <source>12 hour clock (2 digits)</source>
+        <target state="new">12 hour clock (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_12_hour_clock_2_digits_description">
+        <source>The "hh" custom format specifier (plus any number of additional "h" specifiers) represents the hour as a number from 01 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted with a leading zero. For example, given a time of 5:43 in the morning or afternoon, this format specifier displays "05".</source>
+        <target state="new">The "hh" custom format specifier (plus any number of additional "h" specifiers) represents the hour as a number from 01 through 12; that is, the hour is represented by a 12-hour clock that counts the whole hours since midnight or noon. A particular hour after midnight is indistinguishable from the same hour after noon. The hour is not rounded, and a single-digit hour is formatted with a leading zero. For example, given a time of 5:43 in the morning or afternoon, this format specifier displays "05".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_24_hour_clock_1_2_digits">
+        <source>24 hour clock (1-2 digits)</source>
+        <target state="new">24 hour clock (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_24_hour_clock_1_2_digits_description">
+        <source>The "H" custom format specifier represents the hour as a number from 0 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted without a leading zero.
+
+If the "H" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The "H" custom format specifier represents the hour as a number from 0 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted without a leading zero.
+
+If the "H" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_24_hour_clock_2_digits">
+        <source>24 hour clock (2 digits)</source>
+        <target state="new">24 hour clock (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_24_hour_clock_2_digits_description">
+        <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
+        <target state="new">The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="date_separator">
+        <source>date separator</source>
+        <target state="new">date separator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="date_separator_description">
+        <source>The "/" custom format specifier represents the date separator, which is used to differentiate years, months, and days. The appropriate localized date separator is retrieved from the DateTimeFormatInfo.DateSeparator property of the current or specified culture.
+
+Note: To change the date separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string mm'/'dd'/'yyyy produces a result string in which "/" is always used as the date separator. To change the date separator for all dates for a culture, either change the value of the DateTimeFormatInfo.DateSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its DateSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the "/" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The "/" custom format specifier represents the date separator, which is used to differentiate years, months, and days. The appropriate localized date separator is retrieved from the DateTimeFormatInfo.DateSeparator property of the current or specified culture.
+
+Note: To change the date separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string mm'/'dd'/'yyyy produces a result string in which "/" is always used as the date separator. To change the date separator for all dates for a culture, either change the value of the DateTimeFormatInfo.DateSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its DateSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the "/" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_month_1_2_digits">
+        <source>day of the month (1-2 digits)</source>
+        <target state="new">day of the month (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_month_1_2_digits_description">
+        <source>The "d" custom format specifier represents the day of the month as a number from 1 through 31. A single-digit day is formatted without a leading zero.
+
+If the "d" format specifier is used without other custom format specifiers, it's interpreted as the "d" standard date and time format specifier.</source>
+        <target state="new">The "d" custom format specifier represents the day of the month as a number from 1 through 31. A single-digit day is formatted without a leading zero.
+
+If the "d" format specifier is used without other custom format specifiers, it's interpreted as the "d" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_month_2_digits">
+        <source>day of the month (2 digits)</source>
+        <target state="new">day of the month (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_month_2_digits_description">
+        <source>The "dd" custom format string represents the day of the month as a number from 01 through 31. A single-digit day is formatted with a leading zero.</source>
+        <target state="new">The "dd" custom format string represents the day of the month as a number from 01 through 31. A single-digit day is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_week_abbreviated">
+        <source>day of the week (abbreviated)</source>
+        <target state="new">day of the week (abbreviated)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_week_abbreviated_description">
+        <source>The "ddd" custom format specifier represents the abbreviated name of the day of the week. The localized abbreviated name of the day of the week is retrieved from the DateTimeFormatInfo.AbbreviatedDayNames property of the current or specified culture.</source>
+        <target state="new">The "ddd" custom format specifier represents the abbreviated name of the day of the week. The localized abbreviated name of the day of the week is retrieved from the DateTimeFormatInfo.AbbreviatedDayNames property of the current or specified culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_week_full">
+        <source>day of the week (full)</source>
+        <target state="new">day of the week (full)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="day_of_the_week_full_description">
+        <source>The "dddd" custom format specifier (plus any number of additional "d" specifiers) represents the full name of the day of the week. The localized name of the day of the week is retrieved from the DateTimeFormatInfo.DayNames property of the current or specified culture.</source>
+        <target state="new">The "dddd" custom format specifier (plus any number of additional "d" specifiers) represents the full name of the day of the week. The localized name of the day of the week is retrieved from the DateTimeFormatInfo.DayNames property of the current or specified culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="discard">
+        <source>discard</source>
+        <target state="translated">discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="full_long_date_time">
+        <source>full long date/time</source>
+        <target state="new">full long date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="full_long_date_time_description">
+        <source>The "F" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.FullDateTimePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy HH:mm:ss".</source>
+        <target state="new">The "F" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.FullDateTimePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy HH:mm:ss".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="full_short_date_time">
+        <source>full short date/time</source>
+        <target state="new">full short date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="full_short_date_time_description">
+        <source>The Full Date Short Time ("f") Format Specifier
+
+The "f" standard format specifier represents a combination of the long date ("D") and short time ("t") patterns, separated by a space.</source>
+        <target state="new">The Full Date Short Time ("f") Format Specifier
+
+The "f" standard format specifier represents a combination of the long date ("D") and short time ("t") patterns, separated by a space.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="general_long_date_time">
+        <source>general long date/time</source>
+        <target state="new">general long date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="general_long_date_time_description">
+        <source>The "G" standard format specifier represents a combination of the short date ("d") and long time ("T") patterns, separated by a space.</source>
+        <target state="new">The "G" standard format specifier represents a combination of the short date ("d") and long time ("T") patterns, separated by a space.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="general_short_date_time">
+        <source>general short date/time</source>
+        <target state="new">general short date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="general_short_date_time_description">
+        <source>The "g" standard format specifier represents a combination of the short date ("d") and short time ("t") patterns, separated by a space.</source>
+        <target state="new">The "g" standard format specifier represents a combination of the short date ("d") and short time ("t") patterns, separated by a space.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">surcharge générique</target>
@@ -25,6 +1065,109 @@
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">surcharges génériques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_Source_attribute">
+        <source>in Source (attribute)</source>
+        <target state="translated">dans la source (attribut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="long_date">
+        <source>long date</source>
+        <target state="new">long date</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="long_date_description">
+        <source>The "D" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.LongDatePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy".</source>
+        <target state="new">The "D" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.LongDatePattern property. For example, the custom format string for the invariant culture is "dddd, dd MMMM yyyy".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="long_time">
+        <source>long time</source>
+        <target state="new">long time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="long_time_description">
+        <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
+        <target state="new">The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="minute_1_2_digits">
+        <source>minute (1-2 digits)</source>
+        <target state="new">minute (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="minute_1_2_digits_description">
+        <source>The "m" custom format specifier represents the minute as a number from 0 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted without a leading zero.
+
+If the "m" format specifier is used without other custom format specifiers, it's interpreted as the "m" standard date and time format specifier.</source>
+        <target state="new">The "m" custom format specifier represents the minute as a number from 0 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted without a leading zero.
+
+If the "m" format specifier is used without other custom format specifiers, it's interpreted as the "m" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="minute_2_digits">
+        <source>minute (2 digits)</source>
+        <target state="new">minute (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="minute_2_digits_description">
+        <source>The "mm" custom format specifier (plus any number of additional "m" specifiers) represents the minute as a number from 00 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted with a leading zero.</source>
+        <target state="new">The "mm" custom format specifier (plus any number of additional "m" specifiers) represents the minute as a number from 00 through 59. The minute represents whole minutes that have passed since the last hour. A single-digit minute is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_1_2_digits">
+        <source>month (1-2 digits)</source>
+        <target state="new">month (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_1_2_digits_description">
+        <source>The "M" custom format specifier represents the month as a number from 1 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted without a leading zero.
+
+If the "M" format specifier is used without other custom format specifiers, it's interpreted as the "M" standard date and time format specifier.</source>
+        <target state="new">The "M" custom format specifier represents the month as a number from 1 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted without a leading zero.
+
+If the "M" format specifier is used without other custom format specifiers, it's interpreted as the "M" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_2_digits">
+        <source>month (2 digits)</source>
+        <target state="new">month (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_2_digits_description">
+        <source>The "MM" custom format specifier represents the month as a number from 01 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted with a leading zero.</source>
+        <target state="new">The "MM" custom format specifier represents the month as a number from 01 through 12 (or from 1 through 13 for calendars that have 13 months). A single-digit month is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_abbreviated">
+        <source>month (abbreviated)</source>
+        <target state="new">month (abbreviated)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_abbreviated_description">
+        <source>The "MMM" custom format specifier represents the abbreviated name of the month. The localized abbreviated name of the month is retrieved from the DateTimeFormatInfo.AbbreviatedMonthNames property of the current or specified culture.</source>
+        <target state="new">The "MMM" custom format specifier represents the abbreviated name of the month. The localized abbreviated name of the month is retrieved from the DateTimeFormatInfo.AbbreviatedMonthNames property of the current or specified culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_day">
+        <source>month day</source>
+        <target state="new">month day</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_day_description">
+        <source>The "M" or "m" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.MonthDayPattern property. For example, the custom format string for the invariant culture is "MMMM dd".</source>
+        <target state="new">The "M" or "m" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.MonthDayPattern property. For example, the custom format string for the invariant culture is "MMMM dd".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_full">
+        <source>month (full)</source>
+        <target state="new">month (full)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="month_full_description">
+        <source>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</source>
+        <target state="new">The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -212,11 +1355,6 @@
         <target state="translated">Espace de noms global</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly">
-        <source>Implement interface explicitly</source>
-        <target state="translated">Implémenter l'interface explicitement</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface_abstractly">
         <source>Implement interface abstractly</source>
         <target state="translated">Implémenter l'interface abstraitement</target>
@@ -230,36 +1368,6 @@
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">Implémenter l'interface</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Loading_context_from_0">
-        <source>Loading context from '{0}'.</source>
-        <target state="translated">Chargement du contexte de '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Sharphelp_for_more_information">
-        <source>Type "#help" for more information.</source>
-        <target state="translated">Tapez "#help" pour plus d'informations.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found_colon_0">
-        <source>Specified file not found: {0}</source>
-        <target state="translated">Fichier spécifié introuvable : {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found">
-        <source>Specified file not found.</source>
-        <target state="translated">Fichier spécifié introuvable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directory_colon">
-        <source>Searched in directory:</source>
-        <target state="translated">Recherche effectuée dans le répertoire :</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directories_colon">
-        <source>Searched in directories:</source>
-        <target state="translated">Recherche effectuée dans les répertoires :</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
@@ -334,7 +1442,7 @@
       </trans-unit>
       <trans-unit id="field">
         <source>field</source>
-        <target state="translated">champ</target>
+        <target state="translated">Champ</target>
         <note />
       </trans-unit>
       <trans-unit id="local_constant">
@@ -349,7 +1457,21 @@
       </trans-unit>
       <trans-unit id="label">
         <source>label</source>
-        <target state="translated">étiquette</target>
+        <target state="translated">Étiquette</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="period_era">
+        <source>period/era</source>
+        <target state="new">period/era</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="period_era_description">
+        <source>The "g" or "gg" custom format specifiers (plus any number of additional "g" specifiers) represents the period or era, such as A.D. The formatting operation ignores this specifier if the date to be formatted doesn't have an associated period or era string.
+
+If the "g" format specifier is used without other custom format specifiers, it's interpreted as the "g" standard date and time format specifier.</source>
+        <target state="new">The "g" or "gg" custom format specifiers (plus any number of additional "g" specifiers) represents the period or era, such as A.D. The formatting operation ignores this specifier if the date to be formatted doesn't have an associated period or era string.
+
+If the "g" format specifier is used without other custom format specifiers, it's interpreted as the "g" standard date and time format specifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -364,7 +1486,7 @@
       </trans-unit>
       <trans-unit id="in_">
         <source>in</source>
-        <target state="translated">pouces</target>
+        <target state="translated">In</target>
         <note />
       </trans-unit>
       <trans-unit id="Summary_colon">
@@ -394,7 +1516,7 @@
       </trans-unit>
       <trans-unit id="Remarks_colon">
         <source>Remarks:</source>
-        <target state="translated">Notes :</target>
+        <target state="translated">Remarques :</target>
         <note />
       </trans-unit>
       <trans-unit id="generating_source_for_symbols_of_this_type_is_not_supported">
@@ -404,17 +1526,12 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly</source>
-        <target state="translated">Assembly</target>
+        <target state="translated">assembly</target>
         <note />
       </trans-unit>
       <trans-unit id="location_unknown">
         <source>location unknown</source>
         <target state="translated">emplacement inconnu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Interface">
-        <source>Extract Interface...</source>
-        <target state="translated">Extraire l'interface...</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
@@ -662,11 +1779,6 @@
         <target state="translated">Une instruction active a été supprimée de sa méthode d'origine. Annulez vos modifications si vous voulez continuer ou redémarrez la session de débogage.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">La mise à jour d'une instruction '{0}' autour d'une instruction active empêche la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
         <target state="translated">La mise à jour d'un modificateur async ou iterator autour d'une instruction active empêche la session de débogage de se poursuivre.</target>
@@ -792,54 +1904,9 @@
         <target state="translated">Générer la méthode '{1}.{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">Échec de la création d'un processus à distance pour l'exécution de code interactif.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_initialize_remote_interactive_process">
-        <source>Failed to initialize remote interactive process.</source>
-        <target state="translated">Échec de l'initialisation de processus interactif à distance.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
-        <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">Échec de la connexion au processus n° {0}. Nouvelle tentative...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
-        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">Échec du lancement du processus '{0}' (code de sortie : {1}) avec la sortie : </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hosting_process_exited_with_exit_code_0">
-        <source>Hosting process exited with exit code {0}.</source>
-        <target state="translated">Le processus d'hébergement s'est arrêté avec le code de sortie {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Host_not_initialized">
-        <source>Interactive Host not initialized.</source>
-        <target state="translated">L'hôte interactif n'est pas initialisé.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_resolve_reference_0">
-        <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">Impossible de résoudre la référence '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
         <source>Requested assembly already loaded from '{0}'.</source>
         <target state="translated">L'assembly demandé est déjà chargé à partir de '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="plus_additional_0_1">
-        <source> + additional {0} {1}</source>
-        <target state="translated"> + {0} {1} supplémentaire</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_create_hosting_process">
-        <source>Unable to create hosting process.</source>
-        <target state="translated">Impossible de créer le processus d'hébergement.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
@@ -849,17 +1916,7 @@
       </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
-        <target state="translated">Inconnu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Extraire la méthode</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method_plus_Local">
-        <source>Extract Method + Local</source>
-        <target state="translated">Extraire la méthode + local</target>
+        <target state="translated">Inconnue</target>
         <note />
       </trans-unit>
       <trans-unit id="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket">
@@ -913,11 +1970,6 @@ Voulez-vous continuer ?</target>
 '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Supprimer le cast inutile</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_Names">
         <source>Simplify Names</source>
         <target state="translated">Simplifier les noms</target>
@@ -933,16 +1985,6 @@ Voulez-vous continuer ?</target>
         <target state="translated">Supprimer une qualification</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue1">
-        <source>Edit and Continue</source>
-        <target state="translated">Modifier et continuer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
-        <source>This signature does not contain parameters that can be changed.</source>
-        <target state="translated">Cette signature ne contient pas de paramètres susceptibles d'être modifiés.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_error_occurred">
         <source>Unknown error occurred</source>
         <target state="translated">Une erreur inconnue s'est produite</target>
@@ -950,7 +1992,7 @@ Voulez-vous continuer ?</target>
       </trans-unit>
       <trans-unit id="Available">
         <source>Available</source>
-        <target state="translated">Disponible</target>
+        <target state="translated">Disponibilité</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
@@ -993,16 +2035,6 @@ Voulez-vous continuer ?</target>
         <target state="translated">&lt;En attente&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">Retours de tâches attendus</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">aucune valeur.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">Remarque : appuyez deux fois sur la touche Tab pour insérer l'extrait de code '{0}'.</target>
@@ -1016,26 +2048,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implémenter l'interface avec le modèle Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Compilateur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_and_Continue2">
-        <source>Edit and Continue</source>
-        <target state="translated">Modifier et continuer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Style</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_0">
-        <source>Suppress {0}</source>
-        <target state="translated">Supprimer {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
@@ -1084,18 +2096,13 @@ Voulez-vous continuer ?</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects).</source>
-        <target state="translated">TODO: supprimer l'état managé (objets managés).</target>
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="needs-review-translation">TODO: supprimer l'état managé (objets managés).</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null.</source>
-        <target state="translated">TODO: définir les champs de grande taille avec la valeur Null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_detect_redundant_calls">
-        <source>To detect redundant calls</source>
-        <target state="translated">Pour détecter les appels redondants</target>
+        <source>TODO: set large fields to null</source>
+        <target state="needs-review-translation">TODO: définir les champs de grande taille avec la valeur Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
@@ -1106,11 +2113,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Compiler2">
         <source>Compiler</source>
         <target state="translated">Compilateur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_And_Continue">
-        <source>Edit And Continue</source>
-        <target state="translated">Modifier &amp; Continuer</target>
         <note />
       </trans-unit>
       <trans-unit id="Live">
@@ -1135,7 +2137,7 @@ Voulez-vous continuer ?</target>
       </trans-unit>
       <trans-unit id="operator_">
         <source>operator</source>
-        <target state="translated">opérateur</target>
+        <target state="translated">Opérateur</target>
         <note />
       </trans-unit>
       <trans-unit id="constructor">
@@ -1158,6 +2160,164 @@ Voulez-vous continuer ?</target>
         <target state="translated">accesseur d'événement</target>
         <note />
       </trans-unit>
+      <trans-unit id="rfc1123_date_time">
+        <source>rfc1123 date/time</source>
+        <target state="new">rfc1123 date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="rfc1123_date_time_description">
+        <source>The "R" or "r" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.RFC1123Pattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</source>
+        <target state="new">The "R" or "r" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.RFC1123Pattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "ddd, dd MMM yyyy HH':'mm':'ss 'GMT'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="round_trip_date_time">
+        <source>round-trip date/time</source>
+        <target state="new">round-trip date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="round_trip_date_time_description">
+        <source>The "O" or "o" standard format specifier represents a custom date and time format string using a pattern that preserves time zone information and emits a result string that complies with ISO 8601. For DateTime values, this format specifier is designed to preserve date and time values along with the DateTime.Kind property in text. The formatted string can be parsed back by using the DateTime.Parse(String, IFormatProvider, DateTimeStyles) or DateTime.ParseExact method if the styles parameter is set to DateTimeStyles.RoundtripKind.
+
+The "O" or "o" standard format specifier corresponds to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string for DateTime values and to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzzz" custom format string for DateTimeOffset values. In this string, the pairs of single quotation marks that delimit individual characters, such as the hyphens, the colons, and the letter "T", indicate that the individual character is a literal that cannot be changed. The apostrophes do not appear in the output string.
+
+The "O" or "o" standard format specifier (and the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string) takes advantage of the three ways that ISO 8601 represents time zone information to preserve the Kind property of DateTime values:
+
+    The time zone component of DateTimeKind.Local date and time values is an offset from UTC (for example, +01:00, -07:00). All DateTimeOffset values are also represented in this format.
+
+    The time zone component of DateTimeKind.Utc date and time values uses "Z" (which stands for zero offset) to represent UTC.
+
+    DateTimeKind.Unspecified date and time values have no time zone information.
+
+Because the "O" or "o" standard format specifier conforms to an international standard, the formatting or parsing operation that uses the specifier always uses the invariant culture and the Gregorian calendar.
+
+Strings that are passed to the Parse, TryParse, ParseExact, and TryParseExact methods of DateTime and DateTimeOffset can be parsed by using the "O" or "o" format specifier if they are in one of these formats. In the case of DateTime objects, the parsing overload that you call should also include a styles parameter with a value of DateTimeStyles.RoundtripKind. Note that if you call a parsing method with the custom format string that corresponds to the "O" or "o" format specifier, you won't get the same results as "O" or "o". This is because parsing methods that use a custom format string can't parse the string representation of date and time values that lack a time zone component or use "Z" to indicate UTC.</source>
+        <target state="new">The "O" or "o" standard format specifier represents a custom date and time format string using a pattern that preserves time zone information and emits a result string that complies with ISO 8601. For DateTime values, this format specifier is designed to preserve date and time values along with the DateTime.Kind property in text. The formatted string can be parsed back by using the DateTime.Parse(String, IFormatProvider, DateTimeStyles) or DateTime.ParseExact method if the styles parameter is set to DateTimeStyles.RoundtripKind.
+
+The "O" or "o" standard format specifier corresponds to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string for DateTime values and to the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzzz" custom format string for DateTimeOffset values. In this string, the pairs of single quotation marks that delimit individual characters, such as the hyphens, the colons, and the letter "T", indicate that the individual character is a literal that cannot be changed. The apostrophes do not appear in the output string.
+
+The "O" or "o" standard format specifier (and the "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" custom format string) takes advantage of the three ways that ISO 8601 represents time zone information to preserve the Kind property of DateTime values:
+
+    The time zone component of DateTimeKind.Local date and time values is an offset from UTC (for example, +01:00, -07:00). All DateTimeOffset values are also represented in this format.
+
+    The time zone component of DateTimeKind.Utc date and time values uses "Z" (which stands for zero offset) to represent UTC.
+
+    DateTimeKind.Unspecified date and time values have no time zone information.
+
+Because the "O" or "o" standard format specifier conforms to an international standard, the formatting or parsing operation that uses the specifier always uses the invariant culture and the Gregorian calendar.
+
+Strings that are passed to the Parse, TryParse, ParseExact, and TryParseExact methods of DateTime and DateTimeOffset can be parsed by using the "O" or "o" format specifier if they are in one of these formats. In the case of DateTime objects, the parsing overload that you call should also include a styles parameter with a value of DateTimeStyles.RoundtripKind. Note that if you call a parsing method with the custom format string that corresponds to the "O" or "o" format specifier, you won't get the same results as "O" or "o". This is because parsing methods that use a custom format string can't parse the string representation of date and time values that lack a time zone component or use "Z" to indicate UTC.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="second_1_2_digits">
+        <source>second (1-2 digits)</source>
+        <target state="new">second (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="second_1_2_digits_description">
+        <source>The "s" custom format specifier represents the seconds as a number from 0 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted without a leading zero.
+
+If the "s" format specifier is used without other custom format specifiers, it's interpreted as the "s" standard date and time format specifier.</source>
+        <target state="new">The "s" custom format specifier represents the seconds as a number from 0 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted without a leading zero.
+
+If the "s" format specifier is used without other custom format specifiers, it's interpreted as the "s" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="second_2_digits">
+        <source>second (2 digits)</source>
+        <target state="new">second (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="second_2_digits_description">
+        <source>The "ss" custom format specifier (plus any number of additional "s" specifiers) represents the seconds as a number from 00 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted with a leading zero.</source>
+        <target state="new">The "ss" custom format specifier (plus any number of additional "s" specifiers) represents the seconds as a number from 00 through 59. The result represents whole seconds that have passed since the last minute. A single-digit second is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="short_date">
+        <source>short date</source>
+        <target state="new">short date</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="short_date_description">
+        <source>The "d" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.ShortDatePattern property. For example, the custom format string that is returned by the ShortDatePattern property of the invariant culture is "MM/dd/yyyy".</source>
+        <target state="new">The "d" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.ShortDatePattern property. For example, the custom format string that is returned by the ShortDatePattern property of the invariant culture is "MM/dd/yyyy".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="short_time">
+        <source>short time</source>
+        <target state="new">short time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="short_time_description">
+        <source>The "t" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.ShortTimePattern property. For example, the custom format string for the invariant culture is "HH:mm".</source>
+        <target state="new">The "t" standard format specifier represents a custom date and time format string that is defined by the current DateTimeFormatInfo.ShortTimePattern property. For example, the custom format string for the invariant culture is "HH:mm".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="sortable_date_time">
+        <source>sortable date/time</source>
+        <target state="new">sortable date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="sortable_date_time_description">
+        <source>The "s" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.SortableDateTimePattern property. The pattern reflects a defined standard (ISO 8601), and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd'T'HH':'mm':'ss".
+
+The purpose of the "s" format specifier is to produce result strings that sort consistently in ascending or descending order based on date and time values. As a result, although the "s" standard format specifier represents a date and time value in a consistent format, the formatting operation does not modify the value of the date and time object that is being formatted to reflect its DateTime.Kind property or its DateTimeOffset.Offset value. For example, the result strings produced by formatting the date and time values 2014-11-15T18:32:17+00:00 and 2014-11-15T18:32:17+08:00 are identical.
+
+When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</source>
+        <target state="new">The "s" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.SortableDateTimePattern property. The pattern reflects a defined standard (ISO 8601), and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd'T'HH':'mm':'ss".
+
+The purpose of the "s" format specifier is to produce result strings that sort consistently in ascending or descending order based on date and time values. As a result, although the "s" standard format specifier represents a date and time value in a consistent format, the formatting operation does not modify the value of the date and time object that is being formatted to reflect its DateTime.Kind property or its DateTimeOffset.Offset value. For example, the result strings produced by formatting the date and time values 2014-11-15T18:32:17+00:00 and 2014-11-15T18:32:17+08:00 are identical.
+
+When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="time_separator">
+        <source>time separator</source>
+        <target state="new">time separator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="time_separator_description">
+        <source>The ":" custom format specifier represents the time separator, which is used to differentiate hours, minutes, and seconds. The appropriate localized time separator is retrieved from the DateTimeFormatInfo.TimeSeparator property of the current or specified culture.
+
+Note: To change the time separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string hh'_'dd'_'ss produces a result string in which "_" (an underscore) is always used as the time separator. To change the time separator for all dates for a culture, either change the value of the DateTimeFormatInfo.TimeSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its TimeSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the ":" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The ":" custom format specifier represents the time separator, which is used to differentiate hours, minutes, and seconds. The appropriate localized time separator is retrieved from the DateTimeFormatInfo.TimeSeparator property of the current or specified culture.
+
+Note: To change the time separator for a particular date and time string, specify the separator character within a literal string delimiter. For example, the custom format string hh'_'dd'_'ss produces a result string in which "_" (an underscore) is always used as the time separator. To change the time separator for all dates for a culture, either change the value of the DateTimeFormatInfo.TimeSeparator property of the current culture, or instantiate a DateTimeFormatInfo object, assign the character to its TimeSeparator property, and call an overload of the formatting method that includes an IFormatProvider parameter.
+
+If the ":" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="time_zone">
+        <source>time zone</source>
+        <target state="new">time zone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="time_zone_description">
+        <source>The "K" custom format specifier represents the time zone information of a date and time value. When this format specifier is used with DateTime values, the result string is defined by the value of the DateTime.Kind property:
+
+    For the local time zone (a DateTime.Kind property value of DateTimeKind.Local), this specifier is equivalent to the "zzz" specifier and produces a result string containing the local offset from Coordinated Universal Time (UTC); for example, "-07:00".
+
+    For a UTC time (a DateTime.Kind property value of DateTimeKind.Utc), the result string includes a "Z" character to represent a UTC date.
+
+    For a time from an unspecified time zone (a time whose DateTime.Kind property equals DateTimeKind.Unspecified), the result is equivalent to String.Empty.
+
+For DateTimeOffset values, the "K" format specifier is equivalent to the "zzz" format specifier, and produces a result string containing the DateTimeOffset value's offset from UTC.
+
+If the "K" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">The "K" custom format specifier represents the time zone information of a date and time value. When this format specifier is used with DateTime values, the result string is defined by the value of the DateTime.Kind property:
+
+    For the local time zone (a DateTime.Kind property value of DateTimeKind.Local), this specifier is equivalent to the "zzz" specifier and produces a result string containing the local offset from Coordinated Universal Time (UTC); for example, "-07:00".
+
+    For a UTC time (a DateTime.Kind property value of DateTimeKind.Utc), the result string includes a "Z" character to represent a UTC date.
+
+    For a time from an unspecified time zone (a time whose DateTime.Kind property equals DateTimeKind.Unspecified), the result is equivalent to String.Empty.
+
+For DateTimeOffset values, the "K" format specifier is equivalent to the "zzz" format specifier, and produces a result string containing the DateTimeOffset value's offset from UTC.
+
+If the "K" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type_constraint">
         <source>type constraint</source>
         <target state="translated">contrainte de type</target>
@@ -1171,11 +2331,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="attribute">
         <source>attribute</source>
         <target state="translated">attribut</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_auto_property">
-        <source>Use auto property</source>
-        <target state="translated">Utiliser auto-property</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
@@ -1241,26 +2396,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Make_method_synchronous">
         <source>Make method synchronous</source>
         <target state="translated">Rendre la méthode synchrone</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
-        <target state="translated">Ajoutez la qualification 'this' ou 'Me'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Corrigez la violation de nom : {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_rule_violation_0">
-        <source>Naming rule violation: {0}</source>
-        <target state="translated">Violation des règles d'affectation de noms : {0}</target>
-        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
-      </trans-unit>
-      <trans-unit id="Naming_Styles">
-        <source>Naming Styles</source>
-        <target state="translated">Styles d'affectation de noms</target>
         <note />
       </trans-unit>
       <trans-unit id="from_0">
@@ -1385,29 +2520,9 @@ Version utilisée dans : {2}</target>
         <target state="translated">Paramètres :</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_missing_cases">
-        <source>Add missing cases</source>
-        <target state="translated">Ajouter les instructions case manquantes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_both">
-        <source>Add both</source>
-        <target state="translated">Ajouter les deux</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_default_case">
-        <source>Add default case</source>
-        <target state="translated">Ajouter une instruction case par défaut</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
         <source>Variadic SignatureHelpItem must have at least one parameter.</source>
         <target state="translated">L'élément SignatureHelpItem variadique doit avoir au moins un paramètre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_braces">
-        <source>Add braces</source>
-        <target state="translated">Ajouter des accolades</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
@@ -1475,11 +2590,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">(Inconnu)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_Abstract_Class">
-        <source>Implement Abstract Class</source>
-        <target state="translated">Implémenter une classe abstraite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_framework_type">
         <source>Use framework type</source>
         <target state="translated">Utiliser un type d'infrastructure</target>
@@ -1490,94 +2600,9 @@ Version utilisée dans : {2}</target>
         <target state="translated">Installer le package '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Object_initialization_can_be_simplified">
-        <source>Object initialization can be simplified</source>
-        <target state="translated">L'initialisation de l'objet peut être simplifiée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_throw_expression">
-        <source>Use 'throw' expression</source>
-        <target state="translated">Utiliser l'expression 'throw'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="project_0">
         <source>project {0}</source>
         <target state="translated">projet {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_variable_declaration">
-        <source>Inline variable declaration</source>
-        <target state="translated">Déclaration de variable inline</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_pattern_matching">
-        <source>Use pattern matching</source>
-        <target state="translated">Utiliser les critères spéciaux</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="translated">Utiliser un corps d'expression pour les méthodes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_methods">
-        <source>Use block body for methods</source>
-        <target state="translated">Utiliser un corps de bloc pour les méthodes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_accessors">
-        <source>Use block body for accessors</source>
-        <target state="translated">Utiliser un corps de bloc pour les accesseurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_constructors">
-        <source>Use block body for constructors</source>
-        <target state="translated">Utiliser un corps de bloc pour les constructeurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_indexers">
-        <source>Use block body for indexers</source>
-        <target state="translated">Utiliser un corps de bloc pour les indexeurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_operators">
-        <source>Use block body for operators</source>
-        <target state="translated">Utiliser un corps de bloc pour les opérateurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_block_body_for_properties">
-        <source>Use block body for properties</source>
-        <target state="translated">Utiliser un corps de bloc pour les propriétés</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="translated">Utiliser un corps d'expression pour les accesseurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="translated">Utiliser un corps d'expression pour les constructeurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="translated">Utiliser un corps d'expression pour les indexeurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="translated">Utiliser un corps d'expression pour les opérateurs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="translated">Utiliser un corps d'expression pour les propriétés</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Spell_check_0">
-        <source>Spell check '{0}'</source>
-        <target state="translated">Vérifier l'orthographe de '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Fully_qualify_0">
@@ -1618,51 +2643,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Pascal_Case">
         <source>Pascal Case</source>
         <target state="translated">Casse Pascal</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Collection_initialization_can_be_simplified">
-        <source>Collection initialization can be simplified</source>
-        <target state="translated">L'initialisation des collections peut être simplifiée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_coalesce_expression">
-        <source>Use coalesce expression</source>
-        <target state="translated">Utiliser l'expression de fusion</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_null_propagation">
-        <source>Use null propagation</source>
-        <target state="translated">Utiliser la propagation de valeurs null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_inlined">
-        <source>Variable declaration can be inlined</source>
-        <target state="translated">La déclaration de variable peut être inline</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Null_check_can_be_simplified">
-        <source>Null check can be simplified</source>
-        <target state="translated">Le contrôle de valeurs Null peut être simplifié</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_collection_initialization">
-        <source>Simplify collection initialization</source>
-        <target state="translated">Simplifier l'initialisation des collections</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_object_initialization">
-        <source>Simplify object initialization</source>
-        <target state="translated">Simplifier l'initialisation des objets</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
-        <source>Prefer explicitly provided tuple element name</source>
-        <target state="translated">Préférer le nom d'élément tuple fourni explicitement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_explicitly_provided_tuple_name">
-        <source>Use explicitly provided tuple name</source>
-        <target state="translated">Utiliser le nom de tuple fourni explicitement</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_document_0">
@@ -1760,11 +2740,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Choisir les membres à utiliser dans Equals/GetHashCode</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
-        <source>Changes to expression trees may result in behavior changes at runtime</source>
-        <target state="translated">Les changements apportés aux arborescences d'expression peuvent entraîner des changements de comportement au moment de l'exécution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_overrides">
         <source>Generate overrides...</source>
         <target state="translated">Générer les substitutions...</target>
@@ -1788,16 +2763,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
         <source>Add 'string.IsNullOrWhiteSpace' check</source>
         <target state="translated">Ajouter le contrôle 'string.IsNullOrWhiteSpace'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_field_0">
-        <source>Create and initialize field '{0}'</source>
-        <target state="translated">Créer et initialiser le champ '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_and_initialize_property_0">
-        <source>Create and initialize property '{0}'</source>
-        <target state="translated">Créer et initialiser la propriété '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">
@@ -1825,36 +2790,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Implémenter {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_default_expression">
-        <source>Simplify 'default' expression</source>
-        <target state="translated">Simplifier l'expression 'default'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="default_expression_can_be_simplified">
-        <source>'default' expression can be simplified</source>
-        <target state="translated">'l'expression 'default' peut être simplifiée</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_string_contains_invalid_placeholder">
-        <source>Format string contains invalid placeholder</source>
-        <target state="translated">La chaîne de format contient un espace réservé non valide</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_format_string">
-        <source>Invalid format string</source>
-        <target state="translated">Chaîne de format non valide</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_inferred_member_name">
-        <source>Use inferred member name</source>
-        <target state="translated">Utiliser un nom de membre déduit</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_name_can_be_simplified">
-        <source>Member name can be simplified</source>
-        <target state="translated">Le nom de membre peut être simplifié</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
         <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
         <target state="translated">Le diagnostic signalé '{0}' a un emplacement source dans le fichier '{1}', qui ne fait pas partie de la compilation en cours d'analyse.</target>
@@ -1865,34 +2800,9 @@ Version utilisée dans : {2}</target>
         <target state="translated">Le diagnostic signalé '{0}' a un emplacement source '{1}' dans le fichier '{2}', qui se trouve en dehors du fichier donné.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unreachable_code_detected">
-        <source>Unreachable code detected</source>
-        <target state="translated">Code inaccessible détecté</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unreachable_code">
-        <source>Remove unreachable code</source>
-        <target state="translated">Supprimer le code inaccessible</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifiers_are_not_ordered">
-        <source>Modifiers are not ordered</source>
-        <target state="translated">Les modificateurs ne sont pas ordonnés</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Order_modifiers">
-        <source>Order modifiers</source>
-        <target state="translated">Ordonner les modificateurs</target>
-        <note />
-      </trans-unit>
       <trans-unit id="in_0_project_1">
         <source>in {0} (project {1})</source>
         <target state="translated">dans {0} (projet {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessibility_modifiers_required">
-        <source>Accessibility modifiers required</source>
-        <target state="translated">Modificateurs d'accessibilité obligatoires</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -1903,11 +2813,6 @@ Version utilisée dans : {2}</target>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Utiliser une fonction locale</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
-        <source>Warning: Declaration changes scope and may change meaning.</source>
-        <target state="translated">Avertissement : La déclaration change la portée et éventuellement la signification.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
@@ -1925,11 +2830,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">Générer un constructeur dans '{0}' (sans les champs)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
-        <target state="translated">Bannière d'ajout de fichier</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_Method_overrides_symbol_from_metadata">
         <source>Warning: Method overrides symbol from metadata</source>
         <target state="translated">Avertissement : La méthode remplace le symbole des métadonnées</target>
@@ -1945,34 +2845,9 @@ Version utilisée dans : {2}</target>
         <target state="translated">Le passage d'une expression lambda à une fonction locale empêche la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deconstruct_variable_declaration">
-        <source>Deconstruct variable declaration</source>
-        <target state="translated">Déconstruire la déclaration de variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Variable_declaration_can_be_deconstructed">
-        <source>Variable declaration can be deconstructed</source>
-        <target state="translated">La déclaration de variable peut être déconstruite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
         <target state="translated">Ajouter le nom d'argument '{0}' (ainsi que les arguments de fin)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly structs will prevent the debug session from continuing.</source>
-        <target state="translated">L'utilisation de structs en lecture seule va empêcher la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
-        <source>Using ref structs will prevent the debug session from continuing.</source>
-        <target state="translated">L'utilisation de structs par référence va empêcher la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
-        <source>Using readonly references will prevent the debug session from continuing.</source>
-        <target state="translated">L'utilisation de références en lecture seule va empêcher la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
       <trans-unit id="local_function">
@@ -1987,37 +2862,196 @@ Version utilisée dans : {2}</target>
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
-        <target state="new">Alias ambiguous type '{0}'</target>
+        <target state="translated">Alias de type ambigu : '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
         <source>Warning: Collection was modified during iteration.</source>
-        <target state="new">Warning: Collection was modified during iteration.</target>
+        <target state="translated">Avertissement : La collection a été modifiée durant l'itération.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
-        <target state="new">Warning: Iteration variable crossed function boundary.</target>
+        <target state="translated">Avertissement : La variable d'itération a traversé la limite de fonction.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
-        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <target state="translated">Avertissement : La collection risque d'être modifiée durant l'itération.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_readonly_modifier">
-        <source>Add readonly modifier</source>
-        <target state="new">Add readonly modifier</target>
+      <trans-unit id="universal_full_date_time">
+        <source>universal full date/time</source>
+        <target state="new">universal full date/time</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_field_readonly">
-        <source>Make field readonly</source>
-        <target state="new">Make field readonly</target>
+      <trans-unit id="universal_full_date_time_description">
+        <source>The "U" standard format specifier represents a custom date and time format string that is defined by a specified culture's DateTimeFormatInfo.FullDateTimePattern property. The pattern is the same as the "F" pattern. However, the DateTime value is automatically converted to UTC before it is formatted.</source>
+        <target state="new">The "U" standard format specifier represents a custom date and time format string that is defined by a specified culture's DateTimeFormatInfo.FullDateTimePattern property. The pattern is the same as the "F" pattern. However, the DateTime value is automatically converted to UTC before it is formatted.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_to_conditional_expression">
-        <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+      <trans-unit id="universal_sortable_date_time">
+        <source>universal sortable date/time</source>
+        <target state="new">universal sortable date/time</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="universal_sortable_date_time_description">
+        <source>The "u" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.UniversalSortableDateTimePattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd HH':'mm':'ss'Z'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.
+
+Although the result string should express a time as Coordinated Universal Time (UTC), no conversion of the original DateTime value is performed during the formatting operation. Therefore, you must convert a DateTime value to UTC by calling the DateTime.ToUniversalTime method before formatting it.</source>
+        <target state="new">The "u" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.UniversalSortableDateTimePattern property. The pattern reflects a defined standard, and the property is read-only. Therefore, it is always the same, regardless of the culture used or the format provider supplied. The custom format string is "yyyy'-'MM'-'dd HH':'mm':'ss'Z'". When this standard format specifier is used, the formatting or parsing operation always uses the invariant culture.
+
+Although the result string should express a time as Coordinated Universal Time (UTC), no conversion of the original DateTime value is performed during the formatting operation. Therefore, you must convert a DateTime value to UTC by calling the DateTime.ToUniversalTime method before formatting it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_member">
+        <source>updating usages in containing member</source>
+        <target state="translated">mise à jour des utilisations dans le membre conteneur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_project">
+        <source>updating usages in containing project</source>
+        <target state="translated">mise à jour des utilisations dans le projet conteneur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_containing_type">
+        <source>updating usages in containing type</source>
+        <target state="translated">mise à jour des utilisations dans le type conteneur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="updating_usages_in_dependent_projects">
+        <source>updating usages in dependent projects</source>
+        <target state="translated">mise à jour des utilisations dans les projets dépendants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_and_minute_offset">
+        <source>utc hour and minute offset</source>
+        <target state="new">utc hour and minute offset</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_and_minute_offset_description">
+        <source>With DateTime values, the "zzz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours and minutes. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zzz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours and minutes.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</source>
+        <target state="new">With DateTime values, the "zzz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours and minutes. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zzz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours and minutes.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_offset_1_2_digits">
+        <source>utc hour offset (1-2 digits)</source>
+        <target state="new">utc hour offset (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_offset_1_2_digits_description">
+        <source>With DateTime values, the "z" custom format specifier represents the signed offset of the local operating system's time zone from Coordinated Universal Time (UTC), measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "z" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted without a leading zero.
+
+If the "z" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
+        <target state="new">With DateTime values, the "z" custom format specifier represents the signed offset of the local operating system's time zone from Coordinated Universal Time (UTC), measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "z" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted without a leading zero.
+
+If the "z" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_offset_2_digits">
+        <source>utc hour offset (2 digits)</source>
+        <target state="new">utc hour offset (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="utc_hour_offset_2_digits_description">
+        <source>With DateTime values, the "zz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</source>
+        <target state="new">With DateTime values, the "zz" custom format specifier represents the signed offset of the local operating system's time zone from UTC, measured in hours. It doesn't reflect the value of an instance's DateTime.Kind property. For this reason, the "zz" format specifier is not recommended for use with DateTime values.
+
+With DateTimeOffset values, this format specifier represents the DateTimeOffset value's offset from UTC in hours.
+
+The offset is always displayed with a leading sign. A plus sign (+) indicates hours ahead of UTC, and a minus sign (-) indicates hours behind UTC. A single-digit offset is formatted with a leading zero.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_1_2_digits">
+        <source>year (1-2 digits)</source>
+        <target state="new">year (1-2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_1_2_digits_description">
+        <source>The "y" custom format specifier represents the year as a one-digit or two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the first digit of a two-digit year begins with a zero (for example, 2008), the number is formatted without a leading zero.
+
+If the "y" format specifier is used without other custom format specifiers, it's interpreted as the "y" standard date and time format specifier.</source>
+        <target state="new">The "y" custom format specifier represents the year as a one-digit or two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the first digit of a two-digit year begins with a zero (for example, 2008), the number is formatted without a leading zero.
+
+If the "y" format specifier is used without other custom format specifiers, it's interpreted as the "y" standard date and time format specifier.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_2_digits">
+        <source>year (2 digits)</source>
+        <target state="new">year (2 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_2_digits_description">
+        <source>The "yy" custom format specifier represents the year as a two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the two-digit year has fewer than two significant digits, the number is padded with leading zeros to produce two digits.
+
+In a parsing operation, a two-digit year that is parsed using the "yy" custom format specifier is interpreted based on the Calendar.TwoDigitYearMax property of the format provider's current calendar. The following example parses the string representation of a date that has a two-digit year by using the default Gregorian calendar of the en-US culture, which, in this case, is the current culture. It then changes the current culture's CultureInfo object to use a GregorianCalendar object whose TwoDigitYearMax property has been modified.</source>
+        <target state="new">The "yy" custom format specifier represents the year as a two-digit number. If the year has more than two digits, only the two low-order digits appear in the result. If the two-digit year has fewer than two significant digits, the number is padded with leading zeros to produce two digits.
+
+In a parsing operation, a two-digit year that is parsed using the "yy" custom format specifier is interpreted based on the Calendar.TwoDigitYearMax property of the format provider's current calendar. The following example parses the string representation of a date that has a two-digit year by using the default Gregorian calendar of the en-US culture, which, in this case, is the current culture. It then changes the current culture's CultureInfo object to use a GregorianCalendar object whose TwoDigitYearMax property has been modified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_3_4_digits">
+        <source>year (3-4 digits)</source>
+        <target state="new">year (3-4 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_3_4_digits_description">
+        <source>The "yyy" custom format specifier represents the year with a minimum of three digits. If the year has more than three significant digits, they are included in the result string. If the year has fewer than three digits, the number is padded with leading zeros to produce three digits.</source>
+        <target state="new">The "yyy" custom format specifier represents the year with a minimum of three digits. If the year has more than three significant digits, they are included in the result string. If the year has fewer than three digits, the number is padded with leading zeros to produce three digits.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_4_digits">
+        <source>year (4 digits)</source>
+        <target state="new">year (4 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_4_digits_description">
+        <source>The "yyyy" custom format specifier represents the year with a minimum of four digits. If the year has more than four significant digits, they are included in the result string. If the year has fewer than four digits, the number is padded with leading zeros to produce four digits.</source>
+        <target state="new">The "yyyy" custom format specifier represents the year with a minimum of four digits. If the year has more than four significant digits, they are included in the result string. If the year has fewer than four digits, the number is padded with leading zeros to produce four digits.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_5_digits">
+        <source>year (5 digits)</source>
+        <target state="new">year (5 digits)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_5_digits_description">
+        <source>The "yyyyy" custom format specifier (plus any number of additional "y" specifiers) represents the year with a minimum of five digits. If the year has more than five significant digits, they are included in the result string. If the year has fewer than five digits, the number is padded with leading zeros to produce five digits.
+
+If there are additional "y" specifiers, the number is padded with as many leading zeros as necessary to produce the number of "y" specifiers.</source>
+        <target state="new">The "yyyyy" custom format specifier (plus any number of additional "y" specifiers) represents the year with a minimum of five digits. If the year has more than five significant digits, they are included in the result string. If the year has fewer than five digits, the number is padded with leading zeros to produce five digits.
+
+If there are additional "y" specifiers, the number is padded with as many leading zeros as necessary to produce the number of "y" specifiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_month">
+        <source>year month</source>
+        <target state="new">year month</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="year_month_description">
+        <source>The "Y" or "y" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.YearMonthPattern property of a specified culture. For example, the custom format string for the invariant culture is "yyyy MMMM".</source>
+        <target state="new">The "Y" or "y" standard format specifier represents a custom date and time format string that is defined by the DateTimeFormatInfo.YearMonthPattern property of a specified culture. For example, the custom format string for the invariant culture is "yyyy MMMM".</target>
         <note />
       </trans-unit>
     </body>

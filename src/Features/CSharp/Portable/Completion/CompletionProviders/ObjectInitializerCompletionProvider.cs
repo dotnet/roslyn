@@ -1,15 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,8 +22,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(ObjectInitializerCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(ObjectCreationCompletionProvider))]
+    [Shared]
     internal class ObjectInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ObjectInitializerCompletionProvider()
+        {
+        }
+
         protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // We're exclusive if this context could only be an object initializer and not also a
@@ -58,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            var expression = token.Parent.Parent as ExpressionSyntax;
-            if (expression == null)
+            if (!(token.Parent.Parent is ExpressionSyntax expression))
             {
                 return false;
             }
@@ -83,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
         protected override Tuple<ITypeSymbol, Location> GetInitializedType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -117,25 +130,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // new Goo { bar = $$
-            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
+            if (token.Parent.Parent.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
             {
-                var objectCreation = token.Parent.Parent as ObjectCreationExpressionSyntax;
-                if (objectCreation == null)
+                var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
+                if (type is ITypeParameterSymbol typeParameterSymbol)
                 {
-                    return null;
+                    return Tuple.Create<ITypeSymbol, Location>(typeParameterSymbol.GetNamedTypeSymbolConstraint(), token.GetLocation());
                 }
 
-                var ctor = semanticModel.GetSymbolInfo(objectCreation, cancellationToken).Symbol;
-                var type = ctor != null ? ctor.ContainingType : null;
-
-                return Tuple.Create<ITypeSymbol, Location>(type, token.GetLocation());
+                return Tuple.Create(type, token.GetLocation());
             }
 
             // Nested: new Goo { bar = { $$
             if (token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 // Use the type inferrer to get the type being initialized.
-                var typeInferenceService = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
                 var expectedType = typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
                 return Tuple.Create(expectedType, token.GetLocation());
@@ -171,12 +181,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member is IPropertySymbol && ((IPropertySymbol)member).Parameters.Any(p => !p.IsOptional))
+            if (member is IPropertySymbol property && property.Parameters.Any(p => !p.IsOptional))
             {
                 return false;
             }
 
             return base.IsInitializable(member, containingType);
         }
+
+        protected override string EscapeIdentifier(ISymbol symbol)
+            => symbol.Name.EscapeIdentifier();
     }
 }

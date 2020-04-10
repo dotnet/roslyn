@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.HasUnmanagedTypeConstraint)
             {
                 var typeRef = moduleBeingBuilt.GetSpecialType(
-                    SpecialType.System_ValueType,                  
+                    SpecialType.System_ValueType,
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     diagnostics: context.Diagnostics);
 
@@ -247,17 +249,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.SpecialType)
                 {
                     case SpecialType.System_Object:
-                        // Avoid emitting unnecessary object constraint.
-                        continue;
+                        Debug.Assert(!type.NullableAnnotation.IsAnnotated());
+                        break;
                     case SpecialType.System_ValueType:
                         seenValueType = true;
                         break;
                 }
-                var typeRef = moduleBeingBuilt.Translate(type,
+                var typeRef = moduleBeingBuilt.Translate(type.Type,
                                                             syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                             diagnostics: context.Diagnostics);
 
-                yield return type.GetTypeRefWithAttributes(this.DeclaringCompilation,
+                yield return type.GetTypeRefWithAttributes(
+                                                            moduleBeingBuilt,
+                                                            declaringSymbol: this,
                                                             typeRef);
             }
 

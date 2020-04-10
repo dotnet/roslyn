@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -1110,7 +1112,7 @@ DoneWithDiagnostics:
 
             ReportUseSiteError(diagnostics, tree, convKind.Value)
 
-            ReportDiagnosticsIfObsolete(diagnostics, convKind.Value, tree)
+            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, convKind.Value, tree)
 
             Debug.Assert(convKind.Value.IsUserDefinedOperator())
             If Me.ContainingMember Is convKind.Value Then
@@ -1651,7 +1653,7 @@ DoneWithDiagnostics:
                 convertedArguments.ToImmutableAndFree(),
                 targetType)
 
-            If sourceTuple.Type <> destination AndAlso convKind <> Nothing Then
+            If Not TypeSymbol.Equals(sourceTuple.Type, destination, TypeCompareKind.ConsiderEverything) AndAlso convKind <> Nothing Then
                 ' literal cast is applied to the literal 
                 result = New BoundConversion(sourceTuple.Syntax, result, convKind, checked:=False, explicitCastInCode:=isExplicit, type:=destination)
             End If

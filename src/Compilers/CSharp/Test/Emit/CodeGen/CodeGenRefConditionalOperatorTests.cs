@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -521,8 +523,8 @@ class C
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib45(source,options: TestOptions.ReleaseExe);
-  
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+
             comp.VerifyEmitDiagnostics(
                 // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) += await One();
@@ -569,9 +571,9 @@ class C
             var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
-                // (16,35): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
+                // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
                 //         (b? ref val1: ref val2) = await One();
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "await One()").WithLocation(16, 35)
+                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
                );
         }
 
@@ -658,7 +660,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions:TestOptions.Regular7_1);
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
 
             comp.VerifyEmitDiagnostics(
                 // (15,25): error CS8302: Feature 'ref conditional expression' is not available in C# 7.1. Please use language version 7.2 or greater.
@@ -1001,9 +1003,9 @@ class C
   .maxstack  1
   IL_0000:  ldc.i4.1
   IL_0001:  brtrue.s   IL_000a
-  IL_0003:  ldsflda    ""(int Alice, int Bob) C.val2""
+  IL_0003:  ldsflda    ""System.ValueTuple<int, int> C.val2""
   IL_0008:  br.s       IL_000f
-  IL_000a:  ldsflda    ""(int Alice, int) C.val1""
+  IL_000a:  ldsflda    ""System.ValueTuple<int, int> C.val1""
   IL_000f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0014:  call       ""void System.Console.Write(int)""
   IL_0019:  ret

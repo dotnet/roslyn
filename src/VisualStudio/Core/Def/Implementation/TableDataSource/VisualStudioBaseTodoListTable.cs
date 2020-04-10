@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -18,8 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal class VisualStudioBaseTodoListTable : AbstractTable
     {
         private static readonly string[] s_columns = new string[]
@@ -34,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private readonly TableDataSource _source;
 
-        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider) :
-            base(workspace, provider, StandardTables.TasksTable)
+        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
+            : base(workspace, provider, StandardTables.TasksTable)
         {
             _source = new TableDataSource(workspace, todoListProvider, identifier);
             AddInitialTableSource(workspace.CurrentSolution, _source);
@@ -64,18 +65,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected override void ShutdownSource()
-        {
-            _source.Shutdown();
-        }
+            => _source.Shutdown();
 
-        private class TableDataSource : AbstractRoslynTableDataSource<TodoItem>
+        private class TableDataSource : AbstractRoslynTableDataSource<TodoTableItem>
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier) :
-                base(workspace)
+            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
+                : base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
@@ -139,25 +138,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return GetDocumentsWithSameFilePath(args.Solution, args.DocumentId);
             }
 
-            public override ImmutableArray<TableItem<TodoItem>> Deduplicate(IEnumerable<IList<TableItem<TodoItem>>> groupedItems)
-            {
-                return groupedItems.MergeDuplicatesOrderedBy(Order);
-            }
+            public override AbstractTableEntriesSnapshot<TodoTableItem> CreateSnapshot(AbstractTableEntriesSource<TodoTableItem> source, int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                => new TableEntriesSnapshot(version, items, trackingPoints);
 
-            public override ITrackingPoint CreateTrackingPoint(TodoItem data, ITextSnapshot snapshot)
-            {
-                return snapshot.CreateTrackingPoint(data.OriginalLine, data.OriginalColumn);
-            }
+            public override IEqualityComparer<TodoTableItem> GroupingComparer
+                => TodoTableItem.GroupingComparer.Instance;
 
-            public override AbstractTableEntriesSnapshot<TodoItem> CreateSnapshot(AbstractTableEntriesSource<TodoItem> source, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints)
+            public override IEnumerable<TodoTableItem> Order(IEnumerable<TodoTableItem> groupedItems)
             {
-                return new TableEntriesSnapshot(source, version, items, trackingPoints);
-            }
-
-            private static IEnumerable<TableItem<TodoItem>> Order(IEnumerable<TableItem<TodoItem>> groupedItems)
-            {
-                return groupedItems.OrderBy(d => d.Primary.OriginalLine)
-                                   .ThenBy(d => d.Primary.OriginalColumn);
+                return groupedItems.OrderBy(d => d.Data.OriginalLine)
+                                   .ThenBy(d => d.Data.OriginalColumn);
             }
 
             private void PopulateInitialData(Workspace workspace, ITodoListProvider todoListService)
@@ -175,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                Contract.Requires(e.DocumentId != null);
+                Debug.Assert(e.DocumentId != null);
 
                 if (e.TodoItems.Length == 0)
                 {
@@ -186,13 +176,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 OnDataAddedOrChanged(e);
             }
 
-            public override AbstractTableEntriesSource<TodoItem> CreateTableEntriesSource(object data)
+            public override AbstractTableEntriesSource<TodoTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 
-            private class TableEntriesSource : AbstractTableEntriesSource<TodoItem>
+            private sealed class TableEntriesSource : AbstractTableEntriesSource<TodoTableItem>
             {
                 private readonly TableDataSource _source;
                 private readonly Workspace _workspace;
@@ -207,35 +197,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override object Key => _documentId;
 
-                public override ImmutableArray<TableItem<TodoItem>> GetItems()
+                public override ImmutableArray<TodoTableItem> GetItems()
                 {
-                    var provider = _source._todoListProvider;
-
-                    return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
-                                   .Select(i => new TableItem<TodoItem>(i, GenerateDeduplicationKey))
+                    return _source._todoListProvider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
+                                   .Select(data => TodoTableItem.Create(_workspace, data))
                                    .ToImmutableArray();
                 }
 
-                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TableItem<TodoItem>> items)
-                {
-                    return _workspace.CreateTrackingPoints(_documentId, items, _source.CreateTrackingPoint);
-                }
-
-                private int GenerateDeduplicationKey(TodoItem item)
-                {
-                    return Hash.Combine(item.OriginalColumn, item.OriginalLine);
-                }
+                public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<TodoTableItem> items)
+                    => _workspace.CreateTrackingPoints(_documentId, items);
             }
 
-            private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoItem>
+            private sealed class TableEntriesSnapshot : AbstractTableEntriesSnapshot<TodoTableItem>
             {
-                private readonly AbstractTableEntriesSource<TodoItem> _source;
-
-                public TableEntriesSnapshot(
-                    AbstractTableEntriesSource<TodoItem> source, int version, ImmutableArray<TableItem<TodoItem>> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                    base(version, items, trackingPoints)
+                public TableEntriesSnapshot(int version, ImmutableArray<TodoTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+                    : base(version, items, trackingPoints)
                 {
-                    _source = source;
                 }
 
                 public override bool TryGetValue(int index, string columnName, out object content)
@@ -244,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     //         also, what is cancellation mechanism?
                     var item = GetItem(index);
 
-                    var data = item?.Primary;
+                    var data = item?.Data;
                     if (data == null)
                     {
                         content = null;
@@ -254,19 +231,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.Priority:
-                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
+                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Value.Priority);
                             return content != null;
                         case StandardTableKeyNames.Text:
-                            content = data.Message;
+                            content = data.Value.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = GetFileName(data.OriginalFilePath, data.MappedFilePath);
+                            content = GetFileName(data.Value.OriginalFilePath, data.Value.MappedFilePath);
                             return content != null;
                         case StandardTableKeyNames.Line:
-                            content = GetLineColumn(data).Line;
+                            content = GetLineColumn(item).Line;
                             return true;
                         case StandardTableKeyNames.Column:
-                            content = GetLineColumn(data).Character;
+                            content = GetLineColumn(item).Character;
                             return true;
                         case StandardTableKeyNames.TaskCategory:
                             content = ValueTypeCache.GetOrCreate(VSTASKCATEGORY.CAT_COMMENTS);
@@ -275,53 +252,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = item.ProjectName;
                             return content != null;
                         case ProjectNames:
-                            content = item.ProjectNames;
-                            return ((string[])content).Length > 0;
+                            var names = item.ProjectNames;
+                            content = names;
+                            return names.Length > 0;
                         case StandardTableKeyNames.ProjectGuid:
                             content = ValueTypeCache.GetOrCreate(item.ProjectGuid);
                             return (Guid)content != Guid.Empty;
                         case ProjectGuids:
-                            content = item.ProjectGuids;
-                            return ((Guid[])content).Length > 0;
+                            var guids = item.ProjectGuids;
+                            content = guids;
+                            return guids.Length > 0;
                         default:
                             content = null;
                             return false;
                     }
                 }
 
-                private LinePosition GetLineColumn(TodoItem item)
+                // TODO: Apply location mapping when creating the TODO item (https://github.com/dotnet/roslyn/issues/36217)
+                private LinePosition GetLineColumn(TodoTableItem item)
                 {
                     return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
                         item.Workspace,
-                        item.DocumentId,
-                        item.OriginalLine,
-                        item.OriginalColumn,
-                        item.MappedLine,
-                        item.MappedColumn);
+                        item.Data.DocumentId,
+                        item.Data.OriginalLine,
+                        item.Data.OriginalColumn,
+                        item.Data.MappedLine,
+                        item.Data.MappedColumn);
                 }
 
                 public override bool TryNavigateTo(int index, bool previewTab)
-                {
-                    var item = GetItem(index)?.Primary;
-                    if (item == null)
-                    {
-                        return false;
-                    }
-
-                    var trackingLinePosition = GetTrackingLineColumn(item.Workspace, item.DocumentId, index);
-                    if (trackingLinePosition != LinePosition.Zero)
-                    {
-                        return TryNavigateTo(item.Workspace, item.DocumentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
-                    }
-
-                    return TryNavigateTo(item.Workspace, item.DocumentId, item.OriginalLine, item.OriginalColumn, previewTab);
-                }
-
-                protected override bool IsEquivalent(TodoItem item1, TodoItem item2)
-                {
-                    // everything same except location
-                    return item1.DocumentId == item2.DocumentId && item1.Message == item2.Message;
-                }
+                    => TryNavigateToItem(index, previewTab);
             }
         }
     }

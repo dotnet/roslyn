@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.IO;
 using Roslyn.Test.Utilities;
@@ -10,7 +14,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [ConditionalFact(typeof(DotNetSdkAvailable))]
         public void TestSourceLink()
         {
-            var sourcePackageDir = Temp.CreateDirectory(); 
+            var sourcePackageDir = Temp.CreateDirectory();
             // TODO: test escaping (https://github.com/dotnet/roslyn/issues/22835): .CreateDirectory("a=b, c");
 
             var libFile = sourcePackageDir.CreateFile("lib.cs").WriteAllText("class Lib { public void M() { } }");
@@ -20,7 +24,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var sourceLinkJsonPath = Path.Combine(ObjDir.Path, ProjectName + ".sourcelink.json");
 
-            var sourcePackageTargets = $@"
+            var sourcePackageProps = $@"
   <ItemGroup>
     <Compile Include=""{libFile.Path}"" Link=""Lib.cs"" />
     <SourceRoot Include=""{root2}"" SourceLinkUrl=""https://raw.githubusercontent.com/Source/Package/*""/>
@@ -56,28 +60,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // deterministic CI build:
             VerifyValues(
-                props:  $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PathMap>PreviousPathMap</PathMap>
-  </PropertyGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+  <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  <PathMap>PreviousPathMap</PathMap>
+</PropertyGroup>
+{sourcePackageProps}",
+                customTargets: sourceLinkPackageTargets,
                 targets: new[]
                 {
                     "CoreCompile"
                 },
-                expressions: new[] 
+                expressions: new[]
                 {
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
                     "$(PathMap)",
                     "$(SourceRootMappedPathsFeatureSupported)"
                 },
-                expectedResults: new[] 
+                expectedResults: new[]
                 {
                     $@"{root2}: /_1/",
                     $@"{root1}: /_/",
@@ -97,16 +99,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // non-deterministic CI build:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <Deterministic>false</Deterministic>
-  </PropertyGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+  <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  <Deterministic>false</Deterministic>
+</PropertyGroup>
+{sourcePackageProps}",
+                customTargets: sourceLinkPackageTargets,
                 targets: new[]
                 {
                     "CoreCompile"
@@ -136,15 +136,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // deterministic local build:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
-  </PropertyGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+  <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
+</PropertyGroup>
+{sourcePackageProps}",
+                customTargets: sourceLinkPackageTargets,
                 targets: new[]
                 {
                     "CoreCompile"
@@ -174,15 +172,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // DeterministicSourcePaths override:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <DeterministicSourcePaths>false</DeterministicSourcePaths>
-  </PropertyGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+  <DeterministicSourcePaths>false</DeterministicSourcePaths>
+</PropertyGroup>
+{sourcePackageProps}",
+                customTargets: sourceLinkPackageTargets,
                 targets: new[]
                 {
                     "CoreCompile"
@@ -212,18 +208,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // SourceControlInformationFeatureSupported = false:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>false</SourceControlInformationFeatureSupported>
-    <DeterministicSourcePaths>true</DeterministicSourcePaths>
-  </PropertyGroup>
-  <ItemGroup>
-    <SourceRoot Include=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*"" />
-  </ItemGroup>
-  {sourcePackageTargets}
-  {sourceLinkPackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <DeterministicSourcePaths>true</DeterministicSourcePaths>
+</PropertyGroup>
+<ItemGroup>
+  <SourceRoot Include=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*"" />
+</ItemGroup>
+{sourcePackageProps}",
+                customTargets: $@"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>false</SourceControlInformationFeatureSupported>
+</PropertyGroup>
+{sourceLinkPackageTargets}",
                 targets: new[]
                 {
                     "CoreCompile"
@@ -249,17 +246,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             // No SourceLink package:
             VerifyValues(
-                props: $@"
-<Project>
-  <PropertyGroup>
-    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
-    <DeterministicSourcePaths>true</DeterministicSourcePaths>
-  </PropertyGroup>
-  <ItemGroup>
-    <SourceRoot Include=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*"" />
-  </ItemGroup>
-  {sourcePackageTargets}
-</Project>",
+                customProps: $@"
+<PropertyGroup>
+  <DeterministicSourcePaths>true</DeterministicSourcePaths>
+</PropertyGroup>
+<ItemGroup>
+  <SourceRoot Include=""{root1}"" SourceLinkUrl=""https://raw.githubusercontent.com/R1/*"" />
+</ItemGroup>
+{sourcePackageProps}",
+                customTargets: @"
+<PropertyGroup>
+  <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
+</PropertyGroup>
+",
                 targets: new[]
                 {
                     "CoreCompile"
@@ -282,6 +281,86 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 $@"[/_/]=[https://raw.githubusercontent.com/R1/*]," +
                 $@"[/_1/]=[https://raw.githubusercontent.com/Source/Package/*]",
                 File.ReadAllText(sourceLinkJsonPath));
+        }
+
+        /// <summary>
+        /// Validates dependencies of _BeforeVBCSCoreCompile target. 
+        /// </summary>
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void BeforeVBCSCoreCompileDependencies()
+        {
+            VerifyValues(
+                customProps: $@"
+  <ItemGroup>
+    <ReferencePath Include=""A"" />
+  </ItemGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "_BeforeVBCSCoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(ReferencePathWithRefAssemblies)",
+                },
+                expectedResults: new[]
+                {
+                    "A",
+                });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        public void ClearEmbedInteropTypes()
+        {
+            VerifyValues(
+                customProps: $@"
+  <PropertyGroup>
+    <TargetingClr2Framework>true</TargetingClr2Framework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ReferencePathWithRefAssemblies Include=""A"" EmbedInteropTypes=""false""/>
+    <ReferencePathWithRefAssemblies Include=""B"" EmbedInteropTypes=""true""/>
+  </ItemGroup>",
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(ReferencePathWithRefAssemblies->'EmbedInteropTypes=`%(EmbedInteropTypes)`')",
+                },
+                expectedResults: new[]
+                {
+                    "EmbedInteropTypes=``",
+                    "EmbedInteropTypes=``"
+                });
+        }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/34688")]
+        public void TestDiscoverEditorConfigFiles()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var subdir = ProjectDir.CreateDirectory("subdir");
+            var srcFile2 = subdir.CreateFile("lib2.cs").WriteAllText("class D { }");
+            var editorConfigFile2 = subdir.CreateFile(".editorconfig").WriteAllText(@"[*.cs]
+some_prop = some_val");
+            VerifyValues(
+                customProps: null,
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                expectedResults: new[]
+                {
+                    Path.Combine(ProjectDir.Path, ".editorconfig"),
+                    editorConfigFile2.Path
+                });
         }
     }
 }

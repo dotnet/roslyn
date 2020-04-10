@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -4211,7 +4213,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
             Dim type = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Target")
 
             Dim typeInAttribute = DirectCast(type.GetAttributes()(0).ConstructorArguments(0).Value, NamedTypeSymbol)
@@ -4365,7 +4367,7 @@ End Class
             Dim emitResult2 = compilation2.Emit(peStream:=New MemoryStream(), options:=New EmitOptions(metadataOnly:=True))
             Assert.False(emitResult2.Success)
             AssertTheseDiagnostics(emitResult2.Diagnostics, <![CDATA[
-BC36970: Failed to emit module 'Test.dll'.
+BC36970: Failed to emit module 'Test.dll': Module has invalid attributes.
 ]]>)
 
             ' Use different mscorlib to test retargeting scenario
@@ -4618,5 +4620,39 @@ End Class
             Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"))
         End Sub
 
+        <Fact>
+        Public Sub AttributeWithTaskDelegateParameter()
+            Dim code = "
+Imports System
+Imports System.Threading.Tasks
+
+Namespace a
+    Public Class Class1
+        <AttributeUsage(AttributeTargets.Class, AllowMultiple:=True)>
+        Public Class CommandAttribute
+            Inherits Attribute
+
+            Public Delegate Function FxCommand() As Task
+
+            Public Sub New(Fx As FxCommand)
+                Me.Fx = Fx
+            End Sub
+
+            Public Property Fx As FxCommand
+        End Class
+
+        <Command(AddressOf UserInfo)>
+        Public Shared Async Function UserInfo() As Task
+            Await New Task(
+                Sub()
+                End Sub)
+        End Function
+    End Class
+End Namespace
+"
+            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_BadAttributeConstructor1, "Command").WithArguments("a.Class1.CommandAttribute.FxCommand").WithLocation(20, 10),
+                Diagnostic(ERRID.ERR_RequiredConstExpr, "AddressOf UserInfo").WithLocation(20, 18))
+        End Sub
     End Class
 End Namespace

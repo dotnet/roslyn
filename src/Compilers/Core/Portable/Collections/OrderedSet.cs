@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections;
@@ -8,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    internal sealed class OrderedSet<T> : IEnumerable<T>, IReadOnlySet<T>
+    internal sealed class OrderedSet<T> : IEnumerable<T>, IReadOnlySet<T>, IReadOnlyList<T>, IOrderedReadOnlySet<T>
     {
         private readonly HashSet<T> _set;
         private readonly ArrayBuilder<T> _list;
@@ -52,19 +56,32 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
+        public T this[int index]
+        {
+            get
+            {
+                return _list[index];
+            }
+        }
+
         public bool Contains(T item)
         {
             return _set.Contains(item);
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public ArrayBuilder<T>.Enumerator GetEnumerator()
         {
             return _list.GetEnumerator();
         }
 
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return ((IEnumerable<T>)_list).GetEnumerator();
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _list.GetEnumerator();
+            return ((IEnumerable)_list).GetEnumerator();
         }
 
         public void Clear()

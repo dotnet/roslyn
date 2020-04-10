@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using System.Linq;
@@ -115,14 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static SyntaxNode GetNestedFunctionBody(SyntaxNode nestedFunction)
-        {
-            switch (nestedFunction)
+            => nestedFunction switch
             {
-                case AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax: return anonymousFunctionExpressionSyntax.Body;
-                case LocalFunctionStatementSyntax localFunctionStatementSyntax: return (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression;
-                default: throw ExceptionUtilities.UnexpectedValue(nestedFunction);
-            }
-        }
+                AnonymousFunctionExpressionSyntax anonymousFunctionExpressionSyntax => anonymousFunctionExpressionSyntax.Body,
+                LocalFunctionStatementSyntax localFunctionStatementSyntax => (CSharpSyntaxNode)localFunctionStatementSyntax.Body ?? localFunctionStatementSyntax.ExpressionBody.Expression,
+                _ => throw ExceptionUtilities.UnexpectedValue(nestedFunction),
+            };
 
         public static bool IsNotLambdaBody(SyntaxNode node)
         {
@@ -418,12 +418,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // that lambda needs a closure that captures the analysis payload of the constructor.
                     return true;
 
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.AwaitExpression:
+                    // These translate into a BoundSpillSequence, which is then translated into a block
+                    // containing temps required for spilling subexpressions. That block has the syntax of the switch
+                    // expression or await expression.
+                    return true;
+
                 default:
                     // With the introduction of pattern-matching, many nodes now contain top-level
                     // expressions that may introduce pattern variables.
-                    if (node.Parent.IsKind(SyntaxKind.EqualsValueClause))
+                    if (node.Parent != null)
                     {
-                        return true;
+                        switch (node.Parent.Kind())
+                        {
+                            case SyntaxKind.EqualsValueClause:
+                                return true;
+
+                            case SyntaxKind.ForStatement:
+                                SeparatedSyntaxList<ExpressionSyntax> incrementors = ((ForStatementSyntax)node.Parent).Incrementors;
+                                if (incrementors.FirstOrDefault() == node)
+                                {
+                                    return true;
+                                }
+                                break;
+                        }
                     }
 
                     break;
@@ -441,6 +460,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Given a node that represents a variable declaration, lambda or a closure scope return the position to be used to calculate 
+        /// the node's syntax offset with respect to its containing member.
+        /// </summary>
+        internal static int GetDeclaratorPosition(SyntaxNode node)
+        {
+            // To differentiate between nested switch expressions that start at the same offset, use the offset of the `switch` keyword.
+            return (node is SwitchExpressionSyntax switchExpression) ? switchExpression.SwitchKeyword.SpanStart : node.SpanStart;
         }
 
         private static SyntaxNode GetLocalFunctionBody(LocalFunctionStatementSyntax localFunctionStatementSyntax)

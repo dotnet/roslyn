@@ -1,15 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 {
     internal abstract partial class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
     {
-        private struct SymbolResult : IEquatable<SymbolResult>, IComparable<SymbolResult>
+        private readonly struct SymbolResult : IEquatable<SymbolResult>, IComparable<SymbolResult>
         {
             public readonly INamespaceOrTypeSymbol Symbol;
             public readonly int Weight;
@@ -36,17 +38,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
             public int CompareTo(SymbolResult other)
             {
-                Contract.Requires(this.Symbol is INamespaceSymbol || !((INamedTypeSymbol)this.Symbol).IsGenericType);
-                Contract.Requires(other.Symbol is INamespaceSymbol || !((INamedTypeSymbol)other.Symbol).IsGenericType);
+                Debug.Assert(Symbol is INamespaceSymbol || !((INamedTypeSymbol)Symbol).IsGenericType);
+                Debug.Assert(other.Symbol is INamespaceSymbol || !((INamedTypeSymbol)other.Symbol).IsGenericType);
 
-                var diff = this.Weight - other.Weight;
+                var diff = Weight - other.Weight;
                 if (diff != 0)
                 {
                     return diff;
                 }
 
                 return INamespaceOrTypeSymbolExtensions.CompareNameParts(
-                    this.NameParts, other.NameParts, placeSystemNamespaceFirst: true);
+                    NameParts, other.NameParts, placeSystemNamespaceFirst: true);
             }
         }
     }

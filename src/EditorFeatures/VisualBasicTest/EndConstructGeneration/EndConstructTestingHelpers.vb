@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -31,7 +33,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Property
 
         Private Sub DisableLineCommit(workspace As Workspace)
-            workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
         End Sub
 
         Private Sub VerifyTypedCharApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),
@@ -58,10 +61,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Assert.Equal(after, view.TextSnapshot.GetText())
 
                 Dim actualLine As Integer
-                Dim actualCol As Integer
-                view.Caret.Position.BufferPosition.GetLineAndColumn(actualLine, actualCol)
+                Dim actualChar As Integer
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(actualLine, actualChar)
                 Assert.Equal(endCaretPos(0), actualLine)
-                Assert.Equal(endCaretPos(1), actualCol)
+                Assert.Equal(endCaretPos(1), actualChar)
             End Using
         End Sub
 

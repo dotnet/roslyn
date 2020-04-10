@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Xunit;
-using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions;
+using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("expressions ,  ,  , control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
         InlineData("expressions ,  ,  , control_flow_statements", SpacingWithinParenthesesOption.Expressions),
         InlineData(",  ,  , control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements)]
-        static void TestParseParenthesesSpaceOptionsTrue(string value, CSharpFormattingOptions.SpacingWithinParenthesesOption parenthesesSpacingOption)
+        static void TestParseParenthesesSpaceOptionsTrue(string value, SpacingWithinParenthesesOption parenthesesSpacingOption)
         {
             Assert.True(DetermineIfSpaceOptionIsSet(value, parenthesesSpacingOption),
                         $"Expected option {value} to be parsed as set.");
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("one_less_than_current", LabelPositionOptions.OneLess)]
         static void TestParseEditorConfigLabelPositioningTrue(string value, LabelPositionOptions expectedValue)
         {
-            Assert.True(ParseEditorConfigLablePositioning(value) == expectedValue,
+            Assert.True(ParseEditorConfigLabelPositioning(value) == expectedValue,
                         $"Expected option {value} to be parsed as set.");
         }
 
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("one_less_thancurrent")]
         static void TestParseEditorConfigLabelPositioningFalse(string value)
         {
-            Assert.True(ParseEditorConfigLablePositioning(value) == LabelPositionOptions.NoIndent,
+            Assert.True(ParseEditorConfigLabelPositioning(value) == LabelPositionOptions.NoIndent,
                         $"Expected option {value} to be parsed default");
         }
 
@@ -92,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         InlineData("control_blocks", NewLineOption.ControlBlocks),
         InlineData("anonymous_types", NewLineOption.AnonymousTypes),
         InlineData("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
+        InlineData("object_collection_array_initializers", NewLineOption.ObjectCollectionsArrayInitializers),
         InlineData("lambdas", NewLineOption.Lambdas),
         InlineData("local_functions", NewLineOption.LocalFunction)]
         static void TestParseNewLineOptionTrue(string value, NewLineOption option)

@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -15,16 +18,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     internal class CommentTaskTokenSerializer : IOptionPersister
     {
         private readonly ITaskList _taskList;
-        private readonly IOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptionService;
 
         private string _lastCommentTokenCache = null;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommentTaskTokenSerializer(
-            VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptionService,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            _optionService = workspace.Services.GetService<IOptionService>();
+            _globalOptionService = globalOptionService;
 
             // The SVsTaskList may not be available or doesn't actually implement ITaskList
             // in the "devenv /build" scenario
@@ -66,8 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             var commentString = GetTaskTokenList(_taskList);
 
-            var optionSet = _optionService.GetOptions();
-            var optionValue = optionSet.GetOption(TodoCommentOptions.TokenList);
+            var optionValue = _globalOptionService.GetOption(TodoCommentOptions.TokenList);
             if (optionValue == commentString)
             {
                 return;
@@ -77,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _lastCommentTokenCache = commentString;
 
             // let people to know that comment string has changed
-            _optionService.SetOptions(optionSet.WithChangedOption(TodoCommentOptions.TokenList, _lastCommentTokenCache));
+            _globalOptionService.RefreshOption(TodoCommentOptions.TokenList, _lastCommentTokenCache);
         }
 
         private static string GetTaskTokenList(ITaskList taskList)

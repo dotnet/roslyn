@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -12,9 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestArgumentValidation()
-        {
-            Assert.Throws<ArgumentNullException>("instance", () => new ReferenceCountedDisposable<IDisposable>(null));
-        }
+            => Assert.Throws<ArgumentNullException>("instance", () => new ReferenceCountedDisposable<IDisposable>(null));
 
         [Theory]
         [InlineData(1)]
@@ -125,16 +125,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWeakReferenceArgumentValidation()
-        {
-            Assert.Throws<ArgumentNullException>("reference", () => new ReferenceCountedDisposable<IDisposable>.WeakReference(null));
-        }
+            => Assert.Throws<ArgumentNullException>("reference", () => new ReferenceCountedDisposable<IDisposable>.WeakReference(null));
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestDefaultWeakReference()
-        {
-            Assert.Null(default(ReferenceCountedDisposable<IDisposable>.WeakReference).TryAddReference());
-        }
+            => Assert.Null(default(ReferenceCountedDisposable<IDisposable>.WeakReference).TryAddReference());
 
         private sealed class DisposableObject : IDisposable
         {

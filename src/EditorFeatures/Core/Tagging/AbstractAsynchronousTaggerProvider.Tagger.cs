@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -48,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
             public Tagger(
+                IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
                 IForegroundNotificationService notificationService,
                 TagSource tagSource,
@@ -59,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _cancellationTokenSource = new CancellationTokenSource();
 
                 _batchChangeNotifier = new BatchChangeNotifier(
+                    threadingContext,
                     subjectBuffer, listener, notificationService, NotifyEditorNow, _cancellationTokenSource.Token);
 
                 _tagSource = tagSource;

@@ -1,7 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,24 +22,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly Solution _solution;
         private readonly IImmutableSet<Document> _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
-        private readonly StreamingProgressTracker _progressTracker;
+        private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
-
-        /// <summary>
-        /// Mapping from a document to the list of reference locations found in it.  Kept around so
-        /// we only notify the callback once when a location is found for a reference (in case
-        /// multiple finders find the same reference location for a symbol).
-        /// </summary>
-        private readonly ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>> _documentToLocationMap = new ConcurrentDictionary<Document, ConcurrentSet<ReferenceLocation>>();
-        private static readonly Func<Document, ConcurrentSet<ReferenceLocation>> s_createDocumentLocations = _ => new ConcurrentSet<ReferenceLocation>();
+        private readonly FindReferencesSearchOptions _options;
 
         public FindReferencesSearchEngine(
             Solution solution,
             IImmutableSet<Document> documents,
             ImmutableArray<IReferenceFinder> finders,
             IStreamingFindReferencesProgress progress,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             _documents = documents;
@@ -48,16 +42,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progress = progress;
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
+            _options = options;
 
-            _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
+            _progressTracker = progress.ProgressTracker;
         }
 
         public async Task FindReferencesAsync(SymbolAndProjectId symbolAndProjectId)
         {
             await _progress.OnStartedAsync().ConfigureAwait(false);
-            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
             try
             {
+                await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
+
                 var symbols = await DetermineAllSymbolsAsync(symbolAndProjectId).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
@@ -68,7 +64,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
                 await _progress.OnCompletedAsync().ConfigureAwait(false);
             }
         }
@@ -88,10 +83,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // it.
                 // For each connected component, we'll process the individual projects from bottom to
                 // top.  i.e. we'll first process the projects with no dependencies.  Then the projects
-                // that depend on those projects, and so and.  This way we always have creates the 
+                // that depend on those projects, and so on.  This way we always have created the 
                 // dependent compilations when they're needed by later projects.  If we went the other
                 // way (i.e. processed the projects with lots of project dependencies first), then we'd
-                // have to create all their depedent compilations in order to get their compilation.
+                // have to create all their dependent compilations in order to get their compilation.
                 // This would be very expensive and would take a lot of time before we got our first
                 // result.
                 var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
@@ -127,15 +122,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     foreach (var finder in documentToFinderList.Value)
                     {
-                        Contract.Requires(set.Add(finder));
+                        Debug.Assert(set.Add(finder));
                     }
                 }
             }
         }
 
         private Task HandleLocationAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
-        {
-            return _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
-        }
+            => _progress.OnReferenceFoundAsync(symbolAndProjectId, location);
     }
 }

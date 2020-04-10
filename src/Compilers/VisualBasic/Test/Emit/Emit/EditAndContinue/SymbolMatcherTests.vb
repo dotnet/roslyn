@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
@@ -218,7 +220,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
@@ -250,7 +252,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
@@ -286,7 +288,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.y")
@@ -825,7 +827,7 @@ Public Structure Vector
     Public Coordinates As (x As Integer, z As Integer)
 End Structure
 "
-            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:= TestOptions.DebugDll, references:= ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(
@@ -856,7 +858,7 @@ Public Class C
     Public Delegate Function F() As (Integer, Boolean)
 End Class
 "
-            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:= TestOptions.DebugDll, references:= ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
             Dim matcher = New VisualBasicSymbolMatcher(

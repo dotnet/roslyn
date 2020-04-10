@@ -1,8 +1,0 @@
-﻿{
-  "nuspecExcludes": [
-    "^packages.*",
-    "^Binaries.*",
-    "^src\\\\Dependencies.*",
-    ".*NuSpec.loc.*",
-  ]
-}

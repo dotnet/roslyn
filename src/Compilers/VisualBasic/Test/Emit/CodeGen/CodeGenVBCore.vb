@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Text
@@ -2045,7 +2047,7 @@ Microsoft.VisualBasic.CompilerServices.EmbeddedOperators Void .ctor()
 Microsoft.VisualBasic.CompilerServices.Conversions Void .ctor()
 Microsoft.VisualBasic.CompilerServices.ProjectData Void .ctor()
 Microsoft.VisualBasic.CompilerServices.Utils Void .ctor()
-</output>.Value.Replace(vbLf, vbNewLine),
+</output>.Value.Replace(vbLf, Environment.NewLine),
 sourceSymbolValidator:=Sub([module]) ValidateSourceSymbols([module]),
 symbolValidator:=Sub([module])
                      ValidateSymbols([module],
@@ -2534,7 +2536,7 @@ BC30451: 'ChrW' is not declared. It may be inaccessible due to its protection le
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub NoDebugInfoForVbCoreSymbols()
             Dim source =
 <compilation>
@@ -2763,7 +2765,7 @@ Namespace Global.Microsoft.VisualBasic.Strings
 </errors>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub VbRuntimeTypeAndUserNamespaceConflictOutsideOfVBCore()
             ' This verifies the diagnostic BC31210 scenario outsides of using VB Core which
             ' is triggered by the Embedded Attribute.  This occurs on the command line compilers
@@ -3214,7 +3216,7 @@ End Module
 
             Dim actual = actualBuilder.ToString.Trim()
 
-            If expected.Replace(vbLf, vbNewLine).CompareTo(actual) <> 0 Then
+            If expected.Replace(vbLf, Environment.NewLine).CompareTo(actual) <> 0 Then
                 Console.WriteLine("Actual:")
                 Console.WriteLine(actual)
                 Console.WriteLine()

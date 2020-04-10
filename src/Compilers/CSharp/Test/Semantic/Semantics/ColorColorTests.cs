@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -581,7 +583,7 @@ class F
             // Can't use CheckExpressionAndParent because we're using alias.
 
             var tree = Parse(text);
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
 
             var expr = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -592,7 +594,7 @@ class F
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Equal(SymbolKind.Method, parentInfo.Symbol.Kind);
             Assert.Equal("void E.M(params System.Int32[] a)", parentInfo.Symbol.ToTestDisplayString());
         }
@@ -632,14 +634,14 @@ class C
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Local, info.Symbol.Kind);
             Assert.Equal("Color Color", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol); // the lexically first matching method
             Assert.Equal(2, parentInfo.CandidateSymbols.Length);
             Assert.Equal("void Color.M()", parentInfo.CandidateSymbols[0].ToTestDisplayString());
@@ -721,7 +723,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
         }
 
         [WorkItem(542642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542642")]
@@ -1061,14 +1063,15 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
@@ -1096,7 +1099,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
@@ -1106,14 +1109,15 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
@@ -1151,14 +1155,14 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, parentInfo.CandidateReason);
             Assert.Equal(2, parentInfo.CandidateSymbols.Length);
@@ -1186,7 +1190,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,58): error CS0123: No overload for 'M' matches delegate 'System.Action<string>'
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action<string>"));
@@ -1196,14 +1200,14 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
             Assert.Equal("E F.E { get; set; }", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, parentInfo.CandidateReason);
             Assert.Equal(2, parentInfo.CandidateSymbols.Length);
@@ -1237,7 +1241,7 @@ class F
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.NotAValue, info.CandidateReason);
             var candidate = info.CandidateSymbols.Single();
@@ -1247,7 +1251,7 @@ class F
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Equal(WellKnownMemberNames.DelegateInvokeName, parentInfo.Symbol.Name); // Succeeded even though the receiver has an error.
         }
 
@@ -1274,14 +1278,15 @@ enum Color
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(SymbolKind.Field, info.Symbol.Kind);
             Assert.Equal("Color.Color", info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, parentInfo);
             Assert.Null(parentInfo.Symbol);
             Assert.Equal(CandidateReason.None, parentInfo.CandidateReason);
             Assert.Equal(0, parentInfo.CandidateSymbols.Length);
@@ -1837,14 +1842,14 @@ public class Example
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
             var info = model.GetSymbolInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(exprSymbolKind, info.Symbol.Kind);
             Assert.Equal(exprDisplayString, info.Symbol.ToTestDisplayString());
 
             var parentExpr = (ExpressionSyntax)expr.Parent;
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, parentExpr.Kind());
             var parentInfo = model.GetSymbolInfo(parentExpr);
-            Assert.NotNull(parentInfo);
+            Assert.NotEqual(default, parentInfo);
             Assert.Equal(parentSymbolKind, parentInfo.Symbol.Kind);
             Assert.Equal(parentDisplayString, parentInfo.Symbol.ToTestDisplayString());
         }
@@ -2137,6 +2142,43 @@ class M
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
 
             compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
+        }
+
+        [WorkItem(718761, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/718761")]
+        [WorkItem(41457, "https://github.com/dotnet/roslyn/issues/41457")]
+        [Fact]
+        public void WorkItem718761()
+        {
+            string source = @"
+class C1
+{
+#pragma warning disable CS0169 // The field 'C1.C2' is never used
+    C2 C2;
+
+    void Test()
+    {
+        _ = new System.Action(C2.ReferenceEquals);
+    }
+}
+
+class C2
+{
+}
+";
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS0123: No overload for 'ReferenceEquals' matches delegate 'Action'
+                //         _ = new System.Action(C2.ReferenceEquals);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Action(C2.ReferenceEquals)").WithArguments("ReferenceEquals", "System.Action").WithLocation(9, 13)
+                );
+
+            compilation.VerifyEmitDiagnostics(
+                // (9,13): error CS0123: No overload for 'ReferenceEquals' matches delegate 'Action'
+                //         _ = new System.Action(C2.ReferenceEquals);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Action(C2.ReferenceEquals)").WithArguments("ReferenceEquals", "System.Action").WithLocation(9, 13)
+                );
         }
     }
 }

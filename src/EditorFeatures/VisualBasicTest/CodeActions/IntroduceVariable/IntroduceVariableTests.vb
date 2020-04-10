@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.IntroduceVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.IntroduceVariable
     Public Class IntroduceVariableTests
@@ -10,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New IntroduceVariableCodeRefactoringProvider()
+        End Function
+
+        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
+            Return GetNestedActions(actions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
@@ -319,6 +326,7 @@ End Class"
     Sub M()
         Dim x = 1
         Dim {|Rename:v|} As Boolean = x = 1
+
         While v
         End While
     End Sub
@@ -426,11 +434,13 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestSharedModifierAbsentInGeneratedModuleFields() As Task
             Dim source = "Module Program
+    Private ReadOnly y As Integer = 1
     Dim x = Goo([|2 + y|])
 End Module"
             Dim expected = "Module Program
-    Private ReadOnly {|Rename:p|} As Object = 2 + y
-    Dim x = Goo(p)
+    Private ReadOnly y As Integer = 1
+    Private ReadOnly {|Rename:v|} As Integer = 2 + y
+    Dim x = Goo(v)
 End Module"
             Await TestInRegularAndScriptAsync(source, expected)
         End Function
@@ -1020,6 +1030,7 @@ Module Program
         If True Then
             Dim {|Rename:p|} As Object = Sub()
                               End Sub
+
             q = p
         End If
     End Sub
@@ -1160,7 +1171,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Const {|Rename:Value|} As Integer = 1
                 Console.WriteLine(Value)
@@ -1198,7 +1208,6 @@ Imports System
 Module Program
     Sub Main()
         If True Then
-
             If True Then
                 Console.WriteLine(1)
             Else
@@ -1282,7 +1291,6 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
-
                     If True Then
                         Dim {|Rename:value|} As Integer = x + 1
                         Console.WriteLine(value)
@@ -1308,7 +1316,6 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
-
                     If True Then
                         Console.WriteLine()
                     Else
@@ -1392,11 +1399,37 @@ End Module")
 
         <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestNotOnAttribute1CommentsAfterLineContinuation() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Explicit Off
+Module Program
+    <Runtime.CompilerServices.[|Extension|]()> _ ' Test
+    Function Extension(ByVal x As Integer) As Integer
+        Return x
+    End Function
+End Module")
+        End Function
+
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Async Function TestNotOnAttribute2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Option Explicit Off
 Module Program
     <Runtime.CompilerServices.[|Extension()|]> _
+    Function Extension(ByVal x As Integer) As Integer
+        Return x
+    End Function
+End Module")
+        End Function
+
+        <WorkItem(543289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543289")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestNotOnAttribute2CommentsAfterLineContinuation() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Explicit Off
+Module Program
+    <Runtime.CompilerServices.[|Extension()|]> _ ' Test
     Function Extension(ByVal x As Integer) As Integer
         Return x
     End Function
@@ -2127,6 +2160,7 @@ Module Program
     Sub Main()
         Dim {|Rename:p|} = Sub()
                 End Sub
+
         Dim x = Function() p
     End Sub
 End Module
@@ -2321,6 +2355,7 @@ Module Program
         Dim s = ""Text""
         Dim x = 42
         Dim {|Rename:length|} As Integer = s.Length
+
         If (length.CompareTo(x) > 0 AndAlso
             length.CompareTo(x) > 0) Then
         End If
@@ -2534,7 +2569,7 @@ b
 c""|]
     End Sub
 End Class"
-            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), index:=2)
+            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), New TestParameters(index:=2))
         End Function
 
         <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
@@ -2747,6 +2782,7 @@ end class",
     sub Method(span as MySpan)
         dim pos as integer = span.Start
         Dim {|Rename:start1|} As Integer = span.Start
+
         while pos < start1
             dim start as integer = pos
         end while
@@ -3040,6 +3076,158 @@ Class C
 End Class
 "
             Await TestInRegularAndScriptAsync(code, expected)
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression1() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1[||], 2)
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 1
+
+    sub Goo()
+        Bar(V, 2)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression2() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, 2[||])
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 2
+
+    sub Goo()
+        Bar(1, V)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression3() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, (2[||]))
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = (2)
+
+    sub Goo()
+        Bar(1, V)
+    end sub
+end class")
+        End Function
+
+        <WorkItem(28266, "https://github.com/dotnet/roslyn/issues/28266")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        Public Async Function TestCaretAtEndOfExpression4() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub Goo()
+        Bar(1, Bar(2[||]))
+    end sub
+end class",
+"class C
+    Private Const {|Rename:V|} As Integer = 2
+
+    sub Goo()
+        Bar(1, Bar(V))
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(27949, "https://github.com/dotnet/roslyn/issues/27949")>
+        Public Async Function TestWhitespaceSpanInAssignment() As Task
+            Await TestMissingAsync("
+Class C
+    Dim x As Integer = [| |] 0
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(28665, "https://github.com/dotnet/roslyn/issues/28665")>
+        Public Async Function TestWhitespaceSpanInAttribute() As Task
+            Await TestMissingAsync("
+Class C
+    <Example( [| |] )>
+    Public Function Foo()
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestExplicitRecursiveInstanceMemberAccess_ForAllOccurrences() As Task
+            Dim source = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim y = [|c|].c.c
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim {|Rename:c1|} As C = c
+        Dim y = c1.c.c
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestImplicitRecursiveInstanceMemberAccess_ForAllOccurrences() As Task
+            Dim source = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim y = [|Me.c|].c.c
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Dim c As C
+    Sub Foo()
+        Dim {|Rename:c1|} As C = Me.c
+        Dim y = c1.c.c
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(30207, "https://github.com/dotnet/roslyn/issues/30207")>
+        Public Async Function TestExpressionOfUndeclaredType() As Task
+            Dim source = "
+Class C
+    Sub Test        
+        Dim array As A() = [|A|].Bar()
+    End Sub
+End Class"
+            Await TestMissingAsync(source)
         End Function
     End Class
 End Namespace

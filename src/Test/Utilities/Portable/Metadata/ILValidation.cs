@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -90,7 +92,7 @@ namespace Roslyn.Test.Utilities
                     // RSA parameters start after the public key offset
                     byte[] publicKeyParams = new byte[publicKeyBlob.Length - CryptoBlobParser.s_publicKeyHeaderSize];
                     publicKeyBlob.CopyTo(CryptoBlobParser.s_publicKeyHeaderSize, publicKeyParams, 0, publicKeyParams.Length);
-                    var snKey = publicKeyParams.ToRSAParameters(includePrivateParameters: false);
+                    var snKey = CryptoBlobParser.ToRSAParameters(publicKeyParams.AsSpan(), includePrivateParameters: false);
 
                     using (var rsa = RSA.Create())
                     {
@@ -178,9 +180,9 @@ namespace Roslyn.Test.Utilities
                 + sizeof(short)                                // Subsystem
                 + sizeof(short)                                // DllCharacteristics
                 + 4 * (is32bit ? sizeof(int) : sizeof(long)) + // SizeOfStackReserve, SizeOfStackCommit, SizeOfHeapReserve, SizeOfHeapCommit
-                + sizeof(int) +                                // LoaderFlags
-                + sizeof(int) +                                // NumberOfRvaAndSizes
-                + 4 * sizeof(long);                            // directory entries before Authenticode
+                +sizeof(int) +                                // LoaderFlags
+                +sizeof(int) +                                // NumberOfRvaAndSizes
+                +4 * sizeof(long);                            // directory entries before Authenticode
         }
 
         private static MethodInfo s_peheaderSizeMethod;
@@ -300,15 +302,37 @@ namespace Roslyn.Test.Utilities
             return result.ToString();
         }
 
+        public static unsafe MethodBodyBlock GetMethodBodyBlock(this ImmutableArray<byte> ilArray)
+        {
+            fixed (byte* ilPtr = ilArray.AsSpan())
+            {
+                int offset = 0;
+                // skip padding:
+                while (offset < ilArray.Length && ilArray[offset] == 0)
+                {
+                    offset++;
+                }
+
+                var reader = new BlobReader(ilPtr + offset, ilArray.Length - offset);
+                return MethodBodyBlock.Create(reader);
+            }
+        }
+
         public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml, string source = null)
         {
-            string[] lines = source?.Split(new[] { "\r\n" }, StringSplitOptions.None);
-            var doc = new XmlDocument();
-            doc.LoadXml(pdbXml);
+            var doc = new XmlDocument() { XmlResolver = null };
+            using (var reader = new XmlTextReader(new StringReader(pdbXml)) { DtdProcessing = DtdProcessing.Prohibit })
+            {
+                doc.Load(reader);
+            }
+
             var result = new Dictionary<int, string>();
 
             if (source == null)
             {
+                static void Add(Dictionary<int, string> dict, int key, string value)
+                    => dict[key] = dict.TryGetValue(key, out var found) ? found + value : value;
+
                 foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
                 {
                     foreach (XmlElement item in entry.ChildNodes)
@@ -337,6 +361,9 @@ namespace Roslyn.Test.Utilities
             }
             else
             {
+                static void AddTextual(Dictionary<int, string> dict, int key, string value)
+                    => dict[key] = dict.TryGetValue(key, out var found) ? found + ", " + value : "// " + value;
+
                 foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
                 {
                     foreach (XmlElement item in entry.ChildNodes)
@@ -353,77 +380,45 @@ namespace Roslyn.Test.Utilities
                     }
                 }
 
+                var sourceLines = source.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
+
                 foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
                 {
                     foreach (XmlElement item in entry.ChildNodes)
                     {
-                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(lines, item));
+                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(sourceLines, item));
                     }
                 }
             }
 
             return result;
-
-            void Add(Dictionary<int, string> dict, int key, string value)
-            {
-                if (dict.TryGetValue(key, out string found))
-                {
-                    dict[key] = found + value;
-                }
-                else
-                {
-                    dict[key] = value;
-                }
-            }
-
-            void AddTextual(Dictionary<int, string> dict, int key, string value)
-            {
-                if (dict.TryGetValue(key, out string found))
-                {
-                    dict[key] = found + ", " + value;
-                }
-                else
-                {
-                    dict[key] = "// " + value;
-                }
-            }
         }
 
         private static string SnippetFromSpan(string[] lines, XmlElement span)
         {
-            if (span.GetAttribute("hidden") != "true")
-            {
-                var startLine = Convert.ToInt32(span.GetAttribute("startLine"));
-                var startColumn = Convert.ToInt32(span.GetAttribute("startColumn"));
-                var endLine = Convert.ToInt32(span.GetAttribute("endLine"));
-                var endColumn = Convert.ToInt32(span.GetAttribute("endColumn"));
-                if (startLine == endLine)
-                {
-                    return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
-                }
-                else
-                {
-                    var start = lines[startLine - 1].Substring(startColumn - 1);
-                    var end = lines[endLine - 1].Substring(0, endColumn - 1);
-                    return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
-                }
-            }
-            else
+            if (span.GetAttribute("hidden") == "true")
             {
                 return "<hidden>";
             }
 
-            string TruncateStart(string text, int maxLength)
+            var startLine = Convert.ToInt32(span.GetAttribute("startLine"));
+            var startColumn = Convert.ToInt32(span.GetAttribute("startColumn"));
+            var endLine = Convert.ToInt32(span.GetAttribute("endLine"));
+            var endColumn = Convert.ToInt32(span.GetAttribute("endColumn"));
+            if (startLine == endLine)
             {
-                if (text.Length < maxLength) { return text; }
-                return text.Substring(0, maxLength);
+                return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
             }
 
-            string TruncateEnd(string text, int maxLength)
-            {
-                if (text.Length < maxLength) { return text; }
-                return text.Substring(text.Length - maxLength - 1, maxLength);
-            }
+            static string TruncateStart(string text, int maxLength)
+                => (text.Length < maxLength) ? text : text.Substring(0, maxLength);
+
+            static string TruncateEnd(string text, int maxLength)
+                => (text.Length < maxLength) ? text : text.Substring(text.Length - maxLength - 1, maxLength);
+
+            var start = lines[startLine - 1].Substring(startColumn - 1);
+            var end = lines[endLine - 1].Substring(0, endColumn - 1);
+            return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
         }
     }
 }

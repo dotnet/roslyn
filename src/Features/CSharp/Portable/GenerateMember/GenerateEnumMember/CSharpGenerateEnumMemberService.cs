@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -13,10 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
     internal partial class CSharpGenerateEnumMemberService :
         AbstractGenerateEnumMemberService<CSharpGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax>
     {
-        protected override bool IsIdentifierNameGeneration(SyntaxNode node)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpGenerateEnumMemberService()
         {
-            return node is IdentifierNameSyntax;
         }
+
+        protected override bool IsIdentifierNameGeneration(SyntaxNode node)
+            => node is IdentifierNameSyntax;
 
         protected override bool TryInitializeIdentifierNameState(
             SemanticDocument document, SimpleNameSyntax identifierName, CancellationToken cancellationToken,
@@ -26,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
             if (identifierToken.ValueText != string.Empty &&
                 !identifierName.IsVar)
             {
-                var memberAccess = identifierName.Parent as MemberAccessExpressionSyntax;
-                simpleNameOrMemberAccessExpression = memberAccess != null && memberAccess.Name == identifierName
+                simpleNameOrMemberAccessExpression = identifierName.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == identifierName
                     ? (ExpressionSyntax)memberAccess
                     : identifierName;
 

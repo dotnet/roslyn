@@ -1,6 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#if NET461 || NET46
+#if NET472
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,7 +39,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             internal AssemblyData(Assembly assembly)
             {
-                ModuleData = default(ModuleData);
+                ModuleData = null;
                 Assembly = assembly;
             }
         }
@@ -183,7 +185,12 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             foreach (var id in moduleDataIds.Select(x => x.Id))
             {
-                if (TryGetMatchingByFullName(id, out var assemblyData, out var fullMatch) && !fullMatch)
+                if (TryGetMatchingByFullName(id, out _, out var fullMatch) && !fullMatch)
+                {
+                    return true;
+                }
+
+                if (TryGetMatchingByMvid(id, out _, out fullMatch) && !fullMatch)
                 {
                     return true;
                 }
@@ -220,6 +227,19 @@ namespace Roslyn.Test.Utilities.Desktop
             if (_fullNameToAssemblyDataMap.TryGetValue(id.FullName, out assemblyData))
             {
                 fullMatch = _preloadedSet.Contains(id.SimpleName) || id.Mvid == assemblyData.Id.Mvid;
+                return true;
+            }
+
+            assemblyData = default(AssemblyData);
+            fullMatch = false;
+            return false;
+        }
+
+        private bool TryGetMatchingByMvid(ModuleDataId id, out AssemblyData assemblyData, out bool fullMatch)
+        {
+            if (_mvidToAssemblyDataMap.TryGetValue(id.Mvid, out assemblyData))
+            {
+                fullMatch = _preloadedSet.Contains(id.SimpleName) || StringComparer.OrdinalIgnoreCase.Equals(id.FullName, assemblyData.Id.FullName);
                 return true;
             }
 
@@ -341,8 +361,8 @@ namespace Roslyn.Test.Utilities.Desktop
             catch (Exception ex)
             {
                 var builder = new StringBuilder();
-                builder.AppendLine($"Error getting signatures {fullyQualifiedTypeName}.{memberName}");
-                builder.AppendLine($"Assemblies");
+                builder.AppendLine($"Error getting signatures {fullyQualifiedTypeName}.{memberName}: {ex.Message}");
+                builder.AppendLine($"Assemblies:");
                 foreach (var module in _fullNameToAssemblyDataMap.Values)
                 {
                     builder.AppendLine($"\t{module.Id.SimpleName} {module.Id.Mvid} - {module.Kind} {_assemblyCache.GetOrDefault(module.Id, reflectionOnly: false) != null} {_assemblyCache.GetOrDefault(module.Id, reflectionOnly: true) != null}");

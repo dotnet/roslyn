@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -14,7 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.FalseLiteralExpression(),
                 cs: "false",
-                vb: "False");
+                csSimple: "false",
+                vb: "False",
+                vbSimple: "False");
         }
 
         [Fact]
@@ -23,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.TrueLiteralExpression(),
                 cs: "true",
-                vb: "True");
+                csSimple: "true",
+                vb: "True",
+                vbSimple: "True");
         }
 
         [Fact]
@@ -32,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.NullLiteralExpression(),
                 cs: "null",
-                vb: "Nothing");
+                csSimple: "null",
+                vb: "Nothing",
+                vbSimple: "Nothing");
         }
 
         [Fact]
@@ -41,7 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.ThisExpression(),
                 cs: "this",
-                vb: "Me");
+                csSimple: "this",
+                vb: "Me",
+                vbSimple: "Me");
         }
 
         [Fact]
@@ -50,7 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.BaseExpression(),
                 cs: "base",
-                vb: "MyBase");
+                csSimple: "base",
+                vb: "MyBase",
+                vbSimple: "MyBase");
         }
 
         [Fact]
@@ -59,7 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.LiteralExpression(0),
                 cs: "0",
-                vb: "0");
+                csSimple: "0",
+                vb: "0",
+                vbSimple: "0");
         }
 
         [Fact]
@@ -68,7 +83,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.LiteralExpression(1),
                 cs: "1",
-                vb: "1");
+                csSimple: "1",
+                vb: "1",
+                vbSimple: "1");
         }
 
         [Fact]
@@ -77,7 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.LiteralExpression(0L),
                 cs: "0L",
-                vb: "0L");
+                csSimple: "0L",
+                vb: "0L",
+                vbSimple: "0L");
         }
 
         [Fact]
@@ -86,7 +105,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.LiteralExpression(1L),
                 cs: "1L",
-                vb: "1L");
+                csSimple: "1L",
+                vb: "1L",
+                vbSimple: "1L");
         }
 
         [Fact]
@@ -95,7 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.LiteralExpression(0.0f),
                 cs: "0F",
-                vb: "0F");
+                csSimple: "0F",
+                vb: "0F",
+                vbSimple: "0F");
         }
 
         [Fact]
@@ -104,7 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.LiteralExpression(0.5F),
                 cs: "0.5F",
-                vb: "0.5F");
+                csSimple: "0.5F",
+                vb: "0.5F",
+                vbSimple: "0.5F");
         }
 
         [Fact]
@@ -113,7 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.LiteralExpression(0.0d),
                 cs: "0D",
-                vb: "0R");
+                csSimple: "0D",
+                vb: "0R",
+                vbSimple: "0R");
         }
 
         [Fact]
@@ -122,21 +149,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Test(
                 f => f.LiteralExpression(0.5D),
                 cs: "0.5D",
-                vb: "0.5R");
+                csSimple: "0.5D",
+                vb: "0.5R",
+                vbSimple: "0.5R");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAddExpression1()
         {
             Test(
                 f => f.AddExpression(
                     f.LiteralExpression(1),
                     f.LiteralExpression(2)),
-                cs: "1 + 2",
-                vb: "1 + 2");
+                cs: "(1) + (2)",
+                csSimple: "1 + 2",
+                vb: "(1) + (2)",
+                vbSimple: "1 + 2");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAddExpression2()
         {
             Test(
@@ -145,11 +176,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.AddExpression(
                         f.LiteralExpression(2),
                         f.LiteralExpression(3))),
-                cs: "1 + 2 + 3",
-                vb: "1 + 2 + 3");
+                cs: "(1) + ((2) + (3))",
+                csSimple: "1 + 2 + 3",
+                vb: "(1) + ((2) + (3))",
+                vbSimple: "1 + 2 + 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAddExpression3()
         {
             Test(
@@ -158,22 +191,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.LiteralExpression(3)),
-                cs: "1 + 2 + 3",
-                vb: "1 + 2 + 3");
+                cs: "((1) + (2)) + (3)",
+                csSimple: "1 + 2 + 3",
+                vb: "((1) + (2)) + (3)",
+                vbSimple: "1 + 2 + 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMultiplyExpression1()
         {
             Test(
                 f => f.MultiplyExpression(
                     f.LiteralExpression(1),
                     f.LiteralExpression(2)),
-                cs: "1 * 2",
-                vb: "1 * 2");
+                cs: "(1) * (2)",
+                csSimple: "1 * 2",
+                vb: "(1) * (2)",
+                vbSimple: "1 * 2");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMultiplyExpression2()
         {
             Test(
@@ -182,11 +219,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.MultiplyExpression(
                         f.LiteralExpression(2),
                         f.LiteralExpression(3))),
-                cs: "1 * 2 * 3",
-                vb: "1 * 2 * 3");
+                cs: "(1) * ((2) * (3))",
+                csSimple: "1 * 2 * 3",
+                vb: "(1) * ((2) * (3))",
+                vbSimple: "1 * 2 * 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestMultiplyExpression3()
         {
             Test(
@@ -195,52 +234,62 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                         f.LiteralExpression(1),
                         f.LiteralExpression(2)),
                     f.LiteralExpression(3)),
-                cs: "1 * 2 * 3",
-                vb: "1 * 2 * 3");
+                cs: "((1) * (2)) * (3)",
+                csSimple: "1 * 2 * 3",
+                vb: "((1) * (2)) * (3)",
+                vbSimple: "1 * 2 * 3");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestBinaryAndExpression1()
         {
             Test(
                 f => f.BitwiseAndExpression(
                     f.LiteralExpression(1),
                     f.LiteralExpression(2)),
-                cs: "1 & 2",
-                vb: "1 And 2");
+                cs: "(1) & (2)",
+                csSimple: "1 & 2",
+                vb: "(1) And (2)",
+                vbSimple: "1 And 2");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestBinaryOrExpression1()
         {
             Test(
                 f => f.BitwiseOrExpression(
                     f.LiteralExpression(1),
                     f.LiteralExpression(2)),
-                cs: "1 | 2",
-                vb: "1 Or 2");
+                cs: "(1) | (2)",
+                csSimple: "1 | 2",
+                vb: "(1) Or (2)",
+                vbSimple: "1 Or 2");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestLogicalAndExpression1()
         {
             Test(
                 f => f.LogicalAndExpression(
                     f.LiteralExpression(1),
                     f.LiteralExpression(2)),
-                cs: "1 && 2",
-                vb: "1 AndAlso 2");
+                cs: "(1) && (2)",
+                csSimple: "1 && 2",
+                vb: "(1) AndAlso (2)",
+                vbSimple: "1 AndAlso 2");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestLogicalOrExpression1()
         {
             Test(
                 f => f.LogicalOrExpression(
                     f.LiteralExpression(1),
                     f.LiteralExpression(2)),
-                cs: "1 || 2",
-                vb: "1 OrElse 2");
+                cs: "(1) || (2)",
+                csSimple: "1 || 2",
+                vb: "(1) OrElse (2)",
+                vbSimple: "1 OrElse 2");
         }
 
         [Fact]
@@ -251,10 +300,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.IdentifierName("E"),
                     f.IdentifierName("M")),
                 cs: "E.M",
-                vb: "E.M");
+                csSimple: "E.M",
+                vb: "E.M",
+                vbSimple: "E.M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestConditionalExpression1()
         {
             Test(
@@ -262,8 +313,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.IdentifierName("E"),
                     f.IdentifierName("T"),
                     f.IdentifierName("F")),
-                cs: "E ? T : F",
-                vb: "If(E, T, F)");
+                cs: "(E) ? (T) : (F)",
+                csSimple: "E ? T : F",
+                vb: "If(E, T, F)",
+                vbSimple: "If(E, T, F)");
+        }
+
+        [Fact]
+        public void TestConditionalAccessExpression1()
+        {
+            Test(
+                f => f.ConditionalAccessExpression(
+                    f.IdentifierName("E"),
+                    f.MemberBindingExpression(
+                        f.IdentifierName("T"))),
+                cs: "E?.T",
+                csSimple: "E?.T",
+                vb: "E?.T",
+                vbSimple: "E?.T");
+        }
+
+        [Fact]
+        public void TestConditionalAccessExpression2()
+        {
+            Test(
+                f => f.ConditionalAccessExpression(
+                    f.IdentifierName("E"),
+                    f.ElementBindingExpression(
+                        f.Argument(f.IdentifierName("T")))),
+                cs: "E?[T]",
+                csSimple: "E?[T]",
+                vb: "E?(T)",
+                vbSimple: "E?(T)");
         }
 
         [Fact]
@@ -273,7 +354,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 f => f.InvocationExpression(
                     f.IdentifierName("E")),
                 cs: "E()",
-                vb: "E()");
+                csSimple: "E()",
+                vb: "E()",
+                vbSimple: "E()");
         }
 
         [Fact]
@@ -284,7 +367,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.IdentifierName("E"),
                     f.Argument(f.IdentifierName("a"))),
                 cs: "E(a)",
-                vb: "E(a)");
+                csSimple: "E(a)",
+                vb: "E(a)",
+                vbSimple: "E(a)");
         }
 
         [Fact]
@@ -295,7 +380,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.IdentifierName("E"),
                     f.Argument("n", RefKind.None, f.IdentifierName("a"))),
                 cs: "E(n: a)",
-                vb: "E(n:=a)");
+                csSimple: "E(n: a)",
+                vb: "E(n:=a)",
+                vbSimple: "E(n:=a)");
         }
 
         [Fact]
@@ -307,7 +394,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.Argument(null, RefKind.Out, f.IdentifierName("a")),
                     f.Argument(null, RefKind.Ref, f.IdentifierName("b"))),
                 cs: "E(out a, ref b)",
-                vb: "E(a, b)");
+                csSimple: "E(out a, ref b)",
+                vb: "E(a, b)",
+                vbSimple: "E(a, b)");
         }
 
         [Fact]
@@ -319,7 +408,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.Argument("n1", RefKind.Out, f.IdentifierName("a")),
                     f.Argument("n2", RefKind.Ref, f.IdentifierName("b"))),
                 cs: "E(n1: out a, n2: ref b)",
-                vb: "E(n1:=a, n2:=b)");
+                csSimple: "E(n1: out a, n2: ref b)",
+                vb: "E(n1:=a, n2:=b)",
+                vbSimple: "E(n1:=a, n2:=b)");
         }
 
         [Fact]
@@ -329,7 +420,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 f => f.ElementAccessExpression(
                     f.IdentifierName("E")),
                 cs: "E[]",
-                vb: "E()");
+                csSimple: "E[]",
+                vb: "E()",
+                vbSimple: "E()");
         }
 
         [Fact]
@@ -340,7 +433,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.IdentifierName("E"),
                     f.Argument(f.IdentifierName("a"))),
                 cs: "E[a]",
-                vb: "E(a)");
+                csSimple: "E[a]",
+                vb: "E(a)",
+                vbSimple: "E(a)");
         }
 
         [Fact]
@@ -351,7 +446,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.IdentifierName("E"),
                     f.Argument("n", RefKind.None, f.IdentifierName("a"))),
                 cs: "E[n: a]",
-                vb: "E(n:=a)");
+                csSimple: "E[n: a]",
+                vb: "E(n:=a)",
+                vbSimple: "E(n:=a)");
         }
 
         [Fact]
@@ -363,7 +460,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.Argument(null, RefKind.Out, f.IdentifierName("a")),
                     f.Argument(null, RefKind.Ref, f.IdentifierName("b"))),
                 cs: "E[out a, ref b]",
-                vb: "E(a, b)");
+                csSimple: "E[out a, ref b]",
+                vb: "E(a, b)",
+                vbSimple: "E(a, b)");
         }
 
         [Fact]
@@ -375,60 +474,72 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     f.Argument("n1", RefKind.Out, f.IdentifierName("a")),
                     f.Argument("n2", RefKind.Ref, f.IdentifierName("b"))),
                 cs: "E[n1: out a, n2: ref b]",
-                vb: "E(n1:=a, n2:=b)");
+                csSimple: "E[n1: out a, n2: ref b]",
+                vb: "E(n1:=a, n2:=b)",
+                vbSimple: "E(n1:=a, n2:=b)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestIsExpression()
         {
             Test(
                 f => f.IsTypeExpression(
                     f.IdentifierName("a"),
                     CreateClass("SomeType")),
-                cs: "a is SomeType",
-                vb: "TypeOf a Is SomeType");
+                cs: "(a) is SomeType",
+                csSimple: "a is SomeType",
+                vb: "TypeOf (a) Is SomeType",
+                vbSimple: "TypeOf a Is SomeType");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestAsExpression()
         {
             Test(
                 f => f.TryCastExpression(
                     f.IdentifierName("a"),
                     CreateClass("SomeType")),
-                cs: "a as SomeType",
-                vb: "TryCast(a, SomeType)");
+                cs: "(a) as SomeType",
+                csSimple: "a as SomeType",
+                vb: "TryCast(a, SomeType)",
+                vbSimple: "TryCast(a, SomeType)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestNotExpression()
         {
             Test(
                 f => f.LogicalNotExpression(
                     f.IdentifierName("a")),
-                cs: "!a",
-                vb: "Not a");
+                cs: "!(a)",
+                csSimple: "!a",
+                vb: "Not (a)",
+                vbSimple: "Not a");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestCastExpression()
         {
             Test(
                 f => f.CastExpression(
                     CreateClass("SomeType"),
                     f.IdentifierName("a")),
-                cs: "(SomeType)a",
-                vb: "DirectCast(a, SomeType)");
+                cs: "(SomeType)(a)",
+                csSimple: "(SomeType)a",
+                vb: "DirectCast(a, SomeType)",
+                vbSimple: "DirectCast(a, SomeType)");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
+        [Fact]
         public void TestNegateExpression()
         {
             Test(
                 f => f.NegateExpression(
                     f.IdentifierName("a")),
-                cs: "-a",
-                vb: "-a");
+                cs: "-(a)",
+                csSimple: "-a",
+                vb: "-(a)",
+                vbSimple: "-a");
         }
     }
 }

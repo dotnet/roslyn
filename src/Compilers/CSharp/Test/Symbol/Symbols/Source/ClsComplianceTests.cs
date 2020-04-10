@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -475,7 +477,7 @@ namespace System
     [CLSCompliant(true)]
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
 
@@ -485,7 +487,7 @@ namespace System
     [CLSCompliant(false)]
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
 
@@ -2902,6 +2904,7 @@ public class C
                     case SpecialType.None:
                     case SpecialType.System_Void:
                     case SpecialType.System_Runtime_CompilerServices_IsVolatile: // static
+                    case SpecialType.System_Runtime_CompilerServices_RuntimeFeature: // static and not available
                         continue;
                 }
 
@@ -3230,9 +3233,9 @@ namespace N{0}
     }}
 }}
 ";
-
-            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), path: "a.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), path: "b.cs");
+            var parseOptions = TestOptions.Regular7;
+            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), parseOptions, path: "a.cs");
+            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), parseOptions, path: "b.cs");
             var comp = CreateCompilation(new[] { tree1, tree2 });
 
             comp.VerifyDiagnostics(

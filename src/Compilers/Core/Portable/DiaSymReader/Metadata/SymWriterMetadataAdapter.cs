@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -78,14 +80,14 @@ namespace Microsoft.DiaSymReader
         // "mb" is the token passed to OpenMethod. The token is remembered until the corresponding CloseMethod, which passes it to GetMethodProps.
         // It's opaque for SymWriter.
         public override int GetMethodProps(
-            int methodDef, 
-            [Out] int* declaringTypeDef, 
-            [Out] char* name, 
-            int nameBufferLength, 
-            [Out] int* nameLength, 
+            int methodDef,
+            [Out] int* declaringTypeDef,
+            [Out] char* name,
+            int nameBufferLength,
+            [Out] int* nameLength,
             [Out] MethodAttributes* attributes,
             [Out] byte** signature,
-            [Out] int* signatureLength, 
+            [Out] int* signatureLength,
             [Out] int* relativeVirtualAddress,
             [Out] MethodImplAttributes* implAttributes)
         {

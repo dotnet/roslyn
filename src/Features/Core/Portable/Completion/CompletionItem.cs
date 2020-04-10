@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,22 +16,47 @@ namespace Microsoft.CodeAnalysis.Completion
     [DebuggerDisplay("{DisplayText}")]
     public sealed class CompletionItem : IComparable<CompletionItem>
     {
+        private readonly string _filterText;
+
         /// <summary>
         /// The text that is displayed to the user.
         /// </summary>
         public string DisplayText { get; }
 
         /// <summary>
+        /// An optional prefix to be displayed prepended to <see cref="DisplayText"/>. Can be null.
+        /// Pattern-matching of user input will not be performed against this, but only against <see
+        /// cref="DisplayText"/>.
+        /// </summary>
+        public string DisplayTextPrefix { get; }
+
+        /// <summary>
+        /// An optional suffix to be displayed appended to <see cref="DisplayText"/>. Can be null.
+        /// Pattern-matching of user input will not be performed against this, but only against <see
+        /// cref="DisplayText"/>.
+        /// </summary>
+        public string DisplayTextSuffix { get; }
+
+        /// <summary>
         /// The text used to determine if the item matches the filter and is show in the list.
         /// This is often the same as <see cref="DisplayText"/> but may be different in certain circumstances.
         /// </summary>
-        public string FilterText { get; }
+        public string FilterText => _filterText ?? DisplayText;
+
+        internal bool HasDifferentFilterText => _filterText != null;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
         /// This is often the same as the <see cref="DisplayText"/> but may be different in certain circumstances.
         /// </summary>
         public string SortText { get; }
+
+        /// <summary>
+        /// Descriptive text to place after <see cref="DisplayText"/> in the display layer.  Should
+        /// be short as it will show up in the UI.  Display will present this in a way to distinguish
+        /// this from the normal text (for example, by fading out and right-aligning).
+        /// </summary>
+        public string InlineDescription { get; }
 
         /// <summary>
         /// The span of the syntax element associated with this item.
@@ -44,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableDictionary<string, string> Properties { get; }
 
         /// <summary>
-        /// Descriptive tags from <see cref="CompletionTags"/>.
+        /// Descriptive tags from <see cref="Tags.WellKnownTags"/>.
         /// These tags may influence how the item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }
@@ -55,12 +83,20 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
-        /// The <see cref="Document"/> that this <see cref="CompletionItem"/> was
-        /// created for.  Not available to clients.  Only used by the Completion
-        /// subsystem itself for things like being able to go back to the originating
-        /// Document when doing things like getting descriptions.
+        /// The name of the <see cref="CompletionProvider"/> that created this 
+        /// <see cref="CompletionItem"/>. Not available to clients. Only used by 
+        /// the Completion subsystem itself for things like getting description text
+        /// and making additional change during commit.
         /// </summary>
-        internal Document Document { get; set; }
+        internal string ProviderName { get; set; }
+
+        /// <summary>
+        /// The automation text to use when narrating the completion item. If set to
+        /// null, narration will use the <see cref="DisplayText"/> instead.
+        /// </summary>
+        internal string AutomationText { get; set; }
+
+        internal CompletionItemFlags Flags { get; set; }
 
         private CompletionItem(
             string displayText,
@@ -69,26 +105,63 @@ namespace Microsoft.CodeAnalysis.Completion
             TextSpan span,
             ImmutableDictionary<string, string> properties,
             ImmutableArray<string> tags,
-            CompletionItemRules rules)
+            CompletionItemRules rules,
+            string displayTextPrefix,
+            string displayTextSuffix,
+            string inlineDescription)
         {
-            this.DisplayText = displayText ?? "";
-            this.FilterText = filterText ?? this.DisplayText;
-            this.SortText = sortText ?? this.DisplayText;
-            this.Span = span;
-            this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            this.Tags = tags.NullToEmpty();
-            this.Rules = rules ?? CompletionItemRules.Default;
+            DisplayText = displayText ?? "";
+            DisplayTextPrefix = displayTextPrefix ?? "";
+            DisplayTextSuffix = displayTextSuffix ?? "";
+            SortText = sortText ?? DisplayText;
+            InlineDescription = inlineDescription ?? "";
+            Span = span;
+            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            Tags = tags.NullToEmpty();
+            Rules = rules ?? CompletionItemRules.Default;
+
+            if (!DisplayText.Equals(filterText, StringComparison.Ordinal))
+            {
+                _filterText = filterText;
+            }
         }
 
-#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+        // binary back compat overload
         public static CompletionItem Create(
-#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+            string displayText,
+            string filterText,
+            string sortText,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules)
+        {
+            return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix: null, displayTextSuffix: null);
+        }
+
+        // binary back compat overload
+        public static CompletionItem Create(
+            string displayText,
+            string filterText,
+            string sortText,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules,
+            string displayTextPrefix,
+            string displayTextSuffix)
+        {
+            return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix, displayTextSuffix, inlineDescription: null);
+        }
+
+        public static CompletionItem Create(
             string displayText,
             string filterText = null,
             string sortText = null,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
-            CompletionItemRules rules = null)
+            CompletionItemRules rules = null,
+            string displayTextPrefix = null,
+            string displayTextSuffix = null,
+            string inlineDescription = null)
         {
             return new CompletionItem(
                 span: default,
@@ -97,7 +170,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 sortText: sortText,
                 properties: properties,
                 tags: tags,
-                rules: rules);
+                rules: rules,
+                displayTextPrefix: displayTextPrefix,
+                displayTextSuffix: displayTextSuffix,
+                inlineDescription: inlineDescription);
         }
 
         /// <summary>
@@ -112,6 +188,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="rules">The rules that declare how this item should behave.</param>
         /// <returns></returns>
         [Obsolete("Use the Create overload that does not take a span", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static CompletionItem Create(
             string displayText,
             string filterText,
@@ -128,7 +205,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 sortText: sortText,
                 properties: properties,
                 tags: tags,
-                rules: rules);
+                rules: rules,
+                displayTextPrefix: null,
+                displayTextSuffix: null,
+                inlineDescription: null);
         }
 
         private CompletionItem With(
@@ -138,23 +218,32 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> sortText = default,
             Optional<ImmutableDictionary<string, string>> properties = default,
             Optional<ImmutableArray<string>> tags = default,
-            Optional<CompletionItemRules> rules = default)
+            Optional<CompletionItemRules> rules = default,
+            Optional<string> displayTextPrefix = default,
+            Optional<string> displayTextSuffix = default,
+            Optional<string> inlineDescription = default)
         {
-            var newSpan = span.HasValue ? span.Value : this.Span;
-            var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
-            var newFilterText = filterText.HasValue ? filterText.Value : this.FilterText;
-            var newSortText = sortText.HasValue ? sortText.Value : this.SortText;
-            var newProperties = properties.HasValue ? properties.Value : this.Properties;
-            var newTags = tags.HasValue ? tags.Value : this.Tags;
-            var newRules = rules.HasValue ? rules.Value : this.Rules;
+            var newSpan = span.HasValue ? span.Value : Span;
+            var newDisplayText = displayText.HasValue ? displayText.Value : DisplayText;
+            var newFilterText = filterText.HasValue ? filterText.Value : FilterText;
+            var newSortText = sortText.HasValue ? sortText.Value : SortText;
+            var newInlineDescription = inlineDescription.HasValue ? inlineDescription.Value : InlineDescription;
+            var newProperties = properties.HasValue ? properties.Value : Properties;
+            var newTags = tags.HasValue ? tags.Value : Tags;
+            var newRules = rules.HasValue ? rules.Value : Rules;
+            var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
+            var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : DisplayTextSuffix;
 
-            if (newSpan == this.Span &&
-                newDisplayText == this.DisplayText &&
-                newFilterText == this.FilterText &&
-                newSortText == this.SortText &&
-                newProperties == this.Properties &&
-                newTags == this.Tags &&
-                newRules == this.Rules)
+            if (newSpan == Span &&
+                newDisplayText == DisplayText &&
+                newFilterText == FilterText &&
+                newSortText == SortText &&
+                newProperties == Properties &&
+                newTags == Tags &&
+                newRules == Rules &&
+                newDisplayTextPrefix == DisplayTextPrefix &&
+                newDisplayTextSuffix == DisplayTextSuffix &&
+                newInlineDescription == InlineDescription)
             {
                 return this;
             }
@@ -166,65 +255,72 @@ namespace Microsoft.CodeAnalysis.Completion
                 sortText: newSortText,
                 properties: newProperties,
                 tags: newTags,
-                rules: newRules);
+                rules: newRules,
+                displayTextPrefix: newDisplayTextPrefix,
+                displayTextSuffix: newDisplayTextSuffix,
+                inlineDescription: newInlineDescription)
+            {
+                AutomationText = AutomationText,
+                ProviderName = ProviderName,
+                Flags = Flags,
+            };
         }
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Span"/> property changed.
         /// </summary>
         [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CompletionItem WithSpan(TextSpan span)
-        {
-            return this;
-        }
+            => this;
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="DisplayText"/> property changed.
         /// </summary>
         public CompletionItem WithDisplayText(string text)
-        {
-            return With(displayText: text);
-        }
+            => With(displayText: text);
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="DisplayTextPrefix"/> property changed.
+        /// </summary>
+        public CompletionItem WithDisplayTextPrefix(string displayTextPrefix)
+            => With(displayTextPrefix: displayTextPrefix);
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="DisplayTextSuffix"/> property changed.
+        /// </summary>
+        public CompletionItem WithDisplayTextSuffix(string displayTextSuffix)
+            => With(displayTextSuffix: displayTextSuffix);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="FilterText"/> property changed.
         /// </summary>
         public CompletionItem WithFilterText(string text)
-        {
-            return With(filterText: text);
-        }
+            => With(filterText: text);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="SortText"/> property changed.
         /// </summary>
         public CompletionItem WithSortText(string text)
-        {
-            return With(sortText: text);
-        }
+            => With(sortText: text);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Properties"/> property changed.
         /// </summary>
         public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
-        {
-            return With(properties: properties);
-        }
+            => With(properties: properties);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with a property added to the <see cref="Properties"/> collection.
         /// </summary>
         public CompletionItem AddProperty(string name, string value)
-        {
-            return With(properties: this.Properties.Add(name, value));
-        }
+            => With(properties: Properties.Add(name, value));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.
         /// </summary>
         public CompletionItem WithTags(ImmutableArray<string> tags)
-        {
-            return With(tags: tags);
-        }
+            => With(tags: tags);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with a tag added to the <see cref="Tags"/> collection.
@@ -236,13 +332,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 throw new ArgumentNullException(nameof(tag));
             }
 
-            if (this.Tags.Contains(tag))
+            if (Tags.Contains(tag))
             {
                 return this;
             }
             else
             {
-                return With(tags: this.Tags.Add(tag));
+                return With(tags: Tags.Add(tag));
             }
         }
 
@@ -250,21 +346,46 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Rules"/> property changed.
         /// </summary>
         public CompletionItem WithRules(CompletionItemRules rules)
-        {
-            return With(rules: rules);
-        }
+            => With(rules: rules);
+
+        private string _entireDisplayText;
 
         int IComparable<CompletionItem>.CompareTo(CompletionItem other)
         {
-            var result = StringComparer.OrdinalIgnoreCase.Compare(this.SortText, other.SortText);
-            if (result == 0)
-            {
-                result = StringComparer.OrdinalIgnoreCase.Compare(this.DisplayText, other.DisplayText);
-            }
+            // Make sure expanded items are listed after non-expanded ones
+            var thisIsExpandItem = Flags.IsExpanded();
+            var otherIsExpandItem = other.Flags.IsExpanded();
 
-            return result;
+            if (thisIsExpandItem == otherIsExpandItem)
+            {
+                var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
+                if (result == 0)
+                {
+                    result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
+                }
+
+                return result;
+            }
+            else if (thisIsExpandItem)
+            {
+                return 1;
+            }
+            else
+            {
+                return -1;
+            }
         }
 
-        public override string ToString() => DisplayText;
+        internal string GetEntireDisplayText()
+        {
+            if (_entireDisplayText == null)
+            {
+                _entireDisplayText = DisplayTextPrefix + DisplayText + DisplayTextSuffix;
+            }
+
+            return _entireDisplayText;
+        }
+
+        public override string ToString() => GetEntireDisplayText();
     }
 }

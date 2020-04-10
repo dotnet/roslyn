@@ -1,13 +1,18 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -24,25 +29,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [TagType(typeof(IErrorTag))]
     internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
+        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
-        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
-
-        private bool? _blueSquiggleForBuildDiagnostic;
+        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DiagnosticsSquiggleTaggerProvider(
+            IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(diagnosticService, notificationService, listenerProvider)
+            : base(threadingContext, diagnosticService, notificationService, listenerProvider)
         {
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
-            var isUnnecessary = (diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
+            var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
             return
                 (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error || isUnnecessary) &&
@@ -51,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override IErrorTag CreateTag(DiagnosticData diagnostic)
         {
-            Contract.Requires(!string.IsNullOrWhiteSpace(diagnostic.Message));
+            Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
             if (errorType == null)
             {
@@ -74,47 +79,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             return GetErrorTypeFromDiagnosticTags(diagnostic) ??
-                   GetErrorTypeFromDiagnosticProperty(diagnostic) ??
                    GetErrorTypeFromDiagnosticSeverity(diagnostic);
-        }
-
-        private string GetErrorTypeFromDiagnosticProperty(DiagnosticData diagnostic)
-        {
-            if (diagnostic.Properties.Count == 0)
-            {
-                return null;
-            }
-
-            if (diagnostic.IsBuildDiagnostic() && UseBlueSquiggleForBuildDiagnostics(diagnostic))
-            {
-                return PredefinedErrorTypeNames.CompilerError;
-            }
-
-            return null;
-        }
-
-        private bool UseBlueSquiggleForBuildDiagnostics(DiagnosticData data)
-        {
-            if (_blueSquiggleForBuildDiagnostic == null)
-            {
-                var optionService = data.Workspace.Services.GetService<IOptionService>();
-                _blueSquiggleForBuildDiagnostic = optionService.GetOption(InternalDiagnosticsOptions.BlueSquiggleForBuildDiagnostic);
-            }
-
-            return _blueSquiggleForBuildDiagnostic.Value;
         }
 
         private string GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
         {
-            if (diagnostic.CustomTags.Count <= 1)
+            if (diagnostic.Severity == DiagnosticSeverity.Error &&
+                diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
             {
-                return null;
-            }
-
-            switch (diagnostic.CustomTags[0])
-            {
-                case WellKnownDiagnosticTags.EditAndContinue:
-                    return EditAndContinueErrorTypeDefinition.Name;
+                return EditAndContinueErrorTypeDefinition.Name;
             }
 
             return null;

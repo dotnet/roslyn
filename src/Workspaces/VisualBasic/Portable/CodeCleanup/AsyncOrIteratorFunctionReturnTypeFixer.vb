@@ -1,7 +1,8 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup
@@ -149,10 +150,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                                              ByRef asClauseOpt As SimpleAsClauseSyntax,
                                              semanticModel As SemanticModel,
                                              position As Integer)
-            Contract.Requires(type IsNot Nothing)
-            Contract.Requires(parameterListOpt IsNot Nothing)
-            Contract.Requires(asClauseOpt Is Nothing)
-            Contract.Requires(semanticModel IsNot Nothing)
+            Debug.Assert(type IsNot Nothing)
+            Debug.Assert(parameterListOpt IsNot Nothing)
+            Debug.Assert(asClauseOpt Is Nothing)
+            Debug.Assert(semanticModel IsNot Nothing)
 
             Dim typeSyntax = SyntaxFactory.ParseTypeName(type.ToMinimalDisplayString(semanticModel, position))
             asClauseOpt = SyntaxFactory.SimpleAsClause(typeSyntax).NormalizeWhitespace()
@@ -173,9 +174,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
 
         ' Pretty list the function with return type "T" to return "genericTypeName(Of T)"
         Private Sub RewriteFunctionAsClause(genericType As INamedTypeSymbol, ByRef asClauseOpt As SimpleAsClauseSyntax, semanticModel As SemanticModel, position As Integer)
-            Contract.Requires(genericType.IsGenericType)
-            Contract.Requires(asClauseOpt IsNot Nothing AndAlso Not asClauseOpt.IsMissing)
-            Contract.Requires(semanticModel IsNot Nothing)
+            Debug.Assert(genericType.IsGenericType)
+            Debug.Assert(asClauseOpt IsNot Nothing AndAlso Not asClauseOpt.IsMissing)
+            Debug.Assert(semanticModel IsNot Nothing)
 
             ' Move the leading and trailing trivia from the existing typeSyntax node to the new AsClause.
             Dim typeSyntax = asClauseOpt.Type

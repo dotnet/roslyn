@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -951,7 +953,7 @@ End Class
 
         <Fact()>
         Public Sub MarshalAs_AllFieldTargets()
-            Dim source = <![CDATA[
+            Dim source = <compilation><file><![CDATA[
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -971,7 +973,7 @@ Enum En
     <MarshalAs(UnmanagedType.Bool)>
     B
 End Enum
-]]>.Value
+]]></file></compilation>
 
             CompileAndVerifyFieldMarshal(source,
                 Function(name, _omitted1)

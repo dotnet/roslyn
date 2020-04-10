@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal partial class AnalysisState
     {
-        private readonly object _gate;
+        private readonly SemaphoreSlim _gate;
 
         /// <summary>
         /// Per-analyzer analysis state map.
@@ -49,29 +51,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerActionCounts> _lazyAnalyzerActionCountsMap;
 
-        private readonly HashSet<SyntaxTree> _treesWithGeneratedSourceEvents;
         private readonly HashSet<ISymbol> _partialSymbolsWithGeneratedSourceEvents;
         private readonly CompilationData _compilationData;
         private readonly CompilationOptions _compilationOptions;
-        private bool _compilationStartGenerated;
-        private bool _compilationEndGenerated;
 
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
         public AnalysisState(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationData compilationData, CompilationOptions compilationOptions)
         {
-            _gate = new object();
+            _gate = new SemaphoreSlim(initialCount: 1);
             _analyzerStateMap = CreateAnalyzerStateMap(analyzers, out _analyzerStates);
             _compilationData = compilationData;
             _compilationOptions = compilationOptions;
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
             _lazyAnalyzerActionCountsMap = null;
-            _treesWithGeneratedSourceEvents = new HashSet<SyntaxTree>();
             _partialSymbolsWithGeneratedSourceEvents = new HashSet<ISymbol>();
-            _compilationStartGenerated = false;
-            _compilationEndGenerated = false;
             _compilationEventsPool = new ObjectPool<HashSet<CompilationEvent>>(() => new HashSet<CompilationEvent>());
             _pooledEventsWithAnyActionsSet = new HashSet<CompilationEvent>();
         }
@@ -103,128 +99,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _analyzerStates[index];
         }
 
-        public async Task GenerateSimulatedCompilationEventsAsync(
-            AnalysisScope analysisScope,
-            Compilation compilation,
-            Func<SyntaxTree, Compilation, CancellationToken, SemanticModel> getCachedSemanticModel,
-            AnalyzerDriver driver,
-            CancellationToken cancellationToken)
-        {
-            await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
-
-            // Compilation started event.
-            GenerateSimulatedCompilationNonSourceEvent(compilation, driver, started: true, cancellationToken: cancellationToken);
-
-            // Symbol declared and compilation unit completed events.
-            foreach (var tree in analysisScope.SyntaxTrees)
-            {
-                GenerateSimulatedCompilationSourceEvents(tree, compilation, getCachedSemanticModel, driver, cancellationToken);
-            }
-
-            // Compilation ended event.
-            if (analysisScope.FilterTreeOpt == null)
-            {
-                GenerateSimulatedCompilationNonSourceEvent(compilation, driver, started: false, cancellationToken: cancellationToken);
-            }
-        }
-
-        private void GenerateSimulatedCompilationSourceEvents(
-            SyntaxTree tree,
-            Compilation compilation,
-            Func<SyntaxTree, Compilation, CancellationToken, SemanticModel> getCachedSemanticModel,
-            AnalyzerDriver driver,
-            CancellationToken cancellationToken)
-        {
-            lock (_gate)
-            {
-                if (_treesWithGeneratedSourceEvents.Contains(tree))
-                {
-                    return;
-                }
-            }
-
-            var globalNs = compilation.Assembly.GlobalNamespace;
-            var symbols = GetDeclaredSymbolsInTree(tree, compilation, getCachedSemanticModel, cancellationToken);
-            var compilationEvents = CreateCompilationEventsForTree(symbols.Concat(globalNs), tree, compilation);
-
-            lock (_gate)
-            {
-                if (_treesWithGeneratedSourceEvents.Contains(tree))
-                {
-                    return;
-                }
-
-                OnCompilationEventsGenerated_NoLock(compilationEvents, tree, driver, cancellationToken);
-
-                var added = _treesWithGeneratedSourceEvents.Add(tree);
-                Debug.Assert(added);
-            }
-        }
-
-        private ImmutableArray<ISymbol> GetDeclaredSymbolsInTree(
-            SyntaxTree tree,
-            Compilation compilation,
-            Func<SyntaxTree, Compilation, CancellationToken, SemanticModel> getCachedSemanticModel,
-            CancellationToken cancellationToken)
-        {
-            var model = getCachedSemanticModel(tree, compilation, cancellationToken);
-            var fullSpan = tree.GetRoot(cancellationToken).FullSpan;
-            var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            model.ComputeDeclarationsInSpan(fullSpan, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
-            ImmutableArray<ISymbol> result = declarationInfoBuilder.Select(declInfo => declInfo.DeclaredSymbol).Distinct().WhereNotNull().ToImmutableArray();
-            declarationInfoBuilder.Free();
-            return result;
-        }
-
-        private static ImmutableArray<CompilationEvent> CreateCompilationEventsForTree(IEnumerable<ISymbol> declaredSymbols, SyntaxTree tree, Compilation compilation)
-        {
-            var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
-            foreach (var symbol in declaredSymbols)
-            {
-                Debug.Assert(symbol.ContainingAssembly == compilation.Assembly);
-                builder.Add(new SymbolDeclaredCompilationEvent(compilation, symbol));
-            }
-
-            builder.Add(new CompilationUnitCompletedEvent(compilation, tree));
-            return builder.ToImmutable();
-        }
-
-        private void GenerateSimulatedCompilationNonSourceEvent(Compilation compilation, AnalyzerDriver driver, bool started, CancellationToken cancellationToken)
-        {
-            lock (_gate)
-            {
-                var eventAlreadyGenerated = started ? _compilationStartGenerated : _compilationEndGenerated;
-                if (eventAlreadyGenerated)
-                {
-                    return;
-                }
-
-                var compilationEvent = started ? (CompilationEvent)new CompilationStartedEvent(compilation) : new CompilationCompletedEvent(compilation);
-                var events = ImmutableArray.Create(compilationEvent);
-                OnCompilationEventsGenerated_NoLock(events, filterTreeOpt: null, driver: driver, cancellationToken: cancellationToken);
-
-                if (started)
-                {
-                    _compilationStartGenerated = true;
-                }
-                else
-                {
-                    _compilationEndGenerated = true;
-                }
-            }
-        }
-
         public async Task OnCompilationEventsGeneratedAsync(ImmutableArray<CompilationEvent> compilationEvents, AnalyzerDriver driver, CancellationToken cancellationToken)
         {
-            await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
-
-            lock (_gate)
+            try
             {
-                OnCompilationEventsGenerated_NoLock(compilationEvents, filterTreeOpt: null, driver: driver, cancellationToken: cancellationToken);
+                await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
+
+                using (_gate.DisposableWait(cancellationToken))
+                {
+                    OnCompilationEventsGenerated_NoLock(compilationEvents, filterTreeOpt: null);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
-        private void OnCompilationEventsGenerated_NoLock(ImmutableArray<CompilationEvent> compilationEvents, SyntaxTree filterTreeOpt, AnalyzerDriver driver, CancellationToken cancellationToken)
+        private void OnCompilationEventsGenerated_NoLock(ImmutableArray<CompilationEvent> compilationEvents, SyntaxTree filterTreeOpt)
         {
             Debug.Assert(_lazyAnalyzerActionCountsMap != null);
 
@@ -441,26 +333,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void OnSymbolDeclaredEventProcessed(SymbolDeclaredCompilationEvent symbolDeclaredEvent, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private async Task OnSymbolDeclaredEventProcessedAsync(
+            SymbolDeclaredCompilationEvent symbolDeclaredEvent,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            Func<ISymbol, DiagnosticAnalyzer, Task> onSymbolAndMembersProcessedAsync)
         {
             foreach (var analyzer in analyzers)
             {
                 var analyzerState = GetAnalyzerState(analyzer);
-                analyzerState.OnSymbolDeclaredEventProcessed(symbolDeclaredEvent);
+                if (analyzerState.OnSymbolDeclaredEventProcessed(symbolDeclaredEvent))
+                {
+                    await onSymbolAndMembersProcessedAsync(symbolDeclaredEvent.Symbol, analyzer).ConfigureAwait(false);
+                }
             }
         }
 
         /// <summary>
-        /// Invoke this method at completion of event processing for the given analysis scope.
+        /// Invoke this method at completion of event processing for the given analyzers.
         /// It updates the analysis state of this event for each analyzer and if the event has been fully processed for all analyzers, then removes it from our event cache.
         /// </summary>
-        public void OnCompilationEventProcessed(CompilationEvent compilationEvent, AnalysisScope analysisScope)
+        public async Task OnCompilationEventProcessedAsync(CompilationEvent compilationEvent, ImmutableArray<DiagnosticAnalyzer> analyzers, Func<ISymbol, DiagnosticAnalyzer, Task> onSymbolAndMembersProcessedAsync)
         {
             // Analyze if the symbol and all its declaring syntax references are analyzed.
             var symbolDeclaredEvent = compilationEvent as SymbolDeclaredCompilationEvent;
             if (symbolDeclaredEvent != null)
             {
-                OnSymbolDeclaredEventProcessed(symbolDeclaredEvent, analysisScope.Analyzers);
+                await OnSymbolDeclaredEventProcessedAsync(symbolDeclaredEvent, analyzers, onSymbolAndMembersProcessedAsync).ConfigureAwait(false);
             }
 
             // Check if event is fully analyzed for all analyzers.
@@ -473,7 +371,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Remove the event from event map.
-            lock (_gate)
+            // Note: We do not pass in the cancellationToken to DisposableWait to ensure the state is updated.
+            using (_gate.DisposableWait())
             {
                 UpdateEventsMap_NoLock(compilationEvent, add: false);
             }
@@ -482,9 +381,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets pending events for given set of analyzers for the given syntax tree.
         /// </summary>
-        public ImmutableArray<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree)
+        public ImmutableArray<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 return GetPendingEvents_NoLock(analyzers, tree);
             }
@@ -538,9 +437,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers"></param>
         /// <param name="includeSourceEvents">Indicates if source events (symbol declared, compilation unit completed event) should be included.</param>
         /// <param name="includeNonSourceEvents">Indicates if compilation wide events (compilation started and completed event) should be included.</param>
-        public ImmutableArray<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, bool includeSourceEvents, bool includeNonSourceEvents)
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public ImmutableArray<CompilationEvent> GetPendingEvents(
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            bool includeSourceEvents,
+            bool includeNonSourceEvents,
+            CancellationToken cancellationToken)
         {
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 return GetPendingEvents_NoLock(analyzers, includeSourceEvents, includeNonSourceEvents);
             }
@@ -622,11 +526,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if we have any pending symbol analysis for given analysis scope.
         /// </summary>
-        public bool HasPendingSymbolAnalysis(AnalysisScope analysisScope)
+        public bool HasPendingSymbolAnalysis(AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             Debug.Assert(analysisScope.FilterTreeOpt != null);
 
-            var symbolDeclaredEvents = GetPendingSymbolDeclaredEvents(analysisScope.FilterTreeOpt);
+            var symbolDeclaredEvents = GetPendingSymbolDeclaredEvents(analysisScope.FilterTreeOpt, cancellationToken);
             foreach (var symbolDeclaredEvent in symbolDeclaredEvents)
             {
                 if (analysisScope.ShouldAnalyze(symbolDeclaredEvent.Symbol))
@@ -645,11 +549,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        private ImmutableArray<SymbolDeclaredCompilationEvent> GetPendingSymbolDeclaredEvents(SyntaxTree tree)
+        private ImmutableArray<SymbolDeclaredCompilationEvent> GetPendingSymbolDeclaredEvents(SyntaxTree tree, CancellationToken cancellationToken)
         {
             Debug.Assert(tree != null);
 
-            lock (_gate)
+            using (_gate.DisposableWait(cancellationToken))
             {
                 HashSet<CompilationEvent> compilationEvents;
                 if (!_pendingSourceEvents.TryGetValue(tree, out compilationEvents))
@@ -713,11 +617,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Attempts to start executing a symbol's end actions for the given analyzer.
+        /// </summary>
+        /// <returns>
+        /// Returns false if the symbol end actions have already been executed for the analyzer OR are currently being executed by another task.
+        /// If true, then it returns a non-null <paramref name="state"/> representing partial analysis state for the given symbol end actions for the given analyzer.
+        /// </returns>
+        public bool TryStartSymbolEndAnalysis(ISymbol symbol, DiagnosticAnalyzer analyzer, out AnalyzerStateData state)
+        {
+            return GetAnalyzerState(analyzer).TryStartSymbolEndAnalysis(symbol, out state);
+        }
+
+        /// <summary>
         /// Marks the given symbol as fully analyzed for the given analyzer.
         /// </summary>
         public void MarkSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
         {
             GetAnalyzerState(analyzer).MarkSymbolComplete(symbol);
+        }
+
+        /// <summary>
+        /// True if the given symbol is fully analyzed for the given analyzer.
+        /// </summary>
+        public bool IsSymbolComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        {
+            return GetAnalyzerState(analyzer).IsSymbolComplete(symbol);
+        }
+
+        /// <summary>
+        /// Marks the given symbol end actions as fully executed for the given analyzers.
+        /// </summary>
+        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                MarkSymbolEndAnalysisComplete(symbol, analyzer);
+            }
+        }
+
+        /// <summary>
+        /// Marks the given symbol end actions as fully executed for the given analyzer.
+        /// </summary>
+        public void MarkSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        {
+            GetAnalyzerState(analyzer).MarkSymbolEndAnalysisComplete(symbol);
+        }
+
+        /// <summary>
+        /// True if the given symbol end analysis is complete for the given analyzer.
+        /// </summary>
+        public bool IsSymbolEndAnalysisComplete(ISymbol symbol, DiagnosticAnalyzer analyzer)
+        {
+            return GetAnalyzerState(analyzer).IsSymbolEndAnalysisComplete(symbol);
         }
 
         /// <summary>

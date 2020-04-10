@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Classification;
@@ -33,6 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         [DebuggerStepThrough]
         public static FormattedClassification TypeParameter(string text)
             => New(text, ClassificationTypeNames.TypeParameterName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification Namespace(string text)
+            => New(text, ClassificationTypeNames.NamespaceName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification Label(string text)
+            => New(text, ClassificationTypeNames.LabelName);
 
         [DebuggerStepThrough]
         public static FormattedClassification Field(string text)
@@ -71,6 +81,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.EventName);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Static(string text)
+            => New(text, ClassificationTypeNames.StaticSymbol);
+
+        [DebuggerStepThrough]
         public static FormattedClassification String(string text)
             => New(text, ClassificationTypeNames.StringLiteral);
 
@@ -79,8 +93,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.VerbatimStringLiteral);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Escape(string text)
+            => New(text, ClassificationTypeNames.StringEscapeCharacter);
+
+        [DebuggerStepThrough]
         public static FormattedClassification Keyword(string text)
             => New(text, ClassificationTypeNames.Keyword);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification ControlKeyword(string text)
+            => New(text, ClassificationTypeNames.ControlKeyword);
 
         [DebuggerStepThrough]
         public static FormattedClassification WhiteSpace(string text)

@@ -1,21 +1,20 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+#nullable enable
+
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    public static class ISymbolExtensions
+    public static partial class ISymbolExtensions
     {
         /// <summary>
         /// Returns the constructed form of the ReducedFrom property,
         /// including the type arguments that were either inferred during reduction or supplied at the call site.
         /// </summary>
-        public static IMethodSymbol GetConstructedReducedFrom(this IMethodSymbol method)
+        public static IMethodSymbol? GetConstructedReducedFrom(this IMethodSymbol method)
         {
             if (method.MethodKind != MethodKind.ReducedExtension)
             {
@@ -24,6 +23,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var reducedFrom = method.ReducedFrom;
+            Debug.Assert(reducedFrom is object);
             if (!reducedFrom.IsGenericMethod)
             {
                 // not generic, no inferences were made
@@ -36,14 +36,16 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0, n = method.TypeParameters.Length; i < n; i++)
             {
                 var arg = method.TypeArguments[i];
+                var typeParameter = method.TypeParameters[i];
+                Debug.Assert(typeParameter.ReducedFrom is object);
 
                 // make sure we don't construct with type parameters originating from reduced symbol.
-                if (arg.Equals(method.TypeParameters[i]))
+                if (arg.Equals(typeParameter))
                 {
-                    arg = method.TypeParameters[i].ReducedFrom;
+                    arg = typeParameter.ReducedFrom;
                 }
 
-                typeArgs[method.TypeParameters[i].ReducedFrom.Ordinal] = arg;
+                typeArgs[typeParameter.ReducedFrom.Ordinal] = arg;
             }
 
             // add any inferences
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if a given field is a nondefault tuple element
+        /// Returns true if a given field is a default tuple element
         /// </summary>
         internal static bool IsDefaultTupleElement(this IFieldSymbol field)
         {
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static bool IsTupleElement(this IFieldSymbol field)
         {
-            return (object)field.CorrespondingTupleField != null;
+            return field.CorrespondingTupleField is object;
         }
 
         /// <summary>
@@ -83,12 +85,12 @@ namespace Microsoft.CodeAnalysis
         /// Note that it is possible for an element to be both "Default" and to have a user provided name.
         /// That could happen if the provided name matches the default name such as "Item10"
         /// </remarks>
-        internal static string ProvidedTupleElementNameOrNull(this IFieldSymbol field)
+        internal static string? ProvidedTupleElementNameOrNull(this IFieldSymbol field)
         {
             return field.IsTupleElement() && !field.IsImplicitlyDeclared ? field.Name : null;
         }
 
-        internal static INamespaceSymbol GetNestedNamespace(this INamespaceSymbol container, string name)
+        internal static INamespaceSymbol? GetNestedNamespace(this INamespaceSymbol container, string name)
         {
             foreach (var sym in container.GetMembers(name))
             {
@@ -99,6 +101,22 @@ namespace Microsoft.CodeAnalysis
             }
 
             return null;
+        }
+
+        internal static bool IsNetModule(this IAssemblySymbol assembly) =>
+            assembly is ISourceAssemblySymbol sourceAssembly && sourceAssembly.Compilation.Options.OutputKind.IsNetModule();
+
+        internal static bool IsInSource(this ISymbol symbol)
+        {
+            foreach (var location in symbol.Locations)
+            {
+                if (location.IsInSource)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -24,9 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
-        public VisualStudioInfoBarService(SVsServiceProvider serviceProvider,
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioInfoBarService(
+            IThreadingContext threadingContext,
+            SVsServiceProvider serviceProvider,
             IForegroundNotificationService foregroundNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _foregroundNotificationService = foregroundNotificationService;
@@ -65,11 +71,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (activeView)
             {
-                var monitorSelectionService = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-
                 // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list
                 // or interactive window
-                if (monitorSelectionService == null ||
+                if (!(_serviceProvider.GetService(typeof(SVsShellMonitorSelection)) is IVsMonitorSelection monitorSelectionService) ||
                     ErrorHandler.Failed(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var value)))
                 {
                     return false;
@@ -86,8 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // global error info, show it on main window info bar
-            var shell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            if (shell == null ||
+            if (!(_serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell) ||
                 ErrorHandler.Failed(shell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var globalInfoBar)))
             {
                 return false;
@@ -99,8 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void CreateInfoBar(IVsInfoBarHost infoBarHost, string message, InfoBarUI[] items)
         {
-            var factory = _serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-            if (factory == null)
+            if (!(_serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is IVsInfoBarUIFactory factory))
             {
                 // no info bar factory, don't do anything
                 return;
@@ -192,9 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
-            {
-                _onClose();
-            }
+                => _onClose();
         }
 
         private static bool TryCreateInfoBarUI(IVsInfoBarUIFactory infoBarUIFactory, IVsInfoBar infoBar, out IVsInfoBarUIElement uiElement)

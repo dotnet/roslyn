@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -24,6 +26,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
 
         #region Function Tests
+
+        [Fact, WorkItem(26464, "https://github.com/dotnet/roslyn/issues/26464")]
+        public void TestNullInAssemblyVersionAttribute()
+        {
+            var source = @"
+[assembly: System.Reflection.AssemblyVersionAttribute(null)]
+class Program
+{
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithDeterministic(true));
+            comp.VerifyDiagnostics(
+                // (2,55): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
+                // [assembly: System.Reflection.AssemblyVersionAttribute(null)]
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat, "null").WithLocation(2, 55)
+                );
+        }
 
         [Fact]
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
@@ -256,11 +274,11 @@ public class RefersToLibAttribute : Attribute
             compWithReferenceToLib.VerifyDiagnostics();
 
             var newLibComp = CreateCompilation(newLib_cs,
-                references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+                references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
             var newLibComp2 = CreateCompilation(newLib_cs,
-                references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+                references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -292,13 +310,13 @@ public class RefersToLibAttribute : C
             var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
 
-            var newLibComp3 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp3 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp3.SourceAssembly.GetAttributes();
             newLibComp3.VerifyDiagnostics();
         }
@@ -321,7 +339,7 @@ public class RefersToLibAttribute : C
             origLibComp.VerifyDiagnostics();
 
             var compWithDerivedAndReferenceToLib = CreateCompilation(typeForward_cs + derivedDefinition_cs, references: new[] { origLibComp.EmitToImageReference() });
-            compWithDerivedAndReferenceToLib .VerifyDiagnostics();
+            compWithDerivedAndReferenceToLib.VerifyDiagnostics();
 
             var compWithC = CreateCompilation(cDefinition_cs, assemblyName: "new");
             compWithC.VerifyDiagnostics();
@@ -366,11 +384,11 @@ public class RefersToLibAttribute : C
             compWithReferenceToLib.VerifyDiagnostics();
 
             var newLibComp = CreateCompilation(newLib_cs,
-                references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+                references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
             var newLibComp2 = CreateCompilation(newLib_cs,
-                references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+                references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -403,10 +421,10 @@ public class RefersToLibAttribute : Attribute
             var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -438,10 +456,10 @@ public class RefersToLibAttribute : C
             var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(), newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(), newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -1547,7 +1565,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,13): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
                 //     [field: System.Runtime.CompilerServices.DynamicAttribute()]
@@ -2304,7 +2322,7 @@ class C
                 // 1) Has return type attributes from delegate declaration syntax
                 // 2) Has parameter attributes from delegate declaration syntax
                 var invokeMethod = delegateType.GetMethod("Invoke");
-                Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == returnTypeAttrType).Count());
+                Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, returnTypeAttrType, TypeCompareKind.ConsiderEverything2)).Count());
                 Assert.Equal(typeParameters[0], invokeMethod.ReturnType);
                 var parameters = invokeMethod.GetParameters();
                 Assert.Equal(3, parameters.Length);
@@ -2346,7 +2364,7 @@ class C
                 // 2) Has parameter attributes from delegate declaration syntax
                 //    only for ref/out parameters.
                 var endInvokeMethod = (MethodSymbol)delegateType.GetMember("EndInvoke");
-                Assert.Equal(1, endInvokeMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == returnTypeAttrType).Count());
+                Assert.Equal(1, endInvokeMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, returnTypeAttrType, TypeCompareKind.ConsiderEverything2)).Count());
                 parameters = endInvokeMethod.GetParameters();
                 Assert.Equal(3, parameters.Length);
                 Assert.Equal("p2", parameters[0].Name);
@@ -3437,7 +3455,7 @@ namespace AttributeTest
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForParam", attr.AttributeClass.ToDisplayString());
 
-                attrs = setter.GetReturnTypeAttributes().Where(a => a.AttributeClass == attributeTypeForReturn);
+                attrs = setter.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, attributeTypeForReturn, TypeCompareKind.ConsiderEverything2));
                 Assert.Equal(1, attrs.Count());
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForReturn", attr.AttributeClass.ToDisplayString());
@@ -3451,7 +3469,7 @@ namespace AttributeTest
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForMethod", attr.AttributeClass.ToDisplayString());
 
-                attrs = getter.GetReturnTypeAttributes().Where(a => a.AttributeClass == attributeTypeForReturn);
+                attrs = getter.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, attributeTypeForReturn, TypeCompareKind.ConsiderEverything2));
                 Assert.Equal(1, attrs.Count());
                 attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForReturn", attr.AttributeClass.ToDisplayString());
@@ -4258,8 +4276,8 @@ partial class Program
             Assert.Equal(1, gooMethod.GetAttributes(a1Class).Count());
             Assert.Equal(1, gooMethod.GetAttributes(a2Class).Count());
 
-            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b1Class).Count());
-            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b2Class).Count());
+            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, b1Class, TypeCompareKind.ConsiderEverything2)).Count());
+            Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, b2Class, TypeCompareKind.ConsiderEverything2)).Count());
 
             var typeParam1 = gooMethod.TypeParameters[0];
             Assert.Equal(1, typeParam1.GetAttributes(c1Class).Count());
@@ -4659,41 +4677,41 @@ public class C6 {}
 
                 var attrs = classC1.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
+                var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(classW));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC2.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(classW), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC3.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(classW));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC4.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(classW)));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classYOfW, default(ImmutableArray<CustomModifier>), rank: 2);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
+                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create(TypeWithAnnotations.Create(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(classYOfW), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC5.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))));
+                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create(TypeWithAnnotations.Create(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))));
                 NamedTypeSymbol substNestedF = classYOfInt.GetTypeMember("F");
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, substNestedF, default(ImmutableArray<CustomModifier>), rank: 3);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(substNestedF), rank: 3);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC6.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(classW)));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, substNestedZ, default(ImmutableArray<CustomModifier>));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create(TypeWithAnnotations.Create(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(substNestedZ));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
             };
 
@@ -4702,7 +4720,7 @@ public class C6 {}
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void TestUnicodeAttributeArgument_Bug16353()
         {
             var source =
@@ -4725,7 +4743,7 @@ class C
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/41280")]
         public void TestUnicodeAttributeArgumentsStrings()
         {
             string HighSurrogateCharacter = "\uD800";
@@ -6565,7 +6583,7 @@ class C
         }
 
         [Fact]
-        public void AttributeDiagnosticsForEachArgument()
+        public void AttributeDiagnosticsForEachArgument01()
         {
             var source = @"using System;
 public class A : Attribute 
@@ -6577,12 +6595,41 @@ public class A : Attribute
 class C<T, U> { public enum E {} }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                // [A(new object[] { default(E), default(E) })]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31),
                 // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new object[] { default(E), default(E) })]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19));
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19),
+                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31)
+                );
+        }
+
+        [Fact]
+        public void AttributeDiagnosticsForEachArgument02()
+        {
+            var source = @"using System;
+public class A : Attribute 
+{
+  public A(object[] a, object[] b) {}
+}
+
+[A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+class C<T, U> { public enum E {} }";
+            // Note that we suppress further errors once we have reported a bad attribute argument.
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19),
+                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31),
+                // (7,60): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 60),
+                // (7,72): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 72)
+                );
         }
 
         [Fact]
@@ -7606,6 +7653,82 @@ class Goo: Attribute
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "X").WithArguments("X"));
         }
 
+        [Fact]
+        public void AmbiguousClassNamespaceLookup_Container()
+        {
+            var source1 =
+@"using System;
+public class A : Attribute { }
+namespace N1
+{
+    public class B : Attribute { }
+    public class C : Attribute { }
+}";
+            var comp = CreateCompilation(source1, assemblyName: "A");
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"using System;
+using N1;
+using N2;
+namespace N1
+{
+    class A : Attribute { }
+    class B : Attribute { }
+}
+namespace N2
+{
+    class C : Attribute { }
+}
+[A]
+[B]
+[C]
+class D
+{
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 }, assemblyName: "B");
+            comp.VerifyDiagnostics(
+                // (14,2): warning CS0436: The type 'B' in '' conflicts with the imported type 'B' in 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                // [B]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "B").WithArguments("", "N1.B", "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "N1.B").WithLocation(14, 2),
+                // (15,2): error CS0104: 'C' is an ambiguous reference between 'N2.C' and 'N1.C'
+                // [C]
+                Diagnostic(ErrorCode.ERR_AmbigContext, "C").WithArguments("C", "N2.C", "N1.C").WithLocation(15, 2));
+        }
+
+        [Fact]
+        public void AmbiguousClassNamespaceLookup_Generic()
+        {
+            var source1 =
+@"public class A { }
+public class B<T> { }
+public class C<T, U> { }";
+            var comp = CreateCompilation(source1);
+            var ref1 = comp.EmitToImageReference();
+
+            var source2 =
+@"class A<U> { }
+class B<U> { }
+class C<U> { }
+[A]
+[B]
+[C]
+class D
+{
+}";
+            comp = CreateCompilation(source2, references: new[] { ref1 });
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0616: 'A' is not an attribute class
+                // [A]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
+                // (5,2): error CS0404: Cannot apply attribute class 'B<U>' because it is generic
+                // [B]
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B").WithArguments("B<U>").WithLocation(5, 2),
+                // (6,2): error CS0305: Using the generic type 'C<U>' requires 1 type arguments
+                // [C]
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<U>", "type", "1").WithLocation(6, 2));
+        }
+
         [WorkItem(546283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546283")]
         [Fact]
         public void ApplyIndexerNameAttributeTwice()
@@ -7666,11 +7789,11 @@ public class IA
             var compilation = CreateCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics();
             var assembly = compilation.Assembly;
-            Assert.Equal(assembly.GetAttributes().Length, 0);
+            Assert.Equal(0, assembly.GetAttributes().Length);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(type.GetAttributes().Length, 0);
+            Assert.Equal(0, type.GetAttributes().Length);
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
-            Assert.Equal(method.GetAttributes().Length, 0);
+            Assert.Equal(0, method.GetAttributes().Length);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.True(method.TestIsExtensionBitTrue);
             Assert.True(method.IsExtensionMethod);
@@ -7709,11 +7832,11 @@ public class IA
             compilation.VerifyDiagnostics(); // we now recognize the extension method even without the assembly-level attribute
 
             var assembly = compilation.Assembly;
-            Assert.Equal(assembly.GetAttributes().Length, 0);
+            Assert.Equal(0, assembly.GetAttributes().Length);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(type.GetAttributes().Length, 0);
+            Assert.Equal(0, type.GetAttributes().Length);
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
-            Assert.Equal(method.GetAttributes().Length, 0);
+            Assert.Equal(0, method.GetAttributes().Length);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.True(method.TestIsExtensionBitTrue);
             Assert.True(method.IsExtensionMethod);
@@ -8091,7 +8214,7 @@ class Program
         }
 
         [WorkItem(728865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728865")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
         public void Repro728865()
         {
             var source = @"
@@ -8748,9 +8871,9 @@ class Target<T>
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
 
-            var typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
+            var typeInAttribute = (INamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
-            Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
+            Assert.True(((NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().ValueInternal).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
 
             var comp2 = CreateCompilation("", new[] { comp.EmitToImageReference() });
@@ -8758,9 +8881,9 @@ class Target<T>
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(type);
 
-            typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
+            typeInAttribute = (INamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
-            Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
+            Assert.True(((NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().ValueInternal).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
         }
 
@@ -8856,10 +8979,9 @@ public static class LanguageNames
 ";
             var compilation1 = CreateCompilationWithMscorlib40(source1, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
-    // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
-    //     public const xyz CSharp = "C#";
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "xyz").WithArguments("xyz").WithLocation(10, 18)
-                );
+                // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+                //     public const xyz CSharp = "C#";
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "xyz").WithArguments("xyz").WithLocation(10, 18));
 
             var source2 =
 @"
@@ -8875,26 +8997,95 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
             var emitResult2 = compilation2.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
             Assert.False(emitResult2.Success);
             emitResult2.Diagnostics.Verify(
-    // error CS7038: Failed to emit module 'Test.dll'.
-    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll").WithLocation(1, 1)
-                );
+                // error CS7038: Failed to emit module 'Test.dll': Module has invalid attributes.
+                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll", "Module has invalid attributes.").WithLocation(1, 1));
 
             // Use different mscorlib to test retargeting scenario
             var compilation3 = CreateCompilationWithMscorlib45(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
             Assert.NotSame(compilation1.Assembly, compilation3.SourceModule.ReferencedAssemblySymbols[1]);
             compilation3.VerifyDiagnostics(
-    // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
-    // [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
-                );
+                // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+                // [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35));
 
             var emitResult3 = compilation3.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
             Assert.False(emitResult3.Success);
             emitResult3.Diagnostics.Verify(
-    // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
-    // [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
-                );
+                // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+                // [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35));
+        }
+
+        [Fact, WorkItem(30833, "https://github.com/dotnet/roslyn/issues/30833")]
+        public void AttributeWithTaskDelegateParameter()
+        {
+            string code = @"
+using System;
+using System.Threading.Tasks;
+
+namespace a
+{
+    class Class1
+    {
+		[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+		class CommandAttribute : Attribute
+		{
+			public delegate Task FxCommand();
+
+			public CommandAttribute(FxCommand Fx)
+			{
+				this.Fx = Fx;
+			}
+
+			public FxCommand Fx { get; set; }
+		}
+		
+		[Command(UserInfo)]
+		public static async Task UserInfo()
+		{
+			await Task.CompletedTask;
+		}
+	}
+}
+";
+            CreateCompilationWithMscorlib46(code).VerifyDiagnostics(
+                // (22,4): error CS0181: Attribute constructor parameter 'Fx' has type 'Class1.CommandAttribute.FxCommand', which is not a valid attribute parameter type
+                // 		[Command(UserInfo)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Command").WithArguments("Fx", "a.Class1.CommandAttribute.FxCommand").WithLocation(22, 4));
+        }
+
+        [Fact, WorkItem(33388, "https://github.com/dotnet/roslyn/issues/33388")]
+        public void AttributeCrashRepro_33388()
+        {
+            string source = @"
+using System;
+
+public static class C
+{
+    public static int M(object obj) => 42;
+    public static int M(C2 c2) => 42;
+}
+
+public class RecAttribute : Attribute
+{
+    public RecAttribute(int i)
+    {
+        this.i = i;
+    }
+
+    private int i;
+}
+
+[Rec(C.M(null))]
+public class C2
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (20,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Rec(C.M(null))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(null)").WithLocation(20, 6));
         }
 
         #endregion

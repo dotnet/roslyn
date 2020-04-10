@@ -1,41 +1,53 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Roslyn.Hosting.Diagnostics.Waiters
 {
     [Export, Shared]
-    public class TestingOnly_WaitingService
+    internal class TestingOnly_WaitingService
     {
         private readonly AsynchronousOperationListenerProvider _provider;
 
         [ImportingConstructor]
-        private TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
         {
             _provider = (AsynchronousOperationListenerProvider)provider;
         }
 
         public void WaitForAsyncOperations(string featureName, bool waitForWorkspaceFirst = true)
         {
+            WaitForAsyncOperations(TimeSpan.FromMilliseconds(-1), featureName, waitForWorkspaceFirst);
+        }
+
+        public void WaitForAsyncOperations(TimeSpan timeout, string featureName, bool waitForWorkspaceFirst = true)
+        {
             var workspaceWaiter = _provider.GetWaiter(FeatureAttribute.Workspace);
             var featureWaiter = _provider.GetWaiter(featureName);
             Contract.ThrowIfNull(featureWaiter);
+
+            using var cancellationTokenSource = new CancellationTokenSource(timeout);
 
             // wait for each of the features specified in the featuresToWaitFor string
             if (waitForWorkspaceFirst)
             {
                 // at least wait for the workspace to finish processing everything.
-                var task = workspaceWaiter.CreateWaitTask();
-                task.Wait();
+                var task = workspaceWaiter.ExpeditedWaitAsync();
+                task.Wait(cancellationTokenSource.Token);
             }
 
-            var waitTask = featureWaiter.CreateWaitTask();
-
-            WaitForTask(waitTask);
+            var waitTask = featureWaiter.ExpeditedWaitAsync();
+            WaitForTask(waitTask, cancellationTokenSource.Token);
 
             // Debugging trick: don't let the listeners collection get optimized away during execution.
             // This means if the process is killed during integration tests and the test was waiting, you can
@@ -46,11 +58,28 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
 
         public void WaitForAllAsyncOperations(params string[] featureNames)
         {
+            WaitForAllAsyncOperations(TimeSpan.FromMilliseconds(-1), featureNames);
+        }
+
+        public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
+        {
             var task = _provider.WaitAllAsync(
                 featureNames,
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
                 eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
-            WaitForTask(task);
+            if (timeout == TimeSpan.FromMilliseconds(-1))
+            {
+                WaitForTask(task, CancellationToken.None);
+            }
+            else
+            {
+                using (var cancellationTokenSource = new CancellationTokenSource(timeout))
+                {
+                    WaitForTask(task, cancellationTokenSource.Token);
+                }
+            }
         }
 
         public void EnableActiveTokenTracking(bool enable)
@@ -63,9 +92,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             AsynchronousOperationListenerProvider.Enable(enable);
         }
 
-        private void WaitForTask(System.Threading.Tasks.Task task)
+        private void WaitForTask(Task task, CancellationToken cancellationToken)
         {
-            while (!task.Wait(100))
+            while (!task.Wait(100, cancellationToken))
             {
                 // set breakpoint here when debugging
                 var tokens = _provider.GetTokens();
@@ -73,7 +102,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
                 GC.KeepAlive(tokens);
 
                 // make sure pending task that require UI threads to finish as well.
-                Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
+                Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle, cancellationToken);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
             }
         }
     }

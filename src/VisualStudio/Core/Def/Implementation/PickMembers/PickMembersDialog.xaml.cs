@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +8,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
@@ -16,12 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
     internal partial class PickMembersDialog : DialogWindow
     {
         private readonly PickMembersDialogViewModel _viewModel;
-
-        /// <summary>
-        /// For test purposes only. The integration tests need to know when the dialog is up and
-        /// ready for automation.
-        /// </summary>
-        internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
         public string PickMembersDialogTitle => ServicesVSResources.Pick_members;
@@ -40,17 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
             InitializeComponent();
             DataContext = viewModel;
-
-            IsVisibleChanged += PickMembers_IsVisibleChanged;
-        }
-
-        private void PickMembers_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if ((bool)e.NewValue)
-            {
-                IsVisibleChanged -= PickMembers_IsVisibleChanged;
-                TEST_DialogLoaded?.Invoke();
-            }
         }
 
         private void SetCommandBindings()
@@ -84,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveUp && oldSelectedIndex >= 0)
             {
                 _viewModel.MoveUp();
@@ -97,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 
         private void MoveDown_Click(object sender, EventArgs e)
         {
-            int oldSelectedIndex = Members.SelectedIndex;
+            var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveDown && oldSelectedIndex >= 0)
             {
                 _viewModel.MoveDown();
@@ -112,8 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
         {
             if (Members.SelectedIndex >= 0)
             {
-                var row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;
-                if (row == null)
+                if (!(Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is ListViewItem row))
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as ListViewItem;
@@ -149,6 +134,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             {
                 item.IsChecked = !allChecked;
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly PickMembersDialog _dialog;
+
+            public TestAccessor(PickMembersDialog dialog)
+                => _dialog = dialog;
+
+            public Button OKButton => _dialog.OKButton;
+
+            public Button CancelButton => _dialog.CancelButton;
+
+            public DialogButton UpButton => _dialog.UpButton;
+
+            public DialogButton DownButton => _dialog.DownButton;
+
+            public AutomationDelegatingListView Members => _dialog.Members;
         }
     }
 }
