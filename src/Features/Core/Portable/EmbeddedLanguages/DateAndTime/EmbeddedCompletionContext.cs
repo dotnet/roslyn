@@ -95,11 +95,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 }
                 catch (FormatException)
                 {
-                    return;
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    return;
                 }
             }
 
