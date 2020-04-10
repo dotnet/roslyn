@@ -7,7 +7,25 @@
     <UsingToolXliff>false</UsingToolXliff>
   </PropertyGroup>
 
+  <!-- Recognize MSTest projects -->
+  <PropertyGroup Condition="'$(IsUnitTestProject)' == '' and ($(MSBuildProjectName.EndsWith('.MSTest.UnitTests')) or $(MSBuildProjectName.EndsWith('.MSTest.Tests')))">
+    <IsUnitTestProject>true</IsUnitTestProject>
+    <UsingToolXUnit>false</UsingToolXUnit>
+    <TestRunnerName>MSTest</TestRunnerName>
+  </PropertyGroup>
+
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+
+  <!-- Provide default versions for MSTest -->
+  <PropertyGroup>
+    <MicrosoftTestPlatformVersion>16.5.0</MicrosoftTestPlatformVersion>
+    <MSTestVersion Condition="'$(MSTestVersion)' == ''">2.0.0</MSTestVersion>
+    <MSTestTestAdapterVersion Condition="'$(MSTestTestAdapterVersion)' == ''">$(MSTestVersion)</MSTestTestAdapterVersion>
+    <MSTestTestFrameworkVersion Condition="'$(MSTestTestFrameworkVersion)' == ''">$(MSTestVersion)</MSTestTestFrameworkVersion>
+  </PropertyGroup>
+
+  <!-- Import specialized props files of supported test runners -->
+  <Import Project="$(MSBuildThisFileDirectory)tools\$(TestRunnerName)\$(TestRunnerName).props" Condition="'$(TestRunnerName)' != '' and Exists('$(MSBuildThisFileDirectory)tools\$(TestRunnerName)\$(TestRunnerName).props')"/>
 
   <PropertyGroup>
     <TestTargetFrameworks>net472;net46;netcoreapp1.1;netcoreapp2.0</TestTargetFrameworks>
