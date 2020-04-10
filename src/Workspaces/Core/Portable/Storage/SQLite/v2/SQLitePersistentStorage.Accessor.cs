@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {

@@ -6,13 +6,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.Remote
 {

@@ -3,15 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
+
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+#else
+using System.Collections.Generic;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 {

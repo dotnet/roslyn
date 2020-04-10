@@ -4,8 +4,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery

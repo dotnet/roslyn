@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (conversion.IsObjectCreation)
+            {
+                return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+            }
+
             if (conversion.IsUserDefined)
             {
                 // User-defined conversions are likely to be represented as multiple
@@ -155,6 +160,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: destination,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = wasCompilerGenerated };
+        }
+
+        private BoundExpression ConvertObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
+            BoundExpression expr = BindObjectCreationExpression(node, destination.StrippedType(), arguments, diagnostics);
+            if (destination.IsNullableType())
+            {
+                // We manually create an ImplicitNullable conversion
+                // if the destination is nullable, in which case we
+                // target the underlying type e.g. `S? x = new();`
+                // is actually identical to `S? x = new S();`.
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                var conversion = Conversions.ClassifyStandardConversion(null, expr.Type, destination, ref useSiteDiagnostics);
+                expr = new BoundConversion(
+                    node.Syntax,
+                    operand: expr,
+                    conversion: conversion,
+                    @checked: false,
+                    explicitCastInCode: isCast,
+                    conversionGroupOpt: new ConversionGroup(conversion),
+                    constantValueOpt: expr.ConstantValue,
+                    type: destination);
+
+                diagnostics.Add(syntax, useSiteDiagnostics);
+            }
+            arguments.Free();
+            return expr;
+        }
+
+        private BoundExpression BindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        {
+            var syntax = node.Syntax;
+            switch (type.TypeKind)
+            {
+                case TypeKind.Enum:
+                case TypeKind.Struct:
+                case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
+                    return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
+                case TypeKind.TypeParameter:
+                    return BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
+                case TypeKind.Delegate:
+                    return BindDelegateCreationExpression(syntax, (NamedTypeSymbol)type, arguments, node.InitializerOpt, diagnostics);
+                case TypeKind.Interface:
+                    return BindInterfaceCreationExpression(syntax, (NamedTypeSymbol)type, diagnostics, typeNode: syntax, arguments, node.InitializerOpt, wasTargetTyped: true);
+                case TypeKind.Array:
+                case TypeKind.Class:
+                case TypeKind.Dynamic:
+                    Error(diagnostics, ErrorCode.ERR_TypelessNewIllegalTargetType, syntax, type);
+                    goto case TypeKind.Error;
+                case TypeKind.Pointer:
+                    Error(diagnostics, ErrorCode.ERR_UnsafeTypeInObjectCreation, syntax, type);
+                    goto case TypeKind.Error;
+                case TypeKind.Error:
+                    return MakeBadExpressionForObjectCreation(syntax, type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
+                case var v:
+                    throw ExceptionUtilities.UnexpectedValue(v);
+            }
         }
 
         /// <summary>
