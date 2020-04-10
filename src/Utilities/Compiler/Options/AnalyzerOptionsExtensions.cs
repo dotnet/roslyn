@@ -21,37 +21,6 @@ namespace Analyzer.Utilities
         private static readonly ImmutableHashSet<OutputKind> s_defaultOutputKinds =
             ImmutableHashSet.CreateRange(Enum.GetValues(typeof(OutputKind)).Cast<OutputKind>());
 
-        private static TValue GetOptionWithConflictHandling<TValue>(ISymbol symbol, Func<SyntaxTree, TValue> getOptionForTree, TValue conflictValue)
-        {
-            var value = getOptionForTree(symbol.Locations[0].SourceTree);
-
-            // Handle conflicts from option value in different partial declaration of the symbol.
-            foreach (var location in symbol.Locations.Skip(1))
-            {
-                var anotherValue = getOptionForTree(location.SourceTree);
-                if (!Equals(anotherValue, value))
-                {
-                    return conflictValue;
-                }
-            }
-
-            return value;
-        }
-
-        private static ImmutableHashSet<TValue> GetOptionWithConflictHandling<TValue>(ISymbol symbol, Func<SyntaxTree, ImmutableHashSet<TValue>> getOptionForTree)
-        {
-            var value = getOptionForTree(symbol.Locations[0].SourceTree);
-
-            // Handle conflicts from option value in different partial declaration of the symbol.
-            foreach (var location in symbol.Locations.Skip(1))
-            {
-                var anotherValue = getOptionForTree(location.SourceTree);
-                value = value.Intersect(anotherValue);
-            }
-
-            return value;
-        }
-
         public static SymbolVisibilityGroup GetSymbolVisibilityGroupOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
@@ -59,9 +28,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             SymbolVisibilityGroup defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetSymbolVisibilityGroupOption(rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: SymbolVisibilityGroup.None);
+        => options.GetSymbolVisibilityGroupOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static SymbolVisibilityGroup GetSymbolVisibilityGroupOption(
             this AnalyzerOptions options,
@@ -79,9 +46,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             SymbolModifiers defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetRequiredModifiersOption(rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetRequiredModifiersOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static SymbolModifiers GetRequiredModifiersOption(
             this AnalyzerOptions options,
@@ -99,9 +64,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             EnumValuesPrefixTrigger defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetEnumValuesPrefixTriggerOption(rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetEnumValuesPrefixTriggerOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static EnumValuesPrefixTrigger GetEnumValuesPrefixTriggerOption(
             this AnalyzerOptions options,
@@ -127,8 +90,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             ImmutableHashSet<SymbolKind> defaultSymbolKinds,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetAnalyzedSymbolKindsOption(rule, tree, compilation, defaultSymbolKinds, cancellationToken));
+        => options.GetAnalyzedSymbolKindsOption(rule, symbol.Locations[0].SourceTree, compilation, defaultSymbolKinds, cancellationToken);
 
         public static ImmutableHashSet<SymbolKind> GetAnalyzedSymbolKindsOption(
             this AnalyzerOptions options,
@@ -211,9 +173,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             bool defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetBoolOptionValue(optionName, rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetBoolOptionValue(optionName, rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static bool GetBoolOptionValue(
             this AnalyzerOptions options,
@@ -236,9 +196,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             uint defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetUnsignedIntegralOptionValue(optionName, rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetUnsignedIntegralOptionValue(optionName, rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static uint GetUnsignedIntegralOptionValue(
             this AnalyzerOptions options,
@@ -275,9 +233,7 @@ namespace Analyzer.Utilities
             ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetExcludedSymbolNamesWithValueOption(rule, tree, compilation, cancellationToken),
-            conflictValue: SymbolNamesWithValueOption<Unit>.Empty);
+        => options.GetExcludedSymbolNamesWithValueOption(rule, symbol.Locations[0].SourceTree, compilation, cancellationToken);
 
         public static SymbolNamesWithValueOption<Unit> GetExcludedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
@@ -293,9 +249,7 @@ namespace Analyzer.Utilities
             ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetExcludedTypeNamesWithDerivedTypesOption(rule, tree, compilation, cancellationToken),
-            conflictValue: SymbolNamesWithValueOption<Unit>.Empty);
+        => options.GetExcludedTypeNamesWithDerivedTypesOption(rule, symbol.Locations[0].SourceTree, compilation, cancellationToken);
 
         public static SymbolNamesWithValueOption<Unit> GetExcludedTypeNamesWithDerivedTypesOption(
             this AnalyzerOptions options,
@@ -311,9 +265,7 @@ namespace Analyzer.Utilities
             ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetDisallowedSymbolNamesWithValueOption(rule, tree, compilation, cancellationToken),
-            conflictValue: SymbolNamesWithValueOption<Unit>.Empty);
+        => options.GetDisallowedSymbolNamesWithValueOption(rule, symbol.Locations[0].SourceTree, compilation, cancellationToken);
 
         public static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
@@ -329,9 +281,7 @@ namespace Analyzer.Utilities
             ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetAdditionalRequiredSuffixesOption(rule, tree, compilation, cancellationToken),
-            conflictValue: SymbolNamesWithValueOption<string>.Empty);
+        => options.GetAdditionalRequiredSuffixesOption(rule, symbol.Locations[0].SourceTree, compilation, cancellationToken);
 
         public static SymbolNamesWithValueOption<string> GetAdditionalRequiredSuffixesOption(
             this AnalyzerOptions options,
@@ -382,9 +332,7 @@ namespace Analyzer.Utilities
             ISymbol symbol,
             Compilation compilation,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetAdditionalRequiredGenericInterfaces(rule, tree, compilation, cancellationToken),
-            conflictValue: SymbolNamesWithValueOption<INamedTypeSymbol>.Empty);
+        => options.GetAdditionalRequiredGenericInterfaces(rule, symbol.Locations[0].SourceTree, compilation, cancellationToken);
 
         public static SymbolNamesWithValueOption<INamedTypeSymbol> GetAdditionalRequiredGenericInterfaces(
             this AnalyzerOptions options,
@@ -433,9 +381,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             string defaultForcedValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetInheritanceExcludedSymbolNamesOption(rule, tree, compilation, defaultForcedValue, cancellationToken),
-            conflictValue: SymbolNamesWithValueOption<Unit>.Empty);
+        => options.GetInheritanceExcludedSymbolNamesOption(rule, symbol.Locations[0].SourceTree, compilation, defaultForcedValue, cancellationToken);
 
         public static SymbolNamesWithValueOption<Unit> GetInheritanceExcludedSymbolNamesOption(
             this AnalyzerOptions options,

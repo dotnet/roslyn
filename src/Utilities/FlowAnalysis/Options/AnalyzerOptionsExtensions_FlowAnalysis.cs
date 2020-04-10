@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,9 +16,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             InterproceduralAnalysisKind defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetInterproceduralAnalysisKindOption(rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetInterproceduralAnalysisKindOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static InterproceduralAnalysisKind GetInterproceduralAnalysisKindOption(
             this AnalyzerOptions options,
@@ -37,9 +34,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             DisposeAnalysisKind defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetDisposeAnalysisKindOption(rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetDisposeAnalysisKindOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static DisposeAnalysisKind GetDisposeAnalysisKindOption(
             this AnalyzerOptions options,
@@ -57,9 +52,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             bool defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetDisposeOwnershipTransferAtConstructorOption(rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetDisposeOwnershipTransferAtConstructorOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static bool GetDisposeOwnershipTransferAtConstructorOption(
             this AnalyzerOptions options,
@@ -77,9 +70,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             bool defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetDisposeOwnershipTransferAtMethodCall(rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetDisposeOwnershipTransferAtMethodCall(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static bool GetDisposeOwnershipTransferAtMethodCall(
             this AnalyzerOptions options,
@@ -97,9 +88,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             bool defaultValue,
             CancellationToken cancellationToken)
-        => GetOptionWithConflictHandling(symbol,
-            tree => options.GetCopyAnalysisOption(rule, tree, compilation, defaultValue, cancellationToken),
-            conflictValue: defaultValue);
+        => options.GetCopyAnalysisOption(rule, symbol.Locations[0].SourceTree, compilation, defaultValue, cancellationToken);
 
         public static bool GetCopyAnalysisOption(
             this AnalyzerOptions options,
