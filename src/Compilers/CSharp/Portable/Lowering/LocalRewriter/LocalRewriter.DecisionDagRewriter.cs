@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         !method.IsStatic &&
                         !method.IsEffectivelyReadOnly &&
                         receiver.Type?.IsReferenceType == false &&
-                        // methods of concrete special types do not mutate their receiver
-                        (method.ContainingType.SpecialType == SpecialType.None || method.ContainingType.TypeKind == TypeKind.Interface);
+                        // methods of primitive types do not mutate their receiver
+                        !method.ContainingType.SpecialType.IsPrimitiveRecursiveStruct();
                 }
 
                 public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)

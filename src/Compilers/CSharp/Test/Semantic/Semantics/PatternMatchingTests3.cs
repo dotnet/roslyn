@@ -3442,6 +3442,169 @@ struct S
         }
 
         [Fact]
+        public void ReadonlyAffectsSharing_01()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    static void M1()
+    {
+        Console.Write(new S1(1) switch
+        {
+            { N: 1 } x when x.Q == 2 => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+    }
+    static void M2()
+    {
+        Console.Write(new S2(1) switch
+        {
+            { N: 1 } x when x.Q == 2 => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+    }
+}
+struct S1
+{
+    public readonly int N;
+    public int Q => N;
+
+    public S1(int n) => N = n;
+}
+struct S2
+{
+    public readonly int N;
+    public readonly int Q => N;
+
+    public S2(int n) => N = n;
+}
+";
+            var expectedOutput = "22";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            // Note that each of the methods M1 and M2 have two calls to Q.get.  In M1
+            // we cannot apply the sharing optimization (because the getter might mutate the
+            // receiver) and so the two invocations are on different variables.  In M2
+            // we can apply that optimization because Q.get is readonly, so the two invocations
+            // are on the same variable.
+            compVerifier.VerifyIL("Program.M1", @"
+    {
+      // Code size       78 (0x4e)
+      .maxstack  2
+      .locals init (S1 V_0, //x
+                    int V_1,
+                    S1 V_2,
+                    int V_3,
+                    int V_4)
+      IL_0000:  nop
+      IL_0001:  ldloca.s   V_2
+      IL_0003:  ldc.i4.1
+      IL_0004:  call       ""S1..ctor(int)""
+      IL_0009:  ldc.i4.1
+      IL_000a:  brtrue.s   IL_000d
+      IL_000c:  nop
+      IL_000d:  ldloc.2
+      IL_000e:  ldfld      ""int S1.N""
+      IL_0013:  stloc.3
+      IL_0014:  ldloc.3
+      IL_0015:  ldc.i4.1
+      IL_0016:  beq.s      IL_0028
+      IL_0018:  ldloca.s   V_2
+      IL_001a:  call       ""int S1.Q.get""
+      IL_001f:  stloc.s    V_4
+      IL_0021:  ldloc.s    V_4
+      IL_0023:  ldc.i4.1
+      IL_0024:  beq.s      IL_003a
+      IL_0026:  br.s       IL_003e
+      IL_0028:  ldloc.2
+      IL_0029:  stloc.0
+      IL_002a:  ldloca.s   V_0
+      IL_002c:  call       ""int S1.Q.get""
+      IL_0031:  ldc.i4.2
+      IL_0032:  beq.s      IL_0036
+      IL_0034:  br.s       IL_0018
+      IL_0036:  ldc.i4.1
+      IL_0037:  stloc.1
+      IL_0038:  br.s       IL_0042
+      IL_003a:  ldc.i4.2
+      IL_003b:  stloc.1
+      IL_003c:  br.s       IL_0042
+      IL_003e:  ldc.i4.3
+      IL_003f:  stloc.1
+      IL_0040:  br.s       IL_0042
+      IL_0042:  ldc.i4.1
+      IL_0043:  brtrue.s   IL_0046
+      IL_0045:  nop
+      IL_0046:  ldloc.1
+      IL_0047:  call       ""void System.Console.Write(int)""
+      IL_004c:  nop
+      IL_004d:  ret
+    }
+");
+            compVerifier.VerifyIL("Program.M2", @"
+    {
+      // Code size       74 (0x4a)
+      .maxstack  2
+      .locals init (S2 V_0, //x
+                    int V_1,
+                    int V_2,
+                    int V_3)
+      IL_0000:  nop
+      IL_0001:  ldloca.s   V_0
+      IL_0003:  ldc.i4.1
+      IL_0004:  call       ""S2..ctor(int)""
+      IL_0009:  ldc.i4.1
+      IL_000a:  brtrue.s   IL_000d
+      IL_000c:  nop
+      IL_000d:  ldloc.0
+      IL_000e:  ldfld      ""int S2.N""
+      IL_0013:  stloc.2
+      IL_0014:  ldloc.2
+      IL_0015:  ldc.i4.1
+      IL_0016:  beq.s      IL_0026
+      IL_0018:  ldloca.s   V_0
+      IL_001a:  call       ""readonly int S2.Q.get""
+      IL_001f:  stloc.3
+      IL_0020:  ldloc.3
+      IL_0021:  ldc.i4.1
+      IL_0022:  beq.s      IL_0036
+      IL_0024:  br.s       IL_003a
+      IL_0026:  ldloca.s   V_0
+      IL_0028:  call       ""readonly int S2.Q.get""
+      IL_002d:  ldc.i4.2
+      IL_002e:  beq.s      IL_0032
+      IL_0030:  br.s       IL_0018
+      IL_0032:  ldc.i4.1
+      IL_0033:  stloc.1
+      IL_0034:  br.s       IL_003e
+      IL_0036:  ldc.i4.2
+      IL_0037:  stloc.1
+      IL_0038:  br.s       IL_003e
+      IL_003a:  ldc.i4.3
+      IL_003b:  stloc.1
+      IL_003c:  br.s       IL_003e
+      IL_003e:  ldc.i4.1
+      IL_003f:  brtrue.s   IL_0042
+      IL_0041:  nop
+      IL_0042:  ldloc.1
+      IL_0043:  call       ""void System.Console.Write(int)""
+      IL_0048:  nop
+      IL_0049:  ret
+    }
+");
+        }
+
+        [Fact]
         public void New9PatternsSemanticModel_01()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
