@@ -266,9 +266,9 @@ class MyEnumerator
                 // (26,24): error CS0111: Type 'MyEnumerator' already defines a member called 'MoveNext' with the same parameter types
                 //     public static bool MoveNext() => throw null;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "MoveNext").WithArguments("MoveNext", "MyEnumerator").WithLocation(26, 24),
-                // (6,27): error CS0202: foreach requires that the return type 'MyEnumerator' of 'MyCollection.GetEnumerator()' must have a suitable public MoveNext method and public Current property
+                // (6,27): error CS0121: The call is ambiguous between the following methods or properties: 'MyEnumerator.MoveNext()' and 'MyEnumerator.MoveNext()'
                 //         foreach (var q in c) { }
-                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "c").WithArguments("MyEnumerator", "MyCollection.GetEnumerator()").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "c").WithArguments("MyEnumerator.MoveNext()", "MyEnumerator.MoveNext()").WithLocation(6, 27)
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (26,24): error CS0111: Type 'MyEnumerator' already defines a member called 'MoveNext' with the same parameter types

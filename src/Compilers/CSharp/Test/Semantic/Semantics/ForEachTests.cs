@@ -580,8 +580,10 @@ class Enumerator
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-            // (6,27): error CS0202: foreach requires that the return type 'Enumerator' of 'Enumerable.GetEnumerator()' must have a suitable public MoveNext method and public Current property
-                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new Enumerable()").WithArguments("Enumerator", "Enumerable.GetEnumerator()"));
+                // (6,27): error CS8793: 'Enumerator' does not implement the 'collection' pattern. 'Enumerator.MoveNext()' is either static or not public.
+                //         foreach (int x in new Enumerable())
+                Diagnostic(ErrorCode.ERR_PatternStaticOrInaccessible, "new Enumerable()").WithArguments("Enumerator", "collection", "Enumerator.MoveNext()").WithLocation(6, 27)
+                );
         }
 
         [Fact]
