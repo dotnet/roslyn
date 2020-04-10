@@ -77,9 +77,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             private void AddExamples(ArrayBuilder<string> examples, bool standard, string displayText)
             {
                 var userFormat = _userFormatPrefix + displayText + _userFormatSuffix;
+
+                // The total user format may not be legal.  So try to format the date, but be tolerant of that failing.
                 TryAddExample(examples, standard, userFormat, s_primaryCulture);
                 TryAddExample(examples, standard, userFormat, s_secondaryCulture);
 
+                // We should never fail to produce an example string for one of the format strings we are presenting.
                 AddExample(examples, standard, displayText, s_primaryCulture);
                 AddExample(examples, standard, displayText, s_secondaryCulture);
             }
