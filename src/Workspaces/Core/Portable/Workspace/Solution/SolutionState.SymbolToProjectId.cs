@@ -50,9 +50,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!assemblyOrModuleSymbolToProjectId.TryGetValue(symbol, out var projectId))
                 {
-                    foreach (var (id, state) in this.ProjectStates)
+                    foreach (var (id, tracker) in _projectIdToTrackerMap)
                     {
-                        var tracker = this.GetCompilationTracker(id);
                         if (tracker.ContainsAssemblyOrModule(symbol))
                         {
                             projectId = id;
