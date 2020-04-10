@@ -127,9 +127,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the exact <see cref="Project"/> it
-        /// came from.  This operation is not defined for <see cref="ISymbol"/>s produced from other <see
-        /// cref="Solution"/> snapshots.
+        /// Given a <paramref name="symbol"/> returns the <see cref="ProjectId"/> of the <see cref="Project"/> it came
+        /// from.  Returns <see langword="null"/> if <paramref name="symbol"/> does not come from <paramref name="symbol"/>.
         /// </summary>
         /// <remarks>
         /// This function differs from <see cref="GetProject(IAssemblySymbol, CancellationToken)"/> in terms of how it
