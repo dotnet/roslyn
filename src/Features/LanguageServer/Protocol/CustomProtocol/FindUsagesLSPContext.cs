@@ -85,10 +85,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     // Assinging a new id to the definition
                     _definitionToId.Add(definition, _id);
 
+                    // VSReferenceItem currently doesn't support the ClassifiedTextElement type for DefinitionText,
+                    // so for now we just pass in a string.
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1100009
+                    var classifiedText = definition.GetClassifiedText();
+                    var definitionText = "";
+                    foreach (var text in classifiedText.Runs)
+                    {
+                        definitionText += text.Text;
+                    }
+
                     // Creating a new VSReferenceItem for the definition
                     var definitionItem = await GenerateVSReferenceItemAsync(
                         _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
-                        definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
+                        definition.DisplayableProperties, _metadataAsSourceFileService, definitionText,
                         symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
 
                     if (definitionItem.Location != null)
@@ -141,7 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             DocumentSpan documentSpan,
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
-            ClassifiedTextElement? definitionText,
+            string? definitionText,
             SymbolUsageInfo? symbolUsageInfo,
             CancellationToken cancellationToken)
         {
