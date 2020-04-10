@@ -15,6 +15,7 @@ using System.Reflection.PortableExecutable;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4259,6 +4260,226 @@ unsafe class C
   IL_0019:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void SupportedBinaryOperators()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static (bool, bool, bool, bool, bool, bool) DoCompare(delegate*<void> func_1a, delegate*<string, void> func_1b)
+    {
+        return (func_1a == func_1b,
+                func_1a != func_1b,
+                func_1a > func_1b,
+                func_1a >= func_1b,
+                func_1a < func_1b,
+                func_1a <= func_1b);
+    }
+
+    static void M(delegate*<void> func_1a, delegate*<string, void> func_1b, delegate*<int> func_2, int* int_1, int* int_2)
+    {
+        var compareResults = DoCompare(func_1a, func_1b);
+        Console.WriteLine(""func_1a == func_1b: "" + compareResults.Item1);
+        Console.WriteLine(""func_1a != func_1b: "" + compareResults.Item2);
+        Console.WriteLine(""func_1a > func_1b: "" + compareResults.Item3);
+        Console.WriteLine(""func_1a >= func_1b: "" + compareResults.Item4);
+        Console.WriteLine(""func_1a < func_1b: "" + compareResults.Item5);
+        Console.WriteLine(""func_1a <= func_1b: "" + compareResults.Item6);
+        Console.WriteLine(""func_1a == func_2: "" + (func_1a == func_2));
+        Console.WriteLine(""func_1a != func_2: "" + (func_1a != func_2));
+        Console.WriteLine(""func_1a > func_2: "" + (func_1a > func_2));
+        Console.WriteLine(""func_1a >= func_2: "" + (func_1a >= func_2));
+        Console.WriteLine(""func_1a < func_2: "" + (func_1a < func_2));
+        Console.WriteLine(""func_1a <= func_2: "" + (func_1a <= func_2));
+        Console.WriteLine(""func_1a == int_1: "" + (func_1a == int_1));
+        Console.WriteLine(""func_1a != int_1: "" + (func_1a != int_1));
+        Console.WriteLine(""func_1a > int_1: "" + (func_1a > int_1));
+        Console.WriteLine(""func_1a >= int_1: "" + (func_1a >= int_1));
+        Console.WriteLine(""func_1a < int_1: "" + (func_1a < int_1));
+        Console.WriteLine(""func_1a <= int_1: "" + (func_1a <= int_1));
+        Console.WriteLine(""func_1a == int_2: "" + (func_1a == int_2));
+        Console.WriteLine(""func_1a != int_2: "" + (func_1a != int_2));
+        Console.WriteLine(""func_1a > int_2: "" + (func_1a > int_2));
+        Console.WriteLine(""func_1a >= int_2: "" + (func_1a >= int_2));
+        Console.WriteLine(""func_1a < int_2: "" + (func_1a < int_2));
+        Console.WriteLine(""func_1a <= int_2: "" + (func_1a <= int_2));
+    }
+
+    static void Main()
+    {
+        delegate*<void> func_1a = (delegate*<void>)1;
+        delegate*<string, void> func_1b = (delegate*<string, void>)1;
+        delegate*<int> func_2 = (delegate*<int>)2;
+        int* int_1 = (int*)1;
+        int* int_2 = (int*)2;
+        M(func_1a, func_1b, func_2, int_1, int_2);
+    }
+}", expectedOutput: @"
+func_1a == func_1b: True
+func_1a != func_1b: False
+func_1a > func_1b: False
+func_1a >= func_1b: True
+func_1a < func_1b: False
+func_1a <= func_1b: True
+func_1a == func_2: False
+func_1a != func_2: True
+func_1a > func_2: False
+func_1a >= func_2: False
+func_1a < func_2: True
+func_1a <= func_2: True
+func_1a == int_1: True
+func_1a != int_1: False
+func_1a > int_1: False
+func_1a >= int_1: True
+func_1a < int_1: False
+func_1a <= int_1: True
+func_1a == int_2: False
+func_1a != int_2: True
+func_1a > int_2: False
+func_1a >= int_2: False
+func_1a < int_2: True
+func_1a <= int_2: True");
+
+            verifier.VerifyIL("C.DoCompare", expectedIL: @"
+{
+  // Code size       39 (0x27)
+  .maxstack  7
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ceq
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  ceq
+  IL_0008:  ldc.i4.0
+  IL_0009:  ceq
+  IL_000b:  ldarg.0
+  IL_000c:  ldarg.1
+  IL_000d:  cgt.un
+  IL_000f:  ldarg.0
+  IL_0010:  ldarg.1
+  IL_0011:  clt.un
+  IL_0013:  ldc.i4.0
+  IL_0014:  ceq
+  IL_0016:  ldarg.0
+  IL_0017:  ldarg.1
+  IL_0018:  clt.un
+  IL_001a:  ldarg.0
+  IL_001b:  ldarg.1
+  IL_001c:  cgt.un
+  IL_001e:  ldc.i4.0
+  IL_001f:  ceq
+  IL_0021:  newobj     ""System.ValueTuple<bool, bool, bool, bool, bool, bool>..ctor(bool, bool, bool, bool, bool, bool)""
+  IL_0026:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        [InlineData("%")]
+        [InlineData("<<")]
+        [InlineData(">>")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        [InlineData("&")]
+        [InlineData("|")]
+        [InlineData("^")]
+        public void UnsupportedBinaryOps(string op)
+        {
+            bool isLogical = op == "&&" || op == "||";
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe class C
+{{
+    static void M(delegate*<void> ptr1, delegate*<void> ptr2, int* ptr3)
+    {{
+        _ = ptr1 {op} ptr2;
+        _ = ptr1 {op} ptr3;
+        _ = ptr1 {op} 1;
+        {(isLogical ? "" : $@"ptr1 {op}= ptr2;
+        ptr1 {op}= ptr3;
+        ptr1 {op}= 1;")}
+    }}
+}}");
+
+            var expectedDiagnostics = ArrayBuilder<DiagnosticDescription>.GetInstance();
+            expectedDiagnostics.AddRange(
+                // (6,13): error CS0019: Operator 'op' cannot be applied to operands of type 'delegate*<void>' and 'delegate*<void>'
+                //         _ = ptr1 op ptr2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"ptr1 {op} ptr2").WithArguments(op, "delegate*<void>", "delegate*<void>").WithLocation(6, 13),
+                // (7,13): error CS0019: Operator 'op' cannot be applied to operands of type 'delegate*<void>' and 'int*'
+                //         _ = ptr1 op ptr3;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"ptr1 {op} ptr3").WithArguments(op, "delegate*<void>", "int*").WithLocation(7, 13),
+                // (8,13): error CS0019: Operator 'op' cannot be applied to operands of type 'delegate*<void>' and 'int'
+                //         _ = ptr1 op 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"ptr1 {op} 1").WithArguments(op, "delegate*<void>", "int").WithLocation(8, 13));
+
+            if (!isLogical)
+            {
+                expectedDiagnostics.AddRange(
+                    // (9,9): error CS0019: Operator 'op=' cannot be applied to operands of type 'delegate*<void>' and 'delegate*<void>'
+                    //         ptr1 op= ptr2;
+                    Diagnostic(ErrorCode.ERR_BadBinaryOps, $"ptr1 {op}= ptr2").WithArguments($"{op}=", "delegate*<void>", "delegate*<void>").WithLocation(9, 9),
+                    // (10,9): error CS0019: Operator 'op=' cannot be applied to operands of type 'delegate*<void>' and 'int*'
+                    //         ptr1 op= ptr3;
+                    Diagnostic(ErrorCode.ERR_BadBinaryOps, $"ptr1 {op}= ptr3").WithArguments($"{op}=", "delegate*<void>", "int*").WithLocation(10, 9),
+                    // (11,9): error CS0019: Operator 'op=' cannot be applied to operands of type 'delegate*<void>' and 'int'
+                    //         ptr1 op= 1;
+                    Diagnostic(ErrorCode.ERR_BadBinaryOps, $"ptr1 {op}= 1").WithArguments($"{op}=", "delegate*<void>", "int").WithLocation(11, 9));
+            }
+
+            comp.VerifyDiagnostics(expectedDiagnostics.ToArrayAndFree());
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("++")]
+        [InlineData("-")]
+        [InlineData("--")]
+        [InlineData("!")]
+        [InlineData("~")]
+        public void UnsupportedPrefixUnaryOps(string op)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe class C
+{{
+    public static void M(delegate*<void> ptr)
+    {{
+        _ = {op}ptr;
+    }}
+}}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0023: Operator 'op' cannot be applied to operand of type 'delegate*<void>'
+                //         _ = {op}ptr;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}ptr").WithArguments(op, "delegate*<void>").WithLocation(6, 13)
+            );
+        }
+
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void UnsupportedPostfixUnaryOps(string op)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe class C
+{{
+    public static void M(delegate*<void> ptr)
+    {{
+        _ = ptr{op};
+    }}
+}}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0023: Operator 'op' cannot be applied to operand of type 'delegate*<void>'
+                //         _ = ptr{op};
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, $"ptr{op}").WithArguments(op, "delegate*<void>").WithLocation(6, 13)
+            );
         }
 
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
