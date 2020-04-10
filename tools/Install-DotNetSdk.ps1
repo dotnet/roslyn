@@ -31,7 +31,7 @@ $sdkVersion = & "$PSScriptRoot/../azure-pipelines/variables/DotNetSdkVersion.ps1
 
 # Search for all .NET Core runtime versions referenced from MSBuild projects and arrange to install them.
 $runtimeVersions = @()
-Get-ChildItem "$PSScriptRoot\..\src\*.*proj" -Recurse |% {
+Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$PSScriptRoot\..\Directory.Build.props" -Recurse |% {
     $projXml = [xml](Get-Content -Path $_)
     $targetFrameworks = $projXml.Project.PropertyGroup.TargetFramework
     if (!$targetFrameworks) {
