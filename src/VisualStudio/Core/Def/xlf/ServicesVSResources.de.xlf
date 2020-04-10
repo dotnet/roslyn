@@ -487,6 +487,11 @@
         <target state="translated">Angehalten ({0} Tasks in der Warteschlange)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Please_enter_a_type_name">
+        <source>Please enter a type name</source>
+        <target state="new">Please enter a type name</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
         <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
         <target state="translated">"System.HashCode" in "GetHashCode" bevorzugen</target>
@@ -656,6 +661,21 @@
         <source>Type name:</source>
         <target state="new">Type name:</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Type_name_does_not_parse_correctly">
+        <source>Type name does not parse correctly</source>
+        <target state="new">Type name does not parse correctly</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_parses_correctly_and_is_recognized">
+        <source>Type name parses correctly and is recognized</source>
+        <target state="new">Type name parses correctly and is recognized</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_parses_correctly_but_is_not_recognized">
+        <source>Type name parses correctly but is not recognized</source>
+        <target state="new">Type name parses correctly but is not recognized</target>
+        <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>

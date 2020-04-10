@@ -6,6 +6,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+    xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
     Width="600"
     MinWidth="600"
     SizeToContent="Height"
@@ -36,21 +38,31 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Label x:Name="TypeNameLabelName" Grid.Row="0" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
             <TextBox x:Name="TypeContentControl" 
                      Grid.Row="1" 
                      Margin="0,5,0,5" 
                      MinHeight="19"
+                     TextChanged="TypeContentControl_TextChanged"
                      AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabelName}"/>
-            <Label x:Name="ParameterNameLabelName" Grid.Row="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
+            <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,5,0,5">
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusInformation}" Visibility="{Binding TypeIsEmptyImage, Mode=OneWay}"/>
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusError}" Visibility="{Binding TypeDoesNotParseImage, Mode=OneWay}"/>
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusOK}" Visibility="{Binding TypeBindsImage, Mode=OneWay}"/>
+                <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.StatusWarning}" Visibility="{Binding TypeDoesNotBindImage, Mode=OneWay}"/>
+                <TextBlock Padding="5 0 0 0" Grid.Row="2" x:Name="TypeBindsTextBlock"
+                       Text="{Binding Path=TypeBindsDynamicStatus, Mode=OneWay}"/>
+            </StackPanel>
+            <Label x:Name="ParameterNameLabelName" Grid.Row="3" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
             <TextBox x:Name="NameContentControl"
-                     Grid.Row="3" 
+                     Grid.Row="4" 
                      Margin="0,5,0,5"
                      AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"/>
-            <Label x:Name="ParameterKindLabelName" Grid.Row="4" Content="{Binding ElementName=dialog, Path=ParameterKind}" />
-            <RadioButton x:Name="RequiredParameterRadioButton" Grid.Row="5" Margin="5" GroupName="ParameterKind" IsChecked="True" Content="{Binding ElementName=dialog, Path=Required}" />
-            <Grid Grid.Row="6" Margin="5">
+            <Label x:Name="ParameterKindLabelName" Grid.Row="5" Content="{Binding ElementName=dialog, Path=ParameterKind}" />
+            <RadioButton x:Name="RequiredParameterRadioButton" Grid.Row="6" Margin="5" GroupName="ParameterKind" IsChecked="True" Content="{Binding ElementName=dialog, Path=Required}" />
+            <Grid Grid.Row="7" Margin="5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -58,8 +70,8 @@
                 <RadioButton x:Name="OptionalParameterRadioButton" Grid.Column="0" GroupName="ParameterKind" VerticalContentAlignment="Center" Content="{Binding ElementName=dialog, Path=OptionalWithDefaultValue}" />
                 <TextBox x:Name="DefaultValue" Grid.Column="1" Margin="5,0,0,0" IsEnabled="{Binding IsChecked, ElementName=OptionalParameterRadioButton}"></TextBox>
             </Grid>
-            <Label Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding ElementName=dialog, Path=ValueToInjectAtCallsites}" />
-            <Grid Grid.Row="8" Margin="5">
+            <Label Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding ElementName=dialog, Path=ValueToInjectAtCallsites}" />
+            <Grid Grid.Row="9" Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -72,8 +84,8 @@
                 <TextBox x:Name="CallsiteValueTextBox" Grid.Column="1" Grid.Row="0" Margin="5,0,0,0" IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}" Text="{Binding CallsiteValue, Mode=TwoWay}"></TextBox>
                 <CheckBox x:Name="UseNamedArgumentButton" Grid.Row="1" Grid.ColumnSpan="2" Margin="25,5,0,0" Content="{Binding ElementName=dialog, Path=UseNamedArgument}" />
             </Grid>
-            <RadioButton x:Name="IntroduceErrorRadioButton" Grid.Row="9" Margin="5,5,0,0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" Content="{Binding ElementName=dialog, Path=IntroduceUndefinedTodoVariables}"/>
-            <RadioButton x:Name="OmitArgumentRadioButton" Grid.Row="10" Margin="5,10,0,0" GroupName="CallsiteKind" IsEnabled="{Binding IsChecked, ElementName=OptionalParameterRadioButton}" Content="{Binding ElementName=dialog, Path=OmitOnlyForOptionalParameters}" />
+            <RadioButton x:Name="IntroduceErrorRadioButton" Grid.Row="10" Margin="5,5,0,0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" Content="{Binding ElementName=dialog, Path=IntroduceUndefinedTodoVariables}"/>
+            <RadioButton x:Name="OmitArgumentRadioButton" Grid.Row="11" Margin="5,10,0,0" GroupName="CallsiteKind" IsEnabled="{Binding IsChecked, ElementName=OptionalParameterRadioButton}" Content="{Binding ElementName=dialog, Path=OmitOnlyForOptionalParameters}" />
         </Grid>
         <StackPanel Grid.Row="1"
                     HorizontalAlignment="Right" 

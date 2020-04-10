@@ -5,11 +5,13 @@
 #nullable enable
 
 using System.Threading;
+using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -27,6 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
             _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+
+            TypeIsEmptyImage = Visibility.Visible;
+            TypeBindsImage = Visibility.Collapsed;
+            TypeDoesNotParseImage = Visibility.Collapsed;
+            TypeDoesNotBindImage = Visibility.Collapsed;
+            TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name;
 
             Document = document;
             InsertPosition = insertPosition;
@@ -70,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(InsertPosition, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
         }
 
-        internal bool TrySubmit(Document document)
+        internal bool TrySubmit()
         {
             if (string.IsNullOrEmpty(_verbatimTypeName) || string.IsNullOrEmpty(ParameterName))
             {
@@ -78,13 +86,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 return false;
             }
 
-            if (!IsParameterTypeValid(_verbatimTypeName, document))
+            if (!IsParameterTypeSyntacticallyValid(_verbatimTypeName))
             {
                 SendFailureNotification(ServicesVSResources.Parameter_type_contains_invalid_characters);
                 return false;
             }
 
-            if (!IsParameterNameValid(ParameterName, document))
+            if (!IsParameterNameValid(ParameterName))
             {
                 SendFailureNotification(ServicesVSResources.Parameter_name_contains_invalid_characters);
                 return false;
@@ -98,15 +106,89 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _notificationService?.SendNotification(message, severity: NotificationSeverity.Information);
         }
 
-        private bool IsParameterTypeValid(string typeName, Document document)
+        internal void SetCurrentTextAndUpdateBindingStatus(string typeName)
         {
-            var languageService = document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
+            if (typeName.IsNullOrWhiteSpace())
+            {
+                TypeIsEmptyImage = Visibility.Visible;
+                TypeDoesNotParseImage = Visibility.Collapsed;
+                TypeDoesNotBindImage = Visibility.Collapsed;
+                TypeBindsImage = Visibility.Collapsed;
+                TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name;
+            }
+            else
+            {
+                TypeIsEmptyImage = Visibility.Collapsed;
+
+                var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
+                var type = _semanticModel.GetSpeculativeTypeInfo(InsertPosition, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+
+                var typeParses = IsParameterTypeSyntacticallyValid(typeName);
+                if (!typeParses)
+                {
+                    TypeDoesNotParseImage = Visibility.Visible;
+                    TypeDoesNotBindImage = Visibility.Collapsed;
+                    TypeBindsImage = Visibility.Collapsed;
+                    TypeBindsDynamicStatus = ServicesVSResources.Type_name_does_not_parse_correctly;
+                }
+                else
+                {
+                    var parameterTypeBinds = DoesTypeFullyBind(type);
+                    TypeDoesNotParseImage = Visibility.Collapsed;
+
+                    TypeBindsImage = parameterTypeBinds ? Visibility.Visible : Visibility.Collapsed;
+                    TypeDoesNotBindImage = !parameterTypeBinds ? Visibility.Visible : Visibility.Collapsed;
+                    TypeBindsDynamicStatus = parameterTypeBinds
+                        ? ServicesVSResources.Type_name_parses_correctly_and_is_recognized
+                        : ServicesVSResources.Type_name_parses_correctly_but_is_not_recognized;
+                }
+            }
+
+            NotifyPropertyChanged(nameof(TypeBindsDynamicStatus));
+            NotifyPropertyChanged(nameof(TypeBindsImage));
+            NotifyPropertyChanged(nameof(TypeDoesNotBindImage));
+            NotifyPropertyChanged(nameof(TypeDoesNotParseImage));
+            NotifyPropertyChanged(nameof(TypeIsEmptyImage));
+        }
+
+        private bool IsParameterTypeSyntacticallyValid(string typeName)
+        {
+            var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
             return languageService.IsTypeNameValid(typeName);
         }
 
-        private bool IsParameterNameValid(string identifierName, Document document)
+        private bool DoesTypeFullyBind(ITypeSymbol? type)
         {
-            var languageService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (type == null || type.IsErrorType())
+            {
+                return false;
+            }
+
+            foreach (var typeArgument in type.GetTypeArguments())
+            {
+                if (typeArgument is ITypeParameterSymbol)
+                {
+                    return false;
+                }
+
+                if (!DoesTypeFullyBind(typeArgument))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public string? TypeBindsDynamicStatus { get; set; }
+        public Visibility TypeBindsImage { get; set; }
+        public Visibility TypeDoesNotBindImage { get; set; }
+        public Visibility TypeDoesNotParseImage { get; set; }
+        public Visibility TypeIsEmptyImage { get; set; }
+
+        private bool IsParameterNameValid(string identifierName)
+        {
+            var languageService = Document.GetRequiredLanguageService<ISyntaxFactsService>();
             return languageService.IsValidIdentifier(identifierName);
         }
     }

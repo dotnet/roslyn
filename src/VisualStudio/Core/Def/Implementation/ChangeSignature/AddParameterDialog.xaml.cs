@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _viewModel.CallSiteValue = CallsiteValueTextBox.Text;
             _viewModel.UseNamedArguments = UseNamedArgumentButton.IsChecked ?? false;
 
-            if (_viewModel.TrySubmit(_viewModel.Document))
+            if (_viewModel.TrySubmit())
             {
                 DialogResult = true;
             }
@@ -86,6 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public DialogButton OKButton => _dialog.OKButton;
 
             public DialogButton CancelButton => _dialog.CancelButton;
+        }
+
+        private void TypeContentControl_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            _viewModel.SetCurrentTextAndUpdateBindingStatus(TypeContentControl.Text);
         }
     }
 }
