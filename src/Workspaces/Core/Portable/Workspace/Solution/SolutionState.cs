@@ -51,6 +51,15 @@ namespace Microsoft.CodeAnalysis
         // Checksums for this solution state
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
 
+        /// <summary>
+        /// Cache we use to map between assembly and module symbols and the project they came from.  That way if we
+        /// are asked about many symbols from the same assembly/module we can answer the question quickly after
+        /// computing for the first one.  Created on demand.
+        /// </summary>
+        private ConditionalWeakTable<ISymbol, ProjectId?>? _assemblyOrModuleSymbolToProjectId;
+        private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
+
+
         private SolutionState(
             BranchId branchId,
             int workspaceVersion,
@@ -73,8 +82,6 @@ namespace Microsoft.CodeAnalysis
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
-
-            _symbolToProjectId = new SymbolToProjectId(this);
 
             // when solution state is changed, we re-calcuate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);

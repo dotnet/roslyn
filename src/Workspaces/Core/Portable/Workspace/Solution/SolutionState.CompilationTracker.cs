@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
                 }
 
-                RecordAssemblySymbols(solution, inProgressCompilation, metadataReferenceToProjectId);
+                RecordAssemblySymbols(inProgressCompilation, metadataReferenceToProjectId);
 
                 SolutionLogger.CreatePartialProjectState();
             }
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis
                         generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunFullGeneration(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
 
-                    RecordAssemblySymbols(solution, compilation, metadataReferenceToProjectId);
+                    RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
 
                     this.WriteState(
                         new FinalState(
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private void RecordAssemblySymbols(SolutionState solutionState, Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
+            private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
             {
                 // TODO: Record source assembly to project mapping
                 // RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
