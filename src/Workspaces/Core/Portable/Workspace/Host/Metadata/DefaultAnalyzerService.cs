@@ -8,14 +8,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceService(typeof(IAnalyzerService), WorkspaceKind.MSBuild), Shared]
-    internal sealed class MSBuildWorkspaceAnalyzerService : IAnalyzerService
+    [ExportWorkspaceService(typeof(IAnalyzerService)), Shared]
+    internal sealed class DefaultAnalyzerService : IAnalyzerService
     {
         private readonly DefaultAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MSBuildWorkspaceAnalyzerService()
+        public DefaultAnalyzerService()
         {
         }
 
