@@ -907,14 +907,7 @@ public class H
 }
 ";
             var compilation = CompileAndVerify(source);
-
-            compilation.VerifyIL("H..cctor",
-@"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}
-");
+            compilation.VerifyMemberInIL("H..cctor()", false);
         }
 
 
@@ -14730,15 +14723,8 @@ class c1
 
 ";
 
-            CompileAndVerify(source, expectedOutput: @"").
-                VerifyIL("Test..cctor()",
-@"
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}                                                                                           
-"); ;
+            CompileAndVerify(source, expectedOutput: @"")
+                .VerifyMemberInIL("Test..cctor()", false);
         }
 
         [WorkItem(876784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876784")]
