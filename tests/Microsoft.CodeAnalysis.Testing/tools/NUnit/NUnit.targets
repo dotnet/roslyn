@@ -2,9 +2,9 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <ItemGroup>
+    <PackageReference Include="Microsoft.TestPlatform" Version="$(MicrosoftTestPlatformVersion)" GeneratePathProperty="true" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
     <PackageReference Include="NUnit" Version="$(NUnitVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
     <PackageReference Include="NUnit3TestAdapter" Version="$(NUnit3TestAdapterVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
-    <PackageReference Include="NUnit.ConsoleRunner" Version="$(NUnitConsoleRunnerVersion)" IsImplicitlyDefined="true" PrivateAssets="all" Publish="true"/>
   </ItemGroup>
 
   <!-- 
@@ -21,20 +21,21 @@
       <_TestRuntime>%(TestToRun.TestRuntime)</_TestRuntime>
       <_TestTimeout>%(TestToRun.TestTimeout)</_TestTimeout>
       <_TestRunnerAdditionalArguments>%(TestToRun.TestRunnerAdditionalArguments)</_TestRunnerAdditionalArguments>
+
+      <_TestRunnerTargetFramework>net451</_TestRunnerTargetFramework>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(_TestRuntime)' != 'Core'">
-      <_NUnitConsoleExe>nunit3-console.exe</_NUnitConsoleExe>
-      <_NUnitConsoleExePath>$(NuGetPackageRoot)nunit.consolerunner\$(NUnitConsoleRunnerVersion)\tools\$(_NUnitConsoleExe)</_NUnitConsoleExePath>
+    <PropertyGroup>
+      <_VSTestConsoleExe>vstest.console.exe</_VSTestConsoleExe>
+      <_VSTestConsoleExePath>$(NuGetPackageRoot)microsoft.testplatform/$(MicrosoftTestPlatformVersion)/tools/$(_TestRunnerTargetFramework)/Common7/IDE/Extensions/TestPlatform/$(_VSTestConsoleExe)</_VSTestConsoleExePath>
 
       <!-- TODO: is _TestRunnerArgs correct? -->
-      <_TestRunnerArgs>"$(_TestAssembly)" --framework=%(TestToRun.TargetFramework) --result="%(TestToRun.ResultsXmlPath)" $(_TestRunnerAdditionalArguments)</_TestRunnerArgs>
-      <_TestRunnerArgs Condition="'%(TestToRun.Architecture)' == 'x86'">$(_TestRunnerArgs) --x86</_TestRunnerArgs>
-      <_TestRunnerArgs Condition="'$(_TestRuntime)' == 'Mono'">$(TestRuntimeAdditionalArguments) "$(_XUnitConsoleExePath)" $(_TestRunnerArgs)</_TestRunnerArgs>
+      <_TestRunnerArgs>"$(_TestAssembly)" /Platform:%(TestToRun.Architecture) /Framework:%(TestToRun.TargetFramework) /Logger:trx;LogFileName="%(TestToRun.ResultsXmlPath)" $(_TestRunnerAdditionalArguments)</_TestRunnerArgs>
+      <_TestRunnerArgs Condition="'$(_TestRuntime)' == 'Mono'">$(TestRuntimeAdditionalArguments) "$(_VSTestConsoleExePath)" $(_TestRunnerArgs)</_TestRunnerArgs>
 
       <!-- TODO: is _TestRunner correct? -->
       <_TestRunner Condition="'$(_TestRuntime)' == 'Mono'">$(MonoTool)</_TestRunner>
-      <_TestRunner Condition="'$(_TestRuntime)' != 'Mono'">$(_NUnitConsoleExePath)</_TestRunner>
+      <_TestRunner Condition="'$(_TestRuntime)' != 'Mono'">$(_VSTestConsoleExePath)</_TestRunner>
     </PropertyGroup>
 
     <PropertyGroup>
