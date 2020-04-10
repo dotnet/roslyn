@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static FunctionPointerMethodSymbol CreateFromMetadata(CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamTypes)
             => new FunctionPointerMethodSymbol(callingConvention, retAndParamTypes);
 
-        public FunctionPointerMethodSymbol SubstiteParameterSymbols(
+        public FunctionPointerMethodSymbol SubstituteParameterSymbols(
             TypeWithAnnotations substitutedReturnType,
             ImmutableArray<TypeWithAnnotations> substitutedParameterTypes,
-            ImmutableArray<CustomModifier> refCustomModifiers,
-            ImmutableArray<ImmutableArray<CustomModifier>> paramRefCustomModifiers)
+            ImmutableArray<CustomModifier> refCustomModifiers = default,
+            ImmutableArray<ImmutableArray<CustomModifier>> paramRefCustomModifiers = default)
             => new FunctionPointerMethodSymbol(
                 this.CallingConvention,
                 this.RefKind,
@@ -114,15 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(RefKind == signature.RefKind);
             var returnVariance = RefKind == RefKind.None ? variance : VarianceKind.None;
             var mergedReturnType = ReturnTypeWithAnnotations.MergeEquivalentTypes(signature.ReturnTypeWithAnnotations, returnVariance);
-            var mergedReturnRefCustomMods = mergeCustomModifiers(RefCustomModifiers, signature.RefCustomModifiers, returnVariance);
 
             var mergedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
-            ImmutableArray<ImmutableArray<CustomModifier>> mergedParamRefCustomModifiers = default;
             bool hasParamChanges = false;
             if (_parameters.Length > 0)
             {
                 var paramMergedTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(_parameters.Length);
-                var paramRefCustomModifiersBuilder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(_parameters.Length);
                 for (int i = 0; i < _parameters.Length; i++)
                 {
                     var thisParam = _parameters[i];
@@ -141,85 +138,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         hasParamChanges = true;
                     }
-
-                    var mergedCustomModifiers = mergeCustomModifiers(thisParam.RefCustomModifiers, otherParam.RefCustomModifiers, paramVariance);
-                    paramRefCustomModifiersBuilder.Add(mergedCustomModifiers);
-                    if (mergedCustomModifiers != RefCustomModifiers)
-                    {
-                        hasParamChanges = true;
-                    }
                 }
 
                 if (hasParamChanges)
                 {
                     mergedParameterTypes = paramMergedTypesBuilder.ToImmutableAndFree();
-                    mergedParamRefCustomModifiers = paramRefCustomModifiersBuilder.ToImmutableAndFree();
                 }
                 else
                 {
                     paramMergedTypesBuilder.Free();
-                    paramRefCustomModifiersBuilder.Free();
                     mergedParameterTypes = ParameterTypesWithAnnotations;
                 }
             }
 
-            if (hasParamChanges || !mergedReturnType.IsSameAs(ReturnTypeWithAnnotations) || mergedReturnRefCustomMods != RefCustomModifiers)
+            if (hasParamChanges || !mergedReturnType.IsSameAs(ReturnTypeWithAnnotations))
             {
-                return SubstiteParameterSymbols(mergedReturnType, mergedParameterTypes, mergedReturnRefCustomMods, mergedParamRefCustomModifiers);
+                return SubstituteParameterSymbols(mergedReturnType, mergedParameterTypes);
             }
             else
             {
                 return this;
-            }
-
-            static ImmutableArray<CustomModifier> mergeCustomModifiers(ImmutableArray<CustomModifier> thisRefCustomModifiers, ImmutableArray<CustomModifier> otherRefCustomModifiers, VarianceKind variance)
-            {
-                Debug.Assert((thisRefCustomModifiers.IsDefault && otherRefCustomModifiers.IsDefault) || thisRefCustomModifiers.Length == otherRefCustomModifiers.Length);
-                if (thisRefCustomModifiers.IsDefaultOrEmpty)
-                {
-                    return thisRefCustomModifiers;
-                }
-                else
-                {
-                    var mergedModifiersBuilder = ArrayBuilder<CustomModifier>.GetInstance(thisRefCustomModifiers.Length);
-                    bool hasCustomModChanges = false;
-                    for (int i = 0; i < thisRefCustomModifiers.Length; i++)
-                    {
-                        var thisModifier = ((CSharpCustomModifier)thisRefCustomModifiers[i]).ModifierSymbol;
-                        var otherModifier = ((CSharpCustomModifier)otherRefCustomModifiers[i]).ModifierSymbol;
-                        var mergedModifier = (NamedTypeSymbol)thisModifier.MergeEquivalentTypes(otherModifier, variance);
-                        if (!ReferenceEquals(thisModifier, mergedModifier))
-                        {
-                            hasCustomModChanges = true;
-                        }
-
-                        mergedModifiersBuilder.Add(thisRefCustomModifiers[i].IsOptional ? CSharpCustomModifier.CreateOptional(mergedModifier) : CSharpCustomModifier.CreateRequired(mergedModifier));
-                    }
-
-                    if (hasCustomModChanges)
-                    {
-                        return mergedModifiersBuilder.ToImmutableAndFree();
-                    }
-                    else
-                    {
-                        return thisRefCustomModifiers;
-                    }
-                }
             }
         }
 
         public FunctionPointerMethodSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
             var transformedReturn = transform(ReturnTypeWithAnnotations);
-            var transformedRefCustomMods = transformRefCustomModifiers(transform, RefCustomModifiers);
 
             var transformedParameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
-            ImmutableArray<ImmutableArray<CustomModifier>> transformedParamRefCustomModifiers = default;
             bool hasParamChanges = false;
             if (_parameters.Length > 0)
             {
                 var paramTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(_parameters.Length);
-                var paramRefCustomModifiersBuilder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(_parameters.Length);
                 foreach (var param in _parameters)
                 {
                     var transformedType = transform(param.TypeWithAnnotations);
@@ -228,69 +178,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         hasParamChanges = true;
                     }
-
-                    var transformedCustomMods = transformRefCustomModifiers(transform, param.RefCustomModifiers);
-                    paramRefCustomModifiersBuilder.Add(transformedCustomMods);
-                    if (transformedCustomMods != param.RefCustomModifiers)
-                    {
-                        hasParamChanges = true;
-                    }
                 }
 
                 if (hasParamChanges)
                 {
                     transformedParameterTypes = paramTypesBuilder.ToImmutableAndFree();
-                    transformedParamRefCustomModifiers = paramRefCustomModifiersBuilder.ToImmutableAndFree();
                 }
                 else
                 {
                     paramTypesBuilder.Free();
                     transformedParameterTypes = ParameterTypesWithAnnotations;
-                    paramRefCustomModifiersBuilder.Free();
                 }
 
             }
 
-            if (hasParamChanges || !transformedReturn.IsSameAs(ReturnTypeWithAnnotations) || transformedRefCustomMods != RefCustomModifiers)
+            if (hasParamChanges || !transformedReturn.IsSameAs(ReturnTypeWithAnnotations))
             {
-                return SubstiteParameterSymbols(transformedReturn, transformedParameterTypes, transformedRefCustomMods, transformedParamRefCustomModifiers);
+                return SubstituteParameterSymbols(transformedReturn, transformedParameterTypes);
             }
             else
             {
                 return this;
-            }
-
-            static ImmutableArray<CustomModifier> transformRefCustomModifiers(Func<TypeWithAnnotations, TypeWithAnnotations> transform, ImmutableArray<CustomModifier> existingRefCustomModifiers)
-            {
-                if (existingRefCustomModifiers.IsDefaultOrEmpty)
-                {
-                    return existingRefCustomModifiers;
-                }
-                else
-                {
-                    var transformedModifiersBuilder = ArrayBuilder<CustomModifier>.GetInstance(existingRefCustomModifiers.Length);
-                    bool hasCustomModChanges = false;
-                    foreach (var mod in existingRefCustomModifiers)
-                    {
-                        var originalModifier = ((CSharpCustomModifier)mod).ModifierSymbol;
-                        var transformedMod = (NamedTypeSymbol)originalModifier.SetNullabilityForReferenceTypes(transform);
-                        if (!ReferenceEquals(originalModifier, transformedMod))
-                        {
-                            hasCustomModChanges = true;
-                        }
-
-                        transformedModifiersBuilder.Add(mod.IsOptional ? CSharpCustomModifier.CreateOptional(transformedMod) : CSharpCustomModifier.CreateRequired(transformedMod));
-                    }
-
-                    if (hasCustomModChanges)
-                    {
-                        return transformedModifiersBuilder.ToImmutableAndFree();
-                    }
-                    else
-                    {
-                        return existingRefCustomModifiers;
-                    }
-                }
             }
         }
 

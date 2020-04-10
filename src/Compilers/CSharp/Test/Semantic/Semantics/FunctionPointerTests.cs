@@ -1035,6 +1035,7 @@ unsafe class C
     {
         delegate*<string, void>[] ptr1 = null;
         delegate*<object, void>[] ptr2 = null;
+        delegate* cdecl<string, void>[] ptr3 = null;
         SubstitutedStatic2(ptr1, ptr1);
         SubstitutedStatic2(ptr1, ptr2);
 
@@ -1075,6 +1076,81 @@ unsafe class C
                 "TStatic",
                 "delegate*<System.Object>[]",
                 "TStatic"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void ArrayOfFunctionPointersAsTypeArguments_NoBestType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public static void SubstitutedStatic2<TStatic>(TStatic s1, TStatic s2) => throw null;
+    public static void M()
+    {
+        delegate*<string, void>[] ptr1 = null;
+        delegate*<ref string, void>[] ptr2 = null;
+        delegate*<int, void>[] ptr3 = null;
+        delegate* cdecl<string, void>[] ptr4 = null;
+        SubstitutedStatic2(ptr1, ptr2);
+        SubstitutedStatic2(ptr1, ptr3);
+        SubstitutedStatic2(ptr1, ptr4);
+
+        delegate*<string>[] ptr5 = null;
+        delegate*<ref string>[] ptr6 = null;
+        delegate*<int>[] ptr7 = null;
+        delegate* cdecl<string>[] ptr8 = null;
+        SubstitutedStatic2(ptr5, ptr6);
+        SubstitutedStatic2(ptr5, ptr7);
+        SubstitutedStatic2(ptr5, ptr8);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(11, 9),
+                // (12,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(13, 9),
+                // (19,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr5, ptr6);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(19, 9),
+                // (20,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr5, ptr7);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(20, 9),
+                // (21,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr5, ptr8);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(21, 9)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<InvocationExpressionSyntax>()
+                                      .Select(s =>
+                                      {
+                                          var symbolInfo = model.GetSymbolInfo(s);
+                                          return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
+                                      })
+                                      .Cast<IMethodSymbol>()
+                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+                "TStatic",
+                "TStatic",
+                "TStatic",
+                "TStatic",
+                "TStatic",
+                "TStatic",
             };
 
             AssertEx.Equal(expectedTypes, invocationTypes);

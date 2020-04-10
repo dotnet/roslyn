@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeWithAnnotations> substitutedParameterTypes,
             ImmutableArray<CustomModifier> refCustomModifiers,
             ImmutableArray<ImmutableArray<CustomModifier>> paramRefCustomModifiers)
-            => new FunctionPointerTypeSymbol(Signature.SubstiteParameterSymbols(substitutedReturnType, substitutedParameterTypes, refCustomModifiers, paramRefCustomModifiers));
+            => new FunctionPointerTypeSymbol(Signature.SubstituteParameterSymbols(substitutedReturnType, substitutedParameterTypes, refCustomModifiers, paramRefCustomModifiers));
 
         public static (CallingConvention Convention, bool IsValid) GetCallingConvention(string convention) =>
             convention switch

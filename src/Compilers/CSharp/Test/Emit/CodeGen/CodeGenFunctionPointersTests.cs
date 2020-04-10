@@ -3981,6 +3981,76 @@ unsafe class C
 ");
         }
 
+        [Fact]
+        public void BestTypeForConditional_NestedParameterRef()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void Print(ref object o1, object o2)
+    {
+        o1 = o2;
+    }
+    static void PrintObject(delegate*<ref object, object, void> ptr, ref object o, object arg)
+    {
+        ptr(ref o, arg);
+    }
+    static void PrintString(delegate*<ref object, string, void> ptr, ref object o, string arg)
+    {
+        ptr(ref o, arg);
+    }
+    static void Invoke(delegate*<delegate*<ref object, object, void>, ref object, string, void> ptr, ref object s, object arg)
+    {
+        Console.Write(""Object"");
+        delegate*<ref object, object, void> print = &Print;
+        ptr(print, ref s, arg.ToString());
+    }
+    static void Invoke(delegate*<delegate*<ref object, string, void>, ref object, string, void> ptr, ref object s, string arg)
+    {
+        Console.Write(""String"");
+        delegate*<ref object, string, void> print = &Print;
+        ptr(print, ref s, arg);
+    }
+    static void M(bool b)
+    {
+        delegate*<delegate*<ref object, object, void>, ref object, string, void> printObject1 = &PrintObject;
+        delegate*<delegate*<ref object, string, void>, ref object, string, void> printObject2 = &PrintString;
+        object o = null;
+        Invoke(b ? printObject1 : printObject2, ref o, ""1"");
+        Console.Write(o);
+    }
+    static void Main() => M(true);
+}", expectedOutput: "Object1");
+
+            verifier.VerifyIL("C.M", expectedIL: @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (delegate*<delegate*<ref object,object,void>,ref object,string,void> V_0, //printObject1
+                delegate*<delegate*<ref object,string,void>,ref object,string,void> V_1, //printObject2
+                object V_2) //o
+  IL_0000:  ldftn      ""void C.PrintObject(delegate*<ref object,object,void>, ref object, object)""
+  IL_0006:  stloc.0
+  IL_0007:  ldftn      ""void C.PrintString(delegate*<ref object,string,void>, ref object, string)""
+  IL_000d:  stloc.1
+  IL_000e:  ldnull
+  IL_000f:  stloc.2
+  IL_0010:  ldarg.0
+  IL_0011:  brtrue.s   IL_0016
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_0017
+  IL_0016:  ldloc.0
+  IL_0017:  ldloca.s   V_2
+  IL_0019:  ldstr      ""1""
+  IL_001e:  call       ""void C.Invoke(delegate*<delegate*<ref object,object,void>,ref object,string,void>, ref object, object)""
+  IL_0023:  ldloc.2
+  IL_0024:  call       ""void System.Console.Write(object)""
+  IL_0029:  ret
+}
+");
+        }
+
         private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
         {
             FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
