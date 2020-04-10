@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedNode.IsKind(SyntaxKind.DelegateDeclaration))
             {
                 var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
-                if (updatedLeadingTrivia != null)
+                if (!updatedLeadingTrivia.IsEmpty)
                 {
                     updatedNode = updatedNode.WithLeadingTrivia(updatedLeadingTrivia);
                 }
@@ -629,9 +629,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 .Where(e => e.StartTag.Name.ToString() == DocumentationCommentXmlNames.ParameterElementName);
 
             var permutedParamNodes = VerifyAndPermuteParamNodes(paramNodes, declarationSymbol, updatedSignature);
-            if (permutedParamNodes == null)
+            if (permutedParamNodes.IsEmpty)
             {
-                return default;
+                return ImmutableArray<SyntaxTrivia>.Empty;
             }
 
             return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
