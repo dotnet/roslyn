@@ -119,7 +119,6 @@ class C
         [InlineData("cdecl", CallingConvention.CDecl)]
         [InlineData("stdcall", CallingConvention.Standard)]
         [InlineData("thiscall", CallingConvention.ThisCall)]
-        // PROTOTYPE(func-ptr): unmanaged
         [Theory]
         internal void ValidCallingConventions(string convention, CallingConvention expectedConvention)
         {
