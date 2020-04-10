@@ -44,11 +44,11 @@ jobs:
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
     - name: build
-      run: dotnet build src --no-restore -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/build.binlog"
+      run: dotnet build --no-restore -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/build.binlog"
     - name: pack
-      run: dotnet pack src --no-build -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/pack.binlog"
+      run: dotnet pack --no-build -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/pack.binlog"
     - name: test
-      run: dotnet test src --no-build -c ${{ env.BUILDCONFIGURATION }} /bl:"bin/build_logs/test.binlog" --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --logger trx --settings "${{ github.workspace }}/.github/workflows/${{ runner.os }}.runsettings"
+      run: dotnet test --no-build -c ${{ env.BUILDCONFIGURATION }} /bl:"bin/build_logs/test.binlog" --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --logger trx --settings "${{ github.workspace }}/.github/workflows/${{ runner.os }}.runsettings"
     - name: Update pipeline variables based on build outputs
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh

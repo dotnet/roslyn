@@ -80,30 +80,27 @@ try {
     }
 
     # Rename project directories and solution
-    Set-Location src
     git mv Library.sln "$LibraryName.sln"
-    git mv Library/Library.csproj "Library/$LibraryName.csproj"
-    git mv Library "$LibraryName"
-    git mv Library.Tests/Library.Tests.csproj "Library.Tests/$LibraryName.Tests.csproj"
-    git mv Library.Tests "$LibraryName.Tests"
+    git mv src/Library/Library.csproj "src/Library/$LibraryName.csproj"
+    git mv src/Library "src/$LibraryName"
+    git mv src/Library.Tests/Library.Tests.csproj "src/Library.Tests/$LibraryName.Tests.csproj"
+    git mv src/Library.Tests "src/$LibraryName.Tests"
 
     # Refresh solution file both to update paths and give the projects unique GUIDs
-    dotnet sln remove Library/Library.csproj
-    dotnet sln remove Library.Tests/Library.Tests.csproj
-    dotnet sln add "$LibraryName"
-    dotnet sln add "$LibraryName.Tests"
+    dotnet sln remove src/Library/Library.csproj
+    dotnet sln remove src/Library.Tests/Library.Tests.csproj
+    dotnet sln add "src/$LibraryName"
+    dotnet sln add "src/$LibraryName.Tests"
     git add "$LibraryName.sln"
 
     # Update project reference in test project. Add before removal to keep the same ItemGroup in place.
-    dotnet add "$LibraryName.Tests" reference "$LibraryName"
-    dotnet remove "$LibraryName.Tests" reference Library/Library.csproj
-    git add "$LibraryName.Tests/$LibraryName.Tests.csproj"
+    dotnet add "src/$LibraryName.Tests" reference "src/$LibraryName"
+    dotnet remove "src/$LibraryName.Tests" reference src/Library/Library.csproj
+    git add "src/$LibraryName.Tests/$LibraryName.Tests.csproj"
 
     # Establish a new strong-name key
-    & $sn.Path -k 2048 strongname.snk
-    git add strongname.snk
-
-    Set-Location ..
+    & $sn.Path -k 2048 src/strongname.snk
+    git add src/strongname.snk
 
     # Replace placeholders in source files
     Replace-Placeholders -Path "src/$LibraryName/Calculator.cs" -Replacements @{

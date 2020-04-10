@@ -2,11 +2,9 @@ steps:
 
 - script: dotnet build --no-restore -c $(BuildConfiguration) /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: dotnet build
-  workingDirectory: src
 
 - script: dotnet pack --no-build -c $(BuildConfiguration) /v:m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/pack.binlog"
   displayName: dotnet pack
-  workingDirectory: src
 
 - task: DotNetCoreCLI@2
   displayName: dotnet test -f net472
@@ -14,7 +12,6 @@ steps:
     command: test
     arguments: --no-build -c $(BuildConfiguration) -f net472 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings"
     testRunTitle: net472-$(Agent.JobName)
-    workingDirectory: src
   condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - task: DotNetCoreCLI@2
@@ -23,7 +20,6 @@ steps:
     command: test
     arguments: --no-build -c $(BuildConfiguration) -f netcoreapp2.1 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings"
     testRunTitle: netcoreapp2.1-$(Agent.JobName)
-    workingDirectory: src
 
 - task: DotNetCoreCLI@2
   displayName: dotnet test -f netcoreapp3.1
@@ -31,7 +27,6 @@ steps:
     command: test
     arguments: --no-build -c $(BuildConfiguration) -f netcoreapp3.1 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --settings "$(Build.Repository.LocalPath)/azure-pipelines/$(Agent.OS).runsettings"
     testRunTitle: netcoreapp3.1-$(Agent.JobName)
-    workingDirectory: src
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
