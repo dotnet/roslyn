@@ -170,7 +170,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedParameter
-            Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
+            If node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node) Then
+                Return True
+            End If
+
+            Dim arg = TryCast(node, SimpleArgumentSyntax)
+            If arg IsNot Nothing AndAlso arg.NameColonEquals IsNot Nothing Then
+                Return True
+            End If
+
+            Return False
         End Function
 
         Public Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken? Implements ISyntaxFacts.GetNameOfParameter
