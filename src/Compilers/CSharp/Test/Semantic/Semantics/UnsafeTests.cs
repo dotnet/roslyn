@@ -4279,7 +4279,7 @@ unsafe class C
         }
 
         [WorkItem(544346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544346")]
-        [Fact(Skip = "PROTOTYPE(func-ptr)")]
+        [Fact]
         public void AddressOfMethodGroup()
         {
             var text = @"
@@ -4306,13 +4306,9 @@ unsafe class C
             var typeInfo = model.GetTypeInfo(syntax);
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
-            Assert.NotNull(type);
+            Assert.Null(type);
             Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
-
-            Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
-            Assert.Equal(TypeKind.Error, ((IPointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
 
