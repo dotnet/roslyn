@@ -72,14 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         }
 
         internal static void ResetRenameTrackingState(Workspace workspace, DocumentId documentId)
-        {
-            ResetRenameTrackingStateWorker(workspace, documentId, visible: false);
-        }
+            => ResetRenameTrackingStateWorker(workspace, documentId, visible: false);
 
         internal static bool ResetVisibleRenameTrackingState(Workspace workspace, DocumentId documentId)
-        {
-            return ResetRenameTrackingStateWorker(workspace, documentId, visible: true);
-        }
+            => ResetRenameTrackingStateWorker(workspace, documentId, visible: true);
 
         internal static bool ResetRenameTrackingStateWorker(Workspace workspace, DocumentId documentId, bool visible)
         {

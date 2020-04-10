@@ -296,12 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     savedInputExpression = inputTemp;
                 }
 
-                // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
-                // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
-                // the decision dag do not appear to jump back up to the enclosing construct.
-                if (IsSwitchStatement)
-                    result.Add(_factory.HiddenSequencePoint());
-
                 return decisionDag;
             }
 
@@ -488,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<BoundDecisionDagNode> loweredNodes,
                 BoundDagTemp input)
             {
-                IValueSetFactory fac = ValueSetFactory.ForSpecialType(input.Type.SpecialType);
+                IValueSetFactory fac = ValueSetFactory.ForType(input.Type);
                 return GatherValueDispatchNodes(node, loweredNodes, input, fac);
             }
 
@@ -641,9 +635,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             private sealed class CasesComparer : IComparer<(ConstantValue value, LabelSymbol label)>
             {
                 private readonly IValueSetFactory _fac;
-                public CasesComparer(SpecialType type)
+                public CasesComparer(TypeSymbol type)
                 {
-                    _fac = ValueSetFactory.ForSpecialType(type);
+                    _fac = ValueSetFactory.ForType(type);
+                    Debug.Assert(_fac is { });
                 }
 
                 int IComparer<(ConstantValue value, LabelSymbol label)>.Compare((ConstantValue value, LabelSymbol label) left, (ConstantValue value, LabelSymbol label) right)
@@ -655,6 +650,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ConstantValueTypeDiscriminator.Decimal => true,
                         ConstantValueTypeDiscriminator.Single => true,
                         ConstantValueTypeDiscriminator.Double => true,
+                        ConstantValueTypeDiscriminator.NInt => true,
+                        ConstantValueTypeDiscriminator.NUInt => true,
                         _ => false
                     });
                     Debug.Assert(y.Discriminator == x.Discriminator);
@@ -668,12 +665,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         1;
 
                     static bool isNaN(ConstantValue value) =>
-                        value.Discriminator != ConstantValueTypeDiscriminator.Decimal && double.IsNaN(value.DoubleValue);
+                        (value.Discriminator == ConstantValueTypeDiscriminator.Single || value.Discriminator == ConstantValueTypeDiscriminator.Double) &&
+                        double.IsNaN(value.DoubleValue);
                 }
             }
 
             private void LowerSwitchDispatchNode(ValueDispatchNode.SwitchDispatch node, BoundExpression input)
             {
+                LabelSymbol defaultLabel = node.Otherwise;
+
                 if (input.Type.IsValidV6SwitchGoverningType())
                 {
                     // If we are emitting a hash table based string switch,
@@ -686,8 +686,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
                     }
 
-                    LabelSymbol defaultLabel = node.Otherwise;
                     var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel, stringEquality);
+                    _loweredDecisionDag.Add(dispatch);
+                }
+                else if (input.Type.IsNativeIntegerType)
+                {
+                    // Native types need to be dispatched using a larger underlying type so that any
+                    // possible high bits are not truncated.
+                    ImmutableArray<(ConstantValue value, LabelSymbol label)> cases;
+                    switch (input.Type.SpecialType)
+                    {
+                        case SpecialType.System_IntPtr:
+                            {
+                                input = _factory.Convert(_factory.SpecialType(SpecialType.System_Int64), input);
+                                cases = node.Cases.SelectAsArray(p => (ConstantValue.Create((long)p.value.Int32Value), p.label));
+                                break;
+                            }
+                        case SpecialType.System_UIntPtr:
+                            {
+                                input = _factory.Convert(_factory.SpecialType(SpecialType.System_UInt64), input);
+                                cases = node.Cases.SelectAsArray(p => (ConstantValue.Create((ulong)p.value.UInt32Value), p.label));
+                                break;
+                            }
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(input.Type);
+                    }
+
+                    var dispatch = new BoundSwitchDispatch(node.Syntax, input, cases, defaultLabel, equalityMethod: null);
                     _loweredDecisionDag.Add(dispatch);
                 }
                 else
@@ -702,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.UnexpectedValue(input.Type.SpecialType)
                     };
 
-                    var cases = node.Cases.Sort(new CasesComparer(input.Type.SpecialType));
+                    var cases = node.Cases.Sort(new CasesComparer(input.Type));
                     lowerFloatDispatch(0, cases.Length);
 
                     void lowerFloatDispatch(int firstIndex, int count)
@@ -714,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 _loweredDecisionDag.Add(_factory.ConditionalGoto(MakeValueTest(node.Syntax, input, cases[i].value), cases[i].label, jumpIfTrue: true));
                             }
 
-                            _loweredDecisionDag.Add(_factory.Goto(node.Otherwise));
+                            _loweredDecisionDag.Add(_factory.Goto(defaultLabel));
                         }
                         else
                         {
@@ -817,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                    if (IsSwitchStatement && !whenClause.WhenExpression.WasCompilerGenerated && _localRewriter.Instrument)
+                    if (GenerateSequencePoints && !whenClause.WhenExpression.WasCompilerGenerated)
                     {
                         conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
                     }
@@ -828,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
                     BoundStatement jump = _factory.Goto(GetDagNodeLabel(whenFalse));
-                    sectionBuilder.Add(IsSwitchStatement ? _factory.HiddenSequencePoint(jump) : jump);
+                    sectionBuilder.Add(GenerateSequencePoints ? _factory.HiddenSequencePoint(jump) : jump);
                 }
                 else
                 {
@@ -854,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
                             // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
                             // synchronize on changes.
-                            if (IsSwitchStatement)
+                            if (GenerateSequencePoints)
                                 _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
 
                             if (nextNode != evaluationNode.Next)

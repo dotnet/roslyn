@@ -19,15 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             short INumericTC<short>.MaxValue => short.MaxValue;
 
-            (short leftMax, short rightMin) INumericTC<short>.Partition(short min, short max)
-            {
-                Debug.Assert(min < max);
-                int half = (max - min) / 2;
-                short leftMax = (short)(min + half);
-                short rightMin = (short)(leftMax + 1);
-                return (leftMax, rightMin);
-            }
-
             bool INumericTC<short>.Related(BinaryOperatorKind relation, short left, short right)
             {
                 switch (relation)
@@ -53,9 +44,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (short)(value + 1);
             }
 
+            short INumericTC<short>.Prev(short value)
+            {
+                Debug.Assert(value != short.MinValue);
+                return (short)(value - 1);
+            }
+
             short INumericTC<short>.FromConstantValue(ConstantValue constantValue) => constantValue.Int16Value;
 
+            ConstantValue INumericTC<short>.ToConstantValue(short value) => ConstantValue.Create(value);
+
             string INumericTC<short>.ToString(short value) => value.ToString();
+
+            short INumericTC<short>.Random(Random random)
+            {
+                return (short)random.Next();
+            }
         }
     }
 }

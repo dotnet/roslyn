@@ -127,9 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         public void Dispose()
-        {
-            _registrationService.Unregister(_workspace);
-        }
+            => _registrationService.Unregister(_workspace);
 
         public async Task WaitForTags()
         {

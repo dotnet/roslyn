@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         private RazorSpanMappingServiceWrapper? _spanMappingService;
         private RazorDocumentExcerptServiceWrapper? _excerptService;
+        private RazorDocumentPropertiesServiceWrapper? _documentPropertiesService;
 
         public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
@@ -60,6 +61,31 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 }
 
                 return (TService)(object)_excerptService;
+            }
+
+            if (typeof(TService) == typeof(DocumentPropertiesService))
+            {
+                if (_documentPropertiesService == null)
+                {
+                    lock (_lock)
+                    {
+                        if (_documentPropertiesService == null)
+                        {
+                            var documentPropertiesService = _innerDocumentServiceProvider.GetService<IRazorDocumentPropertiesService>();
+
+                            if (documentPropertiesService != null)
+                            {
+                                _documentPropertiesService = new RazorDocumentPropertiesServiceWrapper(documentPropertiesService);
+                            }
+                            else
+                            {
+                                return this as TService;
+                            }
+                        }
+                    }
+                }
+
+                return (TService)(object)_documentPropertiesService;
             }
 
             return this as TService;

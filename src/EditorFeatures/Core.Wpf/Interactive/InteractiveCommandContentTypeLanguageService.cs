@@ -19,13 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveCommandContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-        {
-            _contentTypeRegistry = contentTypeRegistry;
-        }
+            => _contentTypeRegistry = contentTypeRegistry;
 
         public IContentType GetDefaultContentType()
-        {
-            return _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-        }
+            => _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
     }
 }

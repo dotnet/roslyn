@@ -49,9 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly NotificationOption Error = new NotificationOption(NotificationOption2.Error);
 
         private NotificationOption(NotificationOption2 notificationOptionImpl)
-        {
-            _notificationOptionImpl = notificationOptionImpl;
-        }
+            => _notificationOptionImpl = notificationOptionImpl;
 
         public override string ToString() => _notificationOptionImpl.ToString();
     }

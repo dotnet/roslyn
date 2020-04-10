@@ -11,9 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         ICommandHandler<MoveSelectedLinesUpCommandArgs>, ICommandHandler<MoveSelectedLinesDownCommandArgs>
     {
         public CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
 
         public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
         {
@@ -22,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
 
         public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
         {

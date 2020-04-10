@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public void AddAdditionalAssets(CustomAsset asset)
-        {
-            _scope.AddAdditionalAsset(asset);
-        }
+            => _scope.AddAdditionalAsset(asset);
 
         public void Dispose()
         {

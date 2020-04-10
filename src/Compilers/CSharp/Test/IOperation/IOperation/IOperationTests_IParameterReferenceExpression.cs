@@ -990,9 +990,9 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: I, IsInvalid) (Syntax: 
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                    // (6,25): error CS1729: 'I' does not contain a constructor that takes 1 arguments
-                    // 		return /*<bind>*/new I(x)/*</bind>*/;
-                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(x)").WithArguments("I", "1").WithLocation(6, 25)
+                // (6,24): error CS1729: 'I' does not contain a constructor that takes 1 arguments
+                // 		return /*<bind>*/new I(x)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "I").WithArguments("I", "1").WithLocation(6, 24)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation1, expectedOperationTree, expectedDiagnostics);

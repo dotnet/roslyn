@@ -95,18 +95,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         }
 
         public new void ClearSolution()
-        {
-            base.ClearSolution();
-        }
+            => base.ClearSolution();
 
         internal new void ClearOpenDocument(DocumentId documentId)
-        {
-            base.ClearOpenDocument(documentId);
-        }
+            => base.ClearOpenDocument(documentId);
 
         internal new void UnregisterText(SourceTextContainer textContainer)
-        {
-            base.UnregisterText(textContainer);
-        }
+            => base.UnregisterText(textContainer);
     }
 }

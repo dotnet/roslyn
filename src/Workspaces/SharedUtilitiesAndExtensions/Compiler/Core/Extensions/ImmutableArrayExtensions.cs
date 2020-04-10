@@ -66,8 +66,6 @@ namespace Roslyn.Utilities
         }
 
         internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-        {
-            return new ConcatImmutableArray<T>(first, second);
-        }
+            => new ConcatImmutableArray<T>(first, second);
     }
 }

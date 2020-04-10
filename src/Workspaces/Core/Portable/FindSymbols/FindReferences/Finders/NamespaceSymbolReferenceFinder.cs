@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static readonly SymbolDisplayFormat s_globalNamespaceFormat = new SymbolDisplayFormat(SymbolDisplayGlobalNamespaceStyle.Included);
 
         protected override bool CanFind(INamespaceSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamespaceSymbol symbol,
@@ -46,11 +44,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var identifierName = GetNamespaceIdentifierName(symbol);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
+            var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
+                document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
             var nonAliasReferences = FindReferencesInTokens(symbol,
                 document,
                 semanticModel,
-                await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, identifierName, cancellationToken).ConfigureAwait(false),
-                (SyntaxToken t) => syntaxFactsService.TextMatch(t.ValueText, identifierName),
+                tokens,
+                t => syntaxFactsService.TextMatch(t.ValueText, identifierName),
                 cancellationToken);
 
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);

@@ -94,14 +94,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         }
 
         public void StartSearch(INavigateToCallback callback, string searchValue)
-        {
-            StartSearch(callback, searchValue, KindsProvided);
-        }
+            => StartSearch(callback, searchValue, KindsProvided);
 
         public void StartSearch(INavigateToCallback callback, string searchValue, INavigateToFilterParameters filter)
-        {
-            StartSearch(callback, searchValue, filter.Kinds.ToImmutableHashSet(StringComparer.Ordinal));
-        }
+            => StartSearch(callback, searchValue, filter.Kinds.ToImmutableHashSet(StringComparer.Ordinal));
 
         private void StartSearch(INavigateToCallback callback, string searchValue, IImmutableSet<string> kinds)
         {
@@ -159,9 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             private readonly INavigateToSearchService _navigateToSearchService;
 
             public ShimNavigateToSearchService(INavigateToSearchService navigateToSearchService)
-            {
-                _navigateToSearchService = navigateToSearchService;
-            }
+                => _navigateToSearchService = navigateToSearchService;
 
             public IImmutableSet<string> KindsProvided => ImmutableHashSet.Create<string>(StringComparer.Ordinal);
 

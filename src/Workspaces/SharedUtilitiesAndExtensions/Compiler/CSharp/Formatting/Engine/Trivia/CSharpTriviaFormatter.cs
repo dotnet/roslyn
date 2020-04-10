@@ -33,34 +33,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override bool Succeeded()
-        {
-            return _succeeded;
-        }
+            => _succeeded;
 
         protected override bool IsWhitespace(SyntaxTrivia trivia)
-        {
-            return trivia.RawKind == (int)SyntaxKind.WhitespaceTrivia;
-        }
+            => trivia.RawKind == (int)SyntaxKind.WhitespaceTrivia;
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
-        {
-            return trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
-        }
+            => trivia.RawKind == (int)SyntaxKind.EndOfLineTrivia;
 
         protected override bool IsWhitespace(char ch)
-        {
-            return SyntaxFacts.IsWhitespace(ch);
-        }
+            => SyntaxFacts.IsWhitespace(ch);
 
         protected override bool IsNewLine(char ch)
-        {
-            return SyntaxFacts.IsNewLine(ch);
-        }
+            => SyntaxFacts.IsNewLine(ch);
 
         protected override SyntaxTrivia CreateWhitespace(string text)
-        {
-            return SyntaxFactory.Whitespace(text);
-        }
+            => SyntaxFactory.Whitespace(text);
 
         protected override SyntaxTrivia CreateEndOfLine()
         {
@@ -175,14 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private bool IsStartOrEndOfFile(SyntaxTrivia trivia1, SyntaxTrivia trivia2)
-        {
-            return (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
-        }
+            => (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
 
         private static bool IsMultilineComment(SyntaxTrivia trivia1)
-        {
-            return trivia1.IsMultiLineComment() || trivia1.IsMultiLineDocComment();
-        }
+            => trivia1.IsMultiLineComment() || trivia1.IsMultiLineDocComment();
 
         private bool TryFormatMultiLineCommentTrivia(LineColumn lineColumn, SyntaxTrivia trivia, out SyntaxTrivia result)
         {

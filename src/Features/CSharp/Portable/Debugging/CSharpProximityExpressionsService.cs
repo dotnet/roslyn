@@ -100,14 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
         // Internal for testing purposes
         internal static IList<string> Do(SyntaxTree syntaxTree, int position)
-        {
-            return Do(syntaxTree, position, CancellationToken.None);
-        }
+            => Do(syntaxTree, position, CancellationToken.None);
 
         private static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            return new Worker(syntaxTree, position).Do(cancellationToken);
-        }
+            => new Worker(syntaxTree, position).Do(cancellationToken);
 
         private static void AddRelevantExpressions(
             StatementSyntax statement,

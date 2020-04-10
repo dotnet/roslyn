@@ -19,14 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ulong INumericTC<ulong>.MaxValue => ulong.MaxValue;
 
-            (ulong leftMax, ulong rightMin) INumericTC<ulong>.Partition(ulong min, ulong max)
-            {
-                Debug.Assert(min < max);
-                ulong half = (max - min) / 2;
-                ulong leftMax = min + half;
-                return (leftMax, leftMax + 1);
-            }
-
             bool INumericTC<ulong>.Related(BinaryOperatorKind relation, ulong left, ulong right)
             {
                 switch (relation)
@@ -52,9 +44,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value + 1;
             }
 
+            ulong INumericTC<ulong>.Prev(ulong value)
+            {
+                Debug.Assert(value != ulong.MinValue);
+                return value - 1;
+            }
+
             ulong INumericTC<ulong>.FromConstantValue(ConstantValue constantValue) => constantValue.UInt64Value;
 
+            ConstantValue INumericTC<ulong>.ToConstantValue(ulong value) => ConstantValue.Create(value);
+
             string INumericTC<ulong>.ToString(ulong value) => value.ToString();
+
+            ulong INumericTC<ulong>.Random(Random random)
+            {
+                return ((ulong)random.Next() << 35) ^ ((ulong)random.Next() << 10) ^ (ulong)random.Next();
+            }
         }
     }
 }

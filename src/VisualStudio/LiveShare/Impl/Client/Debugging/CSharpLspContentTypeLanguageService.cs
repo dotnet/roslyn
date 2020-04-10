@@ -18,13 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpLspContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-        {
-            _contentTypeRegistry = contentTypeRegistry;
-        }
+            => _contentTypeRegistry = contentTypeRegistry;
 
         public IContentType GetDefaultContentType()
-        {
-            return _contentTypeRegistry.GetContentType(StringConstants.CSharpLspLanguageName);
-        }
+            => _contentTypeRegistry.GetContentType(StringConstants.CSharpLspLanguageName);
     }
 }

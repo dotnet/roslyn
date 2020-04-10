@@ -9419,7 +9419,8 @@ if (o3 is (string k, int l2, int m)) return;
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [r = (x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 }]@6",
+                "Update [(x, y, z) switch { (0, var b, int c) when c > 1 => 2, _ => 4 }]@10 -> [((x, y, z)) switch { (_, int b1, double c1) when c1 > 2 => c1, _ => 4 }]@10",
+                "Update [(0, var b, int c) when c > 1 => 2]@29 -> [(_, int b1, double c1) when c1 > 2 => c1]@31",
                 "Reorder [c]@44 -> @39",
                 "Update [c]@44 -> [b1]@39",
                 "Update [b]@37 -> [c1]@50",
@@ -9436,7 +9437,9 @@ if (o3 is (string k, int l2, int m)) return;
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [r = (x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 }]@6 -> [r = ((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }]@6",
+                "Update [(x, y, z) switch { (var a, 3, 4) => a, (1, 1, Point { X: 0 } p) => 3, _ => 4 }]@10 -> [((x, y, z)) switch { (var a1, 3, 4) => a1 * 2, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }]@10",
+                "Update [(var a, 3, 4) => a]@29 -> [(var a1, 3, 4) => a1 * 2]@31",
+                "Update [(1, 1, Point { X: 0 } p) => 3]@49 -> [(1, 1, Point { Y: 0 } p1) => 3]@57",
                 "Update [a]@34 -> [a1]@36",
                 "Update [p]@71 -> [p1]@79");
         }
@@ -9465,21 +9468,22 @@ _ => 4
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [r = (x, y, z) switch {
+                @"Update [(x, y, z) switch {
 (1, 2, 3) => 0,
 (var a, 3, 4) => a,
 (0, var b, int c) when c > 1 => 2,
 (1, 1, Point { X: 0 } p) => 3,
 _ => 4
-}]@6 -> [r = ((x, y, z)) switch {
+}]@10 -> [((x, y, z)) switch {
 (1, 1, Point { X: 0 } p) => 3,
 (0, var b, int c) when c > 1 => 2,
 (var a, 3, 4) => a,
 (1, 2, 3) => 0,
 _ => 4
-}]@6",
-                "Reorder [a]@52 -> @105",
-                "Reorder [p]@126 -> @54");
+}]@10",
+                "Reorder [(var a, 3, 4) => a]@47 -> @100",
+                "Reorder [(0, var b, int c) when c > 1 => 2]@68 -> @64",
+                "Reorder [(1, 1, Point { X: 0 } p) => 3]@104 -> @32");
         }
 
         [Fact]
@@ -9538,26 +9542,9 @@ if (o is string { Length: 7 } s7) return 5;
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Update [r = obj switch
-{
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        _ => 0
-    },
-    int i => i * i,
-    _ => -1
-}]@6 -> [r = obj switch
-{
-    int i => i * i,
-    string s when s.Length > 0 => (s, obj1) switch
-    {
-        (""a"", int i) => i,
-        _ => 0
-    },
-    _ => -1
-}]@6",
-                "Reorder [i]@102 -> @33");
+                "Reorder [int i => i * i]@140 -> @29",
+                "Move [i]@102 -> @33",
+                "Move [i]@144 -> @123");
         }
 
         [Fact]

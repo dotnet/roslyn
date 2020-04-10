@@ -19,8 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value) =>
                 FloatingValueSet<TFloating, TFloatingTC>.Related(relation, value);
 
-            IValueSet<TFloating> IValueSetFactory<TFloating>.Random(int expectedSize, Random random) =>
+            IValueSet IValueSetFactory.Random(int expectedSize, Random random) =>
                 FloatingValueSet<TFloating, TFloatingTC>.Random(expectedSize, random);
+
+            ConstantValue IValueSetFactory.RandomValue(Random random)
+            {
+                TFloatingTC tc = default;
+                return tc.ToConstantValue(tc.Random(random));
+            }
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad ? FloatingValueSet<TFloating, TFloatingTC>.AllValues : FloatingValueSet<TFloating, TFloatingTC>.Related(relation, default(TFloatingTC).FromConstantValue(value));

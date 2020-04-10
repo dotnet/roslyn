@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class ExplicitInterfaceMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
-        }
+            => symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
 
         protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,

@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            BinaryOperatorKind opType = RelationalOperatorType(value.Type.EnumUnderlyingTypeOrSelf().SpecialType);
+            BinaryOperatorKind opType = RelationalOperatorType(value.Type.EnumUnderlyingTypeOrSelf());
             switch (opType)
             {
                 case BinaryOperatorKind.Float:
@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the compiler actually uses the operator on the type `int` as there is no corresponding operator for
         /// the type `byte`.
         /// </summary>
-        internal static BinaryOperatorKind RelationalOperatorType(SpecialType specialType) => specialType switch
+        internal static BinaryOperatorKind RelationalOperatorType(TypeSymbol type) => type.SpecialType switch
         {
             SpecialType.System_Single => BinaryOperatorKind.Float,
             SpecialType.System_Double => BinaryOperatorKind.Double,
@@ -1309,6 +1309,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialType.System_Decimal => BinaryOperatorKind.Decimal,
             SpecialType.System_String => BinaryOperatorKind.String,
             SpecialType.System_Boolean => BinaryOperatorKind.Bool,
+            SpecialType.System_IntPtr when type.IsNativeIntegerType => BinaryOperatorKind.NInt,
+            SpecialType.System_UIntPtr when type.IsNativeIntegerType => BinaryOperatorKind.NUInt,
             _ => BinaryOperatorKind.Error,
         };
 

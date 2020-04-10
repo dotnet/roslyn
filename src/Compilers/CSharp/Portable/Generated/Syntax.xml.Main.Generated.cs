@@ -166,6 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a InitializerExpressionSyntax node.</summary>
         public virtual TResult VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ImplicitObjectCreationExpressionSyntax node.</summary>
+        public virtual TResult VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
         public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -829,6 +832,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a InitializerExpressionSyntax node.</summary>
         public virtual void VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ImplicitObjectCreationExpressionSyntax node.</summary>
+        public virtual void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
         public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -1491,6 +1497,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Expressions), VisitToken(node.CloseBraceToken));
+
+        public override SyntaxNode? VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
+            => node.Update(VisitToken(node.NewKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"), (InitializerExpressionSyntax?)Visit(node.Initializer));
 
         public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
             => node.Update(VisitToken(node.NewKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax?)Visit(node.ArgumentList), (InitializerExpressionSyntax?)Visit(node.Initializer));
@@ -2969,6 +2978,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new InitializerExpressionSyntax instance.</summary>
         public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SeparatedSyntaxList<ExpressionSyntax> expressions = default)
             => SyntaxFactory.InitializerExpression(kind, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), expressions, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+
+        /// <summary>Creates a new ImplicitObjectCreationExpressionSyntax instance.</summary>
+        public static ImplicitObjectCreationExpressionSyntax ImplicitObjectCreationExpression(SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
+        {
+            if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
+            if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            return (ImplicitObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new ImplicitObjectCreationExpressionSyntax instance.</summary>
+        public static ImplicitObjectCreationExpressionSyntax ImplicitObjectCreationExpression(ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
+            => SyntaxFactory.ImplicitObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), argumentList, initializer);
+
+        /// <summary>Creates a new ImplicitObjectCreationExpressionSyntax instance.</summary>
+        public static ImplicitObjectCreationExpressionSyntax ImplicitObjectCreationExpression()
+            => SyntaxFactory.ImplicitObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), SyntaxFactory.ArgumentList(), default);
 
         /// <summary>Creates a new ObjectCreationExpressionSyntax instance.</summary>
         public static ObjectCreationExpressionSyntax ObjectCreationExpression(SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer)

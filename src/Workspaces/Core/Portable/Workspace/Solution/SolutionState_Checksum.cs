@@ -18,14 +18,10 @@ namespace Microsoft.CodeAnalysis
     internal partial class SolutionState
     {
         public bool TryGetStateChecksums(out SolutionStateChecksums stateChecksums)
-        {
-            return _lazyChecksums.TryGetValue(out stateChecksums);
-        }
+            => _lazyChecksums.TryGetValue(out stateChecksums);
 
         public Task<SolutionStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
-        {
-            return _lazyChecksums.GetValueAsync(cancellationToken);
-        }
+            => _lazyChecksums.GetValueAsync(cancellationToken);
 
         public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {

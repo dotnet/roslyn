@@ -568,9 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override SyntaxToken CreateIdentifier(string name)
-            {
-                return SyntaxFactory.Identifier(name);
-            }
+                => SyntaxFactory.Identifier(name);
 
             protected override StatementSyntax CreateReturnStatement(string identifierName = null)
             {
@@ -623,9 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(SyntaxToken identifier, ExpressionSyntax rvalue)
-            {
-                return SyntaxFactory.ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
-            }
+                => SyntaxFactory.ExpressionStatement(CreateAssignmentExpression(identifier, rvalue));
 
             protected override StatementSyntax CreateDeclarationStatement(
                 VariableInfo variable,

@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 
 #nullable enable
 
@@ -19,21 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int INumericTC<int>.MaxValue => int.MaxValue;
 
-            (int leftMax, int rightMin) INumericTC<int>.Partition(int min, int max)
-            {
-                Debug.Assert(min < max);
-
-                if (min == int.MinValue && max == int.MaxValue)
-                    return (-1, 0);
-
-                Debug.Assert((min < 0) == (max < 0));
-                Debug.Assert(min != max);
-                int half = (max - min) / 2;
-                int leftMax = min + half;
-                return (leftMax, leftMax + 1);
-            }
-
-            bool INumericTC<int>.Related(BinaryOperatorKind relation, int left, int right)
+            public bool Related(BinaryOperatorKind relation, int left, int right)
             {
                 switch (relation)
                 {
@@ -58,9 +45,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value + 1;
             }
 
-            int INumericTC<int>.FromConstantValue(ConstantValue constantValue) => constantValue.Int32Value;
+            int INumericTC<int>.Prev(int value)
+            {
+                Debug.Assert(value != int.MinValue);
+                return value - 1;
+            }
+
+            public int FromConstantValue(ConstantValue constantValue) => constantValue.Int32Value;
+
+            public ConstantValue ToConstantValue(int value) => ConstantValue.Create(value);
 
             string INumericTC<int>.ToString(int value) => value.ToString();
+
+            public int Random(Random random)
+            {
+                return (random.Next() << 10) ^ random.Next();
+            }
         }
     }
 }

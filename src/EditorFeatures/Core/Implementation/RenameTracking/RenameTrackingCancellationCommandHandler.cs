@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args)
-        {
-            return CommandState.Unspecified;
-        }
+            => CommandState.Unspecified;
     }
 }

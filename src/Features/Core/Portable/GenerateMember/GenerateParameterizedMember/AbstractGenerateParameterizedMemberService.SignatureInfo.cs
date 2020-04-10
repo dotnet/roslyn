@@ -146,11 +146,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
                 var compilation = Document.SemanticModel.Compilation;
                 var allTypeParameters = availableMethodTypeParameters.Concat(availableTypeParameters);
+                var availableTypeParameterNames = allTypeParameters.Select(t => t.Name).ToSet();
 
                 var typeArgumentToTypeParameterMap = GetTypeArgumentToTypeParameterMap(cancellationToken);
 
                 typeSymbol = typeSymbol.RemoveAnonymousTypes(compilation);
-                typeSymbol = await typeSymbol.ReplaceTypeParametersBasedOnTypeConstraintsAsync(compilation, allTypeParameters, Document.Document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                typeSymbol = await ReplaceTypeParametersBasedOnTypeConstraintsAsync(
+                    Document.Project, typeSymbol, compilation, availableTypeParameterNames, cancellationToken).ConfigureAwait(false);
                 return typeSymbol.RemoveUnavailableTypeParameters(compilation, allTypeParameters)
                                  .RemoveUnnamedErrorTypes(compilation)
                                  .SubstituteTypes(typeArgumentToTypeParameterMap, new TypeGenerator());

@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             public ImmutableArray<CodeFixProvider> GetFixers(string language)
-            {
-                return ImmutableInterlocked.GetOrAdd(ref _fixersPerLanguage, language, CreateFixers);
-            }
+                => ImmutableInterlocked.GetOrAdd(ref _fixersPerLanguage, language, CreateFixers);
 
             private ImmutableArray<CodeFixProvider> CreateFixers(string language)
             {

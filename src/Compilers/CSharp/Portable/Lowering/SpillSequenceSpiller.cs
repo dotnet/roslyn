@@ -1186,6 +1186,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateExpression(builder, node.Update(operand, node.ConversionMethod, node.Type));
         }
 
+        public override BoundNode VisitSequencePointExpression(BoundSequencePointExpression node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression expression = VisitExpression(ref builder, node.Expression);
+            return UpdateExpression(builder, node.Update(expression, node.Type));
+        }
+
         #endregion
     }
 }

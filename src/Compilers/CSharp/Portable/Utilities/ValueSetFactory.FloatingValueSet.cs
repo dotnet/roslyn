@@ -22,39 +22,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <typeparam name="TFloatingTC">A typeclass supporting that floating-point type.</typeparam>
         private sealed class FloatingValueSet<TFloating, TFloatingTC> : IValueSet<TFloating> where TFloatingTC : struct, FloatingTC<TFloating>
         {
-            private bool _hasNaN, _hasMinusInf, _hasPlusInf;
-            private IValueSet<TFloating> _numbers;
+            private readonly IValueSet<TFloating> _numbers;
+            private readonly bool _hasNaN;
 
-            private FloatingValueSet(bool hasNaN, bool hasMinusInf, bool hasPlusInf, IValueSet<TFloating> numbers)
+            private FloatingValueSet(IValueSet<TFloating> numbers, bool hasNaN)
             {
                 RoslynDebug.Assert(numbers is NumericValueSet<TFloating, TFloatingTC>);
-                (_hasNaN, _hasMinusInf, _hasPlusInf, _numbers) = (hasNaN, hasMinusInf, hasPlusInf, numbers);
+                (_numbers, _hasNaN) = (numbers, hasNaN);
             }
 
-            public static readonly IValueSet<TFloating> AllValues = new FloatingValueSet<TFloating, TFloatingTC>(
-                hasNaN: true, hasMinusInf: true, hasPlusInf: true, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Included.Instance));
+            internal static readonly IValueSet<TFloating> AllValues = new FloatingValueSet<TFloating, TFloatingTC>(
+                numbers: NumericValueSet<TFloating, TFloatingTC>.AllValues, hasNaN: true);
 
-            public static readonly IValueSet<TFloating> NoValues = new FloatingValueSet<TFloating, TFloatingTC>(
-                hasNaN: false, hasMinusInf: false, hasPlusInf: false, numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance));
+            internal static readonly IValueSet<TFloating> NoValues = new FloatingValueSet<TFloating, TFloatingTC>(
+                numbers: NumericValueSet<TFloating, TFloatingTC>.NoValues, hasNaN: false);
 
             internal static IValueSet<TFloating> Random(int expectedSize, Random random)
             {
-                bool hasNan = random.Next(2) < 1;
-                bool hasMinusInf = random.Next(2) < 1;
-                bool hasPlusInf = random.Next(2) < 1;
+                bool hasNan = random.NextDouble() < 0.5;
                 if (hasNan)
-                    expectedSize--;
-                if (hasMinusInf)
-                    expectedSize--;
-                if (hasPlusInf)
                     expectedSize--;
                 if (expectedSize < 1)
                     expectedSize = 2;
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    hasNaN: hasNan, hasMinusInf: hasMinusInf, hasPlusInf: hasPlusInf, numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Random(expectedSize, random));
+                    numbers: (IValueSet<TFloating>)NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Random(expectedSize, random), hasNaN: hasNan);
             }
 
-            bool IValueSet.IsEmpty => !_hasNaN && !_hasMinusInf && !_hasPlusInf && _numbers.IsEmpty;
+            bool IValueSet.IsEmpty => !_hasNaN && _numbers.IsEmpty;
 
             public static IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value)
             {
@@ -68,9 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.GreaterThanOrEqual:
                             return new FloatingValueSet<TFloating, TFloatingTC>(
                                 hasNaN: true,
-                                hasMinusInf: false,
-                                hasPlusInf: false,
-                                numbers: new NumericValueSet<TFloating, TFloatingTC>(Interval.Excluded.Instance)
+                                numbers: NumericValueSet<TFloating, TFloatingTC>.NoValues
                                 );
                         case BinaryOperatorKind.LessThan:
                         case BinaryOperatorKind.GreaterThan:
@@ -80,10 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    hasNaN: false,
-                    hasMinusInf: tc.Related(relation, tc.MinusInf, value),
-                    hasPlusInf: tc.Related(relation, tc.PlusInf, value),
-                    numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Related(relation, value)
+                    numbers: NumericValueSetFactory<TFloating, TFloatingTC>.Instance.Related(relation, value),
+                    hasNaN: false
                     );
             }
 
@@ -93,10 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this;
                 var other = (FloatingValueSet<TFloating, TFloatingTC>)o;
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    hasNaN: this._hasNaN & other._hasNaN,
-                    hasMinusInf: this._hasMinusInf & other._hasMinusInf,
-                    hasPlusInf: this._hasPlusInf & other._hasPlusInf,
-                    numbers: this._numbers.Intersect(other._numbers));
+                    numbers: this._numbers.Intersect(other._numbers),
+                    hasNaN: this._hasNaN & other._hasNaN);
             }
 
             IValueSet IValueSet.Intersect(IValueSet other) => this.Intersect((IValueSet<TFloating>)other);
@@ -107,10 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this;
                 var other = (FloatingValueSet<TFloating, TFloatingTC>)o;
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    hasNaN: this._hasNaN | other._hasNaN,
-                    hasMinusInf: this._hasMinusInf | other._hasMinusInf,
-                    hasPlusInf: this._hasPlusInf | other._hasPlusInf,
-                    numbers: this._numbers.Union(other._numbers));
+                    numbers: this._numbers.Union(other._numbers),
+                    hasNaN: this._hasNaN | other._hasNaN);
             }
 
             IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<TFloating>)other);
@@ -118,10 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IValueSet<TFloating> Complement()
             {
                 return new FloatingValueSet<TFloating, TFloatingTC>(
-                    hasNaN: !this._hasNaN,
-                    hasMinusInf: !this._hasMinusInf,
-                    hasPlusInf: !this._hasPlusInf,
-                    numbers: this._numbers.Complement());
+                    numbers: this._numbers.Complement(),
+                    hasNaN: !this._hasNaN);
             }
 
             IValueSet IValueSet.Complement() => this.Complement();
@@ -134,8 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TFloatingTC tc = default;
                 return
                     _hasNaN && tc.Related(relation, tc.NaN, value) ||
-                    _hasMinusInf && tc.Related(relation, tc.MinusInf, value) ||
-                    _hasPlusInf && tc.Related(relation, tc.PlusInf, value) ||
                     _numbers.Any(relation, value);
             }
 
@@ -146,8 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TFloatingTC tc = default;
                 return
                     (!_hasNaN || tc.Related(relation, tc.NaN, value)) &&
-                    (!_hasMinusInf || tc.Related(relation, tc.MinusInf, value)) &&
-                    (!_hasPlusInf || tc.Related(relation, tc.PlusInf, value)) &&
                     _numbers.All(relation, value);
             }
 
@@ -156,8 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override bool Equals(object? obj) => this == obj ||
                 obj is FloatingValueSet<TFloating, TFloatingTC> other &&
                 this._hasNaN == other._hasNaN &&
-                this._hasMinusInf == other._hasMinusInf &&
-                this._hasPlusInf == other._hasPlusInf &&
                 this._numbers.Equals(other._numbers);
 
             public override string ToString()
@@ -165,10 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var b = new StringBuilder();
                 if (_hasNaN)
                     b.Append("NaN");
-                if (_hasMinusInf)
-                    b.Append($"{(b.Length > 0 ? "," : "")}-Inf");
-                if (_hasPlusInf)
-                    b.Append($"{(b.Length > 0 ? "," : "")}Inf");
                 string more = this._numbers.ToString()!;
                 if (b.Length > 1 && more.Length > 1)
                     b.Append(",");

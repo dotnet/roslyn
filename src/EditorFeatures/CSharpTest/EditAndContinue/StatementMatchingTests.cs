@@ -1042,24 +1042,24 @@ a += localF;
         [Fact]
         public void LocalFunctions4()
         {
-            var src1 = @"int a() { int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }";
-            var src2 = @"int a() { int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }";
+            var src1 = @"int a() { int b() { int c() { int d() { return 0; } } return c(); } return b(); }";
+            var src2 = @"int a() { int b() { int c() { int d() { return 0; } } return c(); } return b(); }";
 
             var matches = GetMethodMatches(src1, src2);
             var actual = ToMatchingPairs(matches);
 
             var expected = new MatchingPairs
             {
-                { "int a() { int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }",
-                    "int a() { int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }" },
-                { "{ int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }",
-                    "{ int b() { int c() { int d() { return 0; }; }; return c(); }; return b(); }" },
-                { "int b() { int c() { int d() { return 0; }; }; return c(); }",
-                    "int b() { int c() { int d() { return 0; }; }; return c(); }" },
-                { "{ int c() { int d() { return 0; }; }; return c(); }",
-                    "{ int c() { int d() { return 0; }; }; return c(); }" },
-                { "int c() { int d() { return 0; }; }", "int c() { int d() { return 0; }; }" },
-                { "{ int d() { return 0; }; }", "{ int d() { return 0; }; }" },
+                { "int a() { int b() { int c() { int d() { return 0; } } return c(); } return b(); }",
+                    "int a() { int b() { int c() { int d() { return 0; } } return c(); } return b(); }" },
+                { "{ int b() { int c() { int d() { return 0; } } return c(); } return b(); }",
+                    "{ int b() { int c() { int d() { return 0; } } return c(); } return b(); }" },
+                { "int b() { int c() { int d() { return 0; } } return c(); }",
+                    "int b() { int c() { int d() { return 0; } } return c(); }" },
+                { "{ int c() { int d() { return 0; } } return c(); }",
+                    "{ int c() { int d() { return 0; } } return c(); }" },
+                { "int c() { int d() { return 0; } }", "int c() { int d() { return 0; } }" },
+                { "{ int d() { return 0; } }", "{ int d() { return 0; } }" },
                 { "int d() { return 0; }", "int d() { return 0; }" },
                 { "{ return 0; }", "{ return 0; }" },
                 { "return 0;", "return 0;" },
@@ -1091,7 +1091,7 @@ void G6(int a)
         F(G1);
     };
     F(G4);
-};
+}
 ";
 
             var src2 = @"
@@ -1106,9 +1106,9 @@ void G6(int a)
             int G2(int c) => /*2*/d + 1; return G2(w);
         }
         F(G3); F(G1); int G6(int p) => p *2; F(G6);
-    };
+    }
     F(G4);
-};
+}
 ";
 
             var matches = GetMethodMatches(src1, src2);
@@ -1117,9 +1117,9 @@ void G6(int a)
             var expected = new MatchingPairs
             {
                 { "void G6(int a) {      int G5(int c) => /*1*/d;     F(G5);      void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     };     F(G4); }",
-                    "void G6(int a) {      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     };     F(G4); }" },
+                    "void G6(int a) {      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }     F(G4); }" },
                 { "{      int G5(int c) => /*1*/d;     F(G5);      void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     };     F(G4); }",
-                    "{      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     };     F(G4); }" },
+                    "{      int G5(int c) => /*1*/d + 1;F(G5);      void G4()     {         int G3(int w)         {              int G2(int c) => /*2*/d + 1; return G2(w);         }         F(G3); F(G1); int G6(int p) => p *2; F(G6);     }     F(G4); }" },
                 { "int G5(int c) => /*1*/d;", "int G5(int c) => /*1*/d + 1;" },
                 { "F(G5);", "F(G5);" },
                 { "void G4()     {         void G1(int x) => x;         int G3(int w)         {              int G2(int c) => /*2*/d;             return G2(w);         }         F(G3);         F(G1);     }",
@@ -1775,11 +1775,17 @@ _ => 4
                 { "var r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 };", "var r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 };" },
                 { "var r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 }", "var r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }" },
                 { "r = (x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 }", "r = ((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }" },
+                { "(x, y, z) switch { (1, 2, 3) => 0, (var a, 3, 4) => a, (0, var b, int c) when c > 1 => 2, (1, 1, Point { X: 0 } p) => 3, _ => 4 }", "((x, y, z)) switch { (1, 2, 3) => 0, (var a1, 3, 4) => a1 * 2, (_, int b1, double c1) when c1 > 2 => c1, (1, 1, Point { Y: 0 } p1) => 3, _ => 4 }" },
+                { "(1, 2, 3) => 0", "(1, 2, 3) => 0" },
+                { "(var a, 3, 4) => a", "(var a1, 3, 4) => a1 * 2" },
                 { "a", "a1" },
+                { "(0, var b, int c) when c > 1 => 2", "(_, int b1, double c1) when c1 > 2 => c1" },
                 { "b", "c1" },
                 { "c", "b1" },
                 { "when c > 1", "when c1 > 2" },
-                { "p", "p1" }
+                { "(1, 1, Point { X: 0 } p) => 3", "(1, 1, Point { Y: 0 } p1) => 3" },
+                { "p", "p1" },
+                { "_ => 4", "_ => 4" }
             };
 
             expected.AssertEqual(actual);
@@ -1848,16 +1854,25 @@ if (o is string { Length: 7 } s7) return 5;
             var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
             var actual = ToMatchingPairs(match);
 
-            var expected = new MatchingPairs {
+            var expected = new MatchingPairs
+            {
                 { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 };", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 };" },
                 { "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "var r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
                 { "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "r = obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
+                { "obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     },     int i => i * i,     _ => -1 }", "obj switch {     string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     },     double i => i * i,     _ => -1 }" },
+                { "string s when s.Length > 0 => (s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     }", "string s when s.Length > 0 => (s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     }" },
                 { "s", "s" },
                 { "when s.Length > 0", "when s.Length > 0" },
+                { "(s, obj1) switch     {         (\"a\", int i) => i,         (\"\", Task<int> t) => await t,         _ => 0     }", "(s, obj1) switch     {         (\"b\", decimal i1) => i1,         (\"\", Task<object> obj2) => await obj2,         _ => 0     }" },
+                { "(\"a\", int i) => i", "(\"b\", decimal i1) => i1" },
                 { "i", "i" },
+                { "(\"\", Task<int> t) => await t", "(\"\", Task<object> obj2) => await obj2" },
                 { "t", "obj2" },
                 { "await t", "await obj2" },
-                { "i", "i1" }
+                { "_ => 0", "_ => 0" },
+                { "int i => i * i", "double i => i * i" },
+                { "i", "i1" },
+                { "_ => -1", "_ => -1" }
             };
 
             expected.AssertEqual(actual);
@@ -1966,6 +1981,50 @@ switch(shape)
                 { "c", "c2" },
                 { "when (c > 100)", "when (c2 > 100)" },
                 { "return 2;", "return 2;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
+
+        #region Switch Expression
+
+        [Fact]
+        public void SwitchExpressionArms_NestedSimilar()
+        {
+            // The inner switch is mapped to the outer one, which is assumed to be removed.
+            var src1 = @"F1() switch { 1 => 0, _ => F2() switch { 1 => 0, _ => 2 } };";
+            var src2 = @"F1() switch { 1 => 0, _ => 1 };";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "F1() switch { 1 => 0, _ => F2() switch { 1 => 0, _ => 2 } };", "F1() switch { 1 => 0, _ => 1 };" },
+                { "F2() switch { 1 => 0, _ => 2 }", "F1() switch { 1 => 0, _ => 1 }" },
+                { "1 => 0", "1 => 0" },
+                { "_ => 2", "_ => 1" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void SwitchExpressionArms_NestedDissimilar()
+        {
+            // The inner switch is mapped to the outer one, which is assumed to be removed.
+            var src1 = @"Method() switch { true => G(), _ => F2() switch { 1 => 0, _ => 2 } };";
+            var src2 = @"Method() switch { true => G(), _ => 1 };";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "Method() switch { true => G(), _ => F2() switch { 1 => 0, _ => 2 } };", "Method() switch { true => G(), _ => 1 };" },
+                { "Method() switch { true => G(), _ => F2() switch { 1 => 0, _ => 2 } }", "Method() switch { true => G(), _ => 1 }" },
+                { "true => G()", "true => G()" },
+                { "_ => F2() switch { 1 => 0, _ => 2 }", "_ => 1" }
             };
 
             expected.AssertEqual(actual);

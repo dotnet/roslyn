@@ -113,9 +113,7 @@ namespace Roslyn.Utilities
 
             [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
             public static Task<T> FromResult(T t)
-            {
-                return s_fromResultCache.GetValue(t, s_taskCreationCallback);
-            }
+                => s_fromResultCache.GetValue(t, s_taskCreationCallback);
         }
     }
 }

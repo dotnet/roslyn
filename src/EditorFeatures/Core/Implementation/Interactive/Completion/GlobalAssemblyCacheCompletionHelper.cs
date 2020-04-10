@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
         }
 
         public Task<ImmutableArray<CompletionItem>> GetItemsAsync(string directoryPath, CancellationToken cancellationToken)
-        {
-            return Task.Run(() => GetItems(directoryPath, cancellationToken));
-        }
+            => Task.Run(() => GetItems(directoryPath, cancellationToken));
 
         // internal for testing
         internal ImmutableArray<CompletionItem> GetItems(string directoryPath, CancellationToken cancellationToken)

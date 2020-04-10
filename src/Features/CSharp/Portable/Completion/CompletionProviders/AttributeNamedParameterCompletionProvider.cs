@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
@@ -201,9 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
-        {
-            return existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
-        }
+            => existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
 
         private ISet<string> GetExistingNamedParameters(AttributeArgumentListSyntax argumentList, int position)
         {
@@ -247,9 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(GetTextChange(selectedItem, ch));
-        }
+            => Task.FromResult(GetTextChange(selectedItem, ch));
 
         private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
         {

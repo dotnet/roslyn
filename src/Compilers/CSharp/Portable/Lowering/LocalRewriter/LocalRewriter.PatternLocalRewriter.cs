@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _localRewriter = localRewriter;
                 _factory = localRewriter._factory;
-                _tempAllocator = new DagTempAllocator(_factory, node, IsSwitchStatement);
+                _tempAllocator = new DagTempAllocator(_factory, node, GenerateSequencePoints);
             }
 
             /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// - synthesized local variable kind
             ///   The temp variables must be long lived in a switch statement since their lifetime spans across sequence points.
             /// </summary>
-            protected abstract bool IsSwitchStatement { get; }
+            protected abstract bool GenerateSequencePoints { get; }
 
             public void Free()
             {
@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly ArrayBuilder<LocalSymbol> _temps = ArrayBuilder<LocalSymbol>.GetInstance();
                 private readonly SyntaxNode _node;
 
-                private readonly bool _isSwitchStatement;
+                private readonly bool _generateSequencePoints;
 
-                public DagTempAllocator(SyntheticBoundNodeFactory factory, SyntaxNode node, bool isSwitchStatement)
+                public DagTempAllocator(SyntheticBoundNodeFactory factory, SyntaxNode node, bool generateSequencePoints)
                 {
                     _factory = factory;
                     _node = node;
-                    _isSwitchStatement = isSwitchStatement;
+                    _generateSequencePoints = generateSequencePoints;
                 }
 
                 public void Free()
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!_map.TryGetValue(dagTemp, out BoundExpression result))
                     {
-                        var kind = _isSwitchStatement ? SynthesizedLocalKind.SwitchCasePatternMatching : SynthesizedLocalKind.LoweringTemp;
+                        var kind = _generateSequencePoints ? SynthesizedLocalKind.SwitchCasePatternMatching : SynthesizedLocalKind.LoweringTemp;
                         LocalSymbol temp = _factory.SynthesizedLocal(dagTemp.Type, syntax: _node, kind: kind);
                         result = _factory.Local(temp);
                         _map.Add(dagTemp, result);
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
             {
                 TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
-                var operatorType = Binder.RelationalOperatorType(comparisonType.SpecialType);
+                var operatorType = Binder.RelationalOperatorType(comparisonType);
                 Debug.Assert(operatorType != BinaryOperatorKind.Error);
                 var operatorKind = BinaryOperatorKind.Equal | operatorType;
                 return MakeRelationalTest(syntax, input, operatorKind, value);

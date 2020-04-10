@@ -14,9 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private const string UseEditorConfigUrl = "https://go.microsoft.com/fwlink/?linkid=866541";
 
         public CodeStyleNoticeTextBlock()
-        {
-            InitializeComponent();
-        }
+            => InitializeComponent();
 
         public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
         public static string CodeStylePageHeader => ServicesVSResources.Code_style_header_use_editor_config;

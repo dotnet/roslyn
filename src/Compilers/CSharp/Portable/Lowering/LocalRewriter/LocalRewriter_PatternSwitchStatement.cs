@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
-            protected override bool IsSwitchStatement => true;
+            protected override bool GenerateSequencePoints => true;
 
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
@@ -97,6 +97,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Evaluate the input and set up sharing for dag temps with user variables
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result, out _);
+
+                // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
+                // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
+                // the decision dag do not appear to jump back up to the enclosing construct.
+                if (GenerateSequencePoints)
+                {
+                    // Since there may have been no code to evaluate the input, add a no-op for any previous sequence point to bind to.
+                    if (result.Count == 0)
+                        result.Add(_factory.NoOp(NoOpStatementFlavor.Default));
+
+                    result.Add(_factory.HiddenSequencePoint());
+                }
 
                 // lower the decision dag.
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =

@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)
-            {
-                return _treeData.GetTextBetween(token1, token2);
-            }
+                => _treeData.GetTextBetween(token1, token2);
 
             public override int GetOriginalColumn(int tabSize, SyntaxToken token)
             {

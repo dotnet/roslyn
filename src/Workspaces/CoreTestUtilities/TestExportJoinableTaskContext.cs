@@ -125,9 +125,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             private readonly JoinableTaskFactory _joinableTaskFactory;
 
             public JoinableTaskFactoryTaskScheduler(JoinableTaskFactory joinableTaskFactory)
-            {
-                _joinableTaskFactory = joinableTaskFactory;
-            }
+                => _joinableTaskFactory = joinableTaskFactory;
 
             public override int MaximumConcurrencyLevel => 1;
 

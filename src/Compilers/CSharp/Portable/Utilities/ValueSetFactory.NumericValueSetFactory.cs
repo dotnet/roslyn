@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.CodeGen;
-
 #nullable enable
+
+using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,66 +22,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public static readonly NumericValueSetFactory<T, TTC> Instance = new NumericValueSetFactory<T, TTC>();
 
-            private static readonly IValueSet<T> _all = new NumericValueSet<T, TTC>(Interval.Included.Instance);
-
             private NumericValueSetFactory() { }
 
             public IValueSet<T> Related(BinaryOperatorKind relation, T value)
             {
                 TTC tc = default;
-                return new NumericValueSet<T, TTC>(RelatedInterval(relation, value, tc.MinValue, tc.MaxValue));
+                switch (relation)
+                {
+                    case LessThan:
+                        if (tc.Related(LessThanOrEqual, value, tc.MinValue))
+                            return NumericValueSet<T, TTC>.NoValues;
+                        return new NumericValueSet<T, TTC>(tc.MinValue, tc.Prev(value));
+                    case LessThanOrEqual:
+                        return new NumericValueSet<T, TTC>(tc.MinValue, value);
+                    case GreaterThan:
+                        if (tc.Related(GreaterThanOrEqual, value, tc.MaxValue))
+                            return NumericValueSet<T, TTC>.NoValues;
+                        return new NumericValueSet<T, TTC>(tc.Next(value), tc.MaxValue);
+                    case GreaterThanOrEqual:
+                        return new NumericValueSet<T, TTC>(value, tc.MaxValue);
+                    case Equal:
+                        return new NumericValueSet<T, TTC>(value, value);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(relation);
+                }
+            }
+
+            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
+                value.IsBad ? NumericValueSet<T, TTC>.AllValues : Related(relation, default(TTC).FromConstantValue(value));
+
+            public IValueSet Random(int expectedSize, Random random) =>
+                NumericValueSet<T, TTC>.Random(expectedSize, random);
+
+            ConstantValue IValueSetFactory.RandomValue(Random random)
+            {
+                var tc = default(TTC);
+                return tc.ToConstantValue(tc.Random(random));
             }
 
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
-                TTC tc = default;
+                var tc = default(TTC);
                 return tc.Related(relation, tc.FromConstantValue(left), tc.FromConstantValue(right));
             }
-
-            /// <summary>
-            /// Produce the interval underlying the representation of the result of <see cref="NumericValueSetFactory{T, TTC}"/>.
-            /// </summary>
-            /// <param name="minValue">the interval's minimum value, inclusive</param>
-            /// <param name="maxValue">the interval's maximum value, inclusive</param>
-            private static Interval RelatedInterval(BinaryOperatorKind relation, T value, T minValue, T maxValue)
-            {
-                TTC tc = default;
-                Debug.Assert(tc.Related(LessThanOrEqual, minValue, maxValue));
-                switch (relation)
-                {
-                    case Equal when tc.Related(LessThan, value, minValue):
-                        return Interval.Excluded.Instance;
-                    case Equal when tc.Related(GreaterThan, value, maxValue):
-                        return Interval.Excluded.Instance;
-                    case GreaterThan when tc.Related(LessThan, value, minValue):
-                        return Interval.Included.Instance;
-                    case GreaterThan when tc.Related(GreaterThanOrEqual, value, maxValue):
-                        return Interval.Excluded.Instance;
-                    case LessThan when tc.Related(LessThanOrEqual, value, minValue):
-                        return Interval.Excluded.Instance;
-                    case LessThan when tc.Related(GreaterThan, value, maxValue):
-                        return Interval.Included.Instance;
-                    case LessThanOrEqual when tc.Related(LessThan, value, minValue):
-                        return Interval.Excluded.Instance;
-                    case LessThanOrEqual when tc.Related(GreaterThanOrEqual, value, maxValue):
-                        return Interval.Included.Instance;
-                    case GreaterThanOrEqual when tc.Related(LessThanOrEqual, value, minValue):
-                        return Interval.Included.Instance;
-                    case GreaterThanOrEqual when tc.Related(GreaterThan, value, maxValue):
-                        return Interval.Excluded.Instance;
-                    default:
-                        if (tc.Related(Equal, minValue, maxValue))
-                            return tc.Related(relation, minValue, value) ? Interval.Included.Instance : Interval.Excluded.Instance;
-                        var (leftMax, rightMin) = tc.Partition(minValue, maxValue);
-                        return Interval.Mixed.Create(RelatedInterval(relation, value, minValue, leftMax), RelatedInterval(relation, value, rightMin, maxValue));
-                };
-            }
-
-            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value) =>
-                value.IsBad ? _all : Related(relation, default(TTC).FromConstantValue(value));
-
-            public IValueSet<T> Random(int expectedSize, Random random) =>
-                NumericValueSet<T, TTC>.Random(expectedSize, random);
         }
     }
 }

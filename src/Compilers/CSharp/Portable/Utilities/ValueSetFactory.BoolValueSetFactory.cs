@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IValueSet<bool> IValueSetFactory<bool>.Random(int expectedSize, Random random) => random.Next(4) switch
+            IValueSet IValueSetFactory.Random(int expectedSize, Random random) => random.Next(4) switch
             {
                 0 => BoolValueSet.None,
                 1 => BoolValueSet.OnlyFalse,
@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 3 => BoolValueSet.AllValues,
                 _ => throw ExceptionUtilities.UnexpectedValue("random"),
             };
+
+            ConstantValue IValueSetFactory.RandomValue(Random random) => ConstantValue.Create(random.NextDouble() < 0.5);
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
             {

@@ -45,14 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         }
 
         public CommandState GetCommandState(NavigateToNextHighlightedReferenceCommandArgs args)
-        {
-            return GetCommandStateImpl(args);
-        }
+            => GetCommandStateImpl(args);
 
         public CommandState GetCommandState(NavigateToPreviousHighlightedReferenceCommandArgs args)
-        {
-            return GetCommandStateImpl(args);
-        }
+            => GetCommandStateImpl(args);
 
         private CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
@@ -63,14 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         }
 
         public bool ExecuteCommand(NavigateToNextHighlightedReferenceCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandImpl(args, navigateToNext: true, context);
-        }
+            => ExecuteCommandImpl(args, navigateToNext: true, context);
 
         public bool ExecuteCommand(NavigateToPreviousHighlightedReferenceCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandImpl(args, navigateToNext: false, context);
-        }
+            => ExecuteCommandImpl(args, navigateToNext: false, context);
 
         private bool ExecuteCommandImpl(EditorCommandArgs args, bool navigateToNext, CommandExecutionContext context)
         {

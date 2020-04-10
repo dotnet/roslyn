@@ -18,23 +18,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeRefactorings
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorLayerCodeActionHelpersService(IInlineRenameService renameService)
-        {
-            _renameService = renameService;
-        }
+            => _renameService = renameService;
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new CodeActionHelpersService(this);
-        }
+            => new CodeActionHelpersService(this);
 
         private class CodeActionHelpersService : ICodeRefactoringHelpersService
         {
             private readonly EditorLayerCodeActionHelpersService _service;
 
             public CodeActionHelpersService(EditorLayerCodeActionHelpersService service)
-            {
-                _service = service;
-            }
+                => _service = service;
 
             public bool ActiveInlineRenameSession
             {

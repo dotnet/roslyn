@@ -21,15 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             char INumericTC<char>.MaxValue => char.MaxValue;
 
-            (char leftMax, char rightMin) INumericTC<char>.Partition(char min, char max)
-            {
-                Debug.Assert(min < max);
-                int half = (max - min) / 2;
-                char leftMax = (char)(min + half);
-                char rightMin = (char)(leftMax + 1);
-                return (leftMax, rightMin);
-            }
-
             bool INumericTC<char>.Related(BinaryOperatorKind relation, char left, char right)
             {
                 switch (relation)
@@ -65,6 +56,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     char.GetUnicodeCategory(c) switch { UnicodeCategory.Control => false, UnicodeCategory.OtherNotAssigned => false, UnicodeCategory.Surrogate => false, _ => true };
                 return isPrintable ? $"'{c}'" : $"\\u{(int)c:X4}";
             }
+
+            char INumericTC<char>.Prev(char value)
+            {
+                Debug.Assert(value != char.MinValue);
+                return (char)(value - 1);
+            }
+
+            char INumericTC<char>.Random(Random random)
+            {
+                return (char)random.Next((int)char.MinValue, 1 + (int)char.MaxValue);
+            }
+
+            ConstantValue INumericTC<char>.ToConstantValue(char value) => ConstantValue.Create(value);
         }
     }
 }

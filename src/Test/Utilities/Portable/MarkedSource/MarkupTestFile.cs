@@ -211,6 +211,7 @@ namespace Roslyn.Test.Utilities
             Parse(input, out output, out cursorPositionOpt, out var dictionary);
 
             var builder = GetOrAdd(dictionary, string.Empty, _ => ArrayBuilder<TextSpan>.GetInstance());
+            builder.Sort((left, right) => left.Start - right.Start);
             spans = builder.ToImmutableAndFree();
         }
 

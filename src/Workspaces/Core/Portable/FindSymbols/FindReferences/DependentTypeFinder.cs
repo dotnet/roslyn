@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly RelatedTypeCache s_typeToTransitivelyImplementingStructuresClassesAndInterfacesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToImmediatelyDerivedAndImplementingTypesMap = new RelatedTypeCache();
 
-        public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesFromCacheOrComputeAsync(
-            INamedTypeSymbol type,
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesFromCacheOrComputeAsync(
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
             RelatedTypeCache cache,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Do a quick lookup first to avoid the allocation.  If it fails, go through the
             // slower allocating path.
-            var key = (type.GetSymbolKey(), projects);
+            var key = (type.Symbol.GetSymbolKey(), projects);
             if (!dictionary.TryGetValue(key, out var lazy))
             {
                 lazy = dictionary.GetOrAdd(key,
@@ -134,15 +134,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
         public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedClassesAsync(
-            INamedTypeSymbol type,
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
                 type, solution, projects: null,
                 cache: s_typeToImmediatelyDerivedClassesMap,
-                findAsync: c => FindDerivedClassesAsync(
-                    SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
+                findAsync: c => FindDerivedClassesAsync(type, solution, projects: null,
                     transitive: false, cancellationToken: c),
                 cancellationToken: cancellationToken);
         }
@@ -151,16 +150,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync(SymbolAndProjectId{INamedTypeSymbol}, Solution, IImmutableSet{Project}, CancellationToken)"/>, which is a publically callable method.
         /// </summary>
         public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyDerivedClassesAsync(
-            INamedTypeSymbol type,
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
                 type, solution, projects, s_typeToTransitivelyDerivedClassesMap,
-                c => FindDerivedClassesAsync(
-                    SymbolAndProjectId.Create(type, projectId: null), solution, projects,
-                    transitive: true, cancellationToken: c),
+                c => FindDerivedClassesAsync(type, solution, projects, transitive: true, c),
                 cancellationToken);
         }
 
@@ -195,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <see cref="INamedTypeSymbol"/>s
         /// </summary>
         public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingStructuresAndClassesAsync(
-            INamedTypeSymbol type,
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
@@ -212,7 +209,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <see cref="INamedTypeSymbol"/>s
         /// </summary>
         public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(
-            INamedTypeSymbol type,
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
@@ -224,21 +221,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingStructuresClassesAndInterfacesWorkerAsync(
-            INamedTypeSymbol type,
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             return FindDerivedAndImplementingTypesAsync(
-                SymbolAndProjectId.Create(type, projectId: null), solution, projects,
-                transitive: true, cancellationToken: cancellationToken);
+                type, solution, projects, transitive: true, cancellationToken);
         }
 
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
         public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedAndImplementingTypesAsync(
-            INamedTypeSymbol type,
+            SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -246,8 +242,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 type, solution, projects: null,
                 cache: s_typeToImmediatelyDerivedAndImplementingTypesMap,
                 findAsync: c => FindDerivedAndImplementingTypesAsync(
-                    SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
-                    transitive: false, cancellationToken: c),
+                    type, solution, projects: null, transitive: false, c),
                 cancellationToken: cancellationToken);
         }
 
@@ -845,8 +840,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolAndProjectIdSet CreateSymbolAndProjectIdSet()
-        {
-            return s_setPool.Allocate();
-        }
+            => s_setPool.Allocate();
     }
 }

@@ -269,9 +269,7 @@ namespace Microsoft.CodeAnalysis
         /// True if the solution contains a project with the specified project ID.
         /// </summary>
         public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId)
-        {
-            return projectId != null && _projectIdToProjectStateMap.ContainsKey(projectId);
-        }
+            => projectId != null && _projectIdToProjectStateMap.ContainsKey(projectId);
 
         /// <summary>
         /// True if the solution contains the document in one of its projects
@@ -352,14 +350,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public Task<VersionStamp> GetDependentVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            return this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
-        }
+            => this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
 
         public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
-        {
-            return this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
-        }
+            => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
 
         public ProjectState? GetProjectState(ProjectId projectId)
         {
@@ -402,9 +396,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out CompilationTracker? tracker)
-        {
-            return _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
-        }
+            => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
         private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
 
@@ -617,7 +609,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(newProject, new CompilationTranslationAction.ProjectAssemblyNameAction(assemblyName));
+            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectAssemblyNameAction(assemblyName));
         }
 
         /// <summary>
@@ -714,7 +706,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(newProject, new CompilationTranslationAction.ProjectCompilationOptionsAction(options));
+            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(options));
         }
 
         /// <summary>
@@ -739,7 +731,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
             }
         }
 
@@ -751,9 +743,7 @@ namespace Microsoft.CodeAnalysis
         /// until then, this will explicitly fork current solution snapshot
         /// </summary>
         internal SolutionState WithProjectOptionsChanged(ProjectId projectId)
-        {
-            return ForkProject(GetRequiredProjectState(projectId));
-        }
+            => ForkProject(GetRequiredProjectState(projectId));
 
         /// <summary>
         /// Create a new solution instance with the project specified updated to have
@@ -865,7 +855,8 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(newProject, newDependencyGraph: _dependencyGraph.WithProjectReferences(projectId, projectReferences));
+            var newDependencyGraph = _dependencyGraph.WithProjectReferences(projectId, projectReferences);
+            return ForkProject(newProject, newDependencyGraph: newDependencyGraph);
         }
 
         /// <summary>
@@ -894,7 +885,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return this.ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
         }
 
         /// <summary>
@@ -952,9 +943,9 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include the
         /// specified analyzer references.
         /// </summary>
-        public SolutionState AddAnalyzerReferences(ProjectId projectId, IReadOnlyCollection<AnalyzerReference> analyzerReferences)
+        public SolutionState AddAnalyzerReferences(ProjectId projectId, ImmutableArray<AnalyzerReference> analyzerReferences)
         {
-            if (analyzerReferences.Count == 0)
+            if (analyzerReferences.Length == 0)
             {
                 return this;
             }
@@ -963,7 +954,9 @@ namespace Microsoft.CodeAnalysis
             var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
             var newReferences = oldReferences.AddRange(analyzerReferences);
 
-            return ForkProject(oldProject.WithAnalyzerReferences(newReferences));
+            return ForkProject(
+                oldProject.WithAnalyzerReferences(newReferences),
+                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences));
         }
 
         /// <summary>
@@ -980,7 +973,9 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(oldProject.WithAnalyzerReferences(newReferences));
+            return ForkProject(
+                oldProject.WithAnalyzerReferences(newReferences),
+                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference)));
         }
 
         /// <summary>
@@ -1007,19 +1002,19 @@ namespace Microsoft.CodeAnalysis
         {
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions),
-                (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationTranslationAction.AddDocumentsAction(documents)));
+                (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddDocumentsAction(documents)));
         }
 
         /// <summary>
         /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
         /// </summary>
         /// <param name="documentInfos">The set of documents to add.</param>
-        /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="CompilationTranslationAction"/> needed as well.</param>
+        /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added, and the <see cref="CompilationAndGeneratorDriverTranslationAction"/> needed as well.</param>
         /// <returns></returns>
         private SolutionState AddDocumentsToMultipleProjects<T>(
             ImmutableArray<DocumentInfo> documentInfos,
             Func<DocumentInfo, ProjectState, T> createDocumentState,
-            Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationTranslationAction? translationAction)> addDocumentsToProjectState)
+            Func<ProjectState, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> addDocumentsToProjectState)
             where T : TextDocumentState
         {
             if (documentInfos.IsDefault)
@@ -1066,7 +1061,7 @@ namespace Microsoft.CodeAnalysis
         {
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => new TextDocumentState(documentInfo, _solutionServices),
-                (projectState, documents) => (projectState.AddAdditionalDocuments(documents), translationAction: null));
+                (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
         }
 
         public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
@@ -1078,7 +1073,7 @@ namespace Microsoft.CodeAnalysis
                 (oldProject, documents) =>
                 {
                     var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                    return (newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
                 });
         }
 
@@ -1089,7 +1084,7 @@ namespace Microsoft.CodeAnalysis
                 (oldProject, documentIds, _) =>
                 {
                     var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                    return (newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
                 });
         }
 
@@ -1100,13 +1095,13 @@ namespace Microsoft.CodeAnalysis
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
                 (projectState, documentId) => projectState.GetDocumentState(documentId)!,
-                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationTranslationAction.RemoveDocumentsAction(documentStates)));
+                (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
         }
 
         private SolutionState RemoveDocumentsFromMultipleProjects<T>(
             ImmutableArray<DocumentId> documentIds,
             Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
-            Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, CompilationTranslationAction? translationAction)> removeDocumentsFromProjectState)
+            Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, (ProjectState newState, CompilationAndGeneratorDriverTranslationAction translationAction)> removeDocumentsFromProjectState)
             where T : TextDocumentState
         {
             if (documentIds.IsEmpty)
@@ -1155,7 +1150,7 @@ namespace Microsoft.CodeAnalysis
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
                 (projectState, documentId) => projectState.GetAdditionalDocumentState(documentId)!,
-                (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), translationAction: null));
+                (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
         }
 
         /// <summary>
@@ -1384,7 +1379,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 newProject,
-                new CompilationTranslationAction.TouchDocumentAction(oldDocument, newDocument),
+                new CompilationAndGeneratorDriverTranslationAction.TouchDocumentAction(oldDocument, newDocument),
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
         }
 
@@ -1407,7 +1402,7 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            return ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
         }
 
         /// <summary>
@@ -1418,7 +1413,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private SolutionState ForkProject(
             ProjectState newProjectState,
-            CompilationTranslationAction? translate = null,
+            CompilationAndGeneratorDriverTranslationAction? translate = null,
             ProjectDependencyGraph? newDependencyGraph = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? newFilePathToDocumentIdsMap = null,
             bool forkTracker = true)
@@ -1455,12 +1450,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                return ImmutableArray.Create<DocumentId>();
+                return ImmutableArray<DocumentId>.Empty;
             }
 
             return _filePathToDocumentIdsMap.TryGetValue(filePath!, out var documentIds)
                 ? documentIds
-                : ImmutableArray.Create<DocumentId>();
+                : ImmutableArray<DocumentId>.Empty;
         }
 
         private static ProjectDependencyGraph CreateDependencyGraph(
@@ -1838,9 +1833,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
         public ProjectDependencyGraph GetProjectDependencyGraph()
-        {
-            return _dependencyGraph;
-        }
+            => _dependencyGraph;
 
         private void CheckNotContainsProject(ProjectId projectId)
         {
@@ -1869,17 +1862,6 @@ namespace Microsoft.CodeAnalysis
 
         internal bool ContainsTransitiveReference(ProjectId fromProjectId, ProjectId toProjectId)
             => _dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(fromProjectId).Contains(toProjectId);
-
-        internal bool IsInvalidSubmissionReference(ProjectId projectId, ProjectId toProjectId)
-        {
-            var projectState = GetRequiredProjectState(projectId);
-
-            // each submission project can only reference at most one other submission project (the previous submission)
-            return
-                projectState.IsSubmission &&
-                GetRequiredProjectState(toProjectId).IsSubmission &&
-                projectState.ProjectReferences.Any(p => GetRequiredProjectState(p.ProjectId).IsSubmission);
-        }
 
         internal ImmutableHashSet<string> GetProjectLanguages()
             => GetProjectLanguages(ProjectStates);
