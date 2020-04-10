@@ -6058,4 +6058,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureExtensionGetEnumerator" xml:space="preserve">
     <value>extension GetEnumerator</value>
   </data>
+  <data name="ERR_PatternStaticOrInaccessible" xml:space="preserve">
+    <value>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</value>
+  </data>
 </root>

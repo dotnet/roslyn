@@ -7870,7 +7870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the collection changed nested generic types we pick up those changes. ResultType should have been
                     // set by VisitForEachExpression, called just before this.
                     Debug.Assert(ResultType.Type.Equals(node.EnumeratorInfoOpt.CollectionType, TypeCompareKind.AllNullableIgnoreOptions)
-                        || node.EnumeratorInfoOpt.GetEnumeratorMethod.IsExtensionMethod); //TODO: Remove this once VisitForEachExpression has been updated
+                        || node.EnumeratorInfoOpt.GetEnumeratorMethod.IsExtensionMethod); //PROTOTYPE(extension-foreach): Remove this once VisitForEachExpression has been updated
                     var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(inferredCollectionType, node.EnumeratorInfoOpt.GetEnumeratorMethod);
                     var currentPropertyGetter = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
                     sourceType = currentPropertyGetter.ReturnTypeWithAnnotations;

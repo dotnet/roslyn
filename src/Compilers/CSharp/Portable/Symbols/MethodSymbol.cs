@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeSymbol GetParameterType(int index) => ParameterTypesWithAnnotations[index].Type;
 
         /// <summary>
-        /// default if no parameter is ref/out. Otherwise the RefKind for each parameter.
+        /// Null if no parameter is ref/out. Otherwise the RefKind for each parameter.
         /// </summary>
         internal ImmutableArray<RefKind> ParameterRefKinds
         {

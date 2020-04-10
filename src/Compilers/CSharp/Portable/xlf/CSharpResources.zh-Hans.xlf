@@ -392,6 +392,11 @@
         <target state="translated">两个分部方法声明必须都是只读声明，或者两者都不能是只读声明</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternStaticOrInaccessible">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">指针类型不允许进行模式匹配。</target>

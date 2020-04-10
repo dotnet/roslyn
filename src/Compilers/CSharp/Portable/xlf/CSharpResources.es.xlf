@@ -392,6 +392,11 @@
         <target state="translated">Ambas declaraciones de métodos parciales deben ser de solo lectura o ninguna de ellas puede ser de solo lectura</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternStaticOrInaccessible">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">No se permite la coincidencia de patrones para tipos de puntero.</target>

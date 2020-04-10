@@ -392,6 +392,11 @@
         <target state="translated">部分メソッド宣言は、両方とも readonly であるか、両方とも readonly でないかのいずれかである必要があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternStaticOrInaccessible">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">ポインター型でパターン マッチングを使用することはできません。</target>

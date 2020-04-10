@@ -392,6 +392,11 @@
         <target state="translated">Либо оба объявления разделяемого метода должны иметь модификатор readonly, либо ни одно из них не должно иметь модификатор readonly.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternStaticOrInaccessible">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">Сопоставление шаблонов запрещено для типов указателей.</target>

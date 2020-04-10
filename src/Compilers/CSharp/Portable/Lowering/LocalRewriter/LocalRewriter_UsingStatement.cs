@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ImmutableArray.Create(expression)
                 : ImmutableArray<BoundExpression>.Empty;
 
-            Debug.Assert(!(method.IsExtensionMethod && !method.ParameterRefKinds.IsDefaultOrEmpty && method.ParameterRefKinds[0] == RefKind.Ref));
+            Debug.Assert(!method.IsExtensionMethod || method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] != RefKind.Ref);
 
             BoundExpression disposeCall = MakeCall(syntax: syntax,
                 rewrittenReceiver: receiver,

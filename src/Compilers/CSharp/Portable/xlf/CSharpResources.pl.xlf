@@ -392,6 +392,11 @@
         <target state="translated">Obie metody częściowe muszą być zadeklarowane jako readonly lub żadna nie może być zadeklarowana jako readonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternStaticOrInaccessible">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">Dopasowanie wzorca jest niedozwolone dla typów wskaźnika.</target>

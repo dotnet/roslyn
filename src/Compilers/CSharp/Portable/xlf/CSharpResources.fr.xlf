@@ -392,6 +392,11 @@
         <target state="translated">Soit les deux déclarations de méthodes partielles sont readonly, soit aucune ne l'est</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternStaticOrInaccessible">
+        <source>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</source>
+        <target state="new">'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">Les critères spéciaux ne sont pas autorisés pour les types de pointeur.</target>
