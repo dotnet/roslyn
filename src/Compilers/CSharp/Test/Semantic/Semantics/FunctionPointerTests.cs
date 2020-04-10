@@ -1035,7 +1035,6 @@ unsafe class C
     {
         delegate*<string, void>[] ptr1 = null;
         delegate*<object, void>[] ptr2 = null;
-        delegate* cdecl<string, void>[] ptr3 = null;
         SubstitutedStatic2(ptr1, ptr1);
         SubstitutedStatic2(ptr1, ptr2);
 
