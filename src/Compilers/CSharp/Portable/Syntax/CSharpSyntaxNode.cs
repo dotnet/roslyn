@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (child.ContainsDirectives)
                 {
-                    if (child.IsNode)
+                    if (child.IsNode) // TODO2
                     {
                         var d = child.AsNode()!.GetLastDirective(predicate);
                         if (d != null)

@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis
         /// Attaches the node to a SyntaxTree that the same options as <paramref name="oldTree"/>
         /// </summary>
         [return: NotNullIfNotNull("node")]
-        internal static SyntaxNode? AsRootOfNewTreeWithOptionsFrom(this SyntaxNode node, SyntaxTree oldTree)
+        internal static SyntaxNode? AsRootOfNewTreeWithOptionsFrom(this SyntaxNode? node, SyntaxTree oldTree)
         {
             return node != null ? oldTree.WithRootAndOptions(node, oldTree.Options).GetRoot() : null;
         }
