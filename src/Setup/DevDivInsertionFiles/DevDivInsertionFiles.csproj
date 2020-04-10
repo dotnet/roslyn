@@ -101,7 +101,7 @@
       <_Dependency Remove="System.ValueTuple"/>
     -->
     <ItemGroup>
-      <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.')) and %(Identity) != 'Microsoft.VisualStudio.LanguageServer.Protocol'"/>
+      <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.')) and '%(Identity)' != 'Microsoft.VisualStudio.LanguageServer.Protocol'"/>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('System.Composition.'))"/>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.Internal.VisualStudio.'))"/>
       <_Dependency Remove="EnvDTE"/>
