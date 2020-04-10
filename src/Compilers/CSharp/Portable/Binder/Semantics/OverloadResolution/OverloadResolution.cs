@@ -323,9 +323,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(funcPtrBuilder.Count == 1);
+            Debug.Assert(funcPtrBuilder[0].Arity == 0);
             var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
 
-            // PROTOTYPE(func-ptr): Handle dynamic
             AddMemberToCandidateSet(
                 funcPtrBuilder[0],
                 overloadResolutionResult.ResultsBuilder,
