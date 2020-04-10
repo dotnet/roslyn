@@ -23,7 +23,7 @@ Param (
 )
 
 $DotNetInstallScriptRoot = "$PSScriptRoot/../obj/tools"
-if (!(Test-Path $DotNetInstallScriptRoot)) { New-Item -ItemType Directory -Path $DotNetInstallScriptRoot | Out-Null }
+if (!(Test-Path $DotNetInstallScriptRoot)) { New-Item -ItemType Directory -Path $DotNetInstallScriptRoot -WhatIf:$false | Out-Null }
 $DotNetInstallScriptRoot = Resolve-Path $DotNetInstallScriptRoot
 
 # Look up actual required .NET Core SDK version from global.json
