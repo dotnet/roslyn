@@ -56,6 +56,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return False
         End Function
 
+        Friend Overrides Function IsAcceptedOutAttributeModifierType(type As TypeSymbol) As Boolean
+            ' VB doesn't deal with ref-readonly parameters, function pointers, or return-types.
+            Return False
+        End Function
+
         Friend Overrides Function IsAcceptedUnmanagedTypeModifierType(type As TypeSymbol) As Boolean
             ' VB doesn't deal with unmanaged generic type constraints
             Return False

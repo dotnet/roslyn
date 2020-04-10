@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis
 
                 case SignatureTypeCode.FunctionPointer:
                     var signatureHeader = ppSig.ReadSignatureHeader();
-                    var parameters = DecodeSignatureParametersOrThrow(ref ppSig, signatureHeader, typeParameterCount: out int typeParamCount, shouldProcessAllBytes: false);
+                    var parameters = DecodeSignatureParametersOrThrow(ref ppSig, signatureHeader, typeParameterCount: out int typeParamCount, shouldProcessAllBytes: false, allowOutAttributeForParams: true);
 
                     if (typeParamCount != 0)
                     {
@@ -725,6 +725,9 @@ namespace Microsoft.CodeAnalysis
 
                     switch (allowedRequiredModifierType)
                     {
+                        case AllowedRequiredModifierType.System_Runtime_InteropServices_InOrOutAttribute:
+                            isAllowed = IsAcceptedInAttributeModifierType(type) || IsAcceptedOutAttributeModifierType(type);
+                            break;
                         case AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute:
                             isAllowed = IsAcceptedInAttributeModifierType(type);
                             break;
@@ -1187,11 +1190,13 @@ tryAgain:
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
-        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info)
+        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info, bool allowOutAttribute = false)
         {
             info.CustomModifiers = DecodeModifiersOrThrow(
                 ref signatureReader,
-                AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute,
+                allowOutAttribute
+                 ? AllowedRequiredModifierType.System_Runtime_InteropServices_InOrOutAttribute
+                 : AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute,
                 out SignatureTypeCode typeCode,
                 out bool inAttributeFound);
 
@@ -1867,7 +1872,7 @@ tryAgain:
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount, bool shouldProcessAllBytes = true)
+        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount, bool shouldProcessAllBytes = true, bool allowOutAttributeForParams = false)
         {
             int paramCount;
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out paramCount, out typeParameterCount);
@@ -1885,7 +1890,7 @@ tryAgain:
                 for (paramIndex = 1; paramIndex <= paramCount; paramIndex++)
                 {
                     // Figure out the type.
-                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex]);
+                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex], allowOutAttributeForParams);
                 }
 
                 if (shouldProcessAllBytes && signatureReader.RemainingBytes > 0)
@@ -2477,6 +2482,7 @@ tryAgain:
             System_Runtime_CompilerServices_Volatile,
             System_Runtime_InteropServices_InAttribute,
             System_Runtime_InteropServices_UnmanagedType,
+            System_Runtime_InteropServices_InOrOutAttribute,
         }
     }
 }

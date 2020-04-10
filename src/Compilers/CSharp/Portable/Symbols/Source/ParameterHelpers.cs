@@ -79,7 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
                                         DiagnosticBag diagnostics) =>
                 {
-                    ImmutableArray<CustomModifier> customModifiers = ConditionallyCreateInModifiers(refKind, addRefReadOnlyModifier, binder, diagnostics, syntax);
+                    Debug.Assert(addRefReadOnlyModifier, "If addReadonlyRef isn't true, we must have found a different location to encode the readonlyness of a function pointer");
+                    ImmutableArray<CustomModifier> customModifiers = refKind switch
+                    {
+                        RefKind.In => CreateInModifiers(binder, diagnostics, syntax),
+                        RefKind.Out => CreateOutModifiers(binder, diagnostics, syntax),
+                        _ => ImmutableArray<CustomModifier>.Empty
+                    };
 
                     if (parameterType.IsVoidType())
                     {
@@ -701,7 +707,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax);
+            return CreateModifiers(WellKnownType.System_Runtime_InteropServices_InAttribute, binder, diagnostics, syntax);
+        }
+
+        internal static ImmutableArray<CustomModifier> CreateOutModifiers(Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            return CreateModifiers(WellKnownType.System_Runtime_InteropServices_OutAttribute, binder, diagnostics, syntax);
+        }
+
+        private static ImmutableArray<CustomModifier> CreateModifiers(WellKnownType modifier, Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            var modifierType = binder.GetWellKnownType(modifier, diagnostics, syntax);
             return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
         }
     }

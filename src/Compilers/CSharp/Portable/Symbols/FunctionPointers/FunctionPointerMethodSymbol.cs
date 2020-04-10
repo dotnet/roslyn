@@ -305,11 +305,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static RefKind getRefKind(ParamInfo<TypeSymbol> param, ImmutableArray<CustomModifier> paramRefCustomMods, RefKind hasInRefKind)
             {
-                // PROTOTYPE(func-ptr): Need to encode out params as a custom modifier of some kind
                 return param.IsByRef switch
                 {
                     false => RefKind.None,
                     true when CustomModifierUtils.HasInAttributeModifier(paramRefCustomMods) => hasInRefKind,
+                    true when CustomModifierUtils.HasOutAttributeModifier(paramRefCustomMods) => RefKind.Out,
                     true => RefKind.Ref,
                 };
             }

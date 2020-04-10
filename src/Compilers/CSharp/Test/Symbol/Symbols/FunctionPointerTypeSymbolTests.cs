@@ -629,7 +629,7 @@ class C
         }
 
         [Fact]
-        public void NoInAttribute_NoInParameter()
+        public void NoInOutAttribute_NoInOutParameter()
         {
             var comp = CreateFunctionPointerCompilation(@"
 class C
@@ -638,23 +638,28 @@ class C
 }");
 
             comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_OutAttribute);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void NoInAttribute_InParameter()
+        public void NoInOutAttribute_InOutParameter()
         {
             var comp = CreateFunctionPointerCompilation(@"
 class C
 {
-    unsafe void M(delegate*<in string, void> p1) {}
+    unsafe void M(delegate*<in string, out string, void> p1) {}
 }");
 
             comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_OutAttribute);
             comp.VerifyDiagnostics(
-                    // (4,29): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
-                    //     void M(delegate*<in string, void> p1) {}
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in string").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 29));
+                // (4,29): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                //     unsafe void M(delegate*<in string, out string, void> p1) {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in string").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 29),
+                // (4,40): error CS0518: Predefined type 'System.Runtime.InteropServices.OutAttribute' is not defined or imported
+                //     unsafe void M(delegate*<in string, out string, void> p1) {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "out string").WithArguments("System.Runtime.InteropServices.OutAttribute").WithLocation(4, 40));
         }
 
         [Fact]

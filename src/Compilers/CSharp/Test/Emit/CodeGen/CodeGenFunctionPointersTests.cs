@@ -93,6 +93,28 @@ class C
         }
 
         [Fact]
+        public void OutParameters()
+        {
+            var comp = CompileAndVerifyFunctionPointers(@"
+class C
+{
+    public unsafe void M(delegate*<out C, out string, ref int[]> param1) => throw null;
+}", symbolValidator: symbolValidator);
+
+            static void symbolValidator(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var m = c.GetMethod("M");
+                var funcPtr = m.ParameterTypesWithAnnotations[0].Type;
+
+                VerifyFunctionPointerSymbol(funcPtr, CallingConvention.Default,
+                    (RefKind.Ref, IsArrayType(IsSpecialType(SpecialType.System_Int32))),
+                    (RefKind.Out, IsTypeName("C")),
+                    (RefKind.Out, IsSpecialType(SpecialType.System_String)));
+            }
+        }
+
+        [Fact]
         public void NestedFunctionPointers()
         {
             var comp = CompileAndVerifyFunctionPointers(@"
@@ -2611,8 +2633,55 @@ unsafe class C
 ");
         }
 
+        [Theory]
+        [InlineData("in")]
+        [InlineData("ref")]
+        public void AddressOf_Initializer_Overloads(string refType)
+        {
+            var verifier = CompileAndVerifyFunctionPointers($@"
+using System;
+unsafe class C
+{{
+    static void M(object o) => Console.Write(""object"" + o.ToString());
+    static void M(string s) => Console.Write(""string"" + s);
+    static void M({refType} string s) {{ Console.Write(""{refType}"" + s); }}
+    static void M(int i) => Console.Write(""int"" + i.ToString());
+    static void Main()
+    {{
+        delegate*<string, void> ptr = &M;
+        ptr(""1"");
+        string s = ""2"";
+        delegate*<{refType} string, void> ptr2 = &M;
+        ptr2({refType} s);
+    }}
+}}", expectedOutput: $"string1{refType}2");
+
+            verifier.VerifyIL("C.Main()", expectedIL: $@"
+{{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (string V_0, //s
+                delegate*<string,void> V_1,
+                delegate*<{refType} string,void> V_2)
+  IL_0000:  ldftn      ""void C.M(string)""
+  IL_0006:  stloc.1
+  IL_0007:  ldstr      ""1""
+  IL_000c:  ldloc.1
+  IL_000d:  calli      ""delegate*<string,void>""
+  IL_0012:  ldstr      ""2""
+  IL_0017:  stloc.0
+  IL_0018:  ldftn      ""void C.M({refType} string)""
+  IL_001e:  stloc.2
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.2
+  IL_0022:  calli      ""delegate*<{refType} string,void>""
+  IL_0027:  ret
+}}
+");
+        }
+
         [Fact]
-        public void AddressOf_Initializer_Overloads()
+        public void AddressOf_Initializer_Overloads_Out()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
@@ -2620,26 +2689,40 @@ unsafe class C
 {
     static void M(object o) => Console.Write(""object"" + o.ToString());
     static void M(string s) => Console.Write(""string"" + s);
+    static void M(out string s) { s = ""2""; }
     static void M(int i) => Console.Write(""int"" + i.ToString());
     static void Main()
     {
         delegate*<string, void> ptr = &M;
         ptr(""1"");
+        delegate*<out string, void> ptr2 = &M;
+        ptr2(out string s);
+        Console.Write(s);
     }
-}", expectedOutput: "string1");
+}", expectedOutput: $"string12");
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {
-  // Code size       19 (0x13)
+  // Code size       40 (0x28)
   .maxstack  2
-  .locals init (delegate*<string,void> V_0)
+  .locals init (string V_0, //s
+                delegate*<string,void> V_1,
+                delegate*<out string,void> V_2)
   IL_0000:  ldftn      ""void C.M(string)""
-  IL_0006:  stloc.0
+  IL_0006:  stloc.1
   IL_0007:  ldstr      ""1""
-  IL_000c:  ldloc.0
+  IL_000c:  ldloc.1
   IL_000d:  calli      ""delegate*<string,void>""
-  IL_0012:  ret
-}");
+  IL_0012:  ldftn      ""void C.M(out string)""
+  IL_0018:  stloc.2
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldloc.2
+  IL_001c:  calli      ""delegate*<out string,void>""
+  IL_0021:  ldloc.0
+  IL_0022:  call       ""void System.Console.Write(string)""
+  IL_0027:  ret
+}
+");
         }
 
         [Fact]
@@ -4492,6 +4575,16 @@ unsafe class C
             Assert.Equal(expectedConvention, signature.CallingConvention);
 
             Assert.Equal(returnVerifier.RefKind, signature.RefKind);
+            switch (signature.RefKind)
+            {
+                case RefKind.Out:
+                    Assert.True(false, $"Cannot have a return ref kind of {signature.RefKind}");
+                    break;
+
+                case RefKind.RefReadOnly:
+                    Assert.True(CustomModifierUtils.HasInAttributeModifier(signature.RefCustomModifiers));
+                    break;
+            }
             returnVerifier.TypeVerifier(signature.ReturnType);
 
             Assert.Equal(argumentVerifiers.Length, signature.ParameterCount);
@@ -4499,6 +4592,16 @@ unsafe class C
             {
                 Assert.Equal(argumentVerifiers[i].RefKind, signature.Parameters[i].RefKind);
                 argumentVerifiers[i].TypeVerifier(signature.Parameters[i].Type);
+                switch (signature.RefKind)
+                {
+                    case RefKind.Out:
+                        Assert.True(CustomModifierUtils.HasOutAttributeModifier(signature.RefCustomModifiers));
+                        break;
+
+                    case RefKind.In:
+                        Assert.True(CustomModifierUtils.HasInAttributeModifier(signature.RefCustomModifiers));
+                        break;
+                }
             }
         }
 
