@@ -5,9 +5,7 @@
 #nullable enable
 
 using System;
-using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,7 +25,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             private readonly ArrayBuilder<DateAndTimeItem> _items;
             private readonly TextSpan _replacementSpan;
 
+            /// <summary>
+            /// The portion of the user string token prior to the section we're replacing.  Used for building the
+            /// example format to present.
+            /// </summary>
             private readonly string _userFormatPrefix;
+
+            /// <summary>
+            /// The portion of the user string token after to the section we're replacing.  Used for building the
+            /// example format to present.
+            /// </summary>
             private readonly string _userFormatSuffix;
 
             public EmbeddedCompletionContext(
@@ -46,6 +53,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
                 _replacementSpan = TextSpan.FromBounds(startPosition, context.Position);
 
+                (_userFormatPrefix, _userFormatSuffix) = GetUserFormatParts(virtualChars, startPosition, context.Position);
+            }
+
+            private static (string prefix, string suffix) GetUserFormatParts(
+                VirtualCharSequence virtualChars, int startPosition, int endPosition)
+            {
                 virtualChars = virtualChars.IsDefault ? VirtualCharSequence.Empty : virtualChars;
 
                 using var _1 = PooledStringBuilder.GetInstance(out var prefix);
@@ -54,12 +67,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 {
                     if (ch.Span.End <= startPosition)
                         ch.AppendTo(prefix);
-                    else if (ch.Span.Start >= context.Position)
+                    else if (ch.Span.Start >= endPosition)
                         ch.AppendTo(suffix);
                 }
 
-                _userFormatPrefix = prefix.ToString();
-                _userFormatSuffix = suffix.ToString();
+                return (prefix.ToString(), suffix.ToString());
             }
 
             private void AddExamples(ArrayBuilder<string> examples, bool standard, string displayText)
