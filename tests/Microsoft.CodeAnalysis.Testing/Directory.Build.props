@@ -34,7 +34,8 @@
   <!-- Provide default versions for NUnit -->
   <PropertyGroup>
     <NUnitVersion Condition="'$(NUnitVersion)' == ''">3.12.0</NUnitVersion>
-    <NUnit3TestAdapterVersion Condition="'$(NUnit3TestAdapterVersion)' == ''">$(NUnitVersion)</NUnit3TestAdapterVersion>
+    <NUnit3TestAdapterVersion Condition="'$(NUnit3TestAdapterVersion)' == ''">3.15.1</NUnit3TestAdapterVersion>
+    <NUnitConsoleRunnerVersion Condition="'$(NUnitConsoleRunnerVersion)' == ''">3.11.1</NUnitConsoleRunnerVersion>
   </PropertyGroup>
 
   <!-- Import specialized props files of supported test runners -->
