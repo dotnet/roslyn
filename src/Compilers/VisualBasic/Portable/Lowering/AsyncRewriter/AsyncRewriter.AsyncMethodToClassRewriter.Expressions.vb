@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim builder As New SpillBuilder()
 
                 Debug.Assert(left.IsLValue)
-                Dim spilledLeft As BoundExpression = SpillLValue(left, isReceiver:=True, evaluateSideEffects:=True, builder:=builder, isAssignmentTarget:=True)
+                Dim spilledLeft As BoundExpression = SpillLValue(left, isReceiver:=False, evaluateSideEffects:=True, builder:=builder, isAssignmentTarget:=True)
 
                 Dim rightAsSpillSequence = DirectCast(right, BoundSpillSequence)
                 builder.AddSpill(rightAsSpillSequence)
