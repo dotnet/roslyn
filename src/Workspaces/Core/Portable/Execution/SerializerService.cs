@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly ITemporaryStorageService _storageService;
         private readonly ITextFactoryService _textService;
-        private readonly IDocumentationProviderService _documentationService;
+        private readonly IDocumentationProviderService? _documentationService;
         private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
 
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             _storageService = workspaceServices.GetRequiredService<ITemporaryStorageService>();
             _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
             _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-            _documentationService = workspaceServices.GetRequiredService<IDocumentationProviderService>();
+            _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
 
             _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
         }
