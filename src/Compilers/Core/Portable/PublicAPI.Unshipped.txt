@@ -2,6 +2,7 @@ Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, 
 Microsoft.CodeAnalysis.CommandLineSourceFile.IsInputRedirected.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.Suppression.Equals(Microsoft.CodeAnalysis.Diagnostics.Suppression other) -> bool
 Microsoft.CodeAnalysis.Compilation.CreateNativeIntegerTypeSymbol(bool signed) -> Microsoft.CodeAnalysis.INamedTypeSymbol
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.Equals(Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference other) -> bool
 Microsoft.CodeAnalysis.GeneratorAttribute
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute() -> void
 Microsoft.CodeAnalysis.GeneratorDriver

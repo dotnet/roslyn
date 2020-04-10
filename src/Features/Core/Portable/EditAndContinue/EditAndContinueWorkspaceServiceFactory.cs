@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -44,7 +43,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new EditAndContinueWorkspaceService(
                 workspaceServices.Workspace,
                 workspaceServices.Workspace.Services.GetRequiredService<IActiveStatementTrackingService>(),
-                workspaceServices.Workspace.Services.GetRequiredService<ICompilationOutputsProviderService>(),
                 _diagnosticService,
                 _diagnosticUpdateSource,
                 _activeStatementProviderOpt,
