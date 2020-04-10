@@ -289,7 +289,38 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 // For disambiguating [|] and [|}, assume that the start and end tags are behaving like a stack
                 Debug.Assert(startPositionsBuilder.Count > endPositionsBuilder.Count, "Assertion failed: startPositionsBuilder.Count > endPositionsBuilder.Count");
-                return startPositionsBuilder[startPositionsBuilder.Count - endPositionsBuilder.Count - 1];
+
+                var stackDepth = 0;
+                var startPositionIndex = startPositionsBuilder.Count - 1;
+                var endPositionIndex = endPositionsBuilder.Count - 1;
+                while (true)
+                {
+                    if (endPositionIndex < 0)
+                    {
+                        // The are no more end tags. Pop the ones remaining on the stack and return the last remaining
+                        // start tag.
+                        return startPositionsBuilder[startPositionIndex - stackDepth];
+                    }
+
+                    if (startPositionsBuilder[startPositionIndex].inputPosition > endPositionsBuilder[endPositionIndex].inputPosition)
+                    {
+                        if (stackDepth == 0)
+                        {
+                            // Reached an unmatched start tag.
+                            return startPositionsBuilder[startPositionIndex];
+                        }
+
+                        // "pop" the start tag off the stack
+                        stackDepth--;
+                        startPositionIndex--;
+                    }
+                    else
+                    {
+                        // "push" the end tag onto the stack
+                        stackDepth++;
+                        endPositionIndex--;
+                    }
+                }
             }
         }
 
