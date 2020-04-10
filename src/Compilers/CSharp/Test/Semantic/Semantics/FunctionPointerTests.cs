@@ -1731,5 +1731,31 @@ public class C
                 Diagnostic(ErrorCode.WRN_CLS_BadArgType, "m").WithArguments("delegate*<void>").WithLocation(9, 43)
             );
         }
+
+        [Fact]
+        public void CannotMakeFunctionPointerConst()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    const delegate*<void> field = null;
+    public static void M()
+    {
+        const delegate*<void> local = null;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0283: The type 'delegate*<void>' cannot be declared const
+                //     const delegate*<void> field = null;
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("delegate*<void>").WithLocation(4, 5),
+                // (4,35): error CS0133: The expression being assigned to 'C.field' must be constant
+                //     const delegate*<void> field = null;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "null").WithArguments("C.field").WithLocation(4, 35),
+                // (7,15): error CS0283: The type 'delegate*<void>' cannot be declared const
+                //         const delegate*<void> local = null;
+                Diagnostic(ErrorCode.ERR_BadConstType, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(7, 15)
+            );
+        }
     }
 }

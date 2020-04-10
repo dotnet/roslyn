@@ -1001,6 +1001,12 @@ tryAgain:
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
                 // TypeDefOrRefOrSpec encoded
+                // From the PortablePDB spec: https://github.com/dotnet/runtime/blob/master/src/libraries/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#localconstant-table-0x34
+                // The encoding of the GeneralValue is determined based upon the type expressed by TypeDefOrRefOrSpecEncoded
+                // specified in GeneralConstant. GeneralValue for special types listed in the table below has to be present
+                // and is encoded as specified.
+                // If the GeneralValue is not present the value of the constant is the default value of the type. If the type 
+                // is a reference type the value is a null reference, if the type is a pointer type the value is a null pointer, etc.
                 bool refersToNoPiaLocalType;
                 type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out refersToNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
 
@@ -1014,8 +1020,9 @@ tryAgain:
                 }
                 else if (sigReader.RemainingBytes == 0)
                 {
-                    // default(T)
-                    value = (type.IsReferenceType || type.TypeKind == TypeKind.Pointer) ? ConstantValue.Null : ConstantValue.Bad;
+                    // Note: even though the PortablePDB spec permits constants of pointer types, C# does not, so those
+                    // should only ever been if the PDB being decoded is a custom-assembled PDB for non-legal C#.
+                    value = (type.IsReferenceType || type.TypeKind == TypeKind.Pointer || type.TypeKind == TypeKind.FunctionPointer) ? ConstantValue.Null : ConstantValue.Bad;
                 }
                 else
                 {
