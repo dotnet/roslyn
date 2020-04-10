@@ -575,14 +575,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var updatedConfigurationParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
                 var realParameters = declarationSymbol.GetParameters();
-
                 var bonusParameters = realParameters.Skip(originalConfigurationParameters.Length);
 
-                originalConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
-                updatedConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
+                var compensatedOriginalConfigurationParameters = originalConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
+                var compensatedUpdatedConfigurationParameters = updatedConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
 
-                var newOriginalParameters = ParameterConfiguration.Create(originalConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
-                var newUpdatedParams = ParameterConfiguration.Create(updatedConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
+                var newOriginalParameters = ParameterConfiguration.Create(compensatedOriginalConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
+                var newUpdatedParams = ParameterConfiguration.Create(compensatedUpdatedConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
                 updatedSignature = new SignatureChange(newOriginalParameters, newUpdatedParams);
             }
 
