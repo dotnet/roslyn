@@ -32,16 +32,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private struct SymbolToProjectId
         {
-            /// <summary>
-            /// Weak cache from a <see cref="Compilation"/> to the ID of the <see cref="Project"/> it was created from.
-            /// Only used for mapping a <see cref="Project"/>'s <see cref="Compilation.GlobalNamespace"/> back.  These
-            /// <see cref="INamespaceSymbol"/>'s do not belong to a <see cref="IAssemblySymbol"/> or <see
-            /// cref="IModuleSymbol"/> and thus cannot be tracked with <see
-            /// cref="CompilationTracker.State.CompilationAssembliesAndModules"/>.
-            /// </summary>
-            private static readonly ConditionalWeakTable<Compilation, ProjectId> s_compilationToProjectId
-                = new ConditionalWeakTable<Compilation, ProjectId>();
-
             private readonly SolutionState _solutionState;
 
             /// <summary>
@@ -85,10 +75,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (ns.ContainingCompilation != null)
                     {
-                        // A namespace that spans a compilation.  These don't belong to an assembly/module. However, we
-                        // can map their compilation directly 
-                        s_compilationToProjectId.TryGetValue(ns.ContainingCompilation, out var projectId);
-                        return projectId;
+                        // A namespace that spans a compilation.  These don't belong to an assembly/module directly.
+                        // However, as we're looking for the project this corresponds to, we can look for the
+                        // source-module component (the first in the constituent namespaces) and then search using that.
+                        return GetExactProjectId(ns.ConstituentNamespaces[0]);
                     }
                 }
                 else if (symbol.IsKind(SymbolKind.Assembly) ||
@@ -123,12 +113,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return null;
-            }
-
-            public void RecordCompilation(Compilation compilation, ProjectId id)
-            {
-                if (!s_compilationToProjectId.TryGetValue(compilation, out _))
-                    s_compilationToProjectId.Add(compilation, id);
             }
         }
     }

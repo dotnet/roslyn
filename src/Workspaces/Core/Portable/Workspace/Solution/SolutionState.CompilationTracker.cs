@@ -744,10 +744,6 @@ namespace Microsoft.CodeAnalysis
 
                     RecordSourceOfAssemblySymbol(symbol, projectId);
                 }
-
-                // Record which project this compilation came from.  That way we can easily map back to it when given a
-                // compilation for a compilation-namespace in the future.
-                solutionState._symbolToProjectId.RecordCompilation(compilation, this.ProjectState.Id);
             }
 
             /// <summary>
