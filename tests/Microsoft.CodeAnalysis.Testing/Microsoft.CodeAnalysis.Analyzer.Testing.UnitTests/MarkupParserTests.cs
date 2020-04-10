@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
-        public void CDataMarkup()
+        public void CDataMarkup1()
         {
             var markup = "{|X:[|<![CDATA[|]|}text[|]]>|]";
             var expected = "<![CDATA[text]]>";
@@ -291,6 +291,24 @@ namespace Microsoft.CodeAnalysis.Testing
 
             Assert.True(spans.TryGetValue("X", out var named));
             Assert.Equal(new[] { new TextSpan(0, 9) }, named);
+
+            Assert.True(spans.TryGetValue(string.Empty, out var unnamed));
+            Assert.Equal(new[] { new TextSpan(0, 9), new TextSpan(13, 3) }, unnamed);
+        }
+
+        [Fact]
+        public void CDataMarkup2()
+        {
+            var markup = @"[|<![CDATA[|]text{|X:[|]]>|]|}";
+            var expected = @"<![CDATA[text]]>";
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            Assert.Equal(expected, result);
+
+            Assert.Empty(positions);
+            Assert.Equal(2, spans.Count);
+
+            Assert.True(spans.TryGetValue("X", out var named));
+            Assert.Equal(new[] { new TextSpan(13, 3) }, named);
 
             Assert.True(spans.TryGetValue(string.Empty, out var unnamed));
             Assert.Equal(new[] { new TextSpan(0, 9), new TextSpan(13, 3) }, unnamed);
