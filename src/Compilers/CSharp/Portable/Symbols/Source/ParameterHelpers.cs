@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 allowRefOrOut: true,
                 allowThis: false,
-                // PROTOTYPE(func-ptr): Investigate if cases where this can be false for regular parameters applies to func pointers as well
                 addRefReadOnlyModifier: true,
                 suppressUseSiteDiagnostics,
                 parametersList.Count - 2,
