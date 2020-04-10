@@ -905,8 +905,7 @@ unsafe class C
             Assert.Equal(TypeKind.TypeParameter, functionPointer.Signature.ReturnType.TypeKind);
             Assert.Equal(TypeKind.TypeParameter, functionPointer.Signature.Parameters[0].Type.TypeKind);
 
-            var m2DeclarationSyntax = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Skip(1).Single();
-            var declaredSymbol = (IMethodSymbol)model.GetDeclaredSymbol(m2DeclarationSyntax)!;
+            var declaredSymbol = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMethod("M2").ISymbol;
             Assert.True(declaredSymbol.TypeParameters[0].Equals(functionPointer.Signature.ReturnType, TypeCompareKind.ConsiderEverything));
             Assert.True(declaredSymbol.TypeParameters[0].Equals(functionPointer.Signature.Parameters[0].Type, TypeCompareKind.ConsiderEverything));
         }
@@ -1082,6 +1081,142 @@ unsafe class C
         }
 
         [Fact]
+        public void NoBestTypeArrayInitializer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public static void M()
+    {
+        delegate*<string, void>[] ptr1 = null;
+        delegate*<ref string, void>[] ptr2 = null;
+        delegate*<int, void>[] ptr3 = null;
+        delegate* cdecl<string, void>[] ptr4 = null;
+        var arr1 = new[] { ptr1, ptr2 };
+        var arr2 = new[] { ptr1, ptr3 };
+        var arr3 = new[] { ptr1, ptr4 };
+
+        delegate*<string>[] ptr5 = null;
+        delegate*<ref string>[] ptr6 = null;
+        delegate*<int>[] ptr7 = null;
+        delegate* cdecl<string>[] ptr8 = null;
+        var arr4 = new[] { ptr5, ptr6 };
+        var arr5 = new[] { ptr5, ptr7 };
+        var arr6 = new[] { ptr5, ptr8 };
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (10,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr1 = new[] { ptr1, ptr2 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr1, ptr2 }").WithLocation(10, 20),
+                // (11,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr2 = new[] { ptr1, ptr3 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr1, ptr3 }").WithLocation(11, 20),
+                // (12,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr3 = new[] { ptr1, ptr4 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr1, ptr4 }").WithLocation(12, 20),
+                // (18,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr4 = new[] { ptr5, ptr6 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr5, ptr6 }").WithLocation(18, 20),
+                // (19,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr5 = new[] { ptr5, ptr7 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr5, ptr7 }").WithLocation(19, 20),
+                // (20,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr6 = new[] { ptr5, ptr8 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr5, ptr8 }").WithLocation(20, 20)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<ImplicitArrayCreationExpressionSyntax>()
+                                      .Select(s => model.GetTypeInfo(s).Type.ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+                "?[]",
+                "?[]",
+                "?[]",
+                "?[]",
+                "?[]",
+                "?[]"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void NoBestTypeConditional()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public static void M(bool b)
+    {
+        delegate*<string, void>[] ptr1 = null;
+        delegate*<ref string, void>[] ptr2 = null;
+        delegate*<int, void>[] ptr3 = null;
+        delegate* cdecl<string, void>[] ptr4 = null;
+        _ = b ? ptr1 : ptr2;
+        _ = b ? ptr1 : ptr3;
+        _ = b ? ptr1 : ptr4;
+
+        delegate*<string>[] ptr5 = null;
+        delegate*<ref string>[] ptr6 = null;
+        delegate*<int>[] ptr7 = null;
+        delegate* cdecl<string>[] ptr8 = null;
+        _ = b ? ptr5 : ptr6;
+        _ = b ? ptr5 : ptr7;
+        _ = b ? ptr5 : ptr8;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (10,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string,void>[]' and 'delegate*<ref string,void>[]'
+                //         _ = b ? ptr1 : ptr2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr2").WithArguments("delegate*<string,void>[]", "delegate*<ref string,void>[]").WithLocation(10, 13),
+                // (11,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string,void>[]' and 'delegate*<int,void>[]'
+                //         _ = b ? ptr1 : ptr3;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string,void>[]", "delegate*<int,void>[]").WithLocation(11, 13),
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string,void>[]' and 'delegate*<string,void>[]'
+                //         _ = b ? ptr1 : ptr4;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string,void>[]", "delegate*<string,void>[]").WithLocation(12, 13),
+                // (18,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
+                //         _ = b ? ptr5 : ptr6;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr6").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(18, 13),
+                // (19,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<int>[]'
+                //         _ = b ? ptr5 : ptr7;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>[]", "delegate*<int>[]").WithLocation(19, 13),
+                // (20,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
+                //         _ = b ? ptr5 : ptr8;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(20, 13)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<ConditionalExpressionSyntax>()
+                                      .Select(s => model.GetTypeInfo(s).Type.ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+                "?",
+                "?",
+                "?",
+                "?",
+                "?",
+                "?"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
         public void BestTypeInferrerInvertingVariance()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -1105,6 +1240,74 @@ unsafe class C
                 //         I<delegate*<object, void>[]>[] iArr = new[] { i1, i2 }; 
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { i1, i2 }").WithLocation(12, 47)
             );
+        }
+
+        [Fact]
+        public void MergeVariantAnnotations()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+unsafe class C
+{
+    void M(bool b)
+    {
+        delegate*<string> ptr1 = null;
+        delegate*<string?> ptr2 = null;
+        delegate*<ref string> ptr3 = null;
+        delegate*<ref string?> ptr4 = null;
+        _ = b ? ptr1 : ptr2;
+        _ = b ? ptr1 : ptr3;
+        _ = b ? ptr1 : ptr4;
+        _ = b ? ptr3 : ptr4;
+
+        delegate*<string> ptr5 = null;
+        delegate*<string?> ptr6 = null;
+        delegate*<ref string> ptr7 = null;
+        delegate*<ref string?> ptr8 = null;
+        _ = b ? ptr5 : ptr6;
+        _ = b ? ptr5 : ptr7;
+        _ = b ? ptr5 : ptr8;
+        _ = b ? ptr7 : ptr8;
+    }
+}");
+
+            // Implicit pointer conversions are not currently handled, ptr3/4 and ptr7/8 should warn: https://github.com/dotnet/roslyn/issues/39865
+            comp.VerifyDiagnostics(
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string>'
+                //         _ = b ? ptr1 : ptr3;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(12, 13),
+                // (13,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string?>'
+                //         _ = b ? ptr1 : ptr4;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string>", "delegate*<string?>").WithLocation(13, 13),
+                // (21,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string>'
+                //         _ = b ? ptr5 : ptr7;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(21, 13),
+                // (22,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string?>'
+                //         _ = b ? ptr5 : ptr8;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>", "delegate*<string?>").WithLocation(22, 13)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<ConditionalExpressionSyntax>()
+                                      .Select(s => model.GetTypeInfo(s).Type.ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+               "delegate*<System.String?>",
+               "?",
+               "?",
+               "delegate*<System.String>",
+               "delegate*<System.String?>",
+               "?",
+               "?",
+               "delegate*<System.String>"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
         }
     }
 }

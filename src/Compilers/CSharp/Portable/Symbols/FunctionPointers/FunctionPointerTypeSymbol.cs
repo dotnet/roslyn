@@ -30,8 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => new FunctionPointerTypeSymbol(
                 FunctionPointerMethodSymbol.CreateFromMetadata(callingConvention, retAndParamTypes));
 
-        public FunctionPointerTypeSymbol SubstituteTypeSymbol(TypeWithAnnotations substitutedReturnType, ImmutableArray<TypeWithAnnotations> substitutedParameterTypes)
-            => new FunctionPointerTypeSymbol(Signature.SubstiteParameterSymbols(substitutedReturnType, substitutedParameterTypes));
+        public FunctionPointerTypeSymbol SubstituteTypeSymbol(
+            TypeWithAnnotations substitutedReturnType,
+            ImmutableArray<TypeWithAnnotations> substitutedParameterTypes,
+            ImmutableArray<CustomModifier> refCustomModifiers,
+            ImmutableArray<ImmutableArray<CustomModifier>> paramRefCustomModifiers)
+            => new FunctionPointerTypeSymbol(Signature.SubstiteParameterSymbols(substitutedReturnType, substitutedParameterTypes, refCustomModifiers, paramRefCustomModifiers));
 
         public static (CallingConvention Convention, bool IsValid) GetCallingConvention(string convention) =>
             convention switch
@@ -132,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
-            Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Debug.Assert(this.Equals(other, TypeCompareKind.AllIgnoreOptions));
             var mergedSignature = Signature.MergeEquivalentTypes(((FunctionPointerTypeSymbol)other).Signature, variance);
             if ((object)mergedSignature != Signature)
             {

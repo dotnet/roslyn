@@ -237,12 +237,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private FunctionPointerTypeSymbol SubstituteFunctionPointerType(FunctionPointerTypeSymbol f)
         {
-            ImmutableArray<TypeWithAnnotations> substitutedParamTypes = SubstituteTypes(f.Signature.ParameterTypesWithAnnotations);
             var substitutedReturnType = f.Signature.ReturnTypeWithAnnotations.SubstituteType(this);
+            var refCustomModifiers = f.Signature.RefCustomModifiers;
+            var substitutedRefCustomModifiers = SubstituteCustomModifiers(refCustomModifiers);
 
-            if (substitutedParamTypes != f.Signature.ParameterTypesWithAnnotations || !f.Signature.ReturnTypeWithAnnotations.IsSameAs(substitutedReturnType))
+            var parameterTypesWithAnnotations = f.Signature.ParameterTypesWithAnnotations;
+            ImmutableArray<TypeWithAnnotations> substitutedParamTypes = SubstituteTypes(parameterTypesWithAnnotations);
+
+            ImmutableArray<ImmutableArray<CustomModifier>> substitutedParamModifiers = default;
+
+            var paramCount = f.Signature.Parameters.Length;
+            if (paramCount > 0)
             {
-                f = f.SubstituteTypeSymbol(substitutedReturnType, substitutedParamTypes);
+                var builder = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(paramCount);
+                bool didSubstitute = false;
+                foreach (var param in f.Signature.Parameters)
+                {
+                    var substituted = SubstituteCustomModifiers(param.RefCustomModifiers);
+                    builder.Add(substituted);
+                    if (substituted != param.RefCustomModifiers)
+                    {
+                        didSubstitute = true;
+                    }
+                }
+
+                if (didSubstitute)
+                {
+                    substitutedParamModifiers = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    builder.Free();
+                }
+            }
+
+            if (substitutedParamTypes != parameterTypesWithAnnotations
+                || !substitutedParamModifiers.IsDefault
+                || !f.Signature.ReturnTypeWithAnnotations.IsSameAs(substitutedReturnType)
+                || substitutedRefCustomModifiers != refCustomModifiers)
+            {
+                f = f.SubstituteTypeSymbol(substitutedReturnType, substitutedParamTypes, refCustomModifiers, substitutedParamModifiers);
             }
 
             return f;
