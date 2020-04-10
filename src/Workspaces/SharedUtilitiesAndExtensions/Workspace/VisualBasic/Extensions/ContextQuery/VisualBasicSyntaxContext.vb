@@ -100,7 +100,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInImportsDirective:=isInImportsDirective,
                 isWithinAsyncMethod:=IsWithinAsyncMethod(targetToken, cancellationToken),
                 isPossibleTupleContext:=isPossibleTupleContext,
-                isPatternContext:=False,
+                isStartPatternContext:=False,
+                isAfterPatternContext:=False,
                 isRightSideOfNumericType:=False,
                 isOnArgumentListBracketOrComma:=isInArgumentList,
                 cancellationToken:=cancellationToken)

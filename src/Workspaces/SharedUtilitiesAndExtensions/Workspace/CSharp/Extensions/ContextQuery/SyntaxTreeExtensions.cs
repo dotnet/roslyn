@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -1256,7 +1257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsPatternContext(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
+        public static bool IsStartPatternContext(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
         {
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
@@ -1285,6 +1286,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // e is { ..., P: $$
             if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon) &&
                 leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsAfterPatternContext(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
+        {
+            leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // e is 1 $$
+            if (leftToken.Parent.IsParentKind(SyntaxKind.ConstantPattern))
             {
                 return true;
             }
@@ -1853,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsConstantExpressionContext(this SyntaxTree syntaxTree, int position,
             SyntaxToken tokenOnLeftOfPosition)
         {
-            if (IsPatternContext(syntaxTree, tokenOnLeftOfPosition, position))
+            if (IsStartPatternContext(syntaxTree, tokenOnLeftOfPosition, position))
             {
                 return true;
             }
