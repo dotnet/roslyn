@@ -553,6 +553,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void WithProjectCompilationOutputFilePaths()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var path = "\0<>a/b/*.dll";
+
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectCompilationOutputFilePaths(projectId, value),
+                s => s.GetProject(projectId)!.CompilationOutputFilePaths,
+                new CompilationOutputFilePaths(path),
+                defaultThrows: false);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputFilePaths(null!, new CompilationOutputFilePaths("x.dll")));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputFilePaths(ProjectId.CreateNewId(), new CompilationOutputFilePaths("x.dll")));
+        }
+
+        [Fact]
         public void WithProjectDefaultNamespace()
         {
             var projectId = ProjectId.CreateNewId();
