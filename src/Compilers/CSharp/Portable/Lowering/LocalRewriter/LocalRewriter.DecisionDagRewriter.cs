@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// A utility class that is used to scan a when clause to determine if it might assign a variable,
-            /// directly or indirectly. Used to determine if we can skip the allocation of pattern-matching
-            /// temporary variables and use user-declared variables instead, because we can conclude that they
-            /// are not mutated while the pattern-matching automaton is running.
+            /// A utility class that is used to scan a when clause to determine if it might assign a pattern variable
+            /// declared in that case, directly or indirectly. Used to determine if we can skip the allocation of
+            /// pattern-matching temporary variables and use user-declared pattern variables instead, because we can
+            /// conclude that they are not mutated by a when clause while the pattern-matching automaton is running.
             /// </summary>
-            protected sealed class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+            protected sealed class WhenClauseMightAssignPatternVariableWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
                 private bool _mightAssignSomething;
 
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // in a different section via the use of a local function), so we need to analyze all
                 // of the when clauses to see if they are all simple enough to conclude that they do
                 // not mutate pattern variables.
-                var mightAssignWalker = new WhenClauseMightAssignWalker();
+                var mightAssignWalker = new WhenClauseMightAssignPatternVariableWalker();
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
                     .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));

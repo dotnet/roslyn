@@ -383,11 +383,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression savedInputExpression)
             {
                 Debug.Assert(loweredInput.Type is { });
+
+                // We share input variables if there is no when clause (because a when clause might mutate them).
+                bool anyWhenClause =
+                    !decisionDag.TopologicallySortedNodes
+                    .Any(node => node is BoundWhenDecisionDagNode w && w.WhenExpression != null && w.WhenExpression.ConstantValue == null);
+
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
-                    && loweredInput.GetRefKind() == RefKind.None)
+                    && loweredInput.GetRefKind() == RefKind.None &&
+                    !anyWhenClause)
                 {
-                    // If we're switching on a local variable and there is no when clause (checked by the caller),
+                    // If we're switching on a local variable and there is no when clause,
                     // we assume the value of the local variable does not change during the execution of the
                     // decision automaton and we just reuse the local variable when we need the input expression.
                     // It is possible for this assumption to be violated by a side-effecting Deconstruct that
@@ -425,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (though perhaps its component parts are used), then we can save the component parts
                     // and assign them into temps (or perhaps user variables) to avoid the creation of
                     // the tuple altogether.
-                    decisionDag = RewriteTupleInput(decisionDag, expr, addCode, out savedInputExpression);
+                    decisionDag = RewriteTupleInput(decisionDag, expr, addCode, !anyWhenClause, out savedInputExpression);
                 }
                 else
                 {
@@ -476,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundDecisionDag decisionDag,
                 BoundObjectCreationExpression loweredInput,
                 Action<BoundExpression> addCode,
+                bool canShareInputs,
                 out BoundExpression savedInputExpression)
             {
                 int count = loweredInput.Arguments.Length;
@@ -504,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void storeToTemp(BoundDagTemp temp, BoundExpression expr)
                 {
-                    if ((expr.Kind == BoundKind.Parameter || expr.Kind == BoundKind.Local) && _tempAllocator.TrySetTemp(temp, expr))
+                    if (canShareInputs && (expr.Kind == BoundKind.Parameter || expr.Kind == BoundKind.Local) && _tempAllocator.TrySetTemp(temp, expr))
                     {
                         // we've arranged to use the input value from the variable it is already stored in
                     }

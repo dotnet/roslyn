@@ -3408,6 +3408,40 @@ struct S : I
         }
 
         [Fact]
+        public void DoNotShareTempMutatedThroughLambda_01()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        S s = new S(1);
+        Func<bool> condition = () => { s = new S(10); return false; };
+        Console.Write(s switch
+        {
+            { N: 1 } when condition() => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+    }
+}
+struct S
+{
+    public readonly int N;
+    public int Q => N;
+
+    public S(int n) => N = n;
+}
+";
+            var expectedOutput = "2";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void New9PatternsSemanticModel_01()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
