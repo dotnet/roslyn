@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
     public class FindAllReferencesHandlerTests : AbstractLanguageServerProtocolTests
     {
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
         public async Task TestFindAllReferencesAsync()
         {
             var markup =
@@ -46,7 +46,7 @@ class B
             AssertValidDefinitionProperties(results, 0);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
         public async Task TestFindAllReferencesAsync_MultipleDocuments()
         {
             var markups = new string[] {
@@ -95,7 +95,7 @@ class B
             Assert.Empty(results);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
         public async Task TestFindAllReferencesMetadataDefinitionAsync()
         {
             var markup =

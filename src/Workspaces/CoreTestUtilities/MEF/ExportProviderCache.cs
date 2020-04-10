@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

@@ -141,6 +141,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static INamedTypeSymbol? TupleElementNamesAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName!);
 
+        public static INamedTypeSymbol? NativeIntegerAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.NativeIntegerAttribute");
+
         public static INamedTypeSymbol? DynamicAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DynamicAttribute).FullName!);
 

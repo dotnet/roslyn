@@ -83,6 +83,32 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Dumps the stack trace of the exception and the handler to the console. This is useful
+        /// for debugging unit tests that hit a fatal exception
+        /// </summary>
+        [Conditional("DEBUG")]
+        private static void DumpStackTrace(Exception exception)
+        {
+            Console.WriteLine("Dumping info before call to failfast");
+            Console.WriteLine("Exception info");
+
+            for (Exception? current = exception; current is object; current = current!.InnerException)
+            {
+                Console.WriteLine(current.Message);
+                Console.WriteLine(current.StackTrace);
+                current = current.InnerException;
+            }
+
+#if !NET20 && !NETSTANDARD1_3
+            Console.WriteLine("Stack trace of handler");
+            var stackTrace = new StackTrace();
+            Console.WriteLine(stackTrace.ToString());
+#endif
+
+            Console.Out.Flush();
+        }
+
+        /// <summary>
         /// Checks for the given <paramref name="condition"/>; if the <paramref name="condition"/> is <c>true</c>, 
         /// immediately terminates the process without running any pending <c>finally</c> blocks or finalizers
         /// and causes a crash dump to be collected (if the system is configured to do so). 

@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, emittedName.FullName, conflicts.Item1, conflicts.Item2);
                         }
 
-                        result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName, errorInfo, type);
+                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type, errorInfo);
                     }
                     else
                     {
@@ -522,6 +522,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute, diagnostics, location, modifyCompilation);
         }
 
+        internal void EnsureNativeIntegerAttributeExists(DiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute, diagnostics, location, modifyCompilation);
+        }
+
         internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, DiagnosticBag? diagnosticsOpt, Location locationOpt)
         {
             switch (attribute)
@@ -548,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
 
                 case EmbeddableAttributes.NullableAttribute:
-                    // Note: if the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need
+                    // If the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need.
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
@@ -569,6 +574,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         locationOpt,
                         WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor);
+
+                case EmbeddableAttributes.NativeIntegerAttribute:
+                    // If the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need.
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
+                        WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);
@@ -699,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RoslynDebug.Assert((object)booleanType != null);
                 var transformFlags = DynamicTransformsEncoder.Encode(type, refKindOpt, customModifiersCount, booleanType);
                 var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeWithAnnotations.Create(booleanType));
-                var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, transformFlags));
+                var arguments = ImmutableArray.Create(new TypedConstant(boolArray, transformFlags));
                 return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
             }
         }
@@ -896,11 +910,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static void HandleCustomModifiers(int customModifiersCount, ArrayBuilder<bool> transformFlagsBuilder)
             {
-                for (int i = 0; i < customModifiersCount; i++)
+                // Native compiler encodes an extra transforms flag, always false, for each custom modifier.
+                transformFlagsBuilder.AddMany(false, customModifiersCount);
+            }
+        }
+
+        internal static class NativeIntegerTransformsEncoder
+        {
+            internal static ImmutableArray<TypedConstant> Encode(TypeSymbol type, TypeSymbol booleanType)
+            {
+                var builder = ArrayBuilder<bool>.GetInstance();
+                type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested), builder);
+                Debug.Assert(builder.Any());
+                Debug.Assert(builder.Contains(true));
+
+                var result = builder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
+                builder.Free();
+                return result;
+            }
+
+            private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> builder, bool isNestedNamedType)
+            {
+                switch (type.TypeKind)
                 {
-                    // Native compiler encodes an extra transforms flag, always false, for each custom modifier.
-                    transformFlagsBuilder.Add(false);
+                    case TypeKind.Array:
+                    case TypeKind.Pointer:
+                    case TypeKind.TypeParameter:
+                    case TypeKind.Dynamic:
+                        builder.Add(false);
+                        break;
+                    case TypeKind.Class:
+                    case TypeKind.Struct:
+                    case TypeKind.Interface:
+                    case TypeKind.Delegate:
+                    case TypeKind.Enum:
+                    case TypeKind.Error:
+                        // For nested named types, a single false is encoded for the entire type name, followed by flags for all of the type arguments.
+                        if (!isNestedNamedType)
+                        {
+                            builder.Add(type.IsNativeIntegerType);
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
                 }
+
+                // Continue walking types
+                return false;
             }
         }
 
