@@ -315,21 +315,21 @@ class MyClass
 }";
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(1),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
+                AddedParameterOrExistingIndex.CreateAdded("byte", "b", "34"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
 using System;
 
 class MyClass2 : MyClass
 {
-    public MyClass2() : base(""test2"", x: 5, b: 34)
+    public MyClass2() : base(""test2"", 34, 5)
     {
     }
 }
 
 class MyClass
 {
-    public MyClass() : this(""test"", x: 2, b: 34)
+    public MyClass() : this(""test"", 34, 2)
     {
     }
 
@@ -362,7 +362,7 @@ class MyAttribute : System.Attribute
                 new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "b", "34"), "byte"),
                 new AddedParameterOrExistingIndex(0)};
             var updatedCode = @"
-[My(8, x: ""test"", b: 34)]
+[My(8, 34, ""test"")]
 class MyClass
 {
 }
@@ -603,8 +603,8 @@ class Program
 {
     void M()
     {
-        var x = new Program()[2, x: 1, b: 34];
-        new Program()[2, x: 1, b: 34] = x;
+        var x = new Program()[2, 34, 1];
+        new Program()[2, 34, 1] = x;
     }
 
     public int this[int y, byte b, int x]
