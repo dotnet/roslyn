@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedNode.IsKind(SyntaxKind.DelegateDeclaration))
             {
                 var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
-                if (!updatedLeadingTrivia.IsEmpty)
+                if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
                 {
                     updatedNode = updatedNode.WithLeadingTrivia(updatedLeadingTrivia);
                 }
