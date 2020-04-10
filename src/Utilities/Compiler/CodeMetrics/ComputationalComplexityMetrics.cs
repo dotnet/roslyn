@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         /// <summary>The total number of operator usages found.</summary>
         public long TotalOperators           //N1
-        { get; private set; }
+        { get; }
 
         /// <summary>The total number of operand usages found.</summary>
         public long TotalOperands            //N2
