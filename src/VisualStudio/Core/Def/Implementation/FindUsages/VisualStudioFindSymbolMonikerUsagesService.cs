@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             _codeIndexProvider = codeIndexProvider;
         }
 
-        public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMoniker(
+        public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMonikerAsync(
             DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers,
             IStreamingProgressTracker progress, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
