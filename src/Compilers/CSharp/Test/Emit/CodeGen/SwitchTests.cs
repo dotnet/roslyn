@@ -9112,6 +9112,7 @@ public class Program
             compVerifier = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "");
+            compVerifier.VerifyMemberInIL("Program..cctor", false);
             compVerifier.VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
 expectedIL: @"{
   // Code size      149 (0x95)
@@ -9311,14 +9312,6 @@ expectedIL: @"{
           <local name=""i"" il_index=""3"" il_start=""0x7c"" il_end=""0x89"" attributes=""0"" />
         </scope>
       </scope>
-    </method>
-    <method containingType=""Program"" name="".cctor"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""Main"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""27"" document=""1"" />
-      </sequencePoints>
     </method>
   </methods>
 </symbols>");

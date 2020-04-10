@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         //       but adds synthesized instance constructors, Roslyn adds both
                                         var method = (MethodSymbol)member;
                                         if (method.IsDefaultValueTypeConstructor() ||
+                                            (method is SynthesizedStaticConstructor && GetMethodBody(method) is null) ||
                                             method.IsPartialMethod() && (object)method.PartialImplementationPart == null)
                                         {
                                             break;

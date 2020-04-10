@@ -677,6 +677,7 @@ class Program
 
             var verifier = CompileAndVerify(new string[] { source }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
+            verifier.VerifyMemberInIL("Program..cctor", false);
         }
 
         [Fact]

@@ -277,7 +277,9 @@ class C
 }";
 
             var typeSymbol = CompileAndExtractTypeSymbol(source);
-            Assert.False(HasSynthesizedStaticConstructor(typeSymbol));
+
+            // Although we do not emit the synthesized static constructor, the source type symbol will still appear to have one
+            Assert.True(HasSynthesizedStaticConstructor(typeSymbol));
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 

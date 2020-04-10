@@ -1102,10 +1102,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Don't lower if we're not emitting or if there were errors. 
                 // Methods that had binding errors are considered too broken to be lowered reliably.
-                if (_moduleBeingBuiltOpt == null || hasErrors)
+                if (_moduleBeingBuiltOpt == null || hasErrors || isEmptySynthesizedStaticConstructor(processedInitializers.BoundInitializers))
                 {
                     _diagnostics.AddRange(actualDiagnostics);
                     return;
+                }
+
+                bool isEmptySynthesizedStaticConstructor(ImmutableArray<BoundInitializer> initializers)
+                {
+                    if (methodSymbol is SynthesizedStaticConstructor)
+                    {
+                        foreach (var initializer in initializers)
+                        {
+                            var value = (initializer as BoundFieldEqualsValue)?.Value;
+                            if (value is null)
+                            {
+                                continue;
+                            }
+
+                            var constantValue = value.ConstantValue;
+                            if (constantValue is null)
+                            {
+                                // a non-constant value was used in an initializer
+                                return false;
+                            }
+
+                            var defaultValue = value.Type.GetDefaultValue();
+                            if (constantValue != defaultValue)
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 // ############################
