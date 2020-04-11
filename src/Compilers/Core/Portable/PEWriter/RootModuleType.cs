@@ -5,7 +5,11 @@
 #nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -31,6 +35,49 @@ namespace Microsoft.Cci
             {
                 throw new InvalidOperationException();
             }
+
+            _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).ToImmutableArray();
+
+            // TODO: require deterministic order
+            _orderedModuleInitializerMethods = _moduleInitializerMethods.ToImmutableArray();
+        }
+
+        private ImmutableArray<IMethodDefinition> _orderedSynthesizedMethods;
+        private readonly ConcurrentDictionary<string, IMethodDefinition> _synthesizedMethods = new ConcurrentDictionary<string, Cci.IMethodDefinition>();
+
+        // Add a new synthesized method indexed by its name if the method isn't already present.
+        internal bool TryAddSynthesizedMethod(IMethodDefinition method)
+        {
+            Debug.Assert(!IsFrozen);
+#nullable disable // Can 'method.Name' be null? https://github.com/dotnet/roslyn/issues/39166
+            return _synthesizedMethods.TryAdd(method.Name, method);
+#nullable enable
+        }
+
+        internal IMethodDefinition? GetSynthesizedMethod(string name)
+        {
+            return _synthesizedMethods.TryGetValue(name, out var method) ? method : null;
+        }
+
+        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
+        {
+            Debug.Assert(IsFrozen);
+            return _orderedSynthesizedMethods;
+        }
+
+        private ImmutableArray<IMethodDefinition> _orderedModuleInitializerMethods;
+        private readonly ConcurrentBag<IMethodDefinition> _moduleInitializerMethods = new ConcurrentBag<IMethodDefinition>();
+
+        internal void AddModuleInitializerMethod(IMethodDefinition method)
+        {
+            Debug.Assert(!IsFrozen);
+            _moduleInitializerMethods.Add(method);
+        }
+
+        internal ImmutableArray<IMethodDefinition> GetModuleInitializerMethods()
+        {
+            Debug.Assert(IsFrozen);
+            return _orderedModuleInitializerMethods;
         }
 
         public TypeDefinitionHandle TypeDef => default;
@@ -80,8 +127,6 @@ namespace Microsoft.Cci
         public bool IsSealed => false;
 
         public LayoutKind Layout => LayoutKind.Auto;
-
-        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context) => SpecializedCollections.EmptyEnumerable<IMethodDefinition>();
 
         public IEnumerable<INestedTypeDefinition> GetNestedTypes(EmitContext context) => SpecializedCollections.EmptyEnumerable<INestedTypeDefinition>();
 

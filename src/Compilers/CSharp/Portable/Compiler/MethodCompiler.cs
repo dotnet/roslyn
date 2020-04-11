@@ -524,6 +524,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 hasStaticConstructor = true;
                             }
+
+                            if (_moduleBeingBuiltOpt is object && method is SourceMethodSymbolWithAttributes { MethodKind: MethodKind.Ordinary, IsModuleInitializer: true })
+                            {
+                                var rootModuleType = _moduleBeingBuiltOpt.RootModuleType;
+                                rootModuleType.AddModuleInitializerMethod(method);
+
+                                if (rootModuleType.GetSynthesizedMethod(WellKnownMemberNames.StaticConstructorName) is null)
+                                {
+                                    rootModuleType.TryAddSynthesizedMethod(
+                                        new SynthesizedRootModuleTypeStaticConstructor(rootModuleType, _moduleBeingBuiltOpt.SourceModule));
+                                }
+                            }
                             break;
                         }
 
