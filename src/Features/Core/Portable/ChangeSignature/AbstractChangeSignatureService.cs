@@ -688,16 +688,33 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     var pos = originalParameters.IndexOf(p => p is ExistingParameter ep && ep.Symbol.Equals(existingParameter.Symbol));
                     var param = list[pos];
 
-                    // copy whitespace trivia from original position
-                    param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
+                    if (index < list.Count)
+                    {
+                        param = TransferLeadingWhitespaceTrivia(param, list[index]);
+                    }
+                    else
+                    {
+                        param = param.WithLeadingTrivia();
+                    }
+
                     newParameters.Add(param);
                 }
                 else
                 {
                     // Added parameter
-                    numAddedParameters++;
                     var newParameter = createNewParameterMethod((AddedParameter)newParam);
+
+                    if (index < list.Count)
+                    {
+                        newParameter = TransferLeadingWhitespaceTrivia(newParameter, list[index]);
+                    }
+                    else
+                    {
+                        newParameter = newParameter.WithLeadingTrivia();
+                    }
+
                     newParameters.Add(newParameter);
+                    numAddedParameters++;
                 }
             }
 
@@ -732,7 +749,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected abstract SyntaxGenerator Generator { get; }
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-        protected SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
+        protected virtual SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
             ISymbol declarationSymbol,
             SeparatedSyntaxList<SyntaxNode> newArguments,
             SignatureChange signaturePermutation,

@@ -562,6 +562,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return newArgument;
         }
 
+        protected override SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
+            ISymbol declarationSymbol,
+            SeparatedSyntaxList<SyntaxNode> newArguments,
+            SignatureChange signaturePermutation,
+            bool isReducedExtensionMethod,
+            bool isParamsArrayExpanded,
+            bool generateAttributeArguments = false)
+        {
+            var newArgumentList = base.AddNewArgumentsToList(
+                declarationSymbol, newArguments, signaturePermutation,
+                isReducedExtensionMethod, isParamsArrayExpanded, generateAttributeArguments);
+
+            return SeparatedList(TransferLeadingWhitespaceTrivia(newArgumentList, newArguments), newArgumentList.GetSeparators());
+        }
+
         private SeparatedSyntaxList<AttributeArgumentSyntax> PermuteAttributeArgumentList(
             ISymbol declarationSymbol,
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
