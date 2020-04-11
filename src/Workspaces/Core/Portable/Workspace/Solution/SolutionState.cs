@@ -630,6 +630,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the compiler output file path.
+        /// </summary>
+        public SolutionState WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
+        {
+            var oldProject = GetRequiredProjectState(projectId);
+            var newProject = oldProject.WithCompilationOutputFilePaths(paths);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            return ForkProject(newProject);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the default namespace.
         /// </summary>
         public SolutionState WithProjectDefaultNamespace(ProjectId projectId, string? defaultNamespace)

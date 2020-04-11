@@ -131,8 +131,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        internal string? GetIntermediateOutputFilePath()
-            => _visualStudioProject.IntermediateOutputFilePath;
+        internal string? CompilationOutputAssemblyFilePath
+            => _visualStudioProject.CompilationOutputAssemblyFilePath;
 
         public ProjectId Id => _visualStudioProject.Id;
 

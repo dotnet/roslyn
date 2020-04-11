@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -79,5 +81,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         /// <c>var</c>).
         /// </summary>
         internal override bool RequiresLocalDeclarationType() => true;
+
+        internal override SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
+            => SyntaxFactory.InterpolatedStringExpression(startToken, SyntaxFactory.List(content.Cast<InterpolatedStringContentSyntax>()), endToken);
+
+        internal override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
+            => SyntaxFactory.InterpolatedStringText(textToken);
+
+        internal override SyntaxToken InterpolatedStringTextToken(string content)
+            => SyntaxFactory.Token(
+                SyntaxFactory.TriviaList(),
+                SyntaxKind.InterpolatedStringTextToken,
+                content, "",
+                SyntaxFactory.TriviaList());
+
+        internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
+            => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
+
+        internal override SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
+            => SyntaxFactory.InterpolationAlignmentClause(SyntaxFactory.Token(SyntaxKind.CommaToken), (ExpressionSyntax)alignment);
+
+        internal override SyntaxNode InterpolationFormatClause(string format)
+            => SyntaxFactory.InterpolationFormatClause(
+                    SyntaxFactory.Token(SyntaxKind.ColonToken),
+                    SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
     }
 }

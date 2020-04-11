@@ -72,6 +72,16 @@
         <target state="translated">Atribuir parâmetros 'out' (no início)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="new">Assign to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="new">Compare to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Converter em método</target>
@@ -620,11 +630,6 @@
       <trans-unit id="Hide_base_member">
         <source>Hide base member</source>
         <target state="translated">Ocultar o membro base</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">A invocação de delegado pode ser simplificada.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties">
