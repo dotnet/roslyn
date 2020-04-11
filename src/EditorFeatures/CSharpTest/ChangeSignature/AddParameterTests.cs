@@ -1052,7 +1052,7 @@ class C
 class C
 {
     /// <summary>
-    /// See <see cref=""M(string, byte,  int)""/> and <see cref=""M""/>
+    /// See <see cref=""M(string, byte, int)""/> and <see cref=""M""/>
     /// </summary>
     void M(string y, byte b, int x)
     { }
