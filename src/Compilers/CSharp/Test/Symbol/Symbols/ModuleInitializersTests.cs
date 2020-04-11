@@ -1,0 +1,39 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
+{
+    [CompilerTrait(CompilerFeature.ModuleInitializers)]
+    public sealed class ModuleInitializersTests : CSharpTestBase
+    {
+        private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
+
+        [Fact]
+        public static void ModuleInitializerAttributeIsDecoded()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M1() { }
+
+    internal static void M2() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+
+            Assert.True(compilation.GetMember<SourceMethodSymbolWithAttributes>("C.M1").IsModuleInitializer);
+            Assert.False(compilation.GetMember<SourceMethodSymbolWithAttributes>("C.M2").IsModuleInitializer);
+        }
+    }
+}

@@ -482,6 +482,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ModuleInitializerAttribute))
+            {
+                CSharpAttributeData.DecodeModuleInitializerAttribute(ref arguments);
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1012,5 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
         }
+
+        internal bool IsModuleInitializer => GetDecodedWellKnownAttributeData()?.HasModuleInitializerAttribute ?? false;
     }
 }

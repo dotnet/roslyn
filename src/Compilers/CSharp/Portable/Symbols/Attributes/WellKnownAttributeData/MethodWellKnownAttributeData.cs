@@ -44,6 +44,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool _hasModuleInitializerAttribute;
+        public bool HasModuleInitializerAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasModuleInitializerAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasModuleInitializerAttribute = value;
+                SetDataStored();
+            }
+        }
+
         private ImmutableArray<string> _memberNotNullAttributeData = ImmutableArray<string>.Empty;
 
         public void AddNotNullMember(string memberName)

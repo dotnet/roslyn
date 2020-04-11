@@ -660,6 +660,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static void DecodeModuleInitializerAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            // TODO: diagnostics
+            arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasModuleInitializerAttribute = true;
+        }
+
         #endregion
 
         /// <summary>
