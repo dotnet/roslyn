@@ -239,6 +239,8 @@ function BuildSolution() {
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
   # If we are using msbuild.exe restore using static graph
+  # This check can be removed and turned on for all builds once roslyn depends on a .NET Core SDK
+  # that has a new enough msbuild for the -graph switch to be present
   $restoreUseStaticGraphEvaluation = if ($msbuildEngine -ne 'dotnet') { "/p:RestoreUseStaticGraphEvaluation=true" } else { "" }
   
   try {
