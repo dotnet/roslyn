@@ -4,9 +4,11 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
@@ -17,6 +19,20 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
+        // Once frozen, the collections of fields, methods and types are immutable.
+        private int _frozen;
+
+        private bool IsFrozen => _frozen != 0;
+
+        internal void Freeze()
+        {
+            var wasFrozen = Interlocked.Exchange(ref _frozen, 1);
+            if (wasFrozen != 0)
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
         public TypeDefinitionHandle TypeDef => default;
 
         public ITypeDefinition ResolvedType => this;

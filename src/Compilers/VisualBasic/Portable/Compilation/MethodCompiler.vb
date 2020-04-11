@@ -248,6 +248,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     compiler.CompileSynthesizedMethods(privateImplClass)
                 End If
+
+                Dim rootModuleType = moduleBeingBuiltOpt.RootModuleType
+                If rootModuleType IsNot Nothing Then
+                    ' all threads that were adding methods must be finished now, we can freeze the class:
+                    rootModuleType.Freeze()
+
+                    compiler.CompileSynthesizedMethods(rootModuleType)
+                End If
             End If
 
             Dim entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, diagnostics, cancellationToken)

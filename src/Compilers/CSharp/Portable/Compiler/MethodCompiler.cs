@@ -175,6 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
                 }
+
+                var rootModuleType = moduleBeingBuiltOpt.RootModuleType;
+                if (rootModuleType != null)
+                {
+                    // all threads that were adding methods must be finished now, we can freeze the class:
+                    rootModuleType.Freeze();
+
+                    methodCompiler.CompileSynthesizedMethods(rootModuleType, diagnostics);
+                }
             }
 
             // If we are trying to emit and there's an error without a corresponding diagnostic (e.g. because
