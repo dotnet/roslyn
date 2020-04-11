@@ -17,19 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly RootModuleType _rootModuleType;
 
-        internal SynthesizedRootModuleTypeStaticConstructor(RootModuleType rootModuleType, SourceModuleSymbol containingModule)
+        internal SynthesizedRootModuleTypeStaticConstructor(RootModuleType rootModuleType, NamedTypeSymbol containingType)
         {
             _rootModuleType = rootModuleType;
-            ContainingModule = containingModule;
+            ContainingType = containingType;
         }
 
-        public override AssemblySymbol ContainingAssembly => ContainingModule.ContainingAssembly;
+        public override NamedTypeSymbol ContainingType { get; }
 
-        internal override ModuleSymbol ContainingModule { get; }
-
-        public override NamedTypeSymbol? ContainingType => null;
-
-        public override Symbol? ContainingSymbol => null;
+        public override Symbol ContainingSymbol => ContainingType;
 
         public override string Name => WellKnownMemberNames.StaticConstructorName;
 

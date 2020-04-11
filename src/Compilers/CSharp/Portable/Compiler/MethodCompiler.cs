@@ -533,7 +533,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (rootModuleType.GetSynthesizedMethod(WellKnownMemberNames.StaticConstructorName) is null)
                                 {
                                     rootModuleType.TryAddSynthesizedMethod(
-                                        new SynthesizedRootModuleTypeStaticConstructor(rootModuleType, _moduleBeingBuiltOpt.SourceModule));
+                                        new SynthesizedRootModuleTypeStaticConstructor(
+                                            rootModuleType,
+                                            new SynthesizedRootModuleType(_moduleBeingBuiltOpt.SourceModule.GlobalNamespace, rootModuleType)));
                                 }
                             }
                             break;
