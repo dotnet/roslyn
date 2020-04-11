@@ -3054,5 +3054,59 @@ void C()
         {
             Assert.True(CSharp.SyntaxFacts.IsTypeSyntax(SyntaxKind.FunctionPointerType));
         }
+
+        [Fact]
+        public void FunctionPointerArrayInTypeArgument()
+        {
+            UsingStatement("I<delegate*<void>[]> i;", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "I");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.FunctionPointerType);
+                                {
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
     }
 }

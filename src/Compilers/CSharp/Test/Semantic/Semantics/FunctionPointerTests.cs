@@ -5,10 +5,13 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -725,6 +728,661 @@ unsafe class C
                 //         delegate*<delegate*<string>> ptr2 = param2;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<delegate*<object>>", "delegate*<delegate*<string>>").WithLocation(7, 45)
             );
+        }
+
+        [Fact]
+        public void FunctionPointerParameterTypeInference()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T, void> param) {}
+    public void M2()
+    {
+        delegate*<string, void> p = null;
+        M1(p);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol!;
+
+            Assert.NotSame(methodSymbol, methodSymbol.OriginalDefinition);
+            Assert.Equal(SpecialType.System_String, methodSymbol.TypeArguments[0].SpecialType);
+            var functionPointer = (IFunctionPointerTypeSymbol)methodSymbol.Parameters[0].Type;
+            Assert.Equal(SpecialType.System_String, functionPointer.Signature.Parameters[0].Type.SpecialType);
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantParameterSubstitutions()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T, void> param1, delegate*<T, void> param2) {}
+    public void M2()
+    {
+        delegate*<string, void> p1 = null;
+        delegate*<object, void> p2 = null;
+        M1(p1, p2);
+    }
+}");
+
+            // This should be inferrable with variant conversions, tracked by https://github.com/dotnet/roslyn/issues/39865
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T,void>, delegate*<T,void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p1, p2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T,void>, delegate*<T,void>)").WithLocation(9, 9)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionConflictingParameterSubstitutions()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T, void> param1, delegate*<T, void> param2) {}
+    public void M2()
+    {
+        delegate*<string, void> p1 = null;
+        delegate*<int, void> p2 = null;
+        M1(p1, p2);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T,void>, delegate*<T,void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p1, p2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T,void>, delegate*<T,void>)").WithLocation(9, 9)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerReturnTypeInference()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T> param) {}
+    public void M2()
+    {
+        delegate*<string> p = null;
+        M1(p);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol!;
+
+            Assert.NotSame(methodSymbol, methodSymbol.OriginalDefinition);
+            Assert.Equal(SpecialType.System_String, methodSymbol.TypeArguments[0].SpecialType);
+            var functionPointer = (IFunctionPointerTypeSymbol)methodSymbol.Parameters[0].Type;
+            Assert.Equal(SpecialType.System_String, functionPointer.Signature.ReturnType.SpecialType);
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantReturnSubstitutions()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T> param1, delegate*<T> param2) {}
+    public void M2()
+    {
+        delegate*<string> p1 = null;
+        delegate*<object> p2 = null;
+        M1(p1, p2);
+    }
+}");
+
+            // This should be inferrable with variant conversions, tracked by https://github.com/dotnet/roslyn/issues/39865
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T>, delegate*<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p1, p2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T>, delegate*<T>)").WithLocation(9, 9)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionConflictingReturnSubstitution()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T> param1, delegate*<T> param2) {}
+    public void M2()
+    {
+        delegate*<string> p1 = null;
+        delegate*<int> p2 = null;
+        M1(p1, p2);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T>, delegate*<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p1, p2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T>, delegate*<T>)").WithLocation(9, 9)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionInference()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<T, T> param) {}
+    public void M2<T>()
+    {
+        delegate*<T, T> p = null;
+        M1(p);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var m1InvocationSymbol = (IMethodSymbol)model.GetSymbolInfo(invocation).Symbol!;
+
+            Assert.NotSame(m1InvocationSymbol, m1InvocationSymbol.OriginalDefinition);
+            Assert.Equal(TypeKind.TypeParameter, m1InvocationSymbol.TypeArguments[0].TypeKind);
+            var functionPointer = (IFunctionPointerTypeSymbol)m1InvocationSymbol.Parameters[0].Type;
+            Assert.Equal(TypeKind.TypeParameter, functionPointer.Signature.ReturnType.TypeKind);
+            Assert.Equal(TypeKind.TypeParameter, functionPointer.Signature.Parameters[0].Type.TypeKind);
+
+            var declaredSymbol = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMethod("M2").ISymbol;
+            Assert.True(declaredSymbol.TypeParameters[0].Equals(functionPointer.Signature.ReturnType, TypeCompareKind.ConsiderEverything));
+            Assert.True(declaredSymbol.TypeParameters[0].Equals(functionPointer.Signature.Parameters[0].Type, TypeCompareKind.ConsiderEverything));
+        }
+
+        [Fact]
+        public void FunctionPointerAsConstraint()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C<T> where T : delegate*<void> {}");
+
+            comp.VerifyDiagnostics(
+                // (2,29): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // unsafe class C<T> where T : delegate*<void> {}
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "delegate*<void>").WithLocation(2, 29)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerAsTypeArgument()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+class C<T> {}
+unsafe class D : C<delegate*<void>>
+{
+    public static C<TStatic> SubstitutedStatic<TStatic>(TStatic s) => throw null;
+    public static C<TStatic> SubstitutedStatic2<TStatic>(TStatic s1, TStatic s2) => throw null;
+    public static void M()
+    {
+        _ = new C<delegate*<void>>();
+        SubstitutedStatic<delegate*<void>>(null);
+        delegate*<string, void> ptr1 = null;
+        SubstitutedStatic(ptr1);
+        delegate*<object, void> ptr2 = null;
+        delegate*<int, void> ptr3 = null;
+        delegate* cdecl<string, void> ptr4 = null;
+        SubstitutedStatic2(ptr1, ptr1);
+        SubstitutedStatic2(ptr1, ptr2);
+        SubstitutedStatic2(ptr1, ptr3);
+        SubstitutedStatic2(ptr1, ptr4);
+
+        delegate*<object> ptr5 = null;
+        delegate*<string> ptr6 = null;
+        delegate*<int> ptr7 = null;
+        delegate* cdecl<object> ptr8 = null;
+        SubstitutedStatic2(ptr5, ptr5);
+        SubstitutedStatic2(ptr5, ptr6);
+        SubstitutedStatic2(ptr5, ptr7);
+        SubstitutedStatic2(ptr5, ptr8);
+    }
+}");
+
+            // Some of these errors should become CS0306 after variant conversions are implemented, tracked by https://github.com/dotnet/roslyn/issues/39865
+            comp.VerifyDiagnostics(
+                // (3,14): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                // unsafe class D : C<delegate*<void>>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "D").WithArguments("delegate*<void>").WithLocation(3, 14),
+                // (9,19): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //         _ = new C<delegate*<void>>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(9, 19),
+                // (10,9): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //         SubstitutedStatic<delegate*<void>>(null);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "SubstitutedStatic<delegate*<void>>").WithArguments("delegate*<void>").WithLocation(10, 9),
+                // (12,9): error CS0306: The type 'delegate*<string,void>' may not be used as a type argument
+                //         SubstitutedStatic(ptr1);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "SubstitutedStatic").WithArguments("delegate*<string,void>").WithLocation(12, 9),
+                // (16,9): error CS0306: The type 'delegate*<string,void>' may not be used as a type argument
+                //         SubstitutedStatic2(ptr1, ptr1);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "SubstitutedStatic2").WithArguments("delegate*<string,void>").WithLocation(16, 9),
+                // (17,9): error CS0306: The type 'delegate*<string,void>' may not be used as a type argument
+                //         SubstitutedStatic2(ptr1, ptr2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "SubstitutedStatic2").WithArguments("delegate*<string,void>").WithLocation(17, 9),
+                // (18,9): error CS0411: The type arguments for method 'D.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("D.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(18, 9),
+                // (19,9): error CS0411: The type arguments for method 'D.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("D.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(19, 9),
+                // (25,9): error CS0306: The type 'delegate*<object>' may not be used as a type argument
+                //         SubstitutedStatic2(ptr5, ptr5);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "SubstitutedStatic2").WithArguments("delegate*<object>").WithLocation(25, 9),
+                // (26,9): error CS0306: The type 'delegate*<object>' may not be used as a type argument
+                //         SubstitutedStatic2(ptr5, ptr6);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "SubstitutedStatic2").WithArguments("delegate*<object>").WithLocation(26, 9),
+                // (27,9): error CS0411: The type arguments for method 'D.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr5, ptr7);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("D.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(27, 9),
+                // (28,9): error CS0411: The type arguments for method 'D.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr5, ptr8);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("D.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(28, 9)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<InvocationExpressionSyntax>()
+                                      .Select(s => model.GetSymbolInfo(s).CandidateSymbols.Single())
+                                      .Cast<IMethodSymbol>()
+                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+                "delegate*<System.Void>",
+                "delegate*<System.String ,System.Void>",
+                "delegate*<System.String ,System.Void>",
+                "delegate*<System.String ,System.Void>",
+                "TStatic",
+                "TStatic",
+                "delegate*<System.Object>",
+                "delegate*<System.Object>",
+                "TStatic",
+                "TStatic"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void ArrayOfFunctionPointersAsTypeArguments()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public static void SubstitutedStatic2<TStatic>(TStatic s1, TStatic s2) => throw null;
+    public static void M()
+    {
+        delegate*<string, void>[] ptr1 = null;
+        delegate*<object, void>[] ptr2 = null;
+        SubstitutedStatic2(ptr1, ptr1);
+        SubstitutedStatic2(ptr1, ptr2);
+
+        delegate*<object>[] ptr3 = null;
+        delegate*<string>[] ptr4 = null;
+        SubstitutedStatic2(ptr3, ptr3);
+        SubstitutedStatic2(ptr3, ptr4);
+    }
+}");
+
+            // These should all work: https://github.com/dotnet/roslyn/issues/39865
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(10, 9),
+                // (15,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr3, ptr4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(15, 9)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<InvocationExpressionSyntax>()
+                                      .Select(s =>
+                                      {
+                                          var symbolInfo = model.GetSymbolInfo(s);
+                                          return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
+                                      })
+                                      .Cast<IMethodSymbol>()
+                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+                "delegate*<System.String ,System.Void>[]",
+                "TStatic",
+                "delegate*<System.Object>[]",
+                "TStatic"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void ArrayOfFunctionPointersAsTypeArguments_NoBestType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public static void SubstitutedStatic2<TStatic>(TStatic s1, TStatic s2) => throw null;
+    public static void M()
+    {
+        delegate*<string, void>[] ptr1 = null;
+        delegate*<ref string, void>[] ptr2 = null;
+        delegate*<int, void>[] ptr3 = null;
+        delegate* cdecl<string, void>[] ptr4 = null;
+        SubstitutedStatic2(ptr1, ptr2);
+        SubstitutedStatic2(ptr1, ptr3);
+        SubstitutedStatic2(ptr1, ptr4);
+
+        delegate*<string>[] ptr5 = null;
+        delegate*<ref string>[] ptr6 = null;
+        delegate*<int>[] ptr7 = null;
+        delegate* cdecl<string>[] ptr8 = null;
+        SubstitutedStatic2(ptr5, ptr6);
+        SubstitutedStatic2(ptr5, ptr7);
+        SubstitutedStatic2(ptr5, ptr8);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(11, 9),
+                // (12,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr3);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(12, 9),
+                // (13,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr1, ptr4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(13, 9),
+                // (19,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr5, ptr6);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(19, 9),
+                // (20,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr5, ptr7);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(20, 9),
+                // (21,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         SubstitutedStatic2(ptr5, ptr8);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SubstitutedStatic2").WithArguments("C.SubstitutedStatic2<TStatic>(TStatic, TStatic)").WithLocation(21, 9)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<InvocationExpressionSyntax>()
+                                      .Select(s =>
+                                      {
+                                          var symbolInfo = model.GetSymbolInfo(s);
+                                          return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
+                                      })
+                                      .Cast<IMethodSymbol>()
+                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+                "TStatic",
+                "TStatic",
+                "TStatic",
+                "TStatic",
+                "TStatic",
+                "TStatic",
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void NoBestTypeArrayInitializer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public static void M()
+    {
+        delegate*<string, void>[] ptr1 = null;
+        delegate*<ref string, void>[] ptr2 = null;
+        delegate*<int, void>[] ptr3 = null;
+        delegate* cdecl<string, void>[] ptr4 = null;
+        var arr1 = new[] { ptr1, ptr2 };
+        var arr2 = new[] { ptr1, ptr3 };
+        var arr3 = new[] { ptr1, ptr4 };
+
+        delegate*<string>[] ptr5 = null;
+        delegate*<ref string>[] ptr6 = null;
+        delegate*<int>[] ptr7 = null;
+        delegate* cdecl<string>[] ptr8 = null;
+        var arr4 = new[] { ptr5, ptr6 };
+        var arr5 = new[] { ptr5, ptr7 };
+        var arr6 = new[] { ptr5, ptr8 };
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (10,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr1 = new[] { ptr1, ptr2 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr1, ptr2 }").WithLocation(10, 20),
+                // (11,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr2 = new[] { ptr1, ptr3 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr1, ptr3 }").WithLocation(11, 20),
+                // (12,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr3 = new[] { ptr1, ptr4 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr1, ptr4 }").WithLocation(12, 20),
+                // (18,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr4 = new[] { ptr5, ptr6 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr5, ptr6 }").WithLocation(18, 20),
+                // (19,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr5 = new[] { ptr5, ptr7 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr5, ptr7 }").WithLocation(19, 20),
+                // (20,20): error CS0826: No best type found for implicitly-typed array
+                //         var arr6 = new[] { ptr5, ptr8 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { ptr5, ptr8 }").WithLocation(20, 20)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<ImplicitArrayCreationExpressionSyntax>()
+                                      .Select(s => model.GetTypeInfo(s).Type.ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+                "?[]",
+                "?[]",
+                "?[]",
+                "?[]",
+                "?[]",
+                "?[]"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void NoBestTypeConditional()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public static void M(bool b)
+    {
+        delegate*<string, void>[] ptr1 = null;
+        delegate*<ref string, void>[] ptr2 = null;
+        delegate*<int, void>[] ptr3 = null;
+        delegate* cdecl<string, void>[] ptr4 = null;
+        _ = b ? ptr1 : ptr2;
+        _ = b ? ptr1 : ptr3;
+        _ = b ? ptr1 : ptr4;
+
+        delegate*<string>[] ptr5 = null;
+        delegate*<ref string>[] ptr6 = null;
+        delegate*<int>[] ptr7 = null;
+        delegate* cdecl<string>[] ptr8 = null;
+        _ = b ? ptr5 : ptr6;
+        _ = b ? ptr5 : ptr7;
+        _ = b ? ptr5 : ptr8;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (10,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string,void>[]' and 'delegate*<ref string,void>[]'
+                //         _ = b ? ptr1 : ptr2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr2").WithArguments("delegate*<string,void>[]", "delegate*<ref string,void>[]").WithLocation(10, 13),
+                // (11,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string,void>[]' and 'delegate*<int,void>[]'
+                //         _ = b ? ptr1 : ptr3;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string,void>[]", "delegate*<int,void>[]").WithLocation(11, 13),
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string,void>[]' and 'delegate*<string,void>[]'
+                //         _ = b ? ptr1 : ptr4;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string,void>[]", "delegate*<string,void>[]").WithLocation(12, 13),
+                // (18,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
+                //         _ = b ? ptr5 : ptr6;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr6").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(18, 13),
+                // (19,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<int>[]'
+                //         _ = b ? ptr5 : ptr7;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>[]", "delegate*<int>[]").WithLocation(19, 13),
+                // (20,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
+                //         _ = b ? ptr5 : ptr8;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(20, 13)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<ConditionalExpressionSyntax>()
+                                      .Select(s => model.GetTypeInfo(s).Type.ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+                "?",
+                "?",
+                "?",
+                "?",
+                "?",
+                "?"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void BestTypeInferrerInvertingVariance()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+interface I<in T> {}
+unsafe class C
+{
+    static void Print(object o) => Console.Write(o);
+    static void Print(string s) => Console.Write(s);
+    static void Main()
+    {
+        I<delegate*<string, void>[]> i1 = null;
+        I<delegate*<object, void>[]> i2 = null;
+        I<delegate*<object, void>[]>[] iArr = new[] { i1, i2 }; 
+    }
+}");
+
+            // Array variance is reference-type only, so there is no best time between i1 and i2
+            comp.VerifyDiagnostics(
+                // (12,47): error CS0826: No best type found for implicitly-typed array
+                //         I<delegate*<object, void>[]>[] iArr = new[] { i1, i2 }; 
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { i1, i2 }").WithLocation(12, 47)
+            );
+        }
+
+        [Fact]
+        public void MergeVariantAnnotations()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+unsafe class C
+{
+    void M(bool b)
+    {
+        delegate*<string> ptr1 = null;
+        delegate*<string?> ptr2 = null;
+        delegate*<ref string> ptr3 = null;
+        delegate*<ref string?> ptr4 = null;
+        _ = b ? ptr1 : ptr2;
+        _ = b ? ptr1 : ptr3;
+        _ = b ? ptr1 : ptr4;
+        _ = b ? ptr3 : ptr4;
+
+        delegate*<string> ptr5 = null;
+        delegate*<string?> ptr6 = null;
+        delegate*<ref string> ptr7 = null;
+        delegate*<ref string?> ptr8 = null;
+        _ = b ? ptr5 : ptr6;
+        _ = b ? ptr5 : ptr7;
+        _ = b ? ptr5 : ptr8;
+        _ = b ? ptr7 : ptr8;
+    }
+}");
+
+            // Implicit pointer conversions are not currently handled, ptr3/4 and ptr7/8 should warn: https://github.com/dotnet/roslyn/issues/39865
+            comp.VerifyDiagnostics(
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string>'
+                //         _ = b ? ptr1 : ptr3;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(12, 13),
+                // (13,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string?>'
+                //         _ = b ? ptr1 : ptr4;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string>", "delegate*<string?>").WithLocation(13, 13),
+                // (21,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string>'
+                //         _ = b ? ptr5 : ptr7;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(21, 13),
+                // (22,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string?>'
+                //         _ = b ? ptr5 : ptr8;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>", "delegate*<string?>").WithLocation(22, 13)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocationTypes = tree.GetRoot()
+                                      .DescendantNodes()
+                                      .OfType<ConditionalExpressionSyntax>()
+                                      .Select(s => model.GetTypeInfo(s).Type.ToTestDisplayString())
+                                      .ToList();
+
+            var expectedTypes = new string[] {
+               "delegate*<System.String?>",
+               "?",
+               "?",
+               "delegate*<System.String>",
+               "delegate*<System.String?>",
+               "?",
+               "?",
+               "delegate*<System.String>"
+            };
+
+            AssertEx.Equal(expectedTypes, invocationTypes);
         }
     }
 }

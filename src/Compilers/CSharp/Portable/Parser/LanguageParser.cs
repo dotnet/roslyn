@@ -5763,7 +5763,7 @@ tryAgain:
             }
             else if (IsFunctionPointerStart())
             {
-                return ScanFunctionPointerType(out lastTokenOfType);
+                result = ScanFunctionPointerType(out lastTokenOfType);
             }
             else
             {
