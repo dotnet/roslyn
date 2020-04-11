@@ -1052,32 +1052,6 @@ class Program
 {
     interface Base1 {}
     interface Base2 : Base1 {}
-
-    void Foo(Base1 b) {
-        Base2 b2 = [||]b;
-    }
-}",
-            @"
-class Program
-{
-    interface Base1 {}
-    interface Base2 : Base1 {}
-
-    void Foo(Base1 b) {
-        Base2 b2 = (Base2)b;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-        public async Task InheritInterfaces6()
-        {
-            await TestInRegularAndScriptAsync(
-            @"
-class Program
-{
-    interface Base1 {}
-    interface Base2 : Base1 {}
     interface Base3 {}
     class Derived1 : Base2, Base3 {}
     class Derived2 : Derived1 {}

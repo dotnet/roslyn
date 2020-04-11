@@ -27,21 +27,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
     internal abstract class AbstractAddExplicitCastCodeFixProvider<
         TExpressionSyntax,
         TArgumentListSyntax,
-        TArgumentSyntax> : SyntaxEditorBasedCodeFixProvider
+        TArgumentSyntax,
+        TAttributeSyntax> : SyntaxEditorBasedCodeFixProvider
         where TExpressionSyntax : SyntaxNode
         where TArgumentListSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode
+        where TAttributeSyntax : SyntaxNode
     {
         /// <summary>
         /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix, but logs telemetry 
         /// </summary>
         private const int MaximumConversionOptions = 3;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public AddExplicitCastCodeFixProvider()
-        {
-        }
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
@@ -291,6 +287,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         protected abstract TArgumentListSyntax GenerateNewArgumentList(
             TArgumentListSyntax oldArgumentList, List<TArgumentSyntax> newArguments);
 
+        protected abstract SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position,
+            TAttributeSyntax attribute);
+
         /// <summary>
         /// Check whether the invocation expression with new arguments is applicatble.
         /// </summary>
@@ -308,10 +307,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             var newRoot = root.ReplaceNode(oldArgumentList, GenerateNewArgumentList(oldArgumentList, newArguments));
 
             var newArgumentListNode = newRoot.FindNode(targetNode.Span).GetAncestorsOrThis<TArgumentListSyntax>().FirstOrDefault();
-            if (newArgumentListNode.Parent is SyntaxNode newExpression)
+            if (newArgumentListNode.Parent is SyntaxNode newNode)
             {
-                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(newExpression.SpanStart, newExpression,
-                    SpeculativeBindingOption.BindAsExpression);
+                var symbolInfo = newNode is TAttributeSyntax newAttribute ?
+                    GetSpeculativeAttributeSymbolInfo(semanticModel, newAttribute.SpanStart, newAttribute) :
+                    semanticModel.GetSpeculativeSymbolInfo(newNode.SpanStart, newNode,
+                        SpeculativeBindingOption.BindAsExpression);
                 return symbolInfo.Symbol != null;
             }
             return false;

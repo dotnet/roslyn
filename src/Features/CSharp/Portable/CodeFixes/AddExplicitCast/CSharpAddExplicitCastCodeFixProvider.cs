@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         : AbstractAddExplicitCastCodeFixProvider<
             ExpressionSyntax,
             ArgumentListSyntax,
-            ArgumentSyntax>
+            ArgumentSyntax,
+            AttributeSyntax>
     {
         /// <summary>
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         private const string CS1503 = nameof(CS1503);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddExplicitCastCodeFixProvider()
         {
         }
@@ -147,5 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         protected override bool IsConversionUserDefined(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
             => semanticModel.ClassifyConversion(expression, type).IsUserDefined;
+
+        protected override SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position, AttributeSyntax attribute)
+            => semanticModel.GetSpeculativeSymbolInfo(position, attribute);
     }
 }

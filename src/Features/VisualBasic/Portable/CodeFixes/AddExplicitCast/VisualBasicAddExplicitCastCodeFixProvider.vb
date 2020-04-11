@@ -4,12 +4,14 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
@@ -17,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddExplicitCast), [Shared]>
     Friend NotInheritable Class VisualBasicAddExplicitCastCodeFixProvider
         Inherits AbstractAddExplicitCastCodeFixProvider(Of
-            ExpressionSyntax, ArgumentListSyntax, ArgumentSyntax)
+            ExpressionSyntax, ArgumentListSyntax, ArgumentSyntax, AttributeSyntax)
 
         Friend Const BC30512 As String = "BC30512" ' Option Strict On disallows implicit conversions from '{0}' to '{1}'.
         Friend Const BC42016 As String = "BC42016" ' Implicit conversions from '{0}' to '{1}'.
@@ -25,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         Friend Const BC30519 As String = "BC30519" ' Overload resolution failed because no accessible 'sub1' can be called without a narrowing conversion.
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -42,12 +45,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                     VBFeaturesResources.Cast_0_to_1, targetNode.GetText(),
                     conversionType.ToMinimalDisplayString(semanticModel, context.Span.Start))
             End If
-            Return VBFeaturesResources.Insert_Missing_Cast
+            Return VBFeaturesResources.Add_explicit_cast
         End Function
 
         Protected Overrides Function ApplyFix(currentRoot As SyntaxNode, targetNode As ExpressionSyntax,
                 conversionType As ITypeSymbol) As SyntaxNode
-            Return currentRoot.ReplaceNode(targetNode, targetNode.Cast(conversionType, Nothing))
+            Dim castExpression = targetNode.Cast(conversionType, Nothing).WithAdditionalAnnotations(Simplifier.Annotation)
+            Dim newRoot = currentRoot.ReplaceNode(targetNode, castExpression)
+            Return newRoot
         End Function
 
         Protected Overrides Function TryGetTargetTypeInfo(document As Document, semanticModel As SemanticModel, root As SyntaxNode,
@@ -60,9 +65,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Dim mutablePotentialConversionTypes = ArrayBuilder(Of Tuple(Of ExpressionSyntax, ITypeSymbol)).GetInstance()
             Select Case diagnosticId
                 Case BC30512, BC42016
-                    Dim inferenceService = document.GetLanguageService(Of ITypeInferenceService)()
-                    Dim conversionType = inferenceService.InferType(semanticModel, spanNode, False, cancellationToken)
-                    mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, conversionType))
+                    Dim argument = spanNode.GetAncestors(Of ArgumentSyntax).FirstOrDefault()
+                    If argument IsNot Nothing AndAlso argument.GetExpression.Equals(spanNode) Then
+                        Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
+                        Dim invocationNode = argumentList.Parent
+                        mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
+                            argument, argumentList, invocationNode, cancellationToken))
+                    Else
+                        Dim inferenceService = document.GetLanguageService(Of ITypeInferenceService)()
+                        Dim conversionType = inferenceService.InferType(semanticModel, spanNode, False, cancellationToken)
+                        mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, conversionType))
+                    End If
                 Case BC30518, BC30519
                     Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault() ' invocation node could be Invocation Expression, Object Creation, Base Constructor...
                     Dim argumentList = TryCast(invocationNode.ChildNodes().FirstOrDefault(Function(node As SyntaxNode) TryCast(node, ArgumentListSyntax) IsNot Nothing), ArgumentListSyntax)
@@ -131,6 +144,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
         Protected Overrides Function IsConversionUserDefined(semanticModel As SemanticModel, expression As ExpressionSyntax, type As ITypeSymbol) As Boolean
             Return semanticModel.ClassifyConversion(expression, type).IsUserDefined
+        End Function
+
+        Protected Overrides Function GetSpeculativeAttributeSymbolInfo(semanticModel As SemanticModel, position As Integer, attribute As AttributeSyntax) As SymbolInfo
+            Return semanticModel.GetSpeculativeSymbolInfo(position, attribute)
         End Function
     End Class
 End Namespace

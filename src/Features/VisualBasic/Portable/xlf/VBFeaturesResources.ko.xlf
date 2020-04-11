@@ -17,6 +17,11 @@
         <target state="translated">&lt;Obsolete&gt; 추가</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="translated">누락된 Imports 추가</target>

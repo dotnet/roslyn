@@ -405,6 +405,7 @@ End Class")
         Public Async Function ReturnStatementWithIEnumerator() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
+Imports System.Collections.Generic
 Class Program
     Class Base
     End Class
@@ -419,6 +420,7 @@ Class Program
     End Function
 End Class",
 "Option Strict On
+Imports System.Collections.Generic
 Class Program
     Class Base
     End Class
@@ -438,6 +440,7 @@ End Class")
         Public Async Function YieldReturnStatementWithObject() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
+Imports System.Collections.Generic
 Class Program
     Class Base
     End Class
@@ -452,6 +455,7 @@ Class Program
     End Function
 End Class",
 "Option Strict On
+Imports System.Collections.Generic
 Class Program
     Class Base
     End Class
@@ -779,6 +783,7 @@ End Class")
         Public Async Function PublicMemberFunctionArgument1() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
+Imports System.Collections.Generic
 Class Program
     Class Base
     End Class
@@ -788,12 +793,13 @@ Class Program
     End Class
 
     Private Sub M()
-        Dim b As Base
+        Dim b As Base = New Derived
         Dim list As List(Of Derived) = New List(Of Derived)()
-        list.Add([||]b)
+        list.Add([|b|])
     End Sub
 End Class",
 "Option Strict On
+Imports System.Collections.Generic
 Class Program
     Class Base
     End Class
@@ -803,9 +809,9 @@ Class Program
     End Class
 
     Private Sub M()
-        Dim b As Base
+        Dim b As Base = New Derived
         Dim list As List(Of Derived) = New List(Of Derived)()
-        list.Add(b)
+        list.Add(CType(b, Derived))
     End Sub
 End Class")
         End Function
@@ -1054,7 +1060,7 @@ Class Program
     End Class
 
     Class Test
-        Public Shared Operator CType(t As Test) As Derived
+        Public Shared Narrowing Operator CType(t As Test) As Derived
             Return New Derived
         End Operator
     End Class
@@ -1073,7 +1079,7 @@ Class Program
     End Class
 
     Class Test
-        Public Shared Operator CType(t As Test) As Derived
+        Public Shared Narrowing Operator CType(t As Test) As Derived
             Return New Derived
         End Operator
     End Class
@@ -1082,6 +1088,864 @@ Class Program
         Dim d2 As Derived = CType(New Test(), Derived)
     End Sub
 End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function ObjectInitializer3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Function M() As Derived
+        Return [||]New Base
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function ObjectInitializer4() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Test
+        Public Shared Narrowing Operator CType(t As Test) As Derived
+            Return New Derived
+        End Operator
+    End Class
+
+    Private Function M() As Derived
+        Return [||]New Test
+    End Function
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Test
+        Public Shared Narrowing Operator CType(t As Test) As Derived
+            Return New Derived
+        End Operator
+    End Class
+
+    Private Function M() As Derived
+        Return CType(New Test, Derived)
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function ObjectInitializer5() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M(d As Derived)
+    End Sub
+
+    Private Sub Foo()
+        M([||]new Base)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function ObjectInitializer6() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Test
+        Public Shared Narrowing Operator CType(t As Test) As Derived
+            Return New Derived
+        End Operator
+    End Class
+
+    Private Sub M(d As Derived)
+    End Sub
+
+    Private Sub Foo()
+        M([||]new Test)
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Test
+        Public Shared Narrowing Operator CType(t As Test) As Derived
+            Return New Derived
+        End Operator
+    End Class
+
+    Private Sub M(d As Derived)
+    End Sub
+
+    Private Sub Foo()
+        M(CType(new Test, Derived))
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function ObjectInitializer7() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M(d As Julia)
+    End Sub
+
+    Private Sub Foo()
+        M([||]new Base)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function ObjectInitializer8() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Test
+        Private Shared Narrowing Operator CType(t As Test) As Derived
+            Return New Derived
+        End Operator
+    End Class
+
+    Private Sub M(d As Derived)
+    End Sub
+
+    Private Sub Foo()
+        M([||]new Test)
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Test
+        Private Shared Narrowing Operator CType(t As Test) As Derived
+            Return New Derived
+        End Operator
+    End Class
+
+    Private Sub M(d As Derived)
+    End Sub
+
+    Private Sub Foo()
+        M(CType(new Test, Derived))
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function InheritInterfaces1() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+    End Interface
+
+    Class Derived
+        Implements Base1, Base2
+    End Class
+
+    Private Sub Foo(ByRef b As Base2)
+        Dim d As Derived = [||]b
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+    End Interface
+
+    Class Derived
+        Implements Base1, Base2
+    End Class
+
+    Private Sub Foo(ByRef b As Base2)
+        Dim d As Derived = CType(b, Derived)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function InheritInterfaces2() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+    End Interface
+
+    Class Derived1
+        Implements Base1, Base2
+    End Class
+
+    Class Derived2
+        Inherits Derived1
+    End Class
+
+    Private Sub Foo(ByRef b As Base2)
+        Dim d As Derived2 = [||]b
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+    End Interface
+
+    Class Derived1
+        Implements Base1, Base2
+    End Class
+
+    Class Derived2
+        Inherits Derived1
+    End Class
+
+    Private Sub Foo(ByRef b As Base2)
+        Dim d As Derived2 = CType(b, Derived2)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function InheritInterfaces3() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+        Implements Base1
+    End Interface
+
+    Private Function Foo(ByRef b As Base1) As Base2
+        Return b[||]
+    End Function
+End Class",
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+        Implements Base1
+    End Interface
+
+    Private Function Foo(ByRef b As Base1) As Base2
+        Return CType(b, Base2)
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function InheritInterfaces4() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+        Implements Base1
+    End Interface
+
+    Private Sub Foo(ByRef b As Base1)
+        Dim b2 As Base2 = b[||]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+        Implements Base1
+    End Interface
+
+    Private Sub Foo(ByRef b As Base1)
+        Dim b2 As Base2 = CType(b, Base2)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function InheritInterfaces5() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+        Inherits Base1
+    End Interface
+
+    Interface Base3
+    End Interface
+
+    Class Derived1
+        Implements Base2, Base3
+    End Class
+
+    Class Derived2
+        Inherits Derived1
+    End Class
+
+    Private Sub Foo(ByRef b As Derived2)
+    End Sub
+
+    Private Sub M(ByRef b As Base1)
+        Foo([||]b)
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Interface Base1
+    End Interface
+
+    Interface Base2
+        Inherits Base1
+    End Interface
+
+    Interface Base3
+    End Interface
+
+    Class Derived1
+        Implements Base2, Base3
+    End Class
+
+    Class Derived2
+        Inherits Derived1
+    End Class
+
+    Private Sub Foo(ByRef b As Derived2)
+    End Sub
+
+    Private Sub M(ByRef b As Base1)
+        Foo(CType(b, Derived2))
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function GenericType() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M()
+        Dim func1 As Func(Of Base, Base) = Function(b) b
+        Dim func2 As Func(Of Derived, Derived) = func1[||]
+    End Sub
+End Class")
+        End Function
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function GenericType2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Interface IA
+    End Interface
+
+    Interface IB
+        Inherits IA
+    End Interface
+
+    Interface A(Of T As IA)
+    End Interface
+
+    Class B(Of T As IB)
+        Implements A(Of T)
+    End Class
+
+    Private Sub Foo()
+        Dim b As B(Of IB) = New B(Of IB)
+        Dim c1 As A(Of IA) = b[||]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function GenericType3() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Interface IA
+    End Interface
+
+    Class CB
+        Implements IA
+    End Class
+
+    Interface A(Of T As IA, U)
+    End Interface
+
+    Class B(Of T As CB, U)
+        Implements A(Of T, U)
+    End Class
+
+    Private Sub Foo()
+        Dim b As B(Of CB, Integer) = New B(Of CB, Integer)
+        Dim c1 As A(Of IA, String) = b[||]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Interface IA
+    End Interface
+
+    Class CB
+        Implements IA
+    End Class
+
+    Interface A(Of T As IA, U)
+    End Interface
+
+    Class B(Of T As CB, U)
+        Implements A(Of T, U)
+    End Class
+
+    Private Sub Foo()
+        Dim b As B(Of CB, Integer) = New B(Of CB, Integer)
+        Dim c1 As A(Of IA, String) = CType(b, A(Of IA, String))
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction1() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M()
+        Dim foo As Func(Of Base, Derived) = Function(d) d[||]
+    End Sub
+End Class",
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M()
+        Dim foo As Func(Of Base, Derived) = Function(d) CType(d, Derived)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction2() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo()
+        Dim func As Func(Of Derived, Derived) = Function(d) d
+        Dim b As Base
+        Dim b2 As Base = func(b[||])
+    End Sub
+End Class",
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo()
+        Dim func As Func(Of Derived, Derived) = Function(d) d
+        Dim b As Base
+        Dim b2 As Base = func(CType(b, Derived))
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction3() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo()
+        Dim func As Func(Of Base, Base) = Function(d) d
+        Dim b As Base
+        Dim b2 As Derived = [||]func(b)
+    End Sub
+End Class",
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo()
+        Dim func As Func(Of Base, Base) = Function(d) d
+        Dim b As Base
+        Dim b2 As Derived = CType(func(b), Derived)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction4() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Function Foo() As Derived
+        Dim func As Func(Of Base, Base) = Function(d) d
+        Dim b As Base
+        Return [||]func(b)
+    End Function
+End Class",
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Function Foo() As Derived
+        Dim func As Func(Of Base, Base) = Function(d) d
+        Dim b As Base
+        Return CType(func(b), Derived)
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction5_ReturnStatement() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Shared Function Foo() As Action(Of Base)
+        Return [|Sub(ByVal b As Derived)
+                   Console.WriteLine()
+               End Sub|]
+    End Function
+End Class",
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Shared Function Foo() As Action(Of Base)
+        Return CType(Sub(ByVal b As Derived)
+                   Console.WriteLine()
+               End Sub, Action(Of Base))
+    End Function
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction6_Arguments() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M(ByVal d As Derived, ByVal action As Action(Of Derived))
+    End Sub
+
+    Private Sub Foo()
+        Dim b As Base = New Derived()
+        M([||]b, Sub(ByVal d As Derived)
+             End Sub)
+    End Sub
+End Class",
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M(ByVal d As Derived, ByVal action As Action(Of Derived))
+    End Sub
+
+    Private Sub Foo()
+        Dim b As Base = New Derived()
+        M(CType(b, Derived), Sub(ByVal d As Derived)
+             End Sub)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction7_Arguments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M(ByVal d As Derived, ByRef action As Action(Of Derived))
+    End Sub
+
+    Private Sub Foo()
+        Dim b As Base = New Derived()
+        M(b[||], Sub(ByRef d As Base)
+             End Sub)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction8_Arguments() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Shared Sub M(ByVal d As Derived, ParamArray action As Action(Of Derived)())
+    End Sub
+
+    Private Shared Sub Foo()
+        Dim b1 As Base = New Derived()
+        Dim action As Action(Of Derived) = Sub(b)
+                                           End Sub
+        M([||]b1, action, action)
+    End Sub
+End Class",
+"Option Strict On
+Imports System
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Shared Sub M(ByVal d As Derived, ParamArray action As Action(Of Derived)())
+    End Sub
+
+    Private Shared Sub Foo()
+        Dim b1 As Base = New Derived()
+        Dim action As Action(Of Derived) = Sub(b)
+                                           End Sub
+        M(CType(b1, Derived), action, action)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function LambdaFunction9_Arguments() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Imports System
+
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Shared Sub M(ByVal d As Derived, ParamArray action As Action(Of Derived)())
+    End Sub
+
+    Private Shared Sub Foo()
+        Dim b1 As Base = New Derived()
+        Dim list() As Action(Of Derived) = {}
+        Dim action As Action(Of Derived) = Sub(b)
+                                           End Sub
+        M([||]b1, list, action)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function ExactMethodCandidate() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+        Public Sub Testing(ByRef d As Base)
+        End Sub
+    End Class
+
+    Class Derived
+        Inherits Base
+
+        Public Overloads Sub Testing(ByRef d As Derived)
+        End Sub
+    End Class
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim d As Derived = New Derived()
+        d.Testing([||]b)
+    End Sub
+End Class
+")
         End Function
     End Class
 End Namespace
