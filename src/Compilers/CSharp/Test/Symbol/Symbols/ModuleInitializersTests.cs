@@ -35,5 +35,28 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             Assert.True(compilation.GetMember<SourceMethodSymbolWithAttributes>("C.M1").IsModuleInitializer);
             Assert.False(compilation.GetMember<SourceMethodSymbolWithAttributes>("C.M2").IsModuleInitializer);
         }
+
+        [Fact]
+        public static void ModuleInitializersNotUsableInCSharp8()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() { }
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+
+            compilation.VerifyDiagnostics(
+                // (5,6): error CS8652: The feature 'module initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ModuleInitializer").WithArguments("module initializers").WithLocation(5, 6)
+                );
+        }
     }
 }
