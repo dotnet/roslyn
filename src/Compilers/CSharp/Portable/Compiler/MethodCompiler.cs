@@ -641,12 +641,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             compilationState.Free();
         }
 
-        private void CompileSynthesizedMethods(PrivateImplementationDetails privateImplClass, DiagnosticBag diagnostics)
+        private void CompileSynthesizedMethods(Cci.INamespaceTypeDefinition synthesizedTopLevelType, DiagnosticBag diagnostics)
         {
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
-            foreach (MethodSymbol method in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics, metadataOnly: false, includePrivateMembers: true)))
+            foreach (MethodSymbol method in synthesizedTopLevelType.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics, metadataOnly: false, includePrivateMembers: true)))
             {
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
                 method.GenerateMethodBody(compilationState, diagnostics);

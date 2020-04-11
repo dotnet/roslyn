@@ -838,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Sub CompileSynthesizedMethods(privateImplClass As PrivateImplementationDetails)
+        Private Sub CompileSynthesizedMethods(privateImplClass As Cci.INamespaceTypeDefinition)
             Debug.Assert(_moduleBeingBuiltOpt IsNot Nothing)
 
             Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)
