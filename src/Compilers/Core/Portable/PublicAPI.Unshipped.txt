@@ -21,6 +21,7 @@ Microsoft.CodeAnalysis.ITypeSymbol.IsNativeIntegerType.get -> bool
 Microsoft.CodeAnalysis.InitializationContext
 Microsoft.CodeAnalysis.InitializationContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.InitializationContext.RegisterForSyntaxNotifications(Microsoft.CodeAnalysis.SyntaxReceiverCreator receiverCreator) -> void
+Microsoft.CodeAnalysis.Operations.IReturnOperation.IsRef.get -> bool
 Microsoft.CodeAnalysis.SourceGeneratorContext
 Microsoft.CodeAnalysis.SourceGeneratorContext.AddSource(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
 Microsoft.CodeAnalysis.SourceGeneratorContext.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText>

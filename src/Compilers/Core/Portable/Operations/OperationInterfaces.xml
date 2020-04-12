@@ -389,6 +389,11 @@
         <summary>Value to be returned.</summary>
       </Comments>
     </Property>
+    <Property Name="IsRef" Type="bool">
+        <Comments>
+            <summary>Is this a ref return</summary>
+        </Comments>
+    </Property>
   </Node>
   <Node Name="ILockOperation" Base="IOperation" ChildrenOrder="LockedValue,Body">
     <Comments>

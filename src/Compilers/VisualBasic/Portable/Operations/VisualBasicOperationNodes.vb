@@ -920,7 +920,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _returnedValue As BoundNode
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, returnedValue As BoundNode, kind As OperationKind, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(kind, semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(isRef:=False, kind, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _returnedValue = returnedValue
         End Sub

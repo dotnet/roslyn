@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundYieldBreakStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.YieldBreak, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyReturnOperation(this, returnedValue, isRef: false, OperationKind.YieldBreak, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IBranchOperation CreateBoundGotoStatementOperation(BoundGotoStatement boundGotoStatement)
@@ -1648,7 +1648,8 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundReturnStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.Return, _semanticModel, syntax, type, constantValue, isImplicit);
+            bool isRef = boundReturnStatement.RefKind == RefKind.Ref;
+            return new CSharpLazyReturnOperation(this, returnedValue, isRef, OperationKind.Return, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IReturnOperation CreateBoundYieldReturnStatementOperation(BoundYieldReturnStatement boundYieldReturnStatement)
@@ -1658,7 +1659,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundYieldReturnStatement.WasCompilerGenerated;
-            return new CSharpLazyReturnOperation(this, returnedValue, OperationKind.YieldReturn, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyReturnOperation(this, returnedValue, isRef: false, OperationKind.YieldReturn, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ILockOperation CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)

@@ -358,6 +358,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Value to be returned.
         /// </summary>
         IOperation ReturnedValue { get; }
+        /// <summary>
+        /// Is this a ref return
+        /// </summary>
+        bool IsRef { get; }
     }
     /// <summary>
     /// Represents a <see cref="Body" /> of operations that are executed while holding a lock onto the <see cref="LockedValue" />.
@@ -3495,9 +3499,13 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseReturnOperation : Operation, IReturnOperation
     {
-        internal BaseReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit) { }
+        internal BaseReturnOperation(bool isRef, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            IsRef = isRef;
+        }
         public abstract IOperation ReturnedValue { get; }
+        public bool IsRef { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -3510,8 +3518,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ReturnOperation : BaseReturnOperation, IReturnOperation
     {
-        internal ReturnOperation(IOperation returnedValue, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit)
+        internal ReturnOperation(IOperation returnedValue, bool isRef, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(isRef, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ReturnedValue = SetParentOperation(returnedValue, this);
         }
@@ -3520,8 +3528,8 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract partial class LazyReturnOperation : BaseReturnOperation, IReturnOperation
     {
         private IOperation _lazyReturnedValue = s_unset;
-        internal LazyReturnOperation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(kind, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyReturnOperation(bool isRef, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(isRef, kind, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract IOperation CreateReturnedValue();
         public override IOperation ReturnedValue
         {
