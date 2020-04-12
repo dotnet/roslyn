@@ -33,6 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         Optional cancellationToken As CancellationToken = Nothing)
 
             Debug.Assert(moduleBeingBuilt IsNot Nothing)
+
+            moduleBeingBuilt.RootModuleType.Freeze()
+
             Dim compiler = New SynthesizedMetadataCompiler(moduleBeingBuilt:=moduleBeingBuilt, cancellationToken:=cancellationToken)
             compilation.SourceModule.GlobalNamespace.Accept(compiler)
         End Sub
