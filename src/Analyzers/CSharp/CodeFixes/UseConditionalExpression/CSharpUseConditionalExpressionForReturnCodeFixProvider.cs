@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
-        {
-            var throwStatement = (ThrowStatementSyntax)throwOperation.Syntax!;
-            return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression!);
-        }
+            => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
 
 #if CODE_STYLE
         protected override ISyntaxFormattingService GetSyntaxFormattingService()

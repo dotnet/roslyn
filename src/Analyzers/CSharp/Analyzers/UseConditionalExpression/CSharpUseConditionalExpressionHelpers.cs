@@ -14,5 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         public static bool IsRef(IReturnOperation? returnOperation)
             => returnOperation?.Syntax is ReturnStatementSyntax statement &&
                statement.Expression is RefExpressionSyntax;
+
+        public static ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
+        {
+            var throwStatement = (ThrowStatementSyntax)throwOperation.Syntax;
+            return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+        }
     }
 }

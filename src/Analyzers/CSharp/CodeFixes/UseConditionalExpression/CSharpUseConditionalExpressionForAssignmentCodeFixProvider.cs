@@ -29,12 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         {
         }
 
-        protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
-        {
-            var throwStatement = (ThrowStatementSyntax)throwOperation.Syntax;
-            return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
-        }
-
         protected override AbstractFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
 
@@ -60,6 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 
             return statement;
         }
+
+        protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
+            => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
 
 #if CODE_STYLE
         protected override ISyntaxFormattingService GetSyntaxFormattingService()
