@@ -768,9 +768,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
 
-            if (isInaccessible(this) || anyContainingTypeIsInaccessible(this))
+            if (isInaccessible(this) || containingTypes(this).Any(isInaccessible))
             {
-                var topLevelType = getTopLevelContainingType(this);
+                var topLevelType = containingTypes(this).LastOrDefault();
                 Debug.Assert(topLevelType is object);
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name, topLevelType.Name);
             }
@@ -805,33 +805,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static bool anyContainingTypeIsInaccessible(Symbol symbol)
+            static IEnumerable<NamedTypeSymbol> containingTypes(Symbol symbol)
             {
-                for (; symbol.ContainingType is { } type; symbol = type)
+                for (var type = symbol.ContainingType; type is { }; type = type.ContainingType)
                 {
-                    if (isInaccessible(type))
-                    {
-                        return true;
-                    }
+                    yield return type;
                 }
-
-                return false;
-            }
-
-            static TypeSymbol? getTopLevelContainingType(Symbol symbol)
-            {
-                var type = symbol.ContainingType;
-                if (type is null)
-                {
-                    return null;
-                }
-
-                while (type.ContainingType is { } containingType)
-                {
-                    type = containingType;
-                }
-
-                return type;
             }
         }
 #nullable restore
