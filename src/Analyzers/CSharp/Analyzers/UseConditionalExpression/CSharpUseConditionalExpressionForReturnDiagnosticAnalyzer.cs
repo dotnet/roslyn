@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
@@ -18,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             : base(new LocalizableResourceString(nameof(CSharpAnalyzersResources.if_statement_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
+
+        protected override bool IsRef(IReturnOperation returnOperation)
+            => CSharpUseConditionalExpressionHelpers.IsRef(returnOperation);
 
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;

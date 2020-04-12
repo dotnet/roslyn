@@ -94,6 +94,50 @@ class C
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotOnSimpleAssignment_Throw1_CSharp6()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestWithSimpleThrow()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            throw;
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleAssignment_Throw2()
         {
             await TestInRegularAndScriptAsync(

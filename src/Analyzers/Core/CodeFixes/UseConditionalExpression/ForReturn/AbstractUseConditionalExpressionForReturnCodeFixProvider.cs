@@ -32,8 +32,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
+        private readonly Func<IReturnOperation?, bool> _returnIsRef;
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId);
+
+        protected AbstractUseConditionalExpressionForReturnCodeFixProvider()
+            => _returnIsRef = IsRef;
 
         protected abstract bool IsRef(IReturnOperation? returnOperation);
 
@@ -56,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement)!;
 
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation,
+                    syntaxFacts, ifOperation, _returnIsRef,
                     out var trueReturn, out var trueThrow,
                     out var falseReturn, out var falseThrow))
             {
@@ -66,20 +71,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var trueSatement = ((IOperation?)trueReturn ?? trueThrow)!;
             var falseStatement = ((IOperation?)falseReturn ?? falseThrow)!;
 
-            // `ref` can't be used with `throw`.
-            var isRef = IsRef(trueReturn ?? falseReturn);
-            if (isRef && (trueThrow != null || falseThrow != null))
-                return;
-
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
                 trueSatement, falseStatement,
                 trueReturn?.ReturnedValue ?? trueThrow?.Exception,
                 falseReturn?.ReturnedValue ?? falseThrow?.Exception,
-                isRef, cancellationToken).ConfigureAwait(false);
+                IsRef((trueReturn ?? falseReturn)!), cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            var returnStatement = trueReturn?.Kind == OperationKind.YieldReturn
+            var returnStatement = trueReturn?.Kind == OperationKind.YieldReturn || falseReturn?.Kind == OperationKind.YieldReturn
                 ? (TStatementSyntax)generatorInternal.YieldReturnStatement(conditionalExpression)
                 : (TStatementSyntax)editor.Generator.ReturnStatement(conditionalExpression);
 

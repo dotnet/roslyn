@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         }
 
         protected override bool IsRef(IReturnOperation? returnOperation)
-            => returnOperation?.Syntax is ReturnStatementSyntax statement &&
-               statement.Expression is RefExpressionSyntax;
+            => CSharpUseConditionalExpressionHelpers.IsRef(returnOperation);
 
         protected override AbstractFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
@@ -51,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 
         protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
         {
-            var throwStatement = (ThrowStatementSyntax)throwOperation.Syntax;
-            return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+            var throwStatement = (ThrowStatementSyntax)throwOperation.Syntax!;
+            return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression!);
         }
 
 #if CODE_STYLE

@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static bool TryMatchPattern(
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
+            Func<IReturnOperation?, bool> returnIsRef,
             out IReturnOperation? trueReturn,
             out IThrowOperation? trueThrow,
             out IReturnOperation? falseReturn,
@@ -128,14 +130,19 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            // `ref` can't be used with `throw`.
+            var isRef = returnIsRef(trueReturn ?? falseReturn);
+            if (isRef && (trueThrow != null || falseThrow != null))
+                return false;
+
             return UseConditionalExpressionHelpers.CanConvert(
                 syntaxFacts, ifOperation, (IOperation?)trueReturn ?? trueThrow, (IOperation?)falseReturn ?? falseThrow);
         }
 
         private static bool IsReturnExprOrThrow(IOperation statement)
         {
-            if (statement is IThrowOperation)
-                return true;
+            if (statement is IThrowOperation throwOperation)
+                return throwOperation.Exception != null;
 
             return statement is IReturnOperation returnOp && returnOp.ReturnedValue != null;
         }

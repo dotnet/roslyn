@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -16,6 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Public Sub New()
             MyBase.New(New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.If_statement_can_be_simplified), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
+
+        Protected Overrides Function IsRef(returnOperation As IReturnOperation) As Boolean
+            ' VB doesn't have ref-returns
+            Return False
+        End Function
 
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance

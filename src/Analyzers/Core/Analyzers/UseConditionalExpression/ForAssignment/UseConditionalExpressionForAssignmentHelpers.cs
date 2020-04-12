@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (statement is IThrowOperation throwOp)
             {
                 throwOperation = throwOp;
-                return true;
+                return throwOperation.Exception != null;
             }
 
             // Both the WhenTrue and WhenFalse statements must be of the form:
