@@ -63,10 +63,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public bool TypeBinds => !TypeSymbol!.IsErrorType();
 
-        public bool IsRequired { get; set; } = true;
+        private bool _isRequired = true;
+        public bool IsRequired
+        {
+            get
+            {
+                return _isRequired;
+            }
+            set
+            {
+                if (_isRequired != value)
+                {
+                    _isRequired = value;
+                    NotifyPropertyChanged();
+                    NotifyPropertyChanged(nameof(IsOptional));
+
+                    if (IsCallsiteOmitted)
+                    {
+                        IsCallsiteOmitted = false;
+                        IsCallsiteRegularValue = true;
+
+                        NotifyPropertyChanged(nameof(IsCallsiteOmitted));
+                        NotifyPropertyChanged(nameof(IsCallsiteRegularValue));
+                    }
+                }
+            }
+        }
+
+        public bool IsOptional
+        {
+            get
+            {
+                return !_isRequired;
+            }
+            set
+            {
+                if (_isRequired == value)
+                {
+                    _isRequired = !value;
+                }
+            }
+        }
+
         public string DefaultValue { get; set; }
         public bool IsCallsiteError { get; set; }
         public bool IsCallsiteOmitted { get; set; }
+        public bool IsCallsiteRegularValue { get; set; } = true;
 
         public bool UseNamedArguments { get; set; }
 

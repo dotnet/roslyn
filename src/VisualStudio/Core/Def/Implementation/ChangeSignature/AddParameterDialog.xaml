@@ -73,7 +73,12 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <RadioButton x:Name="OptionalParameterRadioButton" Grid.Column="0" GroupName="ParameterKind" VerticalContentAlignment="Center" Content="{Binding ElementName=dialog, Path=OptionalWithDefaultValue}" />
+                <RadioButton x:Name="OptionalParameterRadioButton" 
+                             Grid.Column="0" 
+                             GroupName="ParameterKind" 
+                             VerticalContentAlignment="Center" 
+                             IsChecked="{Binding IsOptional, Mode=TwoWay}"
+                             Content="{Binding ElementName=dialog, Path=OptionalWithDefaultValue}" />
                 <TextBox x:Name="DefaultValue" 
                          Grid.Column="1" 
                          Margin="5,0,0,0" 
@@ -90,7 +95,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <RadioButton x:Name="CallsiteValueRadioButton" Grid.Row="0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" IsChecked="True" Content="{Binding ElementName=dialog, Path=Value}" />
+                <RadioButton x:Name="CallsiteValueRadioButton" Grid.Row="0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" IsChecked="{Binding IsCallsiteRegularValue, Mode=TwoWay}" Content="{Binding ElementName=dialog, Path=Value}" />
                 <TextBox x:Name="CallsiteValueTextBox" 
                          Grid.Column="1"
                          Grid.Row="0"

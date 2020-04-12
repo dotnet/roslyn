@@ -172,6 +172,36 @@ class MyClass
             Assert.True(viewModel.TrySubmit())
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Sub AddParameter_CannotBeBothRequiredAndOmit()
+            Dim markup = <Text><![CDATA[
+class MyClass<T>
+{
+    public void M($$) { }
+}"]]></Text>
+
+            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+
+            VerifyOpeningState(viewModel)
+
+            Dim monitor = New PropertyChangedTestMonitor(viewModel)
+            monitor.AddExpectation(Function() viewModel.IsOptional)
+            monitor.AddExpectation(Function() viewModel.IsRequired)
+            monitor.AddExpectation(Function() viewModel.IsCallsiteRegularValue)
+            monitor.AddExpectation(Function() viewModel.IsCallsiteOmitted)
+
+            viewModel.IsOptional = True
+            viewModel.IsCallsiteOmitted = True
+            viewModel.IsRequired = True
+
+            monitor.VerifyExpectations()
+            monitor.Detach()
+
+            Assert.True(viewModel.IsCallsiteRegularValue)
+            Assert.False(viewModel.IsCallsiteOmitted)
+        End Sub
+
         <Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <InlineData("int")>
         <InlineData("MyClass")>
@@ -236,10 +266,15 @@ class MyClass
             Assert.True(viewModel.TypeDoesNotBindImage = Visibility.Collapsed)
             Assert.True(viewModel.TypeBindsImage = Visibility.Collapsed)
 
-            Assert.False(viewModel.UseNamedArguments)
+            Assert.True(viewModel.IsRequired)
+            Assert.False(viewModel.IsOptional)
+            Assert.Equal(String.Empty, viewModel.DefaultValue)
 
-            Assert.True(viewModel.CallSiteValue.IsEmpty())
-            Assert.True(viewModel.DefaultValue = Nothing)
+            Assert.True(viewModel.IsCallsiteRegularValue)
+            Assert.Equal(String.Empty, viewModel.CallSiteValue)
+            Assert.False(viewModel.UseNamedArguments)
+            Assert.False(viewModel.IsCallsiteError)
+            Assert.False(viewModel.IsCallsiteOmitted)
 
             Assert.False(viewModel.TrySubmit)
         End Sub
