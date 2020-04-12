@@ -8,7 +8,6 @@ Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices

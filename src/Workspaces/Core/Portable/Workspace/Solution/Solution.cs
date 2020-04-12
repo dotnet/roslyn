@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -328,6 +327,22 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the compiler output file path.
+        /// </summary>
+        public Solution WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
+        {
+            CheckContainsProject(projectId);
+
+            var newState = _state.WithProjectCompilationOutputFilePaths(projectId, paths);
             if (newState == _state)
             {
                 return this;

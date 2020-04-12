@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 using Roslyn.Utilities;

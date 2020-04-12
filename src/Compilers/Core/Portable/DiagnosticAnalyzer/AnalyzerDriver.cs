@@ -2619,6 +2619,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 operationsToAnalyze.Add(operationBlock.Parent);
                                 break;
 
+                            case OperationKind.ExpressionStatement:
+                                // For constructor initializer, we generate an IInvocationOperation with an implicit IExpressionStatementOperation parent.
+                                Debug.Assert(operationBlock.Kind == OperationKind.Invocation);
+                                Debug.Assert(operationBlock.Parent.IsImplicit);
+                                Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
+                                    ctorBody.Initializer == operationBlock.Parent);
+                                break;
+
                             default:
                                 Debug.Fail($"Expected operation with kind '{operationBlock.Kind}' to be the root operation with null 'Parent', but instead it has a non-null Parent with kind '{operationBlock.Parent.Kind}'");
                                 break;
