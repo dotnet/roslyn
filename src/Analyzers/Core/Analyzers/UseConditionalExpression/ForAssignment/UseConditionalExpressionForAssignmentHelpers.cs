@@ -41,15 +41,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (trueThrow != null && falseThrow != null)
                 return false;
 
-            if (trueThrow != null || falseThrow != null)
-            {
-                if (!syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
-                    return false;
-            }
+            var anyAssignment = trueAssignment ?? falseAssignment;
+            var anyThrow = trueThrow ?? falseThrow;
+
+            if (anyThrow != null && !syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
+                return false;
 
             // `ref` can't be used with `throw`.
-            var isRef = trueAssignment?.IsRef == true || falseAssignment?.IsRef == true;
-            if (isRef && (trueThrow != null || falseThrow != null))
+            if (anyAssignment?.IsRef == true && anyThrow != null)
                 return false;
 
             // The left side of both assignment statements has to be syntactically identical (modulo

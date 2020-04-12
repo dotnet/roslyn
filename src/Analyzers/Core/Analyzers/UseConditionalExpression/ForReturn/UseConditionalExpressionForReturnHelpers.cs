@@ -88,11 +88,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (trueThrow != null && falseThrow != null)
                 return false;
 
-            if (trueThrow != null || falseThrow != null)
-            {
-                if (!syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
-                    return false;
-            }
+            var anyReturn = trueReturn ?? falseReturn;
+            var anyThrow = trueThrow ?? falseThrow;
+
+            if (anyThrow != null && !syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
+                return false;
+
+            // `ref` can't be used with `throw`.
+            if (returnIsRef(anyReturn) && anyThrow != null)
+                return false;
 
             if (trueReturn != null && falseReturn != null)
             {
@@ -129,11 +133,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 // as both yields need to be hit.
                 return false;
             }
-
-            // `ref` can't be used with `throw`.
-            var isRef = returnIsRef(trueReturn ?? falseReturn);
-            if (isRef && (trueThrow != null || falseThrow != null))
-                return false;
 
             return UseConditionalExpressionHelpers.CanConvert(
                 syntaxFacts, ifOperation, (IOperation?)trueReturn ?? trueThrow, (IOperation?)falseReturn ?? falseThrow);
