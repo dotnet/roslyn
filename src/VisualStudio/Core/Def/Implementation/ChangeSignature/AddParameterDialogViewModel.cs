@@ -38,6 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             Document = document;
             InsertPosition = insertPosition;
+
+            IsRequired = true;
+            IsCallsiteRegularValue = true;
+
             ParameterName = string.Empty;
             CallSiteValue = string.Empty;
             DefaultValue = string.Empty;
@@ -63,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public bool TypeBinds => !TypeSymbol!.IsErrorType();
 
-        private bool _isRequired = true;
+        private bool _isRequired;
         public bool IsRequired
         {
             get
@@ -100,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 if (_isRequired == value)
                 {
-                    _isRequired = !value;
+                    IsRequired = !value;
                 }
             }
         }

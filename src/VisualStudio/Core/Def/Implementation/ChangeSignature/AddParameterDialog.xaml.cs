@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -44,6 +45,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             MinHeight = Height;
             TypeContentControl.Focus();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            // Workaround WPF bug: https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1101094
+            DataContext = null;
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
