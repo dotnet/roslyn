@@ -6,12 +6,32 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+
+    <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
+  <ItemGroup Label="PkgDef">
+    <PkgDefEntry Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+                 Kind="InstalledProduct"
+                 Name="Microsoft Visual C#"
+                 DisplayName="#117"
+                 ProductDetails="#116"/>
+    <PkgDefEntry Include="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"
+                 Kind="PackageRegistration"
+                 Name="CSharpVsInteractiveWindowPackage"
+                 Class="Microsoft.VisualStudio.LanguageServices.CSharp.Interactive.CSharpVsInteractiveWindowPackage"
+                 AllowsBackgroundLoad="true"/>
+    <PkgDefEntry Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+                 Kind="PackageRegistration"
+                 Name="CSharpPackage"
+                 Class="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage"
+                 AllowsBackgroundLoad="true"/>
+    <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
@@ -44,7 +64,6 @@
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <Content Include="CSharpPackageRegistration.pkgdef" />
     <Content Include="Interactive\Resources\ScriptFile.ico" />
     <VSCTCompile Include="Interactive\Commands.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>

@@ -26,6 +26,14 @@
   <ItemGroup Label="NuGet">
     <NuspecProperty Include="SystemThreadingTasksDataflowVersion=$(SystemThreadingTasksDataflowVersion)"/>
   </ItemGroup>
+  <ItemGroup Label="PkgDef">
+    <PkgDefEntry Include="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+                 Kind="PackageRegistration"
+                 Name="RoslynPackage"
+                 Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage"
+                 AllowsBackgroundLoad="true"/>
+    <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
@@ -116,9 +124,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ManagedEditAndContinueService.vsdconfigxml" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="UIAutomationProvider" />
@@ -198,6 +203,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ManagedEditAndContinueService.vsdconfigxml" />
     <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />

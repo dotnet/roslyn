@@ -2,8 +2,4 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.VisualStudio.Shell;
-using Roslyn.VisualStudio.Setup;
-
-[assembly: ProvideRoslynBindingRedirection("Microsoft.Build.Tasks.CodeAnalysis.dll")]
-[assembly: ProvideRoslynBindingRedirection("Roslyn.Compilers.Extension.dll")]
+// TODO: [assembly: ProvideRoslynBindingRedirection("Roslyn.Compilers.Extension.dll")]

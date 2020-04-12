@@ -47,15 +47,7 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
-    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 17)]
-    [ProvideUIContextRule(
-        Guids.EncCapableProjectExistsInWorkspaceUIContextString,
-        name: "Managed Edit and Continue capability",
-        expression: "CS | VB",
-        termNames: new[] { "CS", "VB" },
-        termValues: new[] { Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString })]
-    internal class RoslynPackage : AbstractPackage
+    internal sealed class RoslynPackage : AbstractPackage
     {
         // The randomly-generated key name is used for serializing the ILSpy decompiler EULA preference to the .SUO
         // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that

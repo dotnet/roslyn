@@ -14,15 +14,18 @@
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
+  <ItemGroup Label="PkgDef">
+    <PkgDefEntry Include="{d02dac01-ddd0-4ecc-8687-79a554852b14}"
+                 Kind="PackageRegistration"
+                 Name="IntegrationTestServicePackage"
+                 Class="Microsoft.VisualStudio.IntegrationTest.Setup.IntegrationTestServicePackage"
+                 AllowsBackgroundLoad="true"/>
+    <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\Setup\ProvideRoslynBindingRedirection.cs">
-      <Link>ProvideRoslynBindingRedirection.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="IntegrationTestServiceCommands.vsct">
@@ -54,6 +57,7 @@
       <Name>Diagnostics</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Name>Workspaces</Name>
@@ -65,9 +69,10 @@
     </ProjectReference>
     <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj">
       <Name>IntegrationService</Name>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.Diagnostics.Runtime.dll" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Diagnostics.Runtime" PkgDefEntry="BindingRedirect" />
   </ItemGroup>
 </Project>

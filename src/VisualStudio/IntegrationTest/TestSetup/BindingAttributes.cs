@@ -4,8 +4,4 @@
 
 using Microsoft.VisualStudio.Shell;
 
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.IntegrationTest.Setup.dll")]
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.IntegrationTest.IntegrationService.dll")]
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Roslyn.Hosting.Diagnostics.dll")]
-
-[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.Diagnostics.Runtime.dll")]
+// TODO: [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.IntegrationTest.Setup.dll")]
