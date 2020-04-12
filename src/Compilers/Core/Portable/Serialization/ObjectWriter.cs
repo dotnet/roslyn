@@ -778,7 +778,7 @@ namespace Roslyn.Utilities
         public void WriteType(Type type)
         {
             _writer.Write((byte)EncodingKind.Type);
-            this.WriteString(type.AssemblyQualifiedName!);
+            this.WriteString(type.AssemblyQualifiedName);
         }
 
         private void WriteKnownType(Type type)
