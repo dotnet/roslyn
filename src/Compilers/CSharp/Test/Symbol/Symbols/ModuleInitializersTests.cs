@@ -137,5 +137,37 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 C.M
 Program.Main");
         }
+
+        [Fact]
+        public void SingleCallIsGeneratedWhenMethodIsMarkedTwice()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer, ModuleInitializer]
+    internal static void M() { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    class ModuleInitializerAttribute : Attribute 
+    { 
+    } 
+}
+";
+            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
+
+            verifier.VerifyIL("<Module>..cctor", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       ""void C.M()""
+  IL_0005:  ret
+}");
+        }
     }
 }
