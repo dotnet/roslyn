@@ -169,5 +169,55 @@ namespace System.Runtime.CompilerServices
   IL_0005:  ret
 }");
         }
+
+        [Fact]
+        public void AttributeCanBeAppliedWithinItsOwnDefinition()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    class ModuleInitializerAttribute : System.Attribute 
+    { 
+        [ModuleInitializer]
+        internal static void M() { }
+    } 
+}
+";
+            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
+
+            verifier.VerifyIL("<Module>..cctor", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       ""void System.Runtime.CompilerServices.ModuleInitializerAttribute.M()""
+  IL_0005:  ret
+}");
+        }
+
+        [Fact]
+        public void ExternMethodCanBeModuleInitializer()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+class C
+{
+    [ModuleInitializer, DllImport(""foo"")]
+    internal static extern void M();
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
+
+            verifier.VerifyIL("<Module>..cctor", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  0
+  IL_0000:  call       ""void C.M()""
+  IL_0005:  ret
+}");
+        }
     }
 }
