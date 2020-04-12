@@ -91,12 +91,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var anyReturn = trueReturn ?? falseReturn;
             var anyThrow = trueThrow ?? falseThrow;
 
-            if (anyThrow != null && !syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
-                return false;
+            if (anyThrow != null)
+            {
+                // can only convert to a conditional expression if the lang supports throw-exprs.
+                if (!syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
+                    return false;
 
-            // `ref` can't be used with `throw`.
-            if (returnIsRef(anyReturn) && anyThrow != null)
-                return false;
+                // `ref` can't be used with `throw`.
+                if (returnIsRef(anyReturn))
+                    return false;
+            }
 
             if (trueReturn != null && falseReturn != null)
             {
@@ -135,11 +139,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             return UseConditionalExpressionHelpers.CanConvert(
-                syntaxFacts, ifOperation, (IOperation?)trueReturn ?? trueThrow, (IOperation?)falseReturn ?? falseThrow);
+                syntaxFacts, ifOperation, trueStatement, falseStatement);
         }
 
         private static bool IsReturnExprOrThrow(IOperation statement)
         {
+            // We can only convert a `throw expr` to a throw expression, not `throw;`
             if (statement is IThrowOperation throwOperation)
                 return throwOperation.Exception != null;
 

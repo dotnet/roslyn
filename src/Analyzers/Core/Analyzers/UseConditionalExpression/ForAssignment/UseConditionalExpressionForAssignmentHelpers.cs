@@ -44,12 +44,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var anyAssignment = trueAssignment ?? falseAssignment;
             var anyThrow = trueThrow ?? falseThrow;
 
-            if (anyThrow != null && !syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
-                return false;
+            if (anyThrow != null)
+            {
+                // can only convert to a conditional expression if the lang supports throw-exprs.
+                if (!syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
+                    return false;
 
-            // `ref` can't be used with `throw`.
-            if (anyAssignment?.IsRef == true && anyThrow != null)
-                return false;
+                // `ref` can't be used with `throw`.
+                if (anyAssignment?.IsRef == true)
+                    return false;
+            }
 
             // The left side of both assignment statements has to be syntactically identical (modulo
             // trivia differences).
@@ -60,9 +64,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             return UseConditionalExpressionHelpers.CanConvert(
-                syntaxFacts, ifOperation,
-                (IOperation?)trueAssignment ?? trueThrow,
-                (IOperation?)falseAssignment ?? falseThrow);
+                syntaxFacts, ifOperation, trueStatement, falseStatement);
         }
 
         private static bool TryGetAssignmentOrThrow(
@@ -76,6 +78,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (statement is IThrowOperation throwOp)
             {
                 throwOperation = throwOp;
+
+                // We can only convert a `throw expr` to a throw expression, not `throw;`
                 return throwOperation.Exception != null;
             }
 
