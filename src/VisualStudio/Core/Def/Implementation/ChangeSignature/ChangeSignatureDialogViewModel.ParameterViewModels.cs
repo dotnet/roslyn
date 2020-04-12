@@ -225,15 +225,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     switch (ParameterSymbol.Language)
                     {
                         case LanguageNames.CSharp:
-                            return NullText("null");
+                            return NullText("null", "default");
                         case LanguageNames.VisualBasic:
-                            return NullText("Nothing");
+                            return NullText("Nothing", "Nothing");
                     }
                     return string.Empty;
 
-                    string NullText(string @null)
+                    string NullText(string @null, string @default)
                     {
-                        return ParameterSymbol.ExplicitDefaultValue == null ? @null :
+                        return ParameterSymbol.ExplicitDefaultValue == null ? (ParameterSymbol.Type.IsReferenceType ? @null : @default) :
                                ParameterSymbol.ExplicitDefaultValue is string ? "\"" + ParameterSymbol.ExplicitDefaultValue.ToString() + "\"" :
                                ParameterSymbol.ExplicitDefaultValue.ToString();
                     }
