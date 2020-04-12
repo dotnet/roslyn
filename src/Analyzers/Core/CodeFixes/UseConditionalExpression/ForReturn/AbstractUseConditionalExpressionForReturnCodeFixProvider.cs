@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement)!;
 
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
                     syntaxFacts, ifOperation,
@@ -66,13 +66,17 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var trueSatement = ((IOperation?)trueReturn ?? trueThrow)!;
             var falseStatement = ((IOperation?)falseReturn ?? falseThrow)!;
 
+            // `ref` can't be used with `throw`.
+            var isRef = IsRef(trueReturn ?? falseReturn);
+            if (isRef && (trueThrow != null || falseThrow != null))
+                return;
+
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
-                trueSatement,
-                falseStatement,
+                trueSatement, falseStatement,
                 trueReturn?.ReturnedValue ?? trueThrow?.Exception,
                 falseReturn?.ReturnedValue ?? falseThrow?.Exception,
-                IsRef(trueReturn), cancellationToken).ConfigureAwait(false);
+                isRef, cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var returnStatement = trueReturn?.Kind == OperationKind.YieldReturn
