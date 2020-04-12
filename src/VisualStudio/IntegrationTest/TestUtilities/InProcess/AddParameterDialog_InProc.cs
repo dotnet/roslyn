@@ -19,17 +19,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void FillCallSiteField(string callSiteValue)
         {
-            // TODO
-
-            //using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
-            //{
-            //    JoinableTaskFactory.Run(async () =>
-            //    {
-            //        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-            //        var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-            //        dialog.CallSiteValueTextBox.Text = callSiteValue;
-            //    });
-            //}
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                JoinableTaskFactory.Run(async () =>
+                {
+                    await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+                    var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.CallsiteValueTextBox.Text = callSiteValue;
+                });
+            }
         }
 
         public void FillNameField(string parameterName)
@@ -41,6 +39,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
                     dialog.NameContentControl.Text = parameterName;
+                });
+            }
+        }
+
+        public void SetCallSiteTodo()
+        {
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                JoinableTaskFactory.Run(async () =>
+                {
+                    await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
+                    var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.IntroduceErrorRadioButton.IsChecked = true;
                 });
             }
         }
