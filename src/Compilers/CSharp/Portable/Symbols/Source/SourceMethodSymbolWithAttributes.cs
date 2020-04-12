@@ -766,6 +766,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
+            if (MethodKind != MethodKind.Ordinary)
+            {
+                return;
+            }
+
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
             Debug.Assert(ContainingType is object);
 
