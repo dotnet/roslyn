@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -485,8 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ModuleInitializerAttribute))
             {
                 MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
-                // PROTOTYPE(module-initializers): diagnostics
-                DeclaringCompilation.AddModuleInitializerMethod(this);
+                DecodeModuleInitializerAttribute(arguments);
             }
             else
             {
@@ -761,6 +761,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         bestFitMapping,
                         throwOnUnmappable),
                     preserveSig);
+            }
+        }
+
+        private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        {
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+
+            if (isInaccessible(this) || anyContainingTypeIsInaccessible(this))
+            {
+                var topLevelType = getTopLevelContainingType(this);
+                Debug.Assert(topLevelType is object);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name, topLevelType.Name);
+            }
+
+            DeclaringCompilation.AddModuleInitializerMethod(this);
+
+            static bool isInaccessible(Symbol symbol)
+            {
+                switch (symbol.DeclaredAccessibility)
+                {
+                    case Accessibility.Private:
+                    case Accessibility.Protected:
+                    case Accessibility.ProtectedAndInternal:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            static bool anyContainingTypeIsInaccessible(Symbol symbol)
+            {
+                for (; symbol.ContainingType is { } type; symbol = type)
+                {
+                    if (isInaccessible(type))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            static TypeSymbol? getTopLevelContainingType(Symbol symbol)
+            {
+                var type = symbol.ContainingType;
+                if (type is null)
+                {
+                    return null;
+                }
+
+                while (type.ContainingType is { } containingType)
+                {
+                    type = containingType;
+                }
+
+                return type;
             }
         }
 #nullable restore
