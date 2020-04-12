@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.CallsiteValueTextBox.Focus();
                     dialog.CallsiteValueTextBox.Text = callSiteValue;
                 });
             }
@@ -38,6 +39,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.NameContentControl.Focus();
                     dialog.NameContentControl.Text = parameterName;
                 });
             }
@@ -51,6 +53,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.IntroduceErrorRadioButton.Focus();
                     dialog.IntroduceErrorRadioButton.IsChecked = true;
                 });
             }
@@ -64,6 +67,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
+                    dialog.TypeContentControl.Focus();
                     dialog.TypeContentControl.Text = typeName;
                 });
             }
