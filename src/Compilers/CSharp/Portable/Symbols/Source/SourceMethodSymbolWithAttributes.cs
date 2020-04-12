@@ -775,6 +775,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name, topLevelType.Name);
             }
 
+            if (!IsStatic)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStatic, arguments.AttributeSyntaxOpt.Location, Name);
+            }
+
+            if (ParameterCount > 0)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotHaveParameters, arguments.AttributeSyntaxOpt.Location, Name);
+            }
+
+            if (!ReturnsVoid)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustReturnVoid, arguments.AttributeSyntaxOpt.Location, Name);
+            }
+
             DeclaringCompilation.AddModuleInitializerMethod(this);
 
             static bool isInaccessible(Symbol symbol)
