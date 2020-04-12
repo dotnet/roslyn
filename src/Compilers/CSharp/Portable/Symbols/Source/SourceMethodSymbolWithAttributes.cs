@@ -767,11 +767,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
+            Debug.Assert(ContainingType is object);
 
             if (isInaccessible(this) || containingTypes(this).Any(isInaccessible))
             {
-                var topLevelType = containingTypes(this).LastOrDefault();
-                Debug.Assert(topLevelType is object);
+                var topLevelType = containingTypes(this).Last();
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name, topLevelType.Name);
             }
 
@@ -788,6 +788,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!ReturnsVoid)
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustReturnVoid, arguments.AttributeSyntaxOpt.Location, Name);
+            }
+
+            if (IsGenericMethod)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
+            }
+
+            if (ContainingType.IsGenericType)
+            {
+                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustNotBeContainedInGenericType, arguments.AttributeSyntaxOpt.Location, Name);
             }
 
             DeclaringCompilation.AddModuleInitializerMethod(this);
