@@ -48,13 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.IsRequired = RequiredParameterRadioButton.IsChecked ?? false;
-            _viewModel.DefaultValue = _viewModel.IsRequired ? "" : DefaultValue.Text;
-
-            _viewModel.IsCallsiteError = IntroduceErrorRadioButton.IsChecked ?? false;
-            _viewModel.IsCallsiteOmitted = OmitArgumentRadioButton.IsChecked ?? false;
-            _viewModel.UseNamedArguments = UseNamedArgumentButton.IsChecked ?? false;
-
             if (_viewModel.TrySubmit())
             {
                 DialogResult = true;
@@ -81,11 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public DialogButton OKButton => _dialog.OKButton;
 
             public DialogButton CancelButton => _dialog.CancelButton;
-        }
-
-        private void TypeContentControl_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            _viewModel.SetCurrentTypeTextAndUpdateBindingStatus(TypeContentControl.Text);
         }
     }
 }

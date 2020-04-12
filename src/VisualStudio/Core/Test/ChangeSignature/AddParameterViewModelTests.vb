@@ -30,14 +30,14 @@ class MyClass
 
             VerifyOpeningState(viewModel)
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus("int")
+            viewModel.VerbatimTypeName = "int"
             Assert.False(viewModel.TrySubmit())
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus("")
+            viewModel.VerbatimTypeName = ""
             viewModel.ParameterName = "x"
             Assert.False(viewModel.TrySubmit())
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus("int")
+            viewModel.VerbatimTypeName = "int"
             Assert.True(viewModel.TrySubmit())
         End Sub
 
@@ -61,7 +61,7 @@ class MyClass<T>
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus("M")
+            viewModel.VerbatimTypeName = "M"
 
             monitor.VerifyExpectations()
             monitor.Detach()
@@ -75,7 +75,7 @@ class MyClass<T>
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus("MyClass")
+            viewModel.VerbatimTypeName = "MyClass"
 
             monitor.VerifyExpectations()
             monitor.Detach()
@@ -89,7 +89,7 @@ class MyClass<T>
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus("MyClass<i")
+            viewModel.VerbatimTypeName = "MyClass<i"
 
             monitor.VerifyExpectations()
             monitor.Detach()
@@ -103,7 +103,7 @@ class MyClass<T>
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus("MyClass<int>")
+            viewModel.VerbatimTypeName = "MyClass<int>"
 
             monitor.VerifyExpectations()
             monitor.Detach()
@@ -117,7 +117,7 @@ class MyClass<T>
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus("")
+            viewModel.VerbatimTypeName = ""
 
             monitor.VerifyExpectations()
             monitor.Detach()
@@ -159,7 +159,7 @@ class MyClass
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus(typeName)
+            viewModel.VerbatimTypeName = typeName
 
             monitor.VerifyExpectations()
             monitor.Detach()
@@ -206,7 +206,7 @@ class MyClass
             monitor.AddExpectation(Function() viewModel.TypeDoesNotBindImage)
             monitor.AddExpectation(Function() viewModel.TypeBindsImage)
 
-            viewModel.SetCurrentTypeTextAndUpdateBindingStatus(typeName)
+            viewModel.VerbatimTypeName = typeName
 
             monitor.VerifyExpectations()
             monitor.Detach()

@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public AddParameterDialogViewModel(Document document, int insertPosition)
         {
             _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
-            _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
             TypeIsEmptyImage = Visibility.Visible;
             TypeBindsImage = Visibility.Collapsed;
@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             InsertPosition = insertPosition;
             ParameterName = string.Empty;
             CallSiteValue = string.Empty;
+            DefaultValue = string.Empty;
         }
 
         public string ParameterName { get; set; }
@@ -62,24 +63,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public bool TypeBinds => !TypeSymbol!.IsErrorType();
 
-        public bool IsRequired { get; internal set; }
-        public string? DefaultValue { get; internal set; }
-        public bool IsCallsiteError { get; internal set; }
-        public bool IsCallsiteOmitted { get; internal set; }
+        public bool IsRequired { get; set; } = true;
+        public string DefaultValue { get; set; }
+        public bool IsCallsiteError { get; set; }
+        public bool IsCallsiteOmitted { get; set; }
 
         public bool UseNamedArguments { get; set; }
 
         private string _verbatimTypeName = string.Empty;
+        public string VerbatimTypeName
+        {
+            get => _verbatimTypeName;
+            set
+            {
+                if (_verbatimTypeName != value)
+                {
+                    _verbatimTypeName = value;
+                    SetCurrentTypeTextAndUpdateBindingStatus(value);
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         internal bool TrySubmit()
         {
-            if (string.IsNullOrEmpty(_verbatimTypeName) || string.IsNullOrEmpty(ParameterName))
+            if (string.IsNullOrEmpty(VerbatimTypeName) || string.IsNullOrEmpty(ParameterName))
             {
                 SendFailureNotification(ServicesVSResources.A_type_and_name_must_be_provided);
                 return false;
             }
 
-            if (!IsParameterTypeSyntacticallyValid(_verbatimTypeName))
+            if (!IsParameterTypeSyntacticallyValid(VerbatimTypeName))
             {
                 SendFailureNotification(ServicesVSResources.Parameter_type_contains_invalid_characters);
                 return false;
@@ -99,9 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _notificationService?.SendNotification(message, severity: NotificationSeverity.Information);
         }
 
-        internal void SetCurrentTypeTextAndUpdateBindingStatus(string typeName)
+        private void SetCurrentTypeTextAndUpdateBindingStatus(string typeName)
         {
-            _verbatimTypeName = typeName;
+            VerbatimTypeName = typeName;
 
             if (typeName.IsNullOrWhiteSpace())
             {
@@ -177,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             return true;
         }
 
-        public string? TypeBindsDynamicStatus { get; set; }
+        public string TypeBindsDynamicStatus { get; set; }
         public Visibility TypeBindsImage { get; set; }
         public Visibility TypeDoesNotBindImage { get; set; }
         public Visibility TypeDoesNotParseImage { get; set; }
