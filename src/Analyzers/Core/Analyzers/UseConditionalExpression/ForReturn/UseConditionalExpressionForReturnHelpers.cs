@@ -102,14 +102,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     return false;
             }
 
-            if (trueReturn != null && falseReturn != null)
+            if (trueReturn != null &&
+                falseReturn != null &&
+                trueReturn.Kind != falseReturn.Kind)
             {
-                if (trueReturn.Kind != falseReturn.Kind)
-                {
-                    // Not allowed if these are different types of returns.  i.e.
-                    // "yield return ..." and "return ...".
-                    return false;
-                }
+                // Not allowed if these are different types of returns.  i.e.
+                // "yield return ..." and "return ...".
+                return false;
             }
 
             if (trueReturn?.Kind == OperationKind.YieldBreak)
