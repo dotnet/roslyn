@@ -26,10 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
         {
             var parts = new List<SymbolDisplayPart>();
 
-            var isPredefinedType = SyntaxFactory.ParseExpression(addedParameterViewModel.TypeWithoutErrorIndicator).Kind() == SyntaxKind.PredefinedType;
+            var isPredefinedType = SyntaxFactory.ParseExpression(addedParameterViewModel.Type).Kind() == SyntaxKind.PredefinedType;
             var typePartKind = isPredefinedType ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ClassName;
 
-            parts.Add(new SymbolDisplayPart(typePartKind, null, addedParameterViewModel.TypeWithoutErrorIndicator));
+            parts.Add(new SymbolDisplayPart(typePartKind, null, addedParameterViewModel.Type));
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, addedParameterViewModel.ParameterName));
 

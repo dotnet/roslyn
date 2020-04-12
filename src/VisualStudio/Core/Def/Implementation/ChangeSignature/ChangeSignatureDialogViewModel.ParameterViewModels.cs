@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,6 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public abstract string InitialIndex { get; }
             public abstract string Modifier { get; }
             public abstract string Default { get; }
+
+            public virtual Visibility TypeWarningVisibility => Visibility.Collapsed;
 
             public string ShortAutomationText => $"{Type} {ParameterName}";
 
@@ -93,22 +96,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
 
             /// <summary>
-            /// The type syntax itself, excluding any markers for types that don't bind.
-            /// </summary>
-            public string TypeWithoutErrorIndicator => _addedParameter.TypeName;
-
-            /// <summary>
             /// Display text for the type in the UI, including a marker if it doesn't bind.
             /// </summary>
-            public override string Type
-            {
-                get
-                {
-                    return _addedParameter.TypeBinds
-                        ? _addedParameter.TypeName
-                        : "(x) " + _addedParameter.TypeName;
-                }
-            }
+            public override string Type => _addedParameter.TypeName;
+
+            public override Visibility TypeWarningVisibility => _addedParameter.TypeBinds ? Visibility.Collapsed : Visibility.Visible;
 
             public override string ParameterName => _addedParameter.Name;
 
