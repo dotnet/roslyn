@@ -193,6 +193,11 @@ namespace Roslyn.Test.Utilities
             return ReadArray(reader, blobHandle, (ref BlobReader blobReader) => blobReader.ReadByte());
         }
 
+        public static ImmutableArray<bool> ReadBoolArray(this MetadataReader reader, BlobHandle blobHandle)
+        {
+            return ReadArray(reader, blobHandle, (ref BlobReader blobReader) => blobReader.ReadBoolean());
+        }
+
         public static IEnumerable<CustomAttributeRow> GetCustomAttributeRows(this MetadataReader reader)
         {
             foreach (var handle in reader.CustomAttributes)

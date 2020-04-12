@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     usageInfo |= TypeOrNamespaceUsageInfo.NamespaceDeclaration;
                 }
-                else if (node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsUsingOrExternOrImport) != null)
+                else if (node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsUsingOrExternOrImport(node), syntaxFacts) != null)
                 {
                     usageInfo |= TypeOrNamespaceUsageInfo.Import;
                 }

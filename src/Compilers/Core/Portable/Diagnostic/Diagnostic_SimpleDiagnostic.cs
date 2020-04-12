@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             private readonly Location _location;
             private readonly IReadOnlyList<Location> _additionalLocations;
             private readonly object?[] _messageArgs;
-            private readonly ImmutableDictionary<string, string> _properties;
+            private readonly ImmutableDictionary<string, string?> _properties;
             private readonly bool _isSuppressed;
 
             private SimpleDiagnostic(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 Location location,
                 IEnumerable<Location>? additionalLocations,
                 object?[]? messageArgs,
-                ImmutableDictionary<string, string>? properties,
+                ImmutableDictionary<string, string?>? properties,
                 bool isSuppressed)
             {
                 if ((warningLevel == 0 && severity != DiagnosticSeverity.Error) ||
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 _location = location ?? Location.None;
                 _additionalLocations = additionalLocations?.ToImmutableArray() ?? SpecializedCollections.EmptyReadOnlyList<Location>();
                 _messageArgs = messageArgs ?? Array.Empty<object?>();
-                _properties = properties ?? ImmutableDictionary<string, string>.Empty;
+                _properties = properties ?? ImmutableDictionary<string, string?>.Empty;
                 _isSuppressed = isSuppressed;
             }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                 Location location,
                 IEnumerable<Location>? additionalLocations,
                 object?[]? messageArgs,
-                ImmutableDictionary<string, string>? properties,
+                ImmutableDictionary<string, string?>? properties,
                 bool isSuppressed = false)
             {
                 return new SimpleDiagnostic(descriptor, severity, warningLevel, location, additionalLocations, messageArgs, properties, isSuppressed);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
                                       DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity,
                                       bool isEnabledByDefault, int warningLevel, Location location,
                                       IEnumerable<Location>? additionalLocations, IEnumerable<string>? customTags,
-                                      ImmutableDictionary<string, string>? properties, bool isSuppressed = false)
+                                      ImmutableDictionary<string, string?>? properties, bool isSuppressed = false)
             {
                 var descriptor = new DiagnosticDescriptor(id, title, message,
                      category, defaultSeverity, isEnabledByDefault, description, helpLink, customTags.ToImmutableArrayOrEmpty());
@@ -139,13 +139,18 @@ namespace Microsoft.CodeAnalysis
                 get { return _additionalLocations; }
             }
 
-            public override ImmutableDictionary<string, string> Properties
+            public override ImmutableDictionary<string, string?> Properties
             {
                 get { return _properties; }
             }
 
             public override bool Equals(Diagnostic? obj)
             {
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
                 var other = obj as SimpleDiagnostic;
                 if (other == null)
                 {

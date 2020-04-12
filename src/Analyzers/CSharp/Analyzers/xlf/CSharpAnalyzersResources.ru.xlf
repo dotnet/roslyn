@@ -22,9 +22,19 @@
         <target state="new">Deconstruct variable declaration</target>
         <note />
       </trans-unit>
+      <trans-unit id="Delegate_invocation_can_be_simplified">
+        <source>Delegate invocation can be simplified.</source>
+        <target state="new">Delegate invocation can be simplified.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="new">Indexing can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_variable_declaration">
+        <source>Inline variable declaration</source>
+        <target state="new">Inline variable declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -195,6 +205,11 @@
       <trans-unit id="Variable_declaration_can_be_deconstructed">
         <source>Variable declaration can be deconstructed</source>
         <target state="new">Variable declaration can be deconstructed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_inlined">
+        <source>Variable declaration can be inlined</source>
+        <target state="new">Variable declaration can be inlined</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">

@@ -4904,7 +4904,29 @@ var(x,y)=(1,2);
 {
     void bar()
     {
-        (string a, string b)[] ab = new (
+        (string a, string b)[] ab = new(
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInImplicitObjectCreation()
+        {
+            var code = @"class C
+{
+    void bar()
+    {
+        C a = new ();
+    }
+}";
+            var expectedCode = @"class C
+{
+    void bar()
+    {
+        C a = new();
     }
 }";
 
