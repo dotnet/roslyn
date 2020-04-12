@@ -59,6 +59,7 @@
             <TextBox x:Name="NameContentControl"
                      Grid.Row="4" 
                      Margin="0,5,0,5"
+                     Text="{Binding ParameterName, Mode=TwoWay}"
                      AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"/>
             <Label x:Name="ParameterKindLabelName" Grid.Row="5" Content="{Binding ElementName=dialog, Path=ParameterKind}" />
             <RadioButton x:Name="RequiredParameterRadioButton" Grid.Row="6" Margin="5" GroupName="ParameterKind" IsChecked="True" Content="{Binding ElementName=dialog, Path=Required}" />
@@ -81,7 +82,12 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <RadioButton x:Name="CallsiteValueRadioButton" Grid.Row="0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" IsChecked="True" Content="{Binding ElementName=dialog, Path=Value}" />
-                <TextBox x:Name="CallsiteValueTextBox" Grid.Column="1" Grid.Row="0" Margin="5,0,0,0" IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}" Text="{Binding CallsiteValue, Mode=TwoWay}"></TextBox>
+                <TextBox x:Name="CallsiteValueTextBox" 
+                         Grid.Column="1"
+                         Grid.Row="0"
+                         Margin="5,0,0,0"
+                         IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}"
+                         Text="{Binding CallSiteValue, Mode=TwoWay}"></TextBox>
                 <CheckBox x:Name="UseNamedArgumentButton" Grid.Row="1" Grid.ColumnSpan="2" Margin="25,5,0,0" Content="{Binding ElementName=dialog, Path=UseNamedArgument}" />
             </Grid>
             <RadioButton x:Name="IntroduceErrorRadioButton" Grid.Row="10" Margin="5,5,0,0" Grid.Column="0" GroupName="CallsiteKind" VerticalContentAlignment="Center" Content="{Binding ElementName=dialog, Path=IntroduceUndefinedTodoVariables}"/>

@@ -48,16 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.UpdateTypeSymbol(TypeContentControl.Text);
-            _viewModel.ParameterName = NameContentControl.Text;
-
             _viewModel.IsRequired = RequiredParameterRadioButton.IsChecked ?? false;
             _viewModel.DefaultValue = _viewModel.IsRequired ? "" : DefaultValue.Text;
 
             _viewModel.IsCallsiteError = IntroduceErrorRadioButton.IsChecked ?? false;
             _viewModel.IsCallsiteOmitted = OmitArgumentRadioButton.IsChecked ?? false;
-
-            _viewModel.CallSiteValue = CallsiteValueTextBox.Text;
             _viewModel.UseNamedArguments = UseNamedArgumentButton.IsChecked ?? false;
 
             if (_viewModel.TrySubmit())
@@ -90,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void TypeContentControl_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            _viewModel.SetCurrentTextAndUpdateBindingStatus(TypeContentControl.Text);
+            _viewModel.SetCurrentTypeTextAndUpdateBindingStatus(TypeContentControl.Text);
         }
     }
 }

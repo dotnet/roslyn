@@ -71,13 +71,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private string _verbatimTypeName = string.Empty;
 
-        internal void UpdateTypeSymbol(string typeName)
-        {
-            _verbatimTypeName = typeName;
-            var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-            TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(InsertPosition, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-        }
-
         internal bool TrySubmit()
         {
             if (string.IsNullOrEmpty(_verbatimTypeName) || string.IsNullOrEmpty(ParameterName))
@@ -106,8 +99,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _notificationService?.SendNotification(message, severity: NotificationSeverity.Information);
         }
 
-        internal void SetCurrentTextAndUpdateBindingStatus(string typeName)
+        internal void SetCurrentTypeTextAndUpdateBindingStatus(string typeName)
         {
+            _verbatimTypeName = typeName;
+
             if (typeName.IsNullOrWhiteSpace())
             {
                 TypeIsEmptyImage = Visibility.Visible;
@@ -115,13 +110,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 TypeDoesNotBindImage = Visibility.Collapsed;
                 TypeBindsImage = Visibility.Collapsed;
                 TypeBindsDynamicStatus = ServicesVSResources.Please_enter_a_type_name;
+
+                TypeSymbol = null;
             }
             else
             {
                 TypeIsEmptyImage = Visibility.Collapsed;
 
                 var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-                var type = _semanticModel.GetSpeculativeTypeInfo(InsertPosition, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+                TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(InsertPosition, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
 
                 var typeParses = IsParameterTypeSyntacticallyValid(typeName);
                 if (!typeParses)
@@ -133,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
                 else
                 {
-                    var parameterTypeBinds = DoesTypeFullyBind(type);
+                    var parameterTypeBinds = DoesTypeFullyBind(TypeSymbol);
                     TypeDoesNotParseImage = Visibility.Collapsed;
 
                     TypeBindsImage = parameterTypeBinds ? Visibility.Visible : Visibility.Collapsed;
