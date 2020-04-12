@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
             Func<IReturnOperation?, bool> returnIsRef,
+            [NotNullWhen(true)] out IOperation trueStatement,
+            [NotNullWhen(true)] out IOperation falseStatement,
             out IReturnOperation? trueReturn,
             out IThrowOperation? trueThrow,
             out IReturnOperation? falseReturn,
@@ -26,8 +29,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             falseReturn = null;
             falseThrow = null;
 
-            var trueStatement = ifOperation.WhenTrue;
-            var falseStatement = ifOperation.WhenFalse;
+            trueStatement = ifOperation.WhenTrue;
+            falseStatement = ifOperation.WhenFalse;
 
             // we support:
             //

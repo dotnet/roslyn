@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -14,6 +15,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static bool TryMatchPattern(
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
+            [NotNullWhen(true)] out IOperation trueStatement,
+            [NotNullWhen(true)] out IOperation falseStatement,
             out ISimpleAssignmentOperation? trueAssignment,
             out IThrowOperation? trueThrow,
             out ISimpleAssignmentOperation? falseAssignment,
@@ -24,8 +27,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             falseAssignment = null;
             falseThrow = null;
 
-            var trueStatement = ifOperation.WhenTrue;
-            var falseStatement = ifOperation.WhenFalse;
+            trueStatement = ifOperation.WhenTrue;
+            falseStatement = ifOperation.WhenFalse;
 
             trueStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(trueStatement);
             falseStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(falseStatement);

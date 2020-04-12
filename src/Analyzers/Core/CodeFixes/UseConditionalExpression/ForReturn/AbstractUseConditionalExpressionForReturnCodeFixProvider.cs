@@ -62,18 +62,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
                     syntaxFacts, ifOperation, _returnIsRef,
+                    out var trueStatement, out var falseStatement,
                     out var trueReturn, out var trueThrow,
                     out var falseReturn, out var falseThrow))
             {
                 return;
             }
 
-            var trueSatement = ((IOperation?)trueReturn ?? trueThrow)!;
-            var falseStatement = ((IOperation?)falseReturn ?? falseThrow)!;
-
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
-                trueSatement, falseStatement,
+                trueStatement, falseStatement,
                 trueReturn?.ReturnedValue ?? trueThrow?.Exception,
                 falseReturn?.ReturnedValue ?? falseThrow?.Exception,
                 IsRef((trueReturn ?? falseReturn)!), cancellationToken).ConfigureAwait(false);

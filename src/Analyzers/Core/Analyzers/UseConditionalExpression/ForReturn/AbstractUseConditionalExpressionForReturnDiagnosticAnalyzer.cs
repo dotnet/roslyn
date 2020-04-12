@@ -31,6 +31,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         protected override bool TryMatchPattern(IConditionalOperation ifOperation)
             => UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    GetSyntaxFacts(), ifOperation, _returnIsRef, out _, out _, out _, out _);
+                    GetSyntaxFacts(), ifOperation, _returnIsRef, out _, out _, out _, out _, out _, out _);
     }
 }

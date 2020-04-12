@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         {
         }
 
-        protected override bool IsRef(IReturnOperation returnOperation)
-            => CSharpUseConditionalExpressionHelpers.IsRef(returnOperation);
-
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
+
+        protected override bool IsRef(IReturnOperation returnOperation)
+            => CSharpUseConditionalExpressionHelpers.IsRef(returnOperation);
     }
 }

@@ -69,18 +69,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
                     syntaxFacts, ifOperation,
+                    out var trueStatement, out var falseStatement,
                     out var trueAssignment, out var trueThrow,
                     out var falseAssignment, out var falseThrow))
             {
                 return;
             }
 
-            var trueSatement = ((IOperation?)trueAssignment ?? trueThrow)!;
-            var falseStatement = ((IOperation?)falseAssignment ?? falseThrow)!;
-
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
-                trueSatement, falseStatement,
+                trueStatement, falseStatement,
                 trueAssignment?.Value ?? trueThrow?.Exception,
                 falseAssignment?.Value ?? falseThrow?.Exception,
                 trueAssignment?.IsRef == true, cancellationToken).ConfigureAwait(false);
