@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -12,11 +14,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static bool TryMatchPattern(
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
-            out IReturnOperation trueReturn,
-            out IReturnOperation falseReturn)
+            out IReturnOperation? trueReturn,
+            out IThrowOperation? trueThrow,
+            out IReturnOperation? falseReturn,
+            out IThrowOperation? falseThrow)
         {
             trueReturn = null;
+            trueThrow = null;
             falseReturn = null;
+            falseThrow = null;
 
             var trueStatement = ifOperation.WhenTrue;
             var falseStatement = ifOperation.WhenFalse;
@@ -32,8 +38,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             //
             //      if (expr)
             //          return a;
-            //      
+            //
             //      return b;
+            //
+            // note: either (but not both) of these statements can be throw-statements.
 
             if (falseStatement == null)
             {
@@ -62,29 +70,46 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             falseStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(falseStatement);
 
             // Both return-statements must be of the form "return value"
-            if (!(trueStatement is IReturnOperation trueReturnOp) ||
-                !(falseStatement is IReturnOperation falseReturnOp) ||
-                trueReturnOp.ReturnedValue == null ||
-                falseReturnOp.ReturnedValue == null)
+            if (!IsReturnExprOrThrow(trueStatement) ||
+                !IsReturnExprOrThrow(falseStatement))
             {
                 return false;
             }
 
-            if (trueReturnOp.Kind != falseReturnOp.Kind)
-            {
-                // Not allowed if these are different types of returns.  i.e.
-                // "yield return ..." and "return ...".
+            trueReturn = trueStatement as IReturnOperation;
+            falseReturn = falseStatement as IReturnOperation;
+            trueThrow = trueStatement as IThrowOperation;
+            falseThrow = falseStatement as IThrowOperation;
+
+            // Can't convert to `x ? throw ... : throw ...` as there's no best common type between the two (even when
+            // throwing the same exception type).
+            if (trueThrow != null && falseThrow != null)
                 return false;
+
+            if (trueThrow != null || falseThrow != null)
+            {
+                if (!syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
+                    return false;
             }
 
-            if (trueReturnOp.Kind == OperationKind.YieldBreak)
+            if (trueReturn != null && falseReturn != null)
+            {
+                if (trueReturn.Kind != falseReturn.Kind)
+                {
+                    // Not allowed if these are different types of returns.  i.e.
+                    // "yield return ..." and "return ...".
+                    return false;
+                }
+            }
+
+            if (trueReturn?.Kind == OperationKind.YieldBreak)
             {
                 // This check is just paranoia.  We likely shouldn't get here since we already
                 // checked if .ReturnedValue was null above.
                 return false;
             }
 
-            if (trueReturnOp.Kind == OperationKind.YieldReturn &&
+            if (trueReturn?.Kind == OperationKind.YieldReturn &&
                 ifOperation.WhenFalse == null)
             {
                 // we have the following:
@@ -103,11 +128,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            trueReturn = trueReturnOp;
-            falseReturn = falseReturnOp;
-
             return UseConditionalExpressionHelpers.CanConvert(
-                syntaxFacts, ifOperation, trueReturn, falseReturn);
+                syntaxFacts, ifOperation, (IOperation?)trueReturn ?? trueThrow, (IOperation?)falseReturn ?? falseThrow);
+        }
+
+        private static bool IsReturnExprOrThrow(IOperation statement)
+        {
+            if (statement is IThrowOperation)
+                return true;
+
+            return statement is IReturnOperation returnOp && returnOp.ReturnedValue != null;
         }
     }
 }

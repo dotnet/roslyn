@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         {
         }
 
+        protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
+        {
+            var throwStatement = (ThrowStatementSyntax)throwOperation.Syntax;
+            return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
+        }
+
         protected override AbstractFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
 
