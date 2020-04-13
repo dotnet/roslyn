@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
@@ -24,9 +26,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             for (var i = 0; i < originalParameterList.Count; i++)
             {
+                int? index = null;
                 var parameter = originalParameterList[i];
-                var updatedIndex = updatedParameterList.IndexOf(parameter);
-                _originalIndexToUpdatedIndexMap.Add(i, updatedIndex != -1 ? updatedIndex : (int?)null);
+                if (parameter is ExistingParameter existingParameter)
+                {
+                    var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol == existingParameter.Symbol);
+                    if (updatedIndex >= 0)
+                    {
+                        index = updatedIndex;
+                    }
+                }
+
+                _originalIndexToUpdatedIndexMap.Add(i, index);
             }
         }
 
@@ -39,5 +50,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return _originalIndexToUpdatedIndexMap[parameterIndex];
         }
+
+        internal SignatureChange WithoutAddedParameters()
+            => new SignatureChange(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
     }
 }

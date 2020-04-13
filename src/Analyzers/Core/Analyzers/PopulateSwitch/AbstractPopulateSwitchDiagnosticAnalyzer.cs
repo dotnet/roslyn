@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 !tree.OverlapsHiddenPosition(switchBlock.Span, context.CancellationToken))
             {
                 Debug.Assert(missingCases || missingDefaultCase);
-                var properties = ImmutableDictionary<string, string>.Empty
+                var properties = ImmutableDictionary<string, string?>.Empty
                     .Add(PopulateSwitchStatementHelpers.MissingCases, missingCases.ToString())
                     .Add(PopulateSwitchStatementHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
