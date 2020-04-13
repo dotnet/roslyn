@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
 {
     public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        private static readonly ParseOptions CSharp7 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7);
+        private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), new CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider());
 
@@ -124,7 +127,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNegated()
+        public async Task TestNegated_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -146,8 +149,39 @@ class C
         if (s is object)
             return;
     }
-}");
+}", parseOptions: CSharp7);
         }
+
+#if !CODE_STYLE
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNegated_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (![||]ReferenceEquals(null, s))
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s is not null)
+            return;
+    }
+}", parseOptions: CSharp9);
+        }
+
+#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestNotInCSharp6()
@@ -252,7 +286,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestValueParameterTypeIsUnconstrainedGenericNegated()
+        public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -277,7 +311,36 @@ class C
         }
     }
 }
-");
+", parseOptions: CSharp7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (![||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+", @"
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (value is not null)
+        {
+            return;
+        }
+    }
+}
+", parseOptions: CSharp9);
         }
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
@@ -312,7 +375,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestValueParameterTypeIsRefConstraintGenericNegated()
+        public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -338,7 +401,37 @@ class C
         }
     }
 }
-");
+", parseOptions: CSharp7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:class
+    {
+        if (![||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+",
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:class
+    {
+        if (value is not null)
+        {
+            return;
+        }
+    }
+}
+", parseOptions: CSharp9);
         }
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
