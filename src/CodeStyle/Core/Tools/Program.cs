@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -48,6 +49,12 @@ namespace CodeStylePackagePropsFileGenerator
                     {
                         foreach (var rule in analyzer.SupportedDiagnostics)
                         {
+                            if (rule.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                            {
+                                // Skip non-configurable diagnostics.
+                                continue;
+                            }
+
                             ruleIds.Add(rule.Id);
                         }
                     }
