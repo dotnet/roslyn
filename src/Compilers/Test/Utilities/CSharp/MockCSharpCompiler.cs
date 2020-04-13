@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, AnalyzerAssemblyLoader loader = null)
-            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? RuntimeUtilities.CreateAnalyzerAssemblyLoader())
+            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader ?? new DefaultAnalyzerAssemblyLoader())
         {
             _analyzers = analyzers.NullToEmpty();
         }
