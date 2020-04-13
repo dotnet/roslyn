@@ -15,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation),
                                                             node As SyntaxNode,
-                                                            options As AnalyzerConfigOptions,
                                                             ByRef nextOperation As NextAnchorIndentationOperationAction)
             nextOperation.Invoke()
 

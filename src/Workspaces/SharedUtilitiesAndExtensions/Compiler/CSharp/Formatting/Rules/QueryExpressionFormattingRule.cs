@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAnchorIndentationOperationAction nextOperation)
+        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
         {
             nextOperation.Invoke();
             switch (node)

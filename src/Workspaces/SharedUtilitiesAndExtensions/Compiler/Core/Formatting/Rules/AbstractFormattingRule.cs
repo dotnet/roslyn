@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAnchorIndentationOperationAction nextOperation)
+        public virtual void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
             => nextOperation.Invoke();
 
         /// <summary>

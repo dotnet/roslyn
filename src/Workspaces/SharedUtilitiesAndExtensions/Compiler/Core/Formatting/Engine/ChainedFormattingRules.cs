@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, _options, list);
+            var action = new NextAnchorIndentationOperationAction(_addAnchorIndentationOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 

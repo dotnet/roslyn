@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public override sealed void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAnchorIndentationOperationAction nextOperation)
+            public override sealed void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
             {
                 var nextOperationCopy = nextOperation;
-                AddAnchorIndentationOperationsSlow(list, node, options, ref nextOperationCopy);
+                AddAnchorIndentationOperationsSlow(list, node, ref nextOperationCopy);
             }
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             /// <summary>
             /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
             /// </summary>
-            public virtual void AddAnchorIndentationOperationsSlow(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextAnchorIndentationOperationAction nextOperation)
-                => base.AddAnchorIndentationOperations(list, node, options, in nextOperation);
+            public virtual void AddAnchorIndentationOperationsSlow(List<AnchorIndentationOperation> list, SyntaxNode node, ref NextAnchorIndentationOperationAction nextOperation)
+                => base.AddAnchorIndentationOperations(list, node, in nextOperation);
 
             /// <summary>
             /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
