@@ -465,20 +465,15 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             using var workspace = new AdhocWorkspace(hostServices);
             var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
 
-            var assetBuilder = new CustomAssetBuilder(workspace);
-            var asset = assetBuilder.Build(reference, CancellationToken.None);
+            var serializer = workspace.Services.GetService<ISerializerService>();
+
+            var asset = WorkspaceAnalyzerReferenceAsset.Create(reference, serializer, CancellationToken.None);
 
             // verify checksum from custom asset builder uses different checksum than regular one
-            var service = workspace.Services.GetService<IReferenceSerializationService>();
             var expectedChecksum = Checksum.Create(
                 WellKnownSynchronizationKind.AnalyzerReference,
-                service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None));
+                serializer.CreateChecksum(reference, CancellationToken.None));
             Assert.Equal(expectedChecksum, asset.Checksum);
-
-            // verify usePathFromAssembly return different checksum for same reference
-            var fromFilePath = service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None);
-            var fromAssembly = service.CreateChecksum(reference, usePathFromAssembly: true, CancellationToken.None);
-            Assert.NotEqual(fromFilePath, fromAssembly);
         }
 
         [Fact]
