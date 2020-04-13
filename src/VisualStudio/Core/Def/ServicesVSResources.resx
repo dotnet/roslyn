@@ -1449,9 +1449,6 @@ I agree to all of the foregoing:</value>
   <data name="Indexed_in_repo" xml:space="preserve">
     <value>Indexed in repo</value>
   </data>
-  <data name="Indexed_in_third_party" xml:space="preserve">
-    <value>Indexed in third party</value>
-  </data>
   <data name="Item_origin" xml:space="preserve">
     <value>Item origin</value>
   </data>

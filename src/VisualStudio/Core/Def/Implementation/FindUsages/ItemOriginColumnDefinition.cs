@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
                     ItemOrigin.ExactMetadata => ServicesVSResources.Local_metadata,
                     ItemOrigin.IndexedInRepo => ServicesVSResources.Indexed_in_repo,
                     ItemOrigin.IndexedInOrganization => ServicesVSResources.Indexed_in_organization,
-                    ItemOrigin.IndexedInThirdParty => ServicesVSResources.Indexed_in_third_party,
+                    ItemOrigin.IndexedInThirdParty => ServicesVSResources.All_sources,
                     _ => ServicesVSResources.Other,
                 };
             }

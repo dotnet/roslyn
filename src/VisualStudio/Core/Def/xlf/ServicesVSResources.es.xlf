@@ -232,11 +232,6 @@
         <target state="new">Indexed in repo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexed_in_third_party">
-        <source>Indexed in third party</source>
-        <target state="new">Indexed in third party</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="new">Inserting call site value '{0}'</target>
