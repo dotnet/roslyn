@@ -31,11 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function IsRef(returnOperation As IReturnOperation) As Boolean
-            ' VB does not have ref returns.
-            Return False
-        End Function
-
         Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance
         End Function

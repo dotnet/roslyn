@@ -18,11 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             MyBase.New(New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.If_statement_can_be_simplified), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
 
-        Protected Overrides Function IsRef(returnOperation As IReturnOperation) As Boolean
-            ' VB doesn't have ref-returns
-            Return False
-        End Function
-
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
         End Function

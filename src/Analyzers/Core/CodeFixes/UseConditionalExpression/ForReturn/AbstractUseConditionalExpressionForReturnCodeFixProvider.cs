@@ -32,15 +32,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
-        private readonly Func<IReturnOperation?, bool> _returnIsRef;
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId);
-
-        protected AbstractUseConditionalExpressionForReturnCodeFixProvider()
-            => _returnIsRef = IsRef;
-
-        protected abstract bool IsRef(IReturnOperation? returnOperation);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -59,9 +52,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement)!;
+            var containingSymbol = semanticModel.GetEnclosingSymbol(ifStatement.SpanStart, cancellationToken);
 
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation, _returnIsRef,
+                    syntaxFacts, ifOperation, containingSymbol,
                     out var trueStatement, out var falseStatement,
                     out var trueReturn, out var trueThrow,
                     out var falseReturn, out var falseThrow))
@@ -69,12 +63,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
             }
 
+            var anyReturn = (trueReturn ?? falseReturn)!;
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
                 trueStatement, falseStatement,
                 trueReturn?.ReturnedValue ?? trueThrow?.Exception,
                 falseReturn?.ReturnedValue ?? falseThrow?.Exception,
-                IsRef((trueReturn ?? falseReturn)!), cancellationToken).ConfigureAwait(false);
+                anyReturn.GetRefKind(containingSymbol) != RefKind.None, cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var returnStatement = trueReturn?.Kind == OperationKind.YieldReturn || falseReturn?.Kind == OperationKind.YieldReturn

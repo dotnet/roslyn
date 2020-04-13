@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -16,21 +15,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         : AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfStatementSyntax>
         where TIfStatementSyntax : SyntaxNode
     {
-        private readonly Func<IReturnOperation?, bool> _returnIsRef;
-
         protected AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer(
             LocalizableResourceString message)
             : base(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId,
                    message,
                    CodeStyleOptions2.PreferConditionalExpressionOverReturn)
         {
-            _returnIsRef = IsRef;
         }
 
-        protected abstract bool IsRef(IReturnOperation? returnOperation);
-
-        protected override bool TryMatchPattern(IConditionalOperation ifOperation)
+        protected override bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
             => UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    GetSyntaxFacts(), ifOperation, _returnIsRef, out _, out _, out _, out _, out _, out _);
+                    GetSyntaxFacts(), ifOperation, containingSymbol, out _, out _, out _, out _, out _, out _);
     }
 }

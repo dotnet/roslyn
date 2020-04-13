@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static bool TryMatchPattern(
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
-            Func<IReturnOperation?, bool> returnIsRef,
+            ISymbol containingSymbol,
             [NotNullWhen(true)] out IOperation trueStatement,
             [NotNullWhen(true)] out IOperation falseStatement,
             out IReturnOperation? trueReturn,
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     return false;
 
                 // `ref` can't be used with `throw`.
-                if (returnIsRef(anyReturn))
+                if (anyReturn.GetRefKind(containingSymbol) != RefKind.None)
                     return false;
             }
 

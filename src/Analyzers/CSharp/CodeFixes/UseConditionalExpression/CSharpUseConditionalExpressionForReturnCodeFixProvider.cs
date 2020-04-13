@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             return statement;
         }
 
-        protected override bool IsRef(IReturnOperation? returnOperation)
-            => CSharpUseConditionalExpressionHelpers.IsRef(returnOperation);
-
         protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
             => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
 
