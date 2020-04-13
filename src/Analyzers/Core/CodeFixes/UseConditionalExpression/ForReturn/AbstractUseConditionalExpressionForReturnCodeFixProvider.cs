@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
                 trueStatement, falseStatement,
-                trueReturn?.ReturnedValue ?? trueThrow?.Exception,
-                falseReturn?.ReturnedValue ?? falseThrow?.Exception,
+                trueReturn?.ReturnedValue, falseReturn?.ReturnedValue,
                 anyReturn.GetRefKind(containingSymbol) != RefKind.None, cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();

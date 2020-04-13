@@ -79,8 +79,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
                 trueStatement, falseStatement,
-                trueAssignment?.Value ?? trueThrow?.Exception,
-                falseAssignment?.Value ?? falseThrow?.Exception,
+                trueAssignment?.Value, falseAssignment?.Value,
                 trueAssignment?.IsRef == true, cancellationToken).ConfigureAwait(false);
 
             // See if we're assigning to a variable declared directly above the if statement. If so,
