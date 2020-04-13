@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
@@ -42,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return Nothing
         End Function
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, options As AnalyzerConfigOptions, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
-            Dim spaceOperation = MyBase.GetAdjustSpacesOperationSlow(previousToken, currentToken, options, nextOperation)
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+            Dim spaceOperation = MyBase.GetAdjustSpacesOperationSlow(previousToken, currentToken, nextOperation)
 
             ' if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
             ' (force space basically means remove all line breaks)

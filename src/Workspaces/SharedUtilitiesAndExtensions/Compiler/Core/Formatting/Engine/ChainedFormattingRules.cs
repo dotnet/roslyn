@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken, _options);
+            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken);
             return action.Invoke();
         }
 

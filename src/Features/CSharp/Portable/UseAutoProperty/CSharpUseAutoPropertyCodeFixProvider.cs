@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -114,14 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 return base.GetAdjustNewLinesOperation(previousToken, currentToken, in nextOperation);
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
                 if (ForceSingleSpace(previousToken, currentToken))
                 {
                     return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
 
-                return base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
+                return base.GetAdjustSpacesOperation(previousToken, currentToken, in nextOperation);
             }
         }
 

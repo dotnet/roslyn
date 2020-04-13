@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             // * <End Of File) case
             // for C#, make sure we have nothing between these two tokens

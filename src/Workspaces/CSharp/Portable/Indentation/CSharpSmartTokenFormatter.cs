@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
@@ -148,9 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
-                var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
+                var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, in nextOperation);
 
                 // if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
                 // (force space basically means remove all line breaks)

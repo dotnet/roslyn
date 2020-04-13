@@ -5,7 +5,6 @@
 #nullable enable
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => null;
 
         // return 1 space for every token pairs as a default operation
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             var space = currentToken.Kind() == SyntaxKind.EndOfFileToken ? 0 : 1;
             return FormattingOperations.CreateAdjustSpacesOperation(space, AdjustSpacesOption.DefaultSpacesIfOnSingleLine);
