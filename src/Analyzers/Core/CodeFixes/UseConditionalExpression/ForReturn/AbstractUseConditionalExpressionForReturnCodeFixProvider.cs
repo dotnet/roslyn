@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 anyReturn.GetRefKind(containingSymbol) != RefKind.None, cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            var returnStatement = trueReturn?.Kind == OperationKind.YieldReturn || falseReturn?.Kind == OperationKind.YieldReturn
+            var returnStatement = anyReturn.Kind == OperationKind.YieldReturn
                 ? (TStatementSyntax)generatorInternal.YieldReturnStatement(conditionalExpression)
                 : (TStatementSyntax)editor.Generator.ReturnStatement(conditionalExpression);
 
