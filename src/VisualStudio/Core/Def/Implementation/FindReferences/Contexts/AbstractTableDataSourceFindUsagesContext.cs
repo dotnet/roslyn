@@ -153,10 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             }
 
                             break;
-
-                        //case StandardTableColumnDefinitions.ItemOrigin:
-                        //    customColumnsToInclude.Add(column.Name);
-                        //    break;
                     }
                 }
         
