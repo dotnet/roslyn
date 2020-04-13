@@ -5,8 +5,11 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
+
+#If CODE_STYLE Then
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
     Public MustInherit Class RemoveUnusedValuesTestsBase

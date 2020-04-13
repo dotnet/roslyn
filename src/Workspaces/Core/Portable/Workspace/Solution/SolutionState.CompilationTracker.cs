@@ -723,8 +723,7 @@ namespace Microsoft.CodeAnalysis
 
             private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
             {
-                // TODO: Record source assembly to project mapping
-                // RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
+                RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
 
                 foreach (var kvp in metadataReferenceToProjectId)
                 {

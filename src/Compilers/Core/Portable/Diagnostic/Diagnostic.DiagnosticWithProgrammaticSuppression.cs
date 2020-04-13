@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                 get { return _originalUnsuppressedDiagnostic.AdditionalLocations; }
             }
 
-            public override ImmutableDictionary<string, string> Properties
+            public override ImmutableDictionary<string, string?> Properties
             {
                 get { return _originalUnsuppressedDiagnostic.Properties; }
             }

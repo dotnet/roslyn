@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Options;
 
 // When building for source-build, there is no sqlite dependency
 #if !DOTNET_BUILD_FROM_SOURCE
-using Microsoft.CodeAnalysis.SQLite;
 #endif
 
 namespace Microsoft.CodeAnalysis.Storage
