@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
+using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -239,6 +240,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         // https://github.com/dotnet/roslyn/issues/43056 blocks porting the fixer to CodeStyle layer.
         protected static CodeFixProvider GetMakeLocalFunctionStaticCodeFixProvider() => new MakeLocalFunctionStaticCodeFixProvider();
+
+        // https://github.com/dotnet/roslyn/issues/43056 blocks porting the fixer to CodeStyle layer.
+        protected static CodeFixProvider GetCSharpUseLocalFunctionCodeFixProvider() => new CSharpUseLocalFunctionCodeFixProvider();
 
         // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
         protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();

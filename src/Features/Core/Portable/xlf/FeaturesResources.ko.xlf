@@ -2810,11 +2810,6 @@ This version used in: {2}</source>
         <target state="translated">접근성 한정자 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">로컬 함수 사용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">참조 근처로 선언 이동</target>

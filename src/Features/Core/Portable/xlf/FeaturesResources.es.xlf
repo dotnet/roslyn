@@ -2810,11 +2810,6 @@ Esta versión se utiliza en: {2}</target>
         <target state="translated">Agregar modificadores de accesibilidad</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">Usar función local</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Mover la declaración cerca de la referencia</target>

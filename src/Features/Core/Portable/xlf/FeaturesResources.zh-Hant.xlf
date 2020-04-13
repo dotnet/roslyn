@@ -2810,11 +2810,6 @@ This version used in: {2}</source>
         <target state="translated">新增協助工具修飾元</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">使用區域函式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">將宣告移近參考</target>
