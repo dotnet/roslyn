@@ -54,7 +54,7 @@ Selecting an Equivalence key for code actions
 Each unique equivalence key for a code fixer defines a unique equivalence class of code actions. Equivalence key of the trigger code action is part of the `FixAllContext` and is used to determine the FixAll occurrences code fix.
 Normally, you can use the **'title'** of the code action as the equivalence key. However, there are cases where you may desire to have different values. Let us take an example to get a better understanding.
 
-Let us consider the [C# SimplifyTypeNamesCodeFixProvider](http://sourceroslyn.io/#q=Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames.SimplifyTypeNamesCodeFixProvider) that registers multiple code actions and also has FixAll support. This code fixer offers fixes to simplify the following expressions:
+Let us consider the [C# SimplifyTypeNamesCodeFixProvider](https://github.com/dotnet/roslyn/blob/master/src/Features/CSharp/Portable/SimplifyTypeNames/SimplifyTypeNamesCodeFixProvider.cs) that registers multiple code actions and also has FixAll support. This code fixer offers fixes to simplify the following expressions:
  - `this` expressions of the form 'this.x' to 'x'.
  - Qualified type names of the form 'A.B' to 'B'.
  - Member access expressions of the form 'A.M' to 'M'.
