@@ -1913,10 +1913,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxNode() Implements ISyntaxFacts.GetContentFromDocumentationCommentTriviaSyntax
+        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetContentFromDocumentationCommentTriviaSyntax
             Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
             If documentationCommentTrivia IsNot Nothing Then
-                Return documentationCommentTrivia.Content.ToArray()
+                Return documentationCommentTrivia.Content
             End If
 
             Return Nothing

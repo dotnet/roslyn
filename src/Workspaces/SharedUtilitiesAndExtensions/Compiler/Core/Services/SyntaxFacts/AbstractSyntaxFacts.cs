@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
 
-        public abstract SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
+        public abstract SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
         public bool HasIncompleteParentMember(SyntaxNode node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;

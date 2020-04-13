@@ -1708,11 +1708,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement) &&
             xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
 
-        public override SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
+        public override SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
         {
             if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
             {
-                return documentationCommentTrivia.Content.ToArray();
+                return documentationCommentTrivia.Content;
             }
 
             throw ExceptionUtilities.UnexpectedValue(trivia.Kind());

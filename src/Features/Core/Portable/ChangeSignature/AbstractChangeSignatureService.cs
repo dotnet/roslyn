@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 var updatedNodeList = ArrayBuilder<SyntaxNode>.GetInstance();
                 var structuredContent = syntaxFacts.GetContentFromDocumentationCommentTriviaSyntax(trivia);
-                for (var i = 0; i < structuredContent.Length; i++)
+                for (var i = 0; i < structuredContent.Count; i++)
                 {
                     var content = structuredContent[i];
                     if (!syntaxFacts.IsParameterNameXmlElementSyntax(content))
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     // Found a param tag, so insert the next one from the reordered list
                     if (index < permutedParamNodes.Length)
                     {
-                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia<SyntaxNode>(content.GetLeadingTrivia()).WithTrailingTrivia<SyntaxNode>(content.GetTrailingTrivia()));
+                        updatedNodeList.Add(permutedParamNodes[index].WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia(content.GetTrailingTrivia()));
                         index++;
                     }
                     else
