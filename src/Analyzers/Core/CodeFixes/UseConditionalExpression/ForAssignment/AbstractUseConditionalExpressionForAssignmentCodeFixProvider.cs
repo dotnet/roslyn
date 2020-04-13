@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
                     syntaxFacts, ifOperation,
                     out var trueStatement, out var falseStatement,
-                    out var trueAssignment, out var trueThrow,
-                    out var falseAssignment, out var falseThrow))
+                    out var trueAssignment, out var falseAssignment))
             {
                 return;
             }
@@ -79,7 +78,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
                 trueStatement, falseStatement,
-                trueAssignment?.Value, falseAssignment?.Value,
+                trueAssignment?.Value ?? trueStatement,
+                falseAssignment?.Value ?? falseStatement,
                 trueAssignment?.IsRef == true, cancellationToken).ConfigureAwait(false);
 
             // See if we're assigning to a variable declared directly above the if statement. If so,

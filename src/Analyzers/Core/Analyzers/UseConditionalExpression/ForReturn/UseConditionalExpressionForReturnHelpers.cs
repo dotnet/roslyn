@@ -19,14 +19,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             [NotNullWhen(true)] out IOperation? trueStatement,
             [NotNullWhen(true)] out IOperation? falseStatement,
             out IReturnOperation? trueReturn,
-            out IThrowOperation? trueThrow,
-            out IReturnOperation? falseReturn,
-            out IThrowOperation? falseThrow)
+            out IReturnOperation? falseReturn)
         {
             trueReturn = null;
-            trueThrow = null;
             falseReturn = null;
-            falseThrow = null;
 
             trueStatement = ifOperation.WhenTrue;
             falseStatement = ifOperation.WhenFalse;
@@ -76,8 +72,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             trueReturn = trueStatement as IReturnOperation;
             falseReturn = falseStatement as IReturnOperation;
-            trueThrow = trueStatement as IThrowOperation;
-            falseThrow = falseStatement as IThrowOperation;
+            var trueThrow = trueStatement as IThrowOperation;
+            var falseThrow = falseStatement as IThrowOperation;
 
             var anyReturn = trueReturn ?? falseReturn;
             if (UseConditionalExpressionHelpers.HasInconvertibleThrowStatement(

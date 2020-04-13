@@ -18,14 +18,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             [NotNullWhen(true)] out IOperation trueStatement,
             [NotNullWhen(true)] out IOperation falseStatement,
             out ISimpleAssignmentOperation? trueAssignment,
-            out IThrowOperation? trueThrow,
-            out ISimpleAssignmentOperation? falseAssignment,
-            out IThrowOperation? falseThrow)
+            out ISimpleAssignmentOperation? falseAssignment)
         {
             trueAssignment = null;
-            trueThrow = null;
             falseAssignment = null;
-            falseThrow = null;
 
             trueStatement = ifOperation.WhenTrue;
             falseStatement = ifOperation.WhenFalse;
@@ -33,8 +29,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             trueStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(trueStatement);
             falseStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(falseStatement);
 
-            if (!TryGetAssignmentOrThrow(trueStatement, out trueAssignment, out trueThrow) ||
-                !TryGetAssignmentOrThrow(falseStatement, out falseAssignment, out falseThrow))
+            if (!TryGetAssignmentOrThrow(trueStatement, out trueAssignment, out var trueThrow) ||
+                !TryGetAssignmentOrThrow(falseStatement, out falseAssignment, out var falseThrow))
             {
                 return false;
             }

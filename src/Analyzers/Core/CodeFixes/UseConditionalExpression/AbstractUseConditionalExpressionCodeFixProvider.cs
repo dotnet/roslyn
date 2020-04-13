@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             bool isRef, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var condition = ifOperation.Condition.Syntax;

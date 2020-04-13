@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
                     syntaxFacts, ifOperation, containingSymbol,
                     out var trueStatement, out var falseStatement,
-                    out var trueReturn, out var trueThrow,
-                    out var falseReturn, out var falseThrow))
+                    out var trueReturn, out var falseReturn))
             {
                 return;
             }
@@ -67,7 +66,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation,
                 trueStatement, falseStatement,
-                trueReturn?.ReturnedValue, falseReturn?.ReturnedValue,
+                trueReturn?.ReturnedValue ?? trueStatement,
+                falseReturn?.ReturnedValue ?? falseStatement,
                 anyReturn.GetRefKind(containingSymbol) != RefKind.None, cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();

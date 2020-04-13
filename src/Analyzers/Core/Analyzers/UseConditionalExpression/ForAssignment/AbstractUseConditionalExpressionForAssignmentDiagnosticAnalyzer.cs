@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         protected override bool TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
             => UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                GetSyntaxFacts(), ifOperation, out _, out _, out _, out _, out _, out _);
+                GetSyntaxFacts(), ifOperation, out _, out _, out _, out _);
     }
 }
