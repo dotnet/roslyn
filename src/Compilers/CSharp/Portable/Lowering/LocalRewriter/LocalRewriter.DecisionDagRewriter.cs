@@ -186,6 +186,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                public override BoundNode VisitConversion(BoundConversion node)
+                {
+                    visitConversion(node.Conversion);
+                    return null;
+
+                    void visitConversion(Conversion conversion)
+                    {
+                        switch (conversion.Kind)
+                        {
+                            case ConversionKind.MethodGroup:
+                                if (conversion.Method.MethodKind == MethodKind.LocalFunction)
+                                {
+                                    _mightAssignSomething = true;
+                                }
+                                break;
+                            default:
+                                if (!conversion.UnderlyingConversions.IsDefault)
+                                {
+                                    foreach (var underlying in conversion.UnderlyingConversions)
+                                    {
+                                        visitConversion(underlying);
+                                        if (_mightAssignSomething)
+                                            return;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+
+                public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+                {
+                    bool mightMutate =
+                        node.MethodOpt?.MethodKind == MethodKind.LocalFunction;
+
+                    if (mightMutate)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitDelegateCreationExpression(node);
+
+                    return null;
+                }
+
                 public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
                 {
                     _mightAssignSomething = true;

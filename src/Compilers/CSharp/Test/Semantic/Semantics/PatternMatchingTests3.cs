@@ -3605,6 +3605,108 @@ struct S2
         }
 
         [Fact]
+        public void PatternLocalMutatedInLocalFunctionConvertedToDelegate_01()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Console.Write(M1());
+        Console.Write(M2());
+        Console.Write(M3());
+        Console.Write(M4());
+    }
+    static int M1()
+    {
+        switch (new S() { N = 1 })
+        {
+            case { N: 1 } x when Invoke(Local):
+                void Local()
+                {
+                    x.N = 3;
+                }
+                return 1;
+            case { Q: 1 }:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+    static int M2()
+    {
+        switch (new S() { N = 1 })
+        {
+            case { N: 1 } x when Invoke(new Action(Local)):
+                void Local()
+                {
+                    x.N = 3;
+                }
+                return 1;
+            case { Q: 1 }:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+    static int M3()
+    {
+        switch (new S() { N = 1 })
+        {
+            case { N: 1 } x when Invoke((Action)(Local)):
+                void Local()
+                {
+                    x.N = 3;
+                }
+                return 1;
+            case { Q: 1 }:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+    static int M4()
+    {
+        switch (new S() { N = 1 })
+        {
+            case { N: 1 } x when Invoke((Local, Local)):
+                void Local()
+                {
+                    x.N = 3;
+                }
+                return 1;
+            case { Q: 1 }:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+    static bool Invoke(Action a)
+    {
+        a();
+        return false;
+    }
+    static bool Invoke((Action, Action) a2)
+    {
+        a2.Item1();
+        return false;
+    }
+}
+struct S
+{
+    public int N;
+    public int Q => N;
+}
+";
+            var expectedOutput = "2222";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void New9PatternsSemanticModel_01()
         {
             // Tests for the semantic model in new patterns as of C# 9.0.
