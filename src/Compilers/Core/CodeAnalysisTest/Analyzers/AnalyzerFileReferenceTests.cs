@@ -35,12 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public class AnalyzerFileReferenceTests : TestBase
     {
-        private static readonly AnalyzerAssemblyLoader s_analyzerLoader =
-#if NET472
-            new DesktopAnalyzerAssemblyLoader();
-#else
-            new CoreClrAnalyzerAssemblyLoader();
-#endif
+        private static readonly AnalyzerAssemblyLoader s_analyzerLoader = new DefaultAnalyzerAssemblyLoader();
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
