@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(expression is { Kind: BoundKind.TypeExpression, Type: { } });
-                hasErrors |= CheckValidPatternType(patternExpression, inputType, expression.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
+                hasErrors |= CheckValidPatternType(patternExpression, inputType, expression.Type, diagnostics: diagnostics);
                 return expression;
             }
         }
@@ -385,7 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode typeSyntax,
             TypeSymbol inputType,
             TypeSymbol patternType,
-            bool patternTypeWasInSource,
             DiagnosticBag diagnostics)
         {
             RoslynDebug.Assert((object)inputType != null);
@@ -401,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, typeSyntax.Location);
                 return true;
             }
-            else if (patternType.IsNullableType() || typeSyntax is NullableTypeSyntax && patternTypeWasInSource)
+            else if (patternType.IsNullableType() || typeSyntax is NullableTypeSyntax)
             {
                 // It is an error to use pattern-matching with a nullable type, because you'll never get null. Use the underlying type.
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
@@ -508,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
             Debug.Assert(declType.HasType);
             BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, typeWithAnnotations: declType);
-            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
+            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.Type, diagnostics: diagnostics);
             return boundDeclType;
         }
 

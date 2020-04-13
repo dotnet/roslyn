@@ -4901,7 +4901,7 @@ public class Program738490379
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
         public void Fuzz()
         {
-            const int numTests = 900000;
+            const int numTests = 1200000;
             int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
             for (int i = 1; i < numTests; i++)
             {
@@ -4912,9 +4912,10 @@ public class Program738490379
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
         public void MultiFuzz()
         {
+            // Just like Fuzz(), but take advantage of concurrency on the test host.
+            const int numTasks = 300;
+            const int numTestsPerTask = 4000;
             int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
-            const int numTasks = 30;
-            const int numTestsPerTask = 40000;
             var tasks = Enumerable.Range(0, numTasks).Select(t => Task.Run(() =>
             {
                 int k = dt + t * numTestsPerTask;
