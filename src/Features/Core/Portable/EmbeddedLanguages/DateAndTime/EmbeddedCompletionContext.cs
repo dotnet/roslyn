@@ -80,28 +80,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 var secondaryCulture = s_enUsCulture;
                 var hideCulture = primaryCulture.Equals(secondaryCulture);
 
-                // The total user format may not be legal.  So try to format the date, but be tolerant of that failing.
-                TryAddExample(examples, standard, userFormat, primaryCulture, hideCulture);
-                TryAddExample(examples, standard, userFormat, secondaryCulture, hideCulture);
-
-                // We should never fail to produce an example string for one of the format strings we are presenting.
+                AddExample(examples, standard, userFormat, primaryCulture, hideCulture);
+                AddExample(examples, standard, userFormat, secondaryCulture, hideCulture);
                 AddExample(examples, standard, displayText, primaryCulture, hideCulture);
                 AddExample(examples, standard, displayText, secondaryCulture, hideCulture);
-            }
-
-            private void TryAddExample(
-                ArrayBuilder<string> examples, bool standard, string displayText, CultureInfo culture, bool hideCulture)
-            {
-                try
-                {
-                    AddExample(examples, standard, displayText, culture, hideCulture);
-                }
-                catch (FormatException)
-                {
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                }
             }
 
             private void AddExample(
@@ -116,7 +98,21 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 if (formatString == "")
                     return;
 
-                var formattedDate = s_exampleDateTime.ToString(formatString);
+                // Format string may be invalid.  Just don't show anything in that case.
+                string formattedDate;
+                try
+                {
+                    formattedDate = s_exampleDateTime.ToString(formatString);
+                }
+                catch (FormatException)
+                {
+                    return;
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    return;
+                }
+
                 var example = hideCulture
                     ? $"   {displayText} → {formattedDate}"
                     : $"   {displayText} ({culture}) → {formattedDate}";
