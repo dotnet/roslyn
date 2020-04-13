@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -137,11 +138,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             cancellationToken.ThrowIfCancellationRequested();
 
             // iterating tree is very expensive. do it once and cache it to list
-            List<SyntaxNode> nodeIterator;
+            SegmentedList<SyntaxNode> nodeIterator;
             using (Logger.LogBlock(FunctionId.Formatting_IterateNodes, cancellationToken))
             {
                 const int magicLengthToNodesRatio = 5;
-                var result = new List<SyntaxNode>(Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
+                var result = new SegmentedList<SyntaxNode>(4096, Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
 
                 foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
                 {
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
         }
 
-        private List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
+        private List<T> AddOperations<T>(SegmentedList<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
         {
             var operations = new List<T>();
             var list = new List<T>();
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return operations;
         }
 
-        private TokenPairWithOperations[] CreateTokenOperation(
+        private SegmentedList<TokenPairWithOperations> CreateTokenOperation(
             TokenStream tokenStream,
             CancellationToken cancellationToken)
         {
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.Formatting_CollectTokenOperation, cancellationToken))
             {
                 // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
-                var list = new TokenPairWithOperations[tokenStream.TokenCount - 1];
+                var list = new SegmentedList<TokenPairWithOperations>(2048, tokenStream.TokenCount - 1);
 
                 foreach (var pair in tokenStream.TokenIterator)
                 {
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void ApplyTokenOperations(
             FormattingContext context,
             NodeOperations nodeOperations,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedList<TokenPairWithOperations> tokenOperations,
             CancellationToken cancellationToken)
         {
             var applier = new OperationApplier(context, _formattingRules);
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private void ApplyAnchorOperations(
             FormattingContext context,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedList<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
@@ -420,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private void ApplySpaceAndWrappingOperations(
             FormattingContext context,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedList<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
