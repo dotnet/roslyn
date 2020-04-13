@@ -63,15 +63,15 @@ namespace Microsoft.CodeAnalysis.Wrapping
         }
 
         public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction> codeActions)
-            => SortActionsByMostRecentlyUsed(codeActions, s_mruTitles);
+            => SortByMostRecentlyUsed(codeActions, s_mruTitles, a => GetSortTitle(a));
 
-        public static ImmutableArray<CodeAction> SortActionsByMostRecentlyUsed(
-            ImmutableArray<CodeAction> codeActions, ImmutableArray<string> mruTitles)
+        public static ImmutableArray<T> SortByMostRecentlyUsed<T>(
+            ImmutableArray<T> items, ImmutableArray<string> mostRecentlyUsedKeys, Func<T, string> getKey)
         {
-            return codeActions.Sort((d1, d2) =>
+            return items.Sort((d1, d2) =>
             {
-                var mruIndex1 = mruTitles.IndexOf(GetSortTitle(d1));
-                var mruIndex2 = mruTitles.IndexOf(GetSortTitle(d2));
+                var mruIndex1 = mostRecentlyUsedKeys.IndexOf(getKey(d1));
+                var mruIndex2 = mostRecentlyUsedKeys.IndexOf(getKey(d2));
 
                 // If both are in the mru, prefer the one earlier on.
                 if (mruIndex1 >= 0 && mruIndex2 >= 0)
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     return 1;
 
                 // Neither are in the mru.  Sort them based on their original locations.
-                var index1 = codeActions.IndexOf(d1);
-                var index2 = codeActions.IndexOf(d2);
+                var index1 = items.IndexOf(d1);
+                var index2 = items.IndexOf(d2);
 
                 // Note: we don't return 0 here as ImmutableArray.Sort is not stable.
                 return index1 - index2;
