@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     /// </remarks>
     internal sealed class SegmentedList<T> : ICollection<T>, IReadOnlyList<T>
     {
-        private readonly int segmentSize;
-        private readonly int segmentShift;
-        private readonly int offsetMask;
+        private readonly int _segmentSize;
+        private readonly int _segmentShift;
+        private readonly int _offsetMask;
 
-        private int capacity;
-        private int count;
-        private T[][] items;
+        private int _capacity;
+        private int _count;
+        private T[][] _items;
 
         /// <summary>
         /// Constructs SegmentedList.
@@ -48,25 +48,25 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 throw new ArgumentOutOfRangeException("segment size must be power of 2 greater than 1");
             }
 
-            this.segmentSize = segmentSize;
-            this.offsetMask = segmentSize - 1;
-            this.segmentShift = 0;
+            _segmentSize = segmentSize;
+            _offsetMask = segmentSize - 1;
+            _segmentShift = 0;
 
             while (0 != (segmentSize >>= 1))
             {
-                this.segmentShift++;
+                _segmentShift++;
             }
 
             if (initialCapacity > 0)
             {
-                initialCapacity = this.segmentSize * ((initialCapacity + this.segmentSize - 1) / this.segmentSize);
-                this.items = new T[initialCapacity >> this.segmentShift][];
-                for (int i = 0; i < items.Length; i++)
+                initialCapacity = _segmentSize * ((initialCapacity + _segmentSize - 1) / _segmentSize);
+                _items = new T[initialCapacity >> _segmentShift][];
+                for (var i = 0; i < _items.Length; i++)
                 {
-                    items[i] = new T[this.segmentSize];
+                    _items[i] = new T[_segmentSize];
                 }
 
-                this.capacity = initialCapacity;
+                _capacity = initialCapacity;
             }
         }
 
@@ -75,12 +75,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// </summary>
         public int Count
         {
-            get { return (int)this.count; }
-            set
-            {
-                Debug.Assert(value >= 0);
-                this.count = value;
-            }
+            get { return _count; }
         }
 
         /// <summary>
@@ -95,20 +90,20 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <returns>The last element that was on the list.</returns>
         public T Pop()
         {
-            if (count == 0)
+            if (_count == 0)
             {
                 throw new InvalidOperationException("Attempting to remove an element from empty collection.");
             }
 
-            int oldSegmentIndex = --count >> segmentShift;
-            T result = items[oldSegmentIndex][count & offsetMask];
+            var oldSegmentIndex = --_count >> _segmentShift;
+            var result = _items[oldSegmentIndex][_count & _offsetMask];
 
-            int newSegmentIndex = (count - 1) >> segmentShift;
+            var newSegmentIndex = (_count - 1) >> _segmentShift;
 
             if (newSegmentIndex != oldSegmentIndex)
             {
-                items[oldSegmentIndex] = null;
-                capacity -= segmentSize;
+                _items[oldSegmentIndex] = null;
+                _capacity -= _segmentSize;
             }
 
             return result;
@@ -130,12 +125,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             get
             {
-                return this.items[index >> this.segmentShift][index & this.offsetMask];
+                return _items[index >> _segmentShift][index & _offsetMask];
             }
 
             set
             {
-                this.items[index >> this.segmentShift][index & this.offsetMask] = value;
+                _items[index >> _segmentShift][index & _offsetMask] = value;
             }
         }
 
@@ -146,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <returns>true if the segment is allocated and false otherwise</returns>
         public bool IsValidIndex(int index)
         {
-            return this.items[index >> this.segmentShift] != null;
+            return _items[index >> _segmentShift] != null;
         }
 
         /// <summary>
@@ -157,8 +152,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <returns></returns>
         public T[] GetSlot(int index, out int slot)
         {
-            slot = index & this.offsetMask;
-            return this.items[index >> this.segmentShift];
+            slot = index & _offsetMask;
+            return _items[index >> _segmentShift];
         }
 
         /// <summary>
@@ -167,13 +162,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="item">New element.</param>
         public void Add(T item)
         {
-            if (this.count == this.capacity)
+            if (_count == _capacity)
             {
-                this.EnsureCapacity(this.count + 1);
+                EnsureCapacity(_count + 1);
             }
 
-            this.items[this.count >> this.segmentShift][this.count & this.offsetMask] = item;
-            this.count++;
+            _items[_count >> _segmentShift][_count & _offsetMask] = item;
+            _count++;
         }
 
         /// <summary>
@@ -184,25 +179,25 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public void Insert(int index, T item)
         {
             // Note that insertions at the end are legal.
-            if (this.count == this.capacity)
+            if (_count == _capacity)
             {
-                this.EnsureCapacity(this.count + 1);
+                EnsureCapacity(_count + 1);
             }
 
-            if (index < this.count)
+            if (index < _count)
             {
-                this.AddRoomForElement(index);
+                AddRoomForElement(index);
             }
 
-            if (index >= this.capacity)
+            if (index >= _capacity)
             {
-                this.count = index;
-                this.EnsureCapacity(this.count + 1);
+                _count = index;
+                EnsureCapacity(_count + 1);
             }
 
-            this.count++;
+            _count++;
 
-            this.items[index >> this.segmentShift][index & this.offsetMask] = item;
+            _items[index >> _segmentShift][index & _offsetMask] = item;
         }
 
         /// <summary>
@@ -211,13 +206,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="index">Position of the element to remove.</param>
         public void RemoveAt(int index)
         {
-            if (index < this.count)
+            if (index < _count)
             {
-                this.RemoveRoomForElement(index);
+                RemoveRoomForElement(index);
             }
 
-            this.count--;
-            this.items[this.count >> this.segmentShift][this.count & this.offsetMask] = default(T);
+            _count--;
+            _items[_count >> _segmentShift][_count & _offsetMask] = default;
         }
 
         /// <summary>
@@ -229,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <remarks>The implementation was copied from CLR BinarySearch implementation.</remarks>
         public int BinarySearch(T item, IComparer<T> comparer)
         {
-            return BinarySearch(item, 0, this.count - 1, comparer);
+            return BinarySearch(item, 0, _count - 1, comparer);
         }
 
         /// <summary>
@@ -247,15 +242,15 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 throw new ArgumentOutOfRangeException($"Low index, with value {low}, must not be negative and cannot be greater than the high index, whose value is {high}.");
             }
 
-            if (high < 0 || high >= count)
+            if (high < 0 || high >= _count)
             {
-                throw new ArgumentOutOfRangeException($"High index, with value {high}, must not be negative and cannot be greater than the number of elements contained in the list, which is {count}.");
+                throw new ArgumentOutOfRangeException($"High index, with value {high}, must not be negative and cannot be greater than the number of elements contained in the list, which is {_count}.");
             }
 
             while (low <= high)
             {
-                int i = low + ((high - low) >> 1);
-                int order = comparer.Compare(this.items[i >> this.segmentShift][i & this.offsetMask], item);
+                var i = low + ((high - low) >> 1);
+                var order = comparer.Compare(_items[i >> _segmentShift][i & _offsetMask], item);
 
                 if (order == 0)
                 {
@@ -280,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// </summary>
         public void Sort()
         {
-            this.Sort(Comparer<T>.Default);
+            Sort(Comparer<T>.Default);
         }
 
         /// <summary>
@@ -289,12 +284,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="comparer">Comparer to use.</param>
         public void Sort(IComparer<T> comparer)
         {
-            if (this.count <= 1)
+            if (_count <= 1)
             {
                 return;
             }
 
-            this.QuickSort(0, this.count - 1, comparer);
+            QuickSort(0, _count - 1, comparer);
         }
 
         /// <summary>
@@ -307,28 +302,28 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             if (count > 0)
             {
-                int minCapacity = this.count + count;
+                var minCapacity = _count + count;
 
-                if (this.capacity < minCapacity)
+                if (_capacity < minCapacity)
                 {
-                    this.EnsureCapacity(minCapacity);
+                    EnsureCapacity(minCapacity);
                 }
 
                 do
                 {
-                    int sourceSegment = index / from.segmentSize;
-                    int sourceOffset = index % from.segmentSize;
-                    int sourceLength = from.segmentSize - sourceOffset;
-                    int targetSegment = this.count >> this.segmentShift;
-                    int targetOffset = this.count & this.offsetMask;
-                    int targetLength = this.segmentSize - targetOffset;
-                    int countToCopy = Math.Min(count, Math.Min(sourceLength, targetLength));
+                    var sourceSegment = index / from._segmentSize;
+                    var sourceOffset = index % from._segmentSize;
+                    var sourceLength = from._segmentSize - sourceOffset;
+                    var targetSegment = _count >> _segmentShift;
+                    var targetOffset = _count & _offsetMask;
+                    var targetLength = _segmentSize - targetOffset;
+                    var countToCopy = Math.Min(count, Math.Min(sourceLength, targetLength));
 
-                    Array.Copy(from.items[sourceSegment], sourceOffset, this.items[targetSegment], targetOffset, countToCopy);
+                    Array.Copy(from._items[sourceSegment], sourceOffset, _items[targetSegment], targetOffset, countToCopy);
 
                     index += countToCopy;
                     count -= countToCopy;
-                    this.count += countToCopy;
+                    _count += countToCopy;
                 }
                 while (count != 0);
             }
@@ -338,25 +333,25 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             if (count > 0)
             {
-                int minCapacity = this.count + count;
+                var minCapacity = _count + count;
 
-                if (this.capacity < minCapacity)
+                if (_capacity < minCapacity)
                 {
-                    this.EnsureCapacity(minCapacity);
+                    EnsureCapacity(minCapacity);
                 }
 
                 do
                 {
-                    int targetSegment = this.count >> this.segmentShift;
-                    int targetOffset = this.count & this.offsetMask;
-                    int targetLength = this.segmentSize - targetOffset;
-                    int countToCopy = Math.Min(count, targetLength);
+                    var targetSegment = _count >> _segmentShift;
+                    var targetOffset = _count & _offsetMask;
+                    var targetLength = _segmentSize - targetOffset;
+                    var countToCopy = Math.Min(count, targetLength);
 
-                    Array.Copy(from, index, this.items[targetSegment], targetOffset, countToCopy);
+                    Array.Copy(from, index, _items[targetSegment], targetOffset, countToCopy);
 
                     index += countToCopy;
                     count -= countToCopy;
-                    this.count += countToCopy;
+                    _count += countToCopy;
                 }
                 while (count != 0);
             }
@@ -376,9 +371,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <returns>Array copy</returns>
         public T[] ToArray()
         {
-            T[] data = new T[this.count];
+            var data = new T[_count];
 
-            this.CopyTo(data, 0);
+            CopyTo(data, 0);
 
             return data;
         }
@@ -391,16 +386,16 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="arrayIndex">Destination array starting index.</param>
         public void CopyTo(T[] array, int arrayIndex)
         {
-            int remain = this.count;
+            var remain = _count;
 
-            for (int i = 0; (remain > 0) && (i < this.items.Length); i++)
+            for (var i = 0; (remain > 0) && (i < _items.Length); i++)
             {
-                int len = Math.Min(remain, this.items[i].Length);
+                var len = Math.Min(remain, _items[i].Length);
 
-                Array.Copy(this.items[i], 0, array, arrayIndex, len);
+                Array.Copy(_items[i], 0, array, arrayIndex, len);
 
                 remain -= len;
-                arrayIndex += (int)len;
+                arrayIndex += len;
             }
         }
 
@@ -414,19 +409,19 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="endIndex">The collection index where the copying should end.</param>
         public void CopyRangeTo(T[] array, int arrayIndex, int startIndex, int endIndex)
         {
-            int remain = Math.Min(this.count, endIndex - startIndex + 1);
-            int firstSegmentIndex = (int)(startIndex / segmentSize);
-            int lastSegmentIndex = Math.Min((int)(endIndex / segmentSize), this.items.Length); // The list might not have the range specified, we limit it if necessary to the actual size
-            int segmentStartIndex = (int)(startIndex % segmentSize);
+            var remain = Math.Min(_count, endIndex - startIndex + 1);
+            var firstSegmentIndex = startIndex / _segmentSize;
+            var lastSegmentIndex = Math.Min(endIndex / _segmentSize, _items.Length); // The list might not have the range specified, we limit it if necessary to the actual size
+            var segmentStartIndex = startIndex % _segmentSize;
 
-            for (int i = firstSegmentIndex; (remain > 0) && (i <= lastSegmentIndex); i++)
+            for (var i = firstSegmentIndex; (remain > 0) && (i <= lastSegmentIndex); i++)
             {
-                int len = Math.Min(remain, this.items[i].Length - segmentStartIndex);
+                var len = Math.Min(remain, _items[i].Length - segmentStartIndex);
 
-                Array.Copy(this.items[i], segmentStartIndex, array, arrayIndex, len);
+                Array.Copy(_items[i], segmentStartIndex, array, arrayIndex, len);
 
                 remain -= len;
-                arrayIndex += (int)len;
+                arrayIndex += len;
                 segmentStartIndex = 0;
             }
         }
@@ -457,9 +452,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public void Clear()
         {
-            items = null;
-            count = 0;
-            capacity = 0;
+            _items = null;
+            _count = 0;
+            _capacity = 0;
         }
 
         /// <summary>
@@ -479,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="arrayIndex">Destination array starting index.</param>
         void ICollection<T>.CopyTo(T[] array, int arrayIndex)
         {
-            this.CopyTo(array, arrayIndex);
+            CopyTo(array, arrayIndex);
         }
 
         /// <summary>
@@ -497,33 +492,33 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="index">Index of a new inserted element.</param>
         private void AddRoomForElement(int index)
         {
-            int firstSegment = (int)(index >> this.segmentShift);
-            int lastSegment = (int)(this.count >> this.segmentShift);
-            int firstOffset = index & this.offsetMask;
-            int lastOffset = this.count & this.offsetMask;
+            var firstSegment = index >> _segmentShift;
+            var lastSegment = _count >> _segmentShift;
+            var firstOffset = index & _offsetMask;
+            var lastOffset = _count & _offsetMask;
 
             if (firstSegment == lastSegment)
             {
-                Array.Copy(this.items[firstSegment], firstOffset, this.items[firstSegment], firstOffset + 1, lastOffset - firstOffset);
+                Array.Copy(_items[firstSegment], firstOffset, _items[firstSegment], firstOffset + 1, lastOffset - firstOffset);
             }
             else
             {
-                T save = this.items[firstSegment][this.segmentSize - 1];
-                Array.Copy(this.items[firstSegment],
-                    firstOffset, this.items[firstSegment],
+                var save = _items[firstSegment][_segmentSize - 1];
+                Array.Copy(_items[firstSegment],
+                    firstOffset, _items[firstSegment],
                     firstOffset + 1,
-                    this.segmentSize - firstOffset - 1);
+                    _segmentSize - firstOffset - 1);
 
-                for (int segment = firstSegment + 1; segment < lastSegment; segment++)
+                for (var segment = firstSegment + 1; segment < lastSegment; segment++)
                 {
-                    T saveT = this.items[segment][this.segmentSize - 1];
-                    Array.Copy(this.items[segment], 0, this.items[segment], 1, this.segmentSize - 1);
-                    this.items[segment][0] = save;
+                    var saveT = _items[segment][_segmentSize - 1];
+                    Array.Copy(_items[segment], 0, _items[segment], 1, _segmentSize - 1);
+                    _items[segment][0] = save;
                     save = saveT;
                 }
 
-                Array.Copy(this.items[lastSegment], 0, this.items[lastSegment], 1, lastOffset);
-                this.items[lastSegment][0] = save;
+                Array.Copy(_items[lastSegment], 0, _items[lastSegment], 1, lastOffset);
+                _items[lastSegment][0] = save;
             }
         }
 
@@ -533,27 +528,27 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="index">Index of the removed element.</param>
         private void RemoveRoomForElement(int index)
         {
-            int firstSegment = (int)(index >> this.segmentShift);
-            int lastSegment = (int)((this.count - 1) >> this.segmentShift);
-            int firstOffset = index & this.offsetMask;
-            int lastOffset = (this.count - 1) & this.offsetMask;
+            var firstSegment = index >> _segmentShift;
+            var lastSegment = (_count - 1) >> _segmentShift;
+            var firstOffset = index & _offsetMask;
+            var lastOffset = (_count - 1) & _offsetMask;
 
             if (firstSegment == lastSegment)
             {
-                Array.Copy(this.items[firstSegment], firstOffset + 1, this.items[firstSegment], firstOffset, lastOffset - firstOffset);
+                Array.Copy(_items[firstSegment], firstOffset + 1, _items[firstSegment], firstOffset, lastOffset - firstOffset);
             }
             else
             {
-                Array.Copy(this.items[firstSegment], firstOffset + 1, this.items[firstSegment], firstOffset, this.segmentSize - firstOffset - 1);
+                Array.Copy(_items[firstSegment], firstOffset + 1, _items[firstSegment], firstOffset, _segmentSize - firstOffset - 1);
 
-                for (int segment = firstSegment + 1; segment < lastSegment; segment++)
+                for (var segment = firstSegment + 1; segment < lastSegment; segment++)
                 {
-                    this.items[segment - 1][this.segmentSize - 1] = this.items[segment][0];
-                    Array.Copy(this.items[segment], 1, this.items[segment], 0, this.segmentSize - 1);
+                    _items[segment - 1][_segmentSize - 1] = _items[segment][0];
+                    Array.Copy(_items[segment], 1, _items[segment], 0, _segmentSize - 1);
                 }
 
-                this.items[lastSegment - 1][this.segmentSize - 1] = this.items[lastSegment][0];
-                Array.Copy(this.items[lastSegment], 1, this.items[lastSegment], 0, lastOffset);
+                _items[lastSegment - 1][_segmentSize - 1] = _items[lastSegment][0];
+                Array.Copy(_items[lastSegment], 1, _items[lastSegment], 0, lastOffset);
             }
         }
 
@@ -563,61 +558,61 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="minCapacity">Number of elements.</param>
         private void EnsureCapacity(int minCapacity)
         {
-            if (this.capacity < this.segmentSize)
+            if (_capacity < _segmentSize)
             {
-                if (this.items == null)
+                if (_items == null)
                 {
-                    this.items = new T[(minCapacity + this.segmentSize - 1) >> this.segmentShift][];
+                    _items = new T[(minCapacity + _segmentSize - 1) >> _segmentShift][];
                 }
 
-                int newFirstSegmentCapacity = this.segmentSize;
+                var newFirstSegmentCapacity = _segmentSize;
 
-                if (minCapacity < this.segmentSize)
+                if (minCapacity < _segmentSize)
                 {
-                    newFirstSegmentCapacity = this.capacity == 0 ? 2 : this.capacity * 2;
+                    newFirstSegmentCapacity = _capacity == 0 ? 2 : _capacity * 2;
 
                     while (newFirstSegmentCapacity < minCapacity)
                     {
                         newFirstSegmentCapacity *= 2;
                     }
 
-                    newFirstSegmentCapacity = Math.Min(newFirstSegmentCapacity, this.segmentSize);
+                    newFirstSegmentCapacity = Math.Min(newFirstSegmentCapacity, _segmentSize);
                 }
 
-                T[] newFirstSegment = new T[newFirstSegmentCapacity];
+                var newFirstSegment = new T[newFirstSegmentCapacity];
 
-                if (this.count > 0)
+                if (_count > 0)
                 {
-                    Array.Copy(this.items[0], 0, newFirstSegment, 0, this.count);
+                    Array.Copy(_items[0], 0, newFirstSegment, 0, _count);
                 }
 
-                this.items[0] = newFirstSegment;
-                this.capacity = newFirstSegment.Length;
+                _items[0] = newFirstSegment;
+                _capacity = newFirstSegment.Length;
             }
 
-            if (this.capacity < minCapacity)
+            if (_capacity < minCapacity)
             {
-                int currentSegments = (int)this.capacity >> this.segmentShift;
-                int neededSegments = (int)(minCapacity + this.segmentSize - 1) >> this.segmentShift;
+                var currentSegments = _capacity >> _segmentShift;
+                var neededSegments = minCapacity + _segmentSize - 1 >> _segmentShift;
 
-                if (neededSegments > this.items.Length)
+                if (neededSegments > _items.Length)
                 {
-                    int newSegmentArrayCapacity = this.items.Length * 2;
+                    var newSegmentArrayCapacity = _items.Length * 2;
 
                     while (newSegmentArrayCapacity < neededSegments)
                     {
                         newSegmentArrayCapacity *= 2;
                     }
 
-                    T[][] newItems = new T[newSegmentArrayCapacity][];
-                    Array.Copy(this.items, 0, newItems, 0, currentSegments);
-                    this.items = newItems;
+                    var newItems = new T[newSegmentArrayCapacity][];
+                    Array.Copy(_items, 0, newItems, 0, currentSegments);
+                    _items = newItems;
                 }
 
-                for (int i = currentSegments; i < neededSegments; i++)
+                for (var i = currentSegments; i < neededSegments; i++)
                 {
-                    this.items[i] = new T[this.segmentSize];
-                    this.capacity += this.segmentSize;
+                    _items[i] = new T[_segmentSize];
+                    _capacity += _segmentSize;
                 }
             }
         }
@@ -632,11 +627,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             if (a != b)
             {
-                if (comparer.Compare(this.items[a >> this.segmentShift][a & this.offsetMask], this.items[b >> this.segmentShift][b & this.offsetMask]) > 0)
+                if (comparer.Compare(_items[a >> _segmentShift][a & _offsetMask], _items[b >> _segmentShift][b & _offsetMask]) > 0)
                 {
-                    T key = this.items[a >> this.segmentShift][a & this.offsetMask];
-                    this.items[a >> this.segmentShift][a & this.offsetMask] = this.items[b >> this.segmentShift][b & this.offsetMask];
-                    this.items[b >> this.segmentShift][b & this.offsetMask] = key;
+                    var key = _items[a >> _segmentShift][a & _offsetMask];
+                    _items[a >> _segmentShift][a & _offsetMask] = _items[b >> _segmentShift][b & _offsetMask];
+                    _items[b >> _segmentShift][b & _offsetMask] = key;
                 }
             }
         }
@@ -652,28 +647,28 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             do
             {
-                int i = left;
-                int j = right;
+                var i = left;
+                var j = right;
 
                 // pre-sort the low, middle (pivot), and high values in place.
                 // this improves performance in the face of already sorted data, or
                 // data that is made up of multiple sorted runs appended together.
-                int middle = i + ((j - i) >> 1);
+                var middle = i + ((j - i) >> 1);
 
-                this.SwapIfGreaterWithItems(comparer, i, middle); // swap the low with the mid point
-                this.SwapIfGreaterWithItems(comparer, i, j); // swap the low with the high
-                this.SwapIfGreaterWithItems(comparer, middle, j); // swap the middle with the high
+                SwapIfGreaterWithItems(comparer, i, middle); // swap the low with the mid point
+                SwapIfGreaterWithItems(comparer, i, j); // swap the low with the high
+                SwapIfGreaterWithItems(comparer, middle, j); // swap the middle with the high
 
-                T x = this.items[middle >> this.segmentShift][middle & this.offsetMask];
+                var x = _items[middle >> _segmentShift][middle & _offsetMask];
 
                 do
                 {
-                    while (comparer.Compare(this.items[i >> this.segmentShift][i & this.offsetMask], x) < 0)
+                    while (comparer.Compare(_items[i >> _segmentShift][i & _offsetMask], x) < 0)
                     {
                         i++;
                     }
 
-                    while (comparer.Compare(x, this.items[j >> this.segmentShift][j & this.offsetMask]) < 0)
+                    while (comparer.Compare(x, _items[j >> _segmentShift][j & _offsetMask]) < 0)
                     {
                         j--;
                     }
@@ -687,9 +682,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
                     if (i < j)
                     {
-                        T key = this.items[i >> this.segmentShift][i & this.offsetMask];
-                        this.items[i >> this.segmentShift][i & this.offsetMask] = this.items[j >> this.segmentShift][j & this.offsetMask];
-                        this.items[j >> this.segmentShift][j & this.offsetMask] = key;
+                        var key = _items[i >> _segmentShift][i & _offsetMask];
+                        _items[i >> _segmentShift][i & _offsetMask] = _items[j >> _segmentShift][j & _offsetMask];
+                        _items[j >> _segmentShift][j & _offsetMask] = key;
                     }
 
                     i++;
@@ -725,10 +720,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <summary>
         /// Enumerator over the segmented list.
         /// </summary>
-        public struct Enumerator : IEnumerator<T>, System.Collections.IEnumerator
+        public struct Enumerator : IEnumerator<T>, IEnumerator
         {
-            private readonly SegmentedList<T> list;
-            private int index;
+            private readonly SegmentedList<T> _list;
+            private int _index;
 
             /// <summary>
             /// Constructws the Enumerator.
@@ -736,8 +731,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             /// <param name="list">List to enumerate.</param>
             internal Enumerator(SegmentedList<T> list)
             {
-                this.list = list;
-                this.index = -1;
+                _list = list;
+                _index = -1;
             }
 
             /// <summary>
@@ -753,13 +748,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             /// <returns>True if move successful, false if there are no more elements.</returns>
             public bool MoveNext()
             {
-                if (this.index < this.list.count - 1)
+                if (_index < _list._count - 1)
                 {
-                    index++;
+                    _index++;
                     return true;
                 }
 
-                this.index = -1;
+                _index = -1;
 
                 return false;
             }
@@ -769,23 +764,23 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             /// </summary>
             public T Current
             {
-                get { return this.list[this.index]; }
+                get { return _list[_index]; }
             }
 
             /// <summary>
             /// Returns the current element.
             /// </summary>
-            object System.Collections.IEnumerator.Current
+            object IEnumerator.Current
             {
-                get { return this.Current; }
+                get { return Current; }
             }
 
             /// <summary>
             /// Resets the enumerator to initial state.
             /// </summary>
-            void System.Collections.IEnumerator.Reset()
+            void IEnumerator.Reset()
             {
-                index = -1;
+                _index = -1;
             }
         }
     }
