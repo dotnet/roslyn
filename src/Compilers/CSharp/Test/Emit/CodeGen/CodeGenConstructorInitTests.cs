@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -684,6 +686,25 @@ class C
     static object obj = null!;
 }";
             CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_06()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static C()
+    {
+        if (false)
+            obj = new object();
+    }
+
+    static object obj = null!;
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", "");
         }
     }
 }

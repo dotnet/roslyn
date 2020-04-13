@@ -911,6 +911,79 @@ public class D
             Assert.Null(reader);
         }
 
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void EmptyStaticConstructor_WithEnableTestCoverage()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static C()
+    {
+    }
+
+    static object obj = null!;
+}" + InstrumentationHelperSource;
+            CompileAndVerify(source, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage))).VerifyIL("C..cctor()",
+@"{
+  // Code size       57 (0x39)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""C..cctor()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""C..cctor()""
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0023:  ldtoken    ""C..cctor()""
+  IL_0028:  ldelema    ""bool[]""
+  IL_002d:  ldc.i4.1
+  IL_002e:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SynthesizedStaticConstructor_WithEnableTestCoverage()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static object obj = null!;
+}" + InstrumentationHelperSource;
+            CompileAndVerify(source, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage))).VerifyIL("C..cctor()",
+@"{
+  // Code size       51 (0x33)
+  .maxstack  5
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""C..cctor()""
+  IL_000a:  ldelem.ref
+  IL_000b:  brtrue.s   IL_0032
+  IL_000d:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0012:  ldtoken    ""C..cctor()""
+  IL_0017:  ldtoken    Source Document 0
+  IL_001c:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0021:  ldtoken    ""C..cctor()""
+  IL_0026:  ldelema    ""bool[]""
+  IL_002b:  ldc.i4.0
+  IL_002c:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+  IL_0031:  pop
+  IL_0032:  ret
+}");
+        }
+
         private class SpanResult
         {
             public int StartLine { get; }
