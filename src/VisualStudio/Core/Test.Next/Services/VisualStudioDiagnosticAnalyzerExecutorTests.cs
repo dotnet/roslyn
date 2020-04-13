@@ -220,35 +220,14 @@ End Class";
                 var snapshotService = workspace.Services.GetService<IRemotableDataService>();
                 var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
-<<<<<<< HEAD
-                var asset = WorkspaceAnalyzerReferenceAsset.Create(analyzerReference, serializer, CancellationToken.None);
-                snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
-
-                var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
-                Assert.True(await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService,
-                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    workspace.CurrentSolution,
-                    new[] { new Checksum[] { asset.Checksum } },
-                    callbackTarget: null,
-                    cancellationToken: CancellationToken.None));
-
-                // run analysis
-                var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
-
-                var runner = CreateAnalyzerRunner(workspace);
-                var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
-
-                var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(analyzers,
-=======
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
 
                 var runner = CreateAnalyzerRunner();
-                var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
-                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
->>>>>>> Fixes
-                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+                var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
+
+                var compilationWithAnalyzers = (await project.GetCompilationAsync())
+                    .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
