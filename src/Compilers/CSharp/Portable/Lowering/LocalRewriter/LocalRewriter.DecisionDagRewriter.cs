@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override BoundNode VisitConversion(BoundConversion node)
                 {
                     visitConversion(node.Conversion);
+                    if (!_mightAssignSomething)
+                        base.VisitConversion(node);
                     return null;
 
                     void visitConversion(Conversion conversion)
