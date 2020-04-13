@@ -329,9 +329,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
                 Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
 
-                Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol)
-                updatedArguments = AddNewArgumentsToList(delegateInvokeMethod, updatedArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False, generateAttributeArguments:=False)
-                Return raiseEventStatement.WithArgumentList(raiseEventStatement.ArgumentList.WithArguments(updatedArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return raiseEventStatement.WithArgumentList(UpdateArgumentList(
+                    delegateInvokeMethod,
+                    updatedSignature,
+                    raiseEventStatement.ArgumentList,
+                    isReducedExtensionMethod:=False,
+                    isParamsArrayExpanded:=False,
+                    generateAttributeArguments:=False))
             End If
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
@@ -345,11 +349,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
-                Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken)
-
-                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, paramsArrayExpanded, generateAttributeArguments:=False)
-                Return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return invocation.WithArgumentList(UpdateArgumentList(
+                    declarationSymbol,
+                    updatedSignature,
+                    invocation.ArgumentList,
+                    isReducedExtensionMethod,
+                    IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
+                    generateAttributeArguments:=False))
             End If
 
             If vbnode.IsKind(SyntaxKind.SubNewStatement) Then
@@ -365,27 +371,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, AttributeSyntax))
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
 
-                Dim newArguments = PermuteArgumentList(attribute.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol)
-                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False, generateAttributeArguments:=True)
-                Return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return attribute.WithArgumentList(UpdateArgumentList(
+                    declarationSymbol,
+                    updatedSignature,
+                    attribute.ArgumentList,
+                    isReducedExtensionMethod:=False,
+                    isParamsArrayExpanded:=False,
+                    generateAttributeArguments:=True))
             End If
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
                 Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim isReducedExtensionMethod = False
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, ObjectCreationExpressionSyntax))
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
-                If methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.ReducedExtension Then
-                    isReducedExtensionMethod = True
-                End If
 
                 Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken)
 
-                Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, paramsArrayExpanded, generateAttributeArguments:=False)
-                Return objectCreation.WithArgumentList(objectCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return objectCreation.WithArgumentList(UpdateArgumentList(
+                    declarationSymbol,
+                    updatedSignature,
+                    objectCreation.ArgumentList,
+                    isReducedExtensionMethod:=False,
+                    IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken),
+                    generateAttributeArguments:=False))
             End If
 
             If vbnode.IsKind(SyntaxKind.PropertyStatement) Then
@@ -442,6 +452,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
 
             Return vbnode
+        End Function
+
+        Private Function UpdateArgumentList(
+            declarationSymbol As ISymbol,
+            signaturePermutation As SignatureChange,
+            argumentList As ArgumentListSyntax,
+            isReducedExtensionMethod As Boolean,
+            isParamsArrayExpanded As Boolean,
+            generateAttributeArguments As Boolean) As ArgumentListSyntax
+
+            Dim newArguments = PermuteArgumentList(
+                argumentList.Arguments,
+                signaturePermutation.WithoutAddedParameters(),
+                declarationSymbol,
+                isReducedExtensionMethod)
+
+            newArguments = AddNewArgumentsToList(
+                declarationSymbol,
+                newArguments,
+                signaturePermutation,
+                isReducedExtensionMethod,
+                isParamsArrayExpanded,
+                generateAttributeArguments)
+
+            Return argumentList.
+                WithArguments(newArguments).
+                WithAdditionalAnnotations(changeSignatureFormattingAnnotation)
         End Function
 
         Private Function IsParamsArrayExpanded(semanticModel As SemanticModel, node As SyntaxNode, symbolInfo As SymbolInfo, cancellationToken As CancellationToken) As Boolean

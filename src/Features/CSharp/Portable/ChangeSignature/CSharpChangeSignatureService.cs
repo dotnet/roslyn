@@ -369,17 +369,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
 
-                var isReducedExtensionMethod = symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension };
-                var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken);
-
-                var numArguments = invocation.ArgumentList.Arguments.Count;
-                var hasParamsArray = symbolInfo.Symbol.GetParameters().LastOrDefault()?.IsParams == true;
-                var numParameters = symbolInfo.Symbol.GetParameters().Length;
-                var isSomethingPassedToParamsArray = hasParamsArray && numArguments >= numParameters;
-
-                var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters(), isReducedExtensionMethod);
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, invocation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod, isParamsArrayExpanded, generateAttributeArguments: false);
-                return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                return invocation.WithArgumentList(
+                    UpdateArgumentList(
+                        declarationSymbol,
+                        signaturePermutation,
+                        invocation.ArgumentList,
+                        symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension },
+                        IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken)));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objCreation))
@@ -387,11 +383,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((ObjectCreationExpressionSyntax)originalNode, cancellationToken);
 
-                var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken);
-
-                var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, objCreation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: false);
-                return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                return objCreation.WithArgumentList(
+                    UpdateArgumentList(
+                        declarationSymbol,
+                        signaturePermutation,
+                        objCreation.ArgumentList,
+                        isReducedExtensionMethod: false,
+                        IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken)));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax constructorInit) ||
@@ -400,11 +398,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((ConstructorInitializerSyntax)originalNode, cancellationToken);
 
-                var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken);
-
-                var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, constructorInit.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: false);
-                return constructorInit.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                return constructorInit.WithArgumentList(
+                    UpdateArgumentList(
+                        declarationSymbol,
+                        signaturePermutation,
+                        constructorInit.ArgumentList,
+                        isReducedExtensionMethod: false,
+                        IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken)));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
@@ -412,11 +412,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((ElementAccessExpressionSyntax)originalNode, cancellationToken);
 
-                var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken);
-
-                var newArguments = PermuteArgumentList(declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, elementAccess.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: false);
-                return elementAccess.WithArgumentList(elementAccess.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                return elementAccess.WithArgumentList(
+                    UpdateArgumentList(
+                        declarationSymbol,
+                        signaturePermutation,
+                        elementAccess.ArgumentList,
+                        isReducedExtensionMethod: false,
+                        IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken)));
             }
 
             if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax attribute))
@@ -424,11 +426,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((AttributeSyntax)originalNode, cancellationToken);
 
-                var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken);
-
-                var newArguments = PermuteAttributeArgumentList(declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, attribute.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: true);
-                return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+                return attribute.WithArgumentList(
+                    UpdateAttributeArgumentList(
+                        declarationSymbol,
+                        signaturePermutation,
+                        attribute.ArgumentList,
+                        isReducedExtensionMethod: false,
+                        IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken)));
             }
 
             // Handle references in crefs
@@ -448,6 +452,59 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             Debug.Assert(false, "Unknown reference location");
             return null;
+        }
+
+        private T UpdateArgumentList<T>(
+            ISymbol declarationSymbol,
+            SignatureChange signaturePermutation,
+            T argumentList,
+            bool isReducedExtensionMethod,
+            bool isParamsArrayExpanded) where T : BaseArgumentListSyntax
+        {
+            var newArguments = PermuteArgumentList(
+                declarationSymbol,
+                argumentList.Arguments,
+                signaturePermutation.WithoutAddedParameters(),
+                isReducedExtensionMethod);
+
+            newArguments = AddNewArgumentsToList(
+                declarationSymbol,
+                newArguments,
+                argumentList.Arguments,
+                signaturePermutation,
+                isReducedExtensionMethod,
+                isParamsArrayExpanded,
+                generateAttributeArguments: false);
+
+            return (T)argumentList
+                .WithArguments(newArguments)
+                .WithAdditionalAnnotations(changeSignatureFormattingAnnotation);
+        }
+
+        private AttributeArgumentListSyntax UpdateAttributeArgumentList(
+            ISymbol declarationSymbol,
+            SignatureChange signaturePermutation,
+            AttributeArgumentListSyntax argumentList,
+            bool isReducedExtensionMethod,
+            bool isParamsArrayExpanded)
+        {
+            var newArguments = PermuteAttributeArgumentList(
+                declarationSymbol,
+                argumentList.Arguments,
+                signaturePermutation.WithoutAddedParameters());
+
+            newArguments = AddNewArgumentsToList(
+                declarationSymbol,
+                newArguments,
+                argumentList.Arguments,
+                signaturePermutation,
+                isReducedExtensionMethod,
+                isParamsArrayExpanded,
+                generateAttributeArguments: true);
+
+            return argumentList
+                .WithArguments(newArguments)
+                .WithAdditionalAnnotations(changeSignatureFormattingAnnotation);
         }
 
         private bool IsParamsArrayExpanded(SemanticModel semanticModel, SyntaxNode node, SymbolInfo symbolInfo, CancellationToken cancellationToken)
