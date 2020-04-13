@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var conflicts = await ConflictResolver.ResolveConflictsAsync(
-                    _renameLocationSet, _renameLocationSet.Symbol.Name,
-                    _renameInfo.GetFinalSymbolName(replacementText), optionSet, hasConflict: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    _renameLocationSet, _renameInfo.GetFinalSymbolName(replacementText),
+                    nonConflictSymbols: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return new InlineRenameReplacementInfo(conflicts);
             }
