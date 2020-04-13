@@ -1904,7 +1904,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterNameXmlElementSyntax
             Dim xmlElement = TryCast(node, XmlElementSyntax)
             If xmlElement IsNot Nothing Then
-                Return xmlElement.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName
+                Dim name = TryCast(xmlElement.StartTag.Name, XmlNameSyntax)
+                If name IsNot Nothing Then
+                    Return name.LocalName.ValueText = DocumentationCommentXmlNames.ParameterElementName
+                End If
             End If
 
             Return False

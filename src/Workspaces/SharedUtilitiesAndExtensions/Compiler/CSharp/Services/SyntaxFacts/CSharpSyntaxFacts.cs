@@ -1705,8 +1705,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.GetAttributeLists();
 
         public override bool IsParameterNameXmlElementSyntax(SyntaxNode node)
-            => node.IsKind(SyntaxKind.XmlElement) &&
-            ((XmlElementSyntax)node).StartTag.Name.ToString() == DocumentationCommentXmlNames.ParameterElementName;
+            => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement) &&
+            xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
 
         public override SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
         {
