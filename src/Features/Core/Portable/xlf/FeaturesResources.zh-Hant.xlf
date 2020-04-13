@@ -278,12 +278,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="new">Example:</target>
-        <note />
+        <note>Singular form when we want to show an example, but only have one to show.</note>
       </trans-unit>
       <trans-unit id="Examples">
         <source>Examples:</source>
         <target state="new">Examples:</target>
-        <note />
+        <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
