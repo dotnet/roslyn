@@ -1958,8 +1958,10 @@ If the "H" format specifier is used without other custom format specifiers, it's
   </data>
   <data name="Example" xml:space="preserve">
     <value>Example:</value>
+    <comment>Singular form when we want to show an example, but only have one to show.</comment>
   </data>
   <data name="Examples" xml:space="preserve">
     <value>Examples:</value>
+    <comment>Plural form when we have multiple examples to show.</comment>
   </data>
 </root>
