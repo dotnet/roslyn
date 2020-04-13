@@ -252,6 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim rootModuleType = moduleBeingBuiltOpt.RootModuleType
                 If rootModuleType IsNot Nothing Then
                     ' all threads that were adding methods must be finished now, we can freeze the class:
+                    ' PROTOTYPE(module-initializers): what should happen when a VB method is marked with `<ModuleInitializer>`?
                     rootModuleType.Freeze()
 
                     compiler.CompileSynthesizedMethods(rootModuleType)

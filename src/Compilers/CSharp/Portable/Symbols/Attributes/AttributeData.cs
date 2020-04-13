@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void DecodeModuleInitializerAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            // TODO: diagnostics
+            // PROTOTYPE(module-initializers): diagnostics
             arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasModuleInitializerAttribute = true;
         }
 

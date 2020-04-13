@@ -38,7 +38,7 @@ namespace Microsoft.Cci
 
             _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).ToImmutableArray();
 
-            // TODO: require deterministic order
+            // PROTOTYPE(module-initializers): require deterministic order
             _orderedModuleInitializerMethods = _moduleInitializerMethods.ToImmutableArray();
         }
 
