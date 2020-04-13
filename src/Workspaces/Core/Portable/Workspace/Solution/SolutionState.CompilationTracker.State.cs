@@ -10,6 +10,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
+#if DEBUG
+using System.Diagnostics;
+#endif
+
 namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionState
@@ -26,7 +30,7 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
-                public static readonly State Empty = new State(compilation: null, declarationOnlyCompilation: null);
+                public static readonly State Empty = new State(compilation: null, declarationOnlyCompilation: null, generatorDriver: new TrackedGeneratorDriver(null));
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -35,9 +39,12 @@ namespace Microsoft.CodeAnalysis
                 public Compilation? DeclarationOnlyCompilation { get; }
 
                 /// <summary>
-                /// The best compilation that is available. May be an in-progress, full declaration, a final compilation, or <see langword="null"/>.
+                /// The best compilation that is available that source generators have not ran on. May be an in-progress, full declaration,
+                /// a final compilation, or <see langword="null"/>.
                 /// </summary>
                 public ValueSource<Optional<Compilation>>? Compilation { get; }
+
+                public TrackedGeneratorDriver GeneratorDriver { get; }
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
@@ -50,18 +57,20 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public virtual ValueSource<Optional<Compilation>>? FinalCompilation => null;
 
-                protected State(ValueSource<Optional<Compilation>>? compilation, Compilation? declarationOnlyCompilation)
+                protected State(ValueSource<Optional<Compilation>>? compilation, Compilation? declarationOnlyCompilation, TrackedGeneratorDriver generatorDriver)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
 
                     Compilation = compilation;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
+                    GeneratorDriver = generatorDriver;
                 }
 
                 public static State Create(
                     Compilation compilation,
-                    ImmutableArray<ValueTuple<ProjectState, CompilationTranslationAction>> intermediateProjects)
+                    TrackedGeneratorDriver generatorDriver,
+                    ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
                 {
                     Contract.ThrowIfNull(compilation);
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -69,8 +78,8 @@ namespace Microsoft.CodeAnalysis
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now.
                     return intermediateProjects.Length == 0
-                        ? new FullDeclarationState(compilation)
-                        : (State)new InProgressState(compilation, intermediateProjects);
+                        ? new FullDeclarationState(compilation, generatorDriver)
+                        : (State)new InProgressState(compilation, generatorDriver, intermediateProjects);
                 }
 
                 public static ValueSource<Optional<Compilation>> CreateValueSource(
@@ -89,14 +98,16 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class InProgressState : State
             {
-                public ImmutableArray<(ProjectState state, CompilationTranslationAction action)> IntermediateProjects { get; }
+                public ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
 
                 public InProgressState(
                     Compilation inProgressCompilation,
-                    ImmutableArray<(ProjectState state, CompilationTranslationAction action)> intermediateProjects)
-                    : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation), declarationOnlyCompilation: null)
+                    TrackedGeneratorDriver inProgressGeneratorDriver,
+                    ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
+                    : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
+                           declarationOnlyCompilation: null,
+                           generatorDriver: inProgressGeneratorDriver)
                 {
-                    Contract.ThrowIfNull(inProgressCompilation);
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
 
@@ -110,7 +121,7 @@ namespace Microsoft.CodeAnalysis
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation)
-                    : base(compilation: null, declarationOnlyCompilation: declarationOnlyCompilation)
+                    : base(compilation: null, declarationOnlyCompilation: declarationOnlyCompilation, generatorDriver: new TrackedGeneratorDriver(null))
                 {
                 }
             }
@@ -121,8 +132,8 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FullDeclarationState : State
             {
-                public FullDeclarationState(Compilation declarationCompilation)
-                    : base(new WeakValueSource<Compilation>(declarationCompilation), declarationCompilation.Clone().RemoveAllReferences())
+                public FullDeclarationState(Compilation declarationCompilation, TrackedGeneratorDriver generatorDriver)
+                    : base(new WeakValueSource<Compilation>(declarationCompilation), declarationCompilation.Clone().RemoveAllReferences(), generatorDriver)
                 {
                 }
             }
@@ -133,15 +144,39 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FinalState : State
             {
-                private readonly bool _hasSuccessfullyLoaded;
+                public override bool? HasSuccessfullyLoaded { get; }
 
-                public override bool? HasSuccessfullyLoaded => _hasSuccessfullyLoaded;
-                public override ValueSource<Optional<Compilation>>? FinalCompilation => Compilation;
+                /// <summary>
+                /// The final compilation, with all references and source generators run. This is distinct from
+                /// <see cref="Compilation"/>, which in the <see cref="FinalState"/> case will be the compilation
+                /// before any source generators were ran. This ensures that a later invocation of the source generators
+                /// consumes <see cref="Compilation"/> which will avoid generators being ran a second time on a compilation that
+                /// already contains the output of other generators. If source generators are not active, this is equal to <see cref="Compilation"/>.
+                /// </summary>
+                public override ValueSource<Optional<Compilation>>? FinalCompilation { get; }
 
-                public FinalState(ValueSource<Optional<Compilation>> finalCompilationSource, Compilation finalCompilation, bool hasSuccessfullyLoaded)
-                    : base(finalCompilationSource, finalCompilation.Clone().RemoveAllReferences())
+                public FinalState(
+                    ValueSource<Optional<Compilation>> finalCompilationSource,
+                    ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
+                    Compilation compilationWithoutGeneratedFiles,
+                    TrackedGeneratorDriver generatorDriver,
+                    bool hasSuccessfullyLoaded)
+                    : base(compilationWithoutGeneratedFilesSource, compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(), generatorDriver)
                 {
-                    _hasSuccessfullyLoaded = hasSuccessfullyLoaded;
+                    HasSuccessfullyLoaded = hasSuccessfullyLoaded;
+                    FinalCompilation = finalCompilationSource;
+
+#if DEBUG
+
+                    if (generatorDriver.GeneratorDriver == null)
+                    {
+                        // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
+                        // same Compilation, which should be compilationWithoutGeneratedFiles itself
+                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilation));
+                        Debug.Assert(object.ReferenceEquals(finalCompilation.Value, compilationWithoutGeneratedFiles));
+                    }
+
+#endif
                 }
             }
         }

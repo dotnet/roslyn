@@ -303,6 +303,8 @@ namespace Microsoft.CodeAnalysis
             public static readonly ConstantValueDefault UInt32 = new ConstantValueDefault(ConstantValueTypeDiscriminator.UInt32);
             public static readonly ConstantValueDefault Int64 = new ConstantValueDefault(ConstantValueTypeDiscriminator.Int64);
             public static readonly ConstantValueDefault UInt64 = new ConstantValueDefault(ConstantValueTypeDiscriminator.UInt64);
+            public static readonly ConstantValueDefault NInt = new ConstantValueDefault(ConstantValueTypeDiscriminator.NInt);
+            public static readonly ConstantValueDefault NUInt = new ConstantValueDefault(ConstantValueTypeDiscriminator.NUInt);
             public static readonly ConstantValueDefault Char = new ConstantValueDefault(ConstantValueTypeDiscriminator.Char);
             public static readonly ConstantValueDefault Single = new ConstantValueSingleZero();
             public static readonly ConstantValueDefault Double = new ConstantValueDoubleZero();
@@ -475,6 +477,8 @@ namespace Microsoft.CodeAnalysis
             public static readonly ConstantValueOne UInt32 = new ConstantValueOne(ConstantValueTypeDiscriminator.UInt32);
             public static readonly ConstantValueOne Int64 = new ConstantValueOne(ConstantValueTypeDiscriminator.Int64);
             public static readonly ConstantValueOne UInt64 = new ConstantValueOne(ConstantValueTypeDiscriminator.UInt64);
+            public static readonly ConstantValueOne NInt = new ConstantValueOne(ConstantValueTypeDiscriminator.NInt);
+            public static readonly ConstantValueOne NUInt = new ConstantValueOne(ConstantValueTypeDiscriminator.NUInt);
             public static readonly ConstantValueOne Single = new ConstantValueOne(ConstantValueTypeDiscriminator.Single);
             public static readonly ConstantValueOne Double = new ConstantValueOne(ConstantValueTypeDiscriminator.Double);
             public static readonly ConstantValueOne Decimal = new ConstantValueDecimalOne();
@@ -751,6 +755,50 @@ namespace Microsoft.CodeAnalysis
             public override bool Equals(ConstantValue? other)
             {
                 return base.Equals(other) && _value == other.Int64Value;
+            }
+        }
+
+        private sealed class ConstantValueNativeInt : ConstantValueDiscriminated
+        {
+            // Constants are limited to 32-bit for portability.
+            private readonly int _value;
+
+            public ConstantValueNativeInt(int value)
+                : base(ConstantValueTypeDiscriminator.NInt)
+            {
+                _value = value;
+            }
+
+            public ConstantValueNativeInt(uint value)
+                : base(ConstantValueTypeDiscriminator.NUInt)
+            {
+                _value = unchecked((int)value);
+            }
+
+            public override int Int32Value
+            {
+                get
+                {
+                    return _value;
+                }
+            }
+
+            public override uint UInt32Value
+            {
+                get
+                {
+                    return unchecked((uint)_value);
+                }
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(base.GetHashCode(), _value.GetHashCode());
+            }
+
+            public override bool Equals(ConstantValue? other)
+            {
+                return base.Equals(other) && _value == other.Int32Value;
             }
         }
 

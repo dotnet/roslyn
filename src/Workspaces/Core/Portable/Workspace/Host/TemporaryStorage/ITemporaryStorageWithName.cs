@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
@@ -9,10 +11,13 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal interface ITemporaryStorageWithName
     {
+        // TODO: clean up https://github.com/dotnet/roslyn/issues/43037
+        // Name shouldn't be nullable.
+
         /// <summary>
         /// Get name of the temporary storage
         /// </summary>
-        string Name { get; }
+        string? Name { get; }
 
         /// <summary>
         /// Get offset of the temporary storage

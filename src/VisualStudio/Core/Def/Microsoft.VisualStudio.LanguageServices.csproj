@@ -40,9 +40,6 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\RoslynJsonConverter.SolutionIdConverters.cs">
       <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
-      <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\ExpressionEvaluator\Core\Source\ExpressionCompiler\DkmExceptionUtilities.cs" Link="Implementation\EditAndContinue\Interop\DkmExceptionUtilities.cs" />
     <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
