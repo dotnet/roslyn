@@ -488,20 +488,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             Dim argumentCount As Integer
             Dim lastArgumentIsNamed As Boolean
-            Dim lastArgumentExpression As ExpressionSyntax
+            Dim lastArgumentExpression As ExpressionSyntax = Nothing
 
             Dim invocation = TryCast(node, InvocationExpressionSyntax)
             Dim objectCreation = TryCast(node, ObjectCreationExpressionSyntax)
             If invocation IsNot Nothing Then
-                argumentCount = invocation.ArgumentList.Arguments.Count
-                Dim isNamed = invocation.ArgumentList.Arguments.LastOrDefault()?.IsNamed
-                lastArgumentIsNamed = isNamed.HasValue AndAlso isNamed.Value
-                lastArgumentExpression = invocation.ArgumentList.Arguments.LastOrDefault()?.GetExpression()
+                GetArgumentListDetails(invocation.ArgumentList, argumentCount, lastArgumentIsNamed, lastArgumentExpression)
             ElseIf objectCreation IsNot Nothing Then
-                argumentCount = objectCreation.ArgumentList.Arguments.Count
-                Dim isNamed = objectCreation.ArgumentList.Arguments.LastOrDefault()?.IsNamed
-                lastArgumentIsNamed = isNamed.HasValue AndAlso isNamed.Value
-                lastArgumentExpression = objectCreation.ArgumentList.Arguments.LastOrDefault()?.GetExpression()
+                GetArgumentListDetails(objectCreation.ArgumentList, argumentCount, lastArgumentIsNamed, lastArgumentExpression)
             Else
                 Throw ExceptionUtilities.UnexpectedValue(node.Kind())
             End If
@@ -523,6 +517,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             Return False
         End Function
+
+        Private Sub GetArgumentListDetails(
+            argumentList As ArgumentListSyntax,
+            ByRef argumentCount As Integer,
+            ByRef lastArgumentIsNamed As Boolean,
+            ByRef lastArgumentExpression As ExpressionSyntax)
+
+            argumentCount = argumentList.Arguments.Count
+            Dim isNamed = argumentList.Arguments.LastOrDefault()?.IsNamed
+            lastArgumentIsNamed = isNamed.HasValue AndAlso isNamed.Value
+            lastArgumentExpression = argumentList.Arguments.LastOrDefault()?.GetExpression()
+        End Sub
 
         Private Function PermuteArgumentList(
             arguments As SeparatedSyntaxList(Of ArgumentSyntax),
