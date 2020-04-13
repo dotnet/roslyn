@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
         {
             private static DateTime s_exampleDateTime = DateTime.Parse("2009-06-15T13:45:30.1234567");
             private static CultureInfo s_enUsCulture = CultureInfo.GetCultureInfo("en-US");
-            private static CultureInfo s_primaryCulture = CultureInfo.CurrentCulture;
-            private static CultureInfo s_secondaryCulture = s_enUsCulture;
 
             private readonly ArrayBuilder<DateAndTimeItem> _items;
             private readonly TextSpan _replacementSpan;
@@ -78,20 +76,25 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             {
                 var userFormat = _userFormatPrefix + displayText + _userFormatSuffix;
 
+                var primaryCulture = CultureInfo.CurrentCulture;
+                var secondaryCulture = s_enUsCulture;
+                var hideCulture = primaryCulture.Equals(secondaryCulture);
+
                 // The total user format may not be legal.  So try to format the date, but be tolerant of that failing.
-                TryAddExample(examples, standard, userFormat, s_primaryCulture);
-                TryAddExample(examples, standard, userFormat, s_secondaryCulture);
+                TryAddExample(examples, standard, userFormat, primaryCulture, hideCulture);
+                TryAddExample(examples, standard, userFormat, secondaryCulture, hideCulture);
 
                 // We should never fail to produce an example string for one of the format strings we are presenting.
-                AddExample(examples, standard, displayText, s_primaryCulture);
-                AddExample(examples, standard, displayText, s_secondaryCulture);
+                AddExample(examples, standard, displayText, primaryCulture, hideCulture);
+                AddExample(examples, standard, displayText, secondaryCulture, hideCulture);
             }
 
-            private void TryAddExample(ArrayBuilder<string> examples, bool standard, string displayText, CultureInfo culture)
+            private void TryAddExample(
+                ArrayBuilder<string> examples, bool standard, string displayText, CultureInfo culture, bool hideCulture)
             {
                 try
                 {
-                    AddExample(examples, standard, displayText, culture);
+                    AddExample(examples, standard, displayText, culture, hideCulture);
                 }
                 catch (FormatException)
                 {
@@ -101,7 +104,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 }
             }
 
-            private void AddExample(ArrayBuilder<string> examples, bool standard, string displayText, CultureInfo culture)
+            private void AddExample(
+                ArrayBuilder<string> examples, bool standard, string displayText, CultureInfo culture, bool hideCulture)
             {
                 // Single letter custom strings need a %, or else they're interpreted as a format
                 // standard format string (and will throw a format exception).
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                     return;
 
                 var formattedDate = s_exampleDateTime.ToString(formatString);
-                var example = s_primaryCulture.Equals(s_secondaryCulture)
+                var example = hideCulture
                     ? $"   {displayText} → {formattedDate}"
                     : $"   {displayText} ({culture}) → {formattedDate}";
                 if (!examples.Contains(example))
