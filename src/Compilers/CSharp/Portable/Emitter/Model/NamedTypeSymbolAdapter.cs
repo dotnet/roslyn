@@ -670,7 +670,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert((object)method != null);
                 if (method is SynthesizedStaticConstructor && context.Module.GetMethodBody(method) is null)
                 {
-                    // TODO: any better way to decide to skip this method?
                     continue;
                 }
 
