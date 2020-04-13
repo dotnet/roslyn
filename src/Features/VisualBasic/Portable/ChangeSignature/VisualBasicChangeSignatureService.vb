@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
 
                 Dim updatedArguments = PermuteArgumentList(raiseEventStatement.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol)
-                updatedArguments = AddNewArgumentsToList(delegateInvokeMethod, updatedArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False)
+                updatedArguments = AddNewArgumentsToList(delegateInvokeMethod, updatedArguments, updatedSignature, isReducedExtensionMethod:=False, isParamsArrayExpanded:=False, generateAttributeArguments:=False)
                 Return raiseEventStatement.WithArgumentList(raiseEventStatement.ArgumentList.WithArguments(updatedArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken)
 
                 Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, paramsArrayExpanded)
+                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, paramsArrayExpanded, generateAttributeArguments:=False)
                 Return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken)
 
                 Dim newArguments = PermuteArgumentList(objectCreation.ArgumentList.Arguments, updatedSignature.WithoutAddedParameters(), declarationSymbol, isReducedExtensionMethod)
-                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, paramsArrayExpanded)
+                newArguments = AddNewArgumentsToList(methodSymbol, newArguments, updatedSignature, isReducedExtensionMethod, paramsArrayExpanded, generateAttributeArguments:=False)
                 Return objectCreation.WithArgumentList(objectCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -466,23 +466,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 lastArgumentIsNamed = isNamed.HasValue AndAlso isNamed.Value
                 lastArgumentExpression = objectCreation.ArgumentList.Arguments.LastOrDefault()?.GetExpression()
             Else
-                Throw New ArgumentException("Unexpected SyntaxNode", NameOf(node))
+                Throw ExceptionUtilities.UnexpectedValue(node.Kind())
             End If
 
             Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
             If methodSymbol IsNot Nothing AndAlso methodSymbol.Parameters.LastOrDefault()?.IsParams Then
-                If argumentCount > DirectCast(symbolInfo.Symbol, IMethodSymbol).Parameters.Length Then
+                If argumentCount > methodSymbol.Parameters.Length Then
                     Return True
-                ElseIf argumentCount = DirectCast(symbolInfo.Symbol, IMethodSymbol).Parameters.Length Then
+                ElseIf argumentCount = methodSymbol.Parameters.Length Then
                     If lastArgumentIsNamed Then
                         Return True
                     Else
                         Dim fromType = semanticModel.GetTypeInfo(lastArgumentExpression, cancellationToken)
-                        Dim toType = DirectCast(symbolInfo.Symbol, IMethodSymbol).Parameters.Last().Type
+                        Dim toType = methodSymbol.Parameters.Last().Type
                         Return Not semanticModel.Compilation.HasImplicitConversion(fromType.Type, toType)
                     End If
-                Else
-                    Return False
                 End If
             End If
 

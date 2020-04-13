@@ -469,6 +469,34 @@ public static class CExt
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameterWithOmittedArgument_ParamsAsArray()
+        {
+            var markup = @"
+public class C
+{
+    void $$M(int x, int y, params int[] p)
+    {
+        M(x, y, p: p);
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(1),
+                AddedParameterOrExistingIndex.CreateAdded("int", "z", isRequired: false, defaultValue: "3", isCallsiteOmitted: true),
+                new AddedParameterOrExistingIndex(2)};
+            var updatedCode = @"
+public class C
+{
+    void M(int x, int y, int z = 3, params int[] p)
+    {
+        M(x, y, p: p);
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamsMethodParametersAndArguments_ParamsAsArray()
         {
             var markup = @"

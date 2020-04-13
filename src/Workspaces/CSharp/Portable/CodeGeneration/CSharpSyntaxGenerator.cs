@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return SyntaxFactory.Trivia(structuredTriviaSyntax);
             }
 
-            throw new ArgumentException("Expected 'node' to be a StructuredTriviaSyntax", nameof(node));
+            throw ExceptionUtilities.UnexpectedValue(node.Kind());
         }
 
         internal override SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString)

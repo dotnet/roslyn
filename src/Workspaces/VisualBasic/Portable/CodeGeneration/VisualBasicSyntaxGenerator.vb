@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return SyntaxFactory.Trivia(structuredTrivia)
             End If
 
-            Throw New ArgumentException("Expected 'node' to be a StructuredTriviaSyntax", NameOf(node))
+            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
         End Function
 
         Friend Overrides Function DocumentationCommentTrivia(nodes As IEnumerable(Of SyntaxNode), trailingTrivia As SyntaxTriviaList, lastWhitespaceTrivia As SyntaxTrivia, endOfLineString As String) As SyntaxNode

@@ -1712,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 return documentationCommentTrivia.Content.ToArray();
             }
 
-            throw new ArgumentException("Expected 'trivia' to be of type DocumentationCommentTriviaSyntax", nameof(trivia));
+            throw ExceptionUtilities.UnexpectedValue(trivia.Kind());
         }
 
         public override bool CanHaveAccessibility(SyntaxNode declaration)

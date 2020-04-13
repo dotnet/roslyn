@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var isSomethingPassedToParamsArray = hasParamsArray && numArguments >= numParameters;
 
                 var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters(), isReducedExtensionMethod);
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, invocation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod, isParamsArrayExpanded);
+                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, invocation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod, isParamsArrayExpanded, generateAttributeArguments: false);
                 return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken);
 
                 var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, objCreation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded);
+                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, objCreation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: false);
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken);
 
                 var newArguments = PermuteArgumentList(declarationSymbol, constructorInit.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, constructorInit.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded);
+                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, constructorInit.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: false);
                 return constructorInit.WithArgumentList(constructorInit.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var isParamsArrayExpanded = IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken);
 
                 var newArguments = PermuteArgumentList(declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation.WithoutAddedParameters());
-                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, elementAccess.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded);
+                newArguments = AddNewArgumentsToList(declarationSymbol, newArguments, elementAccess.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod: false, isParamsArrayExpanded, generateAttributeArguments: false);
                 return elementAccess.WithArgumentList(elementAccess.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     ObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
                     ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
                     ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList,
-                    _ => throw new ArgumentException("Unexpected SyntaxNode", nameof(node))
+                    _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
                 };
 
                 argumentCount = argumentList.Arguments.Count;
@@ -484,29 +484,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 lastArgumentExpression = argumentList.Arguments.LastOrDefault()?.Expression;
             }
 
-
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.Parameters.LastOrDefault()?.IsParams == true)
             {
-                if (argumentCount > ((IMethodSymbol)symbolInfo.Symbol).Parameters.Length)
+                if (argumentCount > methodSymbol.Parameters.Length)
                 {
                     return true;
                 }
-                else if (argumentCount == ((IMethodSymbol)symbolInfo.Symbol).Parameters.Length)
+                else if (argumentCount == methodSymbol.Parameters.Length)
                 {
                     if (lastArgumentHasNameColon)
                     {
-                        return true;
+                        return false;
                     }
                     else
                     {
                         var fromType = semanticModel.GetTypeInfo(lastArgumentExpression, cancellationToken);
-                        var toType = ((IMethodSymbol)symbolInfo.Symbol).Parameters.Last().Type;
+                        var toType = methodSymbol.Parameters.Last().Type;
                         return !semanticModel.Compilation.HasImplicitConversion(fromType.Type, toType);
                     }
-                }
-                else
-                {
-                    return false;
                 }
             }
 
@@ -527,8 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 modifiers: default,
                 type: skipParameterType
                     ? null
-                    : addedParameter.Type.GenerateTypeSyntax()
-                        .WithTrailingTrivia(ElasticSpace),
+                    : addedParameter.Type.GenerateTypeSyntax(),
                 Identifier(addedParameter.Name),
                 @default: equalsValueClause);
         }
@@ -569,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
-            bool generateAttributeArguments = false)
+            bool generateAttributeArguments)
         {
             var newArgumentList = AddNewArgumentsToList(
                 declarationSymbol, newArguments,
@@ -639,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             if (!node.HasLeadingTrivia)
             {
-                return default;
+                return ImmutableArray<SyntaxTrivia>.Empty;
             }
 
             var paramNodes = node
@@ -759,11 +753,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         protected override SyntaxNode AddNameToArgument(SyntaxNode newArgument, string name)
         {
-            return (newArgument as ArgumentSyntax).WithNameColon(NameColon(name));
+            return ((ArgumentSyntax)newArgument).WithNameColon(NameColon(name));
         }
 
         protected override SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
         {
+            // These arguments are part of a params array, and should not have any modifiers, making it okay to just use their expressions.
             var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
             var initializerExpression = InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
             var objectCreation = ArrayCreationExpression((ArrayTypeSyntax)parameterSymbol.Type.GenerateTypeSyntax(), initializerExpression);

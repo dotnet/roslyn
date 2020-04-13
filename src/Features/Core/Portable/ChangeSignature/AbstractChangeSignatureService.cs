@@ -79,6 +79,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         protected abstract bool SupportsOptionalAndParamsArrayParametersSimultaneously();
 
+        protected abstract SyntaxGenerator Generator { get; }
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
+
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -746,16 +749,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return separators.ToImmutable();
         }
 
-        protected abstract SyntaxGenerator Generator { get; }
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
-
         protected virtual SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
             ISymbol declarationSymbol,
             SeparatedSyntaxList<SyntaxNode> newArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
-            bool generateAttributeArguments = false)
+            bool generateAttributeArguments)
         {
             var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
             var separators = ArrayBuilder<SyntaxToken>.GetInstance();
