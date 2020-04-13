@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.UseIsNullCheck;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
+    using static SyntaxFactory;
+
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider : AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider
     {
@@ -27,23 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             => GetIsNullTitle();
 
         private static SyntaxNode CreateEqualsNullCheck(SyntaxNode argument)
-            => SyntaxFactory.BinaryExpression(
+            => BinaryExpression(
                 SyntaxKind.EqualsExpression,
                 (ExpressionSyntax)argument,
-                SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)).Parenthesize();
+                LiteralExpression(SyntaxKind.NullLiteralExpression)).Parenthesize();
 
         private static SyntaxNode CreateIsNullCheck(SyntaxNode argument)
-            => SyntaxFactory.IsPatternExpression(
+            => IsPatternExpression(
                 (ExpressionSyntax)argument,
-                SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))).Parenthesize();
+                ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression))).Parenthesize();
 
         private static SyntaxNode CreateIsNotNullCheck(SyntaxNode argument)
         {
-            return SyntaxFactory
-                .BinaryExpression(
+            return
+                BinaryExpression(
                     SyntaxKind.IsExpression,
                     (ExpressionSyntax)argument,
-                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                    PredefinedType(Token(SyntaxKind.ObjectKeyword)))
                 .Parenthesize();
         }
 
