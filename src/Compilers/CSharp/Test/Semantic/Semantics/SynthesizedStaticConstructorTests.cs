@@ -265,7 +265,7 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
-        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
         [Fact]
         public void StaticConstructorNullInitializer()
         {

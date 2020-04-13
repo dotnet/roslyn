@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -1102,42 +1103,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Don't lower if we're not emitting or if there were errors. 
                 // Methods that had binding errors are considered too broken to be lowered reliably.
-                if (_moduleBeingBuiltOpt == null || hasErrors || isEmptySynthesizedStaticConstructor(processedInitializers.BoundInitializers))
+                if (_moduleBeingBuiltOpt == null || hasErrors)
                 {
                     _diagnostics.AddRange(actualDiagnostics);
                     return;
-                }
-
-                bool isEmptySynthesizedStaticConstructor(ImmutableArray<BoundInitializer> initializers)
-                {
-                    if (methodSymbol is SynthesizedStaticConstructor)
-                    {
-                        foreach (var initializer in initializers)
-                        {
-                            var value = (initializer as BoundFieldEqualsValue)?.Value;
-                            if (value is null)
-                            {
-                                continue;
-                            }
-
-                            var constantValue = value.ConstantValue;
-                            if (constantValue is null)
-                            {
-                                // a non-constant value was used in an initializer
-                                return false;
-                            }
-
-                            var defaultValue = value.Type.GetDefaultValue();
-                            if (constantValue != defaultValue)
-                            {
-                                return false;
-                            }
-                        }
-
-                        return true;
-                    }
-
-                    return false;
                 }
 
                 // ############################
@@ -1282,7 +1251,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             dynamicAnalysisSpans,
                             entryPointOpt: null);
 
-                        _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                        // skip emitting empty static constructors
+                        if (methodSymbol.MethodKind != MethodKind.StaticConstructor || !emittedBody.IL.SequenceEqual(ImmutableArray.Create((byte)ILOpCode.Ret)))
+                        {
+                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                        }
                     }
 
                     _diagnostics.AddRange(diagsForCurrentMethod);

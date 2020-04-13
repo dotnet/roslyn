@@ -607,5 +607,83 @@ public static class Module1
                 //     dynamic d = F() * 2;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F()").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(4, 17));
         }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_01()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static int i = 0;
+    static bool b = false;
+}";
+            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_02()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static string s = null!;
+}";
+            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_03()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static (int, object) pair = (0, null!);
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldnull
+  IL_0002:  newobj     ""System.ValueTuple<int, object>..ctor(int, object)""
+  IL_0007:  stsfld     ""System.ValueTuple<int, object> C.pair""
+  IL_000c:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_04()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static (int, object) pair = default;
+}";
+            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_05()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static C()
+    {
+    }
+
+    static object obj = null!;
+}";
+            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
     }
 }
