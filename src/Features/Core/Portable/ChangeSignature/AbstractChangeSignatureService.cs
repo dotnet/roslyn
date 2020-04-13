@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
             else
             {
-                // We may have some indirection, like an event declaration backed by an invisible delegate invoke method.
-                // In the worst case, still continue on.
+                // There may be no declaring syntax reference, for example delegate Invoke methods. Use an
+                // insertPosition of 0 and continue on.
                 insertPosition = 0;
             }
 
