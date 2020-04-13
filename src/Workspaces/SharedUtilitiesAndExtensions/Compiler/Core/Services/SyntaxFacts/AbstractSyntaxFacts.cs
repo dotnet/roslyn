@@ -512,18 +512,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
-        public bool IsAwaitKeyword(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.AwaitKeyword;
-
-        public bool IsIdentifier(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.IdentifierToken;
-
-        public bool IsGlobalNamespaceKeyword(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.GlobalKeyword;
-
-        public bool IsHashToken(SyntaxToken token)
-            => token.RawKind == SyntaxKinds.HashToken;
-
         public bool HasIncompleteParentMember(SyntaxNode node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
 
