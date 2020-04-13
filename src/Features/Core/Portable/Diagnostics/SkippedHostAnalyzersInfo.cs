@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -49,13 +48,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             HostDiagnosticAnalyzers hostAnalyzers,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            var projectAnalyzers = hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project).SelectMany(v => v.Value);
-            if (projectAnalyzers.IsEmpty())
-            {
-                return Default;
-            }
+            var projectAnalyzers = hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project).Select(entry => (entry.Key, entry.Value));
+            var hostAnalyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language).Select(entry => (entry.Key, entry.Value));
 
-            var hostAnalyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(project.Language).SelectMany(v => v.Value);
             return Create(projectAnalyzers, hostAnalyzersPerReference, analyzerInfoCache);
         }
 
@@ -64,23 +59,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IEnumerable<AnalyzerReference> hostAnalyzerReferences,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            var projectAnalyzers = project.AnalyzerReferences.SelectMany(p => p.GetAnalyzers(project.Language));
-            if (projectAnalyzers.IsEmpty())
-            {
-                return Default;
-            }
+            var projectAnalyzers = project.AnalyzerReferences.Select(reference => (reference.Id, reference.GetAnalyzers(project.Language)));
+            var hostAnalyzers = hostAnalyzerReferences.Select(reference => (reference.Id, reference.GetAnalyzers(project.Language)));
 
-            var hostAnalyzers = hostAnalyzerReferences.SelectMany(p => p.GetAnalyzers(project.Language));
             return Create(projectAnalyzers, hostAnalyzers, analyzerInfoCache);
         }
 
         private static SkippedHostAnalyzersInfo Create(
-            IEnumerable<DiagnosticAnalyzer> projectAnalyzers,
-            IEnumerable<DiagnosticAnalyzer> hostAnalyzers,
+            IEnumerable<(object id, ImmutableArray<DiagnosticAnalyzer> analyzers)> projectAnalyzersById,
+            IEnumerable<(object id, ImmutableArray<DiagnosticAnalyzer> analyzers)> hostAnalyzersById,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            ComputeSkippedHostAnalyzers(projectAnalyzers, hostAnalyzers, analyzerInfoCache,
-                out var fullySkippedHostAnalyzers, out var filteredDiagnosticIdsForAnalyzers);
+            using var _1 = PooledHashSet<object>.GetInstance(out var projectAnalyzerIds);
+            using var _2 = PooledHashSet<string>.GetInstance(out var projectAnalyzerDiagnosticIds);
+
+            foreach (var (analyzerId, analyzers) in projectAnalyzersById)
+            {
+                projectAnalyzerIds.Add(analyzerId);
+
+                foreach (var analyzer in analyzers)
+                {
+                    foreach (var descriptor in analyzerInfoCache.GetDiagnosticDescriptors(analyzer))
+                    {
+                        projectAnalyzerDiagnosticIds.Add(descriptor.Id);
+                    }
+                }
+            }
+
+            if (projectAnalyzerIds.Count == 0)
+            {
+                return Default;
+            }
+
+            ComputeSkippedHostAnalyzers(
+                projectAnalyzerIds,
+                projectAnalyzerDiagnosticIds,
+                hostAnalyzersById,
+                analyzerInfoCache,
+                out var fullySkippedHostAnalyzers,
+                out var filteredDiagnosticIdsForAnalyzers);
+
             if (fullySkippedHostAnalyzers.IsEmpty && filteredDiagnosticIdsForAnalyzers.IsEmpty)
             {
                 return Default;
@@ -89,35 +107,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new SkippedHostAnalyzersInfo(fullySkippedHostAnalyzers, filteredDiagnosticIdsForAnalyzers);
 
             static void ComputeSkippedHostAnalyzers(
-                IEnumerable<DiagnosticAnalyzer> projectAnalyzers,
-                IEnumerable<DiagnosticAnalyzer> hostAnalyzers,
+                HashSet<object> projectAnalyzerIds,
+                HashSet<string> projectAnalyzerDiagnosticIds,
+                IEnumerable<(object id, ImmutableArray<DiagnosticAnalyzer> analyzers)> hostAnalyzersById,
                 DiagnosticAnalyzerInfoCache analyzerInfoCache,
                 out ImmutableHashSet<DiagnosticAnalyzer> fullySkippedHostAnalyzers,
                 out ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<string>> filteredDiagnosticIdsForAnalyzers)
             {
-                var idsReportedByProjectAnalyzers = GetIdsReportedByProjectAnalyzers(projectAnalyzers, analyzerInfoCache);
                 var fullySkippedHostAnalyzersBuilder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
                 var partiallySkippedHostAnalyzersBuilder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<string>>();
-                using var _ = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var projectAnalyzersSet);
-                projectAnalyzersSet.AddRange(projectAnalyzers);
 
-                foreach (var hostAnalyzer in hostAnalyzers)
+                foreach (var (hostAnalyzerId, hostAnalyzers) in hostAnalyzersById)
                 {
-                    if (projectAnalyzersSet.Contains(hostAnalyzer))
+                    foreach (var hostAnalyzer in hostAnalyzers)
                     {
-                        // Duplicate project and host analyzer.
-                        // Do not mark this as a skipped host analyzer as that will also cause the project analyzer to be skipped.
-                        // We already perform the required host analyzer reference de-duping in the executor.
-                        continue;
-                    }
+                        if (projectAnalyzerIds.Contains(hostAnalyzerId))
+                        {
+                            // Duplicate project and host analyzer.
+                            // Do not mark this as a skipped host analyzer as that will also cause the project analyzer to be skipped.
+                            // We already perform the required host analyzer reference de-duping in the executor.
+                            continue;
+                        }
 
-                    if (!ShouldIncludeHostAnalyzer(hostAnalyzer, idsReportedByProjectAnalyzers, analyzerInfoCache, out var skippedIdsForAnalyzer))
-                    {
-                        fullySkippedHostAnalyzersBuilder.Add(hostAnalyzer);
-                    }
-                    else if (skippedIdsForAnalyzer.Length > 0)
-                    {
-                        partiallySkippedHostAnalyzersBuilder.Add(hostAnalyzer, skippedIdsForAnalyzer);
+                        if (!ShouldIncludeHostAnalyzer(hostAnalyzer, projectAnalyzerDiagnosticIds, analyzerInfoCache, out var skippedIdsForAnalyzer))
+                        {
+                            fullySkippedHostAnalyzersBuilder.Add(hostAnalyzer);
+                        }
+                        else if (skippedIdsForAnalyzer.Length > 0)
+                        {
+                            partiallySkippedHostAnalyzersBuilder.Add(hostAnalyzer, skippedIdsForAnalyzer);
+                        }
                     }
                 }
 
@@ -125,24 +144,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 filteredDiagnosticIdsForAnalyzers = partiallySkippedHostAnalyzersBuilder.ToImmutable();
             }
 
-            static ImmutableHashSet<string> GetIdsReportedByProjectAnalyzers(
-                IEnumerable<DiagnosticAnalyzer> projectAnalyzers,
-                DiagnosticAnalyzerInfoCache analyzerInfoCache)
-            {
-                var builder = ImmutableHashSet.CreateBuilder<string>();
-
-                foreach (var analyzer in projectAnalyzers)
-                {
-                    var descriptors = analyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-                    builder.AddRange(descriptors.Select(d => d.Id));
-                }
-
-                return builder.ToImmutable();
-            }
-
             static bool ShouldIncludeHostAnalyzer(
                 DiagnosticAnalyzer hostAnalyzer,
-                ImmutableHashSet<string> idsReportedByProjectAnalyzers,
+                HashSet<string> projectAnalyzerDiagnosticIds,
                 DiagnosticAnalyzerInfoCache analyzerInfoCache,
                 out ImmutableArray<string> skippedDiagnosticIdsForAnalyzer)
             {
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var skippedDiagnosticIdsBuilder = ArrayBuilder<string>.GetInstance();
                 foreach (var descriptor in descriptors)
                 {
-                    if (idsReportedByProjectAnalyzers.Contains(descriptor.Id))
+                    if (projectAnalyzerDiagnosticIds.Contains(descriptor.Id))
                     {
                         skippedDiagnosticIdsBuilder.Add(descriptor.Id);
                     }

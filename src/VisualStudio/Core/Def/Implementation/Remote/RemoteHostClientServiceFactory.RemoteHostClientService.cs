@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -237,11 +238,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
                     var snapshotService = _workspace.Services.GetRequiredService<IRemotableDataService>();
-                    var assetBuilder = new CustomAssetBuilder(_workspace);
+                    var serializer = _workspace.Services.GetRequiredService<ISerializerService>();
 
                     foreach (var (_, reference) in _hostAnalyzers.GetHostAnalyzerReferencesMap())
                     {
-                        var asset = assetBuilder.Build(reference, cancellationToken);
+                        var asset = WorkspaceAnalyzerReferenceAsset.Create(reference, serializer, cancellationToken);
 
                         builder.Add(asset.Checksum);
                         snapshotService.AddGlobalAsset(reference, asset, cancellationToken);

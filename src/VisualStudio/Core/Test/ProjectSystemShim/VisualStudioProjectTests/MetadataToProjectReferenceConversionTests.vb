@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Create a second project referencing this same DLL. We'll make this one even more complicated by using the same path for both the
                 ' regular OutputFilePath and the IntermediateOutputFilePath
                 Dim project2 = environment.ProjectFactory.CreateAndAddToWorkspace("project2", LanguageNames.CSharp)
-                project2.IntermediateOutputFilePath = ReferencePath
+                project2.CompilationOutputAssemblyFilePath = ReferencePath
                 project2.OutputFilePath = ReferencePath
 
                 Assert.Empty(getReferencingProject().ProjectReferences)

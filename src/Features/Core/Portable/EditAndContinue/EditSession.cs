@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     // Check MVID before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
-                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(project.Id, cancellationToken).ConfigureAwait(false);
+                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
                     {
                         // Can't read MVID. This might be an intermittent failure, so don't report it here.
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(project.Id, cancellationToken).ConfigureAwait(false);
+                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
                     {
                         // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         {
                             // If we have no baseline the module has not been loaded yet.
                             // We need to create the baseline from compiler outputs.
-                            var outputs = DebuggingSession.CompilationOutputsProvider.GetCompilationOutputs(project.Id);
+                            var outputs = DebuggingSession.GetCompilationOutputs(project);
                             if (CreateInitialBaselineForDeferredModuleUpdate(outputs, out var createBaselineDiagnostics, out baseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
                             {
                                 readers.Add(metadataReaderProvider);
