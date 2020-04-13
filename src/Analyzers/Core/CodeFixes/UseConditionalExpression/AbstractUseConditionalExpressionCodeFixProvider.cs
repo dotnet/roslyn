@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Defer to our callback to actually make the edits for each diagnostic. In turn, it
             // will return 'true' if it made a multi-line conditional expression. In that case,
