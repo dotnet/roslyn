@@ -59,7 +59,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Sub AddAlignTokensOperationsSlow(list As List(Of AlignTokensOperation),
                                                       node As SyntaxNode,
-                                                      options As AnalyzerConfigOptions,
                                                       ByRef nextOperation As NextAlignTokensOperationAction)
             nextOperation.Invoke()
 

@@ -166,8 +166,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Next
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextAlignTokensOperationAction)
-            MyBase.AddAlignTokensOperationsSlow(operations, node, options, nextAction)
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, ByRef nextAction As NextAlignTokensOperationAction)
+            MyBase.AddAlignTokensOperationsSlow(operations, node, nextAction)
 
             ' Smart token formatting off: No token alignment
             If _indentStyle <> FormattingOptions.IndentStyle.Smart Then

@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAlignTokensOperationAction nextOperation)
+        public override sealed void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
         {
             var nextOperationCopy = nextOperation;
-            AddAlignTokensOperationsSlow(list, node, options, ref nextOperationCopy);
+            AddAlignTokensOperationsSlow(list, node, ref nextOperationCopy);
         }
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns AlignTokensOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddAlignTokensOperationsSlow(List<AlignTokensOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextAlignTokensOperationAction nextOperation)
-            => base.AddAlignTokensOperations(list, node, options, in nextOperation);
+        public virtual void AddAlignTokensOperationsSlow(List<AlignTokensOperation> list, SyntaxNode node, ref NextAlignTokensOperationAction nextOperation)
+            => base.AddAlignTokensOperations(list, node, in nextOperation);
 
         /// <summary>
         /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation

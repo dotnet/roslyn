@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, _options, list);
+            var action = new NextAlignTokensOperationAction(_addAlignTokensOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 
