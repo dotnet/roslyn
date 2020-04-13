@@ -493,8 +493,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Other">
-        <source>Otherss</source>
-        <target state="new">Otherss</target>
+        <source>Others</source>
+        <target state="new">Others</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">

@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
 
         public override bool IsFilterable => true;
         public override string Name => ColumnName;
-        public override string DisplayName => ServicesVSResources.Item_origin; // TODO: Localize
+        public override string DisplayName => ServicesVSResources.Item_origin;
         public override bool DefaultVisible => false;
 
         public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string content)
