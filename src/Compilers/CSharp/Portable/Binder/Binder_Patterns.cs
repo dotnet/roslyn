@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                     hasErrors = true;
                 }
-                else if (inputType.IsPointerOrFunctionPointer() == true && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+                else if (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
                 {
                     // before C# 8 we did not permit `pointer is null`
                     diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
@@ -837,10 +837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerOrFunctionPointer() &&
-                (node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation ||
-                 // before C# 8 we did not permit `pointer is var x`
-                 Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
+            if ((inputType.IsPointerOrFunctionPointer() && node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+                || (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;

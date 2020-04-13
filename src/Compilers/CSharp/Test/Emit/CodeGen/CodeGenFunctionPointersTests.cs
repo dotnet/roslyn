@@ -4138,7 +4138,7 @@ unsafe class C
         }
 
         [Fact]
-        public void SpanOfFunctionPointers()
+        public void StackallocOfFunctionPointers()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
@@ -4191,6 +4191,27 @@ static unsafe class C
         }
 
         [Fact]
+        public void FunctionPointerCannotBeUsedAsSpanArgument()
+        {
+            var comp = CreateCompilationWithSpan(@"
+using System;
+static unsafe class C
+{
+    static void Main()
+    {
+        Span<delegate*<int, int>> p = stackalloc delegate*<int, int>[1];
+    }
+}
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0306: The type 'delegate*<int,int>' may not be used as a type argument
+                //         Span<delegate*<int, int>> p = stackalloc delegate*<int, int>[1];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, int>").WithArguments("delegate*<int,int>").WithLocation(7, 14)
+            );
+        }
+
+        [Fact]
         public void RecusivelyUsedTypeInFunctionPointer()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
@@ -4223,7 +4244,7 @@ unsafe class C
         ptr = &Print;
         ptr();
     }
-}");
+}", expectedOutput: "1");
 
             verifier.VerifyIL("C.Main", expectedIL: @"
 {

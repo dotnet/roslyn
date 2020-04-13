@@ -562,13 +562,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyType != null)
                 {
-                    return _lazyType.Value.DefaultType.IsPointerOrFunctionPointer();
+
+                    var hasPointerType = _lazyType.Value.DefaultType.IsPointerOrFunctionPointer();
+                    Debug.Assert(hasPointerType == hasPointerTypeSyntactically());
+                    return hasPointerType;
                 }
 
-                var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
-                RefKind refKind;
-                var typeSyntax = syntax.Type.SkipRef(out refKind);
-                return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
+                return hasPointerTypeSyntactically();
+
+                bool hasPointerTypeSyntactically()
+                {
+                    var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
+                    var typeSyntax = syntax.Type.SkipRef(out _);
+                    return typeSyntax.Kind() switch { SyntaxKind.PointerType => true, SyntaxKind.FunctionPointerType => true, _ => false };
+                }
             }
         }
 

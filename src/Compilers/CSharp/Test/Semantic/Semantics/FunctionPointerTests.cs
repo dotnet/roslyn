@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.RegularPreview);
         }
 
-        private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation)
+        private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation, string? expectedOutput = null)
         {
-            return CompileAndVerify(compilation, verify: Verification.Skipped);
+            return CompileAndVerify(compilation, verify: Verification.Skipped, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1466,17 +1466,97 @@ unsafe class C
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
 {
-    void M(delegate*<void> ptr)
+    delegate*<void> GetPtr() => null;
+    void M(delegate*<void> ptr, C c)
     {
         ptr?.ToString();
+        ptr = c?.GetPtr();
+        (c?.GetPtr())();
     }
 }");
 
             comp.VerifyDiagnostics(
-                // (6,12): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                // (7,12): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
                 //         ptr?.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(6, 12)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(7, 12),
+                // (8,16): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                //         ptr = c?.GetPtr();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(8, 16),
+                // (9,11): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                //         (c?.GetPtr())();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(9, 11)
             );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocations = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().ToList();
+            Assert.Equal(3, invocations.Count);
+            foreach (var invocation in invocations)
+            {
+                var type = model.GetTypeInfo(invocation).Type;
+                Assert.Equal("?", type!.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void UnusedFunctionPointerAsResultOfQuestionDot()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void Print() => Console.WriteLine(""Print"");
+    delegate*<void> GetPtr()
+    {
+        Console.WriteLine(""GetPtr"");
+        return &Print;
+    }
+
+    static void Main()
+    {
+        C c = new C();
+        c?.GetPtr()();
+        c = null;
+        c?.GetPtr()();
+    }
+}", options: TestOptions.UnsafeReleaseExe);
+
+            var verifier = CompileAndVerifyFunctionPointers(comp, expectedOutput: @"
+GetPtr
+Print");
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000b
+  IL_0008:  pop
+  IL_0009:  br.s       IL_0015
+  IL_000b:  call       ""delegate*<void> C.GetPtr()""
+  IL_0010:  calli      ""delegate*<void>""
+  IL_0015:  ldnull
+  IL_0016:  dup
+  IL_0017:  brtrue.s   IL_001b
+  IL_0019:  pop
+  IL_001a:  ret
+  IL_001b:  call       ""delegate*<void> C.GetPtr()""
+  IL_0020:  calli      ""delegate*<void>""
+  IL_0025:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocations = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().ToList();
+            Assert.Equal(2, invocations.Count);
+            foreach (var invocation in invocations)
+            {
+                var type = model.GetTypeInfo(invocation).Type;
+                Assert.Equal(SpecialType.System_Void, type!.SpecialType);
+            }
         }
 
         [Fact]
@@ -1520,13 +1600,28 @@ True");
             comp.VerifyDiagnostics(
                 // (7,9): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         delegate*<void> ptr = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(7, 9),
-                // (8,34): error CS8521: Pattern-matching is not permitted for pointer types.
-                //         Console.WriteLine(ptr is null);
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "null").WithLocation(8, 34),
-                // (9,34): error CS8521: Pattern-matching is not permitted for pointer types.
-                //         Console.WriteLine(ptr is var v);
-                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var v").WithLocation(9, 34)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(7, 9)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypePatternIsVarParenthesized()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr = null;
+        _ = ptr is var (x);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (8,20): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = ptr is var (x);
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x)").WithLocation(8, 20)
             );
         }
 
@@ -1754,6 +1849,49 @@ unsafe class C
                 //         const delegate*<void> local = null;
                 Diagnostic(ErrorCode.ERR_BadConstType, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(7, 15)
             );
+        }
+
+        [Fact]
+        public void FunctionPointerParameterDefaultValue()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe class C
+{
+    public static void Main()
+    {
+        M();
+    }
+    public static void M(delegate*<void> ptr = null)
+    {
+        Console.Write(ptr is null);
+    }
+}", options: TestOptions.UnsafeReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  call       ""void C.M(delegate*<void>)""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("C.M", expectedIL: @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  ceq
+  IL_0004:  call       ""void System.Console.Write(bool)""
+  IL_0009:  ret
+}
+");
         }
     }
 }
