@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.BracketedArgumentList,
             SyntaxKind.AttributeArgumentList);
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             nextOperation.Invoke();
 

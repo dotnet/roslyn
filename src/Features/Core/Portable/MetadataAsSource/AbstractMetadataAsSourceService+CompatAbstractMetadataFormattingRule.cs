@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public override sealed void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+            public override sealed void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             {
                 var nextOperationCopy = nextOperation;
-                AddIndentBlockOperationsSlow(list, node, options, ref nextOperationCopy);
+                AddIndentBlockOperationsSlow(list, node, ref nextOperationCopy);
             }
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             /// <summary>
             /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
             /// </summary>
-            public virtual void AddIndentBlockOperationsSlow(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextIndentBlockOperationAction nextOperation)
-                => base.AddIndentBlockOperations(list, node, options, in nextOperation);
+            public virtual void AddIndentBlockOperationsSlow(List<IndentBlockOperation> list, SyntaxNode node, ref NextIndentBlockOperationAction nextOperation)
+                => base.AddIndentBlockOperations(list, node, in nextOperation);
 
             /// <summary>
             /// returns AlignTokensOperations under a node either by itself or by filtering/replacing operations returned by NextOperation

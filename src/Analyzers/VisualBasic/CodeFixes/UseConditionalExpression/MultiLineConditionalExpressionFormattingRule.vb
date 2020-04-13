@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         End Function
 
         Public Overrides Sub AddIndentBlockOperationsSlow(
-                list As List(Of IndentBlockOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextIndentBlockOperationAction)
+                list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
 
             If node.HasAnnotation(UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation) AndAlso
                TypeOf node Is TernaryConditionalExpressionSyntax Then

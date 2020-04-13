@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             nextOperation.Invoke()
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextOperation As NextIndentBlockOperationAction)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
             nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then

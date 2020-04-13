@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, _options, list);
+            var action = new NextIndentBlockOperationAction(_addIndentBlockOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 

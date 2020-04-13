@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        public virtual void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             => nextOperation.Invoke();
 
         /// <summary>
