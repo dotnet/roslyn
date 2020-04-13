@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
     [Shared]
-    internal partial class ExplicitInterfaceMemberCompletionProvider : CommonCompletionProvider
+    internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
         private const string InsertionTextOnOpenParen = nameof(InsertionTextOnOpenParen);
 
@@ -40,14 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExplicitInterfaceMemberCompletionProvider()
         {
         }
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return text[characterPosition] == '.';
-        }
+            => text[characterPosition] == '.';
+
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

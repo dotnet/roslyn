@@ -557,6 +557,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsTupleType => false;
 
         /// <summary>
+        /// True if the type represents a native integer. In C#, the types represented
+        /// by language keywords 'nint' and 'nuint'.
+        /// </summary>
+        internal virtual bool IsNativeIntegerType => false;
+
+        /// <summary>
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
         /// with the given cardinality. 
         /// </summary>
@@ -1667,19 +1673,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     ReportMismatchinReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
-                        (diagnostics, implementedMethod, implementingMethod, blameAttributes, arg) =>
+                        (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(blameAttributes ?
-                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes :
+                                diagnostics.Add(topLevel ?
+                                                    ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation :
                                                     ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0], new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
-                                diagnostics.Add(blameAttributes ?
-                                                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes :
+                                diagnostics.Add(topLevel ?
+                                                    ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation :
                                                     ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
@@ -1688,12 +1694,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         };
 
                     ReportMismatchInParameterType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
-                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
+                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, topLevel, arg) =>
                         {
                             if (arg.isExplicit)
                             {
-                                diagnostics.Add(blameAttributes ?
-                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes :
+                                diagnostics.Add(topLevel ?
+                                                    ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation :
                                                     ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0],
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
@@ -1701,8 +1707,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                diagnostics.Add(blameAttributes ?
-                                                    ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes :
+                                diagnostics.Add(topLevel ?
+                                                    ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation :
                                                     ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),

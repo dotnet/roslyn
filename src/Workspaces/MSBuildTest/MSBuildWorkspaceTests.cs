@@ -27,7 +27,6 @@ using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/41456"), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
         public async Task Test_OpenProjectReferencingPortableProject()
         {
@@ -3552,7 +3551,7 @@ class C { }";
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(31390, "https://github.com/dotnet/roslyn/issues/31390")]
-        public async Task TestDuplicateProjectReference()
+        public async Task TestDuplicateProjectAndMetadataReferences()
         {
             var files = GetDuplicateProjectReferenceSolutionFiles();
             CreateFiles(files);
@@ -3565,6 +3564,10 @@ class C { }";
                 var project = solution.Projects.Single(p => p.FilePath.EndsWith("CSharpProject_ProjectReference.csproj"));
 
                 Assert.Single(project.ProjectReferences);
+
+                AssertEx.Equal(
+                    new[] { "EmptyLibrary.dll", "System.Core.dll", "mscorlib.dll" },
+                    project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)).OrderBy(StringComparer.Ordinal));
 
                 var compilation = await project.GetCompilationAsync();
 

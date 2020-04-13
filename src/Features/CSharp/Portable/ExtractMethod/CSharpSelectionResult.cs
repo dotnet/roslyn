@@ -4,12 +4,10 @@
 
 using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
@@ -100,20 +98,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public StatementSyntax GetFirstStatement()
-        {
-            return GetFirstStatement<StatementSyntax>();
-        }
+            => GetFirstStatement<StatementSyntax>();
 
         public StatementSyntax GetLastStatement()
-        {
-            return GetLastStatement<StatementSyntax>();
-        }
+            => GetLastStatement<StatementSyntax>();
 
         public StatementSyntax GetFirstStatementUnderContainer()
         {
-            Contract.ThrowIfTrue(this.SelectionInExpression);
+            Contract.ThrowIfTrue(SelectionInExpression);
 
-            var firstToken = this.GetFirstTokenInSelection();
+            var firstToken = GetFirstTokenInSelection();
             var statement = firstToken.Parent.GetStatementUnderContainer();
             Contract.ThrowIfNull(statement);
 
@@ -122,13 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public StatementSyntax GetLastStatementUnderContainer()
         {
-            Contract.ThrowIfTrue(this.SelectionInExpression);
+            Contract.ThrowIfTrue(SelectionInExpression);
 
-            var lastToken = this.GetLastTokenInSelection();
+            var lastToken = GetLastTokenInSelection();
             var statement = lastToken.Parent.GetStatementUnderContainer();
 
             Contract.ThrowIfNull(statement);
-            var firstStatementUnderContainer = this.GetFirstStatementUnderContainer();
+            var firstStatementUnderContainer = GetFirstStatementUnderContainer();
             Contract.ThrowIfFalse(statement.Parent == firstStatementUnderContainer.Parent);
 
             return statement;
@@ -136,8 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public SyntaxNode GetInnermostStatementContainer()
         {
-            Contract.ThrowIfFalse(this.SelectionInExpression);
-            var containingScope = this.GetContainingScope();
+            Contract.ThrowIfFalse(SelectionInExpression);
+            var containingScope = GetContainingScope();
             var statements = containingScope.GetAncestorsOrThis<StatementSyntax>();
             StatementSyntax last = null;
 
@@ -152,23 +146,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // expression bodied member case
-            var expressionBodiedMember = this.GetContainingScopeOf<ArrowExpressionClauseSyntax>();
+            var expressionBodiedMember = GetContainingScopeOf<ArrowExpressionClauseSyntax>();
             if (expressionBodiedMember != null)
             {
                 // the class/struct declaration is the innermost statement container, since the 
                 // member does not have a block body
-                return this.GetContainingScopeOf<TypeDeclarationSyntax>();
+                return GetContainingScopeOf<TypeDeclarationSyntax>();
             }
 
             // constructor initializer case
-            var constructorInitializer = this.GetContainingScopeOf<ConstructorInitializerSyntax>();
+            var constructorInitializer = GetContainingScopeOf<ConstructorInitializerSyntax>();
             if (constructorInitializer != null)
             {
                 return constructorInitializer.Parent;
             }
 
             // field initializer case
-            var field = this.GetContainingScopeOf<FieldDeclarationSyntax>();
+            var field = GetContainingScopeOf<FieldDeclarationSyntax>();
             if (field != null)
             {
                 return field.Parent;
@@ -181,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public bool ShouldPutUnsafeModifier()
         {
-            var token = this.GetFirstTokenInSelection();
+            var token = GetFirstTokenInSelection();
             var ancestors = token.GetAncestors<SyntaxNode>();
 
             // if enclosing type contains unsafe keyword, we don't need to put it again
@@ -196,18 +190,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public SyntaxKind UnderCheckedExpressionContext()
-        {
-            return UnderCheckedContext<CheckedExpressionSyntax>();
-        }
+            => UnderCheckedContext<CheckedExpressionSyntax>();
 
         public SyntaxKind UnderCheckedStatementContext()
-        {
-            return UnderCheckedContext<CheckedStatementSyntax>();
-        }
+            => UnderCheckedContext<CheckedStatementSyntax>();
 
         private SyntaxKind UnderCheckedContext<T>() where T : SyntaxNode
         {
-            var token = this.GetFirstTokenInSelection();
+            var token = GetFirstTokenInSelection();
             var contextNode = token.Parent.GetAncestor<T>();
             if (contextNode == null)
             {

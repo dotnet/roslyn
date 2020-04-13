@@ -2,38 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
 
 #if CODE_STYLE
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-using Microsoft.CodeAnalysis.Internal.Options;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 #endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     public partial class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
     {
-        protected override IDictionary<OptionKey, object> PreferNone =>
+        private protected override IOptionsCollection PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.None));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        protected override IDictionary<OptionKey, object> PreferDiscard =>
+        private protected override IOptionsCollection PreferDiscard =>
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption.Suggestion));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion));
 
-        protected override IDictionary<OptionKey, object> PreferUnusedLocal =>
+        private protected override IOptionsCollection PreferUnusedLocal =>
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
-                   new CodeStyleOption<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption.Suggestion));
+                   new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_Suppressed()
@@ -94,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_ConstantValue_RemoveUnsuedParametersSuppressed()
         {
-            var removeUnusedParametersSuppressed = Option(CodeStyleOptions.UnusedParameters,
-                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.None));
+            var removeUnusedParametersSuppressed = Option(CodeStyleOptions2.UnusedParameters,
+                new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.None));
 
             await TestInRegularAndScriptAsync(
 @"class C
@@ -120,8 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_ConstantValue_RemoveUnsuedParametersNotApplicable()
         {
-            var removeUnusedParametersNotApplicable = Option(CodeStyleOptions.UnusedParameters,
-                new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.Silent));
+            var removeUnusedParametersNotApplicable = Option(CodeStyleOptions2.UnusedParameters,
+                new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Silent));
 
             await TestInRegularAndScriptAsync(
 @"class C

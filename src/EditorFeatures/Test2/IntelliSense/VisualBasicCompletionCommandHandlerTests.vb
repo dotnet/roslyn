@@ -3267,6 +3267,7 @@ Class C
             Implements ISnippetInfoService
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

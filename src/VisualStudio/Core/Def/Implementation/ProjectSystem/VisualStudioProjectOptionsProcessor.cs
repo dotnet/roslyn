@@ -204,11 +204,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
 
-            var fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
-                                                    ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
-                                                    : _commandLineArgumentsForCommandLine.OutputFileName;
+            var fullOutputFilePath = (_commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null)
+                ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
+                : _commandLineArgumentsForCommandLine.OutputFileName;
 
-            _project.IntermediateOutputFilePath = fullIntermediateOutputPath ?? _project.IntermediateOutputFilePath;
+            _project.CompilationOutputAssemblyFilePath = fullOutputFilePath ?? _project.CompilationOutputAssemblyFilePath;
             _project.ParseOptions = parseOptions;
         }
 
@@ -249,9 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// the command line string.
         /// </summary>
         protected virtual ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
-        {
-            return parseOptions;
-        }
+            => parseOptions;
 
         /// <summary>
         /// Called by a derived class to notify that we need to update the settings in the project system for something that will be provided

@@ -189,8 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         }
 
         public EnabledDiagnosticOptions GetAllDiagnostics()
-        {
-            return new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
-        }
+            => new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
     }
 }

@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
@@ -23,9 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public bool IsDocumentNameAValidIdentifier { get; set; }
 
             private State(SemanticDocument document)
-            {
-                SemanticDocument = document;
-            }
+                => SemanticDocument = document;
 
             internal static State Generate(
                 SemanticDocument document, TTypeDeclarationSyntax typeDeclaration,

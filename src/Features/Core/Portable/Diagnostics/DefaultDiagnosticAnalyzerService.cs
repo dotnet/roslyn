@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly HostDiagnosticAnalyzers _hostAnalyzers;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DefaultDiagnosticAnalyzerService(
             IDiagnosticAnalyzerService analyzerService,
             IDiagnosticUpdateSourceRegistrationService registrationService)
@@ -56,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
-        {
-            DiagnosticsUpdated?.Invoke(this, state);
-        }
+            => DiagnosticsUpdated?.Invoke(this, state);
 
         private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
         {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var analyzer in analyzers)
                 {
                     builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
-                        document, kind, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
+                        document, kind, compilationWithAnalyzers, getSkippedAnalyzersInfo: null, span: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return hostAnalyzers.CreateDiagnosticAnalyzersPerReference(project).Values.SelectMany(v => v);
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 // a file is removed from a solution
                 //
@@ -194,19 +194,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // both of them at the end generates semantic errors
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Syntax, documentId);
                 RaiseEmptyDiagnosticUpdated(AnalysisKind.Semantic, documentId);
+                return Task.CompletedTask;
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
-                RemoveDocument(document.Id);
-                return Task.CompletedTask;
+                return RemoveDocumentAsync(document.Id, cancellationToken);
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return DocumentResetAsync(document, cancellationToken);
-            }
+                => DocumentResetAsync(document, cancellationToken);
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
@@ -215,32 +213,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
-            public void RemoveProject(ProjectId projectId)
-            {
-            }
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
 
             private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate
             {
                 private readonly string _workspaceKind;
 
                 public DefaultUpdateArgsId(string workspaceKind, AnalysisKind kind, DocumentId documentId) : base((int)kind, documentId)
-                {
-                    _workspaceKind = workspaceKind;
-                }
+                    => _workspaceKind = workspaceKind;
 
                 public override string BuildTool => PredefinedBuildTools.Live;
 
@@ -255,9 +244,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 public override int GetHashCode()
-                {
-                    return Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
-                }
+                    => Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
             }
         }
     }

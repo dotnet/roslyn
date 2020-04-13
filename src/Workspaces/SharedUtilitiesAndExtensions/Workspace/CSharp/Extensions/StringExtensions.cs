@@ -55,8 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IdentifierNameSyntax ToIdentifierName(this string identifier)
-        {
-            return SyntaxFactory.IdentifierName(identifier.ToIdentifierToken());
-        }
+            => SyntaxFactory.IdentifierName(identifier.ToIdentifierToken());
     }
 }

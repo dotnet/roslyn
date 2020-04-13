@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (rewrittenType.SpecialType == SpecialType.System_Decimal || rewrittenOperand.Type.SpecialType == SpecialType.System_Decimal)
                     {
-                        return RewriteDecimalConversion(syntax, rewrittenOperand, rewrittenOperand.Type, rewrittenType, conversion.Kind.IsImplicitConversion(), constantValueOpt);
+                        return RewriteDecimalConversion(syntax, rewrittenOperand, rewrittenOperand.Type, rewrittenType, @checked, conversion.Kind.IsImplicitConversion(), constantValueOpt);
                     }
                     break;
 
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(rewrittenOperand.Type.IsEnumType());
                         var underlyingTypeFrom = rewrittenOperand.Type.GetEnumUnderlyingType()!;
                         rewrittenOperand = MakeConversionNode(rewrittenOperand, underlyingTypeFrom, false);
-                        return RewriteDecimalConversion(syntax, rewrittenOperand, underlyingTypeFrom, rewrittenType, isImplicit: false, constantValueOpt: constantValueOpt);
+                        return RewriteDecimalConversion(syntax, rewrittenOperand, underlyingTypeFrom, rewrittenType, @checked, isImplicit: false, constantValueOpt: constantValueOpt);
                     }
                     else if (rewrittenOperand.Type.SpecialType == SpecialType.System_Decimal)
                     {
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         Debug.Assert(rewrittenType.IsEnumType());
                         var underlyingTypeTo = rewrittenType.GetEnumUnderlyingType()!;
-                        var rewrittenNode = RewriteDecimalConversion(syntax, rewrittenOperand, rewrittenOperand.Type, underlyingTypeTo, isImplicit: false, constantValueOpt: constantValueOpt);
+                        var rewrittenNode = RewriteDecimalConversion(syntax, rewrittenOperand, rewrittenOperand.Type, underlyingTypeTo, @checked, isImplicit: false, constantValueOpt: constantValueOpt);
 
                         // However, the type of the rewritten node becomes underlying numeric type, not Enum type,
                         // which violates the overall constraint saying the type cannot be changed during rewriting (see LocalRewriter.cs).
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             @checked: @checked,
                             explicitCastInCode: false,
                             conversionGroupOpt: null,
-                            constantValueOpt: default(ConstantValue),
+                            constantValueOpt: null,
                             type: type,
                             hasErrors: !conversion.IsValid)
             { WasCompilerGenerated = true };
@@ -830,12 +830,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(DecimalConversionMethod(typeFromUnderlying, typeToUnderlying));
                 var conversionKind = conversion.Kind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
-                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroup, default(ConstantValue), rewrittenType);
+                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroup, constantValueOpt: null, rewrittenType);
                 return result;
             }
             else
             {
-                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroup, default(ConstantValue), rewrittenType);
+                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroup, constantValueOpt: null, rewrittenType);
             }
         }
 
@@ -1051,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do not rewrite user defined conversion in expression trees
             if (_inExpressionLambda)
             {
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null, rewrittenType);
             }
 
             if ((rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType))
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda)
             {
                 Conversion conv = TryMakeConversion(syntax, conversion, rewrittenOperand.Type, rewrittenType);
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, false, explicitCastInCode: true, conversionGroupOpt: null, constantValueOpt: null, rewrittenType);
             }
 
             // DELIBERATE SPEC VIOLATION: 
@@ -1332,7 +1332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal static SpecialMember DecimalConversionMethod(TypeSymbol typeFrom, TypeSymbol typeTo)
+        // https://github.com/dotnet/roslyn/issues/42452: Test with native integers and expression trees.
+        private static SpecialMember DecimalConversionMethod(TypeSymbol typeFrom, TypeSymbol typeTo)
         {
             if (typeFrom.SpecialType == SpecialType.System_Decimal)
             {
@@ -1376,10 +1377,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression RewriteDecimalConversion(SyntaxNode syntax, BoundExpression operand, TypeSymbol fromType, TypeSymbol toType, bool isImplicit, ConstantValue? constantValueOpt)
+        private BoundExpression RewriteDecimalConversion(SyntaxNode syntax, BoundExpression operand, TypeSymbol fromType, TypeSymbol toType, bool @checked, bool isImplicit, ConstantValue? constantValueOpt)
         {
             Debug.Assert(fromType.SpecialType == SpecialType.System_Decimal || toType.SpecialType == SpecialType.System_Decimal);
 
+            if (fromType.SpecialType == SpecialType.System_Decimal)
+            {
+                switch (toType.SpecialType)
+                {
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                        operand = RewriteDecimalConversionCore(syntax, operand, fromType, get64BitType(_compilation, signed: toType.SpecialType == SpecialType.System_IntPtr), isImplicit, constantValueOpt);
+                        return MakeConversionNode(operand, toType, @checked);
+                }
+            }
+            else
+            {
+                switch (fromType.SpecialType)
+                {
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                        operand = MakeConversionNode(operand, get64BitType(_compilation, signed: fromType.SpecialType == SpecialType.System_IntPtr), @checked);
+                        return RewriteDecimalConversionCore(syntax, operand, operand.Type!, toType, isImplicit, constantValueOpt);
+                }
+            }
+
+            return RewriteDecimalConversionCore(syntax, operand, fromType, toType, isImplicit, constantValueOpt);
+
+            static TypeSymbol get64BitType(CSharpCompilation compilation, bool signed) => compilation.GetSpecialType(signed ? SpecialType.System_Int64 : SpecialType.System_UInt64);
+        }
+
+        private BoundExpression RewriteDecimalConversionCore(SyntaxNode syntax, BoundExpression operand, TypeSymbol fromType, TypeSymbol toType, bool isImplicit, ConstantValue? constantValueOpt)
+        {
             // call the method
             SpecialMember member = DecimalConversionMethod(fromType, toType);
             var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);

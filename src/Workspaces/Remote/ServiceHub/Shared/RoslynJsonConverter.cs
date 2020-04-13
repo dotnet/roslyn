@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
@@ -20,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ConcurrentDictionary<Type, JsonConverter> _map;
 
         private AggregateJsonConverter()
-        {
-            _map = new ConcurrentDictionary<Type, JsonConverter>(CreateConverterMap());
-        }
+            => _map = new ConcurrentDictionary<Type, JsonConverter>(CreateConverterMap());
 
         public override bool CanConvert(Type objectType)
             => _map.ContainsKey(objectType);

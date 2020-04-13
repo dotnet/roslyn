@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,19 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override bool TryGetText(out SourceText text)
-                {
-                    return _info.TryGetText(out text);
-                }
+                    => _info.TryGetText(out text);
 
                 public override SourceText GetText(CancellationToken cancellationToken)
-                {
-                    return _info.TextSource.GetValue(cancellationToken).Text;
-                }
+                    => _info.TextSource.GetValue(cancellationToken).Text;
 
                 public override Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
-                {
-                    return _info.GetTextAsync(cancellationToken);
-                }
+                    => _info.GetTextAsync(cancellationToken);
 
                 public override Encoding Encoding
                 {
@@ -113,9 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)
-                {
-                    return _projectCacheService.CacheObjectIfCachingEnabledForKey(_cacheKey, this, node);
-                }
+                    => _projectCacheService.CacheObjectIfCachingEnabledForKey(_cacheKey, this, node);
 
                 public override bool TryGetRoot(out CSharpSyntaxNode root)
                 {
@@ -126,14 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default)
-                {
-                    return CacheRootNode(_recoverableRoot.GetValue(cancellationToken));
-                }
+                    => CacheRootNode(_recoverableRoot.GetValue(cancellationToken));
 
                 public override async Task<CSharpSyntaxNode> GetRootAsync(CancellationToken cancellationToken)
-                {
-                    return CacheRootNode(await _recoverableRoot.GetValueAsync(cancellationToken).ConfigureAwait(false));
-                }
+                    => CacheRootNode(await _recoverableRoot.GetValueAsync(cancellationToken).ConfigureAwait(false));
 
                 public override bool HasCompilationUnitRoot
                 {
@@ -162,9 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 CompilationUnitSyntax IRecoverableSyntaxTree<CompilationUnitSyntax>.CloneNodeAsRoot(CompilationUnitSyntax root)
-                {
-                    return CloneNodeAsRoot(root);
-                }
+                    => CloneNodeAsRoot(root);
 
                 public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
                 {

@@ -19,13 +19,12 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
 using Nerdbank;
+using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
@@ -136,23 +135,69 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestTodoComments()
         {
-            var code = @"// TODO: Test";
+            using var workspace = TestWorkspace.CreateCSharp(@"
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+// TODO: Test");
+
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            var solution = workspace.CurrentSolution;
+
+            // Ensure remote workspace is in sync with normal workspace.
+            var solutionService = await GetSolutionServiceAsync(solution);
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solutionService.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
+
+            var callback = new TodoCommentsListener();
+
+            using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
+            var session = await client.TryCreateKeepAliveSessionAsync(
+                WellKnownServiceHubServices.RemoteTodoCommentsService,
+                callback,
+                cancellationTokenSource.Token);
+
+            var invokeTask = session.TryInvokeAsync(
+                nameof(IRemoteTodoCommentsService.ComputeTodoCommentsAsync),
+                solution: null,
+                arguments: Array.Empty<object>(),
+                cancellationTokenSource.Token);
+
+            var data = await callback.Data;
+            Assert.Equal(solution.Projects.Single().Documents.Single().Id, data.Item1);
+            Assert.Equal(1, data.Item2.Length);
+
+            var commentInfo = data.Item2[0];
+            Assert.Equal(new TodoCommentData
             {
-                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false));
+                DocumentId = solution.Projects.Single().Documents.Single().Id,
+                Priority = 1,
+                Message = "TODO: Test",
+                MappedFilePath = null,
+                OriginalFilePath = "test1.cs",
+                OriginalLine = 2,
+                MappedLine = 2,
+                OriginalColumn = 3,
+                MappedColumn = 3,
+            }, commentInfo);
 
-                var solution = workspace.CurrentSolution;
+            cancellationTokenSource.Cancel();
 
-                var comments = await client.TryRunRemoteAsync<IList<TodoComment>>(
-                    WellKnownServiceHubServices.CodeAnalysisService,
-                    nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
-                    solution,
-                    new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
-                    callbackTarget: null,
-                    CancellationToken.None);
+            await invokeTask;
+        }
 
-                Assert.Equal(1, comments.Value.Count);
+        private class TodoCommentsListener : ITodoCommentsListener
+        {
+            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource
+                = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
+
+            public Task OnDocumentRemovedAsync(DocumentId documentId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+            {
+                _dataSource.SetResult((documentId, data));
+                return Task.CompletedTask;
             }
         }
 
@@ -175,7 +220,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestDesignerAttributes()
         {
-
             using var workspace = TestWorkspace.CreateCSharp(
 @"[System.ComponentModel.DesignerCategory(""Form"")]
 class Test { }");
@@ -189,7 +233,7 @@ class Test { }");
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await solutionService.UpdatePrimaryWorkspaceAsync(solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
-            var callback = new DesignerListener();
+            var callback = new DesignerAttributeListener();
 
             using var client = await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
             var session = await client.TryCreateKeepAliveSessionAsync(
@@ -204,7 +248,7 @@ class Test { }");
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
-            Assert.Equal(1, infos.Count);
+            Assert.Equal(1, infos.Length);
 
             var info = infos[0];
             Assert.Equal("Form", info.Category);
@@ -215,12 +259,16 @@ class Test { }");
             await invokeTask;
         }
 
-        private class DesignerListener : IDesignerAttributeListener
+        private class DesignerAttributeListener : IDesignerAttributeListener
         {
-            private readonly TaskCompletionSource<IList<DesignerInfo>> _infosSource = new TaskCompletionSource<IList<DesignerInfo>>();
-            public Task<IList<DesignerInfo>> Infos => _infosSource.Task;
+            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource
+                = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
+            public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
-            public Task RegisterDesignerAttributesAsync(IList<DesignerInfo> infos, CancellationToken cancellationToken)
+            public Task OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
                 return Task.CompletedTask;
@@ -427,7 +475,7 @@ class Test { }");
 
         private static Solution UpdateSolution(Solution solution, string projectName, string documentName, string csAddition, string vbAddition)
         {
-            var (project, document) = GetProjectAndDocument(solution, projectName, documentName);
+            var (_, document) = GetProjectAndDocument(solution, projectName, documentName);
 
             return document.WithText(GetNewText(document, csAddition, vbAddition)).Project.Solution;
         }

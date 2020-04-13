@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,12 +14,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 
 #if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Options;
-using Microsoft.CodeAnalysis.CSharp.Internal.CodeStyle;
-#else
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 #endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
@@ -28,47 +24,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseExplicitTypeDiagnosticAnalyzer(), new UseExplicitTypeCodeFixProvider());
 
-        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
-        private readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
-        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
+        private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
+        private readonly CodeStyleOption2<bool> offWithSilent = new CodeStyleOption2<bool>(false, NotificationOption2.Silent);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+        private readonly CodeStyleOption2<bool> offWithInfo = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithWarning = new CodeStyleOption2<bool>(true, NotificationOption2.Warning);
+        private readonly CodeStyleOption2<bool> offWithWarning = new CodeStyleOption2<bool>(false, NotificationOption2.Warning);
+        private readonly CodeStyleOption2<bool> onWithError = new CodeStyleOption2<bool>(true, NotificationOption2.Error);
+        private readonly CodeStyleOption2<bool> offWithError = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ExplicitTypeEverywhere() => OptionsSet(
+        private IOptionsCollection ExplicitTypeEverywhere() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ExplicitTypeExceptWhereApparent() => OptionsSet(
+        private IOptionsCollection ExplicitTypeExceptWhereApparent() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ExplicitTypeForBuiltInTypesOnly() => OptionsSet(
+        private IOptionsCollection ExplicitTypeForBuiltInTypesOnly() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ExplicitTypeEnforcements() => OptionsSet(
+        private IOptionsCollection ExplicitTypeEnforcements() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithWarning),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IDictionary<OptionKey, object> ExplicitTypeSilentEnforcement() => OptionsSet(
+        private IOptionsCollection ExplicitTypeSilentEnforcement() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));
-
-        private IDictionary<OptionKey, object> Options(OptionKey option, object value)
-        {
-            var options = new Dictionary<OptionKey, object>();
-            options.Add(option, value);
-            return options;
-        }
 
         #region Error Cases
 
@@ -361,6 +350,62 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
+
+#if !CODE_STYLE // TODO: Skipped tests in CodeStyle layer depend on new compiler API (IsNativeIntegerType) that is not available in CodeStyle layer.
+        // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task InNativeIntIntrinsicType()
+        {
+            var before = @"
+class Program
+{
+    void Method(nint x)
+    {
+        [|var|] y = x;
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method(nint x)
+    {
+        nint y = x;
+    }
+}";
+            // The type is intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(42986, "https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task InNativeUnsignedIntIntrinsicType()
+        {
+            var before = @"
+class Program
+{
+    void Method(nuint x)
+    {
+        [|var|] y = x;
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method(nuint x)
+    {
+        nuint y = x;
+    }
+}";
+            // The type is intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeForBuiltInTypesOnly());
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+#endif
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(27221, "https://github.com/dotnet/roslyn/issues/27221")]

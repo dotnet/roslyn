@@ -4,11 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -19,9 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private readonly Dictionary<string, ImmutableArray<SyntaxToken>> _dictionary;
 
             internal LocalDeclarationMap(Dictionary<string, ImmutableArray<SyntaxToken>> dictionary)
-            {
-                _dictionary = dictionary;
-            }
+                => _dictionary = dictionary;
 
             public ImmutableArray<SyntaxToken> this[string identifier]
             {

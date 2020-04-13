@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var newBinary = generator.Negate(binaryExpression, semanticModel, cancellationToken);
+            var newBinary = generator.Negate(generator.SyntaxGeneratorInternal, binaryExpression, semanticModel, cancellationToken);
 
             return document.WithSyntaxRoot(root.ReplaceNode(
                 binaryExpression,
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             // just negate the work we're actually doing right now.
             return document.WithSyntaxRoot(root.ReplaceNode(
                 expression,
-                generator.Negate(expression, semanticModel, negateBinary: false, cancellationToken)));
+                generator.Negate(generator.SyntaxGeneratorInternal, expression, semanticModel, negateBinary: false, cancellationToken)));
         }
 
         private string GetTitle(ISyntaxKindsService syntaxKinds, int binaryExprKind)

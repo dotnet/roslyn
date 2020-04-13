@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
                 var node = startToken.GetCommonRoot(endToken).GetParentWithBiggerSpan();
-                var previous = default(SyntaxNode);
+                var previous = (SyntaxNode)null;
 
                 // starting from the common node, move up to the parent
                 var operations = new List<IndentBlockOperation>();

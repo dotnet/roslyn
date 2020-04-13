@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RoslynServices
     {
-        private static TelemetrySession s_sessionOpt;
+        private static TelemetrySession? s_telemetrySession;
 
         private static readonly object s_hostServicesGuard = new object();
 
@@ -28,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// This delegate allows test code to override the behavior of <see cref="HostServices"/>.
         /// </summary>
         /// <seealso cref="TestAccessor.HookHostServices"/>
-        private static Func<HostServices> s_hostServicesHook;
-        private static HostServices s_hostServices;
+        private static Func<HostServices>? s_hostServicesHook;
+        private static HostServices? s_hostServices;
 
         // TODO: probably need to split this to private and public services
         public static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
@@ -63,19 +64,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Set default telemetry session
         /// </summary>
         public static void SetTelemetrySession(TelemetrySession session)
-        {
-            s_sessionOpt = session;
-        }
+            => s_telemetrySession = session;
 
         /// <summary>
         /// Default telemetry session
         /// </summary>
-        public static TelemetrySession SessionOpt => s_sessionOpt;
+        public static TelemetrySession? TelemetrySession => s_telemetrySession;
 
         /// <summary>
         /// Check whether current user is microsoft internal or not
         /// </summary>
-        public static bool IsUserMicrosoftInternal => SessionOpt?.IsUserMicrosoftInternal ?? false;
+        public static bool IsUserMicrosoftInternal => TelemetrySession?.IsUserMicrosoftInternal ?? false;
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
@@ -85,9 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly RoslynServices _roslynServices;
 
             public TestAccessor(RoslynServices roslynServices)
-            {
-                _roslynServices = roslynServices;
-            }
+                => _roslynServices = roslynServices;
 
             /// <summary>
             /// Injects replacement behavior for the <see cref="HostServices"/> property.

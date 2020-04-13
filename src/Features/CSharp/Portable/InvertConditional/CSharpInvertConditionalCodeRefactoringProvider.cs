@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.InvertConditional;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvertConditional
 {
@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertConditional
         : AbstractInvertConditionalCodeRefactoringProvider<ConditionalExpressionSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpInvertConditionalCodeRefactoringProvider()
         {
         }

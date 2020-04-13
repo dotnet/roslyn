@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = CreateTuple(underlyingType, elementNames, errorPositions, elementLocations, locations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnosticsOpt: diagnostics, nullabilityDiagnosticsOpt: includeNullability ? diagnostics : null);
             }
 
             return constructedType;
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol
         {
-            return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : default;
+            return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : null;
         }
 
         protected ArrayBuilder<Symbol>? AddOrWrapTupleMembers(ImmutableArray<Symbol> currentMembers)

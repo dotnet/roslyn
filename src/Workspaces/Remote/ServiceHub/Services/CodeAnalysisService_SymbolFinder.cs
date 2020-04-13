@@ -8,8 +8,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -177,33 +177,42 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private sealed class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress
+        private sealed class FindLiteralReferencesProgressCallback : IStreamingFindLiteralReferencesProgress, IStreamingProgressTracker
         {
             private readonly RemoteEndPoint _endPoint;
             private readonly CancellationToken _cancellationToken;
+
+            public IStreamingProgressTracker ProgressTracker { get; }
 
             public FindLiteralReferencesProgressCallback(RemoteEndPoint endPoint, CancellationToken cancellationToken)
             {
                 _endPoint = endPoint;
                 _cancellationToken = cancellationToken;
+                ProgressTracker = this;
             }
-
-            public Task ReportProgressAsync(int current, int maximum)
-                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindLiteralsServerCallback.ReportProgressAsync), new object[] { current, maximum }, _cancellationToken);
 
             public Task OnReferenceFoundAsync(Document document, TextSpan span)
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindLiteralsServerCallback.OnReferenceFoundAsync), new object[] { document.Id, span }, _cancellationToken);
+
+            public Task AddItemsAsync(int count)
+                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindLiteralsServerCallback.AddItemsAsync), new object[] { count }, _cancellationToken);
+
+            public Task ItemCompletedAsync()
+                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindLiteralsServerCallback.ItemCompletedAsync), new object[] { }, _cancellationToken);
         }
 
-        private sealed class FindReferencesProgressCallback : IStreamingFindReferencesProgress
+        private sealed class FindReferencesProgressCallback : IStreamingFindReferencesProgress, IStreamingProgressTracker
         {
             private readonly RemoteEndPoint _endPoint;
             private readonly CancellationToken _cancellationToken;
+
+            public IStreamingProgressTracker ProgressTracker { get; }
 
             public FindReferencesProgressCallback(RemoteEndPoint endPoint, CancellationToken cancellationToken)
             {
                 _endPoint = endPoint;
                 _cancellationToken = cancellationToken;
+                ProgressTracker = this;
             }
 
             public Task OnStartedAsync()
@@ -211,9 +220,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public Task OnCompletedAsync()
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnCompletedAsync), Array.Empty<object>(), _cancellationToken);
-
-            public Task ReportProgressAsync(int current, int maximum)
-                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.ReportProgressAsync), new object[] { current, maximum }, _cancellationToken);
 
             public Task OnFindInDocumentStartedAsync(Document document)
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnFindInDocumentStartedAsync), new object[] { document.Id }, _cancellationToken);
@@ -231,6 +237,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     new object[] { SerializableSymbolAndProjectId.Dehydrate(definition), SerializableReferenceLocation.Dehydrate(reference) },
                     _cancellationToken);
             }
+
+            public Task AddItemsAsync(int count)
+                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.AddItemsAsync), new object[] { count }, _cancellationToken);
+
+            public Task ItemCompletedAsync()
+                => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.ItemCompletedAsync), Array.Empty<object>(), _cancellationToken);
         }
     }
 }

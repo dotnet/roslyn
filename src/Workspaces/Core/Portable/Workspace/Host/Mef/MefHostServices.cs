@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         private readonly CompositionContext _compositionContext;
 
         public MefHostServices(CompositionContext compositionContext)
-        {
-            _compositionContext = compositionContext;
-        }
+            => _compositionContext = compositionContext;
 
         public static MefHostServices Create(CompositionContext compositionContext)
         {
@@ -61,14 +59,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-        {
-            return new MefWorkspaceServices(this, workspace);
-        }
+            => new MefWorkspaceServices(this, workspace);
 
         IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-        {
-            return _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
-        }
+            => _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
 
         IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
         {
@@ -133,9 +127,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         private static ImmutableArray<Assembly> LoadDefaultAssemblies()
-        {
-            return MefHostServicesHelpers.LoadNearbyAssemblies(s_defaultAssemblyNames);
-        }
+            => MefHostServicesHelpers.LoadNearbyAssemblies(s_defaultAssemblyNames);
 
         #endregion
 

@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,8 +46,6 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
         }
 
         public override Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.False;
-        }
+            => SpecializedTasks.False;
     }
 }

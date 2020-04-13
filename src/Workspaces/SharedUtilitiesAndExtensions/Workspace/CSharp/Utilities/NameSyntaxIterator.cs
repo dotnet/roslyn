@@ -4,10 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -16,9 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private readonly NameSyntax _name;
 
         public NameSyntaxIterator(NameSyntax name)
-        {
-            _name = name ?? throw new ArgumentNullException(nameof(name));
-        }
+            => _name = name ?? throw new ArgumentNullException(nameof(name));
 
         public IEnumerator<NameSyntax> GetEnumerator()
         {
@@ -44,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
     }
 }

@@ -31,19 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         public int OnActiveProjectCfgChange(IVsHierarchy hierarchy)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int UpdateSolution_Begin(ref int cancelUpdate)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int UpdateSolution_Cancel()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int UpdateSolution_Done(int succeeded, int modified, int cancelCommand)
         {
@@ -65,8 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         public int UpdateSolution_StartUpdate(ref int cancelUpdate)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
     }
 }

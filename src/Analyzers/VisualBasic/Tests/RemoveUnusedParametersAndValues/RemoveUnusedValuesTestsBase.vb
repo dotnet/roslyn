@@ -8,9 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
 #If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Options
-#Else
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
@@ -21,11 +19,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
             Return (New VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), New VisualBasicRemoveUnusedValuesCodeFixProvider())
         End Function
 
-        Protected MustOverride ReadOnly Property PreferNone As IDictionary(Of OptionKey, Object)
-        Protected MustOverride ReadOnly Property PreferDiscard As IDictionary(Of OptionKey, Object)
-        Protected MustOverride ReadOnly Property PreferUnusedLocal As IDictionary(Of OptionKey, Object)
+        Private Protected MustOverride ReadOnly Property PreferNone As IOptionsCollection
+        Private Protected MustOverride ReadOnly Property PreferDiscard As IOptionsCollection
+        Private Protected MustOverride ReadOnly Property PreferUnusedLocal As IOptionsCollection
 
-        Protected Overloads Function TestMissingInRegularAndScriptAsync(initialMarkup As String, options As IDictionary(Of OptionKey, Object)) As Task
+        Private Protected Overloads Function TestMissingInRegularAndScriptAsync(initialMarkup As String, options As IOptionsCollection) As Task
             Return TestMissingInRegularAndScriptAsync(initialMarkup, New TestParameters(options:=options))
         End Function
     End Class

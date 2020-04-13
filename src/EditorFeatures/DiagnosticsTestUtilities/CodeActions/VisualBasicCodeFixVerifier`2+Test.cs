@@ -6,13 +6,18 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
+using Xunit;
+
+#if !CODE_STYLE
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -28,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var parseOptions = (VisualBasicParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
+                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
                     var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
@@ -65,17 +70,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
             /// using a collection initializer.
             /// </summary>
-            public OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
+            internal OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 
             public string? EditorConfig { get; set; }
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
+            public override async Task RunAsync(CancellationToken cancellationToken = default)
+            {
+                if (DiagnosticSelector is object)
+                {
+                    Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
+                }
+
+                await base.RunAsync(cancellationToken);
+            }
+
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-            {
-                return new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
-            }
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
 #endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -476,9 +475,7 @@ language: LanguageNames.CSharp);
             }
 
             public void SetParseOptions(ProjectId id, ParseOptions options)
-            {
-                base.OnParseOptionsChanged(id, options);
-            }
+                => base.OnParseOptionsChanged(id, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

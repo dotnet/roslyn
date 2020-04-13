@@ -495,6 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       by including it as a part of whenNull, but there is a concern 
             //       that it can lead to code duplication
             var optimize = conditionalLeft != null &&
+                operatorKind != BinaryOperatorKind.LiftedBoolOr && operatorKind != BinaryOperatorKind.LiftedBoolAnd &&
                 !ReadIsSideeffecting(loweredRight) &&
                 (conditionalLeft.WhenNullOpt == null || conditionalLeft.WhenNullOpt.IsDefaultValue());
 
@@ -1876,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // use reference equality in the absence of overloaded operators for System.Delegate.
                     operatorKind = (operatorKind & (~BinaryOperatorKind.Delegate)) | BinaryOperatorKind.Object;
-                    return new BoundBinaryOperator(syntax, operatorKind, default(ConstantValue), null, LookupResultKind.Empty, loweredLeft, loweredRight, type);
+                    return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, null, LookupResultKind.Empty, loweredLeft, loweredRight, type);
                 }
             }
             else

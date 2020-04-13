@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
@@ -23,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         Private Const ExtensionAttributeName As String = "ExtensionAttribute"
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

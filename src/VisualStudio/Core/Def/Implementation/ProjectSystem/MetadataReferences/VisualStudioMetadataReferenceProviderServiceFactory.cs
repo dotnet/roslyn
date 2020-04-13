@@ -15,14 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed class VsMetadataServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VsMetadataServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(workspaceServices);
-        }
+            => new Service(workspaceServices);
 
         private sealed class Service : IMetadataService
         {
@@ -38,9 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            {
-                return _manager.Value.CreateMetadataReferenceSnapshot(resolvedPath, properties);
-            }
+                => _manager.Value.CreateMetadataReferenceSnapshot(resolvedPath, properties);
         }
     }
 }

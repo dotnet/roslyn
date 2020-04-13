@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Get <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticAnalyzer"/>s map for given <paramref name="language"/>
         /// </summary> 
         public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> GetOrCreateHostDiagnosticAnalyzersPerReference(string language)
-        {
-            return _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzersAndBuildMap);
-        }
+            => _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzersAndBuildMap);
 
         public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache)
         {
@@ -138,9 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// has only project analyzers
         /// </summary>
         public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> CreateProjectDiagnosticAnalyzersPerReference(Project project)
-        {
-            return CreateDiagnosticAnalyzersPerReferenceMap(CreateProjectAnalyzerReferencesMap(project), project.Language);
-        }
+            => CreateDiagnosticAnalyzersPerReferenceMap(CreateProjectAnalyzerReferencesMap(project), project.Language);
 
         /// <summary>
         /// Return compiler <see cref="DiagnosticAnalyzer"/> for the given language.
@@ -157,9 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private ImmutableDictionary<object, AnalyzerReference> CreateProjectAnalyzerReferencesMap(Project project)
-        {
-            return CreateAnalyzerReferencesMap(project.AnalyzerReferences.Where(reference => !_hostAnalyzerReferencesMap.Value.ContainsKey(reference.Id)));
-        }
+            => CreateAnalyzerReferencesMap(project.AnalyzerReferences.Where(reference => !_hostAnalyzerReferencesMap.Value.ContainsKey(reference.Id)));
 
         private ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
             DiagnosticAnalyzerInfoCache infoCache,
@@ -328,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _primaryWorkspace = primaryWorkspace;
             }
 
-            public void OnAnalyzerLoadFailed(object sender, AnalyzerLoadFailureEventArgs e)
+            public void OnAnalyzerLoadFailed(object? sender, AnalyzerLoadFailureEventArgs e)
             {
                 if (!(sender is AnalyzerFileReference reference))
                 {

@@ -495,7 +495,7 @@ class Test
                 // (1,8): error CS1031: Type expected
                 // new ref[];
                 Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(1, 8),
-                // (1,10): error CS1526: A new expression requires (), [], or {} after type
+                // (1,10): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 // new ref[];
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(1, 10)
                 );

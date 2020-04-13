@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public IList<SymbolDisplayPart> ReplaceAnonymousTypes(IList<SymbolDisplayPart> parts)
-        {
-            return ReplaceAnonymousTypes(parts, AnonymousTypeToName);
-        }
+            => ReplaceAnonymousTypes(parts, AnonymousTypeToName);
 
         public static IList<SymbolDisplayPart> ReplaceAnonymousTypes(
             IList<SymbolDisplayPart> parts,

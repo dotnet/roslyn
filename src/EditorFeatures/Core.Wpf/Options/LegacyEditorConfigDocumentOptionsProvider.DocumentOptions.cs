@@ -9,7 +9,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
@@ -25,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 new ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>>();
 
             public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot)
-            {
-                _codingConventionSnapshot = codingConventionSnapshot;
-            }
+                => _codingConventionSnapshot = codingConventionSnapshot;
 
             public bool TryGetDocumentOption(OptionKey option, out object? value)
             {
@@ -70,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 private readonly IReadOnlyDictionary<string, object?> _underlyingDictionary;
 
                 public StringConvertingDictionary(IReadOnlyDictionary<string, object?> underlyingDictionary)
-                {
-                    _underlyingDictionary = underlyingDictionary ?? throw new ArgumentNullException(nameof(underlyingDictionary));
-                }
+                    => _underlyingDictionary = underlyingDictionary ?? throw new ArgumentNullException(nameof(underlyingDictionary));
 
                 public string? this[string key] => _underlyingDictionary[key]?.ToString();
 
@@ -106,9 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 }
 
                 IEnumerator IEnumerable.GetEnumerator()
-                {
-                    return GetEnumerator();
-                }
+                    => GetEnumerator();
             }
         }
     }

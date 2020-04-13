@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -137,8 +136,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Contract.ThrowIfNull(symbol);
             if (ShouldConsiderSymbol(symbol))
             {
-                var progress = new StreamingProgressCollector(
-                    StreamingFindReferencesProgress.Instance);
+                var progress = new StreamingProgressCollector();
 
                 var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await SymbolFinder.FindReferencesAsync(
@@ -258,9 +256,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // GetDocument will return null for locations in #load'ed trees.
                             // TODO:  Remove this check and add logic to fetch the #load'ed tree's
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
+                            // TODO: the assert is also commented out becase generated syntax trees won't
+                            // have a document until https://github.com/dotnet/roslyn/issues/42823 is fixed
                             if (document == null)
                             {
-                                Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                                // Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 

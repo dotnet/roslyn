@@ -13,7 +13,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(hostAnalyzers, PersistentStorageService);
+            _stateManager = new StateManager(hostAnalyzers, PersistentStorageService, analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)
+        private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
         {
             if (e.Removed.Length == 0)
             {
@@ -227,9 +226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             => new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, projectId, (int)kind, stateSet.ErrorSourceName);
 
         public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
-        {
-            return project.GetDependentVersionAsync(cancellationToken);
-        }
+            => project.GetDependentVersionAsync(cancellationToken);
 
         private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
         {
@@ -242,43 +239,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         public void LogAnalyzerCountSummary()
-        {
-            _telemetry.ReportAndClear(_correlationId);
-        }
+            => _telemetry.ReportAndClear(_correlationId);
 
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
-        {
-            return _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
-        }
+            => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
 
         private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
-        {
-            return $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
-        }
+            => $"{title}: ({document.Id}, {document.Project.Id}), ({analyzer})";
 
         private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)
-        {
-            return $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
-        }
+            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
 
         private static string GetResetLogMessage(Document document)
-        {
-            return $"document close/reset: ({document.FilePath ?? document.Name})";
-        }
+            => $"document close/reset: ({document.FilePath ?? document.Name})";
 
         private static string GetOpenLogMessage(Document document)
-        {
-            return $"document open: ({document.FilePath ?? document.Name})";
-        }
+            => $"document open: ({document.FilePath ?? document.Name})";
 
         private static string GetRemoveLogMessage(DocumentId id)
-        {
-            return $"document remove: {id.ToString()}";
-        }
+            => $"document remove: {id.ToString()}";
 
         private static string GetRemoveLogMessage(ProjectId id)
-        {
-            return $"project remove: {id.ToString()}";
-        }
+            => $"project remove: {id.ToString()}";
     }
 }
