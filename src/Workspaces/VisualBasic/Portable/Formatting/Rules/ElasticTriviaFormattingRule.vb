@@ -124,7 +124,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Function GetAdjustNewLinesOperationSlow(
                 previousToken As SyntaxToken,
                 currentToken As SyntaxToken,
-                options As AnalyzerConfigOptions,
                 ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' if it doesn't have elastic trivia, pass it through

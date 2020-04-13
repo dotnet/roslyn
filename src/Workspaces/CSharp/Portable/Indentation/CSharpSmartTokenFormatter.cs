@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // no line operation. no line changes what so ever
-                var lineOperation = base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
+                var lineOperation = base.GetAdjustNewLinesOperation(previousToken, currentToken, in nextOperation);
                 if (lineOperation != null)
                 {
                     // ignore force if same line option

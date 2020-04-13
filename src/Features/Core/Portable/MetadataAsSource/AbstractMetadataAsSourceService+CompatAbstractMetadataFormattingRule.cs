@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public override sealed AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+            public override sealed AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 var nextOperationCopy = nextOperation;
-                return GetAdjustNewLinesOperationSlow(previousToken, currentToken, options, ref nextOperationCopy);
+                return GetAdjustNewLinesOperationSlow(previousToken, currentToken, ref nextOperationCopy);
             }
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             /// <summary>
             /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
             /// </summary>
-            public virtual AdjustNewLinesOperation GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustNewLinesOperation nextOperation)
-                => base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
+            public virtual AdjustNewLinesOperation GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, ref NextGetAdjustNewLinesOperation nextOperation)
+                => base.GetAdjustNewLinesOperation(previousToken, currentToken, in nextOperation);
 
             /// <summary>
             /// returns AdjustSpacesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
