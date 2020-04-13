@@ -39,23 +39,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            // Can't convert to `x ? throw ... : throw ...` as there's no best common type between the two (even when
-            // throwing the same exception type).
-            if (trueThrow != null && falseThrow != null)
-                return false;
-
             var anyAssignment = trueAssignment ?? falseAssignment;
-            var anyThrow = trueThrow ?? falseThrow;
-
-            if (anyThrow != null)
+            if (UseConditionalExpressionHelpers.HasInconvertibleThrowStatement(
+                    syntaxFacts, anyAssignment?.IsRef == true, trueThrow, falseThrow))
             {
-                // can only convert to a conditional expression if the lang supports throw-exprs.
-                if (!syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
-                    return false;
-
-                // `ref` can't be used with `throw`.
-                if (anyAssignment?.IsRef == true)
-                    return false;
+                return false;
             }
 
             // The left side of both assignment statements has to be syntactically identical (modulo

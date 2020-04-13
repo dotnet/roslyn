@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
             ISymbol containingSymbol,
-            [NotNullWhen(true)] out IOperation trueStatement,
-            [NotNullWhen(true)] out IOperation falseStatement,
+            [NotNullWhen(true)] out IOperation? trueStatement,
+            [NotNullWhen(true)] out IOperation? falseStatement,
             out IReturnOperation? trueReturn,
             out IThrowOperation? trueThrow,
             out IReturnOperation? falseReturn,
@@ -50,24 +50,18 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (falseStatement == null)
             {
                 if (!(ifOperation.Parent is IBlockOperation parentBlock))
-                {
                     return false;
-                }
 
                 var ifIndex = parentBlock.Operations.IndexOf(ifOperation);
                 if (ifIndex < 0)
-                {
                     return false;
-                }
 
-                if (ifIndex + 1 < parentBlock.Operations.Length)
-                {
-                    falseStatement = parentBlock.Operations[ifIndex + 1];
-                    if (falseStatement.IsImplicit)
-                    {
-                        return false;
-                    }
-                }
+                if (ifIndex + 1 >= parentBlock.Operations.Length)
+                    return false;
+
+                falseStatement = parentBlock.Operations[ifIndex + 1];
+                if (falseStatement.IsImplicit)
+                    return false;
             }
 
             trueStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(trueStatement);
@@ -85,23 +79,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             trueThrow = trueStatement as IThrowOperation;
             falseThrow = falseStatement as IThrowOperation;
 
-            // Can't convert to `x ? throw ... : throw ...` as there's no best common type between the two (even when
-            // throwing the same exception type).
-            if (trueThrow != null && falseThrow != null)
-                return false;
-
             var anyReturn = trueReturn ?? falseReturn;
-            var anyThrow = trueThrow ?? falseThrow;
-
-            if (anyThrow != null)
+            if (UseConditionalExpressionHelpers.HasInconvertibleThrowStatement(
+                    syntaxFacts, anyReturn.GetRefKind(containingSymbol) != RefKind.None,
+                    trueThrow, falseThrow))
             {
-                // can only convert to a conditional expression if the lang supports throw-exprs.
-                if (!syntaxFacts.SupportsThrowExpression(ifOperation.Syntax.SyntaxTree.Options))
-                    return false;
-
-                // `ref` can't be used with `throw`.
-                if (anyReturn.GetRefKind(containingSymbol) != RefKind.None)
-                    return false;
+                return false;
             }
 
             if (trueReturn != null &&
@@ -143,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 syntaxFacts, ifOperation, trueStatement, falseStatement);
         }
 
-        private static bool IsReturnExprOrThrow(IOperation statement)
+        private static bool IsReturnExprOrThrow(IOperation? statement)
         {
             // We can only convert a `throw expr` to a throw expression, not `throw;`
             if (statement is IThrowOperation throwOperation)
