@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis
 
         public static IMethodSymbol TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation operation)
         {
-            operation = operation.Parent;
+            operation = operation?.Parent;
             while (operation != null)
             {
                 switch (operation.Kind)

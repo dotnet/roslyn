@@ -81,6 +81,58 @@ class C
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnSimpleReturn_Throw2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int M()
+    {
+        [||]if (true)
+        {
+            return 0;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    int M()
+    {
+        return true ? 0 : throw new System.Exception();
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotWithTwoThrows()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int M()
+    {
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestNotOnSimpleReturn_Throw1_CSharp6()
         {
             await TestMissingAsync(
@@ -119,36 +171,6 @@ class C
         {
             return 1;
         }
-    }
-}");
-        }
-
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestOnSimpleReturn_Throw2()
-        {
-            await TestInRegularAndScriptAsync(
-@"
-class C
-{
-    int M()
-    {
-        [||]if (true)
-        {
-            return 0;
-        }
-        else
-        {
-            throw new System.Exception();
-        }
-    }
-}",
-@"
-class C
-{
-    int M()
-    {
-        return true ? 0 : throw new System.Exception();
     }
 }");
         }

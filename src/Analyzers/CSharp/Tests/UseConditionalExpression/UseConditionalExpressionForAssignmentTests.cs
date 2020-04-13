@@ -94,6 +94,58 @@ class C
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnSimpleAssignment_Throw2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        i = true ? 0 : throw new System.Exception();
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestNotWithTwoThrows()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            throw new System.Exception();
+        }
+        else
+        {
+            throw new System.Exception();
+        }
+    }
+}");
+        }
+
+        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestNotOnSimpleAssignment_Throw1_CSharp6()
         {
             await TestMissingAsync(
@@ -132,36 +184,6 @@ class C
         {
             i = 1;
         }
-    }
-}");
-        }
-
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestOnSimpleAssignment_Throw2()
-        {
-            await TestInRegularAndScriptAsync(
-@"
-class C
-{
-    void M(int i)
-    {
-        [||]if (true)
-        {
-            i = 0;
-        }
-        else
-        {
-            throw new System.Exception();
-        }
-    }
-}",
-@"
-class C
-{
-    void M(int i)
-    {
-        i = true ? 0 : throw new System.Exception();
     }
 }");
         }
