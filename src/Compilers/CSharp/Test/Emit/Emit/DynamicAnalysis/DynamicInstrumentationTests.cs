@@ -3307,6 +3307,57 @@ True
             verifier.VerifyDiagnostics();
         }
 
+        [Fact]
+        [CompilerTrait(CompilerFeature.SimplePrograms)]
+        public void SimplePrograms_01()
+        {
+            var source = @"
+using System;
+
+Test();
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+static void Test()
+{
+    Console.WriteLine(""Test"");
+}
+
+" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(1, 1, snippet: "", expectBodySpan: false)
+                .True("Test();")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();")
+                .True(@"Console.WriteLine(""Test"");");
+            checker.Method(4, 1)
+                .True()
+                .False()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True()
+                .True();
+
+            var expectedOutput = @"Test
+" + checker.ExpectedOutput;
+
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+        }
+
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
             => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
 

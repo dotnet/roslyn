@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)symbol != null);
 
-            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor() || symbol is SynthesizedSimpleProgramEntryPointSymbol)
             {
                 return false;
             }
