@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
     public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private static readonly ParseOptions CSharp7 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7);
-        private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+
+        // Switch this to actually reference LanguageVersion.CSharp9 when available.
+        private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), new CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider());

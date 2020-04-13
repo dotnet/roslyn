@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
             // TODO: this needs to be CSharp9 once that version is available.
 #if !CODE_STYLE
-            if (parseOptions.LanguageVersion >= LanguageVersion.CSharp8)
+            if (parseOptions.LanguageVersion >= LanguageVersion.Preview)
             {
                 return IsPatternExpression(
                     argument,
