@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
     {
         private readonly struct EmbeddedCompletionContext
         {
-            private static DateTime s_exampleDateTime = DateTime.Parse("2009-06-15T13:45:30.1234567Z");
+            private static DateTime s_exampleDateTime = DateTime.Parse("2009-06-15T13:45:30.1234567");
             private static CultureInfo s_enUsCulture = CultureInfo.GetCultureInfo("en-US");
             private static CultureInfo s_primaryCulture = CultureInfo.CurrentCulture;
             private static CultureInfo s_secondaryCulture = s_enUsCulture;
