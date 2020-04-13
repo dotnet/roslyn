@@ -10,13 +10,9 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class CoreClrAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
+    internal class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         private AssemblyLoadContext _loadContext;
-
-        public CoreClrAnalyzerAssemblyLoader()
-        {
-        }
 
         protected override Assembly LoadFromPathImpl(string fullPath)
         {
@@ -27,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             // we do a lazy initialization here to make .NET Native builds happy.
             if (_loadContext == null)
             {
-                AssemblyLoadContext loadContext = AssemblyLoadContext.GetLoadContext(typeof(CoreClrAnalyzerAssemblyLoader).GetTypeInfo().Assembly);
+                AssemblyLoadContext loadContext = AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly);
 
                 if (System.Threading.Interlocked.CompareExchange(ref _loadContext, loadContext, null) == null)
                 {
