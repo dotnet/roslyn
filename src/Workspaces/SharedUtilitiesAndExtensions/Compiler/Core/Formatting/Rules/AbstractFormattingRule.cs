@@ -15,11 +15,14 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// <remarks>All methods defined in this class can be called concurrently. Must be thread-safe.</remarks>
     internal abstract class AbstractFormattingRule
     {
+        public virtual AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+            => this;
+
         /// <summary>
         /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
         /// filtering/replacing operations returned by NextOperation
         /// </summary>
-        public virtual void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+        public virtual void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             => nextOperation.Invoke();
 
         /// <summary>

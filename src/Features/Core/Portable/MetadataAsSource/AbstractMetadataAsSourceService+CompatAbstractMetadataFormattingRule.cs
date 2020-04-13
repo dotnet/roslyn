@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
             [EditorBrowsable(EditorBrowsableState.Never)]
-            public override sealed void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+            public override sealed void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
                 var nextOperationCopy = nextOperation;
-                AddSuppressOperationsSlow(list, node, options, ref nextOperationCopy);
+                AddSuppressOperationsSlow(list, node, ref nextOperationCopy);
             }
 
             [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             /// Returns SuppressWrappingIfOnSingleLineOperations under a node either by itself or by
             /// filtering/replacing operations returned by NextOperation
             /// </summary>
-            public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextSuppressOperationAction nextOperation)
-                => base.AddSuppressOperations(list, node, options, in nextOperation);
+            public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, ref NextSuppressOperationAction nextOperation)
+                => base.AddSuppressOperations(list, node, in nextOperation);
 
             /// <summary>
             /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation

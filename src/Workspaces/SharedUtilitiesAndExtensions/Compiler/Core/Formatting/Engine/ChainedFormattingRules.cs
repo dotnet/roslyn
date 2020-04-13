@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(options);
 
-            _formattingRules = formattingRules.ToImmutableArray();
+            _formattingRules = formattingRules.Select(rule => rule.WithOptions(options)).ToImmutableArray();
             _options = options;
 
             _addSuppressOperationsRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.AddSuppressOperations));
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, _options, list);
+            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 

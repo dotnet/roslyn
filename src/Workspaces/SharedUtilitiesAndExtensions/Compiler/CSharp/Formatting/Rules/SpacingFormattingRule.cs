@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -14,8 +15,32 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal class SpacingFormattingRule : BaseFormattingRule
+    internal sealed class SpacingFormattingRule : BaseFormattingRule
     {
+        private readonly CachedOptions _options;
+
+        public SpacingFormattingRule()
+            : this(new CachedOptions(null))
+        {
+        }
+
+        private SpacingFormattingRule(CachedOptions options)
+        {
+            _options = options;
+        }
+
+        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        {
+            var cachedOptions = new CachedOptions(options);
+
+            if (cachedOptions == _options)
+            {
+                return this;
+            }
+
+            return new SpacingFormattingRule(cachedOptions);
+        }
+
         public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (options == null)
@@ -371,11 +396,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
-            SuppressVariableDeclaration(list, node, options);
+            SuppressVariableDeclaration(list, node);
         }
 
         private bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
@@ -384,13 +409,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             && forStatement.Condition == null
             && forStatement.Incrementors.Count == 0;
 
-        private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options)
+        private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node)
         {
             if (node.IsKind(SyntaxKind.FieldDeclaration) || node.IsKind(SyntaxKind.EventDeclaration) ||
                 node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement) ||
                 node.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
-                if (options.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration))
+                if (_options.SpacesIgnoreAroundVariableDeclaration)
                 {
                     var firstToken = node.GetFirstToken(includeZeroWidth: true);
                     var lastToken = node.GetLastToken(includeZeroWidth: true);
@@ -425,6 +450,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 syntaxKind == SyntaxKind.DoStatement ||
                 syntaxKind == SyntaxKind.CatchDeclaration || syntaxKind == SyntaxKind.UsingStatement || syntaxKind == SyntaxKind.LockStatement ||
                 syntaxKind == SyntaxKind.FixedStatement || syntaxKind == SyntaxKind.CatchFilterClause);
+        }
+
+        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        {
+            public readonly bool SpacesIgnoreAroundVariableDeclaration;
+
+            public CachedOptions(AnalyzerConfigOptions? options)
+            {
+                SpacesIgnoreAroundVariableDeclaration = GetOptionOrDefault(options, CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration);
+            }
+
+            public static bool operator ==(CachedOptions left, CachedOptions right)
+                => left.Equals(right);
+
+            public static bool operator !=(CachedOptions left, CachedOptions right)
+                => !(left == right);
+
+            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
+            {
+                if (options is null)
+                    return option.DefaultValue;
+
+                return options.GetOption(option);
+            }
+
+            public override bool Equals(object? obj)
+                => obj is CachedOptions options && Equals(options);
+
+            public bool Equals(CachedOptions other)
+            {
+                return SpacesIgnoreAroundVariableDeclaration == other.SpacesIgnoreAroundVariableDeclaration;
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = 0;
+                hashCode = (hashCode << 1) + (SpacesIgnoreAroundVariableDeclaration ? 1 : 0);
+                return hashCode;
+            }
         }
     }
 }

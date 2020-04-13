@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
         Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, options As AnalyzerConfigOptions, ByRef nextAction As NextAnchorIndentationOperationAction)
