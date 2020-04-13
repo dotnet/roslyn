@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-            => this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object); // PROTOTYPE(SimplePrograms): Test with missing Object type.
+            => this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
 
         protected override void CheckBase(DiagnosticBag diagnostics)
         {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var info = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object).GetUseSiteDiagnostic();
             if (info != null)
             {
-                Symbol.ReportUseSiteDiagnostic(info, diagnostics, Locations[0]);
+                Symbol.ReportUseSiteDiagnostic(info, diagnostics, NoLocation.Singleton);
             }
         }
 

@@ -1546,17 +1546,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EntryPoint? entryPoint = null;
                 MethodSymbol? simpleProgramEntryPointSymbol = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(this);
 
-                if (this.Options.MainTypeName != null)
+                if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
                 {
-                    if (simpleProgramEntryPointSymbol is object)
-                    {
-                        // PROTOTYPE(SimplePrograms): Report an error that MainTypeName shouldn't be specified
-                    }
-                    else if (!this.Options.MainTypeName.IsValidClrTypeName())
-                    {
-                        Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
-                        entryPoint = new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
-                    }
+                    Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
+                    entryPoint = new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
                 }
 
                 if (entryPoint is null)
@@ -1564,6 +1557,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<Diagnostic> diagnostics;
                     var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
                     entryPoint = new EntryPoint(entryPointMethod, diagnostics);
+                }
+
+                if (this.Options.MainTypeName != null && simpleProgramEntryPointSymbol is object)
+                {
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
+                    entryPoint = new EntryPoint(entryPoint.MethodSymbol, entryPoint.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()));
                 }
 
                 Interlocked.CompareExchange(ref _lazyEntryPoint, entryPoint, null);
@@ -1585,7 +1585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamespaceSymbol globalNamespace = this.SourceModule.GlobalNamespace;
                 var scriptClass = this.ScriptClass;
 
-                if (simpleProgramEntryPointSymbol is null && mainTypeName != null)
+                if (mainTypeName != null)
                 {
                     // Global code is the entry point, ignore all other Mains.
                     if (scriptClass is object)
