@@ -458,13 +458,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             int argumentCount;
-            bool lastArgumentHasNameColon;
+            bool lastArgumentIsNamed;
             ExpressionSyntax lastArgumentExpression;
 
             if (node is AttributeSyntax attribute)
             {
                 argumentCount = attribute.ArgumentList.Arguments.Count;
-                lastArgumentHasNameColon = attribute.ArgumentList.Arguments.LastOrDefault()?.NameColon != null ||
+                lastArgumentIsNamed = attribute.ArgumentList.Arguments.LastOrDefault()?.NameColon != null ||
                     attribute.ArgumentList.Arguments.LastOrDefault()?.NameEquals != null;
                 lastArgumentExpression = attribute.ArgumentList.Arguments.LastOrDefault()?.Expression;
             }
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 };
 
                 argumentCount = argumentList.Arguments.Count;
-                lastArgumentHasNameColon = argumentList.Arguments.LastOrDefault()?.NameColon != null;
+                lastArgumentIsNamed = argumentList.Arguments.LastOrDefault()?.NameColon != null;
                 lastArgumentExpression = argumentList.Arguments.LastOrDefault()?.Expression;
             }
 
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 if (argumentCount == methodSymbol.Parameters.Length)
                 {
-                    if (lastArgumentHasNameColon)
+                    if (lastArgumentIsNamed)
                     {
                         return false;
                     }
