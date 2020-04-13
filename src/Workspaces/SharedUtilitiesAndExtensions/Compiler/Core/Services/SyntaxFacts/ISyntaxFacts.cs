@@ -196,7 +196,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsPointerMemberAccessExpression(SyntaxNode node);
 
-        bool IsNamedParameter(SyntaxNode node);
+        bool IsNamedArgument(SyntaxNode node);
+        bool IsNameOfNamedArgument(SyntaxNode node);
         SyntaxToken? GetNameOfParameter(SyntaxNode node);
         SyntaxNode GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode GetParameterList(SyntaxNode node);

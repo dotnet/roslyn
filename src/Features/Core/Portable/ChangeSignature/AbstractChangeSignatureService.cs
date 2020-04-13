@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         }
                         else if (indexInListOfPreexistingArguments < newArguments.Count)
                         {
-                            if (SyntaxFacts.IsNamedParameter(newArguments[indexInListOfPreexistingArguments]))
+                            if (SyntaxFacts.IsNamedArgument(newArguments[indexInListOfPreexistingArguments]))
                             {
                                 seenNamedArguments = true;
                             }
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                             var newArgument = newArguments[indexInListOfPreexistingArguments];
 
-                            if (seenNamedArguments && !SyntaxFacts.IsNamedParameter(newArgument))
+                            if (seenNamedArguments && !SyntaxFacts.IsNamedArgument(newArgument))
                             {
                                 newArgument = AddNameToArgument(newArgument, parameters[indexInListOfPreexistingArguments].Name);
                             }

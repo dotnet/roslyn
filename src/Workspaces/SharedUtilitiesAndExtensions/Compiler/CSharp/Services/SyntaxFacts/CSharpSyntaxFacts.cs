@@ -149,8 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsNamedParameter(SyntaxNode node)
-            => node.CheckParent<NameColonSyntax>(p => p.Name == node) || (node is ArgumentSyntax arg && arg.NameColon != null);
+        public bool IsNamedArgument(SyntaxNode node)
+            => node is ArgumentSyntax arg && arg.NameColon != null;
+
+        public bool IsNameOfNamedArgument(SyntaxNode node)
+            => node.CheckParent<NameColonSyntax>(p => p.Name == node);
 
         public SyntaxToken? GetNameOfParameter(SyntaxNode node)
             => (node as ParameterSyntax)?.Identifier;
