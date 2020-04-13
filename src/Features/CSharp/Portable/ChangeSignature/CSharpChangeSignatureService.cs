@@ -490,7 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 {
                     return true;
                 }
-                else if (argumentCount == methodSymbol.Parameters.Length)
+
+                if (argumentCount == methodSymbol.Parameters.Length)
                 {
                     if (lastArgumentHasNameColon)
                     {
