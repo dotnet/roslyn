@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// The DesktopAnalyzerAssemblyLoader type is only present on desktop
-#if NET472
-
 using System;
 using System.IO;
 using System.Reflection;
@@ -14,12 +11,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public sealed class DesktopAnalyzerAssemblyLoaderTests : TestBase
+    public sealed class DefaultAnalyzerAssemblyLoaderTests : TestBase
     {
         [Fact]
         public void AddDependencyLocationThrowsOnNull()
         {
-            var loader = new DesktopAnalyzerAssemblyLoader();
+            var loader = new DefaultAnalyzerAssemblyLoader();
 
             Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null));
             Assert.Throws<ArgumentException>("fullPath", () => loader.AddDependencyLocation("a"));
@@ -30,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dll");
 
-            var loader = new DesktopAnalyzerAssemblyLoader();
+            var loader = new DefaultAnalyzerAssemblyLoader();
 
             Assert.ThrowsAny<Exception>(() => loader.LoadFromPath(path));
         }
@@ -42,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
 
-            var loader = new DesktopAnalyzerAssemblyLoader();
+            var loader = new DefaultAnalyzerAssemblyLoader();
 
             Assembly alpha = loader.LoadFromPath(alphaDll.Path);
 
@@ -60,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var gammaDll = Temp.CreateDirectory().CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
             var deltaDll = Temp.CreateDirectory().CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
 
-            var loader = new DesktopAnalyzerAssemblyLoader();
+            var loader = new DefaultAnalyzerAssemblyLoader();
             loader.AddDependencyLocation(alphaDll.Path);
             loader.AddDependencyLocation(betaDll.Path);
             loader.AddDependencyLocation(gammaDll.Path);
@@ -86,5 +83,3 @@ Delta: Gamma: Beta: Test B
         }
     }
 }
-
-#endif
