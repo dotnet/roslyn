@@ -51,12 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            //var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            //var options = (CSharpParseOptions)syntaxTree.Options;
-
-            //// TODO: use CSharp9 once available.
-            //var supportsAndOrPatterns = options.LanguageVersion >= LanguageVersion.Preview;
-
             using var spansDisposer = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
             foreach (var diagnostic in diagnostics)
             {
