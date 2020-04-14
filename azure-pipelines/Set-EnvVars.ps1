@@ -24,7 +24,7 @@ if ($cmdInstructions) {
     Write-Host "Environment variables that must be set manually:" -ForegroundColor Blue
 } else {
     Write-Host "Environment variables set:" -ForegroundColor Blue
-    $envVars
+    Write-Host ($Variables | Out-String)
     if ($PrependPath) {
         Write-Host "Paths prepended to PATH: $PrependPath"
     }

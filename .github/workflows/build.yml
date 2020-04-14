@@ -35,10 +35,6 @@ jobs:
       run: |
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
-        if ($env:RUNNER_OS -eq "Windows") {
-          choco install procdump -y
-          Write-Host "##[set-env name=PROCDUMP_PATH;]$env:PROGRAMDATA\chocolatey\bin\"
-        }
       shell: pwsh
     - name: Set pipeline variables based on source
       run: azure-pipelines/variables/_pipelines.ps1
