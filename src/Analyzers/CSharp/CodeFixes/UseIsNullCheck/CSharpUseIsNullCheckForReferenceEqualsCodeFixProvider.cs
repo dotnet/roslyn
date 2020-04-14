@@ -6,6 +6,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
 
@@ -45,9 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             var parseOptions = (CSharpParseOptions)argument.SyntaxTree.Options;
 
-            // TODO: this needs to be CSharp9 once that version is available.
 #if !CODE_STYLE
-            if (parseOptions.LanguageVersion >= LanguageVersion.Preview)
+            if (parseOptions.LanguageVersion.IsCSharp9OrAbove())
             {
                 return IsPatternExpression(
                     argument,
