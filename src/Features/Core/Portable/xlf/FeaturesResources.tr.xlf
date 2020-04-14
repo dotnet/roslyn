@@ -2810,11 +2810,6 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="translated">Erişilebilirlik değiştiricileri Ekle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">Yerel işlev kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Bildirimi başvurunun yanına taşı</target>

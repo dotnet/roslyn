@@ -1126,9 +1126,6 @@ This version used in: {2}</value>
   <data name="Add_accessibility_modifiers" xml:space="preserve">
     <value>Add accessibility modifiers</value>
   </data>
-  <data name="Use_local_function" xml:space="preserve">
-    <value>Use local function</value>
-  </data>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
   </data>

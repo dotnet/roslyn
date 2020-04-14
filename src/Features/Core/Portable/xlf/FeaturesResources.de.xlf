@@ -2810,11 +2810,6 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Zugriffsmodifizierer hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">Lokale Funktion verwenden</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_declaration_near_reference">
         <source>Move declaration near reference</source>
         <target state="translated">Deklaration nahe Referenz verschieben</target>
