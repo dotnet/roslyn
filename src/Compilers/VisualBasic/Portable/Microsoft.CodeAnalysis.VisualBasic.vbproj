@@ -78,5 +78,5 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
+  <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" />
 </Project>

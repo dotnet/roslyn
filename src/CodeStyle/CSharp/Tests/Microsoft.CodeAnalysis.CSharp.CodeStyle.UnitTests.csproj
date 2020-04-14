@@ -58,5 +58,5 @@
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CoreTestUtilities\Roslyn.Services.UnitTests.Utilities.csproj" />
   </ItemGroup>
-  <Import Project="..\..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" />
 </Project>

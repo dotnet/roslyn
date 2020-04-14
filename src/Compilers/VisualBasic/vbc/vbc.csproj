@@ -36,6 +36,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
+  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" />
   <Import Project="$(RepositoryEngineeringDir)targets\DiaSymReaderNative.targets" />
 </Project>

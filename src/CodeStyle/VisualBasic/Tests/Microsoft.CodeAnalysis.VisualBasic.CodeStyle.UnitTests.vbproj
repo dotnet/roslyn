@@ -69,5 +69,5 @@
     <Import Include="System.Threading.Tasks" />
     <Import Include="Xunit" />
   </ItemGroup>
-  <Import Project="..\..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" Label="Shared" />
+  <Import Project="..\..\..\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems" />
 </Project>

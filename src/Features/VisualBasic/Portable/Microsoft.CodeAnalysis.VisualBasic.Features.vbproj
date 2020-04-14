@@ -66,7 +66,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <Import Project="..\..\..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
-  <Import Project="..\..\..\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems" Label="Shared" />
-  <Import Project="..\..\..\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems" Label="Shared" />
+  <Import Project="..\..\..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" />
+  <Import Project="..\..\..\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems" />
+  <Import Project="..\..\..\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems" />
 </Project>

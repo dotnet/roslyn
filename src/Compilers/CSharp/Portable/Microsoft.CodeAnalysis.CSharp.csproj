@@ -65,5 +65,5 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="CompilerBenchmarks" />
   </ItemGroup>
-  <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
+  <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" />
 </Project>

@@ -82,5 +82,5 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
-  <Import Project="..\ResultProvider.projitems" Label="Shared" />
+  <Import Project="..\ResultProvider.projitems" />
 </Project>

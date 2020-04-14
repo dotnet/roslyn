@@ -52,6 +52,6 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems" Label="Shared" />
-  <Import Project="..\..\..\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems" />
+  <Import Project="..\..\..\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems" />
 </Project>

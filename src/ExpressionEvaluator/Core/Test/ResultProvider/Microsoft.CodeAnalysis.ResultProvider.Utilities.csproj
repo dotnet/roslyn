@@ -83,5 +83,5 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx" Link="Resources.resx" GenerateSource="true" />
   </ItemGroup>
-  <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />
+  <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" />
 </Project>
