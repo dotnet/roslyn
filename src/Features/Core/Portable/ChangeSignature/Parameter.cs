@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             string defaultValue = "",
             bool useNamedArguments = false,
             bool isCallsiteOmitted = false,
-            bool isCallsiteError = false,
+            bool isCallsiteTodo = false,
             bool typeBinds = true)
         {
             Type = type;
@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             IsRequired = isRequired;
             DefaultValue = defaultValue;
-            IsCallsiteError = isCallsiteError;
+            IsCallsiteTodo = isCallsiteTodo;
             IsCallsiteOmitted = isCallsiteOmitted;
             UseNamedArguments = useNamedArguments;
 
-            if (IsCallsiteError)
+            if (IsCallsiteTodo)
             {
                 CallSiteValue = FeaturesResources.ChangeSignature_NewParameterIntroduceTODOVariable;
             }
@@ -77,11 +77,37 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public bool TypeBinds { get; }
         public string CallSiteValue { get; }
 
+        /// <summary>
+        /// True if required, false if optional with a default value.
+        /// </summary>
         public bool IsRequired { get; }
+
+        /// <summary>
+        /// Value to use in the declaration of an optional parameter.
+        /// E.g. the "3" in M(int x = 3);
+        /// </summary>
         public string DefaultValue { get; }
+
+        /// <summary>
+        /// When introducing an argument, this indicates whether it
+        /// should be named even if not required to be named. Often
+        /// useful for literal callsite values like "true" or "null".
+        /// </summary>
         public bool UseNamedArguments { get; }
+
+        /// <summary>
+        /// When an optional parameter is added, passing an argument for
+        /// it is not required. This indicates that the corresponding argument 
+        /// should be omitted. This often results in subsequent arguments needing
+        /// to become named arguments
+        /// </summary>
         public bool IsCallsiteOmitted { get; }
-        public bool IsCallsiteError { get; }
+
+        /// <summary>
+        /// Indicates whether a "TODO" should be introduced at callsites
+        /// to cause errors that the user can then go visit and fix up.
+        /// </summary>
+        public bool IsCallsiteTodo { get; }
 
         // For test purposes: to display assert failure details in tests.
         public override string ToString() => $"{Type.ToDisplayString(new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters))} {Name} ({CallSiteValue})";

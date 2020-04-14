@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         public string DefaultValue { get; set; }
-        public bool IsCallsiteError { get; set; }
+        public bool IsCallsiteTodo { get; set; }
         public bool IsCallsiteOmitted { get; set; }
         public bool IsCallsiteRegularValue { get; set; } = true;
 

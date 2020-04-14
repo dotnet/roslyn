@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             !SupportsOptionalAndParamsArrayParametersSimultaneously();
 
                         var isCallsiteActuallyOmitted = addedParameter.IsCallsiteOmitted && !forcedCallsiteErrorDueToParamsArray;
-                        var isCallsiteActuallyErrored = addedParameter.IsCallsiteError || forcedCallsiteErrorDueToParamsArray;
+                        var isCallsiteActuallyErrored = addedParameter.IsCallsiteTodo || forcedCallsiteErrorDueToParamsArray;
 
                         if (isCallsiteActuallyOmitted)
                         {

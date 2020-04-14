@@ -273,7 +273,7 @@ class MyClass
             Assert.True(viewModel.IsCallsiteRegularValue)
             Assert.Equal(String.Empty, viewModel.CallSiteValue)
             Assert.False(viewModel.UseNamedArguments)
-            Assert.False(viewModel.IsCallsiteError)
+            Assert.False(viewModel.IsCallsiteTodo)
             Assert.False(viewModel.IsCallsiteOmitted)
 
             Assert.False(viewModel.TrySubmit)

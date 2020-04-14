@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
             string defaultValue = "",
             bool useNamedArguments = false,
             bool isCallsiteOmitted = false,
-            bool isCallsiteError = false,
+            bool isCallsiteTodo = false,
             bool typeBinds = true)
         {
             var parameter = new AddedParameter(
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
                 defaultValue,
                 useNamedArguments,
                 isCallsiteOmitted,
-                isCallsiteError,
+                isCallsiteTodo,
                 typeBinds);
 
             return new AddedParameterOrExistingIndex(parameter, fullTypeName);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
                 _addedParameterWithoutTypeSymbol.DefaultValue,
                 _addedParameterWithoutTypeSymbol.UseNamedArguments,
                 _addedParameterWithoutTypeSymbol.IsCallsiteOmitted,
-                _addedParameterWithoutTypeSymbol.IsCallsiteError);
+                _addedParameterWithoutTypeSymbol.IsCallsiteTodo);
         }
     }
 }

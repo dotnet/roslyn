@@ -115,7 +115,7 @@
                          Grid.Column="0" 
                          GroupName="CallsiteKind" 
                          VerticalContentAlignment="Center" 
-                         IsChecked="{Binding IsCallsiteError, Mode=TwoWay}"
+                         IsChecked="{Binding IsCallsiteTodo, Mode=TwoWay}"
                          Content="{Binding ElementName=dialog, Path=IntroduceUndefinedTodoVariables}"/>
             <RadioButton x:Name="OmitArgumentRadioButton" 
                          Grid.Row="11" 

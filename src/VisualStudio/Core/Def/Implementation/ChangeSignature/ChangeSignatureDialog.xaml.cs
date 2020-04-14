@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     addParameterViewModel.DefaultValue,
                     addParameterViewModel.UseNamedArguments,
                     addParameterViewModel.IsCallsiteOmitted,
-                    addParameterViewModel.IsCallsiteError,
+                    addParameterViewModel.IsCallsiteTodo,
                     addParameterViewModel.TypeBinds);
 
                 _viewModel.AddParameter(addedParameter);
