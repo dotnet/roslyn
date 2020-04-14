@@ -1021,7 +1021,7 @@ tryAgain:
                 else if (sigReader.RemainingBytes == 0)
                 {
                     // Note: even though the PortablePDB spec permits constants of pointer types, C# does not, so those
-                    // should only ever been if the PDB being decoded is a custom-assembled PDB for non-legal C#.
+                    // should only ever be seen if the PDB being decoded is a custom-assembled PDB for non-legal C#.
                     value = (type.IsReferenceType || type.TypeKind == TypeKind.Pointer || type.TypeKind == TypeKind.FunctionPointer) ? ConstantValue.Null : ConstantValue.Bad;
                 }
                 else

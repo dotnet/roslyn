@@ -1895,5 +1895,24 @@ unsafe class C
 }
 ");
         }
+
+        [Fact]
+        public void MethodCallOnFunctionPointerTypeDoesNotCrash()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        ptr.ToString();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS1061: 'delegate*<void>' does not contain a definition for 'ToString' and no accessible extension method 'ToString' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
+                //         ptr.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("delegate*<void>", "ToString").WithLocation(6, 13)
+            );
+        }
     }
 }
