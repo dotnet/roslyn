@@ -241,10 +241,6 @@ class C{i}
     </Project>
 </Workspace>";
 
-            // Ext(this F f, int i, string s) --> Ext(this F f, string s)
-            // If a reference does not bind correctly, it will believe Ext is not an extension
-            // method and remove the string argument instead of the int argument.
-
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
                 new AddedParameterOrExistingIndex(2) };
@@ -325,10 +321,6 @@ class C{i}
             workspaceXml += @"
     </Project>
 </Workspace>";
-
-            // Ext(this F f, int i, string s) --> Ext(this F f, string s)
-            // If a reference does not bind correctly, it will believe Ext is not an extension
-            // method and remove the string argument instead of the int argument.
 
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
