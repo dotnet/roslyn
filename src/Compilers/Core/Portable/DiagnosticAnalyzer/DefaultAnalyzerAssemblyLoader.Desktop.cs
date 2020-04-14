@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !NETCOREAPP
+
 using System;
 using System.Reflection;
 using System.Threading;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// csc.exe and vbc.exe. In scenarios where support for updating or deleting
     /// the analyzer on disk is required a different loader should be used.
     /// </remarks>
-    internal class DesktopAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
+    internal class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         private int _hookedAssemblyResolve;
 
@@ -48,3 +50,5 @@ namespace Microsoft.CodeAnalysis
         }
     }
 }
+
+#endif

@@ -4,11 +4,14 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
+
+#If CODE_STYLE Then
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
     Public Class ValidateFormatStringTests

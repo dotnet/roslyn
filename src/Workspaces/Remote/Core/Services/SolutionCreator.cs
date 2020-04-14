@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,6 +17,10 @@ using System;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
+
+#if DEBUG
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+#endif
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -288,6 +291,11 @@ namespace Microsoft.CodeAnalysis.Remote
             if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectAttributes.OutputRefFilePath)
             {
                 project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetProject(projectId)!;
+            }
+
+            if (project.State.ProjectInfo.Attributes.CompilationOutputFilePaths != newProjectAttributes.CompilationOutputFilePaths)
+            {
+                project = project.Solution.WithProjectCompilationOutputFilePaths(project.Id, newProjectAttributes.CompilationOutputFilePaths).GetProject(project.Id)!;
             }
 
             if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)

@@ -9,17 +9,9 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-// The ShadowCopyAnalyzerAssemblyLoader derives from DesktopAnalyzerAssemblyLoader (NET472) OR CoreClrAnalyzerAssemblyLoader (NETCOREAPP)
-#if NET472 || NETCOREAPP
-
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class ShadowCopyAnalyzerAssemblyLoader :
-#if NET472
-        DesktopAnalyzerAssemblyLoader
-#else
-        CoreClrAnalyzerAssemblyLoader
-#endif
+    internal sealed class ShadowCopyAnalyzerAssemblyLoader : DefaultAnalyzerAssemblyLoader
     {
         /// <summary>
         /// The base directory for shadow copies. Each instance of
@@ -200,7 +192,3 @@ namespace Microsoft.CodeAnalysis
         }
     }
 }
-
-#elif !NETSTANDARD2_0
-#error unsupported configuration
-#endif

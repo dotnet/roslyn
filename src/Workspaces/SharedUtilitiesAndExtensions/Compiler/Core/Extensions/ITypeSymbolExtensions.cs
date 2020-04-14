@@ -23,7 +23,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string DefaultBuiltInParameterName = "v";
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+#if CODE_STYLE // TODO: Remove this #if once 'WithNullableAnnotation' and 'NullableAnnotation' are available in CodeStyle layer.
             => type != null && (type.IsReferenceType || type.IsNullable());
+#else
+        {
+            if (type == null)
+                return false;
+
+            var isNullableValueType = type.IsNullable();
+            var isNonNullableReferenceType = type.IsReferenceType && type.NullableAnnotation != NullableAnnotation.Annotated;
+
+            return isNullableValueType || isNonNullableReferenceType;
+        }
+#endif
 
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
         {

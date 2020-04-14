@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// This file references the DesktopAnalyzerAssemblyLoader, which is only present in desktop
-#if NET472
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -11,12 +10,10 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Test.Utilities.Desktop;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -36,48 +33,64 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 
-    public class RemoteAssert : MarshalByRefObject
-    {
-        public static RemoteAssert Instance = new RemoteAssert();
-
-        public override object InitializeLifetimeService()
-        {
-            return null;
-        }
-
-        public void True(bool value, string message)
-        {
-            Assert.True(value, message);
-        }
-    }
-
-    public class RemoteAnalyzerFileReferenceTest : MarshalByRefObject
-    {
-        private Exception _analyzerLoadException;
-
-        public override object InitializeLifetimeService()
-        {
-            return null;
-        }
-
-        public Exception LoadAnalyzer(string analyzerPath)
-        {
-            _analyzerLoadException = null;
-            var analyzerRef = new AnalyzerFileReference(analyzerPath, FromFileLoader.Instance);
-            analyzerRef.AnalyzerLoadFailed += (s, e) => _analyzerLoadException = e.Exception;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            analyzerRef.AddAnalyzers(builder, LanguageNames.CSharp);
-            return _analyzerLoadException;
-        }
-    }
-
     public class AnalyzerFileReferenceTests : TestBase
     {
-        private static readonly DesktopAnalyzerAssemblyLoader s_analyzerLoader = new DesktopAnalyzerAssemblyLoader();
+        private static readonly AnalyzerAssemblyLoader s_analyzerLoader = new DefaultAnalyzerAssemblyLoader();
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
             return new AnalyzerFileReference(fullPath, s_analyzerLoader);
+        }
+
+        [Fact]
+        public void AnalyzerFileReference_Errors()
+        {
+            Assert.Throws<ArgumentNullException>("fullPath", () => new AnalyzerFileReference(null!, s_analyzerLoader));
+            Assert.Throws<ArgumentNullException>("assemblyLoader", () => new AnalyzerFileReference(TempRoot.Root, null!));
+
+            // path must be absolute
+            Assert.Throws<ArgumentException>("fullPath", () => new AnalyzerFileReference("a.dll", s_analyzerLoader));
+        }
+
+        [Fact]
+        public void DisplayAndId_BadPath()
+        {
+            var loader = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new Exception());
+            var refBadPath = new AnalyzerFileReference(PathUtilities.CombinePathsUnchecked(TempRoot.Root, "\0<>|*.xyz"), loader);
+            Assert.Equal("\0<>|*", refBadPath.Display);
+            Assert.Equal("\0<>|*", refBadPath.Id);
+        }
+
+        [Fact]
+        public void Equality()
+        {
+            var path1 = Path.Combine(TempRoot.Root, "dir");
+            var path2 = Path.Combine(TempRoot.Root, "dir", "..", "dir");
+
+            // Equals/GetHashCode should not load the analyzer
+            var loader1 = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new InvalidOperationException());
+            var loader2 = new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new InvalidOperationException());
+
+            var refA = new AnalyzerFileReference(path1, loader1);
+            var refB = new AnalyzerFileReference(path1, loader1);
+
+            Assert.False(refA.Equals(null));
+            Assert.True(refA.Equals(refA));
+            Assert.True(refA.Equals(refB));
+            Assert.Equal(refA.GetHashCode(), refB.GetHashCode());
+
+            // paths are compared for exact equality, it's up to the host to normalize them:
+            Assert.False(refA.Equals(new AnalyzerFileReference(path2, loader1)));
+
+            // different loader:
+            Assert.False(refA.Equals(new AnalyzerFileReference(path1, loader2)));
+
+            // legacy overload:
+            Assert.True(refA.Equals((AnalyzerReference)refA));
+            Assert.False(refA.Equals((AnalyzerReference?)null));
+            Assert.True(refA!.Equals((AnalyzerReference)refB));
+            Assert.True(refA.Equals(new TestAnalyzerReference(path1)));
+            Assert.False(refA.Equals(new TestAnalyzerReference(path2)));
         }
 
         [Fact]
@@ -149,7 +162,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestLoadErrors2()
         {
-            AnalyzerFileReference reference = CreateAnalyzerFileReference("C:\\randomlocation\\random.dll");
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Path.Combine(TempRoot.Root, "random.dll"));
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
@@ -184,89 +197,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestAnalyzerLoading()
-        {
-            var dir = Temp.CreateDirectory();
-            dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
-            var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
-            var analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
-            var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
-            try
-            {
-                // Test analyzer load success.
-                var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
-                var exception = remoteTest.LoadAnalyzer(analyzerFile.Path);
-                Assert.Null(exception);
-            }
-            finally
-            {
-                AppDomain.Unload(loadDomain);
-            }
-        }
-
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/mono/mono/issues/10960")]
-        public void TestAnalyzerLoading_Error()
-        {
-            var analyzerSource = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using System.Runtime.InteropServices;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-[StructLayout(LayoutKind.Sequential, Size = 10000000)]
-public class TestAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
-    public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
-}";
-
-            var dir = Temp.CreateDirectory();
-
-            dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
-            dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
-            dir.CopyFile(typeof(Memory<>).Assembly.Location);
-            dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
-            var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
-            var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
-            var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
-
-            var analyzerCompilation = CSharp.CSharpCompilation.Create(
-                "MyAnalyzer",
-                new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
-                new MetadataReference[]
-                {
-                    TestReferences.NetStandard20.NetStandard,
-                    TestReferences.NetStandard20.SystemRuntimeRef,
-                    MetadataReference.CreateFromFile(immutable.Path),
-                    MetadataReference.CreateFromFile(analyzer.Path)
-                },
-                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-            var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
-
-            var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
-            try
-            {
-                // Test analyzer load failure.
-                var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
-                var exception = remoteTest.LoadAnalyzer(analyzerFile.Path);
-                Assert.NotNull(exception as TypeLoadException);
-            }
-            finally
-            {
-                AppDomain.Unload(loadDomain);
-            }
-        }
-
-        private static Assembly OnResolve(object sender, ResolveEventArgs e)
-        {
-            Console.WriteLine($"Resolve in {AppDomain.CurrentDomain.Id} for {e.Name}");
-            return null;
-        }
-
-        [Fact]
         [WorkItem(1029928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029928")]
         public void BadAnalyzerReference_DisplayName()
         {
@@ -296,8 +226,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
-            AssemblyIdentity expectedIdentity = null;
-            AssemblyIdentity.TryParseDisplayName("Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out expectedIdentity);
+            AssemblyIdentity.TryParseDisplayName("Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out var expectedIdentity);
 
             Assert.Equal(expected: expectedIdentity, actual: reference.Id);
         }
@@ -468,5 +397,3 @@ public class TestAnalyzer : DiagnosticAnalyzer
     [Generator]
     public class NotAGenerator { }
 }
-
-#endif

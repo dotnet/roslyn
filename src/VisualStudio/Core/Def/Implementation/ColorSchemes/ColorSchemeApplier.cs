@@ -80,7 +80,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
                 VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
-                QueueColorSchemeUpdate(themeChanged: true);
+                // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
+                // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
+                // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
+                // colors are only applicable to the Blue and Light VS themes.
+
+                // When we update the colors we also flag that this is potentially a theme change, as settings could have synced over from a
+                // different VS instance and we may need to perform additional work to default colors that match our scheme.
+                UpdateColorScheme(themeChanged: true);
             }
         }
 
