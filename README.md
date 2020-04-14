@@ -11,16 +11,25 @@
 ## Features
 
 * Follow the best and simplest patterns of build, pack and test with dotnet CLI.
-* MicroBuild signing built-in, with several more MicroBuild plugins' use streamlined for local installation.
-* Insertions to VS streamlined and automated with all inputs computed during the build and saved for the release pipeline.
+* Init script that installs prerequisites and auth helpers, supporting both non-elevation and elevation modes.
 * Static analyzers: [FxCop](https://docs.microsoft.com/en-us/visualstudio/code-quality/fxcop-analyzers?view=vs-2019) and [StyleCop](https://github.com/DotNetAnalyzers/StyleCopAnalyzers)
 * Read-only source tree (builds to top-level bin/obj folders)
 * Auto-versioning (via [Nerdbank.GitVersioning](https://github.com/aarnott/nerdbank.gitversioning))
-* Azure Pipeline via YAML with all dependencies declared for long-term serviceability.
-* Testing on .NET Framework, multiple .NET Core versions
-* Testing on Windows, Linux and OSX
-* Code coverage published to Azure Pipelines
-* Code coverage published to codecov.io so GitHub PRs get code coverage results added as a PR comment
+* Builds with a "pinned" .NET Core SDK to ensure reproducible builds across machines and across time.
+* Automatically pack the library and publish it as an artifact, and even push it to some NuGet feed for consumption.
+* Testing
+  * Testing on .NET Framework, multiple .NET Core versions
+  * Testing on Windows, Linux and OSX
+  * Tests that crash or hang in Azure Pipelines automatically collect dumps and publish as a pipeline artifact for later investigation.
+* Cloud build support:
+  * YAML based build for long-term serviceability, and PR review opportunities for any changes.
+  * Azure Pipelines and GitHub Action support
+  * Emphasis on PowerShell scripts over reliance on tasks for a more locally reproducible build.
+  * Code coverage published to Azure Pipelines
+  * Code coverage published to codecov.io so GitHub PRs get code coverage results added as a PR comment
+* MicroBuild ready
+  * MicroBuild signing built-in, with several more MicroBuild plugins' use streamlined for local installation via a switch passed to `init.ps1`.
+  * Insertions to VS streamlined and automated with all inputs computed during the build and saved for the release pipeline.
 
 ## Consumption
 
