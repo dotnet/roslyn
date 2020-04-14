@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Globalization
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_DateAndTime
@@ -87,6 +89,58 @@ class c
 
                 state.SendTypeChars("f")
                 Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExample1(showCompletionInArgumentLists As Boolean) As Task
+            Using New CultureContext(New CultureInfo("en-US", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+    <Document><![CDATA[
+using System;
+class c
+{
+    void goo(DateTime d)
+    {
+        d.ToString("hh:mm:$$");
+    }
+}
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                    state.SendInvokeCompletionList()
+                    state.SendTypeChars("ss")
+                    Await state.AssertSelectedCompletionItem("ss", inlineDescription:=FeaturesResources.second_2_digits)
+
+                    Dim description = Await state.GetSelectedItemDescriptionAsync()
+                    Assert.Contains(description.Text, "hh:mm:ss → 01:45:30")
+                    Dim text = description.Text
+                End Using
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExample2(showCompletionInArgumentLists As Boolean) As Task
+            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateCSharpTestState(
+    <Document><![CDATA[
+using System;
+class c
+{
+    void goo(DateTime d)
+    {
+        d.ToString("hh:mm:$$");
+    }
+}
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                    state.SendInvokeCompletionList()
+                    state.SendTypeChars("ss")
+                    Await state.AssertSelectedCompletionItem("ss", inlineDescription:=FeaturesResources.second_2_digits)
+
+                    Dim description = Await state.GetSelectedItemDescriptionAsync()
+                    Dim text = description.Text
+                    Assert.Contains(description.Text, "hh:mm:ss → 01:45:30")
+                End Using
             End Using
         End Function
     End Class
