@@ -18,7 +18,4 @@
     <Compile Include="$(MSBuildThisFileDirectory)PooledHashSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledStringBuilder.cs" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
-    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
-  </ItemGroup>
 </Project>

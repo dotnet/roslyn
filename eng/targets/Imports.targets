@@ -253,17 +253,6 @@
     <Warning Condition="'%(RestrictedInternalsVisibleTo.Partner)' == ''" Text="RestrictedInternalsVisibleTo items must specify the 'Partner' attribute. Target assembly: %(Identity)" />
   </Target>
 
-  <!-- Make sure expected compile items are included -->
-  <ItemGroup>
-    <UnexpectedCompileExcludes Include="@(ExpectedCompile)" Exclude="@(Compile)" />
-  </ItemGroup>
-
-  <Target Name="_CheckUnexpectedCompileExcludes"
-          BeforeTargets="Build">
-    <Warning Text="Expected source file to be included as a Compile item: %(Identity)"
-             Condition="'@(UnexpectedCompileExcludes)' != ''" />
-  </Target>
-
   <!--
     Ensure TargetFrameworkMonikerAssemblyAttributeText is treated as auto-generated
   -->

@@ -12,7 +12,4 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)VisualBasicDeclarationComputer.vb" />
   </ItemGroup>
-  <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
-    <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
-  </ItemGroup>
 </Project>
