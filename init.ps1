@@ -58,9 +58,17 @@ Param (
     [string]$AccessToken
 )
 
+$EnvVars = @{}
+
 if (!$NoPrerequisites) {
     & "$PSScriptRoot\tools\Install-NuGetCredProvider.ps1" -AccessToken $AccessToken -Force:$UpgradePrerequisites
     & "$PSScriptRoot\tools\Install-DotNetSdk.ps1" -InstallLocality $InstallLocality
+
+    # The procdump tool and env var is required for dotnet test to collect hang/crash dumps of tests.
+    # But it only works on Windows.
+    if ($env:OS -eq 'Windows_NT') {
+        $EnvVars['PROCDUMP_PATH'] = & "$PSScriptRoot\azure-pipelines\Get-ProcDump.ps1"
+    }
 }
 
 # Workaround nuget credential provider bug that causes very unreliable package restores on Azure Pipelines
@@ -79,7 +87,6 @@ try {
         }
     }
 
-    $EnvVars = @{}
     $InstallNuGetPkgScriptPath = ".\azure-pipelines\Install-NuGetPackage.ps1"
     $nugetVerbosity = 'quiet'
     if ($Verbose) { $nugetVerbosity = 'normal' }
