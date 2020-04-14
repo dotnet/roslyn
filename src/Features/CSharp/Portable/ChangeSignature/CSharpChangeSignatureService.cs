@@ -799,6 +799,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         protected override SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
         {
+            RoslynDebug.Assert(parameterSymbol.IsParams);
+
             // These arguments are part of a params array, and should not have any modifiers, making it okay to just use their expressions.
             var listOfArguments = SeparatedList(newArguments.Skip(indexInExistingList).Select(a => ((ArgumentSyntax)a).Expression), newArguments.GetSeparators().Skip(indexInExistingList));
             var initializerExpression = InitializerExpression(SyntaxKind.ArrayInitializerExpression, listOfArguments);
