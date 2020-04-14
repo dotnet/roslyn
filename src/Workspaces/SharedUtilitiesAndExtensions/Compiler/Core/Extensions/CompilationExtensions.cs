@@ -8,6 +8,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class CompilationExtensions
     {
+        /// <summary>
+        /// Gets a type by its metadata name to use for code analysis within a <see cref="Compilation"/>. This method
+        /// attempts to find the "best" symbol to use for code analysis, which is the symbol matching the first of the
+        /// following rules.
+        ///
+        /// <list type="number">
+        ///   <item><description>
+        ///     If only one type with the given name is found within the compilation and its referenced assemblies, that
+        ///     type is returned regardless of accessibility.
+        ///   </description></item>
+        ///   <item><description>
+        ///     If the current <paramref name="compilation"/> defines the symbol, that symbol is returned.
+        ///   </description></item>
+        ///   <item><description>
+        ///     If exactly one referenced assembly defines the symbol in a manner that makes it visible to the current
+        ///     <paramref name="compilation"/>, that symbol is returned.
+        ///   </description></item>
+        ///   <item><description>
+        ///     Otherwise, this method returns <see langword="null"/>.
+        ///   </description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="compilation">The <see cref="Compilation"/> to consider for analysis.</param>
+        /// <param name="fullyQualifiedMetadataName">The fully-qualified metadata type name to find.</param>
+        /// <returns>The symbol to use for code analysis; otherwise, <see langword="null"/>.</returns>
         public static INamedTypeSymbol? GetBestTypeByMetadataName(this Compilation compilation, string fullyQualifiedMetadataName)
         {
             // Try to get the unique type with this name, ignoring accessibility
