@@ -10,12 +10,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\Placeholders.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CSharpFormatter.TypeNames.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CSharpFormatter.Values.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CSharpFormatter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CSharpResultProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" Exclude="$(MSBuildThisFileDirectory)NetFX20\**\*;$(MSBuildThisFileDirectory)Portable\**\*" Link="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
     <VsdConfigXmlFiles Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml">

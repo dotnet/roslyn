@@ -10,6 +10,6 @@
     <Import_RootNamespace>BasicAnalyzerDriver</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)VisualBasicDeclarationComputer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" Link="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>
