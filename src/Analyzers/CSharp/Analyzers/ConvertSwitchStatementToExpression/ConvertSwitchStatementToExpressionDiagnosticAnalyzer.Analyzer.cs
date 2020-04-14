@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     return false;
                 }
 
-                // We might have stuff like:
+                // If any of the cases have when-clauses, like so:
                 //
                 //  case ... when Goo():
                 //  case ... when Bar():
