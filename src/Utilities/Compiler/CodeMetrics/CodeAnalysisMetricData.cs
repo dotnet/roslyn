@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             return ComputeAsync(symbol, semanticModelProvider, cancellationToken);
         }
 
-        internal async static Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
+        internal static async Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, SemanticModelProvider semanticModelProvider, CancellationToken cancellationToken)
         {
             return symbol.Kind switch
             {

@@ -33,7 +33,7 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool Inherits([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)]  ITypeSymbol? possibleBase)
+        public static bool Inherits([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)] ITypeSymbol? possibleBase)
         {
             if (type == null || possibleBase == null)
             {

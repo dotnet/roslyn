@@ -92,7 +92,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasConstantValue(this IOperation operation, long comparand)
         {
-            return operation.HasConstantValue(unchecked((ulong)(comparand)));
+            return operation.HasConstantValue(unchecked((ulong)comparand));
         }
 
         public static bool HasConstantValue(this IOperation operation, ulong comparand)
@@ -459,7 +459,7 @@ namespace Analyzer.Utilities.Extensions
                     // Attribute blocks have OperationKind.None, but ControlFlowGraph.Create does not
                     // have an overload for such operation roots.
                     // Gracefully return null for this case and fire an assert for any other OperationKind.
-                    Debug.Assert(operation.Kind == OperationKind.None, $"Unexpected root operation kind: {operation.Kind.ToString()}");
+                    Debug.Assert(operation.Kind == OperationKind.None, $"Unexpected root operation kind: {operation.Kind}");
                     return null;
             }
         }

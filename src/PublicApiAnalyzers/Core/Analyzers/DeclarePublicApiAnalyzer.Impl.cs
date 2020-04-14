@@ -421,21 +421,21 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 string publicApiName = symbol.ToDisplayString(s_publicApiFormat);
 
                 ITypeSymbol? memberType = null;
-                if (symbol is IMethodSymbol)
+                if (symbol is IMethodSymbol method)
                 {
-                    memberType = ((IMethodSymbol)symbol).ReturnType;
+                    memberType = method.ReturnType;
                 }
-                else if (symbol is IPropertySymbol)
+                else if (symbol is IPropertySymbol property)
                 {
-                    memberType = ((IPropertySymbol)symbol).Type;
+                    memberType = property.Type;
                 }
-                else if (symbol is IEventSymbol)
+                else if (symbol is IEventSymbol @event)
                 {
-                    memberType = ((IEventSymbol)symbol).Type;
+                    memberType = @event.Type;
                 }
-                else if (symbol is IFieldSymbol)
+                else if (symbol is IFieldSymbol field)
                 {
-                    memberType = ((IFieldSymbol)symbol).Type;
+                    memberType = field.Type;
                 }
 
                 if (memberType != null)
