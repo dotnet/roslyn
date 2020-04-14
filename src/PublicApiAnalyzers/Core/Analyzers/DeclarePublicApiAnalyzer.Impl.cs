@@ -770,8 +770,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// </summary>
             private sealed class ObliviousDetector : SymbolVisitor<bool>
             {
-                public readonly static ObliviousDetector IgnoreTopLevelNullabilityInstance = new ObliviousDetector(ignoreTopLevelNullability: true);
-                public readonly static ObliviousDetector Instance = new ObliviousDetector(ignoreTopLevelNullability: false);
+                public static readonly ObliviousDetector IgnoreTopLevelNullabilityInstance = new ObliviousDetector(ignoreTopLevelNullability: true);
+                public static readonly ObliviousDetector Instance = new ObliviousDetector(ignoreTopLevelNullability: false);
 
                 private readonly bool _ignoreTopLevelNullability;
 
