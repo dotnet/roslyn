@@ -1495,7 +1495,7 @@ unsafe class C
             foreach (var invocation in invocations)
             {
                 var type = model.GetTypeInfo(invocation).Type;
-                Assert.Equal("?", type!.ToTestDisplayString());
+                Assert.True(type!.IsErrorType());
             }
         }
 
@@ -1506,8 +1506,12 @@ unsafe class C
 using System;
 unsafe class C
 {
-    static void Print() => Console.WriteLine(""Print"");
-    delegate*<void> GetPtr()
+    static string Print()
+    {
+        Console.WriteLine(""Print"");
+        return string.Empty;
+    }
+    delegate*<string> GetPtr()
     {
         Console.WriteLine(""GetPtr"");
         return &Print;
@@ -1516,34 +1520,32 @@ unsafe class C
     static void Main()
     {
         C c = new C();
-        c?.GetPtr()();
+        c?.GetPtr();
         c = null;
-        c?.GetPtr()();
+        c?.GetPtr();
     }
 }", options: TestOptions.UnsafeReleaseExe);
 
-            var verifier = CompileAndVerifyFunctionPointers(comp, expectedOutput: @"
-GetPtr
-Print");
+            var verifier = CompileAndVerifyFunctionPointers(comp, expectedOutput: "GetPtr");
             verifier.VerifyIL("C.Main", expectedIL: @"
 {
-  // Code size       38 (0x26)
+  // Code size       30 (0x1e)
   .maxstack  2
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_000b
   IL_0008:  pop
-  IL_0009:  br.s       IL_0015
-  IL_000b:  call       ""delegate*<void> C.GetPtr()""
-  IL_0010:  calli      ""delegate*<void>""
-  IL_0015:  ldnull
-  IL_0016:  dup
-  IL_0017:  brtrue.s   IL_001b
-  IL_0019:  pop
-  IL_001a:  ret
-  IL_001b:  call       ""delegate*<void> C.GetPtr()""
-  IL_0020:  calli      ""delegate*<void>""
-  IL_0025:  ret
+  IL_0009:  br.s       IL_0011
+  IL_000b:  call       ""delegate*<string> C.GetPtr()""
+  IL_0010:  pop
+  IL_0011:  ldnull
+  IL_0012:  dup
+  IL_0013:  brtrue.s   IL_0017
+  IL_0015:  pop
+  IL_0016:  ret
+  IL_0017:  call       ""delegate*<string> C.GetPtr()""
+  IL_001c:  pop
+  IL_001d:  ret
 }
 ");
 
@@ -1868,7 +1870,7 @@ unsafe class C
     }
 }", options: TestOptions.UnsafeReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            var verifier = CompileAndVerify(comp, expectedOutput: "True", verify: Verification.Skipped);
 
             verifier.VerifyIL("C.Main", expectedIL: @"
 {

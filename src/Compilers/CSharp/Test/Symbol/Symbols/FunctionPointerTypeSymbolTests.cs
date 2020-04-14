@@ -985,7 +985,30 @@ unsafe static class C
             comp.VerifyDiagnostics(
                 // (6,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
                 //         var a = new { Ptr = ptr };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptr = ptr").WithArguments("delegate*<void>").WithLocation(6, 23)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptr = ptr").WithArguments("delegate*<void>").WithLocation(6, 23),
+                // (7,23): error CS0828: Cannot assign 'delegate*<void>[]' to anonymous type property
+                //         var b = new { Ptrs = new[] { ptr } };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptrs = new[] { ptr }").WithArguments("delegate*<void>[]").WithLocation(7, 23)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeAsArgToIterator()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+using System.Collections.Generic;
+unsafe class C
+{
+    IEnumerable<int> Iterator(delegate*<void> i)
+    {
+        yield return 1;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (5,47): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     IEnumerable<int> Iterator(delegate*<void> i)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(5, 47)
             );
         }
     }
