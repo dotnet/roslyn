@@ -3,7 +3,7 @@
             Type="Project"
             xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
   <TemplateData>
-    <Name>Stand-Alone Code Analysis Tool</Name>
+    <Name>Standalone Code Analysis Tool</Name>
     <Description>Create a code analysis command-line application</Description>
     <Icon>CodeAnalysisConsole.ico</Icon>
     <ProjectType>VisualBasic</ProjectType>
