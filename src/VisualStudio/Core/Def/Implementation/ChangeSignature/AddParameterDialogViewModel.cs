@@ -51,29 +51,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public string CallSiteValue { get; set; }
 
-        private SymbolDisplayFormat _symbolDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_symbolDisplayFormat = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         public ITypeSymbol? TypeSymbol { get; set; }
 
-        public string? TypeName
-        {
-            get
-            {
-                return TypeSymbol?.ToDisplayString(_symbolDisplayFormat);
-            }
-        }
+        public string? TypeName => TypeSymbol?.ToDisplayString(s_symbolDisplayFormat);
 
         public bool TypeBinds => !TypeSymbol!.IsErrorType();
 
         private bool _isRequired;
         public bool IsRequired
         {
-            get
-            {
-                return _isRequired;
-            }
+            get => _isRequired;
             set
             {
                 if (SetProperty(ref _isRequired, value))
@@ -94,10 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public bool IsOptional
         {
-            get
-            {
-                return !_isRequired;
-            }
+            get => !_isRequired;
             set
             {
                 if (_isRequired == value)
