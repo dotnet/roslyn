@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         where TExpressionSyntax : SyntaxNode
     {
         /// <summary>
-        /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix, but logs telemetry 
+        /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix,
+        /// but logs telemetry 
         /// </summary>
         private const int MaximumConversionOptions = 3;
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
-        // First title is for single option, second title is for multiple options
         protected abstract string GetDescription(CodeFixContext context, SemanticModel semanticModel,
             SyntaxNode? targetNode = null, ITypeSymbol? conversionType = null);
 
@@ -99,27 +99,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             }
         }
 
-        protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode, ITypeSymbol conversionType);
+        protected abstract SyntaxNode ApplyFix(SyntaxNode currentRoot, TExpressionSyntax targetNode,
+            ITypeSymbol conversionType);
 
         private static Task<Document> ApplySingleConversionToDocumentAsync(Document document, SyntaxNode currentRoot)
             => Task.FromResult(document.WithSyntaxRoot(currentRoot));
 
         /// <summary>
-        /// Output the current type information of the target node and the conversion type(s) that the target node is going to be cast by.
-        /// Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation
+        /// Output the current type information of the target node and the conversion type(s) that the target node is 
+        /// going to be cast by.
+        /// Implicit downcast can appear on Variable Declaration, Return Statement, Function Invocation, Attrbute
         /// <para/>
         /// For example:
         /// Base b; Derived d = [||]b;       
-        /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
+        /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by
+        /// is {Derived}
         /// </summary>
+        /// <param name="diagnosticId">The Id of diagonostic</param>
+        /// <param name="spanNode">the innermost node that contains the span</param>
         /// <param name="potentialConversionTypes"> Output (target expression, potential conversion type) pairs</param>
         /// <returns>
         /// True, if there is at least one potential conversion pair, and they are assigned to "potentialConversionTypes"
         /// False, if there is no potential conversion pair.
         /// </returns>
-        protected abstract bool TryGetTargetTypeInfo(Document document,
-            SemanticModel semanticModel, SyntaxNode root, string diagnosticId, TExpressionSyntax spanNode,
-            CancellationToken cancellationToken, out ImmutableArray<Tuple<TExpressionSyntax, ITypeSymbol>> potentialConversionTypes);
+        protected abstract bool TryGetTargetTypeInfo(Document document, SemanticModel semanticModel, SyntaxNode root,
+            string diagnosticId, TExpressionSyntax spanNode, CancellationToken cancellationToken,
+            out ImmutableArray<Tuple<TExpressionSyntax, ITypeSymbol>> potentialConversionTypes);
 
         protected abstract bool IsObjectCreationExpression(TExpressionSyntax targetNode);
 
@@ -165,8 +170,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
         protected abstract string? TryGetName(SyntaxNode argument);
 
-        protected abstract void SortConversionTypes(SemanticModel semanticModel, ArrayBuilder<Tuple<TExpressionSyntax, ITypeSymbol>> conversionTypes, SyntaxNode argumentList);
-
         /// <summary>
         /// Test if all argument types can be converted to corresponding parameter types.
         /// </summary>
@@ -194,9 +197,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// if "spanArgument" is not null. Otherwise the value is *the first argument* that need to be cast in the 
         /// invocation expression</param>
         /// <param name="targetArgumentConversionType"> Output the corresponding parameter type of
-        /// the target arugment if function returns true</param>
+        /// "targetArgument" if function returns true</param>
         /// <returns>
-        /// True, if arguments and parameters match perfectly. <paramref name="targetArgumentConversionType"/> Output the corresponding parameter type
+        /// True, if arguments and parameters match perfectly.
+        /// "targetArgumentConversionType" outputs the corresponding parameter type of "targetArgument"
         /// False, otherwise.
         /// </returns>
         private bool CanArgumentTypesBeConvertedToParameterTypes(
@@ -217,7 +221,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
             for (var i = 0; i < arguments.Count; i++)
             {
-                // Parameter index cannot out of its range, #arguments is larger than #parameter only if the last parameter with keyword params
+                // Parameter index cannot out of its range, #arguments is larger than #parameter only if 
+                // the last parameter with keyword params
                 var parameterIndex = Math.Min(i, parameters.Length - 1);
 
                 // If the argument has a name, get the corresponding parameter index
@@ -242,20 +247,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     && ClassifyConversionExists(semanticModel, argumentExpression, paramsType.ElementType))
                 {
                     newArguments.Add(GenerateNewArgument(arguments[i], paramsType.ElementType));
-
-                    if (targetArgument is null && !IsConversionIdentity(semanticModel, argumentExpression, paramsType.ElementType))
-                        targetArgument = arguments[i];
-                    if (arguments[i].Equals(targetArgument))
-                        targetArgumentConversionType = paramsType.ElementType;
+                    FindTargetArgumentAndConversionType(semanticModel, arguments[i], argumentExpression,
+                        paramsType.ElementType, ref targetArgument, ref targetArgumentConversionType);
                 }
                 else if (ClassifyConversionExists(semanticModel, argumentExpression, parameterType))
                 {
                     newArguments.Add(GenerateNewArgument(arguments[i], parameterType));
-
-                    if (targetArgument is null && !IsConversionIdentity(semanticModel, argumentExpression, parameterType))
-                        targetArgument = arguments[i];
-                    if (arguments[i].Equals(targetArgument))
-                        targetArgumentConversionType = parameterType;
+                    FindTargetArgumentAndConversionType(semanticModel, arguments[i], argumentExpression, parameterType,
+                        ref targetArgument, ref targetArgumentConversionType);
                 }
                 else if (IsDeclarationExpression(argumentExpression)
                     && semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type is ITypeSymbol argumentType
@@ -280,6 +279,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
             return targetArgumentConversionType != null && targetArgument != null
                 && IsInvocationExpressionWithNewArgumentsApplicable(semanticModel, root, argumentList, newArguments, targetArgument);
+
+            void FindTargetArgumentAndConversionType(SemanticModel semanticModel, SyntaxNode argument,
+                TExpressionSyntax argumentExpression, ITypeSymbol conversionType, ref SyntaxNode? targetArgument,
+                ref ITypeSymbol? targetArgumentConversionType)
+            {
+                if (targetArgument is null && !IsConversionIdentity(semanticModel, argumentExpression, conversionType))
+                    targetArgument = argument;
+                if (argument.Equals(targetArgument))
+                    targetArgumentConversionType = conversionType;
+            }
         }
 
         protected abstract SyntaxNode GenerateNewArgumentList(
@@ -299,8 +308,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             SemanticModel semanticModel, SyntaxNode root, SyntaxNode oldArgumentList,
             List<SyntaxNode> newArguments, SyntaxNode targetNode);
 
+        /// <summary>
+        /// Collect all the available cast pairs, format is (target argument expression, potential conversion type)
+        /// </summary>
+        /// <param name="spanArgument"> The argument that contains the span, could be null when the span is 
+        /// on invocation identifier name, i.e. BC30518, BC30519 in VB .NET</param>
+        /// <param name="argumentList"> The argument list that contains the target argument to be cast </param>
+        /// <param name="invocationNode"> The invocation node that is the parent of "argumentList"</param>
+        /// <returns>
+        /// Return all the available cast pairs, format is (target argument expression, potential conversion type)
+        /// </returns>
         protected ImmutableArray<Tuple<TExpressionSyntax, ITypeSymbol>> GetPotentialConversionTypes(
-                SemanticModel semanticModel, SyntaxNode root, SyntaxNode? spanNode,
+                SemanticModel semanticModel, SyntaxNode root, SyntaxNode? spanArgument,
                 SyntaxNode argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
         {
             // Implicit downcast appears on the argument of invocation node,
@@ -315,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
             {
                 if (CanArgumentTypesBeConvertedToParameterTypes(
-                        semanticModel, root, argumentList, candidateSymbol.Parameters, spanNode,
+                        semanticModel, root, argumentList, candidateSymbol.Parameters, spanArgument,
                         cancellationToken, out var targetArgument, out var targetArgumentConversionType)
                     && GetArgumentExpression(targetArgument) is TExpressionSyntax argumentExpression)
                 {
@@ -325,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
             // Sort the potential conversion types by inheritance distance, so that
             // operations are in order and user can choose least specific types(more accurate)
-            SortConversionTypes(semanticModel, mutablePotentialConversionTypes, argumentList);
+            mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer<TExpressionSyntax>(semanticModel));
 
             return mutablePotentialConversionTypes.ToImmutable();
         }
@@ -350,17 +369,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var targetNodes = diagnostics.SelectAsArray(
+            var spanNodes = diagnostics.SelectAsArray(
                 d => root.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true)
                          .GetAncestorsOrThis<TExpressionSyntax>().FirstOrDefault());
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
-                document, targetNodes,
-                (semanticModel, targetNode) => true,
-                (semanticModel, currentRoot, targetNode) =>
+                document, spanNodes,
+                (semanticModel, spanNode) => true,
+                (semanticModel, currentRoot, spanNode) =>
                 {
                     // All diagnostics have the same error code
-                    if (TryGetTargetTypeInfo(document, semanticModel, currentRoot, diagnostics[0].Id, targetNode,
+                    if (TryGetTargetTypeInfo(document, semanticModel, currentRoot, diagnostics[0].Id, spanNode,
                         cancellationToken, out var potentialConversionTypes)
                         && potentialConversionTypes.Length == 1)
                     {

@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         End Property
 
 
-        Protected Overrides Function GetDescription(context As CodeFixContext, semanticModel As SemanticModel, Optional targetNode As SyntaxNode = Nothing,
-                Optional conversionType As ITypeSymbol = Nothing) As String
+        Protected Overrides Function GetDescription(context As CodeFixContext, semanticModel As SemanticModel,
+                Optional targetNode As SyntaxNode = Nothing, Optional conversionType As ITypeSymbol = Nothing) As String
             If targetNode IsNot Nothing Then
                 Return String.Format(
                     VBFeaturesResources.Cast_0_to_1, targetNode.GetText(),
@@ -57,8 +57,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Return newRoot
         End Function
 
-        Protected Overrides Function TryGetTargetTypeInfo(document As Document, semanticModel As SemanticModel, root As SyntaxNode,
-                diagnosticId As String, spanNode As ExpressionSyntax, cancellationToken As CancellationToken,
+        Protected Overrides Function TryGetTargetTypeInfo(document As Document, semanticModel As SemanticModel,
+                root As SyntaxNode, diagnosticId As String, spanNode As ExpressionSyntax,
+                cancellationToken As CancellationToken,
                 ByRef potentialConversionTypes As ImmutableArray(Of Tuple(Of ExpressionSyntax, ITypeSymbol))) As Boolean
             potentialConversionTypes = ImmutableArray(Of Tuple(Of ExpressionSyntax, ITypeSymbol)).Empty
 
@@ -72,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         ' spanNode is an argument expression
                         Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
                         Dim invocationNode = argumentList.Parent
+
                         mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
                             argument, argumentList, invocationNode, cancellationToken))
                     Else
@@ -81,10 +83,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, conversionType))
                     End If
                 Case BC30518, BC30519
-                    Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(Function(node As ExpressionSyntax) Not node.ChildNodes().OfType(Of ArgumentListSyntax).IsEmpty())
+                    Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(
+                        Function(node) Not node.ChildNodes.OfType(Of ArgumentListSyntax).IsEmpty())
                     Dim argumentList = invocationNode.ChildNodes.OfType(Of ArgumentListSyntax).FirstOrDefault()
+
+                    ' spanArgument is null because the span is on the invocation identifier name according to BC30519
                     mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
-                        Nothing, argumentList, invocationNode, cancellationToken))
+                        spanArgument:=Nothing, argumentList, invocationNode, cancellationToken))
             End Select
 
             ' clear up duplicate types
@@ -107,7 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         End Function
 
         Protected Overrides Function GetArguments(argumentList As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
-            Return If(TryCast(argumentList, ArgumentListSyntax)?.Arguments, SyntaxFactory.SeparatedList(Of ArgumentSyntax)())
+            Return If(TryCast(argumentList, ArgumentListSyntax)?.Arguments,
+                SyntaxFactory.SeparatedList(Of ArgumentSyntax)())
         End Function
 
         Protected Overrides Function GenerateNewArgument(
@@ -137,19 +143,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 Nothing)
         End Function
 
-        Protected Overrides Sub SortConversionTypes(semanticModel As SemanticModel,
-                conversionTypes As ArrayBuilder(Of Tuple(Of ExpressionSyntax, ITypeSymbol)), argumentList As SyntaxNode)
-            conversionTypes.Sort(New InheritanceDistanceComparer(Of ExpressionSyntax, ArgumentSyntax)(
-                semanticModel, GetArguments(argumentList)))
-        End Sub
-
         Protected Overrides Function GenerateNewArgumentList(
                 oldArgumentList As SyntaxNode, newArguments As List(Of SyntaxNode)) As SyntaxNode
             Return If(TryCast(oldArgumentList, ArgumentListSyntax)?.WithArguments(SyntaxFactory.SeparatedList(newArguments)),
                 oldArgumentList)
         End Function
 
-        Protected Overrides Function IsConversionUserDefined(semanticModel As SemanticModel, expression As ExpressionSyntax, type As ITypeSymbol) As Boolean
+        Protected Overrides Function IsConversionUserDefined(semanticModel As SemanticModel,
+                expression As ExpressionSyntax, type As ITypeSymbol) As Boolean
             Return semanticModel.ClassifyConversion(expression, type).IsUserDefined
         End Function
 

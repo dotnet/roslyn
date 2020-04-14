@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
             return CSharpFeaturesResources.Add_explicit_cast;
         }
-        protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+        protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode,
+            ITypeSymbol conversionType)
         {
             // TODO:
             // the Simplifier doesn't remove the redundant cast from the expression
@@ -76,8 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         {
             potentialConversionTypes = ImmutableArray<Tuple<ExpressionSyntax, ITypeSymbol>>.Empty;
 
-            // The error happens either on an assignement operation or on an invocation expression.
-            // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
             using var _ = ArrayBuilder<Tuple<ExpressionSyntax, ITypeSymbol>>.GetInstance(out var mutablePotentialConversionTypes);
             if (diagnosticId == CS0266)
             {
@@ -89,19 +88,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
             else if (diagnosticId == CS1503)
             {
-                if (spanNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+                if (spanNode.GetAncestorOrThis<ArgumentSyntax>() is ArgumentSyntax targetArgument
                     && targetArgument.Parent is ArgumentListSyntax argumentList
                     && argumentList.Parent is SyntaxNode invocationNode)
                 {
-                    // invocation node could be Invocation Expression, Object Creation, Base Constructor...)
+                    // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
                     mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
                     targetArgument, argumentList, invocationNode, cancellationToken));
                 }
-                else if (spanNode.GetAncestorsOrThis<AttributeArgumentSyntax>()
-                    .FirstOrDefault() is AttributeArgumentSyntax targetAttributeArgument
+                else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
                     && targetAttributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList
                     && attributeArgumentList.Parent is SyntaxNode attributeNode)
                 {
+                    // attribute node
                     mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
                     targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
                 }
@@ -173,21 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                 return attributeArgument.NameColon?.Name.Identifier.ValueText;
             }
             return null;
-        }
-
-        protected override void SortConversionTypes(SemanticModel semanticModel,
-            ArrayBuilder<Tuple<ExpressionSyntax, ITypeSymbol>> conversionTypes, SyntaxNode argumentList)
-        {
-            if (argumentList is ArgumentListSyntax normalArgumentList)
-            {
-                conversionTypes.Sort(new InheritanceDistanceComparer<ExpressionSyntax, ArgumentSyntax>(
-                    semanticModel, normalArgumentList.Arguments));
-            }
-            else if (argumentList is AttributeArgumentListSyntax attributeArgumentList)
-            {
-                conversionTypes.Sort(new InheritanceDistanceComparer<ExpressionSyntax, AttributeArgumentSyntax>(
-                    semanticModel, attributeArgumentList.Arguments));
-            }
         }
 
         protected override SyntaxNode GenerateNewArgumentList(

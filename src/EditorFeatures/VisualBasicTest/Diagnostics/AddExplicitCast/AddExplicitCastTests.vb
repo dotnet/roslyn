@@ -2884,7 +2884,7 @@ Class Program
         Inherits Derived
     End Class
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+    Private Sub Foo(ByRef d As Derived, ByVal s As String, ByVal i As Integer)
     End Sub
 
     Private Sub Foo(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
@@ -2895,7 +2895,7 @@ Class Program
 
     Private Sub M()
         Dim b As Base = New Base()
-        [|Foo("""", i:=1, d:=b)|]
+        [|Foo(s:="""", i:=1, d:=b)|]
     End Sub
 End Class"
 
@@ -2920,7 +2920,7 @@ Class Program
         Inherits Derived
     End Class
 
-    Private Sub Foo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+    Private Sub Foo(ByRef d As Derived, ByVal s As String, ByVal i As Integer)
     End Sub
 
     Private Sub Foo(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
@@ -2931,7 +2931,7 @@ Class Program
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo("""", i:=1, d:=CType(b, {0}))
+        Foo(s:="""", i:=1, d:=CType(b, {0}))
     End Sub
 End Class"
 

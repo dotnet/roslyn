@@ -12,8 +12,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
     /// <summary>
-    /// Sort types by inheritance distance from the base type in ascending order, i.e., less specific type 
-    /// has higher priority because it has less probability to make mistakes
+    /// The item is the pair of target argument expression and its conversion type
+    /// <para/>
+    /// Sort pairs using conversion types by inheritance distance from the base type in ascending order,
+    /// i.e., less specific type has higher priority because it has less probability to make mistakes
     /// <para/>
     /// For example:
     /// class Base { }
@@ -33,18 +35,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
     /// 'Derived1' is less specific than 'Derived2' compared to 'Base'
     /// </summary>
     internal sealed class InheritanceDistanceComparer<
-        TExpressionSyntax,
-        TArgumentSyntax> : IComparer<Tuple<TExpressionSyntax, ITypeSymbol>>
+        TExpressionSyntax> : IComparer<Tuple<TExpressionSyntax, ITypeSymbol>>
         where TExpressionSyntax : SyntaxNode
-        where TArgumentSyntax : SyntaxNode
     {
-        private readonly SeparatedSyntaxList<TArgumentSyntax> _arguments;
         private readonly SemanticModel _semanticModel;
 
-        public InheritanceDistanceComparer(SemanticModel semanticModel, SeparatedSyntaxList<TArgumentSyntax> arguments)
+        public InheritanceDistanceComparer(SemanticModel semanticModel)
         {
             _semanticModel = semanticModel;
-            _arguments = arguments;
         }
 
         public int Compare(Tuple<TExpressionSyntax, ITypeSymbol>? x, Tuple<TExpressionSyntax, ITypeSymbol>? y)
@@ -54,11 +52,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             else if (y is null)
                 return 1;
 
+            // if the argument is different, keep the original order
             if (!x.Item1.Equals(y.Item1))
             {
-                var argumentX = x.Item1.GetAncestorsOrThis<TArgumentSyntax>().FirstOrDefault();
-                var argumentY = y.Item1.GetAncestorsOrThis<TArgumentSyntax>().FirstOrDefault();
-                return _arguments.IndexOf(argumentX).CompareTo(_arguments.IndexOf(argumentY));
+                return 0;
             }
             else
             {
