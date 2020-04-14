@@ -223,11 +223,24 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         </encLambdaMap>
       </customDebugInfo>
     </method>
-    <method containingType=""Driver"" name=""Main"">
+    <method containingType=""TestCase"" name="".cctor"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""3"" />
         </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""33"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x7"">
+        <namespace name=""System"" />
+        <namespace name=""System.Threading"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
+    </method>
+    <method containingType=""Driver"" name=""Main"">
+      <customDebugInfo>
+        <forward declaringType=""TestCase"" methodName="".cctor"" />
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""21"" offset=""0"" />
@@ -242,15 +255,12 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0x21"" startLine=""36"" startColumn=""5"" endLine=""36"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x23"">
-        <namespace name=""System"" />
-        <namespace name=""System.Threading"" />
-        <namespace name=""System.Threading.Tasks"" />
         <local name=""t"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
       </scope>
     </method>
     <method containingType=""Driver"" name="".cctor"">
       <customDebugInfo>
-        <forward declaringType=""Driver"" methodName=""Main"" />
+        <forward declaringType=""TestCase"" methodName="".cctor"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""35"" document=""1"" />
@@ -264,7 +274,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
     </method>
     <method containingType=""TestCase+&lt;Run&gt;d__1"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""Driver"" methodName=""Main"" />
+        <forward declaringType=""TestCase"" methodName="".cctor"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x0"" endOffset=""0x12f"" />
           <slot startOffset=""0x0"" endOffset=""0x12f"" />
@@ -302,7 +312,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
     </method>
     <method containingType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""Driver"" methodName=""Main"" />
+        <forward declaringType=""TestCase"" methodName="".cctor"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""86"" />
           <slot kind=""20"" offset=""86"" />

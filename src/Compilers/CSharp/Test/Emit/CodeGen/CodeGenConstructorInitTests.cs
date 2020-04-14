@@ -704,7 +704,61 @@ class C
 
     static object obj = null!;
 }";
-            CompileAndVerify(source).VerifyIL("C..cctor()", "");
+            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_07()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static string x;
+
+    static C()
+    {
+        x = null!;
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  stsfld     ""string C.x""
+  IL_0006:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_08()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static string x;
+    static string y;
+
+    static C()
+    {
+        (x, y) = (null!, null!);
+    }
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  stsfld     ""string C.x""
+  IL_0006:  ldnull
+  IL_0007:  stsfld     ""string C.y""
+  IL_000c:  ret
+}
+");
         }
     }
 }

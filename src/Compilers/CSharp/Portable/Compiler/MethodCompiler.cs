@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -1229,63 +1230,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        if (methodSymbol.MethodKind != MethodKind.StaticConstructor || !isEmptyBody(boundStatements))
+                        CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+
+                        var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+
+                        var emittedBody = GenerateMethodBody(
+                            _moduleBeingBuiltOpt,
+                            methodSymbol,
+                            methodOrdinal,
+                            boundBody,
+                            lambdaDebugInfoBuilder.ToImmutable(),
+                            closureDebugInfoBuilder.ToImmutable(),
+                            stateMachineTypeOpt,
+                            lazyVariableSlotAllocator,
+                            diagsForCurrentMethod,
+                            _debugDocumentProvider,
+                            importChain,
+                            _emittingPdb,
+                            _emitTestCoverageData,
+                            dynamicAnalysisSpans,
+                            entryPointOpt: null);
+
+                        if (methodSymbol.MethodKind != MethodKind.StaticConstructor || !ImmutableArray.Create((byte)ILOpCode.Ret).SequenceEqual(emittedBody.IL))
                         {
-                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
-
-                            var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
-
-                            var emittedBody = GenerateMethodBody(
-                                _moduleBeingBuiltOpt,
-                                methodSymbol,
-                                methodOrdinal,
-                                boundBody,
-                                lambdaDebugInfoBuilder.ToImmutable(),
-                                closureDebugInfoBuilder.ToImmutable(),
-                                stateMachineTypeOpt,
-                                lazyVariableSlotAllocator,
-                                diagsForCurrentMethod,
-                                _debugDocumentProvider,
-                                importChain,
-                                _emittingPdb,
-                                _emitTestCoverageData,
-                                dynamicAnalysisSpans,
-                                entryPointOpt: null);
-
                             _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
-                        }
-
-                        // check if lowering produced only a block containing a return statement.
-                        static bool isEmptyBody(ImmutableArray<BoundStatement> boundStatements)
-                        {
-                            Debug.Assert(boundStatements.Length != 0);
-
-                            if (boundStatements.Length > 1)
-                            {
-                                return false;
-                            }
-
-                            if (!(boundStatements[0] is BoundBlock { Statements: var innerStatements }))
-                            {
-                                return false;
-                            }
-
-                            return innerStatements.All(isReturnOrSequencePoint);
-
-                            static bool isReturnOrSequencePoint(BoundStatement statement)
-                            {
-                                switch (statement)
-                                {
-                                    case BoundReturnStatement { ExpressionOpt: null }:
-                                        return true;
-                                    case BoundSequencePointWithSpan { StatementOpt: null }:
-                                        return true;
-                                    case BoundSequencePointWithSpan { StatementOpt: BoundReturnStatement { ExpressionOpt: null } }:
-                                        return true;
-                                    default:
-                                        return false;
-                                }
-                            }
                         }
                     }
 
@@ -1541,7 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We will only save the IL builders when running tests.
-                if (moduleBuilder.SaveTestData)
+                if (moduleBuilder.SaveTestData && (method.MethodKind != MethodKind.StaticConstructor || !ImmutableArray.Create((byte)ILOpCode.Ret).SequenceEqual(builder.RealizedIL)))
                 {
                     moduleBuilder.SetMethodTestData(method, builder.GetSnapshot());
                 }

@@ -9313,6 +9313,14 @@ expectedIL: @"{
         </scope>
       </scope>
     </method>
+    <method containingType=""Program"" name="".cctor"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+    </method>
   </methods>
 </symbols>");
         }

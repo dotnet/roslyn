@@ -557,6 +557,7 @@ internal class SomeAttribute : Attribute
 
     static SomeAttribute()
     {
+        Console.WriteLine();
     }
 
     internal void F()

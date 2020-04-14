@@ -2599,7 +2599,7 @@ class C
 {
     int x = 1;
 
-    static C() { }
+    static C() { Console.WriteLine(); }
 
     void M1() { Console.WriteLine(1); }
 
@@ -2612,7 +2612,7 @@ class D
 {
     int x = 1;
 
-    static D() { }
+    static D() { Console.WriteLine(); }
 
     void M1() { Console.WriteLine(1); }
 
