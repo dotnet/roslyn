@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public static ParameterConfiguration Create(ImmutableArray<Parameter> parameters, bool isExtensionMethod, int selectedIndex)
         {
-            var parametersList = parameters.ToList()!;
+            var parametersList = parameters.ToList();
             ExistingParameter? thisParameter = null;
             var parametersWithoutDefaultValues = ArrayBuilder<Parameter>.GetInstance();
             var remainingReorderableParameters = ArrayBuilder<Parameter>.GetInstance();
