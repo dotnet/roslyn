@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,8 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 
     public class ConvertSwitchStatementToExpressionTests
     {
-        // TODO: Use actual CSharp9 version once available.
-        private static readonly LanguageVersion CSharp9 = LanguageVersion.Preview;
+        private static readonly LanguageVersion CSharp9 = LanguageVersionExtensions.CSharp9;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public void TestStandardProperties()

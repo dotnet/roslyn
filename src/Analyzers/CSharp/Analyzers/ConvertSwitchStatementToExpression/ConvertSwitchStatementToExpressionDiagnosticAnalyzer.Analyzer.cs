@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -33,8 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 out bool shouldRemoveNextStatement)
             {
                 var parseOptions = (CSharpParseOptions)semanticModel.SyntaxTree.Options;
-                // TODO: use CSharp9 version once available.
-                var analyzer = new Analyzer(supportsOrPatterns: parseOptions.LanguageVersion >= LanguageVersion.Preview);
+                var analyzer = new Analyzer(supportsOrPatterns: parseOptions.LanguageVersion.IsCSharp9OrAbove());
                 var nodeToGenerate = analyzer.AnalyzeSwitchStatement(node, out shouldRemoveNextStatement);
 
                 if (nodeToGenerate == SyntaxKind.SimpleAssignmentExpression &&
