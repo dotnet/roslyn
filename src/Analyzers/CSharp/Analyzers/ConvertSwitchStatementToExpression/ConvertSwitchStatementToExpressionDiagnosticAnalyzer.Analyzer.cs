@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 //  case ... when Goo():
                 //  case ... when Bar():
                 //
-                // This cannot be converted into a single pattern.
+                // Then we can't convert into a single arm.
                 foreach (var label in labels)
                 {
                     if (label is CasePatternSwitchLabelSyntax casePattern &&
