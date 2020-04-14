@@ -181,7 +181,7 @@ namespace Analyzer.Utilities
         public const string SystemIOCompressionZipFileExtensions = "System.IO.Compression.ZipFileExtensions";
         public const string SystemIODirectory = "System.IO.Directory";
         public const string SystemIODirectoryInfo = "System.IO.DirectoryInfo";
-        public const string SystemIOFileFullName = "System.IO.File";
+        public const string SystemIOFile = "System.IO.File";
         public const string SystemIOFileInfo = "System.IO.FileInfo";
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOLogLogStore = "System.IO.Log.LogStore";

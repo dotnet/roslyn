@@ -3678,7 +3678,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return builder.ToImmutableAndFree();
         }
 
-        private protected bool IsDisposable([NotNullWhen(returnValue: true)]ITypeSymbol? type)
+        private protected bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)
             => type != null && type.IsDisposable(IDisposableNamedType, IAsyncDisposableNamedType);
 
         private protected DisposeMethodKind GetDisposeMethodKind(IMethodSymbol method)
