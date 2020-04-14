@@ -24,5 +24,4 @@ steps:
 
 - script: dotnet build
   displayName: dotnet build (expanded template)
-  workingDirectory: src
   condition: and(succeeded(), ne(variables['Agent.OS'], 'Windows_NT'))

@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 <#
 .SYNOPSIS
     Downloads and installs the Microsoft Artifacts Credential Provider
