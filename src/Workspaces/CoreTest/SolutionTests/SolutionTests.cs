@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -551,6 +550,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputRefFilePath(null!, "x.dll"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectOutputRefFilePath(ProjectId.CreateNewId(), "x.dll"));
+        }
+
+        [Fact]
+        public void WithProjectCompilationOutputFilePaths()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var path = "\0<>a/b/*.dll";
+
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectCompilationOutputFilePaths(projectId, value),
+                s => s.GetProject(projectId)!.CompilationOutputFilePaths,
+                new CompilationOutputFilePaths(path),
+                defaultThrows: false);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputFilePaths(null!, new CompilationOutputFilePaths("x.dll")));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputFilePaths(ProjectId.CreateNewId(), new CompilationOutputFilePaths("x.dll")));
         }
 
         [Fact]

@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     this.CheckConstraintTypeConstraints(diagnostics);
                     this.CheckUnmanagedConstraint(diagnostics);
-                    this.CheckNullableAnnotationsInConstraints(diagnostics);
+                    this.EnsureAttributesFromConstraints(diagnostics);
                     this.AddDeclarationDiagnostics(diagnostics);
                     _state.NotePartComplete(CompletionPart.TypeParameterConstraints);
                 }
@@ -297,12 +297,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return modifyCompilation;
         }
 
-        private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
+        private void EnsureAttributesFromConstraints(DiagnosticBag diagnostics)
         {
+            if (ConstraintTypesNoUseSiteDiagnostics.Any(t => t.ContainsNativeInteger()))
+            {
+                DeclaringCompilation.EnsureNativeIntegerAttributeExists(diagnostics, getLocation(), ModifyCompilationForAttributeEmbedding());
+            }
             if (ConstraintsNeedNullableAttribute())
             {
-                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, getLocation(), ModifyCompilationForAttributeEmbedding());
             }
+            Location getLocation() => this.GetNonNullSyntaxNode().Location;
         }
 
         // See https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
