@@ -601,9 +601,6 @@
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>
   </data>
-  <data name="Unknown" xml:space="preserve">
-    <value>Unknown</value>
-  </data>
   <data name="Extract_local_function" xml:space="preserve">
     <value>Extract local function</value>
   </data>
@@ -1125,9 +1122,6 @@ This version used in: {2}</value>
   </data>
   <data name="Add_accessibility_modifiers" xml:space="preserve">
     <value>Add accessibility modifiers</value>
-  </data>
-  <data name="Use_local_function" xml:space="preserve">
-    <value>Use local function</value>
   </data>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
