@@ -500,22 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Throw ExceptionUtilities.UnexpectedValue(node.Kind())
             End If
 
-            Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
-            If methodSymbol IsNot Nothing AndAlso methodSymbol.Parameters.LastOrDefault()?.IsParams Then
-                If argumentCount > methodSymbol.Parameters.Length Then
-                    Return True
-                ElseIf argumentCount = methodSymbol.Parameters.Length Then
-                    If lastArgumentIsNamed Then
-                        Return True
-                    Else
-                        Dim fromType = semanticModel.GetTypeInfo(lastArgumentExpression, cancellationToken)
-                        Dim toType = methodSymbol.Parameters.Last().Type
-                        Return Not semanticModel.Compilation.HasImplicitConversion(fromType.Type, toType)
-                    End If
-                End If
-            End If
-
-            Return False
+            Return IsParamsArrayExpandedHelper(symbolInfo.Symbol, argumentCount, lastArgumentIsNamed, semanticModel, lastArgumentExpression, cancellationToken)
         End Function
 
         Private Sub GetArgumentListDetails(

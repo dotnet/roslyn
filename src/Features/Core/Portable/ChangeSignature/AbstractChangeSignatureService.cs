@@ -970,5 +970,32 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return updatedLeadingTrivia.ToImmutable();
         }
+
+        protected bool IsParamsArrayExpandedHelper(ISymbol symbol, int argumentCount, bool lastArgumentIsNamed, SemanticModel semanticModel, SyntaxNode lastArgumentExpression, CancellationToken cancellationToken)
+        {
+            if (symbol is IMethodSymbol methodSymbol && methodSymbol.Parameters.LastOrDefault()?.IsParams == true)
+            {
+                if (argumentCount > methodSymbol.Parameters.Length)
+                {
+                    return true;
+                }
+
+                if (argumentCount == methodSymbol.Parameters.Length)
+                {
+                    if (lastArgumentIsNamed)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        var fromType = semanticModel.GetTypeInfo(lastArgumentExpression, cancellationToken);
+                        var toType = methodSymbol.Parameters.Last().Type;
+                        return !semanticModel.Compilation.HasImplicitConversion(fromType.Type, toType);
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }

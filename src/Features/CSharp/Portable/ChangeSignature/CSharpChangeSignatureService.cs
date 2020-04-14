@@ -541,29 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 lastArgumentExpression = argumentList.Arguments.LastOrDefault()?.Expression;
             }
 
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.Parameters.LastOrDefault()?.IsParams == true)
-            {
-                if (argumentCount > methodSymbol.Parameters.Length)
-                {
-                    return true;
-                }
-
-                if (argumentCount == methodSymbol.Parameters.Length)
-                {
-                    if (lastArgumentIsNamed)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        var fromType = semanticModel.GetTypeInfo(lastArgumentExpression, cancellationToken);
-                        var toType = methodSymbol.Parameters.Last().Type;
-                        return !semanticModel.Compilation.HasImplicitConversion(fromType.Type, toType);
-                    }
-                }
-            }
-
-            return false;
+            return IsParamsArrayExpandedHelper(symbolInfo.Symbol, argumentCount, lastArgumentIsNamed, semanticModel, lastArgumentExpression, cancellationToken);
         }
 
         private static ParameterSyntax CreateNewParameterSyntax(AddedParameter addedParameter)
