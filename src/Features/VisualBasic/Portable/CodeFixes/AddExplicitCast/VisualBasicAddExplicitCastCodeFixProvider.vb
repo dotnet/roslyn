@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                     Dim argument = spanNode.GetAncestors(Of ArgumentSyntax).FirstOrDefault()
                     If argument IsNot Nothing AndAlso argument.GetExpression.Equals(spanNode) Then
                         ' spanNode is an argument expression
-                        Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
+                        Dim argumentList = argument.GetAncestorOrThis(Of ArgumentListSyntax)
                         Dim invocationNode = argumentList.Parent
 
                         mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         End Function
 
         Protected Overrides Function GetArgumentExpression(argument As SyntaxNode) As ExpressionSyntax
-            Return TryCast(argument, ArgumentSyntax).GetExpression()
+            Return TryCast(argument, ArgumentSyntax)?.GetExpression()
         End Function
 
         Protected Overrides Function IsDeclarationExpression(expression As ExpressionSyntax) As Boolean
