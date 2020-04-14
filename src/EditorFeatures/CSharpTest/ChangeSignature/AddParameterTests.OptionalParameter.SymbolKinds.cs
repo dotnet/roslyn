@@ -102,6 +102,7 @@ class MyAttribute : System.Attribute
                 AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", isRequired: false, defaultValue: "12", callSiteValue: "102")};
 
             // TODO: The = in the attribute is a bug. You cannot specify that the attribute should use : instead in the SyntaxGenerator
+            // https://github.com/dotnet/roslyn/issues/43354
             var updatedCode = @"
 [My(1, 100, z = 102)]
 class MyAttribute : System.Attribute
