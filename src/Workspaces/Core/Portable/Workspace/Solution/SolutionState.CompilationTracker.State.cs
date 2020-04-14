@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis
                     var result = new ConditionalWeakTable<ISymbol, object?>();
 
                     var compAssembly = compilation.Assembly;
-                    result.Add(compAssembly, compAssembly);
+                    result.Add(compAssembly, null);
 
                     foreach (var reference in compilation.References)
                     {
