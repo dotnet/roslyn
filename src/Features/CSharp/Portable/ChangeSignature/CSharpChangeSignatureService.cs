@@ -811,7 +811,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         protected override SyntaxNode AddNameToArgument(SyntaxNode newArgument, string name)
         {
-            return ((ArgumentSyntax)newArgument).WithNameColon(NameColon(name));
+            return newArgument switch
+            {
+                ArgumentSyntax a => a.WithNameColon(NameColon(name)),
+                AttributeArgumentSyntax a => a.WithNameColon(NameColon(name)),
+                _ => throw ExceptionUtilities.UnexpectedValue(newArgument.Kind())
+            };
         }
 
         protected override SyntaxNode CreateExplicitParamsArrayFromIndividualArguments(SeparatedSyntaxList<SyntaxNode> newArguments, int indexInExistingList, IParameterSymbol parameterSymbol)
