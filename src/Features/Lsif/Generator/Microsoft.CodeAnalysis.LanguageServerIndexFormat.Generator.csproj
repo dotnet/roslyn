@@ -4,7 +4,7 @@
   <PropertyGroup>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.Lsif.Generator</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFramework>net472</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -69,6 +69,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Lsif.Generator.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests" />
   </ItemGroup>
 </Project>

@@ -5,7 +5,7 @@
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
     /// Represents an ID of a vertex or edge.

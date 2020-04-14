@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
     /// Represents a single item that points to a range from a result. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#request-textdocumentreferences

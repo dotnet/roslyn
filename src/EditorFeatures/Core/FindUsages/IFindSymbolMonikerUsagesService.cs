@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServiceIndexFormat;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;

@@ -4,11 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.LanguageServiceIndexFormat;
-using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
-using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking
 {
     internal sealed class SymbolHoldingResultSetTracker : IResultSetTracker
     {

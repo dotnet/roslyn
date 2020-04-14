@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServiceIndexFormat;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;

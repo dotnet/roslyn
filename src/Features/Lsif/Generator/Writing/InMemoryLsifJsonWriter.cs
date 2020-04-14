@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.Writing
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 {
     internal sealed class InMemoryLsifJsonWriter : ILsifJsonWriter
     {

@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
     /// Represents an event. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#events for further details.

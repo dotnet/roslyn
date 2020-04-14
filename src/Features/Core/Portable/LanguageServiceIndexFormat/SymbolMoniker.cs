@@ -6,7 +6,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.LanguageServiceIndexFormat
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat
 {
     internal sealed class SymbolMoniker
     {

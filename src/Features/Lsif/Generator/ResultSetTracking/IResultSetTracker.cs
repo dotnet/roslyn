@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking
 {
     /// <summary>
     /// An object that tracks a mapping from symbols to the result sets that have information about those symbols.

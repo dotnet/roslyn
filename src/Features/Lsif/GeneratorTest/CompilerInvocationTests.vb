@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
+Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     <UseExportProvider>
     Public Class CompilerInvocationTests
         <Fact>
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
             ' PortableExecutableReference.CreateFromFile implicitly reads the file so the file must exist.
             Dim referencePath = GetType(Object).Assembly.Location
 
-            Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG /reference:" + referencePath.Replace("\", "\\") + " Z:\\SourceFile.cs /target:library /out:Z:\\Output.dll"",
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
             ' PortableExecutableReference.CreateFromFile implicitly reads the file so the file must exist.
             Dim referencePath = GetType(Object).Assembly.Location
 
-            Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""vbc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG /reference:" + referencePath.Replace("\", "\\") + " Z:\\SourceFile.vb /target:library /out:Z:\\Output.dll"",
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
         <Theory>
         <CombinatorialData>
         Public Async Sub TestSourceFilePathMappingWithDriveLetters(<CombinatorialValues("F:", "F:\")> from As String, <CombinatorialValues("F:", "F:\")> [to] As String)
-            Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\SourceFile.cs /target:library /out:F:\\Output.dll"",
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
 
         <Fact>
         Public Async Sub TestSourceFilePathMappingWithDriveLetterOnly()
-            Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\SourceFile.cs /target:library /out:F:\\Output.dll"",
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
 
         <Fact>
         Public Async Sub TestSourceFilePathMappingWithSubdirectoriesWithoutTrailingSlashes()
-            Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\Directory\\SourceFile.cs /target:library /out:F:\\Output.dll"",
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
 
         <Fact>
         Public Async Sub TestSourceFilePathMappingWithSubdirectoriesWithDoubleSlashesInFilePath()
-            Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\Directory\\\\SourceFile.cs /target:library /out:F:\\Output.dll"",
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
                 ruleSet.WriteAllText(RuleSetContents)
 
                 ' We will test that if we redirect the ruleset to the temporary file that we wrote that the values are still read.
-                Dim compilerInvocation = Await Microsoft.CodeAnalysis.Lsif.Generator.CompilerInvocation.CreateFromJsonAsync("
+                Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                     {
                         ""tool"": ""csc"",
                         ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG /ruleset:F:\\Ruleset.ruleset /out:Output.dll"",

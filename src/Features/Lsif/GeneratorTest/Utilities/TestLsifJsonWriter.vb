@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
-Imports Microsoft.CodeAnalysis.Lsif.Generator.Writing
+Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
+Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 
-Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
+Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     ''' <summary>
     ''' A implementation of <see cref="ILsifJsonWriter" /> for use in unit tests. It does additional validation of the
     ''' correctness of the output, And stores the entire output And offers useful helpers to inspect the result.
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
         ''' <summary>
         ''' Returns all the vertices linked to the given vertex by the edge type.
         ''' </summary>
-        Public Function GetLinkedVertices(Of T As Vertex)(vertex As LsifGraph.Vertex, edgeLabel As String) As ImmutableArray(Of T)
+        Public Function GetLinkedVertices(Of T As Vertex)(vertex As Graph.Vertex, edgeLabel As String) As ImmutableArray(Of T)
             Dim builder = ImmutableArray.CreateBuilder(Of T)
 
             Dim edges As List(Of Edge) = Nothing

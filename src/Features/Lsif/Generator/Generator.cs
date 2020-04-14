@@ -8,12 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
-using Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking;
-using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
     internal sealed class Generator
     {
@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
         public async Task GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices)
         {
-            var projectVertex = new LsifGraph.Project(kind: GetLanguageKind(compilation.Language), new Uri(projectPath));
+            var projectVertex = new Graph.Project(kind: GetLanguageKind(compilation.Language), new Uri(projectPath));
             _lsifJsonWriter.Write(projectVertex);
             _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId()));
 
-            var documentIds = new List<Id<LsifGraph.Document>>();
+            var documentIds = new List<Id<Graph.Document>>();
 
             // We create a ResultSetTracker to track all top-level symbols in the project. We don't want all writes to immediately go to
             // the JSON file once we support parallel processing, so we'll accumulate them and then apply at once.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             _lsifJsonWriter.Write(new Event(Event.EventKind.End, projectVertex.GetId()));
         }
 
-        private static Task<Id<LsifGraph.Document>> GenerateForDocument(
+        private static Task<Id<Graph.Document>> GenerateForDocument(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
             IResultSetTracker topLevelSymbolsResultSetTracker,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
 
-            var documentVertex = new LsifGraph.Document(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language));
+            var documentVertex = new Graph.Document(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language));
 
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId()));
@@ -100,15 +100,15 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             });
 
             // We will walk the file token-by-token, making a range for each one and then attaching information for it
-            var rangeVertices = new List<Id<LsifGraph.Range>>();
+            var rangeVertices = new List<Id<Graph.Range>>();
 
             foreach (var syntaxToken in syntaxTree.GetRoot().DescendantTokens(descendIntoTrivia: true))
             {
                 // We'll only create the Range vertex once it's needed, but any number of bits of code might create it first,
                 // so we'll just make it Lazy.
-                var lazyRangeVertex = new Lazy<LsifGraph.Range>(() =>
+                var lazyRangeVertex = new Lazy<Graph.Range>(() =>
                 {
-                    var rangeVertex = LsifGraph.Range.FromTextSpan(syntaxToken.Span, sourceText);
+                    var rangeVertex = Graph.Range.FromTextSpan(syntaxToken.Span, sourceText);
 
                     lsifJsonWriter.Write(rangeVertex);
                     rangeVertices.Add(rangeVertex.GetId());

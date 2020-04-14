@@ -4,11 +4,11 @@
 
 using System;
 using System.IO;
-using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.Writing
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 {
     internal sealed class TextLsifJsonWriter : ILsifJsonWriter, IDisposable
     {

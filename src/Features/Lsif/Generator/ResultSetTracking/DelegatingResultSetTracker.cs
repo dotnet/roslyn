@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking
 {
     internal sealed class DelegatingResultSetTracker : IResultSetTracker
     {

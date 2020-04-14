@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
     internal static class Utilities
     {

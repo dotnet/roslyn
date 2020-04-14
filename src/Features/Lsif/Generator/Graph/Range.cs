@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     internal sealed class Range : Vertex
     {

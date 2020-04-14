@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
     /// Represents an edge from one vertex to another.

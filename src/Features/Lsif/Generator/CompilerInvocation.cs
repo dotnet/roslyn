@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
     internal class CompilerInvocation
     {

@@ -4,7 +4,7 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.LanguageServiceIndexFormat;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat;
 using VS.IntelliNav.Contracts;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages

@@ -4,9 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
+Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 
-Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
+Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
         Private ReadOnly _testLsifJsonWriter As TestLsifJsonWriter
         Private ReadOnly _workspace As TestWorkspace
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
         ''' <summary>
         ''' Returns all the vertices linked to the given vertex by the edge type.
         ''' </summary>
-        Public Function GetLinkedVertices(Of T As Vertex)(vertex As LsifGraph.Vertex, edgeLabel As String) As ImmutableArray(Of T)
+        Public Function GetLinkedVertices(Of T As Vertex)(vertex As Graph.Vertex, edgeLabel As String) As ImmutableArray(Of T)
             Return _testLsifJsonWriter.GetLinkedVertices(Of T)(vertex, edgeLabel)
         End Function
 
@@ -48,14 +48,14 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
         ''' <summary>
         ''' Returns the <see cref="Range" /> vertex in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
         ''' </summary>
-        Public Async Function GetSelectedRangeAsync() As Task(Of LsifGraph.Range)
+        Public Async Function GetSelectedRangeAsync() As Task(Of Graph.Range)
             Dim selectedTestDocument = _workspace.Documents.Single(Function(d) d.SelectedSpans.Any())
             Dim selectedDocument = _workspace.CurrentSolution.GetDocument(selectedTestDocument.Id)
             Dim selectionTextSpan = selectedTestDocument.SelectedSpans.Single()
             Dim selectionRange = Range.FromTextSpan(selectionTextSpan, Await selectedDocument.GetTextAsync())
 
             Dim documentVertex = _testLsifJsonWriter.Vertices _
-                                                    .OfType(Of LsifGraph.Document) _
+                                                    .OfType(Of Graph.Document) _
                                                     .Where(Function(d) d.Uri.LocalPath = selectedDocument.FilePath) _
                                                     .Single()
 

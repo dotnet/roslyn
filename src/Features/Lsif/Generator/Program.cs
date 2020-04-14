@@ -12,10 +12,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
+using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace Microsoft.CodeAnalysis.Lsif.Generator
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
     internal static class Program
     {

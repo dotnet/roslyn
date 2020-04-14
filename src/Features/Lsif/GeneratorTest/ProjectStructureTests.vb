@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
+Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     <UseExportProvider>
     Public NotInheritable Class ProjectStructureTests
         <Fact>
@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
                         </Project>
                     </Workspace>))
 
-            Dim projectVertex = Assert.Single(lsif.Vertices.OfType(Of LsifGraph.Project))
-            Dim documentVertices = lsif.GetLinkedVertices(Of LsifGraph.Document)(projectVertex, "contains")
+            Dim projectVertex = Assert.Single(lsif.Vertices.OfType(Of Graph.Project))
+            Dim documentVertices = lsif.GetLinkedVertices(Of Graph.Document)(projectVertex, "contains")
 
             Assert.Single(documentVertices, Function(d) d.Uri.LocalPath = "Z:\A.cs")
             Assert.Single(documentVertices, Function(d) d.Uri.LocalPath = "Z:\B.cs")
