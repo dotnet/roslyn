@@ -999,16 +999,24 @@ unsafe static class C
 using System.Collections.Generic;
 unsafe class C
 {
-    IEnumerable<int> Iterator(delegate*<void> i)
+    IEnumerable<int> Iterator1(delegate*<void> i)
+    {
+        yield return 1;
+    }
+
+    IEnumerable<int> Iterator2(delegate*<void>[] i)
     {
         yield return 1;
     }
 }");
 
             comp.VerifyDiagnostics(
-                // (5,47): error CS1637: Iterators cannot have unsafe parameters or yield types
-                //     IEnumerable<int> Iterator(delegate*<void> i)
-                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(5, 47)
+                // (5,48): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     IEnumerable<int> Iterator1(delegate*<void> i)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(5, 48),
+                // (10,50): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     IEnumerable<int> Iterator2(delegate*<void>[] i)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(10, 50)
             );
         }
     }
