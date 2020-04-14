@@ -28,7 +28,7 @@
         <Grid Grid.Row="0" Name="Table">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -44,7 +44,7 @@
             <TextBox x:Name="TypeContentControl" 
                      Grid.Row="1" 
                      Margin="0,5,0,5" 
-                     MinHeight="19"
+                     MinHeight="17"
                      Text="{Binding VerbatimTypeName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabelName}"/>
             <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,5,0,5">
