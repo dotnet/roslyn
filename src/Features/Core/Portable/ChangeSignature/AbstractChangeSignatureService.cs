@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         definitionToUse[originalNode],
                         potentiallyUpdatedNode,
                         originalNode,
-                        CreateCompensatingSignatureChange(definitionToUse[originalNode], options.UpdatedSignature),
+                        UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(definitionToUse[originalNode], options.UpdatedSignature),
                         cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                 });
 
@@ -570,7 +570,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return newArguments.ToImmutableAndFree();
         }
 
-        private static SignatureChange CreateCompensatingSignatureChange(ISymbol declarationSymbol, SignatureChange updatedSignature)
+        /// <summary>
+        /// Sometimes signature changes can cascade from a declaration with m parameters to one with n > m parameters, such as
+        /// delegate Invoke methods (m) and delegate BeginInvoke methods (n = m + 2). This method adds on those extra parameters
+        /// to the base <see cref="SignatureChange"/>.
+        /// </summary>
+        private static SignatureChange UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             if (declarationSymbol.GetParameters().Length > updatedSignature.OriginalConfiguration.ToListOfParameters().Length)
             {
@@ -580,12 +585,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var realParameters = declarationSymbol.GetParameters();
                 var bonusParameters = realParameters.Skip(originalConfigurationParameters.Length);
 
-                var compensatedOriginalConfigurationParameters = originalConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
-                var compensatedUpdatedConfigurationParameters = updatedConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
+                var originalConfigurationParametersWithExtraParameters = originalConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
+                var updatedConfigurationParametersWithExtraParameters = updatedConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
 
-                var newOriginalParameters = ParameterConfiguration.Create(compensatedOriginalConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
-                var newUpdatedParams = ParameterConfiguration.Create(compensatedUpdatedConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
-                updatedSignature = new SignatureChange(newOriginalParameters, newUpdatedParams);
+                updatedSignature = new SignatureChange(
+                    ParameterConfiguration.Create(originalConfigurationParametersWithExtraParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0),
+                    ParameterConfiguration.Create(updatedConfigurationParametersWithExtraParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0));
             }
 
             return updatedSignature;
