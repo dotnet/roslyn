@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions
     {
         // https://github.com/dotnet/roslyn/issues/43348
         //
-        // This method should be removed when LanguageVersion.CSharp9 is available, and all callers should just
+        // This value should be removed when LanguageVersion.CSharp9 is available, and all callers should just
         // reference that constant instead.
         public static LanguageVersion CSharp9 => LanguageVersion.Preview;
 
