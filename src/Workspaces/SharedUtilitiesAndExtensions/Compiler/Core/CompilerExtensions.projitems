@@ -45,124 +45,46 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs" Link="Serialization\ObjectReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs" Link="Serialization\ObjectWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
-      <Link>Collections\ArrayBuilderExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\Boxes.cs">
-      <Link>Collections\Boxes.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs">
-      <Link>Collections\OrderPreservingMultiDictionary.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
-      <Link>EncodedStringText.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
-      <Link>FileSystem\RelativePathResolver.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\AssemblyIdentityUtils.cs">
-      <Link>InternalUtilities\AssemblyIdentityUtils.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs">
-      <Link>InternalUtilities\BitArithmeticUtilities.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ArrayExtensions.cs">
-      <Link>InternalUtilities\ArrayExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerOptionParseUtilities.cs">
-      <Link>InternalUtilities\CompilerOptionParseUtilities.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentSet.cs">
-      <Link>InternalUtilities\ConcurrentSet.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConsList`1.cs">
-      <Link>InternalUtilities\ConsList`1.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs">
-      <Link>InternalUtilities\DecimalUtilities.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs">
-      <Link>InternalUtilities\DocumentationCommentXmlNames.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EncodingExtensions.cs">
-      <Link>InternalUtilities\EncodingExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs">
-      <Link>InternalUtilities\EnumUtilties.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
-      <Link>InternalUtilities\FailFast.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
-      <Link>InternalUtilities\FatalError.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
-      <Link>InternalUtilities\FileNameUtilities.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
-      <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs">
-      <Link>InternalUtilities\Index.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ISetExtensions.cs">
-      <Link>InternalUtilities\ISetExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\MultiDictionary.cs">
-      <Link>InternalUtilities\MultiDictionary.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\OrderedMultiDictionary.cs">
-      <Link>InternalUtilities\OrderedMultiDictionary.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SetWithInsertionOrder.cs">
-      <Link>InternalUtilities\SetWithInsertionOrder.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs">
-      <Link>FileSystem\PathKind.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\OneOrMany.cs">
-      <Link>InternalUtilities\OneOrMany.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildFromSource)' == 'true'">
-      <Link>InternalUtilities\PerformanceSensitiveAttribute.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs">
-      <Link>InternalUtilities\PlatformInformation.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs">
-      <Link>InternalUtilities\Range.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReaderWriterLockSlimExtensions.cs">
-      <Link>InternalUtilities\ReaderWriterLockSlimExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
-      <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StackGuard.cs">
-      <Link>InternalUtilities\StackGuard.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
-      <Link>InternalUtilities\StreamExtensions.cs</Link>
-    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Collections\ArrayBuilderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\Boxes.cs" Link="Collections\Boxes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs" Link="Collections\OrderPreservingMultiDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\EncodedStringText.cs" Link="EncodedStringText.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs" Link="FileSystem\RelativePathResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\AssemblyIdentityUtils.cs" Link="InternalUtilities\AssemblyIdentityUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs" Link="InternalUtilities\BitArithmeticUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ArrayExtensions.cs" Link="InternalUtilities\ArrayExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" Link="InternalUtilities\CompilerOptionParseUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentSet.cs" Link="InternalUtilities\ConcurrentSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ConsList`1.cs" Link="InternalUtilities\ConsList`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\DecimalUtilities.cs" Link="InternalUtilities\DecimalUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\DocumentationCommentXmlNames.cs" Link="InternalUtilities\DocumentationCommentXmlNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EncodingExtensions.cs" Link="InternalUtilities\EncodingExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs" Link="InternalUtilities\EnumUtilties.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs" Link="InternalUtilities\FailFast.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="InternalUtilities\FatalError.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="InternalUtilities\FileNameUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs" Link="InternalUtilities\ImmutableListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs" Link="InternalUtilities\Index.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ISetExtensions.cs" Link="InternalUtilities\ISetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\MultiDictionary.cs" Link="InternalUtilities\MultiDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\OrderedMultiDictionary.cs" Link="InternalUtilities\OrderedMultiDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SetWithInsertionOrder.cs" Link="InternalUtilities\SetWithInsertionOrder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="FileSystem\PathKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\OneOrMany.cs" Link="InternalUtilities\OneOrMany.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="InternalUtilities\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" Link="InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs" Link="InternalUtilities\Range.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReaderWriterLockSlimExtensions.cs" Link="InternalUtilities\ReaderWriterLockSlimExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="InternalUtilities\SemaphoreSlimExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StackGuard.cs" Link="InternalUtilities\StackGuard.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs" Link="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StringTable.cs" Link="InternalUtilities\StringTable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs">
-      <Link>InternalUtilities\TextChangeRangeExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\WeakReferenceExtensions.cs">
-      <Link>InternalUtilities\WeakReferenceExtensions.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs">
-      <Link>FileSystem\FileUtilities.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs">
-      <Link>FileSystem\PathUtilities.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
-      <Link>InternalUtilities\ReflectionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
-      <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
-    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs" Link="InternalUtilities\TextChangeRangeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\WeakReferenceExtensions.cs" Link="InternalUtilities\WeakReferenceExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="FileSystem\FileUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="FileSystem\PathUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs" Link="InternalUtilities\ReflectionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" Link="InternalUtilities\UnicodeCharacterUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" Link="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
