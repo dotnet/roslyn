@@ -68,14 +68,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
-        public void ArrayMethodParameters()
-        {
+		public void ArrayMethodParameters()
+		{
             var result = s_formatter.FormatMethodSignature(Signatures.Arrays);
             Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(int[], int[,], int[,,])", result);
         }
-
-        [Fact]
-        public void ArrayOfInt32_NoMembers()
+		[Fact]
+        public void AnonymousType()
+        {
+            string anon = s_formatter.FormatObject(new { X = 1, Y = 2 });
+            if (anon.StartsWith('\\'))
+            {
+                anon = anon.Substring(1);
+            }
+            Assert.Equal("{ X = 1, Y = 2 }", anon);
+        }        
+		[Fact]
+		public void ArrayOfInt32_NoMembers()
         {
             object o = new int[4] { 3, 4, 5, 6 };
             var str = s_formatter.FormatObject(o, HiddenOptions);
