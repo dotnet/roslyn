@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await VerifySynchronizationObjectInServiceAsync(snapshotService, solutionSyncObject).ConfigureAwait(false);
 
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
 
             var projectsSyncObject = await snapshot.GetRemotableDataAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet);
 
             var projectSyncObject = await snapshot.GetRemotableDataAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await VerifySynchronizationObjectInServiceAsync(snapshotService, syncObject).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await VerifySynchronizationObjectInServiceAsync(snapshotService, syncObject).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
 
@@ -465,20 +465,15 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             using var workspace = new AdhocWorkspace(hostServices);
             var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
 
-            var assetBuilder = new CustomAssetBuilder(workspace);
-            var asset = assetBuilder.Build(reference, CancellationToken.None);
+            var serializer = workspace.Services.GetService<ISerializerService>();
+
+            var asset = WorkspaceAnalyzerReferenceAsset.Create(reference, serializer, CancellationToken.None);
 
             // verify checksum from custom asset builder uses different checksum than regular one
-            var service = workspace.Services.GetService<IReferenceSerializationService>();
             var expectedChecksum = Checksum.Create(
                 WellKnownSynchronizationKind.AnalyzerReference,
-                service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None));
+                serializer.CreateChecksum(reference, CancellationToken.None));
             Assert.Equal(expectedChecksum, asset.Checksum);
-
-            // verify usePathFromAssembly return different checksum for same reference
-            var fromFilePath = service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None);
-            var fromAssembly = service.CreateChecksum(reference, usePathFromAssembly: true, CancellationToken.None);
-            Assert.NotEqual(fromFilePath, fromAssembly);
         }
 
         [Fact]
@@ -681,7 +676,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var checksum = snapshot.SolutionChecksum;
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet);
 
             var recoveredSolution = await GetSolutionAsync(snapshotService, snapshot);

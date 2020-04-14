@@ -45,9 +45,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectReader.cs" Link="Serialization\ObjectReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Serialization\ObjectWriter.cs" Link="Serialization\ObjectWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SourceCodeKindExtensions.cs" Link="Utilities\Compiler\SourceCodeKindExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
-      <Link>Execution\Desktop\DesktopAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
       <Link>Collections\ArrayBuilderExtensions.cs</Link>
     </Compile>
@@ -56,9 +53,6 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs">
       <Link>Collections\OrderPreservingMultiDictionary.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
-      <Link>DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
       <Link>EncodedStringText.cs</Link>
