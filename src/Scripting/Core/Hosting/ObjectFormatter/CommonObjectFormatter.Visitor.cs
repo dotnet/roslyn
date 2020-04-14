@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                     FormatWithEmbeddedExpressions(result, debuggerDisplay.Value, obj);
 
-                    if (isRoot)
+                    if (isRoot && !name.IsEmpty())
                     {
                         result.Append(')');
                     }
