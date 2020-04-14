@@ -149,9 +149,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var index = 0;
                     foreach (var project in solution.Projects)
                     {
-                        var localProject = project;
                         tasks[index++] = Task.Run(
-                            () => analyzer.ForceAnalyzeProjectAsync(localProject, cancellationToken));
+                            () => analyzer.ForceAnalyzeProjectAsync(project, cancellationToken));
                     }
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);
