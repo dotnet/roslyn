@@ -9,11 +9,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
+using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
+using Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -125,11 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
+            var (analyzer, _) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
+            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            var provider = providerAndFixer.Item1;
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(provider, document, span);
+            var allDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
             AssertNoAnalyzerExceptionDiagnostics(allDiagnostics);
             return allDiagnostics;
         }
@@ -137,21 +141,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
+            var (analyzer, fixer) = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
+            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            var provider = providerAndFixer.Item1;
             string annotation = null;
             if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
             {
                 document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
             }
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
+            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project);
             var filterSpan = parameters.includeDiagnosticsOutsideSelection ? (TextSpan?)null : span;
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, filterSpan)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
-            var fixer = providerAndFixer.Item2;
             if (fixer == null)
             {
                 return (diagnostics, ImmutableArray<CodeAction>.Empty, null);
@@ -228,5 +231,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
             AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
         }
+
+        // This region provides instances of code fix providers from Features layers, such that the corresponding 
+        // analyzer has been ported to CodeStyle layer, but not the fixer.
+        // This enables porting the tests for the ported analyzer in CodeStyle layer.
+        #region CodeFixProvider Helpers
+
+        // https://github.com/dotnet/roslyn/issues/43056 blocks porting the fixer to CodeStyle layer.
+        protected static CodeFixProvider GetMakeLocalFunctionStaticCodeFixProvider() => new MakeLocalFunctionStaticCodeFixProvider();
+
+        // https://github.com/dotnet/roslyn/issues/43056 blocks porting the fixer to CodeStyle layer.
+        protected static CodeFixProvider GetCSharpUseLocalFunctionCodeFixProvider() => new CSharpUseLocalFunctionCodeFixProvider();
+
+        // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
+        protected static CodeFixProvider GetCSharpUseAutoPropertyCodeFixProvider() => new CSharpUseAutoPropertyCodeFixProvider();
+
+        // https://github.com/dotnet/roslyn/issues/43091 blocks porting the fixer to CodeStyle layer.
+        protected static CodeFixProvider GetVisualBasicUseAutoPropertyCodeFixProvider() => new VisualBasicUseAutoPropertyCodeFixProvider();
+
+        #endregion
     }
 }

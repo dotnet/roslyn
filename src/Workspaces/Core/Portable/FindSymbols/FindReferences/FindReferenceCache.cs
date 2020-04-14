@@ -62,8 +62,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
-            ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SemanticModel model, SyntaxNode root, SourceText sourceText,
-            string text, CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts,
+            Document document,
+            VersionStamp version,
+            SemanticModel model,
+            SyntaxNode root,
+            SourceText sourceText,
+            string text,
+            CancellationToken cancellationToken)
         {
             var normalized = syntaxFacts.IsCaseSensitive ? text : text.ToLowerInvariant();
 
@@ -82,17 +88,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISyntaxFactsService syntaxFacts, Document document, VersionStamp version, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
-            bool candidate(SyntaxToken t) =>
-                syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
-
             // identifier is not escaped
             if (sourceText != null)
             {
-                return GetTokensFromText(syntaxFacts, document, version, root, sourceText, text, candidate, cancellationToken);
+                return GetTokensFromText(syntaxFacts, document, version, root, sourceText, text, IsCandidate, cancellationToken);
             }
 
             // identifier is escaped
-            return root.DescendantTokens(descendIntoTrivia: true).Where(candidate).ToImmutableArray();
+            return root.DescendantTokens(descendIntoTrivia: true).Where(IsCandidate).ToImmutableArray();
+
+            bool IsCandidate(SyntaxToken t)
+                => syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(

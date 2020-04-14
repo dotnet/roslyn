@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -124,7 +126,7 @@ namespace Roslyn.Utilities
         public void WriteUInt32(uint value) => _writer.Write(value);
         public void WriteUInt64(ulong value) => _writer.Write(value);
         public void WriteUInt16(ushort value) => _writer.Write(value);
-        public void WriteString(string value) => WriteStringValue(value);
+        public void WriteString(string? value) => WriteStringValue(value);
 
         /// <summary>
         /// Used so we can easily grab the low/high 64bits of a guid for serialization.
@@ -148,7 +150,7 @@ namespace Roslyn.Utilities
             WriteInt64(accessor.High64);
         }
 
-        public void WriteValue(object value)
+        public void WriteValue(object? value)
         {
             Debug.Assert(value == null || !value.GetType().GetTypeInfo().IsEnum, "Enum should not be written with WriteValue.  Write them as ints instead.");
 
@@ -262,7 +264,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                WriteObject(instance: value, instanceAsWritableOpt: null);
+                WriteObject(instance: value, instanceAsWritable: null);
             }
         }
 
@@ -315,7 +317,7 @@ namespace Roslyn.Utilities
 #endif
         }
 
-        public void WriteValue(IObjectWritable value)
+        public void WriteValue(IObjectWritable? value)
         {
             if (value == null)
             {
@@ -323,7 +325,7 @@ namespace Roslyn.Utilities
                 return;
             }
 
-            WriteObject(instance: value, instanceAsWritableOpt: value);
+            WriteObject(instance: value, instanceAsWritable: value);
         }
 
         private void WriteEncodedInt32(int v)
@@ -462,7 +464,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe void WriteStringValue(string value)
+        private unsafe void WriteStringValue(string? value)
         {
             if (value == null)
             {
@@ -543,7 +545,7 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            var elementType = array.GetType().GetElementType();
+            var elementType = array.GetType().GetElementType()!;
 
             if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
@@ -565,7 +567,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        a => WriteArrayValues((Array)a),
+                        a => WriteArrayValues((Array)a!),
                         array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
@@ -785,10 +787,10 @@ namespace Roslyn.Utilities
             this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
-        private void WriteObject(object instance, IObjectWritable instanceAsWritableOpt)
+        private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
         {
-            Debug.Assert(instance != null);
-            Debug.Assert(instanceAsWritableOpt == null || instance == instanceAsWritableOpt);
+            RoslynDebug.Assert(instance != null);
+            RoslynDebug.Assert(instanceAsWritable == null || instance == instanceAsWritable);
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -814,7 +816,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var writable = instanceAsWritableOpt;
+                var writable = instanceAsWritable;
                 if (writable == null)
                 {
                     writable = instance as IObjectWritable;
@@ -833,7 +835,7 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        obj => WriteObjectWorker((IObjectWritable)obj),
+                        obj => WriteObjectWorker((IObjectWritable)obj!),
                         writable,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,

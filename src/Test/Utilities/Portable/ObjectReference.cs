@@ -57,7 +57,7 @@ namespace Roslyn.Test.Utilities
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AssertReleased()
         {
-            ReleaseAndGarbageCollect();
+            ReleaseAndGarbageCollect(expectReleased: true);
 
             Assert.False(_weakReference.IsAlive, "Reference should have been released but was not.");
         }
@@ -68,7 +68,7 @@ namespace Roslyn.Test.Utilities
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void AssertHeld()
         {
-            ReleaseAndGarbageCollect();
+            ReleaseAndGarbageCollect(expectReleased: false);
 
             // Since we are asserting it's still held, if it is held we can just recover our strong reference again
             _strongReference = (T)_weakReference.Target;
@@ -77,7 +77,7 @@ namespace Roslyn.Test.Utilities
 
         // Ensure the mention of the field doesn't result in any local temporaries being created in the parent
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void ReleaseAndGarbageCollect()
+        private void ReleaseAndGarbageCollect(bool expectReleased)
         {
             if (_strongReferenceRetrievedOutsideScopedCall)
             {
@@ -86,13 +86,19 @@ namespace Roslyn.Test.Utilities
 
             _strongReference = null;
 
-            // We'll loop 1000 times, or until the weak reference disappears. When we're trying to assert that the
-            // object is released, once the weak reference goes away, we know we're good. But if we're trying to assert
-            // that the object is held, our only real option is to know to do it "enough" times; but if it goes away then
-            // we are definitely done.
-            for (var i = 0; i < 1000 && _weakReference.IsAlive; i++)
+            // The maximum number of iterations is determined by the expected outcome. If we expect the reference to be
+            // released, we loop many more times to avoid flaky test failures. Otherwise, we loop a few times knowing
+            // that the test will probably catch the failure on any given run. This strategy trades produces a few false
+            // negatives in testing to gain a significant performance advantage for the majority case.
+            var loopCount = expectReleased ? 1000 : 10;
+
+            // We'll loop until the iteration count is reached, or until the weak reference disappears. When we're
+            // trying to assert that the object is released, once the weak reference goes away, we know we're good. But
+            // if we're trying to assert that the object is held, our only real option is to know to do it "enough"
+            // times; but if it goes away then we are definitely done.
+            for (var i = 0; i < loopCount && _weakReference.IsAlive; i++)
             {
-                GC.Collect();
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
                 GC.WaitForPendingFinalizers();
             }
         }

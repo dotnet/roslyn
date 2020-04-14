@@ -31,15 +31,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
 
-                    if (symbol != null)
+                    if (symbol.Symbol != null)
                     {
                         foreach (var newSymbol in SymbolContainment.GetContainedSymbols(symbol))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            var newNode = await graphBuilder.AddNodeForSymbolAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
+                            var newNode = await graphBuilder.AddNodeAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
                             graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode);
                         }
                     }
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var newNode = await graphBuilder.AddNodeForSymbolAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
+                                var newNode = await graphBuilder.AddNodeAsync(newSymbol, relatedNode: node).ConfigureAwait(false);
                                 graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode);
                             }
                         }

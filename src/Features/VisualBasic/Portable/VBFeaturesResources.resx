@@ -1224,9 +1224,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_to_For" xml:space="preserve">
     <value>Convert  to 'For'</value>
   </data>
-  <data name="If_statement_can_be_simplified" xml:space="preserve">
-    <value>'If' statement can be simplified</value>
-  </data>
   <data name="Add_Obsolete" xml:space="preserve">
     <value>Add &lt;Obsolete&gt;</value>
   </data>

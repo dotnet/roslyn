@@ -126,4 +126,7 @@
   <data name="Use_IsNot_Nothing_check" xml:space="preserve">
     <value>Use 'IsNot Nothing' check</value>
   </data>
+  <data name="If_statement_can_be_simplified" xml:space="preserve">
+    <value>'If' statement can be simplified</value>
+  </data>
 </root>

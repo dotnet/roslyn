@@ -23,7 +23,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string DefaultBuiltInParameterName = "v";
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+#if CODE_STYLE // TODO: Remove this #if once 'WithNullableAnnotation' and 'NullableAnnotation' are available in CodeStyle layer.
             => type != null && (type.IsReferenceType || type.IsNullable());
+#else
+        {
+            if (type == null)
+                return false;
+
+            var isNullableValueType = type.IsNullable();
+            var isNonNullableReferenceType = type.IsReferenceType && type.NullableAnnotation != NullableAnnotation.Annotated;
+
+            return isNullableValueType || isNonNullableReferenceType;
+        }
+#endif
 
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
         {
@@ -277,6 +289,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case SpecialType.System_Single:
                     case SpecialType.System_Double:
                     case SpecialType.System_Decimal:
+#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
+                    // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+                    case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                    case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
+#endif
                         return true;
                 }
             }
@@ -377,6 +394,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case SpecialType.System_UInt16:
                     case SpecialType.System_UInt32:
                     case SpecialType.System_UInt64:
+#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
+                    // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+                    case SpecialType.System_IntPtr when symbol.IsNativeIntegerType:
+                    case SpecialType.System_UIntPtr when symbol.IsNativeIntegerType:
+#endif
                         return true;
                 }
             }

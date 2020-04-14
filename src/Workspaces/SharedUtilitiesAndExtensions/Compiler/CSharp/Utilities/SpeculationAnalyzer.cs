@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -421,30 +419,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // (since originalCaseType != newCaseType)
                 return originalConversion == newConversion;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement))
+            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement) &&
+                     originalSwitchStatement.Expression == previousOriginalNode)
             {
+                // Switch statement's expression changed, verify that the conversions from switch case labels to new switch
+                // expression type are not broken.
+
                 var newSwitchStatement = (SwitchStatementSyntax)currentReplacedNode;
 
-                if (originalSwitchStatement.Expression == previousOriginalNode)
+                var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
+                var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
+
+                for (var i = 0; i < originalSwitchLabels.Length; i++)
                 {
-                    // Switch expression changed, verify that the conversions from switch case labels to new switch expression type are not broken.
-
-                    var originalExpressionType = this.OriginalSemanticModel.GetTypeInfo(originalSwitchStatement.Expression, this.CancellationToken).Type;
-                    var newExpressionType = this.SpeculativeSemanticModel.GetTypeInfo(newSwitchStatement.Expression, this.CancellationToken).Type;
-
-                    var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    var newSwitchLabels = newSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
-                    for (var i = 0; i < originalSwitchLabels.Length; i++)
+                    if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel &&
+                        newSwitchLabels[i] is CaseSwitchLabelSyntax newSwitchLabel &&
+                        !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
                     {
-                        if (originalSwitchLabels[i] is CaseSwitchLabelSyntax originalSwitchLabel)
-                        {
-                            if (newSwitchLabels[i] is CaseSwitchLabelSyntax newSwitchLabel && !ImplicitConversionsAreCompatible(originalSwitchLabel.Value, newSwitchLabel.Value))
-                            {
-                                return true;
-                            }
-                        }
+                        return true;
                     }
                 }
+            }
+            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchExpression, out SwitchExpressionSyntax originalSwitchExpression) &&
+                     originalSwitchExpression.GoverningExpression == previousOriginalNode)
+            {
+                var replacedSwitchExpression = (SwitchExpressionSyntax)currentReplacedNode;
+
+                // Switch expression's expression changed.  Ensure it's the same type as before. If not, inference of
+                // the meaning of the patterns within can change.
+
+                var originalExprType = this.OriginalSemanticModel.GetTypeInfo(originalSwitchExpression.GoverningExpression, CancellationToken);
+                var replacedExprType = this.SpeculativeSemanticModel.GetTypeInfo(replacedSwitchExpression.GoverningExpression, CancellationToken);
+
+                if (!Equals(originalExprType.Type, replacedExprType.Type))
+                    return true;
             }
             else if (currentOriginalNode.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax originalIfStatement))
             {

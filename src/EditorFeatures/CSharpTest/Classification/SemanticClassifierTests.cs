@@ -3879,5 +3879,29 @@ class X
             Keyword("_"),
             Keyword("_"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NativeInteger()
+        {
+            await TestInMethodAsync(
+                code: @"nint i = 0; nuint i2 = 0;",
+                expected: Classifications(Keyword("nint"), Keyword("nuint")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NotNativeInteger()
+        {
+            await TestInMethodAsync("nint", "M",
+                code: @"nint i = 0;",
+                expected: Classifications(Class("nint")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NotNativeUnsignedInteger()
+        {
+            await TestInMethodAsync("nuint", "M",
+                code: @"nuint i = 0;",
+                expected: Classifications(Class("nuint")));
+        }
     }
 }
