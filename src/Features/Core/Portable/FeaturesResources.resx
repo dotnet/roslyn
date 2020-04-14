@@ -601,9 +601,6 @@
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>
   </data>
-  <data name="Unknown" xml:space="preserve">
-    <value>Unknown</value>
-  </data>
   <data name="Extract_local_function" xml:space="preserve">
     <value>Extract local function</value>
   </data>

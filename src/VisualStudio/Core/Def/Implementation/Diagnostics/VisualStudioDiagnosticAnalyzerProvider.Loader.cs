@@ -10,15 +10,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
     internal partial class VisualStudioDiagnosticAnalyzerProvider
     {
-        private sealed class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+        private sealed class Loader : IAnalyzerAssemblyLoader
         {
             private readonly IAnalyzerAssemblyLoader _fallbackLoader;
 
-            public AnalyzerAssemblyLoader()
-                => _fallbackLoader = new DefaultAnalyzerAssemblyLoader();
+            public Loader()
+            {
+                _fallbackLoader = new DefaultAnalyzerAssemblyLoader();
+            }
 
             public void AddDependencyLocation(string fullPath)
-                => _fallbackLoader.AddDependencyLocation(fullPath);
+            {
+                _fallbackLoader.AddDependencyLocation(fullPath);
+            }
 
             public Assembly LoadFromPath(string fullPath)
             {
