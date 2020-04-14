@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
         /// SyntaxNode of a kind where we know how to reorder parameters/arguments.
         /// </summary>
-        public abstract SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node);
+        public abstract SyntaxNode? FindNodeToUpdate(Document document, SyntaxNode node);
 
         public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvokeAsync(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);

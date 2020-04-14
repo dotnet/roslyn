@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -94,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var token = root.FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
@@ -104,6 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 token = token.GetPreviousToken();
                 position = token.Span.End;
+            }
+
+            if (token.Parent == null)
+            {
+                return default;
             }
 
             var matchingNode = GetMatchingNode(token.Parent, restrictToDeclarations);
@@ -125,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return default;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
             if (symbol != null)
             {
@@ -133,11 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return (symbol, selectedIndex);
             }
 
-            if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation) &&
+            if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objectCreation) &&
                 token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
             {
                 var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
-                if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
+                if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && ((ITypeSymbol)typeSymbol).TypeKind == TypeKind.Delegate)
                 {
                     return (typeSymbol, 0);
                 }
@@ -168,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             };
         }
 
-        private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
+        private SyntaxNode? GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
         {
             var matchKinds = restrictToDeclarations
                 ? _declarationKinds
@@ -214,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return true;
         }
 
-        public override SyntaxNode FindNodeToUpdate(Document document, SyntaxNode node)
+        public override SyntaxNode? FindNodeToUpdate(Document document, SyntaxNode node)
         {
             if (_updatableNodeKinds.Contains(node.Kind()))
             {
@@ -237,18 +244,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return node.AncestorsAndSelf().Any(n => n == nodeContainingOriginal) ? matchingNode : null;
         }
 
-        private SyntaxNode GetNodeContainingTargetNode(SyntaxNode matchingNode)
+        private SyntaxNode? GetNodeContainingTargetNode(SyntaxNode matchingNode)
         {
             switch (matchingNode.Kind())
             {
                 case SyntaxKind.InvocationExpression:
-                    return (matchingNode as InvocationExpressionSyntax).Expression;
+                    return ((InvocationExpressionSyntax)matchingNode).Expression;
 
                 case SyntaxKind.ElementAccessExpression:
-                    return (matchingNode as ElementAccessExpressionSyntax).ArgumentList;
+                    return ((ElementAccessExpressionSyntax)matchingNode).ArgumentList;
 
                 case SyntaxKind.ObjectCreationExpression:
-                    return (matchingNode as ObjectCreationExpressionSyntax).Type;
+                    return ((ObjectCreationExpressionSyntax)matchingNode).Type;
 
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.IndexerDeclaration:
@@ -288,37 +295,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Update declarations parameter lists
-            if (updatedNode.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method))
+            if (updatedNode.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax? method))
             {
                 var updatedParameters = UpdateDeclaration(method.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.LocalFunctionStatement, out LocalFunctionStatementSyntax localFunction))
+            if (updatedNode.IsKind(SyntaxKind.LocalFunctionStatement, out LocalFunctionStatementSyntax? localFunction))
             {
                 var updatedParameters = UpdateDeclaration(localFunction.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return localFunction.WithParameterList(localFunction.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax constructor))
+            if (updatedNode.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax? constructor))
             {
                 var updatedParameters = UpdateDeclaration(constructor.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return constructor.WithParameterList(constructor.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer))
+            if (updatedNode.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax? indexer))
             {
                 var updatedParameters = UpdateDeclaration(indexer.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return indexer.WithParameterList(indexer.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax delegateDeclaration))
+            if (updatedNode.IsKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDeclaration))
             {
                 var updatedParameters = UpdateDeclaration(delegateDeclaration.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return delegateDeclaration.WithParameterList(delegateDeclaration.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.AnonymousMethodExpression, out AnonymousMethodExpressionSyntax anonymousMethod))
+            if (updatedNode.IsKind(SyntaxKind.AnonymousMethodExpression, out AnonymousMethodExpressionSyntax? anonymousMethod))
             {
                 // Delegates may omit parameters in C#
                 if (anonymousMethod.ParameterList == null)
@@ -330,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return anonymousMethod.WithParameterList(anonymousMethod.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.SimpleLambdaExpression, out SimpleLambdaExpressionSyntax lambda))
+            if (updatedNode.IsKind(SyntaxKind.SimpleLambdaExpression, out SimpleLambdaExpressionSyntax? lambda))
             {
                 if (signaturePermutation.UpdatedConfiguration.ToListOfParameters().Any())
                 {
@@ -352,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 }
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ParenthesizedLambdaExpression, out ParenthesizedLambdaExpressionSyntax parenLambda))
+            if (updatedNode.IsKind(SyntaxKind.ParenthesizedLambdaExpression, out ParenthesizedLambdaExpressionSyntax? parenLambda))
             {
                 var doNotSkipParameterType = parenLambda.ParameterList.Parameters.FirstOrDefault()?.Type != null;
 
@@ -364,9 +371,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Update reference site argument lists
-            if (updatedNode.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+            if (updatedNode.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax? invocation))
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
 
                 return invocation.WithArgumentList(
@@ -378,10 +385,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken)));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objCreation))
+            if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objCreation))
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((ObjectCreationExpressionSyntax)originalNode, cancellationToken);
+
+                if (objCreation.ArgumentList == null)
+                {
+                    return updatedNode;
+                }
 
                 return objCreation.WithArgumentList(
                     UpdateArgumentList(
@@ -392,10 +404,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken)));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax constructorInit) ||
+            if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) ||
                 updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer, out constructorInit))
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((ConstructorInitializerSyntax)originalNode, cancellationToken);
 
                 return constructorInit.WithArgumentList(
@@ -407,9 +419,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken)));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
+            if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax? elementAccess))
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((ElementAccessExpressionSyntax)originalNode, cancellationToken);
 
                 return elementAccess.WithArgumentList(
@@ -421,10 +433,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken)));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax attribute))
+            if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax? attribute))
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((AttributeSyntax)originalNode, cancellationToken);
+
+                if (attribute.ArgumentList == null)
+                {
+                    return updatedNode;
+                }
 
                 return attribute.WithArgumentList(
                     UpdateAttributeArgumentList(
@@ -436,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Handle references in crefs
-            if (updatedNode.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax nameMemberCref))
+            if (updatedNode.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax? nameMemberCref))
             {
                 if (nameMemberCref.Parameters == null ||
                     !nameMemberCref.Parameters.Parameters.Any())
@@ -520,14 +537,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (node is AttributeSyntax attribute)
             {
+                if (attribute.ArgumentList == null)
+                {
+                    return false;
+                }
+
                 argumentCount = attribute.ArgumentList.Arguments.Count;
                 lastArgumentIsNamed = attribute.ArgumentList.Arguments.LastOrDefault()?.NameColon != null ||
                     attribute.ArgumentList.Arguments.LastOrDefault()?.NameEquals != null;
-                lastArgumentExpression = attribute.ArgumentList.Arguments.LastOrDefault()?.Expression;
+
+                var lastArgument = attribute.ArgumentList.Arguments.LastOrDefault();
+                if (lastArgument == null)
+                {
+                    return false;
+                }
+
+                lastArgumentExpression = lastArgument.Expression;
             }
             else
             {
-                BaseArgumentListSyntax argumentList = node switch
+                BaseArgumentListSyntax? argumentList = node switch
                 {
                     InvocationExpressionSyntax invocation => invocation.ArgumentList,
                     ObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
@@ -536,9 +565,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
                 };
 
+                if (argumentList == null)
+                {
+                    return false;
+                }
+
                 argumentCount = argumentList.Arguments.Count;
                 lastArgumentIsNamed = argumentList.Arguments.LastOrDefault()?.NameColon != null;
-                lastArgumentExpression = argumentList.Arguments.LastOrDefault()?.Expression;
+
+                var lastArgument = argumentList.Arguments.LastOrDefault();
+                if (lastArgument == null)
+                {
+                    return false;
+                }
+
+                lastArgumentExpression = lastArgument.Expression;
             }
 
             return IsParamsArrayExpandedHelper(symbolInfo.Symbol, argumentCount, lastArgumentIsNamed, semanticModel, lastArgumentExpression, cancellationToken);
@@ -751,8 +792,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var nodes = root.DescendantNodes().ToImmutableArray();
             var convertedMethodGroups = nodes
@@ -765,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                             return false;
                         }
 
-                        ISymbol convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
+                        ISymbol? convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
 
                         if (convertedType != null)
                         {
