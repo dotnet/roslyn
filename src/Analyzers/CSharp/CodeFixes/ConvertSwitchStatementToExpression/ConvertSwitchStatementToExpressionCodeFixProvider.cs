@@ -47,8 +47,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             return Task.CompletedTask;
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            //var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            //var options = (CSharpParseOptions)syntaxTree.Options;
+
+            //// TODO: use CSharp9 once available.
+            //var supportsAndOrPatterns = options.LanguageVersion >= LanguageVersion.Preview;
+
             using var spansDisposer = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
             foreach (var diagnostic in diagnostics)
             {
@@ -80,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 }
 
                 var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(cancellationToken);
-                var switchExpression = Rewriter.Rewrite(switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
+                var switchExpression = Rewriter.Rewrite(
+                    switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
                     shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
                     generateDeclaration: declaratorToRemoveLocationOpt is object);
 
