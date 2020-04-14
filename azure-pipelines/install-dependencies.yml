@@ -4,7 +4,7 @@ parameters:
 steps:
 
 - powershell: |
-    .\init.ps1 -AccessToken '$(System.AccessToken)' ${{ parameters['initArgs'] }} -UpgradePrerequisites
+    .\init.ps1 ${{ parameters['initArgs'] }} -UpgradePrerequisites
     dotnet --info
   displayName: Install prerequisites
 
