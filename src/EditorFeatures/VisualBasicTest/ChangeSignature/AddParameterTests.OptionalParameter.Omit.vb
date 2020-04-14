@@ -113,5 +113,32 @@ End Class]]></Text>.NormalizedValue()
 
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function AddOptionalParameterWithOmittedCallsiteToAttributeConstructor() As Task
+            Dim markup = <Text><![CDATA[
+<Some(1, 2, 4)>
+Class SomeAttribute
+    Inherits System.Attribute
+    Sub New$$(a As Integer, b As Integer, Optional y As Integer = 4)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Dim permutation = {
+                New AddedParameterOrExistingIndex(0),
+                New AddedParameterOrExistingIndex(1),
+                AddedParameterOrExistingIndex.CreateAdded("Integer", "x", isRequired:=False, defaultValue:="3", isCallsiteOmitted:=True),
+                New AddedParameterOrExistingIndex(2)}
+
+            Dim updatedCode = <Text><![CDATA[
+<Some(1, 2, y:=4)>
+Class SomeAttribute
+    Inherits System.Attribute
+    Sub New(a As Integer, b As Integer, Optional x As Integer = 3, Optional y As Integer = 4)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
     End Class
 End Namespace

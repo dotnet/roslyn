@@ -378,34 +378,6 @@ class MyAttribute : System.Attribute
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task AddOptionalParameterWithOmittedCallsiteToAttributeConstructor()
-        {
-            var markup = @"
-[Some(1, 2, 4)]
-class SomeAttribute : System.Attribute
-{
-    public SomeAttribute$$(int a, int b, int y = 4)
-    {
-    }
-}";
-            var permutation = new[] {
-                new AddedParameterOrExistingIndex(0),
-                new AddedParameterOrExistingIndex(1),
-                AddedParameterOrExistingIndex.CreateAdded("int", "x", isRequired: false, defaultValue: "3", isCallsiteOmitted: true),
-                new AddedParameterOrExistingIndex(2)};
-            var updatedCode = @"
-[Some(1, 2, y: 4)]
-class SomeAttribute : System.Attribute
-{
-    public SomeAttribute(int a, int b, int x = 3, int y = 4)
-    {
-    }
-}";
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderExtensionMethodParametersAndArguments_StaticCall()
         {
             var markup = @"
