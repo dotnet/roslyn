@@ -76,10 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
             set
             {
-                if (_isRequired != value)
+                if (SetProperty(ref _isRequired, value))
                 {
-                    _isRequired = value;
-                    NotifyPropertyChanged();
                     NotifyPropertyChanged(nameof(IsOptional));
 
                     if (IsCallsiteOmitted)
@@ -116,17 +114,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public bool UseNamedArguments { get; set; }
 
+        public string TypeBindsDynamicStatus { get; set; }
+        public Visibility TypeBindsImage { get; set; }
+        public Visibility TypeDoesNotBindImage { get; set; }
+        public Visibility TypeDoesNotParseImage { get; set; }
+        public Visibility TypeIsEmptyImage { get; set; }
+
         private string _verbatimTypeName = string.Empty;
         public string VerbatimTypeName
         {
             get => _verbatimTypeName;
             set
             {
-                if (_verbatimTypeName != value)
+                if (SetProperty(ref _verbatimTypeName, value))
                 {
-                    _verbatimTypeName = value;
                     SetCurrentTypeTextAndUpdateBindingStatus(value);
-                    NotifyPropertyChanged();
                 }
             }
         }
@@ -236,12 +238,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             return true;
         }
-
-        public string TypeBindsDynamicStatus { get; set; }
-        public Visibility TypeBindsImage { get; set; }
-        public Visibility TypeDoesNotBindImage { get; set; }
-        public Visibility TypeDoesNotParseImage { get; set; }
-        public Visibility TypeIsEmptyImage { get; set; }
 
         private bool IsParameterNameValid(string identifierName)
         {
