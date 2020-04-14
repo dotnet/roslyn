@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43255"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task CSharpLanguageServiceTest_MultipleResults()
         {
             var code = @"class Test 
@@ -120,8 +120,8 @@ End Class";
             Assert.True(await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
-                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 solution,
+                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
                 callbackTarget: null,
                 CancellationToken.None));
         }

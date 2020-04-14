@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly IEnumerable<StateSet> _stateSets;
             private readonly CompilationWithAnalyzers? _compilation;
-            private readonly DiagnosticAnalyzer? _compilerAnalyzer;
 
             private readonly TextSpan _range;
             private readonly bool _blockForData;
@@ -99,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _stateSets = stateSets;
                 _diagnosticId = diagnosticId;
                 _compilation = compilation;
-                _compilerAnalyzer = _owner.DiagnosticAnalyzerInfoCache.GetCompilerDiagnosticAnalyzer(_document.Project.Language);
 
                 _range = range;
                 _blockForData = blockForData;
@@ -160,9 +158,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // unfortunately, we need to special case compiler diagnostic analyzer so that
                 // we can do span based analysis even though we implemented it as semantic model analysis
-                if (stateSet.Analyzer == _compilerAnalyzer)
+                if (stateSet.Analyzer.IsCompilerAnalyzer())
                 {
-                    return await TryGetSyntaxAndSemanticCompilerDiagnostics(stateSet, list, cancellationToken).ConfigureAwait(false);
+                    return await TryGetSyntaxAndSemanticCompilerDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
                 }
 
                 var fullResult = true;
@@ -172,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return fullResult;
             }
 
-            private async Task<bool> TryGetSyntaxAndSemanticCompilerDiagnostics(StateSet stateSet, List<DiagnosticData> list, CancellationToken cancellationToken)
+            private async Task<bool> TryGetSyntaxAndSemanticCompilerDiagnosticsAsync(StateSet stateSet, List<DiagnosticData> list, CancellationToken cancellationToken)
             {
                 // First, get syntax errors and semantic errors
                 var fullResult = true;
@@ -216,9 +214,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-            {
-                return AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _owner.DiagnosticAnalyzerInfoCache, _compilation, _range, cancellationToken);
-            }
+                => AnalyzerHelper.ComputeDiagnosticsAsync(analyzer, _document, AnalysisKind.Syntax, _owner.DiagnosticAnalyzerInfoCache, _compilation, _range, cancellationToken);
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
@@ -325,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 List<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                if (!_owner.DiagnosticAnalyzerInfoCache.SupportAnalysisKind(stateSet.Analyzer, stateSet.Language, kind))
+                if (!stateSet.Analyzer.SupportAnalysisKind(kind))
                 {
                     return true;
                 }
@@ -444,17 +440,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return set.SetEquals(diagnosticsB);
         }
 
-        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic>
+        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic?>
         {
             internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
 
-            public bool Equals(Diagnostic x, Diagnostic y)
+            public bool Equals(Diagnostic? x, Diagnostic? y)
             {
+                if (x is null)
+                    return y is null;
+                else if (y is null)
+                    return false;
+
                 return x.Id == y.Id && x.Location == y.Location;
             }
 
-            public int GetHashCode(Diagnostic obj)
+            public int GetHashCode(Diagnostic? obj)
             {
+                if (obj is null)
+                    return 0;
+
                 return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
             }
         }

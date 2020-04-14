@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -24,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS0030 = nameof(CS0030); // error CS0030: Cannot convert type 'type' to 'type'
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GenerateConversionCodeFixProvider()
         {
         }
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var service = document.GetLanguageService<IGenerateConversionService>();
+            var service = document.GetRequiredLanguageService<IGenerateConversionService>();
             return service.GenerateConversionAsync(document, node, cancellationToken);
         }
     }

@@ -801,7 +801,7 @@ public class B
 
                     registerSyntaxNodeAction(context =>
                     {
-                        var descriptor = default(DiagnosticDescriptor);
+                        var descriptor = (DiagnosticDescriptor)null;
                         switch (CSharpExtensions.Kind(context.Node.Parent))
                         {
                             case SyntaxKind.PropertyDeclaration:
@@ -3392,6 +3392,86 @@ class C
             Assert.True(first.Concurrent);
             Assert.False(second.Concurrent);
             Assert.True(second.Append(first).Concurrent);
+        }
+
+        [Fact, WorkItem(41402, "https://github.com/dotnet/roslyn/issues/41402")]
+        public async Task TestRegisterOperationBlockAndOperationActionOnSameContext()
+        {
+            string source = @"
+internal class A
+{
+    public void M() { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer execution from command line
+            // 'VerifyAnalyzerDiagnostics' helper executes the analyzers on the entire compilation without any state-based analysis.
+            var analyzers = new DiagnosticAnalyzer[] { new RegisterOperationBlockAndOperationActionAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID0001", "M").WithLocation(4, 17));
+
+            // Now verify analyzer execution for a single file.
+            // 'GetAnalyzerSemanticDiagnosticsAsync' executes the analyzers on the given file with state-based analysis.
+            var model = compilation.GetSemanticModel(tree);
+            var compWithAnalyzers = new CompilationWithAnalyzers(
+                compilation,
+                analyzers.ToImmutableArray(),
+                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                CancellationToken.None);
+            var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
+            diagnostics.Verify(Diagnostic("ID0001", "M").WithLocation(4, 17));
+        }
+
+        [Fact, WorkItem(26217, "https://github.com/dotnet/roslyn/issues/26217")]
+        public void TestConstructorInitializerWithExpressionBody()
+        {
+            string source = @"
+class C
+{
+    C() : base() => _ = 0;
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new RegisterOperationBlockAndOperationActionAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID0001", "C").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(43106, "https://github.com/dotnet/roslyn/issues/43106")]
+        public void TestConstructorInitializerWithoutBody()
+        {
+            string source = @"
+class B
+{
+    // Haven't typed { } on the next line yet
+    public B() : this(1) 
+
+    public B(int a) { } 
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics(
+                // (5,12): error CS0501: 'B.B()' must declare a body because it is not marked abstract, extern, or partial
+                //     public B() : this(1) 
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "B").WithArguments("B.B()").WithLocation(5, 12),
+                // (5,25): error CS1002: ; expected
+                //     public B() : this(1) 
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 25));
+
+            var analyzers = new DiagnosticAnalyzer[] { new RegisterOperationBlockAndOperationActionAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: new[]
+                {
+                    Diagnostic("ID0001", "B").WithLocation(5, 12),
+                    Diagnostic("ID0001", "B").WithLocation(7, 12)
+                });
         }
     }
 }

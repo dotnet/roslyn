@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public virtual Task WaitAsync(CancellationToken cancellationToken)
-                {
-                    return _semaphore.WaitAsync(cancellationToken);
-                }
+                    => _semaphore.WaitAsync(cancellationToken);
 
                 public bool AddOrReplace(WorkItem item)
                 {
@@ -277,7 +275,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return pair.Key;
                     }
 
-                    return Contract.FailWithReturn<ProjectId>("Shouldn't reach here");
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }

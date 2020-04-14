@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
-            params object?[] messageArgs)
+            Location? location,
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, null, null, messageArgs);
         }
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
-            ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            Location? location,
+            ImmutableDictionary<string, string?>? properties,
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, null, properties, messageArgs);
         }
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             IEnumerable<Location>? additionalLocations,
-            params object?[] messageArgs)
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, additionalLocations, properties: null, messageArgs: messageArgs);
         }
@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             IEnumerable<Location>? additionalLocations,
-            ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            ImmutableDictionary<string, string?>? properties,
+            params object?[]? messageArgs)
         {
             return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
         }
@@ -132,11 +132,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
-            Location location,
+            Location? location,
             DiagnosticSeverity effectiveSeverity,
             IEnumerable<Location>? additionalLocations,
-            ImmutableDictionary<string, string>? properties,
-            params object?[] messageArgs)
+            ImmutableDictionary<string, string?>? properties,
+            params object?[]? messageArgs)
         {
             if (descriptor == null)
             {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis
             Location? location = null,
             IEnumerable<Location>? additionalLocations = null,
             IEnumerable<string>? customTags = null,
-            ImmutableDictionary<string, string>? properties = null)
+            ImmutableDictionary<string, string?>? properties = null)
         {
             return Create(id, category, message, severity, defaultSeverity, isEnabledByDefault, warningLevel, false,
                 title, description, helpLink, location, additionalLocations, customTags, properties);
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
             Location? location = null,
             IEnumerable<Location>? additionalLocations = null,
             IEnumerable<string>? customTags = null,
-            ImmutableDictionary<string, string>? properties = null)
+            ImmutableDictionary<string, string?>? properties = null)
         {
             if (id == null)
             {
@@ -398,10 +398,10 @@ namespace Microsoft.CodeAnalysis
         /// if there is no entry. This can be used to put diagnostic specific information you want 
         /// to pass around. for example, to corresponding fixer.
         /// </summary>
-        public virtual ImmutableDictionary<string, string> Properties
-            => ImmutableDictionary<string, string>.Empty;
+        public virtual ImmutableDictionary<string, string?> Properties
+            => ImmutableDictionary<string, string?>.Empty;
 
-        string IFormattable.ToString(string ignored, IFormatProvider formatProvider)
+        string IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
         {
             return DiagnosticFormatter.Instance.Format(this, formatProvider);
         }
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis
             return DiagnosticFormatter.Instance.Format(this, CultureInfo.CurrentUICulture);
         }
 
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
 
         public abstract override int GetHashCode();
 
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis
     {
         public abstract override string ToString();
 
-        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         {
             return ToString();
         }

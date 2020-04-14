@@ -144,9 +144,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool Match(char normalizedLeft, char right, bool caseSensitive)
-        {
-            return caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
-        }
+            => caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
 
         // 32KB. comes from SourceText char buffer size and less than large object size
         internal const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
@@ -214,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding encoding, CancellationToken cancellationToken)
+        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, CancellationToken cancellationToken)
         {
             using var textReader = ObjectReaderTextReader.Create(reader);
 

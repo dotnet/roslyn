@@ -36,22 +36,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private bool _encoding;
 
         protected AbstractEditorFactory(IComponentModel componentModel)
-        {
-            _componentModel = componentModel;
-        }
+            => _componentModel = componentModel;
 
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
 
         public void SetEncoding(bool value)
-        {
-            _encoding = value;
-        }
+            => _encoding = value;
 
         int IVsEditorFactory.Close()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int CreateEditorInstance(
             uint grfCreateDoc,
@@ -236,9 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         int IVsEditorFactoryNotify.NotifyDependentItemSaved(IVsHierarchy pHier, uint itemidParent, string pszMkDocumentParent, uint itemidDpendent, string pszMkDocumentDependent)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         int IVsEditorFactoryNotify.NotifyItemAdded(uint grfEFN, IVsHierarchy pHier, uint itemid, string pszMkDocument)
         {
@@ -257,9 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
@@ -303,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);
+            var targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine)!;
 
             var originalText = formattedText;
             foreach (var originalLine in originalText.Lines)

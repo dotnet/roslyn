@@ -20,17 +20,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             private readonly IList<IMethodSymbol> _constructors;
             private readonly Document _document;
             private readonly State _state;
-            private readonly TService _service;
             private readonly string _title;
 
             protected AbstractCodeAction(
-                TService service,
                 Document document,
                 State state,
                 IList<IMethodSymbol> constructors,
                 string title)
             {
-                _service = service;
                 _document = document;
                 _state = state;
                 _constructors = constructors;
@@ -59,9 +56,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     : default;
 
                 var classType = _state.ClassType;
-                var accessibility = baseConstructor.ContainingType.IsAbstractClass() && !classType.IsAbstractClass()
-                    ? Accessibility.Public
-                    : baseConstructor.DeclaredAccessibility;
+
+                var accessibility = DetermineAccessibility(baseConstructor, classType);
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
                     accessibility: accessibility,
@@ -70,6 +66,35 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     parameters: baseConstructor.Parameters,
                     statements: default,
                     baseConstructorArguments: baseConstructorArguments);
+            }
+
+            private static Accessibility DetermineAccessibility(IMethodSymbol baseConstructor, INamedTypeSymbol classType)
+            {
+                // If our base is abstract, and we are not, then (since we likely want to be
+                // instantiated) we make our constructor public by default.
+                if (baseConstructor.ContainingType.IsAbstractClass() && !classType.IsAbstractClass())
+                    return Accessibility.Public;
+
+                // If our base constructor is public, and we're abstract, we switch to being
+                // protected as that's a more natural default for constructors in abstract classes.
+                if (classType.IsAbstractClass() && baseConstructor.DeclaredAccessibility == Accessibility.Public)
+                    return Accessibility.Protected;
+
+                if (classType.IsSealed)
+                {
+                    // remove protected as it makes no sense in a sealed type.
+                    switch (baseConstructor.DeclaredAccessibility)
+                    {
+                        case Accessibility.Protected:
+                            return Accessibility.Public;
+                        case Accessibility.ProtectedAndInternal:
+                        case Accessibility.ProtectedOrInternal:
+                            return Accessibility.Internal;
+                    }
+                }
+
+                // Defer to whatever the base constructor was declared as.
+                return baseConstructor.DeclaredAccessibility;
             }
         }
     }

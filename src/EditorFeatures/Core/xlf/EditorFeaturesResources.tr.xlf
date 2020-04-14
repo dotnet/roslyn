@@ -382,6 +382,16 @@
         <target state="translated">Yeniden adlandırma işlemi {1} dosyadaki {0} başvuruyu güncelleştirecek.</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
+        <source>You cannot rename this element because it is contained in a read-only file.</source>
+        <target state="new">You cannot rename this element because it is contained in a read-only file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
+        <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
+        <target state="new">You cannot rename this element because it is in a location that cannot be navigated to.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
         <target state="translated">'{0}' tabanları</target>
@@ -390,6 +400,11 @@
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">{0} çakışmaları çözümlenecek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implemented_members">
+        <source>'{0}' implemented members</source>
+        <target state="new">'{0}' implemented members</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -635,6 +650,11 @@
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">Önizleme Uyarısı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="external">
+        <source>(external)</source>
+        <target state="new">(external)</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">

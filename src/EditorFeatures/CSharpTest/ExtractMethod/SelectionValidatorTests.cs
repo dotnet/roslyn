@@ -1334,9 +1334,7 @@ class P
         [WorkItem(542722, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542722")]
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task DontCrash()
-        {
-            await IterateAllAsync(TestResource.AllInOneCSharpCode);
-        }
+            => await IterateAllAsync(TestResource.AllInOneCSharpCode);
 
         [WorkItem(9931, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]

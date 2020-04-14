@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             try
             {
-                var actions = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance();
+                using var _ = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance(out var actions);
                 var context = new CodeRefactoringContext(document, state,
 
                     // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
@@ -185,8 +185,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var result = actions.Count > 0
                     ? new CodeRefactoring(provider, actions.ToImmutable())
                     : null;
-
-                actions.Free();
 
                 return result;
             }
@@ -253,9 +251,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             public ImmutableArray<CodeRefactoringProvider> GetRefactorings(string language)
-            {
-                return ImmutableInterlocked.GetOrAdd(ref _refactoringsPerLanguage, language, (language, provider) => provider.CreateRefactorings(language), this);
-            }
+                => ImmutableInterlocked.GetOrAdd(ref _refactoringsPerLanguage, language, (language, provider) => provider.CreateRefactorings(language), this);
 
             private ImmutableArray<CodeRefactoringProvider> CreateRefactorings(string language)
             {
@@ -291,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                                         attribute.Languages.Length == 0 ||
                                         attribute.Languages.Contains(language))
                                     {
-                                        builder.Add((CodeRefactoringProvider)Activator.CreateInstance(typeInfo.AsType()));
+                                        builder.Add((CodeRefactoringProvider)Activator.CreateInstance(typeInfo.AsType())!);
                                     }
                                 }
                             }

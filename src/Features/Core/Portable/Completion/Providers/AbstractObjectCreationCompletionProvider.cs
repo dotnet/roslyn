@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, bool preselect);
 
-        protected override CompletionItem CreateItem(
+        protected override CompletionItem CreateItem(CompletionContext completionContext,
             string displayText, string displayTextSuffix, string insertionText, List<ISymbol> symbols,
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
@@ -43,18 +43,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 supportedPlatforms: supportedPlatformData);
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            return GetSymbolsWorkerInternal(context, position, options, preselect: false, cancellationToken);
-        }
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+            => GetSymbolsCoreAsync(context, position, options, preselect: false, cancellationToken);
 
-        protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsWorker(
+        protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            return GetSymbolsWorkerInternal(context, position, options, preselect: true, cancellationToken);
+            return GetSymbolsCoreAsync(context, position, options, preselect: true, cancellationToken);
         }
 
-        private Task<ImmutableArray<ISymbol>> GetSymbolsWorkerInternal(
+        private Task<ImmutableArray<ISymbol>> GetSymbolsCoreAsync(
             SyntaxContext context, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var newExpression = GetObjectCreationNewExpression(context.SyntaxTree, position, cancellationToken);
@@ -137,8 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
             ISymbol symbol, SyntaxContext context)
         {
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
+            var displayString = symbol.ToMinimalDisplayString(context.SemanticModel, context.Position);
             return (displayString, "", displayString);
         }
     }

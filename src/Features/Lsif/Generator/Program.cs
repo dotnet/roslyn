@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.CommandLine;
@@ -7,6 +9,7 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
@@ -83,6 +86,14 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             MSBuildLocator.RegisterInstance(msbuildInstance);
 
+            await GenerateFromSolutionWithMSBuildLocatedAsync(solutionFile, outputWriter, outputFormat, logFile);
+        }
+
+        // This method can't be loaded until we've registered MSBuild with MSBuildLocator, as otherwise
+        // we load ILogger prematurely which breaks MSBuildLocator.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static async Task GenerateFromSolutionWithMSBuildLocatedAsync(FileInfo solutionFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
+        {
             await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
 
             var solutionLoadStopwatch = Stopwatch.StartNew();
@@ -91,8 +102,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             var solution = await msbuildWorkspace.OpenSolutionAsync(solutionFile.FullName);
 
             await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
-
-            using var lsifWriter = new TextLsifJsonWriter(outputWriter, outputFormat);
+            var lsifWriter = new TextLsifJsonWriter(outputWriter, outputFormat);
             var lsifGenerator = new Generator(lsifWriter);
 
             Stopwatch totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();

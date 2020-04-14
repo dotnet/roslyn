@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -191,16 +190,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         internal Location BestLocation
-        {
-            get
-            {
-                return this.AfterThisLocation != null
-                    ? this.AfterThisLocation
-                    : this.BeforeThisLocation != null
-                        ? this.BeforeThisLocation
-                        : this.ContextLocation;
-            }
-        }
+            => this.AfterThisLocation ?? this.BeforeThisLocation ?? this.ContextLocation;
 
         public CodeGenerationOptions With(
             Optional<Location> contextLocation = default,

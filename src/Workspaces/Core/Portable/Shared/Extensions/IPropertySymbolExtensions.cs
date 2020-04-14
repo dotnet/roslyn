@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -43,9 +42,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IPropertySymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
             this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
         {
-            bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
-
             var someParameterHasAttribute = property.Parameters
                 .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
             if (!someParameterHasAttribute)
@@ -70,6 +66,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.GetMethod,
                 property.SetMethod,
                 property.IsIndexer);
+
+            bool shouldRemoveAttribute(AttributeData a) =>
+                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
+                a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
         }
 
         public static bool IsWritableInConstructor(this IPropertySymbol property)

@@ -1,13 +1,20 @@
-﻿using System.Threading;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -22,12 +29,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         {
             using (var workspace = new TestWorkspace())
             {
+                var lazyWorkspace = new Lazy<VisualStudioWorkspaceImpl>(() => throw Utilities.ExceptionUtilities.Unreachable);
+
+                var hostDiagnosticUpdateSource = new HostDiagnosticUpdateSource(lazyWorkspace, new MockDiagnosticUpdateSourceRegistrationService());
+
                 var project = workspace.CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp);
                 using var analyzer = new VisualStudioAnalyzer(
-                    @"PathToAnalyzer",
-                    hostDiagnosticUpdateSource: null,
+                    @"C:\PathToAnalyzer",
+                    hostDiagnosticUpdateSource,
                     projectId: project.Id,
-                    workspace: workspace,
                     language: project.Language);
 
                 var analyzerReference = analyzer.GetReference();
@@ -36,10 +46,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
                 Assert.NotNull(checksum);
 
-                var assetBuilder = new CustomAssetBuilder(workspace);
                 var serializer = workspace.Services.GetService<ISerializerService>();
 
-                var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
+                var asset = WorkspaceAnalyzerReferenceAsset.Create(analyzerReference, serializer, CancellationToken.None);
 
                 using var stream = SerializableBytes.CreateWritableStream();
 
@@ -52,7 +61,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
                     var recovered = serializer.Deserialize<AnalyzerReference>(asset.Kind, reader, CancellationToken.None);
-                    var assetFromStorage = assetBuilder.Build(recovered, CancellationToken.None);
+                    var assetFromStorage = WorkspaceAnalyzerReferenceAsset.Create(recovered, serializer, CancellationToken.None);
 
                     Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
 

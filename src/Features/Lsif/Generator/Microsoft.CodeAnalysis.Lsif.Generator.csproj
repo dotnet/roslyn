@@ -35,10 +35,10 @@
     <ItemGroup>
       <!-- Include all dependencies; the DestinationSubDierctory is to handle culture-specific resource files that should be placed in
            subdirectories -->
-      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" PackagePath="tools\%(ReferenceCopyLocalPaths.DestinationSubDirectory)"/>
+      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" PackagePath="tools\%(ReferenceCopyLocalPaths.DestinationSubDirectory)" />
 
       <!-- Include our app.config with generated binding redirects -->
-      <TfmSpecificPackageFile Include="@(AppConfigWithTargetPath)" PackagePath="tools"/>
+      <TfmSpecificPackageFile Include="@(AppConfigWithTargetPath)" PackagePath="tools" />
     </ItemGroup>
   </Target>
 
@@ -58,6 +58,7 @@
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
 
     <!-- Below is the transitive closure of the project references above to placate BuildBoss. If changes are made above this line,
          please update the stuff here accordingly. -->

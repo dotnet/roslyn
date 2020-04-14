@@ -26,11 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
     internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEncapsulateFieldService()
         {
         }
 
-        protected async override Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
+        protected async override Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -143,9 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
         }
 
         private bool CanEncapsulate(FieldDeclarationSyntax field)
-        {
-            return field.Parent is TypeDeclarationSyntax;
-        }
+            => field.Parent is TypeDeclarationSyntax;
 
         protected override Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field)
         {
@@ -163,12 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                 if (newPropertyName == field.Name)
                 {
                     // If we wind up with the field's old name, give the field the unique version of its current name.
-                    return Tuple.Create(MakeUnique(GenerateFieldName(field, field.Name), field.ContainingType), newPropertyName);
+                    return Tuple.Create(MakeUnique(GenerateFieldName(field.Name), field.ContainingType), newPropertyName);
                 }
 
                 // Otherwise, ensure the property's name is unique.
                 newPropertyName = MakeUnique(newPropertyName, field.ContainingType);
-                var newFieldName = GenerateFieldName(field, newPropertyName);
+                var newFieldName = GenerateFieldName(newPropertyName);
 
                 // If converting the new property's name into a field name results in the old field name, we're done.
                 if (newFieldName == field.Name)
@@ -182,24 +181,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
         }
 
         private bool IsNew(IFieldSymbol field)
-        {
-            return field.DeclaringSyntaxReferences.Any(d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
-        }
+            => field.DeclaringSyntaxReferences.Any(d => d.GetSyntax().GetAncestor<FieldDeclarationSyntax>().Modifiers.Any(SyntaxKind.NewKeyword));
 
-        private string GenerateFieldName(IFieldSymbol field, string correspondingPropertyName)
-        {
-            return char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);
-        }
+        private string GenerateFieldName(string correspondingPropertyName)
+            => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);
 
-        protected string MakeUnique(string baseName, INamedTypeSymbol containingType, bool considerBaseMembers = true)
+        protected string MakeUnique(string baseName, INamedTypeSymbol containingType)
         {
             var containingTypeMemberNames = containingType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(containingType).Select(m => m.Name);
             return NameGenerator.GenerateUniqueName(baseName, containingTypeMemberNames.ToSet(), StringComparer.Ordinal);
         }
 
         internal override IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType)
-        {
-            return containingType.Constructors.SelectMany(c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()));
-        }
+            => containingType.Constructors.SelectMany(c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()));
     }
 }

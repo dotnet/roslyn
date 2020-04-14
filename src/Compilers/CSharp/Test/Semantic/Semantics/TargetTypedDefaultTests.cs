@@ -697,10 +697,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 17),
                 // (7,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         var y = null;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = null").WithArguments("<null>").WithLocation(7, 13),
-                // (7,13): warning CS0219: The variable 'y' is assigned but its value is never used
-                //         var y = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = null").WithArguments("<null>").WithLocation(7, 13)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -955,9 +952,9 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0023: Operator '.' cannot be applied to operand of type 'default'
+                // (6,16): error CS8310: Operator '.' cannot be applied to operand 'default'
                 //         default.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, ".").WithArguments(".", "default").WithLocation(6, 16),
                 // (7,9): error CS8716: There is no target type for the default literal.
                 //         default[0].ToString();
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 9),
@@ -977,9 +974,9 @@ class C
                 // (6,9): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         default.ToString();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 9),
-                // (6,16): error CS0023: Operator '.' cannot be applied to operand of type 'default'
+                // (6,16): error CS8310: Operator '.' cannot be applied to operand 'default'
                 //         default.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, ".").WithArguments(".", "default").WithLocation(6, 16),
                 // (7,9): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         default[0].ToString();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(7, 9),
@@ -1207,7 +1204,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,25): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         int j = checked(default + 4);
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + 4").WithArguments("+", "default").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default + 4").WithArguments("+", "default").WithLocation(6, 25)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -1252,52 +1249,52 @@ class C
             {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = default + default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + default").WithArguments("+", "default").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default + default").WithArguments("+", "default").WithLocation(6, 17),
                 // (7,17): error CS8310: Operator '-' cannot be applied to operand 'default'
                 //         var b = default - default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default - default").WithArguments("-", "default").WithLocation(7, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default - default").WithArguments("-", "default").WithLocation(7, 17),
                 // (8,17): error CS8310: Operator '&' cannot be applied to operand 'default'
                 //         var c = default & default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default & default").WithArguments("&", "default").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default & default").WithArguments("&", "default").WithLocation(8, 17),
                 // (9,17): error CS8310: Operator '|' cannot be applied to operand 'default'
                 //         var d = default | default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default | default").WithArguments("|", "default").WithLocation(9, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default | default").WithArguments("|", "default").WithLocation(9, 17),
                 // (10,17): error CS8310: Operator '^' cannot be applied to operand 'default'
                 //         var e = default ^ default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ^ default").WithArguments("^", "default").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default ^ default").WithArguments("^", "default").WithLocation(10, 17),
                 // (11,17): error CS8310: Operator '*' cannot be applied to operand 'default'
                 //         var f = default * default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default * default").WithArguments("*", "default").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default * default").WithArguments("*", "default").WithLocation(11, 17),
                 // (12,17): error CS8310: Operator '/' cannot be applied to operand 'default'
                 //         var g = default / default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default / default").WithArguments("/", "default").WithLocation(12, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default / default").WithArguments("/", "default").WithLocation(12, 17),
                 // (13,17): error CS8310: Operator '%' cannot be applied to operand 'default'
                 //         var h = default % default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default % default").WithArguments("%", "default").WithLocation(13, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default % default").WithArguments("%", "default").WithLocation(13, 17),
                 // (14,17): error CS8310: Operator '>>' cannot be applied to operand 'default'
                 //         var i = default >> default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default >> default").WithArguments(">>", "default").WithLocation(14, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default >> default").WithArguments(">>", "default").WithLocation(14, 17),
                 // (15,17): error CS8310: Operator '<<' cannot be applied to operand 'default'
                 //         var j = default << default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default << default").WithArguments("<<", "default").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default << default").WithArguments("<<", "default").WithLocation(15, 17),
                 // (16,17): error CS8310: Operator '>' cannot be applied to operand 'default'
                 //         var k = default > default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default > default").WithArguments(">", "default").WithLocation(16, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default > default").WithArguments(">", "default").WithLocation(16, 17),
                 // (17,17): error CS8310: Operator '<' cannot be applied to operand 'default'
                 //         var l = default < default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default < default").WithArguments("<", "default").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default < default").WithArguments("<", "default").WithLocation(17, 17),
                 // (18,17): error CS8310: Operator '>=' cannot be applied to operand 'default'
                 //         var m = default >= default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default >= default").WithArguments(">=", "default").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default >= default").WithArguments(">=", "default").WithLocation(18, 17),
                 // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'default'
                 //         var n = default <= default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default <= default").WithArguments("<=", "default").WithLocation(19, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default <= default").WithArguments("<=", "default").WithLocation(19, 17),
                 // (20,17): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         var o = default == default; // ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==").WithLocation(20, 17),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==", "default", "default").WithLocation(20, 17),
                 // (21,17): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         var p = default != default; // ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=").WithLocation(21, 17),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=", "default", "default").WithLocation(21, 17),
                 // (22,17): error CS8716: There is no target type for the default literal.
                 //         var q = default && default;
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(22, 17),
@@ -1357,46 +1354,46 @@ class C
             {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = default + 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + 1").WithArguments("+", "default").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default + 1").WithArguments("+", "default").WithLocation(6, 17),
                 // (7,17): error CS8310: Operator '-' cannot be applied to operand 'default'
                 //         var b = default - 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default - 1").WithArguments("-", "default").WithLocation(7, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default - 1").WithArguments("-", "default").WithLocation(7, 17),
                 // (8,17): error CS8310: Operator '&' cannot be applied to operand 'default'
                 //         var c = default & 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default & 1").WithArguments("&", "default").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default & 1").WithArguments("&", "default").WithLocation(8, 17),
                 // (9,17): error CS8310: Operator '|' cannot be applied to operand 'default'
                 //         var d = default | 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default | 1").WithArguments("|", "default").WithLocation(9, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default | 1").WithArguments("|", "default").WithLocation(9, 17),
                 // (10,17): error CS8310: Operator '^' cannot be applied to operand 'default'
                 //         var e = default ^ 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ^ 1").WithArguments("^", "default").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default ^ 1").WithArguments("^", "default").WithLocation(10, 17),
                 // (11,17): error CS8310: Operator '*' cannot be applied to operand 'default'
                 //         var f = default * 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default * 1").WithArguments("*", "default").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default * 1").WithArguments("*", "default").WithLocation(11, 17),
                 // (12,17): error CS8310: Operator '/' cannot be applied to operand 'default'
                 //         var g = default / 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default / 1").WithArguments("/", "default").WithLocation(12, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default / 1").WithArguments("/", "default").WithLocation(12, 17),
                 // (13,17): error CS8310: Operator '%' cannot be applied to operand 'default'
                 //         var h = default % 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default % 1").WithArguments("%", "default").WithLocation(13, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default % 1").WithArguments("%", "default").WithLocation(13, 17),
                 // (14,17): error CS8310: Operator '>>' cannot be applied to operand 'default'
                 //         var i = default >> 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default >> 1").WithArguments(">>", "default").WithLocation(14, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default >> 1").WithArguments(">>", "default").WithLocation(14, 17),
                 // (15,17): error CS8310: Operator '<<' cannot be applied to operand 'default'
                 //         var j = default << 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default << 1").WithArguments("<<", "default").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default << 1").WithArguments("<<", "default").WithLocation(15, 17),
                 // (16,17): error CS8310: Operator '>' cannot be applied to operand 'default'
                 //         var k = default > 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default > 1").WithArguments(">", "default").WithLocation(16, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default > 1").WithArguments(">", "default").WithLocation(16, 17),
                 // (17,17): error CS8310: Operator '<' cannot be applied to operand 'default'
                 //         var l = default < 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default < 1").WithArguments("<", "default").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default < 1").WithArguments("<", "default").WithLocation(17, 17),
                 // (18,17): error CS8310: Operator '>=' cannot be applied to operand 'default'
                 //         var m = default >= 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default >= 1").WithArguments(">=", "default").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default >= 1").WithArguments(">=", "default").WithLocation(18, 17),
                 // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'default'
                 //         var n = default <= 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default <= 1").WithArguments("<=", "default").WithLocation(19, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default <= 1").WithArguments("<=", "default").WithLocation(19, 17),
                 // (22,17): error CS8716: There is no target type for the default literal.
                 //         var q = default && 1;
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(22, 17),
@@ -1459,46 +1456,46 @@ class C
             {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = 1 + default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 + default").WithArguments("+", "default").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 + default").WithArguments("+", "default").WithLocation(6, 17),
                 // (7,17): error CS8310: Operator '-' cannot be applied to operand 'default'
                 //         var b = 1 - default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 - default").WithArguments("-", "default").WithLocation(7, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 - default").WithArguments("-", "default").WithLocation(7, 17),
                 // (8,17): error CS8310: Operator '&' cannot be applied to operand 'default'
                 //         var c = 1 & default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 & default").WithArguments("&", "default").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 & default").WithArguments("&", "default").WithLocation(8, 17),
                 // (9,17): error CS8310: Operator '|' cannot be applied to operand 'default'
                 //         var d = 1 | default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 | default").WithArguments("|", "default").WithLocation(9, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 | default").WithArguments("|", "default").WithLocation(9, 17),
                 // (10,17): error CS8310: Operator '^' cannot be applied to operand 'default'
                 //         var e = 1 ^ default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 ^ default").WithArguments("^", "default").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 ^ default").WithArguments("^", "default").WithLocation(10, 17),
                 // (11,17): error CS8310: Operator '*' cannot be applied to operand 'default'
                 //         var f = 1 * default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 * default").WithArguments("*", "default").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 * default").WithArguments("*", "default").WithLocation(11, 17),
                 // (12,17): error CS8310: Operator '/' cannot be applied to operand 'default'
                 //         var g = 1 / default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 / default").WithArguments("/", "default").WithLocation(12, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 / default").WithArguments("/", "default").WithLocation(12, 17),
                 // (13,17): error CS8310: Operator '%' cannot be applied to operand 'default'
                 //         var h = 1 % default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 % default").WithArguments("%", "default").WithLocation(13, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 % default").WithArguments("%", "default").WithLocation(13, 17),
                 // (14,17): error CS8310: Operator '>>' cannot be applied to operand 'default'
                 //         var i = 1 >> default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 >> default").WithArguments(">>", "default").WithLocation(14, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 >> default").WithArguments(">>", "default").WithLocation(14, 17),
                 // (15,17): error CS8310: Operator '<<' cannot be applied to operand 'default'
                 //         var j = 1 << default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 << default").WithArguments("<<", "default").WithLocation(15, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 << default").WithArguments("<<", "default").WithLocation(15, 17),
                 // (16,17): error CS8310: Operator '>' cannot be applied to operand 'default'
                 //         var k = 1 > default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 > default").WithArguments(">", "default").WithLocation(16, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 > default").WithArguments(">", "default").WithLocation(16, 17),
                 // (17,17): error CS8310: Operator '<' cannot be applied to operand 'default'
                 //         var l = 1 < default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 < default").WithArguments("<", "default").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 < default").WithArguments("<", "default").WithLocation(17, 17),
                 // (18,17): error CS8310: Operator '>=' cannot be applied to operand 'default'
                 //         var m = 1 >= default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 >= default").WithArguments(">=", "default").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 >= default").WithArguments(">=", "default").WithLocation(18, 17),
                 // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'default'
                 //         var n = 1 <= default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 <= default").WithArguments("<=", "default").WithLocation(19, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "1 <= default").WithArguments("<=", "default").WithLocation(19, 17),
                 // (22,22): error CS8716: There is no target type for the default literal.
                 //         var q = 1 && default;
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(22, 22),
@@ -1563,7 +1560,7 @@ struct S
             {
                 // (8,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
                 //         s += default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "s += default").WithArguments("+=", "default").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s += default").WithArguments("+=", "default").WithLocation(8, 9)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
@@ -1917,13 +1914,13 @@ class C
             comp.VerifyDiagnostics(
                 // (9,13): error CS8310: Operator '+=' cannot be applied to operand 'default'
                 //             i += default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "i += default").WithArguments("+=", "default").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "i += default").WithArguments("+=", "default").WithLocation(9, 13),
                 // (11,13): error CS8310: Operator '&=' cannot be applied to operand 'default'
                 //             b &= default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "b &= default").WithArguments("&=", "default").WithLocation(11, 13),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "b &= default").WithArguments("&=", "default").WithLocation(11, 13),
                 // (12,37): error CS8310: Operator '|' cannot be applied to operand 'default'
                 //             System.Console.Write($"{true | default} {i} {b}");
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "true | default").WithArguments("|", "default").WithLocation(12, 37),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "true | default").WithArguments("|", "default").WithLocation(12, 37),
                 // (15,40): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (System.Exception) when (default)
                 Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(15, 40),
@@ -2060,7 +2057,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!Main").WithArguments("!", "method group").WithLocation(6, 13),
                 // (6,22): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //         if (!Main || !null)
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "!null").WithArguments("!", "<null>").WithLocation(6, 22)
                 );
         }
 
@@ -2473,7 +2470,7 @@ class C
             comp.VerifyDiagnostics(
                 // (5,16): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //     OneEntry = default + 1
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + 1").WithArguments("+", "default").WithLocation(5, 16)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default + 1").WithArguments("+", "default").WithLocation(5, 16)
                 );
         }
 
@@ -2498,7 +2495,7 @@ class C
             comp.VerifyDiagnostics(
                 // (5,16): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //     OneEntry = default + 1
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + 1").WithArguments("+", "default").WithLocation(5, 16)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default + 1").WithArguments("+", "default").WithLocation(5, 16)
                 );
         }
 
@@ -2620,10 +2617,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==", "default", "default").WithLocation(6, 33),
                 // (6,54): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=").WithLocation(6, 54)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=", "default", "default").WithLocation(6, 54)
                 );
         }
 
@@ -2645,10 +2642,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==", "default", "default").WithLocation(6, 33),
                 // (6,54): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=").WithLocation(6, 54)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=", "default", "default").WithLocation(6, 54)
                 );
         }
 

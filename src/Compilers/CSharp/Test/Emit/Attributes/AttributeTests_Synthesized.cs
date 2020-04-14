@@ -375,20 +375,20 @@ public class C
             CompileAndVerify(comp, symbolValidator: m =>
             {
                 var assembly = m.ContainingAssembly;
-                Assert.Equal(@"\{ }", GetDebuggerDisplayString(assembly, 0, 0));
-                Assert.Equal(@"\{ X0 = {X0} }", GetDebuggerDisplayString(assembly, 1, 1));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1} }", GetDebuggerDisplayString(assembly, 2, 2));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2} }", GetDebuggerDisplayString(assembly, 3, 3));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3} }", GetDebuggerDisplayString(assembly, 4, 4));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4} }", GetDebuggerDisplayString(assembly, 5, 5));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5} }", GetDebuggerDisplayString(assembly, 6, 6));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6} }", GetDebuggerDisplayString(assembly, 7, 7));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7} }", GetDebuggerDisplayString(assembly, 8, 8));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8} }", GetDebuggerDisplayString(assembly, 9, 9));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} }", GetDebuggerDisplayString(assembly, 10, 10));
-                Assert.Equal(@"\{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} ... }", GetDebuggerDisplayString(assembly, 11, 11));
+                Assert.Equal(@"{ }", GetDebuggerDisplayString(assembly, 0, 0));
+                Assert.Equal(@"{ X0 = {X0} }", GetDebuggerDisplayString(assembly, 1, 1));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1} }", GetDebuggerDisplayString(assembly, 2, 2));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2} }", GetDebuggerDisplayString(assembly, 3, 3));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3} }", GetDebuggerDisplayString(assembly, 4, 4));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4} }", GetDebuggerDisplayString(assembly, 5, 5));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5} }", GetDebuggerDisplayString(assembly, 6, 6));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6} }", GetDebuggerDisplayString(assembly, 7, 7));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7} }", GetDebuggerDisplayString(assembly, 8, 8));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8} }", GetDebuggerDisplayString(assembly, 9, 9));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} }", GetDebuggerDisplayString(assembly, 10, 10));
+                Assert.Equal(@"{ X0 = {X0}, X1 = {X1}, X2 = {X2}, X3 = {X3}, X4 = {X4}, X5 = {X5}, X6 = {X6}, X7 = {X7}, X8 = {X8}, X9 = {X9} ... }", GetDebuggerDisplayString(assembly, 11, 11));
 
-                Assert.Equal(@"\{ X10 = {X10}, X11 = {X11}, X12 = {X12}, X13 = {X13}, X14 = {X14}, X15 = {X15}, X16 = {X16}, X17 = {X17}, X20 = {X20}, X21 = {X21} ... }",
+                Assert.Equal(@"{ X10 = {X10}, X11 = {X11}, X12 = {X12}, X13 = {X13}, X14 = {X14}, X15 = {X15}, X16 = {X16}, X17 = {X17}, X20 = {X20}, X21 = {X21} ... }",
                     GetDebuggerDisplayString(assembly, 12, 48));
             });
 
@@ -550,6 +550,115 @@ class B : A
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(attributes));
             });
         }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void BaseMethodWrapper_DoNotInheritAttributes(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class Attr : System.Attribute { }
+
+class A
+{
+    [Attr]
+    [return: Attr]
+    public virtual async Task<int> GetIntAsync([Attr] int x)
+    {
+        return 42;
+    }
+}
+class B : A
+{
+    public override async Task<int> GetIntAsync(int x)
+    {
+        return await base.GetIntAsync(x);
+    }
+}
+";
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var baseMethodWrapper = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0");
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
+                Assert.Empty(baseMethodWrapper.GetReturnTypeAttributes());
+
+                var parameter = baseMethodWrapper.Parameters.Single();
+                Assert.Empty(parameter.GetAttributes());
+            });
+        }
+
+        [Theory]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void BaseMethodWrapper_DoNotInheritAttributes_TypeParameter(OptimizationLevel optimizationLevel)
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class Attr : System.Attribute { }
+
+class A
+{
+    [Attr]
+    [return: Attr]
+    public virtual async Task<T> GetAsync<[Attr] T>([Attr] T t)
+    {
+        return t;
+    }
+}
+class B : A
+{
+    [Attr]
+    [return: Attr]
+    public override async Task<T> GetAsync<[Attr] T>([Attr] T t)
+    {
+        return await base.GetAsync(t);
+    }
+}
+";
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithOptimizationLevel(optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            {
+                var baseMethodWrapper = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0");
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
+                Assert.Empty(baseMethodWrapper.GetReturnTypeAttributes());
+
+                var parameter = baseMethodWrapper.Parameters.Single();
+                Assert.Empty(parameter.GetAttributes());
+
+                var typeParameter = baseMethodWrapper.TypeParameters.Single();
+                Assert.Empty(typeParameter.GetAttributes());
+            });
+        }
+
+        [Fact]
+        public void SubstitutedTypeParameter_Attributes()
+        {
+            string source = @"
+class Attr : System.Attribute { }
+
+internal class C1<T1>
+{
+    internal class C2<[Attr] T2> { }
+}
+";
+            var comp = CreateCompilation(source);
+            var c1OfInt = comp.GetTypeByMetadataName("C1`1").Construct(comp.GetSpecialType(SpecialType.System_Int32));
+
+            var c2 = c1OfInt.GetTypeMember("C2");
+            var typeParam = c2.TypeParameters.Single();
+            Assert.Equal(new[] { "Attr" }, GetAttributeNames(typeParam.GetAttributes()));
+        }
+
         #endregion
 
         #region CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute, DebuggableAttribute

@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
-            return GetTypeMembers(name).WhereAsArray(t => t.Arity == arity);
+            return GetTypeMembers(name).WhereAsArray((t, arity) => t.Arity == arity, arity);
         }
 
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetTypeMembersDictionary()
@@ -1436,6 +1436,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var baseType = BaseTypeNoUseSiteDiagnostics;
             var interfaces = GetInterfacesToEmit();
+
+            // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
+            if (hasBaseTypeOrInterface(t => t.ContainsNativeInteger()))
+            {
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
             if (compilation.ShouldEmitNullableAttributes(this))
             {
                 if (ShouldEmitNullableContextValue(out _))
@@ -1443,9 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
-                // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                if (baseType?.NeedsNullableAttribute() == true ||
-                     interfaces.Any(t => t.NeedsNullableAttribute()))
+                if (hasBaseTypeOrInterface(t => t.NeedsNullableAttribute()))
                 {
                     compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
@@ -1456,6 +1461,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Note: we don't need to check base type or directly implemented interfaces (which will be reported during binding)
                 // so the checking of all interfaces here involves some redundancy.
                 Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
+            }
+
+            bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
+            {
+                return ((object)baseType != null && predicate(baseType)) ||
+                    interfaces.Any(predicate);
             }
 
             static bool needsTupleElementNamesAttribute(TypeSymbol type)
@@ -3407,6 +3418,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (baseType.ContainsDynamic())
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
+                }
+
+                if (baseType.ContainsNativeInteger())
+                {
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, baseType));
                 }
 
                 if (baseType.ContainsTupleNames())

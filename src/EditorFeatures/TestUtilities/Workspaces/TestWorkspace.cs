@@ -104,9 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public new void RegisterText(SourceTextContainer text)
-        {
-            base.RegisterText(text);
-        }
+            => base.RegisterText(text);
 
         protected override void Dispose(bool finalize)
         {
@@ -148,9 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         internal void AddTestSolution(TestHostSolution solution)
-        {
-            this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
-        }
+            => this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
 
         public void AddTestProject(TestHostProject project)
         {
@@ -178,29 +174,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public new void OnProjectRemoved(ProjectId projectId)
-        {
-            base.OnProjectRemoved(projectId);
-        }
+            => base.OnProjectRemoved(projectId);
 
         public new void OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
-        {
-            base.OnProjectReferenceAdded(projectId, projectReference);
-        }
+            => base.OnProjectReferenceAdded(projectId, projectReference);
 
         public new void OnProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
-        {
-            base.OnProjectReferenceRemoved(projectId, projectReference);
-        }
+            => base.OnProjectReferenceRemoved(projectId, projectReference);
 
         public new void OnDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
-        {
-            base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
-        }
+            => base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
 
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
-        {
-            base.OnParseOptionsChanged(projectId, parseOptions);
-        }
+            => base.OnParseOptionsChanged(projectId, parseOptions);
 
         public void OnDocumentRemoved(DocumentId documentId, bool closeDocument = false)
         {
@@ -213,9 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public new void OnDocumentSourceCodeKindChanged(DocumentId documentId, SourceCodeKind sourceCodeKind)
-        {
-            base.OnDocumentSourceCodeKindChanged(documentId, sourceCodeKind);
-        }
+            => base.OnDocumentSourceCodeKindChanged(documentId, sourceCodeKind);
 
         public DocumentId? GetDocumentId(TestHostDocument hostDocument)
         {
@@ -230,34 +214,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public TestHostDocument GetTestDocument(DocumentId documentId)
-        {
-            return this.Documents.FirstOrDefault(d => d.Id == documentId);
-        }
+            => this.Documents.FirstOrDefault(d => d.Id == documentId);
 
         public TestHostDocument GetTestAdditionalDocument(DocumentId documentId)
-        {
-            return this.AdditionalDocuments.FirstOrDefault(d => d.Id == documentId);
-        }
+            => this.AdditionalDocuments.FirstOrDefault(d => d.Id == documentId);
 
         public TestHostDocument GetTestAnalyzerConfigDocument(DocumentId documentId)
-        {
-            return this.AnalyzerConfigDocuments.FirstOrDefault(d => d.Id == documentId);
-        }
+            => this.AnalyzerConfigDocuments.FirstOrDefault(d => d.Id == documentId);
 
         public TestHostProject GetTestProject(DocumentId documentId)
-        {
-            return GetTestProject(documentId.ProjectId);
-        }
+            => GetTestProject(documentId.ProjectId);
 
         public TestHostProject GetTestProject(ProjectId projectId)
-        {
-            return this.Projects.FirstOrDefault(p => p.Id == projectId);
-        }
+            => this.Projects.FirstOrDefault(p => p.Id == projectId);
 
         public TServiceInterface GetService<TServiceInterface>()
-        {
-            return ExportProvider.GetExportedValue<TServiceInterface>();
-        }
+            => ExportProvider.GetExportedValue<TServiceInterface>();
 
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
@@ -269,6 +241,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
+                case ApplyChangesKind.AddAnalyzerReference:
+                case ApplyChangesKind.RemoveAnalyzerReference:
+                case ApplyChangesKind.AddSolutionAnalyzerReference:
+                case ApplyChangesKind.RemoveSolutionAnalyzerReference:
                     return true;
 
                 case ApplyChangesKind.ChangeDocument:
@@ -341,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
-            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id);
+            var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders);
             hostProject.AddAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -354,10 +330,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.OnAnalyzerConfigDocumentRemoved(documentId);
         }
 
-        internal override void SetDocumentContext(DocumentId documentId)
+        protected override void ApplyProjectChanges(ProjectChanges projectChanges)
         {
-            OnDocumentContextUpdated(documentId);
+            if (projectChanges.OldProject.FilePath != projectChanges.NewProject.FilePath)
+            {
+                var hostProject = this.GetTestProject(projectChanges.NewProject.Id);
+                hostProject.OnProjectFilePathChanged(projectChanges.NewProject.FilePath);
+                base.OnProjectNameChanged(projectChanges.NewProject.Id, projectChanges.NewProject.Name, projectChanges.NewProject.FilePath);
+            }
+
+            base.ApplyProjectChanges(projectChanges);
         }
+
+        internal override void SetDocumentContext(DocumentId documentId)
+            => OnDocumentContextUpdated(documentId);
 
         /// <summary>
         /// Creates a TestHostDocument backed by a projection buffer. The surface buffer is 
@@ -670,9 +656,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public new void ClearSolution()
-        {
-            base.ClearSolution();
-        }
+            => base.ClearSolution();
 
         public void ChangeSolution(Solution solution)
         {

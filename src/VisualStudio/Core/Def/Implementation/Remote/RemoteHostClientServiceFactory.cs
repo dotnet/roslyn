@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -16,23 +17,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal partial class RemoteHostClientServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IDiagnosticAnalyzerService _analyzerService;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RemoteHostClientServiceFactory(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IDiagnosticAnalyzerService analyzerService)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _listener = listenerProvider.GetListener(FeatureAttribute.RemoteHostClient);
-            _analyzerService = analyzerService;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new RemoteHostClientService(_threadingContext, _listener, workspaceServices.Workspace, _analyzerService.AnalyzerInfoCache);
-        }
+            => new RemoteHostClientService(_threadingContext, _listener, workspaceServices.Workspace);
     }
 }

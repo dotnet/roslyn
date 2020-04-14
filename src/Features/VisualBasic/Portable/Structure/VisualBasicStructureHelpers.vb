@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
@@ -72,15 +73,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Sub
 
         Friend Sub CollectCommentsRegions(node As SyntaxNode,
-                                          spans As ArrayBuilder(Of BlockSpan))
+                                          spans As ArrayBuilder(Of BlockSpan),
+                                          isMetadataAsSource As Boolean)
             If node Is Nothing Then
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            Dim triviaList = node.GetLeadingTrivia()
-
-            CollectCommentsRegions(triviaList, spans)
+            Dim span As BlockSpan = Nothing
+            If isMetadataAsSource AndAlso TryGetLeadingCollapsibleSpan(node, span) Then
+                spans.Add(span)
+            Else
+                Dim triviaList = node.GetLeadingTrivia()
+                CollectCommentsRegions(triviaList, spans)
+            End If
         End Sub
+
+        Private Function TryGetLeadingCollapsibleSpan(node As SyntaxNode, <[Out]> ByRef span As BlockSpan) As Boolean
+            Dim startToken = node.GetFirstToken()
+            Dim endToken = GetEndToken(node)
+            If startToken.IsKind(SyntaxKind.None) OrElse endToken.IsKind(SyntaxKind.None) Then
+                ' if valid tokens can't be found then a meaningful span can't be generated
+                span = Nothing
+                Return False
+            End If
+
+            Dim firstComment = startToken.LeadingTrivia.FirstOrNull(Function(t) t.Kind = SyntaxKind.CommentTrivia)
+
+            Dim startPosition = If(firstComment.HasValue,
+                                   firstComment.Value.SpanStart,
+                                   startToken.SpanStart)
+
+            Dim endPosition = endToken.SpanStart
+
+            ' TODO (tomescht): Mark the regions to be collapsed by default.
+            If startPosition <> endPosition Then
+                Dim hintTextEndToken = GetHintTextEndToken(node)
+                span = New BlockSpan(
+                    isCollapsible:=True,
+                    type:=BlockTypes.Comment,
+                    textSpan:=TextSpan.FromBounds(startPosition, endPosition),
+                    hintSpan:=TextSpan.FromBounds(startPosition, hintTextEndToken.Span.End),
+                    bannerText:=Ellipsis,
+                    autoCollapse:=True)
+                Return True
+            End If
+
+            span = Nothing
+            Return False
+        End Function
+
+        Private Function GetEndToken(node As SyntaxNode) As SyntaxToken
+            If node.IsKind(SyntaxKind.SubNewStatement) Then
+                Dim subNewStatement = DirectCast(node, SubNewStatementSyntax)
+                Return If(subNewStatement.Modifiers.FirstOrNull(), subNewStatement.DeclarationKeyword)
+            ElseIf node.IsKind(SyntaxKind.DelegateSubStatement, SyntaxKind.DelegateFunctionStatement) Then
+                Dim delegateStatement = DirectCast(node, DelegateStatementSyntax)
+                Return If(delegateStatement.Modifiers.FirstOrNull(), delegateStatement.DelegateKeyword)
+            ElseIf node.IsKind(SyntaxKind.EnumStatement) Then
+                Dim enumStatement = DirectCast(node, EnumStatementSyntax)
+                Return If(enumStatement.Modifiers.FirstOrNull(), enumStatement.EnumKeyword)
+            ElseIf node.IsKind(SyntaxKind.EnumMemberDeclaration) Then
+                Dim enumMemberDeclaration = DirectCast(node, EnumMemberDeclarationSyntax)
+                Return enumMemberDeclaration.Identifier
+            ElseIf node.IsKind(SyntaxKind.EventStatement) Then
+                Dim eventStatement = DirectCast(node, EventStatementSyntax)
+                Return If(eventStatement.Modifiers.FirstOrNull(),
+                    If(eventStatement.CustomKeyword.IsKind(SyntaxKind.None), eventStatement.DeclarationKeyword, eventStatement.CustomKeyword))
+            ElseIf node.IsKind(SyntaxKind.FieldDeclaration) Then
+                Dim fieldDeclaration = DirectCast(node, FieldDeclarationSyntax)
+                Return If(fieldDeclaration.Modifiers.FirstOrNull(), fieldDeclaration.Declarators.First().GetFirstToken())
+            ElseIf node.IsKind(SyntaxKind.SubStatement, SyntaxKind.FunctionStatement) Then
+                Dim methodStatement = DirectCast(node, MethodStatementSyntax)
+                Return If(methodStatement.Modifiers.FirstOrNull(), methodStatement.DeclarationKeyword)
+            ElseIf node.IsKind(SyntaxKind.OperatorStatement) Then
+                Dim operatorStatement = DirectCast(node, OperatorStatementSyntax)
+                Return If(operatorStatement.Modifiers.FirstOrNull(), operatorStatement.DeclarationKeyword)
+            ElseIf node.IsKind(SyntaxKind.PropertyStatement) Then
+                Dim propertyStatement = DirectCast(node, PropertyStatementSyntax)
+                Return If(propertyStatement.Modifiers.FirstOrNull(), propertyStatement.DeclarationKeyword)
+            ElseIf node.IsKind(SyntaxKind.ClassStatement, SyntaxKind.StructureStatement, SyntaxKind.InterfaceStatement, SyntaxKind.ModuleStatement) Then
+                Dim typeStatement = DirectCast(node, TypeStatementSyntax)
+                Return If(typeStatement.Modifiers.FirstOrNull(), typeStatement.DeclarationKeyword)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Private Function GetHintTextEndToken(node As SyntaxNode) As SyntaxToken
+            Return node.GetLastToken()
+        End Function
 
         Friend Function CreateBlockSpan(
                 span As TextSpan,

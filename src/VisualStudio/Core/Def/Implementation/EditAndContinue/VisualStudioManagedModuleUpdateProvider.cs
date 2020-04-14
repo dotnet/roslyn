@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Export(typeof(IEditAndContinueManagedModuleUpdateProvider)), Shared]
+    [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class VisualStudioManagedModuleUpdateProvider : IEditAndContinueManagedModuleUpdateProvider
     {
         private readonly IEditAndContinueWorkspaceService _encService;
@@ -24,9 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioManagedModuleUpdateProvider(VisualStudioWorkspace workspace)
-        {
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-        }
+            => _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
         public Task<ManagedModuleUpdateStatus> GetStatusAsync(CancellationToken cancellationToken)
             => GetStatusAsync(null, cancellationToken);

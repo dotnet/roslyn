@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -11,12 +13,13 @@ using Microsoft.CodeAnalysis.Notification;
 namespace Microsoft.CodeAnalysis.Remote.Services
 {
     [ExportWorkspaceService(typeof(IGlobalOperationNotificationService), WorkspaceKind.RemoteWorkspace), Shared]
-    internal class RemoteGlobalOperationNotificationService : IGlobalOperationNotificationService
+    internal sealed class RemoteGlobalOperationNotificationService : IGlobalOperationNotificationService
     {
-        public event EventHandler Started;
-        public event EventHandler<GlobalOperationEventArgs> Stopped;
+        public event EventHandler? Started;
+        public event EventHandler<GlobalOperationEventArgs>? Stopped;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteGlobalOperationNotificationService()
         {
         }
@@ -29,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         }
 
         public void OnStarted()
-            => this.Started?.Invoke(this, EventArgs.Empty);
+            => Started?.Invoke(this, EventArgs.Empty);
 
         public void OnStopped(IReadOnlyList<string> operations, bool cancelled)
-            => this.Stopped?.Invoke(this, new GlobalOperationEventArgs(operations, cancelled));
+            => Stopped?.Invoke(this, new GlobalOperationEventArgs(operations, cancelled));
     }
 }

@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -27,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddImportCodeFixProvider());
+
+        private protected IOptionsCollection SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
 
         protected async Task TestAsync(
             string initialMarkup,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             int index = 0,
             CodeActionPriority? priority = null,
-            IDictionary<OptionKey, object> options = null)
+            IOptionsCollection options = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
             await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             int index,
             CodeActionPriority? priority,
-            IDictionary<OptionKey, object> options,
+            IOptionsCollection options,
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, priority,
-                parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
+                initialMarkup, expectedMarkup, index,
+                parameters: new TestParameters(options: options, runProviderOutOfProc: outOfProcess, priority: priority));
         }
     }
 
@@ -69,9 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
             Workspace workspace, TestParameters parameters)
         {
-            var outOfProcess = (bool)parameters.fixProviderData;
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
+                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.runProviderOutOfProc)));
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
@@ -5481,6 +5480,49 @@ namespace N
     }
 }
 ");
+        }
+
+        [WorkItem(25003, "https://github.com/dotnet/roslyn/issues/25003")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task KeepUsingsGrouped1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Goo|]
+    }
+}
+
+namespace Microsoft
+{
+    public class Goo
+    {
+    }
+}",
+@"
+using System;
+
+using Microsoft;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Goo
+    }
+}
+
+namespace Microsoft
+{
+    public class Goo
+    {
+    }
+}", options: SeparateGroups);
         }
     }
 }

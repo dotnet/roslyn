@@ -382,13 +382,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class PendingBranch
         {
             public readonly BoundNode Branch;
+            public bool IsConditionalState;
             public TLocalState State;
+            public TLocalState StateWhenTrue;
+            public TLocalState StateWhenFalse;
             public readonly LabelSymbol Label;
 
-            public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label)
+            public PendingBranch(BoundNode branch, TLocalState state, LabelSymbol label, bool isConditionalState = false, TLocalState stateWhenTrue = default, TLocalState stateWhenFalse = default)
             {
                 this.Branch = branch;
                 this.State = state.Clone();
+                this.IsConditionalState = isConditionalState;
+                if (isConditionalState)
+                {
+                    this.StateWhenTrue = stateWhenTrue.Clone();
+                    this.StateWhenFalse = stateWhenFalse.Clone();
+                }
                 this.Label = label;
             }
         }
@@ -1009,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
-            VisitRvalue(node.ReceiverOpt);
+            VisitRvalue(node.Receiver);
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
             return null;
         }
@@ -1155,16 +1164,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Method);
+            VisitArgumentsBeforeCall(node.Arguments, node.ArgumentRefKindsOpt);
+
+            if (!callsAreOmitted && node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            {
+                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
+            }
+
+            VisitArgumentsAfterCall(node.Arguments, node.ArgumentRefKindsOpt, node.Method);
             VisitReceiverAfterCall(node.ReceiverOpt, node.Method);
 
             if (callsAreOmitted)
             {
                 this.State = savedState;
-            }
-            else if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
-            {
-                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
             }
 
             return null;
@@ -1293,7 +1305,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Do not call for a local function.
+        /// </summary>
         protected virtual void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        {
+            Debug.Assert(method?.OriginalDefinition.MethodKind != MethodKind.LocalFunction);
+            VisitArgumentsBeforeCall(arguments, refKindsOpt);
+            VisitArgumentsAfterCall(arguments, refKindsOpt, method);
+        }
+
+        private void VisitArgumentsBeforeCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt)
         {
             // first value and ref parameters are read...
             for (int i = 0; i < arguments.Length; i++)
@@ -1308,7 +1330,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitLvalue(arguments[i]);
                 }
             }
-            // and then ref and out parameters are written...
+        }
+
+        /// <summary>
+        /// Writes ref and out parameters
+        /// </summary>
+        private void VisitArgumentsAfterCall(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        {
             for (int i = 0; i < arguments.Length; i++)
             {
                 RefKind refKind = GetRefKind(refKindsOpt, i);
@@ -1561,10 +1589,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
-                        Meet(ref pend.State, ref this.State);
-                        if (_nonMonotonicTransfer)
+                        updatePendingBranchState(ref pend.State, ref stateMovedUpInFinally);
+
+                        if (pend.IsConditionalState)
                         {
-                            Join(ref pend.State, ref stateMovedUpInFinally);
+                            updatePendingBranchState(ref pend.StateWhenTrue, ref stateMovedUpInFinally);
+                            updatePendingBranchState(ref pend.StateWhenFalse, ref stateMovedUpInFinally);
                         }
                     }
                 }
@@ -1580,6 +1610,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(endState);
             RestorePending(oldPending);
             return null;
+
+            void updatePendingBranchState(ref TLocalState stateToUpdate, ref TLocalState stateMovedUpInFinally)
+            {
+                Meet(ref stateToUpdate, ref this.State);
+                if (_nonMonotonicTransfer)
+                {
+                    Join(ref stateToUpdate, ref stateMovedUpInFinally);
+                }
+            }
         }
 
         protected Optional<TLocalState> NonMonotonicState;
@@ -1687,10 +1726,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitBlock(node.FinallyBlock);
         }
 
-        public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
+        public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             var result = VisitReturnStatementNoAdjust(node);
-            AdjustStateAfterReturnStatement(node);
+            PendingBranches.Add(new PendingBranch(node, this.State, label: null));
+            SetUnreachable();
             return result;
         }
 
@@ -1705,12 +1745,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-        }
-
-        private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
-        {
-            PendingBranches.Add(new PendingBranch(node, this.State, null));
-            SetUnreachable();
         }
 
         public override BoundNode VisitThisReference(BoundThisReference node)
@@ -2719,6 +2753,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
         {
             VisitTypeExpression(node.SourceType);
@@ -2976,7 +3015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
-            TLocalState savedState;
+            TLocalState leftState;
             if (RegularPropertyAccess(node.LeftOperand) &&
                 (BoundPropertyAccess)node.LeftOperand is var left &&
                 left.PropertySymbol is var property &&
@@ -2987,17 +3026,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
                 VisitReceiverAfterCall(left.ReceiverOpt, readMethod);
 
-                savedState = this.State.Clone();
+                var savedState = this.State.Clone();
+                AdjustStateForNullCoalescingAssignmentNonNullCase(node);
+                leftState = this.State.Clone();
+                SetState(savedState);
                 VisitAssignmentOfNullCoalescingAssignment(node, left);
             }
             else
             {
                 VisitRvalue(node.LeftOperand, isKnownToBeAnLvalue: true);
-                savedState = this.State.Clone();
+                var savedState = this.State.Clone();
+                AdjustStateForNullCoalescingAssignmentNonNullCase(node);
+                leftState = this.State.Clone();
+                SetState(savedState);
                 VisitAssignmentOfNullCoalescingAssignment(node, propertyAccessOpt: null);
             }
 
-            Join(ref this.State, ref savedState);
+            Join(ref this.State, ref leftState);
             return null;
         }
 
@@ -3022,6 +3067,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var writeMethod = symbol.GetOwnOrInheritedSetMethod();
                 PropertySetter(node, propertyAccessOpt.ReceiverOpt, writeMethod);
             }
+        }
+
+        /// <summary>
+        /// This visitor represents just the non-assignment part of the null coalescing assignment
+        /// operator (when the left operand is non-null).
+        /// </summary>
+        protected virtual void AdjustStateForNullCoalescingAssignmentNonNullCase(BoundNullCoalescingAssignmentOperator node)
+        {
         }
 
         private void VisitMethodBodies(BoundBlock blockBody, BoundBlock expressionBody)

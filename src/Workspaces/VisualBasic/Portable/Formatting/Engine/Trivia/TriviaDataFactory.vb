@@ -2,21 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Diagnostics
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ''' <summary>
@@ -33,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private ReadOnly _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia
 
-        Public Sub New(treeInfo As TreeData, optionSet As OptionSet)
-            MyBase.New(treeInfo, optionSet)
+        Public Sub New(treeInfo As TreeData, options As AnalyzerConfigOptions)
+            MyBase.New(treeInfo, options)
         End Sub
 
         Public Overrides Function CreateLeadingTrivia(token As SyntaxToken) As TriviaData
@@ -51,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return info
             End If
 
-            Return New ComplexTrivia(Me.OptionSet, Me.TreeInfo, Nothing, token)
+            Return New ComplexTrivia(Me.Options, Me.TreeInfo, Nothing, token)
         End Function
 
         Public Overrides Function CreateTrailingTrivia(token As SyntaxToken) As TriviaData
@@ -68,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return info
             End If
 
-            Return New ComplexTrivia(Me.OptionSet, Me.TreeInfo, token, Nothing)
+            Return New ComplexTrivia(Me.Options, Me.TreeInfo, token, Nothing)
         End Function
 
         Public Overrides Function Create(token1 As SyntaxToken, token2 As SyntaxToken) As TriviaData
@@ -86,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return lineContinuationTriviaData
                 End If
 
-                Return New ComplexTrivia(Me.OptionSet, Me.TreeInfo, token1, token2)
+                Return New ComplexTrivia(Me.Options, Me.TreeInfo, token1, token2)
             End If
 
             Dim triviaData = GetWhitespaceOnlyTriviaInfo(token1, token2, result)
@@ -95,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return triviaData
             End If
 
-            Return New ComplexTrivia(Me.OptionSet, Me.TreeInfo, token1, token2)
+            Return New ComplexTrivia(Me.Options, Me.TreeInfo, token1, token2)
         End Function
 
         Private Function GetLineContinuationTriviaInfo(token1 As SyntaxToken, token2 As SyntaxToken, result As Analyzer.AnalysisResult) As TriviaData
@@ -132,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' set up caches
             If Me._lineContinuations(indentation) Is Nothing Then
-                Dim triviaInfo = New LineContinuationTrivia(Me.OptionSet, originalString, indentation)
+                Dim triviaInfo = New LineContinuationTrivia(Me.Options, originalString, indentation)
                 Interlocked.CompareExchange(Me._lineContinuations(indentation), triviaInfo, Nothing)
             End If
         End Sub
@@ -173,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If result.LineBreaks = 0 AndAlso result.Tab > 0 Then
                 ' calculate actual space size from tab
                 Dim spaces = CalculateSpaces(token1, token2)
-                Return New ModifiedWhitespace(Me.OptionSet, result.LineBreaks, Indentation:=spaces, elastic:=result.TreatAsElastic, language:=LanguageNames.VisualBasic)
+                Return New ModifiedWhitespace(Me.Options, result.LineBreaks, indentation:=spaces, elastic:=result.TreatAsElastic, language:=LanguageNames.VisualBasic)
             End If
 
             ' check whether we can cache trivia info for current indentation
@@ -184,22 +173,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Function CalculateSpaces(token1 As SyntaxToken, token2 As SyntaxToken) As Integer
-            Dim initialColumn = If(token1.Kind = 0, 0, Me.TreeInfo.GetOriginalColumn(Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), token1) + token1.Width)
+            Dim initialColumn = If(token1.Kind = 0, 0, Me.TreeInfo.GetOriginalColumn(Me.Options.GetOption(FormattingOptions2.TabSize), token1) + token1.Width)
             Dim textSnippet = Me.TreeInfo.GetTextBetween(token1, token2)
 
-            Return textSnippet.ConvertTabToSpace(Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), initialColumn, textSnippet.Length)
+            Return textSnippet.ConvertTabToSpace(Me.Options.GetOption(FormattingOptions2.TabSize), initialColumn, textSnippet.Length)
         End Function
 
         Private Function GetLineBreaksAndIndentation(result As Analyzer.AnalysisResult) As ValueTuple(Of Boolean, Integer, Integer)
             Debug.Assert(result.Tab >= 0)
             Debug.Assert(result.LineBreaks >= 0)
 
-            Dim indentation = result.Tab * Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic) + result.Space
+            Dim indentation = result.Tab * Me.Options.GetOption(FormattingOptions2.TabSize) + result.Space
             If result.HasTrailingSpace OrElse result.HasUnknownWhitespace Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            If Not Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic) Then
+            If Not Me.Options.GetOption(FormattingOptions2.UseTabs) Then
                 If result.Tab > 0 Then
                     Return ValueTuple.Create(False, result.LineBreaks, indentation)
                 End If
@@ -207,19 +196,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return ValueTuple.Create(True, result.LineBreaks, indentation)
             End If
 
-            Debug.Assert(Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic))
+            Debug.Assert(Me.Options.GetOption(FormattingOptions2.UseTabs))
 
             ' tab can only appear before space to be a valid tab for indentation
             If result.HasTabAfterSpace Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            If result.Space >= Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic) Then
+            If result.Space >= Me.Options.GetOption(FormattingOptions2.TabSize) Then
                 Return ValueTuple.Create(False, result.LineBreaks, indentation)
             End If
 
-            Debug.Assert((indentation \ Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic)) = result.Tab)
-            Debug.Assert((indentation Mod Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic)) = result.Space)
+            Debug.Assert((indentation \ Me.Options.GetOption(FormattingOptions2.TabSize)) = result.Tab)
+            Debug.Assert((indentation Mod Me.Options.GetOption(FormattingOptions2.TabSize)) = result.Space)
 
             Return ValueTuple.Create(True, result.LineBreaks, indentation)
         End Function

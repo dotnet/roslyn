@@ -4,10 +4,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,11 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    //
-    // disabled for preview 1 due to some perf issue. 
-    // we will re-enable it once the issue is addressed.
-    // https://devdiv.visualstudio.com/DevDiv/_workitems?id=504089&_a=edit&triage=true 
-    // [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
                    option: null,    // Analyzer is currently disabled
                    new LocalizableResourceString(
-                       nameof(FeaturesResources.Use_pattern_matching), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                       nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -76,12 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
+            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
             if (!styleOption.Value)
             {
@@ -97,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var (matches, _) = AnalyzeExpression(workspace, semanticModel, isExpression, cancellationToken);
+            var (matches, _) = AnalyzeExpression(semanticModel, isExpression, cancellationToken);
             if (matches == null || matches.Count == 0)
             {
                 return;
@@ -105,14 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
-                    this.Descriptor, isExpression.GetLocation(),
+                    Descriptor, isExpression.GetLocation(),
                     styleOption.Notification.Severity,
                     SpecializedCollections.EmptyCollection<Location>(),
                     ImmutableDictionary<string, string>.Empty));
         }
 
         public (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
-            Workspace workspace,
             SemanticModel semanticModel,
             BinaryExpressionSyntax isExpression,
             CancellationToken cancellationToken)
@@ -162,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 tempMatches.Add(castExpression);
                 var updatedSemanticModel = ReplaceMatches(
-                    workspace, semanticModel, isExpression, localName, tempMatches, cancellationToken);
+                    semanticModel, isExpression, localName, tempMatches, cancellationToken);
                 tempMatches.Clear();
 
                 var causesError = ReplacementCausesError(updatedSemanticModel, cancellationToken);
@@ -187,12 +179,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         public SemanticModel ReplaceMatches(
-            Workspace workspace, SemanticModel semanticModel, BinaryExpressionSyntax isExpression,
+            SemanticModel semanticModel, BinaryExpressionSyntax isExpression,
             string localName, HashSet<CastExpressionSyntax> matches,
             CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var editor = new SyntaxEditor(root, workspace);
+            var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
 
             // now, replace "x is Y" with "x is Y y" and put a rename-annotation on 'y' so that
             // the user can actually name the variable whatever they want.
@@ -223,7 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var updatedCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
                 semanticModel.SyntaxTree, updatedSyntaxTree);
+#pragma warning disable RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
             return updatedCompilation.GetSemanticModel(updatedSyntaxTree);
+#pragma warning restore RS1030 // Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer
         }
 
         private SyntaxNode GetContainer(BinaryExpressionSyntax isExpression)

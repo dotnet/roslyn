@@ -182,7 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes))
+            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) ||
+                (symbol.IsNativeIntegerType && !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType)))
             {
                 if (AddSpecialTypeKeyword(symbol))
                 {
@@ -450,12 +451,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         private bool CanUseTupleSyntax(INamedTypeSymbol tupleSymbol)
         {
-            INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
             if (containsModopt(tupleSymbol))
             {
                 return false;
             }
 
+            INamedTypeSymbol currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol);
             if (currentUnderlying.Arity <= 1)
             {
                 return false;
@@ -473,11 +474,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                currentUnderlying = tupleSymbol.TupleUnderlyingType;
+                currentUnderlying = GetTupleUnderlyingTypeOrSelf(tupleSymbol);
             }
 
             return true;
-
 
             bool containsModopt(INamedTypeSymbol symbol)
             {
@@ -490,6 +490,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return modifiers.Any(m => !m.IsEmpty);
             }
+        }
+
+        private static INamedTypeSymbol GetTupleUnderlyingTypeOrSelf(INamedTypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
         }
 
         private static bool HasNonDefaultTupleElements(INamedTypeSymbol tupleSymbol)
@@ -573,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool AddSpecialTypeKeyword(INamedTypeSymbol symbol)
         {
-            var specialTypeName = GetSpecialTypeName(symbol.SpecialType);
+            var specialTypeName = GetSpecialTypeName(symbol);
             if (specialTypeName == null)
             {
                 return false;
@@ -585,9 +590,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static string GetSpecialTypeName(SpecialType specialType)
+        private static string GetSpecialTypeName(INamedTypeSymbol symbol)
         {
-            switch (specialType)
+            switch (symbol.SpecialType)
             {
                 case SpecialType.System_Void:
                     return "void";
@@ -599,6 +604,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "int";
                 case SpecialType.System_Int64:
                     return "long";
+                case SpecialType.System_IntPtr when symbol.IsNativeIntegerType:
+                    return "nint";
+                case SpecialType.System_UIntPtr when symbol.IsNativeIntegerType:
+                    return "nuint";
                 case SpecialType.System_Byte:
                     return "byte";
                 case SpecialType.System_UInt16:

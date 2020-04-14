@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// If a specific analyzer failed to load the namespace-qualified name of its type, null otherwise.
         /// </summary>
-        public string TypeName { get; }
+        public string? TypeName { get; }
 
         /// <summary>
         /// Error message.
@@ -35,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Exception that was thrown while loading the analyzer. May be null.
         /// </summary>
-        public Exception Exception { get; }
+        public Exception? Exception { get; }
 
-        public AnalyzerLoadFailureEventArgs(FailureErrorCode errorCode, string message, Exception exceptionOpt = null, string typeNameOpt = null)
+        public AnalyzerLoadFailureEventArgs(FailureErrorCode errorCode, string message, Exception? exceptionOpt = null, string? typeNameOpt = null)
         {
             if (errorCode <= FailureErrorCode.None || errorCode > FailureErrorCode.NoAnalyzers)
             {

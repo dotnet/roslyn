@@ -29,10 +29,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
-            {
+            if (!RegexPatternDetector.IsPossiblyPatternToken(token, syntaxFacts))
                 return default;
-            }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, this.Info);

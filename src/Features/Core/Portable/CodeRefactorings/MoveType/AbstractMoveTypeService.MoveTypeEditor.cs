@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </remarks>
             public override async Task<Solution> GetModifiedSolutionAsync()
             {
-                var solution = SemanticDocument.Document.Project.Solution;
-
                 // Fork, update and add as new document.
                 var projectToBeUpdated = SemanticDocument.Document.Project;
                 var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, FileName);
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
 
                 var modifiedRoot = documentEditor.GetChangedRoot();
-                modifiedRoot = await AddFinalNewLineIfDesired(document, modifiedRoot).ConfigureAwait(false);
+                modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
                 // add an empty document to solution, so that we'll have options from the right context.
                 var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
@@ -120,10 +118,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// Add a trailing newline if we don't already have one if that's what the user's 
             /// preference is.
             /// </summary>
-            private async Task<SyntaxNode> AddFinalNewLineIfDesired(Document document, SyntaxNode modifiedRoot)
+            private async Task<SyntaxNode> AddFinalNewLineIfDesiredAsync(Document document, SyntaxNode modifiedRoot)
             {
                 var options = await document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
-                var insertFinalNewLine = options.GetOption(FormattingOptions.InsertFinalNewLine);
+                var insertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine);
                 if (insertFinalNewLine)
                 {
                     var endOfFileToken = ((ICompilationUnitSyntax)modifiedRoot).EndOfFileToken;
@@ -177,9 +175,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                                                     .Where(syntaxFacts.IsUsingOrExternOrImport)
                                                     .ToImmutableArray();
 
-                bool predicate(SyntaxNode n) => movedImports.Contains(i => i.IsEquivalentTo(n));
                 updatedDocument = await service.RemoveUnnecessaryImportsAsync(
-                    updatedDocument, predicate, CancellationToken).ConfigureAwait(false);
+                    updatedDocument,
+                    n => movedImports.Contains(i => i.IsEquivalentTo(n)),
+                    CancellationToken).ConfigureAwait(false);
 
                 return updatedDocument.Project.Solution;
             }

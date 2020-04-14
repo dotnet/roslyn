@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -40,10 +41,7 @@ namespace Microsoft.CodeAnalysis
             ProjectId projectId,
             ProjectId referencedProjectId)
         {
-            var references = existingForwardReferencesMap[projectId].Remove(referencedProjectId);
-            return references.IsEmpty
-                ? existingForwardReferencesMap.Remove(projectId)
-                : existingForwardReferencesMap.SetItem(projectId, references);
+            return existingForwardReferencesMap.MultiRemove(projectId, referencedProjectId);
         }
 
         /// <summary>
@@ -61,12 +59,11 @@ namespace Microsoft.CodeAnalysis
             ProjectId referencedProjectId)
         {
             if (existingReverseReferencesMap is null)
+            {
                 return null;
+            }
 
-            var referencingProjects = existingReverseReferencesMap[referencedProjectId].Remove(projectId);
-            return referencingProjects.IsEmpty
-                ? existingReverseReferencesMap.Remove(referencedProjectId)
-                : existingReverseReferencesMap.SetItem(referencedProjectId, referencingProjects);
+            return existingReverseReferencesMap.MultiRemove(referencedProjectId, projectId);
         }
 
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedProjectReference(

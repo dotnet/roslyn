@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
@@ -79,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         #endregion
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TaskCenterSolutionAnalysisProgressReporter(
             SVsTaskStatusCenterService taskStatusCenterService,
             IDiagnosticService diagnosticService,

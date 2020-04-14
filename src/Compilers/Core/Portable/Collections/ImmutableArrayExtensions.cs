@@ -10,11 +10,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+
+#if DEBUG
+using System.Linq;
+#endif
 
 namespace Microsoft.CodeAnalysis
 {
@@ -259,13 +261,23 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new immutable array based on filtered elements by the predicate. The array must not be null.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="array">The array to process</param>
         /// <param name="predicate">The delegate that defines the conditions of the element to search for.</param>
-        /// <returns></returns>
         public static ImmutableArray<T> WhereAsArray<T>(this ImmutableArray<T> array, Func<T, bool> predicate)
+            => WhereAsArrayImpl<T, object?>(array, predicate, predicateWithArg: null, arg: null);
+
+        /// <summary>
+        /// Creates a new immutable array based on filtered elements by the predicate. The array must not be null.
+        /// </summary>
+        /// <param name="array">The array to process</param>
+        /// <param name="predicate">The delegate that defines the conditions of the element to search for.</param>
+        public static ImmutableArray<T> WhereAsArray<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+            => WhereAsArrayImpl(array, predicateWithoutArg: null, predicate, arg);
+
+        private static ImmutableArray<T> WhereAsArrayImpl<T, TArg>(ImmutableArray<T> array, Func<T, bool>? predicateWithoutArg, Func<T, TArg, bool>? predicateWithArg, TArg arg)
         {
             Debug.Assert(!array.IsDefault);
+            Debug.Assert(predicateWithArg != null ^ predicateWithoutArg != null);
 
             ArrayBuilder<T>? builder = null;
             bool none = true;
@@ -275,7 +287,8 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < n; i++)
             {
                 var a = array[i];
-                if (predicate(a))
+
+                if ((predicateWithoutArg != null) ? predicateWithoutArg(a) : predicateWithArg!(a, arg))
                 {
                     none = false;
                     if (all)
@@ -555,6 +568,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             if (items.Length == 1)
             {
@@ -630,5 +644,8 @@ namespace Microsoft.CodeAnalysis
 
             return true;
         }
+
+        internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
+            => array.IndexOf(item, startIndex: 0, comparer);
     }
 }

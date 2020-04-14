@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -596,7 +597,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.ContainsAnnotations)
             {
-                SyntaxAnnotation[] annotations;
+                SyntaxAnnotation[]? annotations;
                 if (s_annotationsTable.TryGetValue(this, out annotations))
                 {
                     System.Diagnostics.Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
@@ -616,7 +617,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.ContainsDiagnostics)
             {
-                DiagnosticInfo[] diags;
+                DiagnosticInfo[]? diags;
                 if (s_diagnosticsTable.TryGetValue(this, out diags))
                 {
                     return diags;
@@ -835,7 +836,7 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Equivalence 
-        public virtual bool IsEquivalentTo(GreenNode? other)
+        public virtual bool IsEquivalentTo([NotNullWhen(true)] GreenNode? other)
         {
             if (this == other)
             {

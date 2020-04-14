@@ -11,7 +11,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -124,14 +123,15 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ClassifyNode(SyntaxNode syntax)
             {
+                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+
                 foreach (var classifier in _getNodeClassifiers(syntax))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    result.Clear();
                     classifier.AddClassifications(_workspace, syntax, _semanticModel, result, _cancellationToken);
                     AddClassifications(result);
-                    result.Free();
                 }
             }
 
@@ -158,14 +158,15 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 ClassifyStructuredTrivia(syntax.LeadingTrivia);
 
+                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+
                 foreach (var classifier in _getTokenClassifiers(syntax))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    result.Clear();
                     classifier.AddClassifications(_workspace, syntax, _semanticModel, result, _cancellationToken);
                     AddClassifications(result);
-                    result.Free();
                 }
 
                 ClassifyStructuredTrivia(syntax.TrailingTrivia);

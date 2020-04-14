@@ -30,16 +30,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             private readonly IAsynchronousOperationListener _asyncOperationListener;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
-            private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
 
             // TODO: this should be removed once we move options down to compiler layer
             private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
-            public InProcOrRemoteHostAnalyzerRunner(IAsynchronousOperationListener operationListener, DiagnosticAnalyzerInfoCache analyzerInfoCache, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public InProcOrRemoteHostAnalyzerRunner(IAsynchronousOperationListener operationListener, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
                 _asyncOperationListener = operationListener;
                 _analyzerInfoCache = analyzerInfoCache;
-                _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
                 // currently option is a bit weird since it is not part of snapshot and 
                 // we can't load all options without loading all language specific dlls.
@@ -86,8 +84,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
                 var _ = FireAndForgetReportAnalyzerPerformanceAsync(project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
 
+                var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
+
                 // get compiler result builder map
-                var builderMap = analysisResult.ToResultBuilderMap(project, version, compilation.Compilation, compilation.Analyzers, cancellationToken);
+                var builderMap = analysisResult.ToResultBuilderMap(project, version, compilation.Compilation, compilation.Analyzers, skippedAnalyzersInfo, cancellationToken);
 
                 return DiagnosticAnalysisResultMap.Create(
                     builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value)),
@@ -106,13 +106,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     _ = await client.TryRunRemoteAsync(
                         WellKnownServiceHubServices.CodeAnalysisService,
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                        solution: null,
                         new object[]
                         {
                             analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache),
                             // +1 for project itself
                             project.DocumentIds.Count + 1
                         },
-                        solution: null,
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
                 }
@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 RemoteHostClient client, CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 var solution = project.Solution;
-                var snapshotService = solution.Workspace.Services.GetService<IRemotableDataService>();
 
                 using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
                 var analyzerMap = pooledObject.Object;
@@ -141,17 +140,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
                     project.Id, analyzerMap.Keys.ToArray());
 
-                using var session = await client.TryCreateSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-                if (session == null)
-                {
-                    // session is not available
-                    return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
-                }
-
-                return await session.Connection.InvokeAsync(
+                var result = await client.TryRunRemoteAsync(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
+                    solution,
                     new object[] { argument },
-                    (stream, cancellationToken) => ReadCompilerAnalysisResultAsync(stream, analyzerMap, project, cancellationToken), cancellationToken).ConfigureAwait(false);
+                    callbackTarget: null,
+                    (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c),
+                    cancellationToken).ConfigureAwait(false);
+
+                return result.HasValue ? result.Value : DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)

@@ -27,9 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWaitIndicator(SVsServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
+            => _serviceProvider = serviceProvider;
 
         public WaitIndicatorResult Wait(
             string title, string message, bool allowCancel, bool showProgress, Action<IWaitContext> action)

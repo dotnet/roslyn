@@ -78,13 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         }
 
         private static bool IsGenericTypeOrMethod(ISymbol symbol)
-        {
-            return symbol.GetArity() > 0;
-        }
+            => symbol.GetArity() > 0;
 
         public override bool AllowOverType(IBraceCompletionSession session, CancellationToken cancellationToken)
-        {
-            return CheckCurrentPosition(session, cancellationToken);
-        }
+            => CheckCurrentPosition(session, cancellationToken);
     }
 }

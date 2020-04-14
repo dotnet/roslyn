@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
-        ERR_BadOpOnNullOrDefault = 8310,
+        ERR_BadOpOnNullOrDefaultOrNew = 8310,
         // ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
         // ERR_DefaultInSwitch = 8313,
@@ -1741,10 +1741,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
+        ERR_TypelessNewIllegalTargetType = 8752,
+        ERR_TypelessNewNotValid = 8753,
+        ERR_TypelessNewNoTargetType = 8754,
+
         ERR_ExternEventInitializer = 8760,
         ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
         WRN_ParameterConditionallyDisallowsNull = 8762,
         WRN_ShouldNotReturn = 8763,
+
+        WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride = 8764,
+        WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride = 8765,
+
+        WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation = 8766,
+        WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation = 8767,
+        WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation = 8768,
+        WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation = 8769,
+
+        WRN_DoesNotReturnMismatch = 8770,
+        ERR_NoOutputDirectory = 8771,
+
+        WRN_MemberNotNull = 8774,
+        WRN_MemberNotNullWhen = 8775,
+        WRN_MemberNotNullBadMember = 8776,
+        WRN_ParameterDisallowsNull = 8777,
+
+        ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 8782,
+
+        ERR_ConditionalOnLocalFunction = 8783,
+
+        WRN_GeneratorFailedDuringInitialization = 8784,
+        WRN_GeneratorFailedDuringGeneration = 8785,
+
+        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
+        ERR_ExpressionTreeContainsRangeExpression = 8792,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,9 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         public string Name => PredefinedCodeCleanupProviderNames.Simplification;
 
         public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
-        {
-            return Simplifier.ReduceAsync(document, spans, null, cancellationToken);
-        }
+            => Simplifier.ReduceAsync(document, spans, null, cancellationToken);
 
         public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken)
         {

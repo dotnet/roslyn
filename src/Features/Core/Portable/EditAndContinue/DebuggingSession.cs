@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly Workspace Workspace;
         public readonly IActiveStatementProvider ActiveStatementProvider;
         public readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
-        public readonly ICompilationOutputsProviderService CompilationOutputsProvider;
 
+        private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
 
         /// <summary>
@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Workspace workspace,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
             IActiveStatementProvider activeStatementProvider,
-            ICompilationOutputsProviderService compilationOutputsProvider)
+            Func<Project, CompilationOutputs> compilationOutputsProvider)
         {
             Workspace = workspace;
             DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
-            CompilationOutputsProvider = compilationOutputsProvider;
+            _compilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
             _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
             _modulesPreparedForUpdate = new HashSet<Guid>();
@@ -106,9 +106,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         // test only
         internal void Test_SetNonRemappableRegions(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
-        {
-            NonRemappableRegions = nonRemappableRegions;
-        }
+            => NonRemappableRegions = nonRemappableRegions;
 
         // test only
         internal EmitBaseline Test_GetProjectEmitBaseline(ProjectId id)
@@ -140,6 +138,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _cancellationSource.Dispose();
         }
+
+        internal CompilationOutputs GetCompilationOutputs(Project project)
+            => _compilationOutputsProvider(project);
 
         internal void PrepareModuleForUpdate(Guid mvid)
         {
@@ -198,11 +199,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// An MVID and an error message to report, in case an IO exception occurred while reading the binary.
         /// The MVID is default if either project not built, or an it can't be read from the module binary.
         /// </returns>
-        public async Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(ProjectId projectId, CancellationToken cancellationToken)
+        public async Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(Project project, CancellationToken cancellationToken)
         {
             lock (_projectModuleIdsGuard)
             {
-                if (_projectModuleIds.TryGetValue(projectId, out var id))
+                if (_projectModuleIds.TryGetValue(project.Id, out var id))
                 {
                     return id;
                 }
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             (Guid Mvid, Diagnostic? Error) ReadMvid()
             {
-                var outputs = CompilationOutputsProvider.GetCompilationOutputs(projectId);
+                var outputs = GetCompilationOutputs(project);
 
                 try
                 {
@@ -231,12 +232,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             lock (_projectModuleIdsGuard)
             {
-                if (_projectModuleIds.TryGetValue(projectId, out var id))
+                if (_projectModuleIds.TryGetValue(project.Id, out var id))
                 {
                     return id;
                 }
 
-                return _projectModuleIds[projectId] = newId;
+                return _projectModuleIds[project.Id] = newId;
             }
         }
 
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
 
-            EmitBaseline baseline;
+            EmitBaseline? baseline;
             lock (_projectEmitBaselinesGuard)
             {
                 if (_projectEmitBaselines.TryGetValue(projectId, out baseline))

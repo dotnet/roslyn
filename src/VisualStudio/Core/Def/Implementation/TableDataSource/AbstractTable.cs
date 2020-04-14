@@ -28,9 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected abstract void ShutdownSource();
 
         protected void ConnectWorkspaceEvents()
-        {
-            Workspace.WorkspaceChanged += OnWorkspaceChanged;
-        }
+            => Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
@@ -64,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     break;
                 default:
-                    Contract.Fail("Can't reach here");
-                    return;
+                    throw ExceptionUtilities.UnexpectedValue(e.Kind);
             }
         }
 
@@ -90,9 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected void AddTableSource(ITableDataSource source)
-        {
-            this.TableManager.AddSource(source, Columns);
-        }
+            => this.TableManager.AddSource(source, Columns);
 
         internal ITableManager TableManager { get; }
 

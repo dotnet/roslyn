@@ -2,12 +2,22 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.IO
+Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Public Class SyntaxFactsTests
+    Private Shared ReadOnly s_allInOneSource As String
+
+    Shared Sub New()
+        Using stream = New StreamReader(GetType(SyntaxFactsTests).Assembly.GetManifestResourceStream("AllInOne.vb"), Encoding.UTF8)
+            s_allInOneSource = stream.ReadToEnd()
+        End Using
+    End Sub
+
     <Fact>
     Public Sub IsKeyword1()
         Assert.False(CType(Nothing, SyntaxToken).IsKeyword())
@@ -1006,7 +1016,7 @@ End Namespace
     <WorkItem(10841, "https://github.com/mono/mono/issues/10841")>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuation()
 
-        Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
+        Dim cu = SyntaxFactory.ParseCompilationUnit(s_allInOneSource)
 
         Assert.False(cu.ContainsDiagnostics, "Baseline has diagnostics.")
 
@@ -1105,7 +1115,7 @@ End Namespace
     <WorkItem(10841, "https://github.com/mono/mono/issues/10841")>
     Public Sub AllowsLeadingOrTrailingImplicitLineContinuationNegativeTests()
 
-        Dim cu = SyntaxFactory.ParseCompilationUnit(My.Resources.Resource.VBAllInOne)
+        Dim cu = SyntaxFactory.ParseCompilationUnit(s_allInOneSource)
 
         Assert.False(cu.ContainsDiagnostics, "Baseline has diagnostics.")
 

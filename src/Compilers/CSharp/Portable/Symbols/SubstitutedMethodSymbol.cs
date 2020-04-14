@@ -219,14 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool ReturnsVoid
-        {
-            get
-            {
-                return OriginalDefinition.ReturnsVoid;
-            }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
@@ -368,7 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
             // the original definition for the hashcode when we know equality is possible
             var containingHashCode = _containingType.GetHashCode();
-            if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode())
+            if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode() &&
+                wasConstructedForAnnotations(this))
             {
                 return code;
             }
@@ -402,6 +395,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return code;
+
+            static bool wasConstructedForAnnotations(SubstitutedMethodSymbol method)
+            {
+                var typeArguments = method.TypeArgumentsWithAnnotations;
+                var typeParameters = method.OriginalDefinition.TypeParameters;
+
+                for (int i = 0; i < typeArguments.Length; i++)
+                {
+                    if (!typeParameters[i].Equals(
+                         typeArguments[i].Type,
+                         TypeCompareKind.ConsiderEverything))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
         public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)

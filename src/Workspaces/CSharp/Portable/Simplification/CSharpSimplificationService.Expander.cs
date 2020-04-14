@@ -84,9 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (type.IsDelegateType() &&
                     argument.IsParentKind(SyntaxKind.ArgumentList) &&
-                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreationExpression))
                 {
-                    var objectCreationExpression = (ObjectCreationExpressionSyntax)argument.Parent.Parent;
                     var objectCreationType = _semanticModel.GetTypeInfo(objectCreationExpression).Type;
                     if (objectCreationType.Equals(type))
                     {
@@ -98,9 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             private SpeculationAnalyzer GetSpeculationAnalyzer(ExpressionSyntax expression, ExpressionSyntax newExpression)
-            {
-                return new SpeculationAnalyzer(expression, newExpression, _semanticModel, _cancellationToken);
-            }
+                => new SpeculationAnalyzer(expression, newExpression, _semanticModel, _cancellationToken);
 
             private bool TryCastTo(ITypeSymbol targetType, ExpressionSyntax expression, ExpressionSyntax newExpression, out ExpressionSyntax newExpressionWithCast)
             {
@@ -268,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (CanMakeNameExplicitInTuple(tuple, inferredName))
                     {
                         var identifier = SyntaxFactory.Identifier(inferredName);
-                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                        identifier = TryEscapeIdentifierToken(identifier, node);
 
                         newArgument = newArgument
                             .WithoutLeadingTrivia()
@@ -337,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         // Creating identifier without elastic trivia to avoid unexpected line break
                         var identifier = SyntaxFactory.Identifier(SyntaxTriviaList.Empty, inferredName, SyntaxTriviaList.Empty);
-                        identifier = TryEscapeIdentifierToken(identifier, node, _semanticModel);
+                        identifier = TryEscapeIdentifierToken(identifier, node);
 
                         newDeclarator = newDeclarator
                             .WithoutLeadingTrivia()
@@ -616,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
                 //// 3. Always try to escape keyword identifiers
                 ////
-                identifier = TryEscapeIdentifierToken(identifier, originalSimpleName, _semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                identifier = TryEscapeIdentifierToken(identifier, originalSimpleName).WithAdditionalAnnotations(Simplifier.Annotation);
                 if (identifier != rewrittenSimpleName.Identifier)
                 {
                     switch (newNode.Kind())
@@ -692,7 +689,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                     else
                     {
-                        if (!IsPropertyNameOfObjectInitializer(originalSimpleName))
+                        if (!IsPropertyNameOfObjectInitializer(originalSimpleName) &&
+                            !symbol.IsLocalFunction())
                         {
                             ExpressionSyntax left;
 
@@ -1064,9 +1062,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
-                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                if (originalNode.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
                 {
-                    var memberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
                     var targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name);
 
                     if (targetSymbol != null && targetSymbol.IsReducedExtension() && memberAccess.Expression != null)

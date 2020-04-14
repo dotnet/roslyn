@@ -1,4 +1,8 @@
-﻿namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
 {
     /// <summary>
     /// Represents a single item that points to a range from a result. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#request-textdocumentreferences

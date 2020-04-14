@@ -45,10 +45,10 @@ class MyClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderMethodParameters_InsufficientParameters_None()
+        public async Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
         {
             var markup = @"class C { void $$M() { } }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.This_signature_does_not_contain_parameters_that_can_be_changed);
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]

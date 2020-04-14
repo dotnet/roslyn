@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.DisplayName = value;
         }
 
-        public string ProjectFilePath
+        public string? ProjectFilePath
         {
             get => _visualStudioProject.FilePath;
             set => _visualStudioProject.FilePath = value;
@@ -131,20 +131,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
-        internal string? GetIntermediateOutputFilePath()
-        {
-            return _visualStudioProject.IntermediateOutputFilePath;
-        }
+        internal string? CompilationOutputAssemblyFilePath
+            => _visualStudioProject.CompilationOutputAssemblyFilePath;
 
         public ProjectId Id => _visualStudioProject.Id;
 
         public void SetOptions(string commandLineForOptions)
-        {
-            if (_visualStudioProjectOptionsProcessor != null)
-            {
-                _visualStudioProjectOptionsProcessor.CommandLine = commandLineForOptions;
-            }
-        }
+            => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
 
         public string? DefaultNamespace
         {
@@ -205,9 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string>? folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            _visualStudioProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
-        }
+            => _visualStudioProject.AddSourceFile(filePath, sourceCodeKind, folderNames.AsImmutableOrNull());
 
         public void RemoveSourceFile(string filePath)
         {
@@ -216,9 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
-        {
-            _visualStudioProject.AddAdditionalFile(filePath);
-        }
+            => _visualStudioProject.AddAdditionalFile(filePath);
 
         public void Dispose()
         {
@@ -228,29 +217,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void AddAnalyzerReference(string referencePath)
-        {
-            _visualStudioProject.AddAnalyzerReference(referencePath);
-        }
+            => _visualStudioProject.AddAnalyzerReference(referencePath);
 
         public void RemoveAnalyzerReference(string referencePath)
-        {
-            _visualStudioProject.RemoveAnalyzerReference(referencePath);
-        }
+            => _visualStudioProject.RemoveAnalyzerReference(referencePath);
 
         public void RemoveAdditionalFile(string filePath)
-        {
-            _visualStudioProject.RemoveAdditionalFile(filePath);
-        }
+            => _visualStudioProject.RemoveAdditionalFile(filePath);
 
         public void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null)
-        {
-            _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
-        }
+            => _visualStudioProject.AddDynamicSourceFile(filePath, folderNames.ToImmutableArrayOrEmpty());
 
         public void RemoveDynamicFile(string filePath)
-        {
-            _visualStudioProject.RemoveDynamicSourceFile(filePath);
-        }
+            => _visualStudioProject.RemoveDynamicSourceFile(filePath);
 
         public void SetRuleSetFile(string filePath)
         {
@@ -260,9 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new ConcurrentQueue<VisualStudioProject.BatchScope>();
 
         public void StartBatch()
-        {
-            _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
-        }
+            => _batchScopes.Enqueue(_visualStudioProject.CreateBatchScope());
 
         public void EndBatch()
         {
@@ -271,23 +248,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         }
 
         public void ReorderSourceFiles(IEnumerable<string>? filePaths)
-        {
-            _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
-        }
+            => _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
 
         internal VisualStudioProject GetProject_TestOnly()
-        {
-            return _visualStudioProject;
-        }
+            => _visualStudioProject;
 
         public void AddAnalyzerConfigFile(string filePath)
-        {
-            _visualStudioProject.AddAnalyzerConfigFile(filePath);
-        }
+            => _visualStudioProject.AddAnalyzerConfigFile(filePath);
 
         public void RemoveAnalyzerConfigFile(string filePath)
-        {
-            _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
-        }
+            => _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
     }
 }

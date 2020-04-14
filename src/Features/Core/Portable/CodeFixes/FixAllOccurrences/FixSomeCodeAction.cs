@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-        {
-            return await ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
-        }
+            => await ComputeOperationsAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
 
         internal override Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return service.GetFixAllOperationsAsync(
-                FixAllState.CreateFixAllContext(progressTracker, cancellationToken),
+                new FixAllContext(FixAllState, progressTracker, cancellationToken),
                 _showPreviewChangesDialog);
         }
 
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllChangedSolutionAsync(
-                FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)
@@ -88,18 +86,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         internal TestAccessor GetTestAccessor()
-        {
-            return new TestAccessor(this);
-        }
+            => new TestAccessor(this);
 
         internal readonly struct TestAccessor
         {
             private readonly FixSomeCodeAction _fixSomeCodeAction;
 
             internal TestAccessor(FixSomeCodeAction fixSomeCodeAction)
-            {
-                _fixSomeCodeAction = fixSomeCodeAction;
-            }
+                => _fixSomeCodeAction = fixSomeCodeAction;
 
             /// <summary>
             /// Gets a reference to <see cref="_showPreviewChangesDialog"/>, which can be read or written by test code.
