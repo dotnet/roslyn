@@ -21,7 +21,7 @@
   * Testing on .NET Framework, multiple .NET Core versions
   * Testing on Windows, Linux and OSX
   * Tests that crash or hang in Azure Pipelines automatically collect dumps and publish as a pipeline artifact for later investigation.
-* Cloud build support:
+* Cloud build support
   * YAML based build for long-term serviceability, and PR review opportunities for any changes.
   * Azure Pipelines and GitHub Action support
   * Emphasis on PowerShell scripts over reliance on tasks for a more locally reproducible build.
