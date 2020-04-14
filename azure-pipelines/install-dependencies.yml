@@ -8,13 +8,6 @@ steps:
     dotnet --info
   displayName: Install prerequisites
 
-# The procdump tool and env var is required for dotnet test to collect hang/crash dumps of tests.
-- powershell: |
-    choco install procdump -y
-    Write-Host "##vso[task.setvariable variable=PROCDUMP_PATH;]$env:ProgramData\chocolatey\bin\"
-  displayName: Install procdump
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
-
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
   displayName: Set pipeline variables based on source
