@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         var localProject = project;
                         tasks[index++] = Task.Run(
-                            () => analyzer.ForceAnalyzeProjectAsync(project, cancellationToken));
+                            () => analyzer.ForceAnalyzeProjectAsync(localProject, cancellationToken));
                     }
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);
