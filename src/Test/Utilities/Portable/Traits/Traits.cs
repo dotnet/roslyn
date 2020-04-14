@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInlineTemporary = "CodeActions.InlineTemporary";
             public const string CodeActionsInlineTypeCheck = "CodeActions.InlineTypeCheck";
             public const string CodeActionsInsertBraces = "CodeActions.InsertBraces";
-            public const string CodeActionsInsertMissingCast = "CodeActions.InsertMissingCast";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceLocalForExpression = "CodeActions.IntroduceLocalForExpression";
             public const string CodeActionsIntroduceUsingStatement = "CodeActions.IntroduceUsingStatement";
