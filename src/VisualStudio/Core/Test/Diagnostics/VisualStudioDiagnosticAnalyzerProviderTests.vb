@@ -3,12 +3,12 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class VisualStudioDiagnosticAnalyzerProviderTests
@@ -21,8 +21,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim references = extensionManager.GetAnalyzerReferencesInExtensions()
 
             AssertEx.SetEqual(
-                {"ResolvedRootFolder\test\test.dll", "ResolvedShellFolder\test\test.dll", "\InstallPath\test\test.dll"},
-                references.Select(Function(reference) reference.FullPath))
+            {
+                Path.Combine(TempRoot.Root, "ResolvedRootFolder\test\test.dll"),
+                Path.Combine(TempRoot.Root, "ResolvedShellFolder\test\test.dll"),
+                Path.Combine(TempRoot.Root, "InstallPath\test\test.dll")
+            },
+            references.Select(Function(reference) reference.FullPath))
         End Sub
 
         <Fact>
@@ -34,8 +38,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim references = extensionManager.GetAnalyzerReferencesInExtensions()
 
             AssertEx.SetEqual(
-                {"\InstallPath\installPath1", "\InstallPath\installPath2", "\InstallPath\installPath3"},
-                references.Select(Function(reference) reference.FullPath))
+            {
+                Path.Combine(TempRoot.Root, "InstallPath\installPath1"),
+                Path.Combine(TempRoot.Root, "InstallPath\installPath2"),
+                Path.Combine(TempRoot.Root, "InstallPath\installPath3")
+            },
+            references.Select(Function(reference) reference.FullPath))
         End Sub
 
         <Fact, WorkItem(6285, "https://github.com/dotnet/roslyn/issues/6285")>

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
 using Xunit;
-using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = document2.Project.Solution.GetRequiredProject(project1.Id)
                 .AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")))
                 .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
-                .AddAnalyzerReference(new AnalyzerFileReference("path1", new TestAnalyzerAssemblyLoader()))
+                .AddAnalyzerReference(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path1"), new TestAnalyzerAssemblyLoader()))
                 .AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project.Solution;
 
             return solution
-                .WithAnalyzerReferences(new[] { new AnalyzerFileReference("path2", new TestAnalyzerAssemblyLoader()) })
+                .WithAnalyzerReferences(new[] { new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader()) })
                 .AddAnalyzerConfigDocuments(
                 ImmutableArray.Create(
                     DocumentInfo.Create(
