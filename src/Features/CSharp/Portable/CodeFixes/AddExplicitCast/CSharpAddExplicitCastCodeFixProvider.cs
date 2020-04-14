@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -25,11 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
     internal sealed partial class CSharpAddExplicitCastCodeFixProvider
-        : AbstractAddExplicitCastCodeFixProvider<
-            ExpressionSyntax,
-            ArgumentListSyntax,
-            ArgumentSyntax,
-            AttributeSyntax>
+        : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
     {
         /// <summary>
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
@@ -49,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        protected override string GetDescription(CodeFixContext context, SemanticModel semanticModel, SyntaxNode? targetNode = null, ITypeSymbol? conversionType = null)
+        protected override string GetDescription(CodeFixContext context, SemanticModel semanticModel,
+            SyntaxNode? targetNode = null, ITypeSymbol? conversionType = null)
         {
             if (conversionType is object)
             {
@@ -72,47 +70,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
         protected override bool IsObjectCreationExpression(ExpressionSyntax targetNode)
             => targetNode.IsKind(SyntaxKind.ObjectCreationExpression);
 
-        /// <summary>
-        /// Output the current type information of the target node and the conversion type(s) that the target node is going to be cast by.
-        /// Implicit downcast can appear on Variable Declaration, Return Statement, and Function Invocation
-        /// <para/>
-        /// For example:
-        /// Base b; Derived d = [||]b;       
-        /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
-        /// </summary>
-        /// <param name="potentialConversionTypes"> Output the potential conversions types that "targetNode" can be cast to</param>
-        /// <returns>
-        /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
-        /// False, if the target node has no conversion type.
-        /// </returns>
-        protected override bool TryGetTargetTypeInfo(Document document,
-            SemanticModel semanticModel, SyntaxNode root, string diagnosticId, ExpressionSyntax spanNode,
-            CancellationToken cancellationToken, out ImmutableArray<Tuple<ExpressionSyntax, ITypeSymbol>> potentialConversionTypes)
+        protected override bool TryGetTargetTypeInfo(Document document, SemanticModel semanticModel, SyntaxNode root,
+            string diagnosticId, ExpressionSyntax spanNode, CancellationToken cancellationToken,
+            out ImmutableArray<Tuple<ExpressionSyntax, ITypeSymbol>> potentialConversionTypes)
         {
             potentialConversionTypes = ImmutableArray<Tuple<ExpressionSyntax, ITypeSymbol>>.Empty;
-
-            var targetNodeInfo = semanticModel.GetTypeInfo(spanNode, cancellationToken);
-            var targetNodeType = targetNodeInfo.Type;
-
-            if (targetNodeType == null)
-                return false;
 
             // The error happens either on an assignement operation or on an invocation expression.
             // If the error happens on assignment operation, "ConvertedType" is different from the current "Type"
             using var _ = ArrayBuilder<Tuple<ExpressionSyntax, ITypeSymbol>>.GetInstance(out var mutablePotentialConversionTypes);
-            if (diagnosticId == CS0266
-                && targetNodeInfo.ConvertedType != null
-                && !targetNodeType.Equals(targetNodeInfo.ConvertedType))
+            if (diagnosticId == CS0266)
             {
-                mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, targetNodeInfo.ConvertedType));
+                var inferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
+                var conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault: false, cancellationToken);
+                if (conversionType is null)
+                    return false;
+                mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, conversionType));
             }
-            else if (diagnosticId == CS1503
-                && spanNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
-                && targetArgument.Parent is ArgumentListSyntax argumentList
-                && argumentList.Parent is SyntaxNode invocationNode) // invocation node could be Invocation Expression, Object Creation, Base Constructor...
+            else if (diagnosticId == CS1503)
             {
-                mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
+                if (spanNode.GetAncestorsOrThis<ArgumentSyntax>().FirstOrDefault() is ArgumentSyntax targetArgument
+                    && targetArgument.Parent is ArgumentListSyntax argumentList
+                    && argumentList.Parent is SyntaxNode invocationNode)
+                {
+                    // invocation node could be Invocation Expression, Object Creation, Base Constructor...)
+                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
                     targetArgument, argumentList, invocationNode, cancellationToken));
+                }
+                else if (spanNode.GetAncestorsOrThis<AttributeArgumentSyntax>()
+                    .FirstOrDefault() is AttributeArgumentSyntax targetAttributeArgument
+                    && targetAttributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList
+                    && attributeArgumentList.Parent is SyntaxNode attributeNode)
+                {
+                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
+                    targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
+                }
             }
 
             // clear up duplicate types
@@ -120,38 +112,125 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return !potentialConversionTypes.IsEmpty;
         }
 
-        protected override bool ClassifyConversionExists(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
+        protected override bool ClassifyConversionExists(SemanticModel semanticModel, ExpressionSyntax expression,
+            ITypeSymbol type)
             => semanticModel.ClassifyConversion(expression, type).Exists;
 
-        protected override bool IsConversionIdentity(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
+        protected override bool IsConversionIdentity(SemanticModel semanticModel, ExpressionSyntax expression,
+            ITypeSymbol type)
             => semanticModel.ClassifyConversion(expression, type).IsIdentity;
 
-        protected override SeparatedSyntaxList<ArgumentSyntax> GetArguments(ArgumentListSyntax argumentList)
-            => argumentList.Arguments;
+        protected override SeparatedSyntaxList<SyntaxNode> GetArguments(SyntaxNode argumentList)
+        {
+            if (argumentList is ArgumentListSyntax normalArgumentList)
+            {
+                return normalArgumentList.Arguments;
+            }
+            else if (argumentList is AttributeArgumentListSyntax attributeArgumentList)
+            {
+                return attributeArgumentList.Arguments;
+            }
+            return SyntaxFactory.SeparatedList<SyntaxNode>();
+        }
 
-        protected override ArgumentSyntax GenerateNewArgument(ArgumentSyntax oldArgument, ITypeSymbol conversionType)
-            => oldArgument.WithExpression(oldArgument.Expression.Cast(conversionType));
+        protected override SyntaxNode GenerateNewArgument(SyntaxNode oldArgument, ITypeSymbol conversionType)
+        {
+            if (oldArgument is ArgumentSyntax oldNormalArgument)
+            {
+                return oldNormalArgument.WithExpression(oldNormalArgument.Expression.Cast(conversionType));
+            }
+            else if (oldArgument is AttributeArgumentSyntax oldAttributeArgument)
+            {
+                return oldAttributeArgument.WithExpression(oldAttributeArgument.Expression.Cast(conversionType));
+            }
+            return oldArgument;
+        }
 
-        protected override ExpressionSyntax GetArgumentExpression(ArgumentSyntax argument)
-            => argument.Expression;
+        protected override ExpressionSyntax? GetArgumentExpression(SyntaxNode argument)
+        {
+            if (argument is ArgumentSyntax normalArgument)
+            {
+                return normalArgument.Expression;
+            }
+            else if (argument is AttributeArgumentSyntax attributeArgument)
+            {
+                return attributeArgument.Expression;
+            }
+            return null;
+        }
 
         protected override bool IsDeclarationExpression(ExpressionSyntax expression)
             => expression.Kind() == SyntaxKind.DeclarationExpression;
 
-        protected override string? TryGetName(ArgumentSyntax argument)
-            => argument.NameColon?.Name.Identifier.ValueText;
+        protected override string? TryGetName(SyntaxNode argument)
+        {
+            if (argument is ArgumentSyntax normalArgument)
+            {
+                return normalArgument.NameColon?.Name.Identifier.ValueText;
+            }
+            else if (argument is AttributeArgumentSyntax attributeArgument)
+            {
+                return attributeArgument.NameColon?.Name.Identifier.ValueText;
+            }
+            return null;
+        }
 
-        protected override void SortConversionTypes(SemanticModel semanticModel, ArrayBuilder<Tuple<ExpressionSyntax, ITypeSymbol>> conversionTypes, ArgumentListSyntax argumentList)
-            => conversionTypes.Sort(new InheritanceDistanceComparer<ExpressionSyntax, ArgumentSyntax>(semanticModel, argumentList.Arguments));
+        protected override void SortConversionTypes(SemanticModel semanticModel,
+            ArrayBuilder<Tuple<ExpressionSyntax, ITypeSymbol>> conversionTypes, SyntaxNode argumentList)
+        {
+            if (argumentList is ArgumentListSyntax normalArgumentList)
+            {
+                conversionTypes.Sort(new InheritanceDistanceComparer<ExpressionSyntax, ArgumentSyntax>(
+                    semanticModel, normalArgumentList.Arguments));
+            }
+            else if (argumentList is AttributeArgumentListSyntax attributeArgumentList)
+            {
+                conversionTypes.Sort(new InheritanceDistanceComparer<ExpressionSyntax, AttributeArgumentSyntax>(
+                    semanticModel, attributeArgumentList.Arguments));
+            }
+        }
 
-        protected override ArgumentListSyntax GenerateNewArgumentList(
-            ArgumentListSyntax oldArgumentList, List<ArgumentSyntax> newArguments)
-            => oldArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
+        protected override SyntaxNode GenerateNewArgumentList(
+            SyntaxNode oldArgumentList, List<SyntaxNode> newArguments)
+        {
+            if (oldArgumentList is ArgumentListSyntax oldNormalArgumentList)
+            {
+                return oldNormalArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
+            }
+            else if (oldArgumentList is AttributeArgumentListSyntax oldAttributeArgumentList)
+            {
+                return oldAttributeArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments));
+            }
+            return oldArgumentList;
+        }
 
-        protected override bool IsConversionUserDefined(SemanticModel semanticModel, ExpressionSyntax expression, ITypeSymbol type)
+        protected override bool IsConversionUserDefined(SemanticModel semanticModel, ExpressionSyntax expression,
+            ITypeSymbol type)
             => semanticModel.ClassifyConversion(expression, type).IsUserDefined;
 
-        protected override SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position, AttributeSyntax attribute)
-            => semanticModel.GetSpeculativeSymbolInfo(position, attribute);
+        protected override bool IsInvocationExpressionWithNewArgumentsApplicable(
+            SemanticModel semanticModel, SyntaxNode root, SyntaxNode oldArgumentList,
+            List<SyntaxNode> newArguments, SyntaxNode targetNode)
+        {
+            var newRoot = root.ReplaceNode(oldArgumentList, GenerateNewArgumentList(oldArgumentList, newArguments));
+            if (targetNode is AttributeArgumentSyntax attributeArugment)
+            {
+                var attributeNode = newRoot.FindNode(attributeArugment.Span).GetAncestorsOrThis<AttributeSyntax>().FirstOrDefault();
+                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(attributeNode.SpanStart, attributeNode);
+                return symbolInfo.Symbol != null;
+            }
+            else if (targetNode is ArgumentSyntax arugment)
+            {
+                var newArgumentListNode = newRoot.FindNode(arugment.Span).GetAncestorsOrThis<ArgumentListSyntax>().FirstOrDefault();
+                if (newArgumentListNode?.Parent is SyntaxNode newNode)
+                {
+                    var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(
+                        newNode.SpanStart, newNode, SpeculativeBindingOption.BindAsExpression);
+                    return symbolInfo.Symbol != null;
+                }
+            }
+
+            return false;
+        }
     }
 }

@@ -18,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddExplicitCast), [Shared]>
     Friend NotInheritable Class VisualBasicAddExplicitCastCodeFixProvider
-        Inherits AbstractAddExplicitCastCodeFixProvider(Of
-            ExpressionSyntax, ArgumentListSyntax, ArgumentSyntax, AttributeSyntax)
+        Inherits AbstractAddExplicitCastCodeFixProvider(Of ExpressionSyntax)
 
         Friend Const BC30512 As String = "BC30512" ' Option Strict On disallows implicit conversions from '{0}' to '{1}'.
         Friend Const BC42016 As String = "BC42016" ' Implicit conversions from '{0}' to '{1}'.
@@ -50,6 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
         Protected Overrides Function ApplyFix(currentRoot As SyntaxNode, targetNode As ExpressionSyntax,
                 conversionType As ITypeSymbol) As SyntaxNode
+            ' TODO:
+            ' the Simplifier doesn't remove the redundant cast from the expression
+            ' Issue link: https : //github.com/dotnet/roslyn/issues/41500
             Dim castExpression = targetNode.Cast(conversionType, Nothing).WithAdditionalAnnotations(Simplifier.Annotation)
             Dim newRoot = currentRoot.ReplaceNode(targetNode, castExpression)
             Return newRoot
@@ -67,18 +69,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 Case BC30512, BC42016
                     Dim argument = spanNode.GetAncestors(Of ArgumentSyntax).FirstOrDefault()
                     If argument IsNot Nothing AndAlso argument.GetExpression.Equals(spanNode) Then
+                        ' spanNode is an argument expression
                         Dim argumentList = TryCast(argument.Parent, ArgumentListSyntax)
                         Dim invocationNode = argumentList.Parent
                         mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
                             argument, argumentList, invocationNode, cancellationToken))
                     Else
-                        Dim inferenceService = document.GetLanguageService(Of ITypeInferenceService)()
+                        ' spanNode is a right expression in assignment operation
+                        Dim inferenceService = document.GetRequiredLanguageService(Of ITypeInferenceService)()
                         Dim conversionType = inferenceService.InferType(semanticModel, spanNode, False, cancellationToken)
                         mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, conversionType))
                     End If
                 Case BC30518, BC30519
-                    Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault() ' invocation node could be Invocation Expression, Object Creation, Base Constructor...
-                    Dim argumentList = TryCast(invocationNode.ChildNodes().FirstOrDefault(Function(node As SyntaxNode) TryCast(node, ArgumentListSyntax) IsNot Nothing), ArgumentListSyntax)
+                    Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(Function(node As ExpressionSyntax) Not node.ChildNodes().OfType(Of ArgumentListSyntax).IsEmpty())
+                    Dim argumentList = invocationNode.ChildNodes.OfType(Of ArgumentListSyntax).FirstOrDefault()
                     mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
                         Nothing, argumentList, invocationNode, cancellationToken))
             End Select
@@ -102,12 +106,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Return semanticModel.ClassifyConversion(expression, type).IsIdentity
         End Function
 
-        Protected Overrides Function GetArguments(argumentList As ArgumentListSyntax) As SeparatedSyntaxList(Of ArgumentSyntax)
-            Return argumentList.Arguments
+        Protected Overrides Function GetArguments(argumentList As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
+            Return If(TryCast(argumentList, ArgumentListSyntax)?.Arguments, SyntaxFactory.SeparatedList(Of ArgumentSyntax)())
         End Function
 
         Protected Overrides Function GenerateNewArgument(
-                oldArgument As ArgumentSyntax, conversionType As ITypeSymbol) As ArgumentSyntax
+                oldArgument As SyntaxNode, conversionType As ITypeSymbol) As SyntaxNode
             Select Case oldArgument.Kind
                 Case SyntaxKind.SimpleArgument
                     Dim simpleArgument = DirectCast(oldArgument, SimpleArgumentSyntax)
@@ -118,8 +122,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             End Select
         End Function
 
-        Protected Overrides Function GetArgumentExpression(argument As ArgumentSyntax) As ExpressionSyntax
-            Return argument.GetExpression()
+        Protected Overrides Function GetArgumentExpression(argument As SyntaxNode) As ExpressionSyntax
+            Return TryCast(argument, ArgumentSyntax).GetExpression()
         End Function
 
         Protected Overrides Function IsDeclarationExpression(expression As ExpressionSyntax) As Boolean
@@ -127,27 +131,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Return False
         End Function
 
-        Protected Overrides Function TryGetName(argument As ArgumentSyntax) As String
-            Return If(argument.IsNamed,
+        Protected Overrides Function TryGetName(argument As SyntaxNode) As String
+            Return If(TryCast(argument, ArgumentSyntax)?.IsNamed,
                 DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText,
                 Nothing)
         End Function
 
-        Protected Overrides Sub SortConversionTypes(semanticModel As SemanticModel, conversionTypes As ArrayBuilder(Of Tuple(Of ExpressionSyntax, ITypeSymbol)), argumentList As ArgumentListSyntax)
-            conversionTypes.Sort(New InheritanceDistanceComparer(Of ExpressionSyntax, ArgumentSyntax)(semanticModel, argumentList.Arguments))
+        Protected Overrides Sub SortConversionTypes(semanticModel As SemanticModel,
+                conversionTypes As ArrayBuilder(Of Tuple(Of ExpressionSyntax, ITypeSymbol)), argumentList As SyntaxNode)
+            conversionTypes.Sort(New InheritanceDistanceComparer(Of ExpressionSyntax, ArgumentSyntax)(
+                semanticModel, GetArguments(argumentList)))
         End Sub
 
         Protected Overrides Function GenerateNewArgumentList(
-                oldArgumentList As ArgumentListSyntax, newArguments As List(Of ArgumentSyntax)) As ArgumentListSyntax
-            Return oldArgumentList.WithArguments(SyntaxFactory.SeparatedList(newArguments))
+                oldArgumentList As SyntaxNode, newArguments As List(Of SyntaxNode)) As SyntaxNode
+            Return If(TryCast(oldArgumentList, ArgumentListSyntax)?.WithArguments(SyntaxFactory.SeparatedList(newArguments)),
+                oldArgumentList)
         End Function
 
         Protected Overrides Function IsConversionUserDefined(semanticModel As SemanticModel, expression As ExpressionSyntax, type As ITypeSymbol) As Boolean
             Return semanticModel.ClassifyConversion(expression, type).IsUserDefined
         End Function
 
-        Protected Overrides Function GetSpeculativeAttributeSymbolInfo(semanticModel As SemanticModel, position As Integer, attribute As AttributeSyntax) As SymbolInfo
-            Return semanticModel.GetSpeculativeSymbolInfo(position, attribute)
+        Protected Overrides Function IsInvocationExpressionWithNewArgumentsApplicable(
+                semanticModel As SemanticModel, root As SyntaxNode, oldArgumentList As SyntaxNode,
+                newArguments As List(Of SyntaxNode), targetNode As SyntaxNode) As Boolean
+            Dim newRoot = root.ReplaceNode(oldArgumentList, GenerateNewArgumentList(oldArgumentList, newArguments))
+            Dim newArgumentListNode = newRoot.FindNode(targetNode.Span).GetAncestorOrThis(Of ArgumentListSyntax)
+            Dim symbolInfo As SymbolInfo
+            Select Case newArgumentListNode.Parent.Kind
+                Case SyntaxKind.Attribute
+                    Dim attribute = DirectCast(newArgumentListNode.Parent, AttributeSyntax)
+                    symbolInfo = semanticModel.GetSpeculativeSymbolInfo(attribute.SpanStart, attribute)
+                Case Else
+                    Dim expression = newArgumentListNode.Parent
+                    symbolInfo = semanticModel.GetSpeculativeSymbolInfo(
+                        expression.SpanStart, expression, SpeculativeBindingOption.BindAsExpression)
+            End Select
+            Return symbolInfo.Symbol IsNot Nothing
         End Function
     End Class
 End Namespace

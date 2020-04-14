@@ -47,8 +47,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             _arguments = arguments;
         }
 
-        public int Compare(Tuple<TExpressionSyntax, ITypeSymbol> x, Tuple<TExpressionSyntax, ITypeSymbol> y)
+        public int Compare(Tuple<TExpressionSyntax, ITypeSymbol>? x, Tuple<TExpressionSyntax, ITypeSymbol>? y)
         {
+            if (x is null)
+                return y is null ? 0 : -1;
+            else if (y is null)
+                return 1;
+
             if (!x.Item1.Equals(y.Item1))
             {
                 var argumentX = x.Item1.GetAncestorsOrThis<TArgumentSyntax>().FirstOrDefault();

@@ -3014,5 +3014,33 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
+        public async Task AttributeArgument()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+using System;
+class C 
+{
+    static object str = """";
+
+    [Obsolete([||]str, false)]
+    void M() 
+    {
+    }
+}",
+                @"
+using System;
+class C 
+{
+    static object str = """";
+
+    [Obsolete((string)str, false)]
+    void M() 
+    {
+    }
+}");
+        }
     }
 }

@@ -44,7 +44,7 @@ public class Program1
         return b;
     }
 
-    Base ReturnBase(Derived)
+    Base ReturnBase(Derived d)
     {
         Base b = new Base();
         return b;
@@ -183,7 +183,7 @@ public class Program1
         return b;
     }
 
-    Base ReturnBase(Derived)
+    Base ReturnBase(Derived d)
     {
         Base b = new Base();
         return b;
@@ -331,7 +331,7 @@ public class Program1
         return b;
     }
 
-    Base ReturnBase(Derived)
+    Base ReturnBase(Derived d)
     {
         Base b = new Base();
         return b;
@@ -470,7 +470,7 @@ public class Program1
         return b;
     }
 
-    Base ReturnBase(Derived)
+    Base ReturnBase(Derived d)
     {
         Base b = new Base();
         return b;
@@ -617,7 +617,7 @@ public class Program1
         return b;
     }
 
-    Base ReturnBase(Derived)
+    Base ReturnBase(Derived d)
     {
         Base b = new Base();
         return b;
@@ -756,7 +756,7 @@ public class Program1
         return b;
     }
 
-    Base ReturnBase(Derived)
+    Base ReturnBase(Derived d)
     {
         Base b = new Base();
         return b;

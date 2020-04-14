@@ -2,16 +2,22 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AddExplicitCast
-    Public Class AddExplicitCastTests
+    Partial Public Class AddExplicitCastTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicAddExplicitCastCodeFixProvider)
+        End Function
+
+        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
+            Return FlattenActions(actions)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
@@ -1895,6 +1901,166 @@ Class Program
 End Class")
         End Function
 
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        Public Async Function RedundantCast1() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo()
+        Dim b As Base
+        Dim d As Derived = [||]CType(b, Base)
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo()
+        Dim b As Base
+        Dim d As Derived = CType(b, Derived)
+    End Sub
+End Class")
+        End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        Public Async Function RedundantCast2() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived1
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived1
+    End Class
+
+    Private Sub Foo()
+        Dim b As Base
+        Dim d As Derived2 = [||]CType(b, Derived1)
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived1
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived1
+    End Class
+
+    Private Sub Foo()
+        Dim b As Base
+        Dim d As Derived2 = CType(b, Derived2)
+    End Sub
+End Class")
+        End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        Public Async Function RedundantCast3() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M(ByVal d As Derived)
+    End Sub
+
+    Private Sub Foo()
+        Dim b As Base
+        M([||]CType(b, Base))
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub M(ByVal d As Derived)
+    End Sub
+
+    Private Sub Foo()
+        Dim b As Base
+        M(CType(b, Derived))
+    End Sub
+End Class")
+        End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/41500")>
+        Public Async Function RedundantCast4() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived1
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Base
+    End Class
+
+    Private Sub M(ByRef d As Derived2)
+    End Sub
+
+    Private Sub Foo()
+        Dim b As Base
+        M([||]CType(b, Derived1))
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived1
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Base
+    End Class
+
+    Private Sub M(ByRef d As Derived2)
+    End Sub
+
+    Private Sub Foo()
+        Dim b As Base
+        M(CType(b, Derived2))
+    End Sub
+End Class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
         Public Async Function LambdaFunction9_Arguments() As Task
             Await TestMissingInRegularAndScriptAsync(
@@ -1944,8 +2110,867 @@ Class Program
         Dim d As Derived = New Derived()
         d.Testing([||]b)
     End Sub
-End Class
-")
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates1_ArgumentsInOrder_NoLabels() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByVal i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        [||]Foo("""", b)
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByVal i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Foo("""", CType(b, Derived))
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates2_ArgumentsInOrder_NoLabels() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Foo("""", [||]b, 1)
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Foo("""", CType(b, Derived), 1)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates3_ArgumentsInOrder_NoLabels_Params() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        [|Foo("""", b)|]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Foo("""", CType(b, Derived))
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates4_ArgumentsInOrder_NoLabels_Params() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        [|Foo("""", b, 1, 2, 3)|]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Foo("""", CType(b, Derived), 1, 2, 3)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates5_ArgumentsInOrder_NoLabels_Params() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Derived())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim d As Derived = New Derived()
+        [|Foo("""", d, b, b)|]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Derived())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim d As Derived = New Derived()
+        Foo("""", d, CType(b, Derived), b)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates6_ArgumentsOutOfOrder_NoLabels() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        [|Foo(b, """")|]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates7_ArgumentsInOrder_SomeLabels() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived, i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        [|Foo("""", d:=b, 1)|]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived, i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Foo("""", d:=CType(b, Derived), 1)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates8_ArgumentsInOrder_SomeLabels_Params() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim strlist = New String(0) {}
+        [|Foo("""", d:=b, strlist)|]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim strlist = New String(0) {}
+        Foo("""", d:=CType(b, Derived), strlist)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates9_ArgumentsInOrder_SomeLabels_Params() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim strlist = New String(0) {}
+        [|Foo("""", d:=b, list:=strlist)|]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates10_ArgumentsInOrder_SomeLabels_Params_OmittedArgument() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim strlist = New String(0) {}
+        [|Foo("""", d:=b, )|]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates11_ArgumentsOutOfOrder_SomeLabels() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        [|Foo(d:=b, """", 1)|]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates12_ArgumentsOutOfOrder_SomeLabels() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        [|Foo("""", i:=1, d:=b)|]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Foo("""", i:=1, d:=CType(b, Derived))
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MethodCandidates13_ArgumentsOutOfOrder_SomeLabels() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim strlist = New String(0) {}
+        [|Foo(s:="""", d:=b, strlist)|]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal d As Derived, ParamArray list As Object())
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim strlist = New String(0) {}
+        Foo(s:="""", d:=CType(b, Derived), strlist)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function ConstructorCandidates() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Test
+        Public Sub New(ByVal s As String, ByVal d As Derived, ByVal i As Integer)
+        End Sub
+    End Class
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim t As Test = [|New Test(d:=b, s:="""", i:=1)|]
+    End Sub
+End Class",
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Test
+        Public Sub New(ByVal s As String, ByVal d As Derived, ByVal i As Integer)
+        End Sub
+    End Class
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim t As Test = New Test(d:=CType(b, Derived), s:="""", i:=1)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MultipleOptions1() As Task
+            Dim initialMarkup = "
+Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Class Test
+        Public Sub New(ByVal s As String, ByRef b As Base, ByVal i As Integer, ParamArray list As Object())
+            [|Me.New(d:=b, s:=s, i:=i)|]
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+        End Sub
+    End Class
+End Class"
+
+            Dim workspace = CreateWorkspaceFromOptions(initialMarkup, New TestParameters())
+            Dim actions = Await GetCodeActionsAsync(workspace, New TestParameters())
+            Assert.Equal(2, actions.Item1.Length)
+
+            Dim expect_format = "
+Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Class Test
+        Public Sub New(ByVal s As String, ByRef b As Base, ByVal i As Integer, ParamArray list As Object())
+            Me.New(d:=CType(b, {0}), s:=s, i:=i)
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+        End Sub
+    End Class
+End Class"
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=0,
+                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived"))
+
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=1,
+                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived2"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MultipleOptions2() As Task
+            Dim initialMarkup = "
+Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Class Test
+        Public Sub New(ByVal s As String, ByRef b As Base, ByVal i As Integer, ParamArray list As Object())
+            [|Me.New(d:=b, s:=s, i:=i)|]
+        End Sub
+
+        Private Sub New(ByRef d As Derived2, ByVal s As String, ByVal i As Integer)
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+        End Sub
+    End Class
+End Class"
+
+            Dim workspace = CreateWorkspaceFromOptions(initialMarkup, New TestParameters())
+            Dim actions = Await GetCodeActionsAsync(workspace, New TestParameters())
+            Assert.Equal(2, actions.Item1.Length)
+
+            Dim expect_format = "
+Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Class Test
+        Public Sub New(ByVal s As String, ByRef b As Base, ByVal i As Integer, ParamArray list As Object())
+            Me.New(d:=CType(b, {0}), s:=s, i:=i)
+        End Sub
+
+        Private Sub New(ByRef d As Derived2, ByVal s As String, ByVal i As Integer)
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+        End Sub
+    End Class
+End Class"
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=0,
+                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived"))
+
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=1,
+                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived2"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MultipleOptions3() As Task
+            Dim initialMarkup = "
+Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Class Test
+        Public Sub New(ByVal s As String, ByRef b As Base, ByVal i As Integer, ParamArray list As Object())
+            [|Me.New(d:=b, s:=s, i:=i)|]
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived2, ByVal i As Integer, ParamArray list As Object())
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+        End Sub
+    End Class
+End Class"
+
+            Dim expect = "
+Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Class Test
+        Public Sub New(ByVal s As String, ByRef b As Base, ByVal i As Integer, ParamArray list As Object())
+            Me.New(d:=CType(b, Derived), s:=s, i:=i)
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived2, ByVal i As Integer, ParamArray list As Object())
+        End Sub
+
+        Private Sub New(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+        End Sub
+    End Class
+End Class"
+
+            Await TestInRegularAndScriptAsync(initialMarkup, expect)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MultipleOptions4() As Task
+            Dim initialMarkup = "
+Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal j As Integer, ByVal i As Integer, ByVal d As Derived)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByVal i As Integer, ByVal d As Derived2)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim strlist = New String(0) {}
+        [|Foo("""", 1, i:=1, d:=b)|]
+    End Sub
+End Class"
+
+            Dim expect = "
+Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByVal j As Integer, ByVal i As Integer, ByVal d As Derived)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByVal i As Integer, ByVal d As Derived2)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Dim strlist = New String(0) {}
+        Foo("""", 1, i:=1, d:=CType(b, Derived))
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(initialMarkup, expect)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MultipleOptions5() As Task
+            Dim initialMarkup = "
+Option Strict On
+Class Program
+    Class Base
+        Public Shared Narrowing Operator CType(x As Base) As String
+            Return """"
+        End Operator
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByVal d As String, ByVal i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        [|Foo("""", i:=1, d:=b)|]
+    End Sub
+End Class"
+
+            Dim workspace = CreateWorkspaceFromOptions(initialMarkup, New TestParameters())
+            Dim actions = Await GetCodeActionsAsync(workspace, New TestParameters())
+            Assert.Equal(3, actions.Item1.Length)
+
+            Dim expect_format = "
+Option Strict On
+Class Program
+    Class Base
+        Public Shared Narrowing Operator CType(x As Base) As String
+            Return """"
+        End Operator
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived, ByVal i As Integer)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByRef d As Derived2, ByVal i As Integer)
+    End Sub
+
+    Private Sub Foo(ByVal s As String, ByVal d As String, ByVal i As Integer)
+    End Sub
+
+    Private Sub M()
+        Dim b As Base = New Base()
+        Foo("""", i:=1, d:=CType(b, {0}))
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "String"), index:=0,
+                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "String"))
+
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=1,
+                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived"))
+
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=2,
+                title:=String.Format(VBFeaturesResources.Cast_0_to_1, "b", "Derived2"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function MultipleOptions6() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Option Strict On
+Class Program
+    Class Base
+    End Class
+
+    Class Derived
+        Inherits Base
+    End Class
+
+    Class Derived2
+        Inherits Derived
+    End Class
+
+    Private Sub Foo(ByVal d1 As Derived)
+    End Sub
+
+    Private Sub Foo(ByVal d2 As Derived2)
+    End Sub
+
+    Private Sub M()
+        [|Foo(New Base())|]
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

@@ -24,15 +24,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
-    internal abstract class AbstractAddExplicitCastCodeFixProvider<
-        TExpressionSyntax,
-        TArgumentListSyntax,
-        TArgumentSyntax,
-        TAttributeSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractAddExplicitCastCodeFixProvider<TExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TExpressionSyntax : SyntaxNode
-        where TArgumentListSyntax : SyntaxNode
-        where TArgumentSyntax : SyntaxNode
-        where TAttributeSyntax : SyntaxNode
     {
         /// <summary>
         /// Give a set of least specific types with a limit, and the part exceeding the limit doesn't show any code fix, but logs telemetry 
@@ -119,16 +112,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// Base b; Derived d = [||]b;       
         /// "b" is the current node with type "Base", and the potential conversion types list which "b" can be cast by is {Derived}
         /// </summary>
-        /// <param name="potentialConversionTypes"> Output the potential conversions types that "targetNode" can be cast to</param>
+        /// <param name="potentialConversionTypes"> Output (target expression, potential conversion type) pairs</param>
         /// <returns>
-        /// True, if the target node has at least one potential conversion type, and they are assigned to "potentialConversionTypes"
-        /// False, if the target node has no conversion type.
+        /// True, if there is at least one potential conversion pair, and they are assigned to "potentialConversionTypes"
+        /// False, if there is no potential conversion pair.
         /// </returns>
         protected abstract bool TryGetTargetTypeInfo(Document document,
-            SemanticModel semanticModel, SyntaxNode root, string diagnostic, TExpressionSyntax spanNode,
+            SemanticModel semanticModel, SyntaxNode root, string diagnosticId, TExpressionSyntax spanNode,
             CancellationToken cancellationToken, out ImmutableArray<Tuple<TExpressionSyntax, ITypeSymbol>> potentialConversionTypes);
-
-
 
         protected abstract bool IsObjectCreationExpression(TExpressionSyntax targetNode);
 
@@ -165,16 +156,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         protected abstract bool IsConversionIdentity(
             SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
-        protected abstract SeparatedSyntaxList<TArgumentSyntax> GetArguments(TArgumentListSyntax argumentList);
+        protected abstract SeparatedSyntaxList<SyntaxNode> GetArguments(SyntaxNode argumentList);
 
-        protected abstract TArgumentSyntax GenerateNewArgument(TArgumentSyntax oldArgument, ITypeSymbol conversionType);
+        protected abstract SyntaxNode GenerateNewArgument(SyntaxNode oldArgument, ITypeSymbol conversionType);
 
-        protected abstract TExpressionSyntax GetArgumentExpression(TArgumentSyntax argument);
+        protected abstract TExpressionSyntax? GetArgumentExpression(SyntaxNode argument);
         protected abstract bool IsDeclarationExpression(TExpressionSyntax expression);
 
-        protected abstract string? TryGetName(TArgumentSyntax argument);
+        protected abstract string? TryGetName(SyntaxNode argument);
 
-        protected abstract void SortConversionTypes(SemanticModel semanticModel, ArrayBuilder<Tuple<TExpressionSyntax, ITypeSymbol>> conversionTypes, TArgumentListSyntax argumentList);
+        protected abstract void SortConversionTypes(SemanticModel semanticModel, ArrayBuilder<Tuple<TExpressionSyntax, ITypeSymbol>> conversionTypes, SyntaxNode argumentList);
 
         /// <summary>
         /// Test if all argument types can be converted to corresponding parameter types.
@@ -197,28 +188,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// 
         /// <param name="argumentList"> The argument list of invocation expression</param>
         /// <param name="parameters"> The parameters of function</param>
-        /// <param name="spanNode"> The argument that contains the span </param>
+        /// <param name="spanArgument"> The argument that contains the span, could be null when the span is 
+        /// on invocation identifier name, i.e. BC30518, BC30519 in VB .NET</param>
+        /// <param name="targetArgument">The argument need to be cast. The value is the same as "spanArgument"
+        /// if "spanArgument" is not null. Otherwise the value is *the first argument* that need to be cast in the 
+        /// invocation expression</param>
         /// <param name="targetArgumentConversionType"> Output the corresponding parameter type of
         /// the target arugment if function returns true</param>
         /// <returns>
         /// True, if arguments and parameters match perfectly. <paramref name="targetArgumentConversionType"/> Output the corresponding parameter type
         /// False, otherwise.
         /// </returns>
-        protected bool CanArgumentTypesBeConvertedToParameterTypes(
-            SemanticModel semanticModel, SyntaxNode root, TArgumentListSyntax argumentList,
-            ImmutableArray<IParameterSymbol> parameters, TArgumentSyntax? spanNode,
-            CancellationToken cancellationToken, [NotNullWhen(true)] out ITypeSymbol? targetArgumentConversionType,
-            [NotNullWhen(true)] out TArgumentSyntax? targetArgument)
+        private bool CanArgumentTypesBeConvertedToParameterTypes(
+            SemanticModel semanticModel, SyntaxNode root, SyntaxNode argumentList,
+            ImmutableArray<IParameterSymbol> parameters, SyntaxNode? spanArgument,
+            CancellationToken cancellationToken, [NotNullWhen(true)] out SyntaxNode? targetArgument,
+            [NotNullWhen(true)] out ITypeSymbol? targetArgumentConversionType)
         {
             targetArgumentConversionType = null;
-            targetArgument = spanNode;
+            targetArgument = spanArgument;
 
             // No conversion happens under this case
             if (parameters.Length == 0)
                 return false;
 
             var arguments = GetArguments(argumentList);
-            var newArguments = new List<TArgumentSyntax>();
+            var newArguments = new List<SyntaxNode>();
 
             for (var i = 0; i < arguments.Count; i++)
             {
@@ -234,28 +229,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
                 // The argument is either in order with parameters, or have a matched name with parameters.
                 var argumentExpression = GetArgumentExpression(arguments[i]);
+                if (argumentExpression == null)
+                {
+                    // argumentExpression is null when it is an omitted argument in VB .NET
+                    newArguments.Add(arguments[i]);
+                    continue;
+                }
                 var parameterType = parameters[parameterIndex].Type;
 
                 if (parameters[parameterIndex].IsParams
                     && parameterType is IArrayTypeSymbol paramsType
                     && ClassifyConversionExists(semanticModel, argumentExpression, paramsType.ElementType))
                 {
-
                     newArguments.Add(GenerateNewArgument(arguments[i], paramsType.ElementType));
-                    if (!IsConversionIdentity(semanticModel, argumentExpression, paramsType.ElementType) && spanNode is null)
-                        targetArgument = arguments[i];
 
+                    if (targetArgument is null && !IsConversionIdentity(semanticModel, argumentExpression, paramsType.ElementType))
+                        targetArgument = arguments[i];
                     if (arguments[i].Equals(targetArgument))
-                    {
                         targetArgumentConversionType = paramsType.ElementType;
-                    }
                 }
                 else if (ClassifyConversionExists(semanticModel, argumentExpression, parameterType))
                 {
                     newArguments.Add(GenerateNewArgument(arguments[i], parameterType));
-                    if (!IsConversionIdentity(semanticModel, argumentExpression, parameterType) && targetArgument is null)
-                        targetArgument = arguments[i];
 
+                    if (targetArgument is null && !IsConversionIdentity(semanticModel, argumentExpression, parameterType))
+                        targetArgument = arguments[i];
                     if (arguments[i].Equals(targetArgument))
                         targetArgumentConversionType = parameterType;
                 }
@@ -284,11 +282,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 && IsInvocationExpressionWithNewArgumentsApplicable(semanticModel, root, argumentList, newArguments, targetArgument);
         }
 
-        protected abstract TArgumentListSyntax GenerateNewArgumentList(
-            TArgumentListSyntax oldArgumentList, List<TArgumentSyntax> newArguments);
-
-        protected abstract SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position,
-            TAttributeSyntax attribute);
+        protected abstract SyntaxNode GenerateNewArgumentList(
+            SyntaxNode oldArgumentList, List<SyntaxNode> newArguments);
 
         /// <summary>
         /// Check whether the invocation expression with new arguments is applicatble.
@@ -300,48 +295,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// Return true if the invocation expression with new arguments is applicatble.
         /// Otherwise, return false
         /// </returns>
-        protected bool IsInvocationExpressionWithNewArgumentsApplicable(
-            SemanticModel semanticModel, SyntaxNode root, TArgumentListSyntax oldArgumentList,
-            List<TArgumentSyntax> newArguments, SyntaxNode targetNode)
-        {
-            var newRoot = root.ReplaceNode(oldArgumentList, GenerateNewArgumentList(oldArgumentList, newArguments));
-
-            var newArgumentListNode = newRoot.FindNode(targetNode.Span).GetAncestorsOrThis<TArgumentListSyntax>().FirstOrDefault();
-            if (newArgumentListNode.Parent is SyntaxNode newNode)
-            {
-                var symbolInfo = newNode is TAttributeSyntax newAttribute ?
-                    GetSpeculativeAttributeSymbolInfo(semanticModel, newAttribute.SpanStart, newAttribute) :
-                    semanticModel.GetSpeculativeSymbolInfo(newNode.SpanStart, newNode,
-                        SpeculativeBindingOption.BindAsExpression);
-                return symbolInfo.Symbol != null;
-            }
-            return false;
-        }
+        protected abstract bool IsInvocationExpressionWithNewArgumentsApplicable(
+            SemanticModel semanticModel, SyntaxNode root, SyntaxNode oldArgumentList,
+            List<SyntaxNode> newArguments, SyntaxNode targetNode);
 
         protected ImmutableArray<Tuple<TExpressionSyntax, ITypeSymbol>> GetPotentialConversionTypes(
-                SemanticModel semanticModel, SyntaxNode root, TArgumentSyntax? spanNode,
-                TArgumentListSyntax argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
+                SemanticModel semanticModel, SyntaxNode root, SyntaxNode? spanNode,
+                SyntaxNode argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
         {
             // Implicit downcast appears on the argument of invocation node,
             // get all candidate functions and extract potential conversion types 
             var symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken);
-            var candidateSymbols = symbolInfo.CandidateSymbols;
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var candidateSymbols);
+            candidateSymbols.AddRange(symbolInfo.CandidateSymbols);
+            if (symbolInfo.Symbol != null) // BC42016: the only candidate symbol is symbolInfo.Symbol
+                candidateSymbols.Add(symbolInfo.Symbol);
 
-            using var _ = ArrayBuilder<Tuple<TExpressionSyntax, ITypeSymbol>>.GetInstance(out var mutablePotentialConversionTypes);
+            using var __ = ArrayBuilder<Tuple<TExpressionSyntax, ITypeSymbol>>.GetInstance(out var mutablePotentialConversionTypes);
             foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
             {
                 if (CanArgumentTypesBeConvertedToParameterTypes(
                         semanticModel, root, argumentList, candidateSymbol.Parameters, spanNode,
-                        cancellationToken, out var targetArgumentConversionType, out var targetArgument))
+                        cancellationToken, out var targetArgument, out var targetArgumentConversionType)
+                    && GetArgumentExpression(targetArgument) is TExpressionSyntax argumentExpression)
                 {
-                    mutablePotentialConversionTypes.Add(Tuple.Create(GetArgumentExpression(targetArgument), targetArgumentConversionType));
+                    mutablePotentialConversionTypes.Add(Tuple.Create(argumentExpression, targetArgumentConversionType));
                 }
             }
 
             // Sort the potential conversion types by inheritance distance, so that
             // operations are in order and user can choose least specific types(more accurate)
             SortConversionTypes(semanticModel, mutablePotentialConversionTypes, argumentList);
-            //mutablePotentialConversionTypes.Sort(new InheritanceDistanceComparer(semanticModel, GetArguments(argumentList));
 
             return mutablePotentialConversionTypes.ToImmutable();
         }
