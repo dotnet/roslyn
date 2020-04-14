@@ -316,6 +316,8 @@ class C
 ", parseOptions: CSharp7);
         }
 
+#if !CODE_STYLE
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsUnconstrainedGenericNegated_CSharp9()
         {
@@ -344,6 +346,8 @@ class C
 }
 ", parseOptions: CSharp9);
         }
+
+#endif
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -406,6 +410,8 @@ class C
 ", parseOptions: CSharp7);
         }
 
+#if !CODE_STYLE
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsRefConstraintGenericNegated_CSharp9()
         {
@@ -435,6 +441,8 @@ class C
 }
 ", parseOptions: CSharp9);
         }
+
+#endif
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
