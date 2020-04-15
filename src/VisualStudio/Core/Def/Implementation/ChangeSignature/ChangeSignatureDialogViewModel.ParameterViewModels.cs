@@ -29,14 +29,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public abstract bool IsRequired { get; }
             public abstract string DefaultValue { get; }
 
+            public abstract string InitialIndex { get; }
+            public abstract string Modifier { get; }
+            public abstract string Default { get; }
+
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel)
             {
                 ChangeSignatureDialogViewModel = changeSignatureDialogViewModel;
             }
 
-            public abstract string InitialIndex { get; }
-            public abstract string Modifier { get; }
-            public abstract string Default { get; }
+            public Visibility HasParameterNameConflict { get; set; }
 
             public virtual Visibility TypeWarningVisibility => Visibility.Collapsed;
 

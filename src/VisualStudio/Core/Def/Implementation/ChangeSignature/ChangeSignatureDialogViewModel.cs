@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
@@ -40,6 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
+
+        private readonly Dictionary<string, List<ParameterViewModel>> _parameterNameOverlapMap = new Dictionary<string, List<ParameterViewModel>>();
 
         /// <summary>
         /// The document where the symbol we are changing signature is defined.
@@ -82,6 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _paramsParameter = new ExistingParameterViewModel(this, parameters.ParamsParameter, initialDisplayIndex++);
             }
 
+            UpdateNameConflictMarkers();
+
             var selectedIndex = parameters.SelectedIndex;
             // Currently, we do not support editing the ThisParameter. 
             // Therefore, if there is such parameter, we should move the selectedIndex.
@@ -102,6 +107,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 this.SelectedIndex = selectedIndex;
             }
+        }
+
+        private void UpdateNameConflictMarkers()
+        {
+            var parameterNameOverlapMap = new Dictionary<string, List<ParameterViewModel>>();
+            foreach (var parameter in AllParameters)
+            {
+                if (!parameter.IsRemoved)
+                {
+                    parameterNameOverlapMap
+                        .GetOrAdd(parameter.ParameterName, _ => new List<ParameterViewModel>())
+                        .Add(parameter);
+                }
+                else
+                {
+                    parameter.HasParameterNameConflict = Visibility.Collapsed;
+                }
+            }
+
+            foreach (var parameterName in parameterNameOverlapMap.Keys)
+            {
+                var matchingParameters = parameterNameOverlapMap[parameterName];
+                if (matchingParameters.Count > 1)
+                {
+                    foreach (var matchingParameter in matchingParameters)
+                    {
+                        matchingParameter.HasParameterNameConflict = Visibility.Visible;
+                    }
+                }
+                else
+                {
+                    matchingParameters.Single().HasParameterNameConflict = Visibility.Collapsed;
+                }
+            }
+
+            NotifyPropertyChanged(nameof(AllParameters));
         }
 
         public AddParameterDialogViewModel CreateAddParameterDialogViewModel()
@@ -209,12 +250,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 AllParameters[_selectedIndex!.Value].IsRemoved = true;
             }
 
+            UpdateNameConflictMarkers();
             RemoveRestoreNotifyPropertyChanged();
         }
 
         internal void Restore()
         {
             AllParameters[_selectedIndex!.Value].IsRemoved = false;
+            UpdateNameConflictMarkers();
             RemoveRestoreNotifyPropertyChanged();
         }
 
@@ -229,6 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _parametersWithDefaultValues.Add(new AddedParameterViewModel(this, addedParameter));
             }
 
+            UpdateNameConflictMarkers();
             RemoveRestoreNotifyPropertyChanged();
         }
 
