@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         //        | <expr0> is <pattern>                             // C#
         //        | <expr0> is <type>                                // C#
         //        | <expr0> == <const-expr>                          // C#, VB
-        //        | <expr0> <comparison-op> <const>                  //     VB
+        //        | <expr0> <comparison-op> <const>                  // C#, VB
         //        | ( <expr0> >= <const> | <const> <= <expr0> )
-        //           && ( <expr0> <= <const> | <const> >= <expr0> )  //     VB
+        //           && ( <expr0> <= <const> | <const> >= <expr0> )  // C#, VB
         //        | ( <expr0> <= <const> | <const> >= <expr0> )
-        //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
+        //           && ( <expr0> >= <const> | <const> <= <expr0> )  // C#, VB
         //
         internal abstract class Analyzer
         {
@@ -266,11 +266,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 switch (operation)
                 {
                     case IBinaryOperation { OperatorKind: ConditionalAnd } op
-                        when Supports(Feature.CaseGuard) && op.RightOperand.Syntax is TExpressionSyntax node:
-                        guards.Add(node);
-                        return ParsePattern(op.LeftOperand, guards);
-
-                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
                         when Supports(Feature.RangePattern) && GetRangeBounds(op) is (TExpressionSyntax lower, TExpressionSyntax higher):
                         return new AnalyzedPattern.Range(lower, higher);
 
@@ -294,6 +289,13 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                                 => new AnalyzedPattern.Relational(op.OperatorKind, right),
                             _ => null
                         };
+
+                    // Check tihs below the cases that produce Relational/Ranges.  We would prefer to use those if
+                    // available before utilizing a CaseGuard.
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
+                        when Supports(Feature.CaseGuard) && op.RightOperand.Syntax is TExpressionSyntax node:
+                        guards.Add(node);
+                        return ParsePattern(op.LeftOperand, guards);
 
                     case IIsTypeOperation op
                         when Supports(Feature.TypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
@@ -426,7 +428,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         internal enum Feature
         {
             None = 0,
-            // VB features
+            // VB/C# 9.0 features
             RelationalPattern = 1,
             RangePattern = 1 << 1,
             // C# 7.0 features

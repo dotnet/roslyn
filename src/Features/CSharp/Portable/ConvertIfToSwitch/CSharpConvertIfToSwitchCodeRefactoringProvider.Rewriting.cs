@@ -21,6 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
     internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
     {
+        private static readonly Dictionary<BinaryOperatorKind, SyntaxKind> s_operatorMap = new Dictionary<BinaryOperatorKind, SyntaxKind>
+        {
+            { BinaryOperatorKind.NotEquals, SyntaxKind.ExclamationEqualsToken },
+            { BinaryOperatorKind.LessThan, SyntaxKind.LessThanToken },
+            { BinaryOperatorKind.GreaterThan,  SyntaxKind.GreaterThanToken },
+            { BinaryOperatorKind.LessThanOrEqual,  SyntaxKind.LessThanEqualsToken },
+            { BinaryOperatorKind.GreaterThanOrEqual,  SyntaxKind.GreaterThanEqualsToken },
+        };
+
         public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections)
         {
             return ReturnStatement(
@@ -79,6 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 AnalyzedPattern.Constant p => ConstantPattern(p.ExpressionSyntax),
                 AnalyzedPattern.Source p => p.PatternSyntax,
                 AnalyzedPattern.Type p => DeclarationPattern((TypeSyntax)p.IsExpressionSyntax.Right, DiscardDesignation()),
+                AnalyzedPattern.Relational p => RelationalPattern(Token(s_operatorMap[p.OperatorKind]), p.Value),
+                AnalyzedPattern.Range p => BinaryPattern(
+                    SyntaxKind.AndPattern,
+                    RelationalPattern(Token(SyntaxKind.GreaterThanEqualsToken), p.LowerBound),
+                    RelationalPattern(Token(SyntaxKind.LessThanEqualsToken), p.HigherBound)),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
 

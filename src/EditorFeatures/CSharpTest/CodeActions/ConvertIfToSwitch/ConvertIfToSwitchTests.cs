@@ -4,7 +4,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -14,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     public class ConvertIfToSwitchTests : AbstractCSharpCodeActionTest
     {
+        private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+        private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharp9);
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertIfToSwitchCodeRefactoringProvider();
 
@@ -1526,6 +1531,155 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
     }
 }");
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestRange_CSharp8()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (5 >= i && 1 <= i)
+        {
+            return;
+        }
+        else if (7 >= i && 6 <= i)
+        {
+            return;
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8));
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestRange_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (5 >= i && 1 <= i)
+        {
+            return;
+        }
+        else if (7 >= i && 6 <= i)
+        {
+            return;
+        }
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case >= 1 and <= 5:
+                return;
+            case >= 6 and <= 7:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestComparison_CSharp8()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (5 >= i || 1 <= i)
+        {
+            return;
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8));
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestComparison_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (5 >= i || 1 <= i)
+        {
+            return;
+        }
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case <= 5:
+            case >= 1:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestComplexIf_CSharp8()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i < 10 || 20 < i || (i >= 30 && 40 >= i) || i == 50)
+        {
+            return;
+        }
+    }
+}", parameters: new TestParameters(parseOptions: CSharp8));
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestComplexIf_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i < 10 || 20 < i || (i >= 30 && 40 >= i) || i == 50)
+        {
+            return;
+        }
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case < 10:
+            case > 20:
+            case >= 30 and <= 40:
+            case 50:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
         }
     }
 }
