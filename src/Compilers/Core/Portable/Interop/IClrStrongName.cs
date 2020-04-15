@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Interop
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
             [In] IntPtr pbKeyBlob,
             [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)]byte[] ppbSignatureBlob,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)] byte[] ppbSignatureBlob,
             [MarshalAs(UnmanagedType.U4)] out int pcbSignatureBlob);
 
         void StrongNameSignatureGenerationEx(
