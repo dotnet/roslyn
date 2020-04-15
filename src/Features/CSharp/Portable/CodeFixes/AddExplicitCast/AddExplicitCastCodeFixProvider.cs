@@ -24,7 +24,7 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
-    internal sealed partial class CSharpAddExplicitCastCodeFixProvider
+    internal sealed partial class AddExplicitCastCodeFixProvider
         : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
     {
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpAddExplicitCastCodeFixProvider()
+        public AddExplicitCastCodeFixProvider()
         {
         }
 
