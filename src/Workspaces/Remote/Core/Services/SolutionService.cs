@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
 
         // this simple cache hold onto the last and primary solution created
-        private volatile static Tuple<Checksum, Solution>? s_primarySolution;
-        private volatile static Tuple<Checksum, Solution>? s_lastSolution;
+        private static volatile Tuple<Checksum, Solution>? s_primarySolution;
+        private static volatile Tuple<Checksum, Solution>? s_lastSolution;
 
         public AssetProvider AssetProvider { get; }
 

@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
                     => this.GetNode(_tree.GetRoot(cancellationToken));
 
-                public async override Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
+                public override async Task<SyntaxNode> GetSyntaxAsync(CancellationToken cancellationToken = default)
                 {
                     var root = await _tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                     return this.GetNode(root);

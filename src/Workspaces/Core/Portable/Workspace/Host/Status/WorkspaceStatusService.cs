@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(IWorkspaceStatusService), ServiceLayer.Default), Shared]
     internal sealed class WorkspaceStatusService : IWorkspaceStatusService
     {
-        public readonly static WorkspaceStatusService Default = new WorkspaceStatusService();
+        public static readonly WorkspaceStatusService Default = new WorkspaceStatusService();
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]

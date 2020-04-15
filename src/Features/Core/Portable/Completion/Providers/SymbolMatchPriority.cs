@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static class SymbolMatchPriority
     {
-        internal readonly static int Keyword = 100;
-        internal readonly static int PreferType = 200;
-        internal readonly static int PreferNamedArgument = 300;
-        internal readonly static int PreferEventOrMethod = 400;
-        internal readonly static int PreferFieldOrProperty = 500;
-        internal readonly static int PreferLocalOrParameterOrRangeVariable = 600;
+        internal static readonly int Keyword = 100;
+        internal static readonly int PreferType = 200;
+        internal static readonly int PreferNamedArgument = 300;
+        internal static readonly int PreferEventOrMethod = 400;
+        internal static readonly int PreferFieldOrProperty = 500;
+        internal static readonly int PreferLocalOrParameterOrRangeVariable = 600;
     }
 }

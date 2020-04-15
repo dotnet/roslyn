@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return ImmutableArray<CompletionProvider>.Empty;
         }
 
-        internal protected CompletionProvider GetProvider(CompletionItem item)
+        protected internal CompletionProvider GetProvider(CompletionItem item)
         {
             CompletionProvider provider = null;
 

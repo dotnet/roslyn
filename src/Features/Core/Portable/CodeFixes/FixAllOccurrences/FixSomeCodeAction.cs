@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 _showPreviewChangesDialog);
         }
 
-        internal async override Task<Solution> GetChangedSolutionAsync(
+        internal override async Task<Solution> GetChangedSolutionAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixesBag.ToImmutableArray();
         }
 
-        protected async virtual Task AddDocumentFixesAsync(
+        protected virtual async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)

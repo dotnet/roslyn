@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private const string GenericTypeNameManglingString = "`";
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
-        private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool
+        private static readonly ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool
             = SharedPools.Default<List<Dictionary<string, string>>>();
 
         // Note: these names are stored case insensitively.  That way the alias mapping works 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // for C#.  However, that's ok.  It will be rare in practice, and all it means is that
         // we'll end up examining slightly more types (likely 0) when doing operations like 
         // Find all references.
-        private readonly static ObjectPool<Dictionary<string, string>> s_aliasMapPool
+        private static readonly ObjectPool<Dictionary<string, string>> s_aliasMapPool
             = SharedPools.StringIgnoreCaseDictionary<string>();
 
         protected static List<Dictionary<string, string>> AllocateAliasMapList()

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public sealed class Storage
         {
             // cache to remove lambda allocation
-            private readonly static Func<ConcurrentDictionary<Checksum, CustomAsset>> s_additionalAssetsCreator = () => new ConcurrentDictionary<Checksum, CustomAsset>(concurrencyLevel: 2, capacity: 10);
+            private static readonly Func<ConcurrentDictionary<Checksum, CustomAsset>> s_additionalAssetsCreator = () => new ConcurrentDictionary<Checksum, CustomAsset>(concurrencyLevel: 2, capacity: 10);
 
             private readonly ISerializerService _serializer;
 

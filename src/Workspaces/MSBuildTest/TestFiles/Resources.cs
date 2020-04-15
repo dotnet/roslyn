@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             }
         }
 
-        private readonly static Func<string, byte[]> s_bytesLoader = LoadBytes;
-        private readonly static Func<string, string> s_textLoader = LoadText;
+        private static readonly Func<string, byte[]> s_bytesLoader = LoadBytes;
+        private static readonly Func<string, string> s_textLoader = LoadText;
         private static Dictionary<string, byte[]> s_bytesCache;
         private static Dictionary<string, string> s_textCache;
 

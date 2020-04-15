@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return ImmutableDictionary<string, string>.Empty.Add(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier());
         }
 
-        public async override Task<TextChange?> GetTextChangeAsync(
+        public override async Task<TextChange?> GetTextChangeAsync(
             Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             if (ch == '<')

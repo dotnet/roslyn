@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         protected abstract bool IsXmlNewLineToken(SyntaxToken token);
         protected abstract bool IsXmlWhitespaceToken(SyntaxToken token);
 
-        public async sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 

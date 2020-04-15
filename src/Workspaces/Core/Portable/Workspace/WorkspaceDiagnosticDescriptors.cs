@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class WorkspaceDiagnosticDescriptors
     {
-        internal readonly static DiagnosticDescriptor ErrorReadingFileContent;
+        internal static readonly DiagnosticDescriptor ErrorReadingFileContent;
 
         internal const string ErrorReadingFileContentId = "IDE1100";
 

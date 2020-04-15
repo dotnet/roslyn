@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 #endif
 
-        public async static Task<bool> IsGeneratedCodeAsync(this Document document, CancellationToken cancellationToken)
+        public static async Task<bool> IsGeneratedCodeAsync(this Document document, CancellationToken cancellationToken)
         {
             var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService != null &&

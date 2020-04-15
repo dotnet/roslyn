@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class RemoteHostService : ServiceBase, IRemoteHostService
     {
-        private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
         // it is saved here more on debugging purpose.
