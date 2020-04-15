@@ -105,10 +105,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             if (!sections.Any(section => GetSwitchArmKind(section.Body) == OperationKind.Return))
                 return false;
 
-            // All arms must be convertible to a switch arm
-            if (!sections.All(section => GetSwitchArmKind(section.Body) != default))
-                return false;
-
             if (!sections.All(section => CanConvertSectionForSwitchExpression(supportsOrPattern, section)))
                 return false;
 
