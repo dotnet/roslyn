@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
+    [NonDefaultable]
     internal readonly struct NextGetAdjustSpacesOperation
     {
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private NextGetAdjustSpacesOperation NextOperation
             => new NextGetAdjustSpacesOperation(_formattingRules, _index + 1, _previousToken, _currentToken, _options);
 
-        public AdjustSpacesOperation Invoke()
+        public AdjustSpacesOperation? Invoke()
         {
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (_index >= _formattingRules.Length)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `e is Type ( /* positional */ )`
-            if (node.IsKind(SyntaxKind.RecursivePattern, out RecursivePatternSyntax recursivePattern))
+            if (node.IsKind(SyntaxKind.RecursivePattern, out RecursivePatternSyntax? recursivePattern))
             {
                 var positional = recursivePattern.PositionalPatternClause;
                 var property = recursivePattern.PropertyPatternClause;
@@ -310,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return;
                 }
 
-                ProcessStructuredTrivia(list, trivia.GetStructure());
+                ProcessStructuredTrivia(list, trivia.GetStructure()!);
             }
 
             static void ProcessStructuredTrivia(List<SuppressOperation> list, SyntaxNode structure)
@@ -372,13 +374,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // array or collection initializer case
             if (node.IsInitializerForArrayOrCollectionCreationExpression())
             {
-                var arrayOrCollectionInitializer = node as InitializerExpressionSyntax;
+                var arrayOrCollectionInitializer = (InitializerExpressionSyntax)node;
                 AddSuppressAllOperationIfOnMultipleLine(list, arrayOrCollectionInitializer.OpenBraceToken.GetPreviousToken(includeZeroWidth: true), arrayOrCollectionInitializer.CloseBraceToken);
                 return;
             }
 
             var initializer = GetInitializerNode(node);
-            if (initializer != null)
+            if (initializer is { Parent: { } })
             {
                 AddInitializerSuppressOperations(list, initializer.Parent, initializer.Expressions);
                 return;
@@ -409,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
+        private InitializerExpressionSyntax? GetInitializerNode(SyntaxNode node)
             => node switch
             {
                 ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
