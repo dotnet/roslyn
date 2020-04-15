@@ -4,13 +4,13 @@
     $CommonMetadataElements$
     <dependencies>
       <group targetFramework="net472">
-        <dependency id="Microsoft.CodeAnalysis.Common" version="$Version$" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.CodeAnalysis.EditorFeatures.Text" version="$Version$" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.CodeAnalysis.Features" version="$Version$" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="$Version$" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.CSharp" version="$Version$" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.VisualStudio.Composition" version="$Version$" exclude="Build,Analyzers" />
-        <dependency id="System.Threading.Tasks.Dataflow" version="$SystemThreadingTasksDataflowVersion$" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.CodeAnalysis.Common" version="$Version$" />
+        <dependency id="Microsoft.CodeAnalysis.EditorFeatures.Text" version="$Version$" />
+        <dependency id="Microsoft.CodeAnalysis.Features" version="$Version$" />
+        <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="$Version$" />
+        <dependency id="Microsoft.CSharp" version="$Version$" />
+        <dependency id="Microsoft.VisualStudio.Composition" version="$Version$" />
+        <dependency id="System.Threading.Tasks.Dataflow" version="$SystemThreadingTasksDataflowVersion$" />
       </group>
     </dependencies>
   </metadata>
