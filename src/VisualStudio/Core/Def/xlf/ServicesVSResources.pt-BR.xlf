@@ -207,6 +207,11 @@
         <target state="new">Index</target>
         <note>Index of parameter in original signature</note>
       </trans-unit>
+      <trans-unit id="Infer_from_context">
+        <source>Infer from context</source>
+        <target state="new">Infer from context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="new">Inserting call site value '{0}'</target>

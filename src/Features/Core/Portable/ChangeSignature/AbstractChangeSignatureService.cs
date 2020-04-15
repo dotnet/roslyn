@@ -763,13 +763,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return separators.ToImmutable();
         }
 
-        protected virtual SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
+        protected virtual async Task<SeparatedSyntaxList<SyntaxNode>> AddNewArgumentsToListAsync(
             ISymbol declarationSymbol,
             SeparatedSyntaxList<SyntaxNode> newArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
-            bool generateAttributeArguments)
+            bool generateAttributeArguments,
+            Func<Task<(SemanticModel, ImmutableArray<ISymbol>)>> getSemanticModelAndRecommendations)
         {
             var fullList = ArrayBuilder<SyntaxNode>.GetInstance();
             var separators = ArrayBuilder<SyntaxToken>.GetInstance();
@@ -793,12 +794,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         // Omitting an argument only works in some languages, depending on whether
                         // there is a params array. We sometimes need to reinterpret an requested 
                         // omitted parameter as one with a TODO requested.
-                        var forcedCallsiteErrorDueToParamsArray = addedParameter.IsCallsiteOmitted &&
+                        var forcedCallsiteErrorDueToParamsArray = addedParameter.CallSiteKind == CallSiteKind.Omitted &&
                             declarationSymbol.GetParameters().LastOrDefault()?.IsParams == true &&
                             !SupportsOptionalAndParamsArrayParametersSimultaneously();
 
-                        var isCallsiteActuallyOmitted = addedParameter.IsCallsiteOmitted && !forcedCallsiteErrorDueToParamsArray;
-                        var isCallsiteActuallyErrored = addedParameter.IsCallsiteTodo || forcedCallsiteErrorDueToParamsArray;
+                        var isCallsiteActuallyOmitted = addedParameter.CallSiteKind == CallSiteKind.Omitted && !forcedCallsiteErrorDueToParamsArray;
+                        var isCallsiteActuallyErrored = addedParameter.CallSiteKind == CallSiteKind.Todo || forcedCallsiteErrorDueToParamsArray;
 
                         if (isCallsiteActuallyOmitted)
                         {
@@ -807,16 +808,64 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                             continue;
                         }
 
+                        SyntaxNode expression = null;
+
+                        var callsiteInferenceFailed = false;
+
+                        if (addedParameter.CallSiteKind == CallSiteKind.Inferred && addedParameter.TypeBinds && getSemanticModelAndRecommendations != null)
+                        {
+                            callsiteInferenceFailed = true;
+
+                            (var semanticModel, var recommendations) = await getSemanticModelAndRecommendations().ConfigureAwait(false);
+
+                            var targetType = addedParameter.Type;
+
+                            var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
+                            var sourceSymbolsWithTypes = sourceSymbols.Where(s => s.GetSymbolType() != null);
+                            var orderedSourceSymbolsWithTypes = sourceSymbolsWithTypes.OrderByDescending(s => s.Locations.First().SourceSpan.Start);
+
+                            var localsAndParameters = orderedSourceSymbolsWithTypes.Where(s => s.IsKind(SymbolKind.Local) || s.IsKind(SymbolKind.Parameter));
+                            var propertiesAndFields = orderedSourceSymbolsWithTypes.Where(s => s.IsKind(SymbolKind.Property) || s.IsKind(SymbolKind.Field));
+
+                            var fullyOrderedSymbolsByKind = localsAndParameters.Concat(propertiesAndFields);
+
+                            foreach (var symbol in fullyOrderedSymbolsByKind)
+                            {
+                                var symbolType = symbol.GetSymbolType();
+
+                                if (semanticModel.Compilation.ClassifyCommonConversion(symbolType, targetType).IsImplicit)
+                                {
+                                    callsiteInferenceFailed = false;
+
+                                    if (symbol.IsKind(SymbolKind.Method))
+                                    {
+                                        expression = Generator.InvocationExpression(Generator.IdentifierName(symbol.Name));
+                                    }
+                                    else
+                                    {
+                                        expression = Generator.IdentifierName(symbol.Name);
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (expression == null)
+                        {
+                            expression = Generator.ParseExpression((isCallsiteActuallyErrored || callsiteInferenceFailed) ? "TODO" : addedParameter.CallSiteValue);
+                        }
+
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
                         // https://github.com/dotnet/roslyn/issues/43354
                         var argument = generateAttributeArguments ?
                             Generator.AttributeArgument(
-                                name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : null,
-                                expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue)) :
+                                name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
+                                expression: expression) :
                             Generator.Argument(
-                                name: seenNamedArguments || addedParameter.UseNamedArguments ? addedParameter.Name : null,
+                                name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 refKind: RefKind.None,
-                                expression: Generator.ParseExpression(isCallsiteActuallyErrored ? "TODO" : addedParameter.CallSiteValue));
+                                expression: expression);
 
                         fullList.Add(argument);
                         separators.Add(CommaTokenWithElasticSpace());

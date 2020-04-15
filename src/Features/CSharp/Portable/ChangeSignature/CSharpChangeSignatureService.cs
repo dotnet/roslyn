@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 ParameterListSyntax parameterListSyntax => parameterListSyntax.CloseParenToken.SpanStart,
                 BracketedParameterListSyntax bracketedParameterListSyntax => bracketedParameterListSyntax.CloseBracketToken.SpanStart,
-                _ => throw new ArgumentException("Unexpected SyntaxNode", nameof(matchingNode))
+                _ => matchingNode.SpanStart
             };
         }
 
@@ -376,13 +377,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
 
+                var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
+                    semanticModel, originalNode.SpanStart, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+
                 return invocation.WithArgumentList(
-                    UpdateArgumentList(
+                    await UpdateArgumentListAsync(
                         declarationSymbol,
                         signaturePermutation,
                         invocation.ArgumentList,
                         symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension },
-                        IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken)));
+                        IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
+                        GetSemanticModelAndRecommendations).ConfigureAwait(false));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objCreation))
@@ -396,12 +401,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 }
 
                 return objCreation.WithArgumentList(
-                    UpdateArgumentList(
+                    await UpdateArgumentListAsync(
                         declarationSymbol,
                         signaturePermutation,
                         objCreation.ArgumentList,
                         isReducedExtensionMethod: false,
-                        IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken)));
+                        IsParamsArrayExpanded(semanticModel, objCreation, symbolInfo, cancellationToken),
+                        GetSemanticModelAndRecommendations).ConfigureAwait(false));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) ||
@@ -411,12 +417,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var symbolInfo = semanticModel.GetSymbolInfo((ConstructorInitializerSyntax)originalNode, cancellationToken);
 
                 return constructorInit.WithArgumentList(
-                    UpdateArgumentList(
+                    await UpdateArgumentListAsync(
                         declarationSymbol,
                         signaturePermutation,
                         constructorInit.ArgumentList,
                         isReducedExtensionMethod: false,
-                        IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken)));
+                        IsParamsArrayExpanded(semanticModel, constructorInit, symbolInfo, cancellationToken),
+                        GetSemanticModelAndRecommendations).ConfigureAwait(false));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax? elementAccess))
@@ -425,12 +432,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var symbolInfo = semanticModel.GetSymbolInfo((ElementAccessExpressionSyntax)originalNode, cancellationToken);
 
                 return elementAccess.WithArgumentList(
-                    UpdateArgumentList(
+                    await UpdateArgumentListAsync(
                         declarationSymbol,
                         signaturePermutation,
                         elementAccess.ArgumentList,
                         isReducedExtensionMethod: false,
-                        IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken)));
+                        IsParamsArrayExpanded(semanticModel, elementAccess, symbolInfo, cancellationToken),
+                        GetSemanticModelAndRecommendations).ConfigureAwait(false));
             }
 
             if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax? attribute))
@@ -444,12 +452,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 }
 
                 return attribute.WithArgumentList(
-                    UpdateAttributeArgumentList(
+                    await UpdateAttributeArgumentListAsync(
                         declarationSymbol,
                         signaturePermutation,
                         attribute.ArgumentList,
                         isReducedExtensionMethod: false,
-                        IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken)));
+                        IsParamsArrayExpanded(semanticModel, attribute, symbolInfo, cancellationToken)).ConfigureAwait(false));
             }
 
             // Handle references in crefs
@@ -469,14 +477,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             Debug.Assert(false, "Unknown reference location");
             return null;
+
+            async Task<(SemanticModel, ImmutableArray<ISymbol>)> GetSemanticModelAndRecommendations()
+            {
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
+                    semanticModel, originalNode.SpanStart, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return (semanticModel, recommendations);
+            }
         }
 
-        private T UpdateArgumentList<T>(
+        private async Task<T> UpdateArgumentListAsync<T>(
             ISymbol declarationSymbol,
             SignatureChange signaturePermutation,
             T argumentList,
             bool isReducedExtensionMethod,
-            bool isParamsArrayExpanded) where T : BaseArgumentListSyntax
+            bool isParamsArrayExpanded,
+            Func<Task<(SemanticModel, ImmutableArray<ISymbol>)>> getSemanticModelAndRecommendations) where T : BaseArgumentListSyntax
         {
             // Reorders and removes arguments
             // e.g. P(a, b, c) ==> P(c, a)
@@ -488,21 +506,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             // Adds new arguments into the updated list
             // e.g. P(c, a) ==> P(x, c, a, y)
-            newArguments = AddNewArgumentsToList(
+            newArguments = await AddNewArgumentsToListAsync(
                 declarationSymbol,
                 newArguments,
                 argumentList.Arguments,
                 signaturePermutation,
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
-                generateAttributeArguments: false);
+                generateAttributeArguments: false,
+                getSemanticModelAndRecommendations).ConfigureAwait(false);
 
             return (T)argumentList
                 .WithArguments(newArguments)
                 .WithAdditionalAnnotations(changeSignatureFormattingAnnotation);
         }
 
-        private AttributeArgumentListSyntax UpdateAttributeArgumentList(
+        private async Task<AttributeArgumentListSyntax> UpdateAttributeArgumentListAsync(
             ISymbol declarationSymbol,
             SignatureChange signaturePermutation,
             AttributeArgumentListSyntax argumentList,
@@ -514,14 +533,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 argumentList.Arguments,
                 signaturePermutation.WithoutAddedParameters());
 
-            newArguments = AddNewArgumentsToList(
+            newArguments = await AddNewArgumentsToListAsync(
                 declarationSymbol,
                 newArguments,
                 argumentList.Arguments,
                 signaturePermutation,
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
-                generateAttributeArguments: true);
+                generateAttributeArguments: true,
+                getSemanticModelAndRecommendations: null).ConfigureAwait(false);
 
             return argumentList
                 .WithArguments(newArguments)
@@ -617,8 +637,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SignatureChange updatedSignature,
             Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
         {
-            var updatedDeclaration = base.UpdateDeclarationBase<T>(list, updatedSignature, createNewParameterMethod);
-            return SeparatedList(updatedDeclaration.parameters, updatedDeclaration.separators);
+            var (parameters, separators) = base.UpdateDeclarationBase<T>(list, updatedSignature, createNewParameterMethod);
+            return SeparatedList(parameters, separators);
         }
 
         protected override T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument)
@@ -637,19 +657,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return newArgument;
         }
 
-        private SeparatedSyntaxList<SyntaxNode> AddNewArgumentsToList(
+        private async Task<SeparatedSyntaxList<SyntaxNode>> AddNewArgumentsToListAsync(
             ISymbol declarationSymbol,
             SeparatedSyntaxList<SyntaxNode> newArguments,
             SeparatedSyntaxList<SyntaxNode> originalArguments,
             SignatureChange signaturePermutation,
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded,
-            bool generateAttributeArguments)
+            bool generateAttributeArguments,
+            Func<Task<(SemanticModel, ImmutableArray<ISymbol>)>>? getSemanticModelAndRecommendations)
         {
-            var newArgumentList = AddNewArgumentsToList(
+            var newArgumentList = await AddNewArgumentsToListAsync(
                 declarationSymbol, newArguments,
                 signaturePermutation, isReducedExtensionMethod,
-                isParamsArrayExpanded, generateAttributeArguments);
+                isParamsArrayExpanded, generateAttributeArguments,
+                getSemanticModelAndRecommendations).ConfigureAwait(false);
 
             return SeparatedList(
                 TransferLeadingWhitespaceTrivia(newArgumentList, originalArguments),
