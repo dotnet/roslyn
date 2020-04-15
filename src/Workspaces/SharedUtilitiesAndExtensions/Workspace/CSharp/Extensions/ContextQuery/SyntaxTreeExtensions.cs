@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -1261,6 +1262,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
+            var node = leftToken.Parent;
+            while (node is ParenthesizedExpressionSyntax parenthesizedExpression)
+            {
+                node = node.Parent;
+            }
+
             // case $$
             // is $$
             if (leftToken.IsKind(SyntaxKind.CaseKeyword, SyntaxKind.IsKeyword))
@@ -1270,31 +1277,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e switch { $$
             // e switch { ..., $$
-            if (leftToken.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CommaToken) && leftToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            if (leftToken.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CommaToken) && node.IsKind(SyntaxKind.SwitchExpression))
             {
                 return true;
             }
 
             // e is ($$
             // e is (..., $$
-            if (leftToken.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && leftToken.Parent.IsKind(SyntaxKind.PositionalPatternClause))
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && node.IsKind(SyntaxKind.PositionalPatternClause))
             {
                 return true;
             }
 
             // e is { P: $$
             // e is { ..., P: $$
-            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon) &&
-                leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
+            if (leftToken.IsKind(SyntaxKind.ColonToken) && node.IsKind(SyntaxKind.NameColon) &&
+                node.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;
             }
+
+#if !CODE_STYLE
+            // e switch { ($$
+            // e switch { ..., ($$
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken) && node.IsParentKind(SyntaxKind.SwitchExpressionArm))
+            {
+                return true;
+            }
+
+            // case ($
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken) && node.IsParentKind(SyntaxKind.SwitchSection))
+            {
+                return true;
+            }
+
+            // e is ((($$
+            // e is { P: ($$
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken) && node.IsKind(SyntaxKind.ConstantPattern))
+            {
+                return true;
+            }
+
+            // if (e is { P: (1 or $$
+            if ((leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword)) &&
+                node.IsParentKind(SyntaxKind.ParenthesizedPattern))
+            {
+                return true;
+            }
+
+            if (node.IsParentKind(SyntaxKind.IsPatternExpression))
+            {
+                // e is 1 and $$
+                if (node.IsKind(SyntaxKind.AndPattern))
+                {
+                    return true;
+                }
+
+                // e is 1 or $$
+                if (node.IsKind(SyntaxKind.OrPattern))
+                {
+                    return true;
+                }
+
+                // e is not $$
+                if (node.IsKind(SyntaxKind.NotPattern))
+                {
+                    return true;
+                }
+            }
+#endif
 
             return false;
         }
 
         public static bool IsAfterPatternContext(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
         {
+#if !CODE_STYLE
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
             // e is 1 $$
@@ -1302,6 +1360,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 return true;
             }
+
+            // e is int $$
+            if (leftToken.Parent.IsParentKind(SyntaxKind.DeclarationPattern))
+            {
+                return true;
+            }
+
+            // e is >= 0 $$
+            if (leftToken.Parent.IsParentKind(SyntaxKind.RelationalPattern))
+            {
+                return true;
+            }
+
+            // e is { P: (1 $$
+            if (leftToken.Parent.IsParentKind(SyntaxKind.PositionalPatternClause))
+            {
+                return true;
+            }
+
+            // e is { P: (1) $$
+            if (leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+#endif
 
             return false;
         }
