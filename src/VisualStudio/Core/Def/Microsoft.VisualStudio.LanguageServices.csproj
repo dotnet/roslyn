@@ -18,9 +18,9 @@
     <IsPackable>true</IsPackable>
     <NuspecFile>$(MSBuildProjectName).nuspec</NuspecFile>
     <NuspecBasePath>$(OutputPath)</NuspecBasePath>
-    <Description>
+    <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Visual Studio.
-    </Description>
+    </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="NuGet">
     <NuspecProperty Include="SystemThreadingTasksDataflowVersion=$(SystemThreadingTasksDataflowVersion)"/>
