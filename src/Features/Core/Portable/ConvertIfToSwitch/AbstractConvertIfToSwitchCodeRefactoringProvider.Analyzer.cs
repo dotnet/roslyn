@@ -259,8 +259,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             //        | ( <expr0> <= <const> | <const> >= <expr0> )
             //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
             //
-            private AnalyzedPattern? ParsePattern(
-                IOperation operation, ArrayBuilder<TExpressionSyntax> guards)
+            private AnalyzedPattern? ParsePattern(IOperation operation, ArrayBuilder<TExpressionSyntax> guards)
             {
                 switch (operation)
                 {
