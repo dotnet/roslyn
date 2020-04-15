@@ -4681,5 +4681,46 @@ static class Assert
                 _ => throw new System.InvalidOperationException(),
             });
         }
+
+        [Fact, WorkItem(43308, "https://github.com/dotnet/roslyn/issues/43308")]
+        public void RelationalEdgeTest_01()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void Main()
+    {
+        var x = 5;
+        var str = x switch // does not handle zero
+        {
+            1 => ""a"",
+            > 2 => ""b"",
+            > 1 and <= 2 => ""c"",
+            < 0 => ""d""
+        };
+        Console.Write(str);
+        str = x switch // does not handle zero
+        {
+            1 => ""a"",
+            > 2 => ""b"",
+            <= 2 and > 1 => ""c"",
+            < 0 => ""d""
+        };
+        Console.Write(str);
+    }
+}";
+            string expectedOutput = "bb";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
+            compilation.VerifyDiagnostics(
+                // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         var str = x switch // does not handle zero
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 21),
+                // (15,17): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         str = x switch // does not handle zero
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(15, 17)
+                );
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
