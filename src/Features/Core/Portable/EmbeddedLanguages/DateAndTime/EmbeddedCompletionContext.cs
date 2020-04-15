@@ -76,8 +76,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             {
                 var userFormat = _userFormatPrefix + displayText + _userFormatSuffix;
 
-                //var primaryCulture = CultureInfo.CurrentCulture;
-                var primaryCulture = CultureInfo.GetCultureInfo("es-ES");
+                var primaryCulture = CultureInfo.CurrentCulture;
                 var secondaryCulture = s_enUsCulture;
                 var hideCulture = primaryCulture.Equals(secondaryCulture);
 
