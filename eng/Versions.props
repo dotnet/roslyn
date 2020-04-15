@@ -33,7 +33,7 @@
     <CodeStyleAnalyzerVersion>3.6.0-2.20157.5</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
-    <MicrosoftVisualStudioLanguageServerPackagesVersion>16.6.34</MicrosoftVisualStudioLanguageServerPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerPackagesVersion>16.6.45</MicrosoftVisualStudioLanguageServerPackagesVersion>
   </PropertyGroup>
   <!--
     Dependency versions
