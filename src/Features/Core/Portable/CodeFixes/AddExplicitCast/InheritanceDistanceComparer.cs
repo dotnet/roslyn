@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             _semanticModel = semanticModel;
         }
 
-        public int Compare(Tuple<TExpressionSyntax, ITypeSymbol>? x, Tuple<TExpressionSyntax, ITypeSymbol>? y)
+        public int Compare((TExpressionSyntax syntax, ITypeSymbol symbol)? x, (TExpressionSyntax syntax, ITypeSymbol symbol)? y)
         {
             if (x is null)
                 return y is null ? 0 : -1;
