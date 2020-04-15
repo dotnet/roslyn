@@ -59,7 +59,7 @@
             <TextBox x:Name="NameContentControl"
                      Grid.Row="4" 
                      Margin="0,5,0,5"
-                     Text="{Binding ParameterName, Mode=TwoWay}"
+                     Text="{Binding ParameterName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"/>
             <Label x:Name="ParameterKindLabelName" Grid.Row="5" Content="{Binding ElementName=dialog, Path=ParameterKind}" />
             <RadioButton x:Name="RequiredParameterRadioButton" 
@@ -101,7 +101,7 @@
                          Grid.Row="0"
                          Margin="5,0,0,0"
                          IsEnabled="{Binding IsChecked, ElementName=CallsiteValueRadioButton}"
-                         Text="{Binding CallSiteValue, Mode=TwoWay}"></TextBox>
+                         Text="{Binding CallSiteValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
                 <CheckBox x:Name="UseNamedArgumentButton" 
                           Grid.Row="1" 
                           Grid.ColumnSpan="2" 
