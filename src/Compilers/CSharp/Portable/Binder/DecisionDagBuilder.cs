@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            RoslynDebug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
+            RoslynDebug.Assert(input.Type.IsErrorType() || recursive.HasErrors || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
             var tests = ArrayBuilder<Tests>.GetInstance(5);
             output = input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(MakeTestsAndBindings(input, bin.Left, out var leftOutput, bindings));
                 builder.Add(MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
                 output = rightOutput;
-                Debug.Assert(output.Type.Equals(bin.ConvertedType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.ConvertedType, TypeCompareKind.AllIgnoreOptions));
                 return Tests.AndSequence.Create(builder);
             }
         }
