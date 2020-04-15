@@ -766,12 +766,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
+            Debug.Assert(arguments.AttributeSyntaxOpt is object);
+
             if (MethodKind != MethodKind.Ordinary)
             {
+                // Ignore cases where there will already be a warning due to the AttributeTargets.Method usage
+                // restriction on the attribute definition in the framework.
+                if (MethodKind != MethodKind.Constructor && MethodKind != MethodKind.StaticConstructor)
+                {
+                    arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
+                }
                 return;
             }
 
-            Debug.Assert(arguments.AttributeSyntaxOpt is object);
             Debug.Assert(ContainingType is object);
 
             if (isInaccessible(this) || containingTypes(this).Any(isInaccessible))

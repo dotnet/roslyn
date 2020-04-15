@@ -9,28 +9,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     public sealed partial class ModuleInitializersTests
     {
         [Fact]
-        public void IgnoredOnLocalFunction()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    internal static void M()
-    {
-        [ModuleInitializer]
-        static void LocalFunction() { }
-    }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
-        }
-
-        [Fact]
         public void IgnoredOnReturnValue()
         {
             string source = @"
@@ -149,63 +127,6 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnDestructor()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer]
-    ~C() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
-        }
-
-        [Fact]
-        public void IgnoredOnOperator()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer]
-    public static C operator -(C p) => p;
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
-        }
-
-        [Fact]
-        public void IgnoredOnConversionOperator()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer]
-    public static explicit operator int(C p) => default;
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
-        }
-
-        [Fact]
         public void IgnoredOnEvent()
         {
             string source = @"
@@ -215,30 +136,6 @@ class C
 {
     [ModuleInitializer]
     public event System.Action E;
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
-        }
-
-        [Fact]
-        public void IgnoredOnEventAccessors()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    public event System.Action E
-    {
-        [ModuleInitializer]
-        add { }
-        [ModuleInitializer]
-        remove { }
-    }
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
@@ -268,30 +165,6 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public void IgnoredOnPropertyAccessors()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    public int P 
-    {
-        [ModuleInitializer]
-        get;
-        [ModuleInitializer]
-        set;
-    }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
-        }
-
-        [Fact]
         public void IgnoredOnIndexer()
         {
             string source = @"
@@ -301,30 +174,6 @@ class C
 {
     [ModuleInitializer]
     public int this[int p] => p;
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
-
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
-        }
-
-        [Fact]
-        public void IgnoredOnIndexerAccessors()
-        {
-            string source = @"
-using System.Runtime.CompilerServices;
-
-class C
-{
-    public int this[int p]
-    {
-        [ModuleInitializer]
-        get => p;
-        [ModuleInitializer]
-        set { }
-    }
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
