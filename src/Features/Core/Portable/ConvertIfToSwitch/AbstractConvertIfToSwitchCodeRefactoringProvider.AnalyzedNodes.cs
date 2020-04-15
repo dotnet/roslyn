@@ -124,6 +124,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     HigherBound = higherBound;
                 }
             }
+
+            /// <summary>
+            /// Represents an and-pattern, constructed from two other patterns.
+            /// </summary>
+            internal sealed class And : AnalyzedPattern
+            {
+                public readonly AnalyzedPattern LeftPattern;
+                public readonly AnalyzedPattern RightPattern;
+
+                public And(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern)
+                {
+                    LeftPattern = leftPattern;
+                    RightPattern = rightPattern;
+                }
+            }
         }
     }
 }

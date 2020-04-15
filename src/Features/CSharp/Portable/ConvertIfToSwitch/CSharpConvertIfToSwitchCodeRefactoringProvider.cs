@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertIfToSwitch;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -33,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             var version = ((CSharpParseOptions)options).LanguageVersion;
             var features =
                 (version >= LanguageVersion.CSharp7 ? Feature.SourcePattern | Feature.TypePattern | Feature.CaseGuard : 0) |
-                (version >= LanguageVersion.CSharp8 ? Feature.SwitchExpression : 0);
+                (version >= LanguageVersion.CSharp8 ? Feature.SwitchExpression : 0) |
+                (version.IsCSharp9OrAbove() ? Feature.RangePattern | Feature.RelationalPattern | Feature.OrPattern | Feature.AndPattern : 0);
             return new CSharpAnalyzer(syntaxFacts, features);
         }
     }
