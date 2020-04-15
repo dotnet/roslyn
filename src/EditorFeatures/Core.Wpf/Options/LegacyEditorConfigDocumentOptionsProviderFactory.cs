@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
     [ExportMetadata("Name", PredefinedDocumentOptionsProviderNames.EditorConfig)]
-    class LegacyEditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
+    internal class LegacyEditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IFileWatcher _fileWatcher;
