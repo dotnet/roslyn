@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
     /// 
     /// 'Derived1' is less specific than 'Derived2' compared to 'Base'
     /// </summary>
-    internal sealed class InheritanceDistanceComparer<
-        TExpressionSyntax> : IComparer<Tuple<TExpressionSyntax, ITypeSymbol>>
-        where TExpressionSyntax : SyntaxNode
+    internal sealed class InheritanceDistanceComparer<TExpressionSyntax> 
+    : IComparer<Tuple<TExpressionSyntax, ITypeSymbol>>
+    where TExpressionSyntax : SyntaxNode
     {
         private readonly SemanticModel _semanticModel;
 
