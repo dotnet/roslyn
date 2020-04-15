@@ -141,6 +141,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 return false;
             }
 
+            if (IsCallsiteRegularValue && CallSiteValue.IsNullOrWhiteSpace())
+            {
+                SendFailureNotification(ServicesVSResources.Enter_a_call_site_value_or_choose_a_different_value_injection_kind);
+                return false;
+            }
+
+            if (IsOptional && DefaultValue.IsNullOrWhiteSpace())
+            {
+                SendFailureNotification(ServicesVSResources.Optional_parameters_must_provide_a_default_value);
+                return false;
+            }
+
             return true;
         }
 

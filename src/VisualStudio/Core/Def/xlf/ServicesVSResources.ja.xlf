@@ -167,6 +167,11 @@
         <target state="translated">要素が有効ではありません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
+        <source>Enter a call site value or choose a different value injection kind</source>
+        <target state="new">Enter a call site value or choose a different value injection kind</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Entire_solution">
         <source>Entire solution</source>
         <target state="translated">ソリューション全体</target>
@@ -440,6 +445,11 @@
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">開かれているドキュメント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_parameters_must_provide_a_default_value">
+        <source>Optional parameters must provide a default value</source>
+        <target state="new">Optional parameters must provide a default value</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_with_default_value_colon">

@@ -1469,4 +1469,10 @@ I agree to all of the foregoing:</value>
     <value>Please enter a type name</value>
     <comment>"Type" is the programming language concept</comment>
   </data>
+  <data name="Enter_a_call_site_value_or_choose_a_different_value_injection_kind" xml:space="preserve">
+    <value>Enter a call site value or choose a different value injection kind</value>
+  </data>
+  <data name="Optional_parameters_must_provide_a_default_value" xml:space="preserve">
+    <value>Optional parameters must provide a default value</value>
+  </data>
 </root>
