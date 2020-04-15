@@ -8,7 +8,7 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' >= '3.0'">
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.3'">
     <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_OR_BETTER</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">
@@ -43,6 +43,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticDescriptorHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ReportDiagnosticExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\KeyValuePairExtensions.cs" />
@@ -56,7 +57,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\SemanticModelExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\SyntaxTreeCategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ICategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AggregateCategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AbstractCategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EnumValuesPrefixTrigger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerConfigOptionsProviderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolNamesWithValueOption.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolModifiers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\Unit.cs" />
@@ -86,7 +92,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\CategorizedAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\CompilationCategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />

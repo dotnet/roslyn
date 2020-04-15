@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                 // Handle updating the existing value if not setting the value from predicate analysis.
                 if (!fromPredicateKindOpt.HasValue &&
-                    sourceCopyAnalysisData.TryGetValue(analysisEntity, out CopyAbstractValue existingValue))
+                    sourceCopyAnalysisData.TryGetValue(analysisEntity, out var existingValue))
                 {
                     if (existingValue == value)
                     {
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 if (AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
                 {
-                    return CurrentAnalysisData.TryGetValue(analysisEntity, out CopyAbstractValue value) ? value : GetDefaultCopyValue(analysisEntity);
+                    return CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : GetDefaultCopyValue(analysisEntity);
                 }
                 else
                 {

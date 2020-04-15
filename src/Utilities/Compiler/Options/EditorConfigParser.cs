@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Analyzer.Utilities
 {
     /// <summary>
-    /// Parses a given .editorconfig source text into <see cref="CategorizedAnalyzerConfigOptions"/>.
+    /// Parses a given .editorconfig source text into <see cref="CompilationCategorizedAnalyzerConfigOptions"/>.
     /// </summary>
     internal static class EditorConfigParser
     {
@@ -49,7 +49,7 @@ namespace Analyzer.Utilities
         private static readonly ImmutableHashSet<string> s_reservedValues
             = ImmutableHashSet.CreateRange(s_keyComparer, new[] { "unset" });
 
-        public static CategorizedAnalyzerConfigOptions Parse(SourceText text)
+        public static CompilationCategorizedAnalyzerConfigOptions Parse(SourceText text)
         {
             var parsedOptions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -83,7 +83,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            return CategorizedAnalyzerConfigOptions.Create(parsedOptions);
+            return CompilationCategorizedAnalyzerConfigOptions.Create(parsedOptions);
         }
 
         private static bool IsComment(string line)

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers;
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
@@ -87,9 +88,9 @@ class MyAnalyzer : DiagnosticAnalyzer
                 {
                     Sources = { source },
                     AdditionalFiles = {
-                        (DiagnosticDescriptorCreationAnalyzer.ShippedFileName,
+                        (ReleaseTrackingHelper.ShippedFileName,
                             AnalyzerReleaseTrackingFix.ShippedAnalyzerReleaseTrackingFileDefaultContent),
-                        (DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        (ReleaseTrackingHelper.UnshippedFileName,
                             AnalyzerReleaseTrackingFix.UnshippedAnalyzerReleaseTrackingFileDefaultContent + DefaultUnshippedHeader + "Id1 | Category1 | Warning | MyAnalyzer")
                     }
                 },
@@ -490,15 +491,15 @@ class MyAnalyzer : DiagnosticAnalyzer
 
             var shippedText = @"";
             var unshippedText = @"";
-            var entry = $@"Id1 | {DiagnosticDescriptorCreationAnalyzer.UndetectedText} | {DiagnosticDescriptorCreationAnalyzer.UndetectedText} | MyAnalyzer";
+            var entry = $@"Id1 | {ReleaseTrackingHelper.UndetectedText} | {ReleaseTrackingHelper.UndetectedText} | MyAnalyzer";
             var fixedUnshippedText = $@"{DefaultUnshippedHeader}{entry}";
 
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText, additionalExpectedDiagnosticsInInput: ImmutableArray<DiagnosticResult>.Empty,
                 additionalExpectedDiagnosticsInResult: ImmutableArray.Create(
                     GetAdditionalFileResultAt(4, 1,
-                        DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        ReleaseTrackingHelper.UnshippedFileName,
                         DiagnosticDescriptorCreationAnalyzer.InvalidUndetectedEntryInAnalyzerReleasesFileRule,
-                        DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        ReleaseTrackingHelper.UnshippedFileName,
                         entry)));
         }
 
@@ -541,29 +542,29 @@ class MyAnalyzer : DiagnosticAnalyzer
         // No header in shipped
         [InlineData("Id1 | Category1 | Warning |", "")]
         // Missing TableTitle in unshipped
-        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |")]
+        [InlineData("", ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |")]
         // Missing TableHeaderLine1 in unshipped
-        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 2)]
+        [InlineData("", ReleaseTrackingHelper.TableTitleNewRules + BlankLine + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 2)]
         // Missing TableHeaderLine2 in unshipped
-        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", 3)]
+        [InlineData("", ReleaseTrackingHelper.TableTitleNewRules + BlankLine + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", 3)]
         // Missing Release Version line in shipped
         [InlineData(DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
         // Missing Release Version in shipped
-        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + BlankLine + DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
+        [InlineData(ReleaseTrackingHelper.ReleasePrefix + BlankLine + DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
         // Invalid Release Version in shipped
-        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " InvalidVersion" + BlankLine + DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
+        [InlineData(ReleaseTrackingHelper.ReleasePrefix + " InvalidVersion" + BlankLine + DefaultUnshippedHeader + "Id1 | Category1 | Warning |", "")]
         // Missing TableTitle in shipped
-        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + "1.0" + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 2)]
+        [InlineData(ReleaseTrackingHelper.ReleasePrefix + "1.0" + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 2)]
         // Missing TableHeaderLine1 in shipped
-        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + "1.0" + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", "", 3)]
+        [InlineData(ReleaseTrackingHelper.ReleasePrefix + "1.0" + BlankLine + ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", "", 3)]
         // Missing TableHeaderLine2 in shipped
-        [InlineData(DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 4)]
+        [InlineData(ReleaseTrackingHelper.ReleasePrefix + " 1.0" + BlankLine + ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine + "Id1 | Category1 | Warning |", "", 4)]
         // Invalid Release Version line in unshipped
         [InlineData("", DefaultShippedHeader + "Id1 | Category1 | Warning |")]
         // Mismatch Table title and TableHeaderLine1 in unshipped
-        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 2)]
+        [InlineData("", ReleaseTrackingHelper.TableTitleNewRules + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 2)]
         // Mismatch Table title and TableHeaderLine2 in unshipped
-        [InlineData("", DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine + DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 3)]
+        [InlineData("", ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + BlankLine + "Id1 | Category1 | Warning |", 3)]
         [Theory]
         public async Task TestInvalidHeaderDiagnostic(string shippedText, string unshippedText, int line = 1)
         {
@@ -583,7 +584,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) { }
 }";
 
-            var fileWithDiagnostics = shippedText.Length > 0 ? DiagnosticDescriptorCreationAnalyzer.ShippedFileName : DiagnosticDescriptorCreationAnalyzer.UnshippedFileName;
+            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var diagnosticText = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).ElementAt(line - 1);
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(line, 1,
@@ -594,11 +595,11 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         // Undetected category
-        [InlineData("Id1 | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " | Warning |", true)]
+        [InlineData("Id1 | " + ReleaseTrackingHelper.UndetectedText + " | Warning |", true)]
         // Undetected severity
-        [InlineData("Id1 | Category1 | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " |", true)]
+        [InlineData("Id1 | Category1 | " + ReleaseTrackingHelper.UndetectedText + " |", true)]
         // Undetected category and severity
-        [InlineData("Id1 | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " |", true)]
+        [InlineData("Id1 | " + ReleaseTrackingHelper.UndetectedText + " | " + ReleaseTrackingHelper.UndetectedText + " |", true)]
         // Invalid severity
         [InlineData("Id1 | Category1 | Invalid |", false)]
         // Missing required fields - category + severity
@@ -636,22 +637,22 @@ class MyAnalyzer : DiagnosticAnalyzer
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(4, 1,
-                        DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        ReleaseTrackingHelper.UnshippedFileName,
                         rule,
-                        DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        ReleaseTrackingHelper.UnshippedFileName,
                         entry));
         }
 
         // Undetected category
-        [InlineData("Id1 | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " | Warning | Category1 | Warning |", true)]
+        [InlineData("Id1 | " + ReleaseTrackingHelper.UndetectedText + " | Warning | Category1 | Warning |", true)]
         // Undetected old category
-        [InlineData("Id1 | Category1 | Warning | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " | Warning |", true)]
+        [InlineData("Id1 | Category1 | Warning | " + ReleaseTrackingHelper.UndetectedText + " | Warning |", true)]
         // Undetected severity
-        [InlineData("Id1 | Category1 | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " | Category1 | Warning |", true)]
+        [InlineData("Id1 | Category1 | " + ReleaseTrackingHelper.UndetectedText + " | Category1 | Warning |", true)]
         // Undetected old severity
-        [InlineData("Id1 | Category1 | Warning | Category1 | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " |", true)]
+        [InlineData("Id1 | Category1 | Warning | Category1 | " + ReleaseTrackingHelper.UndetectedText + " |", true)]
         // Undetected category and severity
-        [InlineData("Id1 | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " | " + DiagnosticDescriptorCreationAnalyzer.UndetectedText + " | Category1 | Warning |", true)]
+        [InlineData("Id1 | " + ReleaseTrackingHelper.UndetectedText + " | " + ReleaseTrackingHelper.UndetectedText + " | Category1 | Warning |", true)]
         // Invalid severity
         [InlineData("Id1 | Category1 | Invalid | Category1 | Warning |", false)]
         // Invalid old severity
@@ -697,9 +698,9 @@ class MyAnalyzer : DiagnosticAnalyzer
 
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(4, 1,
-                        DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        ReleaseTrackingHelper.UnshippedFileName,
                         rule,
-                        DiagnosticDescriptorCreationAnalyzer.UnshippedFileName,
+                        ReleaseTrackingHelper.UnshippedFileName,
                         entry));
         }
 
@@ -819,7 +820,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
     public override void Initialize(AnalysisContext context) { }
 }";
-            var fileWithDiagnostics = shippedText.Length > 0 ? DiagnosticDescriptorCreationAnalyzer.ShippedFileName : DiagnosticDescriptorCreationAnalyzer.UnshippedFileName;
+            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
@@ -852,7 +853,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
 }";
-            var fileWithDiagnostics = shippedText.Length > 0 ? DiagnosticDescriptorCreationAnalyzer.ShippedFileName : DiagnosticDescriptorCreationAnalyzer.UnshippedFileName;
+            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
@@ -885,7 +886,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
 }";
-            var fileWithDiagnostics = shippedText.Length > 0 ? DiagnosticDescriptorCreationAnalyzer.ShippedFileName : DiagnosticDescriptorCreationAnalyzer.UnshippedFileName;
+            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(6, 1,
                         fileWithDiagnostics,
@@ -920,28 +921,28 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
         #region Helpers
 
-        private const string DefaultUnshippedHeader = DiagnosticDescriptorCreationAnalyzer.TableTitleNewRules + BlankLine +
-            DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1 + BlankLine +
-            DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2 + BlankLine;
+        private const string DefaultUnshippedHeader = ReleaseTrackingHelper.TableTitleNewRules + BlankLine +
+            ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + BlankLine +
+            ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + BlankLine;
 
-        private const string DefaultRemovedUnshippedHeader = DiagnosticDescriptorCreationAnalyzer.TableTitleRemovedRules + BlankLine +
-            DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine1 + BlankLine +
-            DiagnosticDescriptorCreationAnalyzer.TableHeaderNewOrRemovedRulesLine2 + BlankLine;
+        private const string DefaultRemovedUnshippedHeader = ReleaseTrackingHelper.TableTitleRemovedRules + BlankLine +
+            ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + BlankLine +
+            ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + BlankLine;
 
-        private const string DefaultChangedUnshippedHeader = DiagnosticDescriptorCreationAnalyzer.TableTitleChangedRules + BlankLine +
-            DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine1 + BlankLine +
-            DiagnosticDescriptorCreationAnalyzer.TableHeaderChangedRulesLine2 + BlankLine;
+        private const string DefaultChangedUnshippedHeader = ReleaseTrackingHelper.TableTitleChangedRules + BlankLine +
+            ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + BlankLine +
+            ReleaseTrackingHelper.TableHeaderChangedRulesLine2 + BlankLine;
 
-        private const string DefaultShippedHeader = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
-        private const string DefaultRemovedShippedHeader = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader;
-        private const string DefaultChangedShippedHeader = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
+        private const string DefaultShippedHeader = ReleaseTrackingHelper.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
+        private const string DefaultRemovedShippedHeader = ReleaseTrackingHelper.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader;
+        private const string DefaultChangedShippedHeader = ReleaseTrackingHelper.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
 
-        private const string DefaultShippedHeader2 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
-        private const string DefaultRemovedShippedHeader2 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader;
-        private const string DefaultChangedShippedHeader2 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
+        private const string DefaultShippedHeader2 = ReleaseTrackingHelper.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
+        private const string DefaultRemovedShippedHeader2 = ReleaseTrackingHelper.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader;
+        private const string DefaultChangedShippedHeader2 = ReleaseTrackingHelper.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
 
-        private const string DefaultShippedHeader3 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 3.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
-        private const string DefaultChangedShippedHeader3 = DiagnosticDescriptorCreationAnalyzer.ReleasePrefix + " 3.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
+        private const string DefaultShippedHeader3 = ReleaseTrackingHelper.ReleasePrefix + " 3.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
+        private const string DefaultChangedShippedHeader3 = ReleaseTrackingHelper.ReleasePrefix + " 3.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
 
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
@@ -981,12 +982,12 @@ class MyAnalyzer : DiagnosticAnalyzer
 
             if (shippedText != null)
             {
-                test.TestState.AdditionalFiles.Add((DiagnosticDescriptorCreationAnalyzer.ShippedFileName, shippedText));
+                test.TestState.AdditionalFiles.Add((ReleaseTrackingHelper.ShippedFileName, shippedText));
             }
 
             if (unshippedText != null)
             {
-                test.TestState.AdditionalFiles.Add((DiagnosticDescriptorCreationAnalyzer.UnshippedFileName, unshippedText));
+                test.TestState.AdditionalFiles.Add((ReleaseTrackingHelper.UnshippedFileName, unshippedText));
             }
 
             test.SolutionTransforms.Add(DisableNonReleaseTrackingWarnings);
@@ -1017,12 +1018,12 @@ class MyAnalyzer : DiagnosticAnalyzer
             test.SolutionTransforms.Add(DisableNonReleaseTrackingWarnings);
 
             test.TestState.Sources.Add(source);
-            test.TestState.AdditionalFiles.Add((DiagnosticDescriptorCreationAnalyzer.ShippedFileName, shippedText));
-            test.TestState.AdditionalFiles.Add((DiagnosticDescriptorCreationAnalyzer.UnshippedFileName, oldUnshippedText));
+            test.TestState.AdditionalFiles.Add((ReleaseTrackingHelper.ShippedFileName, shippedText));
+            test.TestState.AdditionalFiles.Add((ReleaseTrackingHelper.UnshippedFileName, oldUnshippedText));
             test.TestState.ExpectedDiagnostics.AddRange(additionalExpectedDiagnosticsInInput);
 
-            test.FixedState.AdditionalFiles.Add((DiagnosticDescriptorCreationAnalyzer.ShippedFileName, shippedText));
-            test.FixedState.AdditionalFiles.Add((DiagnosticDescriptorCreationAnalyzer.UnshippedFileName, newUnshippedText));
+            test.FixedState.AdditionalFiles.Add((ReleaseTrackingHelper.ShippedFileName, shippedText));
+            test.FixedState.AdditionalFiles.Add((ReleaseTrackingHelper.UnshippedFileName, newUnshippedText));
             test.FixedState.ExpectedDiagnostics.AddRange(additionalExpectedDiagnosticsInResult);
 
             await test.RunAsync();
