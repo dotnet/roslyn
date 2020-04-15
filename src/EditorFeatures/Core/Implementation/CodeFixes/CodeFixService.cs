@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public CodeFixService(
             IThreadingContext threadingContext,
             IDiagnosticAnalyzerService service,
-            [ImportMany]IEnumerable<Lazy<IErrorLoggerService>> loggers,
-            [ImportMany]IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
-            [ImportMany]IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
+            [ImportMany] IEnumerable<Lazy<IErrorLoggerService>> loggers,
+            [ImportMany] IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
+            [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
             : base(threadingContext, assertIsForeground: false)
         {
             _errorLoggers = loggers;
