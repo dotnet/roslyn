@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 // MaximumConversionOptions: we show at most [MaximumConversionOptions] options for this code fixer
                 for (var i = 0; i < Math.Min(MaximumConversionOptions, potentialConversionTypes.Length); i++)
                 {
-                    var targetNode = potentialConversionTypes[i].Item1;
-                    var conversionType = potentialConversionTypes[i].Item2;
+                    var targetNode = potentialConversionTypes[i].node;
+                    var conversionType = potentialConversionTypes[i].type;
                     actions.Add(new MyCodeAction(
                         GetDescription(context, semanticModel, targetNode, conversionType),
                         _ => ApplySingleConversionToDocumentAsync(document, ApplyFix(root, targetNode, conversionType))));
@@ -121,22 +121,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// </returns>
         protected abstract bool TryGetTargetTypeInfo(Document document, SemanticModel semanticModel, SyntaxNode root,
             string diagnosticId, TExpressionSyntax spanNode, CancellationToken cancellationToken,
-            out ImmutableArray<Tuple<TExpressionSyntax, ITypeSymbol>> potentialConversionTypes);
+            out ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> potentialConversionTypes);
 
         protected abstract bool IsObjectCreationExpression(TExpressionSyntax targetNode);
 
         protected abstract bool IsConversionUserDefined(
             SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
-        protected ImmutableArray<Tuple<TExpressionSyntax, ITypeSymbol>> FilterValidPotentialConversionTypes(
+        protected ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
             SemanticModel semanticModel,
-            ArrayBuilder<Tuple<TExpressionSyntax, ITypeSymbol>> mutablePotentialConversionTypes)
+            ArrayBuilder<(TExpressionSyntax node, ITypeSymbol type)> mutablePotentialConversionTypes)
         {
-            using var _ = ArrayBuilder<Tuple<TExpressionSyntax, ITypeSymbol>>.GetInstance(out var validPotentialConversionTypes);
+            using var _ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(out var validPotentialConversionTypes);
             foreach (var conversionTuple in mutablePotentialConversionTypes)
             {
-                var targetNode = conversionTuple.Item1;
-                var targetNodeConversionType = conversionTuple.Item2;
+                var targetNode = conversionTuple.node;
+                var targetNodeConversionType = conversionTuple.type;
 
                 // For cases like object creation expression. for example:
                 // Derived d = [||]new Base();
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// <returns>
         /// Return all the available cast pairs, format is (target argument expression, potential conversion type)
         /// </returns>
-        protected ImmutableArray<Tuple<TExpressionSyntax, ITypeSymbol>> GetPotentialConversionTypes(
+        protected ImmutableArray<(TExpressionSyntax, ITypeSymbol)> GetPotentialConversionTypes(
                 SemanticModel semanticModel, SyntaxNode root, SyntaxNode? spanArgument,
                 SyntaxNode argumentList, SyntaxNode invocationNode, CancellationToken cancellationToken)
         {
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             if (symbolInfo.Symbol != null) // BC42016: the only candidate symbol is symbolInfo.Symbol
                 candidateSymbols.Add(symbolInfo.Symbol);
 
-            using var __ = ArrayBuilder<Tuple<TExpressionSyntax, ITypeSymbol>>.GetInstance(out var mutablePotentialConversionTypes);
+            using var __ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
             foreach (var candidateSymbol in candidateSymbols.OfType<IMethodSymbol>())
             {
                 if (CanArgumentTypesBeConvertedToParameterTypes(
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                         cancellationToken, out var targetArgument, out var targetArgumentConversionType)
                     && GetArgumentExpression(targetArgument) is TExpressionSyntax argumentExpression)
                 {
-                    mutablePotentialConversionTypes.Add(Tuple.Create(argumentExpression, targetArgumentConversionType));
+                    mutablePotentialConversionTypes.Add((argumentExpression, targetArgumentConversionType));
                 }
             }
 
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                         cancellationToken, out var potentialConversionTypes)
                         && potentialConversionTypes.Length == 1)
                     {
-                        return ApplyFix(currentRoot, potentialConversionTypes[0].Item1, potentialConversionTypes[0].Item2);
+                        return ApplyFix(currentRoot, potentialConversionTypes[0].node, potentialConversionTypes[0].type);
                     }
 
                     return currentRoot;

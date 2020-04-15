@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 {
@@ -32,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
     /// 
     /// 'Derived1' is less specific than 'Derived2' compared to 'Base'
     /// </summary>
-    internal sealed class InheritanceDistanceComparer<TExpressionSyntax> 
-    : IComparer<Tuple<TExpressionSyntax, ITypeSymbol>>
+    internal sealed class InheritanceDistanceComparer<TExpressionSyntax>
+    : IComparer<(TExpressionSyntax syntax, ITypeSymbol symbol)>
     where TExpressionSyntax : SyntaxNode
     {
         private readonly SemanticModel _semanticModel;
@@ -43,23 +44,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             _semanticModel = semanticModel;
         }
 
-        public int Compare((TExpressionSyntax syntax, ITypeSymbol symbol)? x, (TExpressionSyntax syntax, ITypeSymbol symbol)? y)
+        public int Compare([AllowNull] (TExpressionSyntax syntax, ITypeSymbol symbol) x,
+            [AllowNull] (TExpressionSyntax syntax, ITypeSymbol symbol) y)
         {
-            if (x is null)
-                return y is null ? 0 : -1;
-            else if (y is null)
-                return 1;
-
             // if the argument is different, keep the original order
-            if (!x.Item1.Equals(y.Item1))
+            if (!x.syntax.Equals(y.syntax))
             {
                 return 0;
             }
             else
             {
-                var baseType = _semanticModel.GetTypeInfo(x.Item1).Type;
-                var xDist = GetInheritanceDistance(baseType, x.Item2);
-                var yDist = GetInheritanceDistance(baseType, y.Item2);
+                var baseType = _semanticModel.GetTypeInfo(x.syntax).Type;
+                var xDist = GetInheritanceDistance(baseType, x.symbol);
+                var yDist = GetInheritanceDistance(baseType, y.symbol);
                 return xDist.CompareTo(yDist);
             }
         }

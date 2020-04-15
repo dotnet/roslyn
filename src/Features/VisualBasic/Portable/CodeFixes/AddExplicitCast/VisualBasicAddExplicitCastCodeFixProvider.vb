@@ -60,12 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
         Protected Overrides Function TryGetTargetTypeInfo(document As Document, semanticModel As SemanticModel,
                 root As SyntaxNode, diagnosticId As String, spanNode As ExpressionSyntax,
                 cancellationToken As CancellationToken,
-                ByRef potentialConversionTypes As ImmutableArray(Of Tuple(Of ExpressionSyntax, ITypeSymbol))) As Boolean
-            potentialConversionTypes = ImmutableArray(Of Tuple(Of ExpressionSyntax, ITypeSymbol)).Empty
+                ByRef potentialConversionTypes As ImmutableArray(Of (ExpressionSyntax, ITypeSymbol))) As Boolean
+            potentialConversionTypes = ImmutableArray(Of (ExpressionSyntax, ITypeSymbol)).Empty
 
             ' The error happens either on an assignement operation Or on an invocation expression.
             ' If the error happens on assignment operation, "ConvertedType" Is different from the current "Type"
-            Dim mutablePotentialConversionTypes = ArrayBuilder(Of Tuple(Of ExpressionSyntax, ITypeSymbol)).GetInstance()
+            Dim mutablePotentialConversionTypes = ArrayBuilder(Of (ExpressionSyntax, ITypeSymbol)).GetInstance()
             Select Case diagnosticId
                 Case BC30512, BC42016
                     Dim argument = spanNode.GetAncestors(Of ArgumentSyntax).FirstOrDefault()
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         ' spanNode is a right expression in assignment operation
                         Dim inferenceService = document.GetRequiredLanguageService(Of ITypeInferenceService)()
                         Dim conversionType = inferenceService.InferType(semanticModel, spanNode, False, cancellationToken)
-                        mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, conversionType))
+                        mutablePotentialConversionTypes.Add((spanNode, conversionType))
                     End If
                 Case BC30518, BC30519
                     Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(

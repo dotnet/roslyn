@@ -72,18 +72,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         protected override bool TryGetTargetTypeInfo(Document document, SemanticModel semanticModel, SyntaxNode root,
             string diagnosticId, ExpressionSyntax spanNode, CancellationToken cancellationToken,
-            out ImmutableArray<Tuple<ExpressionSyntax, ITypeSymbol>> potentialConversionTypes)
+            out ImmutableArray<(ExpressionSyntax, ITypeSymbol)> potentialConversionTypes)
         {
-            potentialConversionTypes = ImmutableArray<Tuple<ExpressionSyntax, ITypeSymbol>>.Empty;
+            potentialConversionTypes = ImmutableArray<(ExpressionSyntax, ITypeSymbol)>.Empty;
 
-            using var _ = ArrayBuilder<Tuple<ExpressionSyntax, ITypeSymbol>>.GetInstance(out var mutablePotentialConversionTypes);
+            using var _ = ArrayBuilder<(ExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
             if (diagnosticId == CS0266)
             {
                 var inferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
                 var conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault: false, cancellationToken);
                 if (conversionType is null)
                     return false;
-                mutablePotentialConversionTypes.Add(Tuple.Create(spanNode, conversionType));
+                mutablePotentialConversionTypes.Add((spanNode, conversionType));
             }
             else if (diagnosticId == CS1503)
             {
