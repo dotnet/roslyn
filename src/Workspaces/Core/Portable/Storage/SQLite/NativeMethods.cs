@@ -11,9 +11,9 @@ using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite
 {
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Name chosen to match SQLitePCL.raw")]
     internal static class NativeMethods
     {
-        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Name chosen to match SQLitePCL.raw")]
         public static SafeSqliteHandle sqlite3_open_v2(string filename, int flags, string vfs, out Result result)
         {
             result = (Result)raw.sqlite3_open_v2(filename, out var wrapper, flags, vfs);
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Name chosen to match SQLitePCL.raw")]
         public static SafeSqliteStatementHandle sqlite3_prepare_v2(SafeSqliteHandle db, string sql, out Result result)
         {
             using var _ = db.Lease();
@@ -55,7 +54,6 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Name chosen to match SQLitePCL.raw")]
         public static SafeSqliteBlobHandle sqlite3_blob_open(SafeSqliteHandle db, string sdb, string table, string col, long rowid, int flags, out Result result)
         {
             using var _ = db.Lease();
@@ -75,6 +73,90 @@ namespace Microsoft.CodeAnalysis.SQLite
                 raw.sqlite3_blob_close(wrapper);
                 throw;
             }
+        }
+
+        public static string sqlite3_errmsg(SafeSqliteHandle db)
+        {
+            using var _ = db.Lease();
+            return raw.sqlite3_errmsg(db.DangerousGetHandle());
+        }
+
+        public static int sqlite3_extended_errcode(SafeSqliteHandle db)
+        {
+            using var _ = db.Lease();
+            return raw.sqlite3_extended_errcode(db.DangerousGetHandle());
+        }
+
+        public static Result sqlite3_busy_timeout(SafeSqliteHandle db, int ms)
+        {
+            using var _ = db.Lease();
+            return (Result)raw.sqlite3_busy_timeout(db.DangerousGetHandle(), ms);
+        }
+
+        public static long sqlite3_last_insert_rowid(SafeSqliteHandle db)
+        {
+            using var _ = db.Lease();
+            return raw.sqlite3_last_insert_rowid(db.DangerousGetHandle());
+        }
+
+        public static int sqlite3_blob_bytes(SafeSqliteBlobHandle blob)
+        {
+            using var _ = blob.Lease();
+            return raw.sqlite3_blob_bytes(blob.DangerousGetHandle());
+        }
+
+        public static Result sqlite3_blob_read(SafeSqliteBlobHandle blob, byte[] b, int n, int offset)
+        {
+            using var _ = blob.Lease();
+            return (Result)raw.sqlite3_blob_read(blob.DangerousGetHandle(), b, n, offset);
+        }
+
+        public static Result sqlite3_reset(SafeSqliteStatementHandle stmt)
+        {
+            using var _ = stmt.Lease();
+            return (Result)raw.sqlite3_reset(stmt.DangerousGetHandle());
+        }
+
+        public static Result sqlite3_step(SafeSqliteStatementHandle stmt)
+        {
+            using var _ = stmt.Lease();
+            return (Result)raw.sqlite3_step(stmt.DangerousGetHandle());
+        }
+
+        public static Result sqlite3_bind_text(SafeSqliteStatementHandle stmt, int index, string val)
+        {
+            using var _ = stmt.Lease();
+            return (Result)raw.sqlite3_bind_text(stmt.DangerousGetHandle(), index, val);
+        }
+
+        public static Result sqlite3_bind_int64(SafeSqliteStatementHandle stmt, int index, long val)
+        {
+            using var _ = stmt.Lease();
+            return (Result)raw.sqlite3_bind_int64(stmt.DangerousGetHandle(), index, val);
+        }
+
+        public static byte[] sqlite3_column_blob(SafeSqliteStatementHandle stmt, int index)
+        {
+            using var _ = stmt.Lease();
+            return raw.sqlite3_column_blob(stmt.DangerousGetHandle(), index);
+        }
+
+        public static int sqlite3_column_int(SafeSqliteStatementHandle stmt, int index)
+        {
+            using var _ = stmt.Lease();
+            return raw.sqlite3_column_int(stmt.DangerousGetHandle(), index);
+        }
+
+        public static long sqlite3_column_int64(SafeSqliteStatementHandle stmt, int index)
+        {
+            using var _ = stmt.Lease();
+            return raw.sqlite3_column_int64(stmt.DangerousGetHandle(), index);
+        }
+
+        public static string sqlite3_column_text(SafeSqliteStatementHandle stmt, int index)
+        {
+            using var _ = stmt.Lease();
+            return raw.sqlite3_column_text(stmt.DangerousGetHandle(), index);
         }
     }
 }

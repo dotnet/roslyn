@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using SQLitePCL;
 
@@ -71,8 +70,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 
             try
             {
-                using var _ = handle.Lease();
-                raw.sqlite3_busy_timeout(handle.DangerousGetHandle(), (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+                NativeMethods.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
                 return new SqlConnection(handle, faultInjector, queryToStatement);
             }
             catch
@@ -126,8 +124,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         {
             if (!_queryToStatement.TryGetValue(query, out var statement))
             {
-                using var _ = _handle.Lease();
-
                 var handle = NativeMethods.sqlite3_prepare_v2(_handle, query, out var result);
                 try
                 {
@@ -212,10 +208,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             => ExecuteCommand("rollback transaction", throwOnError);
 
         public int LastInsertRowId()
-        {
-            using var _ = _handle.Lease();
-            return (int)raw.sqlite3_last_insert_rowid(_handle.DangerousGetHandle());
-        }
+            => (int)NativeMethods.sqlite3_last_insert_rowid(_handle);
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
         public Stream ReadBlob_MustRunInTransaction(string tableName, string columnName, long rowId)
@@ -251,9 +244,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 
         private Stream ReadBlob(SafeSqliteBlobHandle blob)
         {
-            using var _ = blob.Lease();
-
-            var length = raw.sqlite3_blob_bytes(blob.DangerousGetHandle());
+            var length = NativeMethods.sqlite3_blob_bytes(blob);
 
             // If it's a small blob, just read it into one of our pooled arrays, and then
             // create a PooledStream over it. 
@@ -265,19 +256,17 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             {
                 // Otherwise, it's a large stream.  Just take the hit of allocating.
                 var bytes = new byte[length];
-                ThrowIfNotOk(raw.sqlite3_blob_read(blob.DangerousGetHandle(), bytes, length, offset: 0));
+                ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, bytes, length, offset: 0));
                 return new MemoryStream(bytes);
             }
         }
 
         private Stream ReadBlobIntoPooledStream(SafeSqliteBlobHandle blob, int length)
         {
-            using var _ = blob.Lease();
-
             var bytes = SQLitePersistentStorage.GetPooledBytes();
             try
             {
-                ThrowIfNotOk(raw.sqlite3_blob_read(blob.DangerousGetHandle(), bytes, length, offset: 0));
+                ThrowIfNotOk(NativeMethods.sqlite3_blob_read(blob, bytes, length, offset: 0));
 
                 // Copy those bytes into a pooled stream
                 return SerializableBytes.CreateReadableStream(bytes, length);
@@ -308,11 +297,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 
         public static void Throw(SafeSqliteHandle handle, Result result)
         {
-            using var _ = handle.Lease();
-
             throw new SqlException(result,
-                raw.sqlite3_errmsg(handle.DangerousGetHandle()) + "\r\n" +
-                raw.sqlite3_errstr(raw.sqlite3_extended_errcode(handle.DangerousGetHandle())));
+                NativeMethods.sqlite3_errmsg(handle) + "\r\n" +
+                raw.sqlite3_errstr(NativeMethods.sqlite3_extended_errcode(handle)));
         }
     }
 }
