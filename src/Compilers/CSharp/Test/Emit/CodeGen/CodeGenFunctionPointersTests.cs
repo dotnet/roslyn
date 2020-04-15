@@ -2987,12 +2987,38 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
+                // (11,47): error CS1944: An expression tree may not contain an unsafe pointer operation
+                //         Expression<Func<string>> a = () => M1(&M2);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "&M2").WithLocation(11, 47),
                 // (11,48): error CS8785: '&' on method groups cannot be used in expression trees
                 //         Expression<Func<string>> a = () => M1(&M2);
                 Diagnostic(ErrorCode.ERR_AddressOfMethodGroupInExpressionTree, "M2").WithLocation(11, 48),
                 // (12,44): error CS0149: Method name expected
                 //         Expression<Func<string>> b = () => (&M2)();
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "(&M2)").WithLocation(12, 44)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeUsageInExpressionTree()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+using System.Linq.Expressions;
+unsafe class C
+{
+    void M1(delegate*<void> ptr)
+    {
+        Expression<Action> a = () => M2(ptr);
+    }
+    void M2(void* ptr) {}
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (8,41): error CS1944: An expression tree may not contain an unsafe pointer operation
+                //         Expression<Action> a = () => M2(ptr);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "ptr").WithLocation(8, 41)
             );
         }
 
@@ -4047,6 +4073,190 @@ unsafe class C
   IL_0023:  ldloc.2
   IL_0024:  call       ""void System.Console.Write(object)""
   IL_0029:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DefaultOfFunctionPointerType()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr = default;
+        Console.Write(ptr is null);
+    }
+}", expectedOutput: "True");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  ldnull
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.Write(bool)""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ParamsArrayOfFunctionPointers()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class C
+{
+    static void Params(params delegate*<void>[] funcs)
+    {
+        foreach (var f in funcs)
+        {
+            f();
+        }
+    }
+
+    static void Main()
+    {
+        Params();
+    }
+}", expectedOutput: "");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""delegate*<void>""
+  IL_0006:  call       ""void C.Params(params delegate*<void>[])""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void StackallocOfFunctionPointers()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+static unsafe class C
+{
+    static int Getter(int i) => i;
+    static void Print(delegate*<int, int>* p)
+    {
+        for (int i = 0; i < 3; i++)
+            Console.Write(p[i](i));
+    }
+
+    static void Main()
+    {
+        delegate*<int, int>* p = stackalloc delegate*<int, int>[] { &Getter, &Getter, &Getter };
+        Print(p);
+    }
+}
+", expectedOutput: "012");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  conv.u
+  IL_0002:  sizeof     ""delegate*<int,int>""
+  IL_0008:  mul.ovf.un
+  IL_0009:  localloc
+  IL_000b:  dup
+  IL_000c:  ldftn      ""int C.Getter(int)""
+  IL_0012:  stind.i
+  IL_0013:  dup
+  IL_0014:  sizeof     ""delegate*<int,int>""
+  IL_001a:  add
+  IL_001b:  ldftn      ""int C.Getter(int)""
+  IL_0021:  stind.i
+  IL_0022:  dup
+  IL_0023:  ldc.i4.2
+  IL_0024:  conv.i
+  IL_0025:  sizeof     ""delegate*<int,int>""
+  IL_002b:  mul
+  IL_002c:  add
+  IL_002d:  ldftn      ""int C.Getter(int)""
+  IL_0033:  stind.i
+  IL_0034:  call       ""void C.Print(delegate*<int,int>*)""
+  IL_0039:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FunctionPointerCannotBeUsedAsSpanArgument()
+        {
+            var comp = CreateCompilationWithSpan(@"
+using System;
+static unsafe class C
+{
+    static void Main()
+    {
+        Span<delegate*<int, int>> p = stackalloc delegate*<int, int>[1];
+    }
+}
+", options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0306: The type 'delegate*<int,int>' may not be used as a type argument
+                //         Span<delegate*<int, int>> p = stackalloc delegate*<int, int>[1];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int, int>").WithArguments("delegate*<int,int>").WithLocation(7, 14)
+            );
+        }
+
+        [Fact]
+        public void RecursivelyUsedTypeInFunctionPointer()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+namespace Interop
+{
+    public unsafe struct PROPVARIANT
+    {
+        public CAPROPVARIANT ca;
+    }
+    public unsafe struct CAPROPVARIANT
+    {
+        public uint cElems;
+        public delegate*<PROPVARIANT> pElems;
+        public delegate*<PROPVARIANT> pElemsProp { get; }
+    }
+}");
+        }
+
+        [Fact]
+        public void VolatileFunctionPointerField()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static volatile delegate*<void> ptr;
+    static void Print() => Console.Write(1);
+    static void Main()
+    {
+        ptr = &Print;
+        ptr();
+    }
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  IL_0000:  ldftn      ""void C.Print()""
+  IL_0006:  volatile.
+  IL_0008:  stsfld     ""delegate*<void> C.ptr""
+  IL_000d:  volatile.
+  IL_000f:  ldsfld     ""delegate*<void> C.ptr""
+  IL_0014:  calli      ""delegate*<void>""
+  IL_0019:  ret
 }
 ");
         }

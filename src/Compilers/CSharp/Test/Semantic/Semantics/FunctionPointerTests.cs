@@ -5,8 +5,6 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -18,14 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FunctionPointerTests : CompilingTestBase
     {
-        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null)
+        private CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null)
         {
-            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            return CreateCompilation(source, options: options ?? TestOptions.UnsafeReleaseDll, parseOptions: parseOptions ?? TestOptions.RegularPreview);
         }
 
-        private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation)
+        private CompilationVerifier CompileAndVerifyFunctionPointers(CSharpCompilation compilation, string? expectedOutput = null)
         {
-            return CompileAndVerify(compilation, verify: Verification.Skipped);
+            return CompileAndVerify(compilation, verify: Verification.Skipped, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -138,18 +136,22 @@ unsafe class C
 {
   // Code size       13 (0xd)
   .maxstack  1
+  .locals init (delegate*<void> V_0, //ptr1
+                delegate*<void> V_1, //ptr2
+                delegate*<string> V_2, //ptr3
+                delegate*<C,int> V_3) //ptr4
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u
-  IL_0002:  pop
+  IL_0002:  stloc.0
   IL_0003:  ldc.i4.0
   IL_0004:  conv.u
-  IL_0005:  pop
+  IL_0005:  stloc.1
   IL_0006:  ldc.i4.0
   IL_0007:  conv.u
-  IL_0008:  pop
+  IL_0008:  stloc.2
   IL_0009:  ldc.i4.0
   IL_000a:  conv.u
-  IL_000b:  pop
+  IL_000b:  stloc.3
   IL_000c:  ret
 }
 ");
@@ -251,10 +253,11 @@ unsafe class C
 {{
   // Code size       13 (0xd)
   .maxstack  1
+  .locals init (delegate*<void> V_0) //ptr
   IL_0000:  ldarg.1
   IL_0001:  call       ""System.{type} System.{type}.op_Explicit(void*)""
   IL_0006:  call       ""void* System.{type}.op_Explicit(System.{type})""
-  IL_000b:  pop
+  IL_000b:  stloc.0
   IL_000c:  ret
 }}
 ");
@@ -300,12 +303,13 @@ unsafe class C
 {{
   // Code size        7 (0x7)
   .maxstack  1
+  .locals init (delegate*<void> V_0) //ptr
   IL_0000:  ldarg.1
   IL_0001:  {convKind}
-  IL_0002:  pop
+  IL_0002:  stloc.0
   IL_0003:  ldarg.1
   IL_0004:  {checkedKind}
-  IL_0005:  pop
+  IL_0005:  stloc.0
   IL_0006:  ret
 }}
 ");
@@ -488,12 +492,15 @@ unsafe class C
 {
   // Code size        7 (0x7)
   .maxstack  1
+  .locals init (delegate*<string,ref int,object> V_0, //ptr1
+                delegate*<string,int> V_1, //ptr2
+                delegate*<string,void> V_2) //ptr3
   IL_0000:  ldarg.1
-  IL_0001:  pop
+  IL_0001:  stloc.0
   IL_0002:  ldarg.2
-  IL_0003:  pop
+  IL_0003:  stloc.1
   IL_0004:  ldarg.3
-  IL_0005:  pop
+  IL_0005:  stloc.2
   IL_0006:  ret
 }
 ");
@@ -530,8 +537,9 @@ unsafe class C
 {
   // Code size        3 (0x3)
   .maxstack  1
+  .locals init (delegate*<delegate*<object,void>,delegate*<object>> V_0) //ptr1
   IL_0000:  ldarg.1
-  IL_0001:  pop
+  IL_0001:  stloc.0
   IL_0002:  ret
 }
 ");
@@ -563,8 +571,9 @@ unsafe class C
 {
   // Code size        3 (0x3)
   .maxstack  1
+  .locals init (delegate*<delegate*<object,void>,void*> V_0) //ptr1
   IL_0000:  ldarg.1
-  IL_0001:  pop
+  IL_0001:  stloc.0
   IL_0002:  ret
 }
 ");
@@ -1383,6 +1392,531 @@ unsafe class C
             };
 
             AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact]
+        public void FunctionPointerTypeCannotBeUsedInDynamicTypeArguments()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(dynamic d)
+    {
+        d.M<delegate*<void>>();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                //         d.M<delegate*<void>>();
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeCannotBeUsedInDynamicArgument()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(dynamic d, delegate*<void> ptr)
+    {
+        d.M(ptr);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS1978: Cannot use an expression of type 'delegate*<void>' as an argument to a dynamically dispatched operation.
+                //         d.M(ptr);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "ptr").WithArguments("delegate*<void>").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeCannotBeConvertedFromDynamic()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        dynamic d = ptr;
+        d = (dynamic)ptr;
+        ptr = d;
+        ptr = (delegate*<void>)d;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,21): error CS0029: Cannot implicitly convert type 'delegate*<void>' to 'dynamic'
+                //         dynamic d = ptr;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("delegate*<void>", "dynamic").WithLocation(6, 21),
+                // (7,13): error CS0030: Cannot convert type 'delegate*<void>' to 'dynamic'
+                //         d = (dynamic)ptr;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(dynamic)ptr").WithArguments("delegate*<void>", "dynamic").WithLocation(7, 13),
+                // (8,15): error CS0029: Cannot implicitly convert type 'dynamic' to 'delegate*<void>'
+                //         ptr = d;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("dynamic", "delegate*<void>").WithLocation(8, 15),
+                // (9,15): error CS0030: Cannot convert type 'dynamic' to 'delegate*<void>'
+                //         ptr = (delegate*<void>)d;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate*<void>)d").WithArguments("dynamic", "delegate*<void>").WithLocation(9, 15)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeCannotBeQuestionDotted()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    delegate*<void> GetPtr() => null;
+    void M(delegate*<void> ptr, C c)
+    {
+        ptr?.ToString();
+        ptr = c?.GetPtr();
+        (c?.GetPtr())();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                //         ptr?.ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(7, 12),
+                // (8,16): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                //         ptr = c?.GetPtr();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(8, 16),
+                // (9,11): error CS0023: Operator '?' cannot be applied to operand of type 'delegate*<void>'
+                //         (c?.GetPtr())();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "delegate*<void>").WithLocation(9, 11)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocations = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().ToList();
+            Assert.Equal(3, invocations.Count);
+            foreach (var invocation in invocations)
+            {
+                var type = model.GetTypeInfo(invocation).Type;
+                Assert.True(type!.IsErrorType());
+            }
+        }
+
+        [Fact]
+        public void UnusedFunctionPointerAsResultOfQuestionDot()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static string Print()
+    {
+        Console.WriteLine(""Print"");
+        return string.Empty;
+    }
+    delegate*<string> GetPtr()
+    {
+        Console.WriteLine(""GetPtr"");
+        return &Print;
+    }
+
+    static void Main()
+    {
+        C c = new C();
+        c?.GetPtr();
+        c = null;
+        c?.GetPtr();
+    }
+}", options: TestOptions.UnsafeReleaseExe);
+
+            var verifier = CompileAndVerifyFunctionPointers(comp, expectedOutput: "GetPtr");
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000b
+  IL_0008:  pop
+  IL_0009:  br.s       IL_0011
+  IL_000b:  call       ""delegate*<string> C.GetPtr()""
+  IL_0010:  pop
+  IL_0011:  ldnull
+  IL_0012:  dup
+  IL_0013:  brtrue.s   IL_0017
+  IL_0015:  pop
+  IL_0016:  ret
+  IL_0017:  call       ""delegate*<string> C.GetPtr()""
+  IL_001c:  pop
+  IL_001d:  ret
+}
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var invocations = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().ToList();
+            Assert.Equal(2, invocations.Count);
+            foreach (var invocation in invocations)
+            {
+                var type = model.GetTypeInfo(invocation).Type;
+                Assert.Equal(SpecialType.System_Void, type!.SpecialType);
+            }
+        }
+
+        [Fact]
+        public void FunctionPointerTypePatternIsNull()
+        {
+            var source = @"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr = null;
+        Console.WriteLine(ptr is null);
+        Console.WriteLine(ptr is var v);
+    }
+}";
+
+            var comp = CreateCompilationWithFunctionPointers(source, TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: @"
+True
+True");
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (delegate*<void> V_0) //ptr
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldnull
+  IL_0005:  ceq
+  IL_0007:  call       ""void System.Console.WriteLine(bool)""
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""void System.Console.WriteLine(bool)""
+  IL_0012:  ret
+}
+");
+
+            comp = CreateCompilationWithFunctionPointers(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         delegate*<void> ptr = null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<void>").WithArguments("function pointers").WithLocation(7, 9)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypePatternIsVarParenthesized()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr = null;
+        _ = ptr is var (x);
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (8,20): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = ptr is var (x);
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var (x)").WithLocation(8, 20)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypePatternRecursiveInput()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        _ = ptr is { } _;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = ptr is { } _;
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{ } _").WithLocation(6, 20)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeIsAsOperator()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(object o, delegate*<void> ptr)
+    {
+        _ = o is delegate*<void>;
+        _ = o as delegate*<void>;
+        _ = ptr as object;
+        _ = ptr is object;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         _ = o is delegate*<void>;
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "o is delegate*<void>").WithLocation(6, 13),
+                // (7,13): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         _ = o as delegate*<void>;
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "o as delegate*<void>").WithLocation(7, 13),
+                // (8,13): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         _ = ptr as object;
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "ptr as object").WithLocation(8, 13),
+                // (9,13): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         _ = ptr is object;
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "ptr is object").WithLocation(9, 13)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypePatternRecursiveType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public object O = null;
+    void M(C c)
+    {
+        _ = c is { O: delegate*<void> _ };
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,23): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = c is { O: delegate*<void> _ };
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "delegate*<void>").WithLocation(7, 23)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeNotPermittedInFixedInitializer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    static void M() {}
+    void M(C c)
+    {
+        fixed (delegate*<void> ptr = &M)
+        {
+        }
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (7,32): error CS8789: The type of a local declared in a fixed statement cannot be a function pointer type.
+                //         fixed (delegate*<void> ptr = &M)
+                Diagnostic(ErrorCode.ERR_CannotUseFunctionPointerAsFixedLocal, "ptr = &M").WithLocation(7, 32)
+            );
+        }
+
+        [Fact]
+        public void NoUnusedLocalWarning()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C {
+    void M() {
+        delegate*<void> i = default;
+    }
+}");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedInvalidTypes()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+#nullable enable
+static class S {}
+unsafe class C
+{
+    void M1(delegate*<C*, S> ptr) {}
+    void M2<T>(delegate*<T?> ptr) {}
+    void M3<T>(delegate*<D<T>> ptr) {}
+    void M4<T>(delegate*<E<T>> ptr) {}
+}
+class D<T> where T : unmanaged {}
+class E<T> where T : struct {}
+");
+
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //     void M1(delegate*<C*, S> ptr) {}
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "ptr").WithArguments("C").WithLocation(6, 30),
+                // (7,26): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     void M2<T>(delegate*<T?> ptr) {}
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 26),
+                // (8,32): error CS8377: The type 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     void M3<T>(delegate*<D<T>> ptr) {}
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ptr").WithArguments("D<T>", "T", "T").WithLocation(8, 32),
+                // (9,32): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E<T>'
+                //     void M4<T>(delegate*<E<T>> ptr) {}
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ptr").WithArguments("E<T>", "T", "T").WithLocation(9, 32)
+            );
+        }
+
+        [Fact]
+        public void NewFunctionPointerType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M()
+    {
+        _ = new delegate*<void>();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS1919: Unsafe type 'delegate*<void>' cannot be used in object creation
+                //         _ = new delegate*<void>();
+                Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new delegate*<void>()").WithArguments("delegate*<void>").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void IndexerAccessOnFunctionPointer()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        _ = ptr[0];
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'delegate*<void>'
+                //         _ = ptr[0];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "ptr[0]").WithArguments("delegate*<void>").WithLocation(6, 13)
+            );
+        }
+
+        [Fact]
+        public void ClsCompliance()
+        {
+
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+[assembly: CLSCompliant(true)]
+[CLSCompliant(true)]
+public class C
+{
+    private unsafe void M1(delegate*<void> m) {}
+    internal unsafe void M2(delegate*<void> m) {}
+    public unsafe void M3(delegate*<void> m) {}
+}");
+
+            comp.VerifyDiagnostics(
+                // (9,43): warning CS3001: Argument type 'delegate*<void>' is not CLS-compliant
+                //     public unsafe void M3(delegate*<void> m) {}
+                Diagnostic(ErrorCode.WRN_CLS_BadArgType, "m").WithArguments("delegate*<void>").WithLocation(9, 43)
+            );
+        }
+
+        [Fact]
+        public void CannotMakeFunctionPointerConst()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    const delegate*<void> field = null;
+    public static void M()
+    {
+        const delegate*<void> local = null;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0283: The type 'delegate*<void>' cannot be declared const
+                //     const delegate*<void> field = null;
+                Diagnostic(ErrorCode.ERR_BadConstType, "const").WithArguments("delegate*<void>").WithLocation(4, 5),
+                // (4,35): error CS0133: The expression being assigned to 'C.field' must be constant
+                //     const delegate*<void> field = null;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "null").WithArguments("C.field").WithLocation(4, 35),
+                // (7,15): error CS0283: The type 'delegate*<void>' cannot be declared const
+                //         const delegate*<void> local = null;
+                Diagnostic(ErrorCode.ERR_BadConstType, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(7, 15)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerParameterDefaultValue()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+unsafe class C
+{
+    public static void Main()
+    {
+        M();
+    }
+    public static void M(delegate*<void> ptr = null)
+    {
+        Console.Write(ptr is null);
+    }
+}", options: TestOptions.UnsafeReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "True", verify: Verification.Skipped);
+
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  call       ""void C.M(delegate*<void>)""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("C.M", expectedIL: @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  ceq
+  IL_0004:  call       ""void System.Console.Write(bool)""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact]
+        public void MethodCallOnFunctionPointerType()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    void M(delegate*<void> ptr)
+    {
+        ptr.ToString();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,13): error CS1061: 'delegate*<void>' does not contain a definition for 'ToString' and no accessible extension method 'ToString' accepting a first argument of type 'delegate*<void>' could be found (are you missing a using directive or an assembly reference?)
+                //         ptr.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ToString").WithArguments("delegate*<void>", "ToString").WithLocation(6, 13)
+            );
         }
     }
 }

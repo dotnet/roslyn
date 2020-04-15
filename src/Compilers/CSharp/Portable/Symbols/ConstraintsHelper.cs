@@ -245,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         case TypeKind.Pointer:
+                        case TypeKind.FunctionPointer:
                             // Such a constraint can only be introduced by type substitution,
                             // in which case it is already reported elsewhere, so we ignore this constraint.
                             continue;

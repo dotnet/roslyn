@@ -3341,5 +3341,25 @@ public class A
                 Diagnostic(ErrorCode.ERR_AsNullableType, "A[][]?").WithArguments("A[][]").WithLocation(16, 18)
                 );
         }
+
+        [Fact]
+        public void IsPatternOnPointerTypeIn7_3()
+        {
+            var source = @"
+unsafe class C
+{
+    static void Main()
+    {
+        int* ptr = null;
+        _ = ptr is var v;
+    }
+}";
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (7,20): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = ptr is var v;
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "var v").WithLocation(7, 20)
+            );
+        }
     }
 }

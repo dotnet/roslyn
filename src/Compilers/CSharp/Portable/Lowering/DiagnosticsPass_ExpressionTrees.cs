@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckUnsafeType(BoundExpression e)
         {
-            if (e != null && (object)e.Type != null && e.Type.TypeKind == TypeKind.Pointer) NoteUnsafe(e);
+            if (e != null && (object)e.Type != null && e.Type.IsPointerOrFunctionPointer()) NoteUnsafe(e);
         }
 
         private void NoteUnsafe(BoundNode node)

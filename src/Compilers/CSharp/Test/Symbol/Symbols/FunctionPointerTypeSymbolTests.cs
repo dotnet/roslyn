@@ -8,6 +8,7 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -860,6 +861,163 @@ class E
                     // (10,24): warning CS0168: The variable 'd' is declared but never used
                     //         delegate*<C.D> d;
                     Diagnostic(ErrorCode.WRN_UnreferencedVar, "d").WithArguments("d").WithLocation(10, 24));
+        }
+
+        [Fact]
+        public void FunctionPointerConstraintIntroducedBySubstitution()
+        {
+            string source = @"
+class R1<T1>
+{
+    public virtual void f<T2>() where T2 : T1 { }
+}
+class R2 : R1<delegate*<void>>
+{
+    public override void f<T2>() { }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        R2 r = new R2();
+        r.f<int>();
+    }
+}";
+
+            var compilation = CreateFunctionPointerCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,7): error CS0306: The type 'delegate*<void>' may not be used as a type argument
+                // class R2 : R1<delegate*<void>>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("delegate*<void>").WithLocation(6, 7)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeAsThisOfExtensionMethod()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe static class C
+{
+    static void M1(this delegate*<void> ptr) {}
+    static void M2(delegate*<void> ptr)
+    {
+        ptr.M1();
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (4,25): error CS1103: The first parameter of an extension method cannot be of type 'delegate*<void>'
+                //     static void M1(this delegate*<void> ptr) {}
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "delegate*<void>").WithArguments("delegate*<void>").WithLocation(4, 25)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeAsThisOfExtensionMethod_DefinedInIl()
+        {
+            const string ilSource = @"
+.class public auto ansi abstract sealed beforefieldinit CHelper
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Methods
+    .method public hidebysig static 
+        void M (
+            method void*() i
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x205c
+        // Code size 9 (0x9)
+        .maxstack 8
+
+        IL_0001: ldc.i4.1
+        IL_0002: call void [mscorlib]System.Console::WriteLine(int32)
+        IL_0008: ret
+    } // end of method CHelper::M
+
+} // end of class CHelper
+";
+            const string source = @"
+static class C
+{
+    static unsafe void Main()
+    {
+        delegate*<void> ptr = null;
+        ptr.M();
+    }
+}";
+            var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.RegularPreview);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "1", verify: Verification.Skipped);
+            verifier.VerifyIL("C.Main", expectedIL: @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (delegate*<void> V_0) //ptr
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""void CHelper.M(delegate*<void>)""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact]
+        public void FunctionPointerTypeInAnonymousType()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+unsafe static class C
+{
+    static void M(delegate*<void> ptr)
+    {
+        var a = new { Ptr = ptr };
+        var b = new { Ptrs = new[] { ptr } };
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
+                //         var a = new { Ptr = ptr };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptr = ptr").WithArguments("delegate*<void>").WithLocation(6, 23),
+                // (7,23): error CS0828: Cannot assign 'delegate*<void>[]' to anonymous type property
+                //         var b = new { Ptrs = new[] { ptr } };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Ptrs = new[] { ptr }").WithArguments("delegate*<void>[]").WithLocation(7, 23)
+            );
+        }
+
+        [Fact]
+        public void FunctionPointerTypeAsArgToIterator()
+        {
+            var comp = CreateFunctionPointerCompilation(@"
+using System.Collections.Generic;
+unsafe class C
+{
+    IEnumerable<int> Iterator1(delegate*<void> i)
+    {
+        yield return 1;
+    }
+
+    IEnumerable<int> Iterator2(delegate*<void>[] i)
+    {
+        yield return 1;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (5,48): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     IEnumerable<int> Iterator1(delegate*<void> i)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(5, 48),
+                // (10,50): error CS1637: Iterators cannot have unsafe parameters or yield types
+                //     IEnumerable<int> Iterator2(delegate*<void>[] i)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "i").WithLocation(10, 50)
+            );
         }
     }
 }

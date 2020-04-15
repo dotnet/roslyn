@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(type.CanBeAssignedNull());
             BoundExpression nullLiteral = new BoundLiteral(syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
-            return type.IsPointerType()
+            return type.IsPointerOrFunctionPointer()
                 ? BoundConversion.SynthesizedNonUserDefined(syntax, nullLiteral, Conversion.NullToPointer, type)
                 : nullLiteral;
         }

@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if this field has a pointer type.
         /// </summary>
         /// <remarks>
-        /// By default we defer to this.Type.IsPointerType() 
+        /// By default we defer to this.Type.IsPointerOrFunctionPointer() 
         /// However in some cases this may cause circular dependency via binding a
         /// pointer that points to the type that contains the current field.
         /// Fortunately in those cases we do not need to force binding of the field's type 
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type.IsPointerType();
+                return this.Type.IsPointerOrFunctionPointer();
             }
         }
 

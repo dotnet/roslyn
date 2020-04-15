@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool CanBeAssignedNull(this TypeSymbol type)
         {
-            return type.IsReferenceType || type.IsPointerType() || type.IsNullableType();
+            return type.IsReferenceType || type.IsPointerOrFunctionPointer() || type.IsNullableType();
         }
 
         public static bool CanContainNull(this TypeSymbol type)
@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Pointer:
                 case TypeKind.Dynamic:
+                case TypeKind.FunctionPointer:
                     return false;
                 default:
                     return true;
@@ -1071,7 +1072,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is SourceNamedTypeSymbol { IsPartial: true };
         }
 
-        // PROTOTYPE(func-ptr): Follow up on usages of this API and add FunctionPointers where necessary, and type/kind checks.
         public static bool IsPointerType(this TypeSymbol type)
         {
             return type is PointerTypeSymbol;
@@ -1097,6 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Error:
                 case TypeKind.Interface:
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     return true;
 
                 case TypeKind.Enum:
@@ -1133,6 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.TypeKind)
                 {
                     case TypeKind.Pointer:
+                    case TypeKind.FunctionPointer:
                         return true;
                     case TypeKind.Array:
                         type = ((ArrayTypeSymbol)type).ElementType;

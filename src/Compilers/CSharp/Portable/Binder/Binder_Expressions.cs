@@ -3981,6 +3981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
 
                 case TypeKind.Pointer:
+                case TypeKind.FunctionPointer:
                     type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
                         diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
                     goto case TypeKind.Class;
@@ -5725,7 +5726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < typeArgumentsWithAnnotations.Length; ++i)
                 {
                     var typeArgument = typeArgumentsWithAnnotations[i];
-                    if ((typeArgument.Type.IsPointerType()) || typeArgument.Type.IsRestrictedType())
+                    if ((typeArgument.Type.IsPointerOrFunctionPointer()) || typeArgument.Type.IsRestrictedType())
                     {
                         // "The type '{0}' may not be used as a type argument"
                         Error(diagnostics, ErrorCode.ERR_BadTypeArgument, typeArgumentsSyntax[i], typeArgument.Type);
@@ -8138,7 +8139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - access cannot have unconstrained generic type
             // - access cannot be a pointer
             // - access cannot be a restricted type
-            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType() || accessType.IsRestrictedType())
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerOrFunctionPointer() || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.
                 // For improved diagnostics we detect the cases where the value will be used and produce a

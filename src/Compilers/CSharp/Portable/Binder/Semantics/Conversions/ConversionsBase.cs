@@ -2224,7 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // An implicit dynamic conversion exists from an expression of type dynamic to any type T.
 
             Debug.Assert((object)destination != null);
-            return expressionType?.Kind == SymbolKind.DynamicType && !destination.IsPointerType();
+            return expressionType?.Kind == SymbolKind.DynamicType && !destination.IsPointerOrFunctionPointer();
         }
 
         private static bool HasExplicitDynamicConversion(TypeSymbol source, TypeSymbol destination)
@@ -2234,7 +2234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
-            return source.Kind == SymbolKind.DynamicType && !destination.IsPointerType();
+            return source.Kind == SymbolKind.DynamicType && !destination.IsPointerOrFunctionPointer();
         }
 
         private bool HasArrayConversionToInterface(ArrayTypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2908,7 +2908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (destination.Kind == SymbolKind.DynamicType)
             {
-                return !source.IsPointerType();
+                return !source.IsPointerOrFunctionPointer();
             }
 
             if (IsBaseClass(source, destination, ref useSiteDiagnostics))
@@ -3361,7 +3361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (destination.IsPointerType())
+            if (destination.IsPointerOrFunctionPointer())
             {
                 return false;
             }

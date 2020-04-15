@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                     hasErrors = true;
                 }
-                else if (inputType.IsPointerType() == true && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+                else if (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
                 {
                     // before C# 8 we did not permit `pointer is null`
                     diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            else if (inputType.TypeKind == TypeKind.Pointer || patternType.TypeKind == TypeKind.Pointer)
+            else if (inputType.IsPointerOrFunctionPointer() || patternType.IsPointerOrFunctionPointer())
             {
                 // pattern-matching is not permitted for pointer types
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, typeSyntax.Location);
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerType())
+            if (inputType.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;
@@ -837,10 +837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerType() &&
-                (node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation ||
-                 // before C# 8 we did not permit `pointer is var x`
-                 Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
+            if ((inputType.IsPointerOrFunctionPointer() && node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+                || (inputType.IsPointerType() && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;

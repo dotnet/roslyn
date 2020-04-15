@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Pointer types and very special types are not convertible to object.
 
-            return !type.IsPointerType() && !type.IsRestrictedType() && !type.IsVoidType();
+            return !type.IsPointerOrFunctionPointer() && !type.IsRestrictedType() && !type.IsVoidType();
         }
 
         private BoundExpression BindDynamicBinaryOperator(
@@ -2740,7 +2740,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, DiagnosticBag diagnostics)
         {
             var targetType = typeExpression.Type;
-            var targetTypeKind = targetType.TypeKind;
 
             // The native compiler allows "x is C" where C is a static class. This
             // is strictly illegal according to the specification (see the section
@@ -2753,14 +2752,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if ((object)operandType != null && operandType.TypeKind == TypeKind.Pointer || targetTypeKind == TypeKind.Pointer)
+            if ((object)operandType != null && operandType.IsPointerOrFunctionPointer() || targetType.IsPointerOrFunctionPointer())
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
                 return true;
             }
 
-            return targetTypeKind == TypeKind.Error;
+            return targetType.TypeKind == TypeKind.Error;
         }
 
         private BoundExpression BindIsOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
@@ -3234,7 +3233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_AsWithTypeVar, node, targetType);
                 }
-                else if (targetTypeKind == TypeKind.Pointer)
+                else if (targetTypeKind == TypeKind.Pointer || targetTypeKind == TypeKind.FunctionPointer)
                 {
                     Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
                 }
@@ -3279,8 +3278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)operandType != null);
             var operandTypeKind = operandType.TypeKind;
 
-            Debug.Assert(targetTypeKind != TypeKind.Pointer, "Should have been caught above");
-            if (operandTypeKind == TypeKind.Pointer)
+            Debug.Assert(!targetType.IsPointerOrFunctionPointer(), "Should have been caught above");
+            if (operandType.IsPointerOrFunctionPointer())
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);

@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!hasErrors)
                     {
-                        Error(localDiagnostics, ErrorCode.ERR_BadFixedInitType, declarator);
+                        Error(localDiagnostics, declTypeOpt.Type.IsFunctionPointer() ? ErrorCode.ERR_CannotUseFunctionPointerAsFixedLocal : ErrorCode.ERR_BadFixedInitType, declarator);
                         hasErrors = true;
                     }
                 }
