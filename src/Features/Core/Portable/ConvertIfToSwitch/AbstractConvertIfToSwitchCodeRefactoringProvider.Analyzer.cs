@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             _ => null
                         };
 
-                    // Check tihs below the cases that produce Relational/Ranges.  We would prefer to use those if
+                    // Check this below the cases that produce Relational/Ranges.  We would prefer to use those if
                     // available before utilizing a CaseGuard.
                     case IBinaryOperation { OperatorKind: ConditionalAnd } op
                         when Supports(Feature.AndPattern) || Supports(Feature.CaseGuard):
