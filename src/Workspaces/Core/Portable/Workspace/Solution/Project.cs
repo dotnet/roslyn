@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis
         public string? OutputRefFilePath => _projectState.OutputRefFilePath;
 
         /// <summary>
+        /// Compilation output file paths.
+        /// </summary>
+        public CompilationOutputFilePaths CompilationOutputFilePaths => _projectState.CompilationOutputFilePaths;
+
+        /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
         /// or null if it is unknown or not applicable. 
         /// </summary>
@@ -579,5 +584,8 @@ namespace Microsoft.CodeAnalysis
 
         private string GetDebuggerDisplay()
             => this.Name;
+
+        internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
+            => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
     }
 }

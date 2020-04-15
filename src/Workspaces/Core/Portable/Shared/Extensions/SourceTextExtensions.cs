@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding encoding, CancellationToken cancellationToken)
+        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, CancellationToken cancellationToken)
         {
             using var textReader = ObjectReaderTextReader.Create(reader);
 

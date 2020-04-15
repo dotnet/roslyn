@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options)
-            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -327,6 +327,22 @@ namespace Microsoft.CodeAnalysis
             CheckContainsProject(projectId);
 
             var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the compiler output file path.
+        /// </summary>
+        public Solution WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
+        {
+            CheckContainsProject(projectId);
+
+            var newState = _state.WithProjectCompilationOutputFilePaths(projectId, paths);
             if (newState == _state)
             {
                 return this;
@@ -801,6 +817,87 @@ namespace Microsoft.CodeAnalysis
 
             var newState = _state.WithProjectAnalyzerReferences(
                 projectId,
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
+
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Create a new solution instance updated to include the specified analyzer reference.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="analyzerReference"/> is <see langword="null"/>.</exception>
+        public Solution AddAnalyzerReference(AnalyzerReference analyzerReference)
+        {
+            return AddAnalyzerReferences(
+                SpecializedCollections.SingletonEnumerable(
+                    analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+        }
+
+        /// <summary>
+        /// Create a new solution instance updated to include the specified analyzer references.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="analyzerReferences"/> contains <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="analyzerReferences"/> contains duplicate items.</exception>
+        /// <exception cref="InvalidOperationException">The solution already contains the specified reference.</exception>
+        public Solution AddAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+        {
+            // avoid enumerating multiple times:
+            var collection = analyzerReferences?.ToCollection();
+
+            PublicContract.RequireUniqueNonNullItems(collection, nameof(analyzerReferences));
+
+            foreach (var analyzerReference in collection)
+            {
+                if (_state.AnalyzerReferences.Contains(analyzerReference))
+                {
+                    throw new InvalidOperationException(WorkspacesResources.The_solution_already_contains_the_specified_reference);
+                }
+            }
+
+            var newState = _state.AddAnalyzerReferences(collection);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to no longer include
+        /// the specified analyzer reference.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="analyzerReference"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">The solution does not contain the specified reference.</exception>
+        public Solution RemoveAnalyzerReference(AnalyzerReference analyzerReference)
+        {
+            if (analyzerReference == null)
+            {
+                throw new ArgumentNullException(nameof(analyzerReference));
+            }
+
+            var newState = _state.RemoveAnalyzerReference(analyzerReference);
+            if (newState == _state)
+            {
+                throw new InvalidOperationException(WorkspacesResources.Solution_does_not_contain_specified_reference);
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the specified analyzer references.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="analyzerReferences"/> contains <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="analyzerReferences"/> contains duplicate items.</exception>
+        public Solution WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+        {
+            var newState = _state.WithAnalyzerReferences(
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
 
             if (newState == _state)
@@ -1632,6 +1729,11 @@ namespace Microsoft.CodeAnalysis
         /// instance was created.
         /// </summary>
         public OptionSet Options => _state.Options;
+
+        /// <summary>
+        /// Analyzer references associated with the solution.
+        /// </summary>
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => _state.AnalyzerReferences;
 
         /// <summary>
         /// Creates a new solution instance with the specified <paramref name="options"/>.
