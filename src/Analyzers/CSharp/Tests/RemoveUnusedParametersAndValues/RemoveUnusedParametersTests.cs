@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
         private Task TestDiagnosticMissingAsync(string initialMarkup, ParseOptions parseOptions = null)
             => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
-        private Task TestDiagnosticsWithAsync(string initialMarkup, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions, expectedDiagnostics);
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
         private Task TestDiagnosticMissingAsync(string initialMarkup, IOptionsCollection options, ParseOptions parseOptions = null)

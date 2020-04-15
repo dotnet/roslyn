@@ -41,9 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         private DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
             => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
 
-        private DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column, DiagnosticSeverity severity)
-            => GetRemoveUnnecessaryParenthesesDiagnostic(text, line, column).WithEffectiveSeverity(severity);
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestVariableInitializer_TestWithAllOptionsSetToIgnore()
         {

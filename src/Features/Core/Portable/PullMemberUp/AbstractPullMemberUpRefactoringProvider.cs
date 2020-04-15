@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
         private readonly IPullMemberUpOptionsService _service;
-        private const int None = 0;
 
         protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
 
