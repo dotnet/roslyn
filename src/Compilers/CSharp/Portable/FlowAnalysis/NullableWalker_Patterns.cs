@@ -526,6 +526,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDerivedType(TypeSymbol derivedType, TypeSymbol baseType)
             {
                 HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                if (derivedType.IsErrorType() || baseType.IsErrorType())
+                    return true;
+
                 return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, ref discardedDiagnostics).Kind switch
                 {
                     ConversionKind.Identity => true,

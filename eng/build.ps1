@@ -238,6 +238,11 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
+  # If we are using msbuild.exe restore using static graph
+  # This check can be removed and turned on for all builds once roslyn depends on a .NET Core SDK
+  # that has a new enough msbuild for the -graph switch to be present
+  $restoreUseStaticGraphEvaluation = if ($msbuildEngine -ne 'dotnet') { "/p:RestoreUseStaticGraphEvaluation=true" } else { "" }
+  
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -261,6 +266,7 @@ function BuildSolution() {
       /p:VisualStudioIbcDropId=$ibcDropId `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
+      $restoreUseStaticGraphEvaluation `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
@@ -492,7 +498,6 @@ function Deploy-VsixViaTool() {
     "Roslyn.Compilers.Extension.vsix",
     "Roslyn.VisualStudio.Setup.vsix",
     "Roslyn.VisualStudio.Setup.Dependencies.vsix",
-    "Roslyn.VisualStudio.InteractiveComponents.vsix",
     "ExpressionEvaluatorPackage.vsix",
     "Roslyn.VisualStudio.DiagnosticsWindow.vsix",
     "Microsoft.VisualStudio.IntegrationTest.Setup.vsix")

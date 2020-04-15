@@ -5,21 +5,27 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression.ConvertSwitchStatementToExpressionCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementToExpression
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
+        ConvertSwitchStatementToExpressionCodeFixProvider>;
+
     public class ConvertSwitchStatementToExpressionTests
     {
+        private static readonly LanguageVersion CSharp9 = LanguageVersionExtensions.CSharp9;
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public void TestStandardProperties()
             => VerifyCS.VerifyStandardProperties();
@@ -529,7 +535,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingONMultiCaseSection()
+        public async Task TestMissingOnMultiCaseSection()
         {
             var code = @"class Program
 {
@@ -549,6 +555,76 @@ class Program
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnMultiCaseSectionWithWhenClause_CSharp9()
+        {
+            var code = @"class Program
+{
+    void M(int i)
+    {
+        int j;
+        switch (i)
+        {
+            case 1:
+            case 2 when true:
+                j = 4;
+                break;
+        }
+        throw null;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = CSharp9,
+            }.RunAsync();
+        }
+
+#if !CODE_STYLE
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestOnMultiCaseSection_CSharp9()
+        {
+            var testCode = @"class Program
+{
+    void M(int i)
+    {
+        int j;
+        [|switch|] (i)
+        {
+            case 1:
+            case 2:
+                j = 4;
+                break;
+        }
+        throw null;
+    }
+}";
+            var fixedCode = @"class Program
+{
+    void M(int i)
+    {
+        var j = i switch
+        {
+            1 or 2 => 4,
+            _ => throw null,
+        };
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = CSharp9,
+            }.RunAsync();
+        }
+
+#endif
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestMissingOnMultiCompoundAssignment()

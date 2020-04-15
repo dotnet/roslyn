@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols

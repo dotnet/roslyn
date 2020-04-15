@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly bool IsEnabledByDefault;
         public readonly int WarningLevel;
         public readonly IReadOnlyList<string> CustomTags;
-        public readonly ImmutableDictionary<string, string> Properties;
+        public readonly ImmutableDictionary<string, string?> Properties;
 
         public readonly ProjectId? ProjectId;
         public readonly DiagnosticDataLocation? DataLocation;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isEnabledByDefault,
             int warningLevel,
             IReadOnlyList<string> customTags,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string?> properties,
             ProjectId? projectId,
             DiagnosticDataLocation? location = null,
             IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations = null,
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (additionalProperties == null)
                 {
-                    additionalProperties = ImmutableDictionary.Create<string, string>();
+                    additionalProperties = ImmutableDictionary.Create<string, string?>();
                 }
 
                 additionalProperties = additionalProperties.Add(nameof(documentPropertiesService.DiagnosticsLspClientName), diagnosticsLspClientName);
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OptionSet options,
             DiagnosticDataLocation? location,
             IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations,
-            ImmutableDictionary<string, string>? additionalProperties)
+            ImmutableDictionary<string, string?>? additionalProperties)
         {
             return new DiagnosticData(
                 diagnostic.Id,
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static ImmutableDictionary<string, string>? GetAdditionalProperties(Document document, Diagnostic diagnostic)
+        private static ImmutableDictionary<string, string?>? GetAdditionalProperties(Document document, Diagnostic diagnostic)
         {
             var service = document.GetLanguageService<IDiagnosticPropertiesService>();
             return service?.GetAdditionalProperties(diagnostic);

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = CreateTuple(underlyingType, elementNames, errorPositions, elementLocations, locations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnosticsOpt: diagnostics, nullabilityDiagnosticsOpt: includeNullability ? diagnostics : null);
             }
 
             return constructedType;

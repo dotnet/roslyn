@@ -9050,44 +9050,47 @@ public class Program
                 expectedOutput: "");
             compVerifier.VerifyIL("Program.M",
 @"{
-  // Code size      104 (0x68)
+  // Code size      106 (0x6a)
   .maxstack  1
-  .locals init (int V_0) //i
+  .locals init (int V_0, //i
+                object V_1)
   IL_0000:  ldarg.0
-  IL_0001:  isinst     ""int""
-  IL_0006:  brfalse.s  IL_001f
-  IL_0008:  ldarg.0
-  IL_0009:  unbox.any  ""int""
-  IL_000e:  stloc.0
-  IL_000f:  ldsfld     ""bool Program.b""
-  IL_0014:  brtrue.s   IL_0067
-  IL_0016:  ldsfld     ""bool Program.b""
-  IL_001b:  brtrue.s   IL_0067
-  IL_001d:  br.s       IL_0028
-  IL_001f:  ldsfld     ""bool Program.b""
-  IL_0024:  brtrue.s   IL_0067
-  IL_0026:  br.s       IL_0038
-  IL_0028:  ldsfld     ""bool Program.b""
-  IL_002d:  brtrue.s   IL_0067
-  IL_002f:  ldsfld     ""bool Program.b""
-  IL_0034:  brtrue.s   IL_0067
-  IL_0036:  br.s       IL_0041
-  IL_0038:  ldsfld     ""bool Program.b""
-  IL_003d:  brtrue.s   IL_0067
-  IL_003f:  br.s       IL_0051
-  IL_0041:  ldsfld     ""bool Program.b""
-  IL_0046:  brtrue.s   IL_0067
-  IL_0048:  ldsfld     ""bool Program.b""
-  IL_004d:  brtrue.s   IL_0067
-  IL_004f:  br.s       IL_005a
-  IL_0051:  ldsfld     ""bool Program.b""
-  IL_0056:  brtrue.s   IL_0067
-  IL_0058:  br.s       IL_0061
-  IL_005a:  ldsfld     ""bool Program.b""
-  IL_005f:  brtrue.s   IL_0067
-  IL_0061:  ldsfld     ""bool Program.b""
-  IL_0066:  pop
-  IL_0067:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  isinst     ""int""
+  IL_0008:  brfalse.s  IL_0021
+  IL_000a:  ldloc.1
+  IL_000b:  unbox.any  ""int""
+  IL_0010:  stloc.0
+  IL_0011:  ldsfld     ""bool Program.b""
+  IL_0016:  brtrue.s   IL_0069
+  IL_0018:  ldsfld     ""bool Program.b""
+  IL_001d:  brtrue.s   IL_0069
+  IL_001f:  br.s       IL_002a
+  IL_0021:  ldsfld     ""bool Program.b""
+  IL_0026:  brtrue.s   IL_0069
+  IL_0028:  br.s       IL_003a
+  IL_002a:  ldsfld     ""bool Program.b""
+  IL_002f:  brtrue.s   IL_0069
+  IL_0031:  ldsfld     ""bool Program.b""
+  IL_0036:  brtrue.s   IL_0069
+  IL_0038:  br.s       IL_0043
+  IL_003a:  ldsfld     ""bool Program.b""
+  IL_003f:  brtrue.s   IL_0069
+  IL_0041:  br.s       IL_0053
+  IL_0043:  ldsfld     ""bool Program.b""
+  IL_0048:  brtrue.s   IL_0069
+  IL_004a:  ldsfld     ""bool Program.b""
+  IL_004f:  brtrue.s   IL_0069
+  IL_0051:  br.s       IL_005c
+  IL_0053:  ldsfld     ""bool Program.b""
+  IL_0058:  brtrue.s   IL_0069
+  IL_005a:  br.s       IL_0063
+  IL_005c:  ldsfld     ""bool Program.b""
+  IL_0061:  brtrue.s   IL_0069
+  IL_0063:  ldsfld     ""bool Program.b""
+  IL_0068:  pop
+  IL_0069:  ret
 }"
             );
 

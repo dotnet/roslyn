@@ -1157,6 +1157,21 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(true, state.ReturnValue);
         }
 
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task CSharp9PatternForms()
+        {
+            var options = ScriptOptions.Default.WithLanguageVersion(MessageID.IDS_FeatureAndPattern.RequiredVersion());
+            var state = await CSharpScript.RunAsync("object x = 1;", options: options);
+            state = await state.ContinueWithAsync("x is long or int", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is int and < 10", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is (long or < 10L)", options: options);
+            Assert.Equal(false, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is not > 100", options: options);
+            Assert.Equal(true, state.ReturnValue);
+        }
+
         #endregion
 
         #region References
