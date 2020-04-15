@@ -18,13 +18,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class WatsonReporter
     {
-        /// <summary>
-        /// Controls whether or not we actually report the failure.
-        /// There are situations where we know we're in a bad state and any further reports are unlikely to be
-        /// helpful, so we shouldn't send them.
-        /// </summary>
-        private static bool s_report = true;
-
         private static Dictionary<string, string>? s_capturedFileContent;
 
         private static TelemetrySession? s_telemetrySession;
@@ -79,11 +72,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             if (exception is OutOfMemoryException)
             {
                 FailFast.OnFatalException(exception);
-            }
-
-            if (!s_report)
-            {
-                return;
             }
 
             var emptyCallstack = exception.SetCallstackIfEmpty();
