@@ -1380,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // e is { P: (1) $$
-            if (leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
+            if (leftToken.Parent.IsParentKind(SyntaxKind.RecursivePattern))
             {
                 return true;
             }
