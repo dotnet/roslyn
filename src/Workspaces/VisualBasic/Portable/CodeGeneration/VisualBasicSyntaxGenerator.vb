@@ -1404,10 +1404,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 members:=If(members IsNot Nothing, SyntaxFactory.List(members.Cast(Of StatementSyntax)()), Nothing))
         End Function
 
-        Private Function AsStructureMember(node As SyntaxNode) As StatementSyntax
-            Return TryCast(node, StatementSyntax)
-        End Function
-
         Public Overrides Function InterfaceDeclaration(
             name As String,
             Optional typeParameters As IEnumerable(Of String) = Nothing,
