@@ -1898,5 +1898,82 @@ class Person
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task OrPattern()
+        {
+            await TestAsync(
+@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person or int)
+        {
+        }
+    }
+}",
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Class("Person"),
+                Keyword("or"),
+                Keyword("int"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task RelationalPattern()
+        {
+            await TestAsync(
+@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is >= 0)
+        {
+        }
+    }
+}",
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Operators.GreaterThanEquals,
+                NumericLiteral("0"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }
