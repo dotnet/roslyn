@@ -1914,11 +1914,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">기호에 아이콘이 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown">
-        <source>Unknown</source>
-        <target state="translated">알 수 없음</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket">
         <source>Asynchronous method cannot have ref/out parameters : [{0}]</source>
         <target state="translated">비동기 메서드에는 ref/out 매개 변수 [{0}]을(를) 포함할 수 없습니다.</target>
@@ -2808,11 +2803,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
         <target state="translated">접근성 한정자 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_local_function">
-        <source>Use local function</source>
-        <target state="translated">로컬 함수 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference">

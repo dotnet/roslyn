@@ -42,10 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
         private async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content);
-            var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>()
-                {
-                    { LanguageNames.CSharp, new DiagnosticAnalyzer[] { new CSharpUseObjectInitializerDiagnosticAnalyzer() } }
-                };
+            var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>()
+            {
+                { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseObjectInitializerDiagnosticAnalyzer()) }
+            };
+
             var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
             return (spans, workspace.Documents.Single().SelectedSpans.Single());
         }
