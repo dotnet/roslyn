@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4829,15 +4831,100 @@ public class Program5815
             VerifyModelForDeclarationOrVarSimplePattern(model, x3Decl[0], x3Ref);
         }
 
+        [Fact]
+        public void Fuzz_Conjunction_01()
+        {
+            var program = @"
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        if (((int?)1) is {} and 1) { }
+    }
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void Fuzz_738490379()
+        {
+            var program = @"
+public class Program738490379
+{
+    public static void Main(string[] args)
+    {
+        if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+    }
+    private static object M() => null;
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+                    // (6,13): error CS0841: Cannot use local variable 'NotFound' before it is declared
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "NotFound").WithArguments("NotFound").WithLocation(6, 13),
+                    // (6,37): error CS1026: ) expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(6, 37),
+                    // (6,37): error CS1026: ) expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(6, 37),
+                    // (6,37): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int _ ").WithLocation(6, 37),
+                    // (6,41): warning CS0168: The variable '_' is declared but never used
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "_").WithArguments("_").WithLocation(6, 41),
+                    // (6,43): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "or").WithLocation(6, 43),
+                    // (6,43): error CS0246: The type or namespace name 'or' could not be found (are you missing a using directive or an assembly reference?)
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "or").WithArguments("or").WithLocation(6, 43),
+                    // (6,55): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "_").WithLocation(6, 55),
+                    // (6,55): error CS0103: The name '_' does not exist in the current context
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(6, 55),
+                    // (6,56): error CS1002: ; expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 56),
+                    // (6,56): error CS1513: } expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 56),
+                    // (6,62): error CS1513: } expected
+                    //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
+                    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 62)
+                );
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
         public void Fuzz()
         {
-            const int numTests = 1000000;
+            const int numTests = 1200000;
             int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
             for (int i = 1; i < numTests; i++)
             {
                 PatternMatchingFuzz(i + dt);
             }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16721")]
+        public void MultiFuzz()
+        {
+            // Just like Fuzz(), but take advantage of concurrency on the test host.
+            const int numTasks = 300;
+            const int numTestsPerTask = 4000;
+            int dt = (int)Math.Abs(DateTime.Now.Ticks % 1000000000);
+            var tasks = Enumerable.Range(0, numTasks).Select(t => Task.Run(() =>
+            {
+                int k = dt + t * numTestsPerTask;
+                for (int i = 1; i < numTestsPerTask; i++)
+                {
+                    PatternMatchingFuzz(i + k);
+                }
+            }));
+            Task.WaitAll(tasks.ToArray());
         }
 
         private static void PatternMatchingFuzz(int dt)
@@ -4875,18 +4962,48 @@ public class Program5815
                 "NotFound"
             };
             string Type() => types[r.Next(types.Length)];
-            string Pattern()
+            string Pattern(int d = 5)
             {
-                switch (r.Next(3))
+                switch (r.Next(d <= 1 ? 9 : 12))
                 {
-                    case 0:
-                        return Expression(); // a "constant" pattern
-                    case 1:
-                        return Type() + " x" + r.Next(10);
-                    case 2:
-                        return Type() + " _";
                     default:
-                        throw null;
+                        return Expression(); // a "constant" pattern
+                    case 3:
+                    case 4:
+                        return Type();
+                    case 5:
+                        return Type() + " _";
+                    case 6:
+                        return Type() + " x" + r.Next(10);
+                    case 7:
+                        return "not " + Pattern(d - 1);
+                    case 8:
+                        return "(" + Pattern(d - 1) + ")";
+                    case 9:
+                        return makeRecursivePattern(d);
+                    case 10:
+                        return Pattern(d - 1) + " and " + Pattern(d - 1);
+                    case 11:
+                        return Pattern(d - 1) + " or " + Pattern(d - 1);
+                }
+
+                string makeRecursivePattern(int d)
+                {
+                    while (true)
+                    {
+                        bool haveParens = r.Next(2) == 0;
+                        bool haveCurlies = r.Next(2) == 0;
+                        if (!haveParens && !haveCurlies)
+                            continue;
+                        bool haveType = r.Next(2) == 0;
+                        bool haveIdentifier = r.Next(2) == 0;
+                        return $"{(haveType ? Type() : null)} {(haveParens ? $"({makePatternList(d - 1, false)})" : null)} {(haveCurlies ? $"{"{ "}{makePatternList(d - 1, true)}{" }"}" : null)} {(haveIdentifier ? " x" + r.Next(10) : null)}";
+                    }
+                }
+
+                string makePatternList(int d, bool propNames)
+                {
+                    return string.Join(", ", Enumerable.Range(0, r.Next(3)).Select(i => $"{(propNames ? $"P{r.Next(10)}: " : null)}{Pattern(d)}"));
                 }
             }
             string body = @"

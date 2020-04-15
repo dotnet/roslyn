@@ -33,6 +33,5 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         Task SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken);
         Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
-        Task SynchronizeGlobalAssetsAsync(PinnedSolutionInfo solutionInfo, Checksum[] checksums, CancellationToken cancellationToken);
     }
 }

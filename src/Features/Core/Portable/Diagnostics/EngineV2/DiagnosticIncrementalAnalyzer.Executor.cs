@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
                     }
 
-                    var diagnostics = await AnalyzerHelper.ComputeDiagnosticsAsync(stateSet.Analyzer, document, kind, compilation, GetOrCreateSkippedAnalyzersInfo, span: null, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = await AnalyzerHelper.ComputeDiagnosticsAsync(stateSet.Analyzer, document, kind, DiagnosticAnalyzerInfoCache, compilation, span: null, cancellationToken).ConfigureAwait(false);
 
                     // this is no-op in product. only run in test environment
                     Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            var compilerAnalyzer = HostAnalyzers.GetCompilerDiagnosticAnalyzer(project.Language);
+            var compilerAnalyzer = project.Solution.State.Analyzers.GetCompilerDiagnosticAnalyzer(project.Language);
             if (compilerAnalyzer == null)
             {
                 // this language doesn't support compiler analyzer
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (compilation != null && compilation.Analyzers.Length != 0)
                 {
                     // calculate regular diagnostic analyzers diagnostics
-                    var resultMap = await _diagnosticAnalyzerRunner.AnalyzeAsync(compilation, project, GetOrCreateSkippedAnalyzersInfo, forcedAnalysis, cancellationToken).ConfigureAwait(false);
+                    var resultMap = await _diagnosticAnalyzerRunner.AnalyzeAsync(compilation, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
 
                     result = resultMap.AnalysisResult;
 
@@ -192,9 +192,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 throw ExceptionUtilities.Unreachable;
             }
         }
-
-        private ISkippedAnalyzersInfo GetOrCreateSkippedAnalyzersInfo(Project project)
-            => DiagnosticAnalyzerInfoCache.GetOrCreateSkippedAnalyzersInfo(project, HostAnalyzers);
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
             CompilationWithAnalyzers? compilation, Project project, IEnumerable<StateSet> stateSets, bool forcedAnalysis,
