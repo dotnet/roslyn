@@ -6091,4 +6091,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ModuleInitializerMethodMustReturnVoid" xml:space="preserve">
     <value>Module initializer method '{0}' must return void</value>
   </data>
+  <data name="ERR_ModuleInitializerMethodMustBeOrdinary" xml:space="preserve">
+    <value>A module initializer must be an ordinary method</value>
+  </data>
 </root>

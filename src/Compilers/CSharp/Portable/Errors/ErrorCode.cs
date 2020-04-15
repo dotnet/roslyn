@@ -1777,12 +1777,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
 
-        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8793,
-        ERR_ModuleInitializerMethodMustBeStatic = 8794,
-        ERR_ModuleInitializerMethodMustNotHaveParameters = 8795,
-        ERR_ModuleInitializerMethodMustReturnVoid = 8796,
-        ERR_ModuleInitializerMethodMustNotBeGeneric = 8797,
-        ERR_ModuleInitializerMethodMustNotBeContainedInGenericType = 8798,
+        ERR_ModuleInitializerMethodMustBeOrdinary = 8793,
+        ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType = 8794,
+        ERR_ModuleInitializerMethodMustBeStatic = 8795,
+        ERR_ModuleInitializerMethodMustNotHaveParameters = 8796,
+        ERR_ModuleInitializerMethodMustReturnVoid = 8797,
+        ERR_ModuleInitializerMethodMustNotBeGeneric = 8798,
+        ERR_ModuleInitializerMethodMustNotBeContainedInGenericType = 8799,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

@@ -24,7 +24,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyDiagnostics(
-                // (6,6): error CS8793: Module initializer method 'M' must be accessible outside top-level type 'C'
+                // (6,6): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(6, 6)
                 );
@@ -46,7 +46,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyDiagnostics(
-                // (6,6): error CS8793: Module initializer method 'M' must be accessible outside top-level type 'C'
+                // (6,6): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(6, 6)
                 );
@@ -68,7 +68,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyDiagnostics(
-                // (6,6): error CS8793: Module initializer method 'M' must be accessible outside top-level type 'C'
+                // (6,6): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
                 //     [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(6, 6)
                 );
@@ -183,7 +183,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyDiagnostics(
-                // (8,10): error CS8793: Module initializer method 'M' must be accessible outside top-level type 'C'
+                // (8,10): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(8, 10)
                 );
@@ -208,7 +208,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyDiagnostics(
-                // (8,10): error CS8793: Module initializer method 'M' must be accessible outside top-level type 'C'
+                // (8,10): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(8, 10)
                 );
@@ -233,7 +233,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
             compilation.VerifyDiagnostics(
-                // (8,10): error CS8793: Module initializer method 'M' must be accessible outside top-level type 'C'
+                // (8,10): error CS8794: Module initializer method 'M' must be accessible outside top-level type 'C'
                 //         [ModuleInitializer]
                 Diagnostic(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, "ModuleInitializer").WithArguments("M", "C").WithLocation(8, 10)
                 );
