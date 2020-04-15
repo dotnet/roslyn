@@ -34,8 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 // Check IsNode to compress blank lines after this node if it is the last child of the parent.
                 //
                 // Collapse to Definitions doesn't collapse type nodes, but a Toggle All Outlining would collapse groups
-                // of types to the compressed form of not showing blank lines. All kinds of types are grouped together.
-                var compressEmptyLines = !nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax;
+                // of types to the compressed form of not showing blank lines. All kinds of types are grouped together
+                // in Metadata as Source.
+                var compressEmptyLines = isMetadataAsSource
+                    && (!nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax);
 
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                     typeDeclaration,

@@ -1207,6 +1207,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Não há suporte para a remoção de documentos da configuração do analisador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Solution_does_not_contain_specified_reference">
+        <source>Solution does not contain specified reference</source>
+        <target state="new">Solution does not contain specified reference</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
         <source>Symbol "{0}" is not from source.</source>
         <target state="translated">Símbolo "{0}" não é da fonte.</target>
@@ -1285,6 +1290,16 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
         <target state="new">The project already contains the specified reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_solution_already_contains_the_specified_reference">
+        <source>The solution already contains the specified reference.</source>
+        <target state="new">The solution already contains the specified reference.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="new">Unknown</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">

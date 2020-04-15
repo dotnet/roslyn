@@ -87,10 +87,12 @@ namespace Microsoft.CodeAnalysis
 
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
+
             var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService,
                 serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty,
                 changedOptionKeys: ImmutableHashSet<OptionKey>.Empty);
-            _latestSolution = CreateSolution(info, emptyOptions);
+
+            _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
 
             _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create(this));
         }
@@ -134,14 +136,14 @@ namespace Microsoft.CodeAnalysis
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
             var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetProjectLanguages());
-            return CreateSolution(solutionInfo, options);
+            return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
         }
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace, and with the given options.
         /// </summary>
-        private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options)
-            => new Solution(this, solutionInfo.Attributes, options);
+        private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+            => new Solution(this, solutionInfo.Attributes, options, analyzerReferences);
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
@@ -637,6 +639,30 @@ namespace Microsoft.CodeAnalysis
                 CheckProjectHasAnalyzerReference(projectId, analyzerReference);
                 return oldSolution.RemoveAnalyzerReference(projectId, analyzerReference);
             }, WorkspaceChangeKind.ProjectChanged, projectId);
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer reference is added to a project in the host environment.
+        /// </summary>
+        internal void OnSolutionAnalyzerReferenceAdded(AnalyzerReference analyzerReference)
+        {
+            SetCurrentSolution(oldSolution =>
+            {
+                CheckSolutionDoesNotHaveAnalyzerReference(oldSolution, analyzerReference);
+                return oldSolution.AddAnalyzerReference(analyzerReference);
+            }, WorkspaceChangeKind.SolutionChanged);
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer reference is removed from a project in the host environment.
+        /// </summary>
+        internal void OnSolutionAnalyzerReferenceRemoved(AnalyzerReference analyzerReference)
+        {
+            SetCurrentSolution(oldSolution =>
+            {
+                CheckSolutionHasAnalyzerReference(oldSolution, analyzerReference);
+                return oldSolution.RemoveAnalyzerReference(analyzerReference);
+            }, WorkspaceChangeKind.SolutionChanged);
         }
 
         /// <summary>
@@ -1208,6 +1234,19 @@ namespace Microsoft.CodeAnalysis
                     SetOptions(newSolution.Options);
                 }
 
+                if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))
+                {
+                    foreach (var analyzerReference in solutionChanges.GetRemovedAnalyzerReferences())
+                    {
+                        ApplySolutionAnalyzerReferenceRemoved(analyzerReference);
+                    }
+
+                    foreach (var analyzerReference in solutionChanges.GetAddedAnalyzerReferences())
+                    {
+                        ApplySolutionAnalyzerReferenceAdded(analyzerReference);
+                    }
+                }
+
                 return true;
             }
         }
@@ -1688,6 +1727,28 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add an analyzer reference to the solution.
+        ///
+        /// Override this method to implement the capability of adding analyzer references.
+        /// </summary>
+        internal void ApplySolutionAnalyzerReferenceAdded(AnalyzerReference analyzerReference)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.AddSolutionAnalyzerReference));
+            this.OnSolutionAnalyzerReferenceAdded(analyzerReference);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove an analyzer reference from the solution.
+        ///
+        /// Override this method to implement the capability of removing analyzer references.
+        /// </summary>
+        internal void ApplySolutionAnalyzerReferenceRemoved(AnalyzerReference analyzerReference)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveSolutionAnalyzerReference));
+            this.OnSolutionAnalyzerReferenceRemoved(analyzerReference);
+        }
+
+        /// <summary>
         /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a new document to a project.
         ///
         /// Override this method to implement the capability of adding documents.
@@ -1916,6 +1977,28 @@ namespace Microsoft.CodeAnalysis
         protected void CheckProjectDoesNotHaveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             if (this.CurrentSolution.GetProject(projectId)!.AnalyzerReferences.Contains(analyzerReference))
+            {
+                throw new ArgumentException(string.Format(WorkspacesResources._0_is_already_present, analyzerReference));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if a project already has a specific analyzer reference.
+        /// </summary>
+        internal void CheckSolutionHasAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
+        {
+            if (!solution.AnalyzerReferences.Contains(analyzerReference))
+            {
+                throw new ArgumentException(string.Format(WorkspacesResources._0_is_not_present, analyzerReference));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if a project already has a specific analyzer reference.
+        /// </summary>
+        internal void CheckSolutionDoesNotHaveAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
+        {
+            if (solution.AnalyzerReferences.Contains(analyzerReference))
             {
                 throw new ArgumentException(string.Format(WorkspacesResources._0_is_already_present, analyzerReference));
             }

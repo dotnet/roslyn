@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task Test_TagSourceDiffer()
         {
             var analyzer = new Analyzer();
-            var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
+            var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
             {
-                { LanguageNames.CSharp, new DiagnosticAnalyzer[] { analyzer } }
+                {  LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) }
             };
 
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default);
