@@ -2971,11 +2971,6 @@ End Get")
             Assert.Equal(0, Generator.GetMembers(Generator.RemoveNodes(declaration, Generator.GetMembers(declaration))).Count)
         End Sub
 
-        Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
-            Dim newDecl = Generator.RemoveNode(declaration, Generator.GetMembers(declaration).First(Function(m) Generator.GetName(m) = name))
-            AssertMemberNamesEqual(remainingNames, newDecl)
-        End Sub
-
         <Fact>
         Public Sub TestGetBaseAndInterfaceTypes()
             Dim classBI = SyntaxFactory.ParseCompilationUnit(

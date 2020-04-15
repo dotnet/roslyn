@@ -2700,18 +2700,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                              containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax))
             End Sub
 
-            Private Sub ClassifyUpdate(oldNode As AccessorStatementSyntax, newNode As AccessorStatementSyntax)
-                If oldNode.RawKind <> newNode.RawKind Then
-                    ReportError(RudeEditKind.AccessorKindUpdate)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers) Then
-                    ReportError(RudeEditKind.ModifiersUpdate)
-                    Return
-                End If
-            End Sub
-
             Private Sub ClassifyUpdate(oldNode As EnumMemberDeclarationSyntax, newNode As EnumMemberDeclarationSyntax)
                 If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
                     ReportError(RudeEditKind.Renamed)

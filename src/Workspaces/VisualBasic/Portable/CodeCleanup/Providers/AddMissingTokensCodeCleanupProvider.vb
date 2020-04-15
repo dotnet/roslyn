@@ -567,38 +567,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return False
             End Function
 
-            Private Function GetPreviousAndNextToken(token As SyntaxToken) As ValueTuple(Of SyntaxToken, SyntaxToken)
-                ' we need this special method because we can't use regular previous/next token on the omitted token since
-                ' omitted token logically doesn't exist in the tree
-                Debug.Assert(token.Span.IsEmpty)
-                Dim node = token.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) n.FullSpan.IntersectsWith(token.Span))
-                If node Is Nothing Then
-                    Return ValueTuple.Create(Of SyntaxToken, SyntaxToken)(Nothing, Nothing)
-                End If
-
-                Dim previousToken = token
-                Dim nextToken = token
-                For Each current In node.DescendantTokens()
-                    If token = current Then
-                        Continue For
-                    End If
-
-                    If token.Span.End <= current.SpanStart Then
-                        nextToken = current
-                        Exit For
-                    End If
-
-                    If current.Span.End <= token.SpanStart Then
-                        previousToken = current
-                    End If
-                Next
-
-                previousToken = If(previousToken.Kind = 0, node.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True), previousToken)
-                nextToken = If(nextToken.Kind = 0, node.GetLastToken(includeZeroWidth:=True).GetNextToken(includeZeroWidth:=True), nextToken)
-
-                Return ValueTuple.Create(previousToken, nextToken)
-            End Function
-
             Private Function Exist(node As SyntaxNode) As Boolean
                 Return node IsNot Nothing AndAlso node.Span.Length > 0
             End Function

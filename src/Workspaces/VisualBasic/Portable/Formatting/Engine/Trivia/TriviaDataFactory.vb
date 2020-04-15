@@ -16,8 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
         Inherits AbstractTriviaDataFactory
 
-        Private Const s_lineBreakCacheSize = 5
-        Private Const s_indentationLevelCacheSize = 20
         Private Const s_lineContinuationCacheSize = 80
 
         Private ReadOnly _lineContinuations(s_lineContinuationCacheSize) As LineContinuationTrivia

@@ -555,10 +555,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return cases
         End Function
 
-        Private Function AsCaseClause(expression As SyntaxNode) As CaseClauseSyntax
-            Return SyntaxFactory.SimpleCaseClause(DirectCast(expression, ExpressionSyntax))
-        End Function
-
         Public Overrides Function ExitSwitchStatement() As SyntaxNode
             Return SyntaxFactory.ExitSelectStatement()
         End Function
@@ -1406,14 +1402,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 [inherits]:=Nothing,
                 [implements]:=If(itypes IsNot Nothing, SyntaxFactory.SingletonList(SyntaxFactory.ImplementsStatement(SyntaxFactory.SeparatedList(itypes))), Nothing),
                 members:=If(members IsNot Nothing, SyntaxFactory.List(members.Cast(Of StatementSyntax)()), Nothing))
-        End Function
-
-        Private Function AsStructureMembers(nodes As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
-            If nodes IsNot Nothing Then
-                Return SyntaxFactory.List(nodes.Select(AddressOf AsStructureMember).Where(Function(n) n IsNot Nothing))
-            Else
-                Return Nothing
-            End If
         End Function
 
         Private Function AsStructureMember(node As SyntaxNode) As StatementSyntax
@@ -2599,65 +2587,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return _list
         End Function
-
-        Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
-            accessibility = Accessibility.NotApplicable
-            modifiers = DeclarationModifiers.None
-            isDefault = False
-
-            For Each token In modifierTokens
-                Select Case token.Kind
-                    Case SyntaxKind.DefaultKeyword
-                        isDefault = True
-                    Case SyntaxKind.PublicKeyword
-                        accessibility = Accessibility.Public
-                    Case SyntaxKind.PrivateKeyword
-                        If accessibility = Accessibility.Protected Then
-                            accessibility = Accessibility.ProtectedAndFriend
-                        Else
-                            accessibility = Accessibility.Private
-                        End If
-                    Case SyntaxKind.FriendKeyword
-                        If accessibility = Accessibility.Protected Then
-                            accessibility = Accessibility.ProtectedOrFriend
-                        Else
-                            accessibility = Accessibility.Friend
-                        End If
-                    Case SyntaxKind.ProtectedKeyword
-                        If accessibility = Accessibility.Friend Then
-                            accessibility = Accessibility.ProtectedOrFriend
-                        ElseIf accessibility = Accessibility.Private Then
-                            accessibility = Accessibility.ProtectedAndFriend
-                        Else
-                            accessibility = Accessibility.Protected
-                        End If
-                    Case SyntaxKind.MustInheritKeyword, SyntaxKind.MustOverrideKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Abstract
-                    Case SyntaxKind.ShadowsKeyword
-                        modifiers = modifiers Or DeclarationModifiers.[New]
-                    Case SyntaxKind.OverridesKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Override
-                    Case SyntaxKind.OverridableKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Virtual
-                    Case SyntaxKind.SharedKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Static
-                    Case SyntaxKind.AsyncKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Async
-                    Case SyntaxKind.ConstKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Const
-                    Case SyntaxKind.ReadOnlyKeyword
-                        modifiers = modifiers Or DeclarationModifiers.ReadOnly
-                    Case SyntaxKind.WriteOnlyKeyword
-                        modifiers = modifiers Or DeclarationModifiers.WriteOnly
-                    Case SyntaxKind.NotInheritableKeyword, SyntaxKind.NotOverridableKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Sealed
-                    Case SyntaxKind.WithEventsKeyword
-                        modifiers = modifiers Or DeclarationModifiers.WithEvents
-                    Case SyntaxKind.PartialKeyword
-                        modifiers = modifiers Or DeclarationModifiers.Partial
-                End Select
-            Next
-        End Sub
 
         Private Function GetTypeParameters(typeParameterNames As IEnumerable(Of String)) As TypeParameterListSyntax
             If typeParameterNames Is Nothing Then

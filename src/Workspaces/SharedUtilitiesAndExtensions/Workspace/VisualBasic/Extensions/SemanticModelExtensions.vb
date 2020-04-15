@@ -12,7 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SemanticModelExtensions
 
         Private Const s_defaultParameterName = "p"
-        Private Const s_defaultBuiltInParameterName = "v"
 
         <Extension()>
         Public Function LookupTypeRegardlessOfArity(semanticModel As SemanticModel,
