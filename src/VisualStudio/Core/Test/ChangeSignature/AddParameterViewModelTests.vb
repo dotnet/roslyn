@@ -69,7 +69,7 @@ class MyClass<T>
             monitor.VerifyExpectations()
             monitor.Detach()
 
-            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotBindImage), ServicesVSResources.Type_name_parses_correctly_but_is_not_recognized)
+            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotBindImage), ServicesVSResources.Type_name_is_not_recognized)
 
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
@@ -83,7 +83,7 @@ class MyClass<T>
             monitor.VerifyExpectations()
             monitor.Detach()
 
-            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotBindImage), ServicesVSResources.Type_name_parses_correctly_but_is_not_recognized)
+            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotBindImage), ServicesVSResources.Type_name_is_not_recognized)
 
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
@@ -97,7 +97,7 @@ class MyClass<T>
             monitor.VerifyExpectations()
             monitor.Detach()
 
-            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotParseImage), ServicesVSResources.Type_name_does_not_parse_correctly)
+            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeDoesNotParseImage), ServicesVSResources.Type_name_has_a_syntax_error)
 
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
@@ -111,7 +111,7 @@ class MyClass<T>
             monitor.VerifyExpectations()
             monitor.Detach()
 
-            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeBindsImage), ServicesVSResources.Type_name_parses_correctly_and_is_recognized)
+            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeBindsImage), ServicesVSResources.Type_name_is_recognized)
 
             monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.TypeBindsDynamicStatus)
@@ -167,7 +167,7 @@ class MyClass
             monitor.VerifyExpectations()
             monitor.Detach()
 
-            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeBindsImage), ServicesVSResources.Type_name_parses_correctly_and_is_recognized)
+            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeBindsImage), ServicesVSResources.Type_name_is_recognized)
 
             viewModel.ParameterName = "x"
             viewModel.CallSiteValue = "0"
@@ -244,7 +244,7 @@ class MyClass
             monitor.VerifyExpectations()
             monitor.Detach()
 
-            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeBindsImage), ServicesVSResources.Type_name_parses_correctly_and_is_recognized)
+            AssertTypeBindingIconAndTextIs(viewModel, NameOf(viewModel.TypeBindsImage), ServicesVSResources.Type_name_is_recognized)
 
             viewModel.ParameterName = "x"
             viewModel.CallSiteValue = "0"

@@ -1453,16 +1453,16 @@ I agree to all of the foregoing:</value>
   <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
     <value>Razor C# Language Server Client</value>
   </data>
-  <data name="Type_name_does_not_parse_correctly" xml:space="preserve">
-    <value>Type name does not parse correctly</value>
+  <data name="Type_name_has_a_syntax_error" xml:space="preserve">
+    <value>Type name has a syntax error</value>
     <comment>"Type" is the programming language concept</comment>
   </data>
-  <data name="Type_name_parses_correctly_and_is_recognized" xml:space="preserve">
-    <value>Type name parses correctly and is recognized</value>
+  <data name="Type_name_is_not_recognized" xml:space="preserve">
+    <value>Type name is not recognized</value>
     <comment>"Type" is the programming language concept</comment>
   </data>
-  <data name="Type_name_parses_correctly_but_is_not_recognized" xml:space="preserve">
-    <value>Type name parses correctly but is not recognized</value>
+  <data name="Type_name_is_recognized" xml:space="preserve">
+    <value>Type name is recognized</value>
     <comment>"Type" is the programming language concept</comment>
   </data>
   <data name="Please_enter_a_type_name" xml:space="preserve">

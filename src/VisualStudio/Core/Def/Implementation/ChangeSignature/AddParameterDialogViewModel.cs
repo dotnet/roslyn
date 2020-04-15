@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     TypeDoesNotParseImage = Visibility.Visible;
                     TypeDoesNotBindImage = Visibility.Collapsed;
                     TypeBindsImage = Visibility.Collapsed;
-                    TypeBindsDynamicStatus = ServicesVSResources.Type_name_does_not_parse_correctly;
+                    TypeBindsDynamicStatus = ServicesVSResources.Type_name_has_a_syntax_error;
                 }
                 else
                 {
@@ -198,8 +198,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     TypeBindsImage = parameterTypeBinds ? Visibility.Visible : Visibility.Collapsed;
                     TypeDoesNotBindImage = !parameterTypeBinds ? Visibility.Visible : Visibility.Collapsed;
                     TypeBindsDynamicStatus = parameterTypeBinds
-                        ? ServicesVSResources.Type_name_parses_correctly_and_is_recognized
-                        : ServicesVSResources.Type_name_parses_correctly_but_is_not_recognized;
+                        ? ServicesVSResources.Type_name_is_recognized
+                        : ServicesVSResources.Type_name_is_not_recognized;
                 }
             }
 
