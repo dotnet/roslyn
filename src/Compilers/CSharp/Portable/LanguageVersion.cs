@@ -128,6 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         CSharp8 = 800,
 
+        // When this value is released, update LanguageVersionExtensions in the IDE layer to point to it.
+        // https://github.com/dotnet/roslyn/issues/43348
+        //
+        // /// <summary>
+        // /// C# language version 9.0
+        // /// </summary>
+        // CSharp9 = 900,
+
         /// <summary>
         /// The latest major supported version.
         /// </summary>
