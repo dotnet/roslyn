@@ -717,7 +717,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Protected Overrides Function AddNameToArgument(newArgument As SyntaxNode, name As String) As SyntaxNode
-            Return DirectCast(newArgument, SimpleArgumentSyntax).WithNameColonEquals(NameColonEquals(IdentifierName(name)))
+            Dim simpleArgument = TryCast(newArgument, SimpleArgumentSyntax)
+            If simpleArgument IsNot Nothing Then
+                Return simpleArgument.WithNameColonEquals(NameColonEquals(IdentifierName(name)))
+            End If
+
+            Dim omittedArgument = TryCast(newArgument, OmittedArgumentSyntax)
+            If omittedArgument IsNot Nothing Then
+                Return omittedArgument
+            End If
+
+            Throw ExceptionUtilities.UnexpectedValue(newArgument.Kind())
         End Function
 
         Protected Overrides Function SupportsOptionalAndParamsArrayParametersSimultaneously() As Boolean
