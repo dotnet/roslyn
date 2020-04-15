@@ -93,10 +93,9 @@
         <NgenPriority Condition="'%(_AssetsWithMetadata.Optimization)' == 'true'">3</NgenPriority>
       </VSIXCopyLocalReferenceSourceItem>
 
-      <!-- Add PkgDef entries for assets that specify PkgDefEntry -->
-      <PkgDefEntry Include="@(_AssetsWithMetadata->'%(Path)')" Condition="%(_AssetsWithMetadata.PkgDefEntry) != '' and %(_AssetsWithMetadata.AssetType) == 'runtime'">
-        <Kind>%(_AssetsWithMetadata.PkgDefEntry)</Kind>
-      </PkgDefEntry>
+      <!-- Add PkgDef* items for assets that specify PkgDefEntry -->
+      <PkgDefBindingRedirects Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'BindingRedirect' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
+      <PkgDefCodeBase Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'CodeBase' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
     </ItemGroup>
   </Target>
 

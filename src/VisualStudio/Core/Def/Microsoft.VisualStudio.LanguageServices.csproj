@@ -27,11 +27,10 @@
     <NuspecProperty Include="SystemThreadingTasksDataflowVersion=$(SystemThreadingTasksDataflowVersion)"/>
   </ItemGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefEntry Include="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
-                 Kind="PackageRegistration"
-                 Name="RoslynPackage"
-                 Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage"
-                 AllowsBackgroundLoad="true"/>
+    <PkgDefPackageRegistration Include="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+                               Name="RoslynPackage"
+                               Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage"
+                               AllowsBackgroundLoad="true"/>
     <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Build Items">

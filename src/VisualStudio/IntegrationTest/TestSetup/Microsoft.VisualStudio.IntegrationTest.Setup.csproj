@@ -15,11 +15,10 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefEntry Include="{d02dac01-ddd0-4ecc-8687-79a554852b14}"
-                 Kind="PackageRegistration"
-                 Name="IntegrationTestServicePackage"
-                 Class="Microsoft.VisualStudio.IntegrationTest.Setup.IntegrationTestServicePackage"
-                 AllowsBackgroundLoad="true"/>
+    <PkgDefPackageRegistration Include="{d02dac01-ddd0-4ecc-8687-79a554852b14}"
+                               Name="IntegrationTestServicePackage"
+                               Class="Microsoft.VisualStudio.IntegrationTest.Setup.IntegrationTestServicePackage"
+                               AllowsBackgroundLoad="true"/>
     <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>

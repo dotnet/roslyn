@@ -15,11 +15,10 @@
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefEntry Include="{31c0675e-87a4-4061-a0dd-a4e510fccf97}"
-                 Kind="PackageRegistration"
-                 Name="CompilerPackage"
-                 Class="Roslyn.Compilers.Extension.CompilerPackage"
-                 AllowsBackgroundLoad="true"/>
+    <PkgDefPackageRegistration Include="{31c0675e-87a4-4061-a0dd-a4e510fccf97}"
+                               Name="CompilerPackage"
+                               Class="Roslyn.Compilers.Extension.CompilerPackage"
+                               AllowsBackgroundLoad="true"/>
     <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>

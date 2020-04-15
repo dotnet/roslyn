@@ -15,11 +15,10 @@
     <UseCodebase>true</UseCodebase>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefEntry Include="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
-                 Kind="PackageRegistration"
-                 Name="Roslyn Diagnostics Window"
-                 Class="Roslyn.VisualStudio.DiagnosticsWindow.VisualStudioDiagnosticsWindowPackage"
-                 AllowsBackgroundLoad="true"/>
+    <PkgDefPackageRegistration Include="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"
+                               Name="Roslyn Diagnostics Window"
+                               Class="Roslyn.VisualStudio.DiagnosticsWindow.VisualStudioDiagnosticsWindowPackage"
+                               AllowsBackgroundLoad="true"/>
     <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>

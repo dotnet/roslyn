@@ -14,16 +14,14 @@
     <DeployExtension>false</DeployExtension>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefEntry Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-                 Kind="InstalledProduct"
-                 Name="Microsoft Visual Basic"
-                 DisplayName="#113"
-                 ProductDetails="#114"/>    
-    <PkgDefEntry Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-                 Kind="PackageRegistration"
-                 Name="VisualBasicPackage"
-                 Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage"
-                 AllowsBackgroundLoad="true"/>
+    <PkgDefInstalledProduct Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+                            Name="Microsoft Visual Basic"
+                            DisplayName="#113"
+                            ProductDetails="#114"/>
+    <PkgDefPackageRegistration Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+                               Name="VisualBasicPackage"
+                               Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage"
+                               AllowsBackgroundLoad="true"/>
     <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Project References">
