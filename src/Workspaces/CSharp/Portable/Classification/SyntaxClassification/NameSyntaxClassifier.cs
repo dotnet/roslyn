@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -45,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         }
 
         protected override bool IsParentAnAttribute(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.Attribute);
-        }
+            => node.IsParentKind(SyntaxKind.Attribute);
 
         private void ClassifyTypeSyntax(
             NameSyntax name,
@@ -104,29 +104,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
-            var set = PooledHashSet<ClassifiedSpan>.GetInstance();
-            try
+            using var _ = PooledHashSet<ClassifiedSpan>.GetInstance(out var set);
+            foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                foreach (var symbol in symbolInfo.CandidateSymbols)
+                if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
                 {
-                    if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
-                    {
-                        set.Add(classifiedSpan);
-                    }
+                    set.Add(classifiedSpan);
                 }
-
-                if (set.Count == 1)
-                {
-                    result.Add(set.First());
-                    return true;
-                }
-
-                return false;
             }
-            finally
+
+            if (set.Count == 1)
             {
-                set.Free();
+                result.Add(set.First());
+                return true;
             }
+
+            return false;
         }
 
         private bool TryClassifySymbol(
@@ -170,6 +163,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
                         return true;
                     }
+                }
+            }
+
+            if (name.IsNint || name.IsNuint)
+            {
+                if (symbol is ITypeSymbol type && type.IsNativeIntegerType)
+                {
+                    classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                    return true;
                 }
             }
 

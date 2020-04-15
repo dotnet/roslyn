@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -3968,7 +3970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return methods.WhereAsArray(m => !hiddenSymbols.Contains(m));
+            return methods.WhereAsArray((m, hiddenSymbols) => !hiddenSymbols.Contains(m), hiddenSymbols);
         }
 
         // Get the symbols and possible method group associated with a method group bound node, as
@@ -4073,7 +4075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the bad expression has symbol(s) from this method group, it better indicates any problems.
                         ImmutableArray<Symbol> myMethodGroup = methodGroup;
 
-                        symbols = ((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray(sym => myMethodGroup.Contains(sym));
+                        symbols = ((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myMethodGroup) => myMethodGroup.Contains(sym), myMethodGroup);
                         if (symbols.Any())
                         {
                             resultKind = ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind;
@@ -4174,7 +4176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the bad expression has symbol(s) from this property group, it better indicates any problems.
                         ImmutableArray<Symbol> myPropertyGroup = propertyGroup;
 
-                        symbols = ((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray(sym => myPropertyGroup.Contains(sym));
+                        symbols = ((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myPropertyGroup) => myPropertyGroup.Contains(sym), myPropertyGroup);
                         if (symbols.Any())
                         {
                             resultKind = ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind;
@@ -5084,13 +5086,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return context;
 
-            static NullableContext getFlag(bool? contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
+            static NullableContext getFlag(NullableContextState.State contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
                 contextState switch
                 {
-                    null when defaultEnableState => (inheritedFlag | enableFlag),
-                    null => inheritedFlag,
-                    true => enableFlag,
-                    false => NullableContext.Disabled
+                    NullableContextState.State.Enabled => enableFlag,
+                    NullableContextState.State.Disabled => NullableContext.Disabled,
+                    _ when defaultEnableState => (inheritedFlag | enableFlag),
+                    _ => inheritedFlag,
                 };
         }
 

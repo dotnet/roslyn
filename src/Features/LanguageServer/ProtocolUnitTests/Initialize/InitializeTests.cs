@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -13,8 +16,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
         [Fact]
         public async Task TestInitializeAsync()
         {
-            var (solution, _) = CreateTestSolution(string.Empty);
-            var results = await RunInitializeAsync(solution, new LSP.InitializeParams());
+            using var worksapce = CreateTestWorkspace(string.Empty, out var _);
+            var results = await RunInitializeAsync(worksapce.CurrentSolution, new LSP.InitializeParams());
 
             AssertServerCapabilities(results.Capabilities);
         }
@@ -25,26 +28,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
         private static void AssertServerCapabilities(LSP.ServerCapabilities actual)
         {
             Assert.True(actual.DefinitionProvider);
-            Assert.True(actual.ReferencesProvider);
             Assert.True(actual.ImplementationProvider);
-            Assert.True(actual.HoverProvider);
-            Assert.True(actual.CodeActionProvider);
             Assert.True(actual.DocumentSymbolProvider);
             Assert.True(actual.WorkspaceSymbolProvider);
             Assert.True(actual.DocumentFormattingProvider);
             Assert.True(actual.DocumentRangeFormattingProvider);
             Assert.True(actual.DocumentHighlightProvider);
-            Assert.True(actual.RenameProvider);
 
             Assert.True(actual.CompletionProvider.ResolveProvider);
-            Assert.Equal(new[] { "." }, actual.CompletionProvider.TriggerCharacters);
+            Assert.Equal(new[] { ".", " ", "#", "<", ">", "\"", ":", "[", "(", "~", "=", "{", "/" }.OrderBy(string.Compare),
+                actual.CompletionProvider.TriggerCharacters.OrderBy(string.Compare));
 
             Assert.Equal(new[] { "(", "," }, actual.SignatureHelpProvider.TriggerCharacters);
 
             Assert.Equal("}", actual.DocumentOnTypeFormattingProvider.FirstTriggerCharacter);
             Assert.Equal(new[] { ";", "\n" }, actual.DocumentOnTypeFormattingProvider.MoreTriggerCharacter);
-
-            Assert.NotNull(actual.ExecuteCommandProvider);
         }
     }
 }

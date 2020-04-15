@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         public static Uri GetURI(this Document document)
         {
-            return new Uri(document.FilePath);
+            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
         public static Document GetDocumentFromURI(this Solution solution, Uri fileName)
@@ -63,8 +65,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
-        {
-            return new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
-        }
+            => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
     }
 }

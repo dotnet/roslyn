@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -18,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
     {
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task TestEmptyFile()
-        {
-            await AssertTagsOnBracesOrSemicolonsAsync(contents: string.Empty);
-        }
+            => await AssertTagsOnBracesOrSemicolonsAsync(contents: string.Empty);
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task TestEmptyClass()
@@ -476,15 +476,11 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task IncompleteMethod()
-        {
-            await AssertTagsOnBracesOrSemicolonsAsync(@"void goo() {");
-        }
+            => await AssertTagsOnBracesOrSemicolonsAsync(@"void goo() {");
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task IncompleteProperty()
-        {
-            await AssertTagsOnBracesOrSemicolonsAsync(@"class C { int P { get; set; void");
-        }
+            => await AssertTagsOnBracesOrSemicolonsAsync(@"class C { int P { get; set; void");
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task IncompleteEvent()
@@ -509,15 +505,11 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task IncompleteConversionOperator()
-        {
-            await AssertTagsOnBracesOrSemicolonsAsync(@"implicit operator C(int i) {");
-        }
+            => await AssertTagsOnBracesOrSemicolonsAsync(@"implicit operator C(int i) {");
 
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]
         public async Task IncompleteMember()
-        {
-            await AssertTagsOnBracesOrSemicolonsAsync(@"class C { private !C(");
-        }
+            => await AssertTagsOnBracesOrSemicolonsAsync(@"class C { private !C(");
 
         #endregion
 
@@ -553,8 +545,6 @@ class Program
         }
 
         private static SyntaxToken GetOpenBrace(SyntaxTree syntaxTree, SyntaxToken token)
-        {
-            return token.Parent.ChildTokens().Where(n => n.Kind() == SyntaxKind.OpenBraceToken).Single();
-        }
+            => token.Parent.ChildTokens().Where(n => n.Kind() == SyntaxKind.OpenBraceToken).Single();
     }
 }

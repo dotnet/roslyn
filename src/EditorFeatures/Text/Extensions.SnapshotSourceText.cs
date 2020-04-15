@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -134,18 +136,14 @@ namespace Microsoft.CodeAnalysis.Text
 
             #region Lines
             protected override TextLineCollection GetLinesCore()
-            {
-                return new LineInfo(this);
-            }
+                => new LineInfo(this);
 
             private class LineInfo : TextLineCollection
             {
                 private readonly SnapshotSourceText _text;
 
                 public LineInfo(SnapshotSourceText text)
-                {
-                    _text = text;
-                }
+                    => _text = text;
 
                 public override int Count
                 {
@@ -162,14 +160,10 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 public override int IndexOf(int position)
-                {
-                    return _text.TextImage.GetLineNumberFromPosition(position);
-                }
+                    => _text.TextImage.GetLineNumberFromPosition(position);
 
                 public override TextLine GetLineFromPosition(int position)
-                {
-                    return this[this.IndexOf(position)];
-                }
+                    => this[this.IndexOf(position)];
 
                 public override LinePosition GetLinePosition(int position)
                 {
@@ -180,9 +174,7 @@ namespace Microsoft.CodeAnalysis.Text
             #endregion
 
             public override string ToString()
-            {
-                return this.TextImage.GetText();
-            }
+                => this.TextImage.GetText();
 
             public override string ToString(TextSpan textSpan)
             {
@@ -317,14 +309,10 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-            {
-                this.TextImage.CopyTo(sourceIndex, destination, destinationIndex, count);
-            }
+                => this.TextImage.CopyTo(sourceIndex, destination, destinationIndex, count);
 
             public override void Write(TextWriter textWriter, TextSpan span, CancellationToken cancellationToken)
-            {
-                this.TextImage.Write(textWriter, span.ToSpan());
-            }
+                => this.TextImage.Write(textWriter, span.ToSpan());
 
             #region GetChangeRangesImplementation 
 

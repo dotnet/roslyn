@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -340,23 +342,17 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         public bool TryGetNewNode(TNode oldNode, out TNode newNode)
-        {
-            return _oneToTwo.TryGetValue(oldNode, out newNode);
-        }
+            => _oneToTwo.TryGetValue(oldNode, out newNode);
 
         public bool TryGetOldNode(TNode newNode, out TNode oldNode)
-        {
-            return _twoToOne.TryGetValue(newNode, out oldNode);
-        }
+            => _twoToOne.TryGetValue(newNode, out oldNode);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform <see cref="OldRoot"/> subtree 
         /// to <see cref="NewRoot"/> subtree.
         /// </summary>
         public EditScript<TNode> GetTreeEdits()
-        {
-            return new EditScript<TNode>(this);
-        }
+            => new EditScript<TNode>(this);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform a sequence of nodes <paramref name="oldNodes"/>

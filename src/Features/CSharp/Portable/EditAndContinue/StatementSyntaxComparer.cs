@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -35,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Tree Traversal
 
-        protected internal override bool TryGetParent(SyntaxNode node, out SyntaxNode parent)
+#pragma warning disable 8610 // Making the out parameter nullable
+        protected internal override bool TryGetParent(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? parent)
         {
             parent = node.Parent;
             while (parent != null && !HasLabel(parent))
@@ -45,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             return parent != null;
         }
+#pragma warning restore 8610
 
         protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
         {
@@ -110,9 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private bool DescendIntoChildren(SyntaxNode node)
-        {
-            return !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
-        }
+            => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
 
         protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
         {
@@ -501,19 +503,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal override int GetLabel(SyntaxNode node)
-        {
-            return (int)GetLabelImpl(node);
-        }
+            => (int)GetLabelImpl(node);
 
         internal static Label GetLabelImpl(SyntaxNode node)
-        {
-            return Classify(node.Kind(), node, out _);
-        }
+            => Classify(node.Kind(), node, out _);
 
         internal static bool HasLabel(SyntaxNode node)
-        {
-            return GetLabelImpl(node) != Label.Ignored;
-        }
+            => GetLabelImpl(node) != Label.Ignored;
 
         protected internal override int LabelCount
         {
@@ -521,9 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         protected internal override int TiedToAncestor(int label)
-        {
-            return TiedToAncestor((Label)label);
-        }
+            => TiedToAncestor((Label)label);
 
         #endregion
 
@@ -734,9 +728,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = simple.AsyncKeyword;
                     body = simple.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -745,9 +739,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = parenthesized.AsyncKeyword;
                     body = parenthesized.Body;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.AnonymousMethodExpression:
@@ -764,9 +758,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     asyncKeyword = anonymous.AsyncKeyword;
                     body = anonymous.Block;
                     modifiers = default;
-                    returnType = default;
+                    returnType = null;
                     identifier = default;
-                    typeParameters = default;
+                    typeParameters = null;
                     break;
 
                 case SyntaxKind.LocalFunctionStatement:
@@ -830,8 +824,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     if (leftCatch.Declaration == null && leftCatch.Filter == null &&
                         rightCatch.Declaration == null && rightCatch.Filter == null)
                     {
-                        var leftTry = (TryStatementSyntax)leftCatch.Parent;
-                        var rightTry = (TryStatementSyntax)rightCatch.Parent;
+                        var leftTry = (TryStatementSyntax)leftCatch.Parent!;
+                        var rightTry = (TryStatementSyntax)rightCatch.Parent!;
 
                         distance = 0.5 * ComputeValueDistance(leftTry.Block, rightTry.Block) +
                                    0.5 * ComputeValueDistance(leftBlock, rightBlock);
@@ -1033,9 +1027,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in block.ChildNodes())
             {
-                if (child.IsKind(SyntaxKind.LocalDeclarationStatement))
+                if (child.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDecl))
                 {
-                    GetLocalNames(((LocalDeclarationStatementSyntax)child).Declaration, ref result);
+                    GetLocalNames(localDecl.Declaration, ref result);
                 }
             }
         }

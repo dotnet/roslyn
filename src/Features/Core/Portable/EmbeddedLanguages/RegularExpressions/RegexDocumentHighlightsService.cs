@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly RegexEmbeddedLanguage _language;
 
         public RegexDocumentHighlightsService(RegexEmbeddedLanguage language)
-        {
-            _language = language;
-        }
+            => _language = language;
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private ImmutableArray<HighlightSpan> GetHighlights(RegexTree tree, int positionInDocument)
         {
-            var referencesOnTheRight = GetReferences(tree, positionInDocument, caretOnLeft: true);
+            var referencesOnTheRight = GetReferences(tree, positionInDocument);
             if (!referencesOnTheRight.IsEmpty)
             {
                 return referencesOnTheRight;
@@ -54,12 +54,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             // Nothing was on the right of the caret.  Return anything we were able to find on 
             // the left of the caret.
-            var referencesOnTheLeft = GetReferences(tree, positionInDocument - 1, caretOnLeft: false);
+            var referencesOnTheLeft = GetReferences(tree, positionInDocument - 1);
             return referencesOnTheLeft;
         }
 
-        private ImmutableArray<HighlightSpan> GetReferences(
-            RegexTree tree, int position, bool caretOnLeft)
+        private ImmutableArray<HighlightSpan> GetReferences(RegexTree tree, int position)
         {
             var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
             if (virtualChar == null)
@@ -110,19 +109,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             => new HighlightSpan(textSpan, HighlightSpanKind.None);
 
         private RegexToken GetCaptureToken(RegexEscapeNode node)
-        {
-            switch (node)
+            => node switch
             {
-                case RegexBackreferenceEscapeNode backReference:
-                    return backReference.NumberToken;
-                case RegexCaptureEscapeNode captureEscape:
-                    return captureEscape.CaptureToken;
-                case RegexKCaptureEscapeNode kCaptureEscape:
-                    return kCaptureEscape.CaptureToken;
-            }
-
-            throw new InvalidOperationException();
-        }
+                RegexBackreferenceEscapeNode backReference => backReference.NumberToken,
+                RegexCaptureEscapeNode captureEscape => captureEscape.CaptureToken,
+                RegexKCaptureEscapeNode kCaptureEscape => kCaptureEscape.CaptureToken,
+                _ => throw new InvalidOperationException(),
+            };
 
         private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {

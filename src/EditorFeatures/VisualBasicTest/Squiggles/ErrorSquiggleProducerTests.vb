@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -23,12 +25,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         Private Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace)).Item2
-            End Using
-        End Function
-
-        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
-            Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
             End Using
         End Function
 
@@ -94,18 +90,21 @@ Class C1
     End Sub
 End Class"
 
-            Dim analyzerMap = New Dictionary(Of String, DiagnosticAnalyzer())
-            analyzerMap.Add(LanguageNames.VisualBasic,
-                    {
+            Dim analyzerMap = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)) From
+            {
+                {
+                    LanguageNames.VisualBasic,
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(
                         New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(),
-                        New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()
-                    })
+                        New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer())
+                }
+            }
 
             Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Dim options As New Dictionary(Of OptionKey, Object)
+                Dim options As New Dictionary(Of OptionKey2, Object)
                 Dim language = workspace.Projects.Single().Language
-                Dim preferIntrinsicPredefinedTypeOption = New OptionKey(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
-                Dim preferIntrinsicPredefinedTypeOptionValue = New CodeStyleOption(Of Boolean)(value:=True, notification:=NotificationOption.Error)
+                Dim preferIntrinsicPredefinedTypeOption = New OptionKey2(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
+                Dim preferIntrinsicPredefinedTypeOptionValue = New CodeStyleOption2(Of Boolean)(value:=True, notification:=NotificationOption2.Error)
                 options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
                 workspace.ApplyOptions(options)
 
@@ -116,7 +115,7 @@ End Class"
                 Dim second = spans(1)
 
                 Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType)
-                Assert.Equal(VBFeaturesResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
+                Assert.Equal(VisualBasicAnalyzersResources.Imports_statement_is_unnecessary, CType(first.Tag.ToolTipContent, String))
                 Assert.Equal(Of Integer)(79, first.Span.Start)
                 Assert.Equal(83, first.Span.Length)
 

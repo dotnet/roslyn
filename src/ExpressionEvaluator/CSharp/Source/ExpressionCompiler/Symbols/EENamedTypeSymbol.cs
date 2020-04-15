@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // Should not be requesting generated members
             // by name other than constructors.
             Debug.Assert((name == WellKnownMemberNames.InstanceConstructorName) || (name == WellKnownMemberNames.StaticConstructorName));
-            return this.GetMembers().WhereAsArray(m => m.Name == name);
+            return this.GetMembers().WhereAsArray((m, name) => m.Name == name, name);
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
@@ -339,6 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
         [Conditional("DEBUG")]
         internal static void VerifyTypeParameters(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters)

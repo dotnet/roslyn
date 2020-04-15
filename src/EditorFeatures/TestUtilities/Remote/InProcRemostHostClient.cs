@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -12,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Services;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Nerdbank;
 using Roslyn.Utilities;
@@ -22,26 +25,29 @@ namespace Roslyn.Test.Utilities.Remote
     internal sealed class InProcRemoteHostClient : RemoteHostClient
     {
         private readonly InProcRemoteServices _inprocServices;
-        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
-        private readonly JsonRpc _rpc;
+        private readonly ReferenceCountedDisposable<RemotableDataProvider> _remotableDataRpc;
+        private readonly RemoteEndPoint _endPoint;
 
         public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup)
         {
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
-            var remotableDataRpc = new RemotableDataJsonRpc(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService).ConfigureAwait(false));
+            var remotableDataRpc = new RemotableDataProvider(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService).ConfigureAwait(false));
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService).ConfigureAwait(false);
 
             var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
-            var instance = new InProcRemoteHostClient(current, workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
+            var instance = new InProcRemoteHostClient(current, workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataProvider>(remotableDataRpc), remoteHostStream);
 
             // make sure connection is done right
-            var telemetrySession = default(string);
+            string? telemetrySession = null;
             var uiCultureLCIDE = 0;
             var cultureLCID = 0;
 
-            var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, uiCultureLCIDE, cultureLCID, telemetrySession).ConfigureAwait(false);
+            var host = await instance._endPoint.InvokeAsync<string>(
+                nameof(IRemoteHostService.Connect),
+                new object?[] { current, uiCultureLCIDE, cultureLCID, telemetrySession },
+                CancellationToken.None).ConfigureAwait(false);
 
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
@@ -56,7 +62,7 @@ namespace Roslyn.Test.Utilities.Remote
             string clientId,
             Workspace workspace,
             InProcRemoteServices inprocServices,
-            ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
+            ReferenceCountedDisposable<RemotableDataProvider> remotableDataRpc,
             Stream stream)
             : base(workspace)
         {
@@ -67,27 +73,21 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices = inprocServices;
             _remotableDataRpc = remotableDataRpc;
 
-            _rpc = stream.CreateStreamJsonRpc(target: this, inprocServices.Logger);
-
-            // handle disconnected situation
-            _rpc.Disconnected += OnRpcDisconnected;
-
-            _rpc.StartListening();
+            _endPoint = new RemoteEndPoint(stream, inprocServices.Logger, incomingCallTarget: this);
+            _endPoint.Disconnected += OnDisconnected;
+            _endPoint.StartListening();
         }
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
-        {
-            _inprocServices.RegisterService(name, serviceCreator);
-        }
+        public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
+            => _inprocServices.RegisterService(name, serviceCreator);
 
         public Task<Stream> RequestServiceAsync(string serviceName)
-        {
-            return _inprocServices.RequestServiceAsync(serviceName);
-        }
+            => _inprocServices.RequestServiceAsync(serviceName);
 
         public override string ClientId { get; }
+        public override bool IsRemoteHost64Bit => IntPtr.Size == 8;
 
         public override async Task<Connection?> TryCreateConnectionAsync(
             string serviceName, object? callbackTarget, CancellationToken cancellationToken)
@@ -96,25 +96,25 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName).ConfigureAwait(false);
 
-            return new JsonRpcConnection(_inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
+            return new JsonRpcConnection(Workspace, _inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference() ?? throw new ObjectDisposedException(GetType().FullName));
         }
 
         protected override void OnStarted()
         {
         }
 
-        protected override void OnStopped()
+        public override void Dispose()
         {
             // we are asked to disconnect. unsubscribe and dispose to disconnect
-            _rpc.Disconnected -= OnRpcDisconnected;
-            _rpc.Dispose();
+            _endPoint.Disconnected -= OnDisconnected;
+            _endPoint.Dispose();
             _remotableDataRpc.Dispose();
+
+            base.Dispose();
         }
 
-        private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
-        {
-            Stopped();
-        }
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
+            => Dispose();
 
         public class ServiceProvider : IServiceProvider
         {
@@ -161,6 +161,9 @@ namespace Roslyn.Test.Utilities.Remote
                 RegisterService(WellKnownServiceHubServices.CodeAnalysisService, (s, p) => new CodeAnalysisService(s, p));
                 RegisterService(WellKnownServiceHubServices.SnapshotService, (s, p) => new SnapshotService(s, p));
                 RegisterService(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, (s, p) => new RemoteSymbolSearchUpdateEngine(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteDesignerAttributeService, (s, p) => new RemoteDesignerAttributeService(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteProjectTelemetryService, (s, p) => new RemoteProjectTelemetryService(s, p));
+                RegisterService(WellKnownServiceHubServices.RemoteTodoCommentsService, (s, p) => new RemoteTodoCommentsService(s, p));
                 RegisterService(WellKnownServiceHubServices.LanguageServer, (s, p) => new LanguageServer(s, p));
             }
 
@@ -168,9 +171,7 @@ namespace Roslyn.Test.Utilities.Remote
             public TraceSource Logger { get; } = new TraceSource("Default");
 
             public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceBase> serviceCreator)
-            {
-                _creatorMap.Add(name, serviceCreator);
-            }
+                => _creatorMap.Add(name, serviceCreator);
 
             public Task<Stream> RequestServiceAsync(string serviceName)
             {
@@ -243,14 +244,10 @@ namespace Roslyn.Test.Utilities.Remote
                 public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
 
                 public override object InitializeLifetimeService()
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public override ObjRef CreateObjRef(Type requestedType)
-                {
-                    throw new NotSupportedException();
-                }
+                    => throw new NotSupportedException();
 
                 public override void Close()
                 {

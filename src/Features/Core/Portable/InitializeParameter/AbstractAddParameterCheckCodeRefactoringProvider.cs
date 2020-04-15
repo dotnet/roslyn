@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,18 +21,28 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractAddParameterCheckCodeRefactoringProvider<
+        TTypeDeclarationSyntax,
         TParameterSyntax,
         TStatementSyntax,
         TExpressionSyntax,
         TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+            TTypeDeclarationSyntax,
             TParameterSyntax,
             TStatementSyntax,
             TExpressionSyntax>
+        where TTypeDeclarationSyntax : SyntaxNode
         where TParameterSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
+        private readonly Func<SyntaxNode, bool> _isFunctionDeclarationFunc;
+
+        protected AbstractAddParameterCheckCodeRefactoringProvider()
+        {
+            _isFunctionDeclarationFunc = IsFunctionDeclaration;
+        }
+
         protected abstract bool CanOffer(SyntaxNode body);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
 
@@ -111,7 +123,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var firstParameterNode = root.FindNode(parameterSpan) as TParameterSyntax;
-                var functionDeclaration = firstParameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
+                var functionDeclaration = firstParameterNode.FirstAncestorOrSelf<SyntaxNode>(_isFunctionDeclarationFunc);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var parameterNodes = generator.GetParameters(functionDeclaration);
@@ -343,7 +355,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // signature.
             var statementToAddAfter = GetStatementToAddNullCheckAfter(
                 semanticModel, parameter, blockStatementOpt, cancellationToken);
-            InsertStatement(editor, functionDeclaration, method, statementToAddAfter, nullCheckStatement);
+            InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, nullCheckStatement);
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);

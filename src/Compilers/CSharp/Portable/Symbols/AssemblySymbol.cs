@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -371,13 +373,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ErrorTypeSymbol CreateCycleInTypeForwarderErrorTypeSymbol(ref MetadataTypeName emittedName)
         {
             DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_CycleInTypeForwarder, emittedName.FullName, this.Name);
-            return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Modules[0], ref emittedName, diagnosticInfo);
+            return new MissingMetadataTypeSymbol.TopLevel(this.Modules[0], ref emittedName, diagnosticInfo);
         }
 
         internal ErrorTypeSymbol CreateMultipleForwardingErrorTypeSymbol(ref MetadataTypeName emittedName, ModuleSymbol forwardingModule, AssemblySymbol destination1, AssemblySymbol destination2)
         {
             var diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, forwardingModule, this, emittedName.FullName, destination1, destination2);
-            return new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(forwardingModule, ref emittedName, diagnosticInfo);
+            return new MissingMetadataTypeSymbol.TopLevel(forwardingModule, ref emittedName, diagnosticInfo);
         }
 
         /// <summary>
@@ -405,6 +407,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        /// <summary>
+        /// Return the native integer type corresponding to the underlying type.
+        /// </summary>
+        internal virtual NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>

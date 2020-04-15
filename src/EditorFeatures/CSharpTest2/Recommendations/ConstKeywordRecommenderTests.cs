@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -56,9 +58,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInCompilationUnit()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"$$");
-        }
+            => await VerifyAbsenceAsync(SourceCodeKind.Regular, @"$$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterExtern()
@@ -214,27 +214,19 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAbstract()
-        {
-            await VerifyAbsenceAsync(@"abstract $$");
-        }
+            => await VerifyAbsenceAsync(@"abstract $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterInternal()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"internal $$");
-        }
+            => await VerifyAbsenceAsync(SourceCodeKind.Regular, @"internal $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterInternal_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"internal $$");
-        }
+            => await VerifyKeywordAsync(SourceCodeKind.Script, @"internal $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedInternal()
@@ -246,15 +238,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPublic()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"public $$");
-        }
+            => await VerifyAbsenceAsync(SourceCodeKind.Regular, @"public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPublic_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"public $$");
-        }
+            => await VerifyKeywordAsync(SourceCodeKind.Script, @"public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedPublic()
@@ -303,9 +291,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSealed()
-        {
-            await VerifyAbsenceAsync(@"sealed $$");
-        }
+            => await VerifyAbsenceAsync(@"sealed $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedSealed()
@@ -317,9 +303,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterStatic()
-        {
-            await VerifyAbsenceAsync(@"static $$");
-        }
+            => await VerifyAbsenceAsync(@"static $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedStatic()
@@ -331,9 +315,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterStaticPublic()
-        {
-            await VerifyAbsenceAsync(@"static public $$");
-        }
+            => await VerifyAbsenceAsync(@"static public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedStaticPublic()
@@ -345,9 +327,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterDelegate()
-        {
-            await VerifyAbsenceAsync(@"delegate $$");
-        }
+            => await VerifyAbsenceAsync(@"delegate $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterEvent()

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
 
                         // Don't enqueue item if we don't have any high priority analyzers
-                        if (this.Analyzers.IsEmpty)
+                        if (Analyzers.IsEmpty)
                         {
                             return;
                         }
@@ -111,9 +113,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        return _workItemQueue.WaitAsync(cancellationToken);
-                    }
+                        => _workItemQueue.WaitAsync(cancellationToken);
 
                     protected override async Task ExecuteAsync()
                     {
@@ -218,9 +218,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     public void Shutdown()
-                    {
-                        _workItemQueue.Dispose();
-                    }
+                        => _workItemQueue.Dispose();
                 }
             }
         }

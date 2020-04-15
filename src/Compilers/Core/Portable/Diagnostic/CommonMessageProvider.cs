@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -234,6 +236,10 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
+
+        // Generators:
+        public abstract int WRN_GeneratorFailedDuringInitialization { get; }
+        public abstract int WRN_GeneratorFailedDuringGeneration { get; }
 
         /// <summary>
         /// Takes an exception produced while writing to a file stream and produces a diagnostic.

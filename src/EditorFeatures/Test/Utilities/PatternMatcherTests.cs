@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -19,75 +21,51 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     {
         [Fact]
         public void BreakIntoCharacterParts_EmptyIdentifier()
-        {
-            VerifyBreakIntoCharacterParts(string.Empty, Array.Empty<string>());
-        }
+            => VerifyBreakIntoCharacterParts(string.Empty, Array.Empty<string>());
 
         [Fact]
         public void BreakIntoCharacterParts_SimpleIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("goo", "goo");
-        }
+            => VerifyBreakIntoCharacterParts("goo", "goo");
 
         [Fact]
         public void BreakIntoCharacterParts_PrefixUnderscoredIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("_goo", "_", "goo");
-        }
+            => VerifyBreakIntoCharacterParts("_goo", "_", "goo");
 
         [Fact]
         public void BreakIntoCharacterParts_UnderscoredIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("g_oo", "g", "_", "oo");
-        }
+            => VerifyBreakIntoCharacterParts("g_oo", "g", "_", "oo");
 
         [Fact]
         public void BreakIntoCharacterParts_PostfixUnderscoredIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("goo_", "goo", "_");
-        }
+            => VerifyBreakIntoCharacterParts("goo_", "goo", "_");
 
         [Fact]
         public void BreakIntoCharacterParts_PrefixUnderscoredIdentifierWithCapital()
-        {
-            VerifyBreakIntoCharacterParts("_Goo", "_", "Goo");
-        }
+            => VerifyBreakIntoCharacterParts("_Goo", "_", "Goo");
 
         [Fact]
         public void BreakIntoCharacterParts_MUnderscorePrefixed()
-        {
-            VerifyBreakIntoCharacterParts("m_goo", "m", "_", "goo");
-        }
+            => VerifyBreakIntoCharacterParts("m_goo", "m", "_", "goo");
 
         [Fact]
         public void BreakIntoCharacterParts_CamelCaseIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("FogBar", "Fog", "Bar");
-        }
+            => VerifyBreakIntoCharacterParts("FogBar", "Fog", "Bar");
 
         [Fact]
         public void BreakIntoCharacterParts_MixedCaseIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("fogBar", "fog", "Bar");
-        }
+            => VerifyBreakIntoCharacterParts("fogBar", "fog", "Bar");
 
         [Fact]
         public void BreakIntoCharacterParts_TwoCharacterCapitalIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("UIElement", "U", "I", "Element");
-        }
+            => VerifyBreakIntoCharacterParts("UIElement", "U", "I", "Element");
 
         [Fact]
         public void BreakIntoCharacterParts_NumberSuffixedIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("Goo42", "Goo", "42");
-        }
+            => VerifyBreakIntoCharacterParts("Goo42", "Goo", "42");
 
         [Fact]
         public void BreakIntoCharacterParts_NumberContainingIdentifier()
-        {
-            VerifyBreakIntoCharacterParts("Fog42Bar", "Fog", "42", "Bar");
-        }
+            => VerifyBreakIntoCharacterParts("Fog42Bar", "Fog", "42", "Bar");
 
         [Fact]
         public void BreakIntoCharacterParts_NumberPrefixedIdentifier()
@@ -100,73 +78,51 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [Fact]
         [WorkItem(544296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")]
         public void BreakIntoWordParts_VerbatimIdentifier()
-        {
-            VerifyBreakIntoWordParts("@int:", "int");
-        }
+            => VerifyBreakIntoWordParts("@int:", "int");
 
         [Fact]
         [WorkItem(537875, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537875")]
         public void BreakIntoWordParts_AllCapsConstant()
-        {
-            VerifyBreakIntoWordParts("C_STYLE_CONSTANT", "C", "_", "STYLE", "_", "CONSTANT");
-        }
+            => VerifyBreakIntoWordParts("C_STYLE_CONSTANT", "C", "_", "STYLE", "_", "CONSTANT");
 
         [Fact]
         [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_SingleLetterPrefix1()
-        {
-            VerifyBreakIntoWordParts("UInteger", "U", "Integer");
-        }
+            => VerifyBreakIntoWordParts("UInteger", "U", "Integer");
 
         [Fact]
         [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_SingleLetterPrefix2()
-        {
-            VerifyBreakIntoWordParts("IDisposable", "I", "Disposable");
-        }
+            => VerifyBreakIntoWordParts("IDisposable", "I", "Disposable");
 
         [Fact]
         [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_TwoCharacterCapitalIdentifier()
-        {
-            VerifyBreakIntoWordParts("UIElement", "UI", "Element");
-        }
+            => VerifyBreakIntoWordParts("UIElement", "UI", "Element");
 
         [Fact]
         [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_XDocument()
-        {
-            VerifyBreakIntoWordParts("XDocument", "X", "Document");
-        }
+            => VerifyBreakIntoWordParts("XDocument", "X", "Document");
 
         [Fact]
         [WorkItem(540087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540087")]
         public void BreakIntoWordParts_XMLDocument1()
-        {
-            VerifyBreakIntoWordParts("XMLDocument", "XML", "Document");
-        }
+            => VerifyBreakIntoWordParts("XMLDocument", "XML", "Document");
 
         [Fact]
         public void BreakIntoWordParts_XMLDocument2()
-        {
-            VerifyBreakIntoWordParts("XmlDocument", "Xml", "Document");
-        }
+            => VerifyBreakIntoWordParts("XmlDocument", "Xml", "Document");
 
         [Fact]
         public void BreakIntoWordParts_TwoUppercaseCharacters()
-        {
-            VerifyBreakIntoWordParts("SimpleUIElement", "Simple", "UI", "Element");
-        }
+            => VerifyBreakIntoWordParts("SimpleUIElement", "Simple", "UI", "Element");
 
         private void VerifyBreakIntoWordParts(string original, params string[] parts)
-        {
-            Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoWordParts(original));
-        }
+            => Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoWordParts(original));
 
         private void VerifyBreakIntoCharacterParts(string original, params string[] parts)
-        {
-            Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoCharacterParts(original));
-        }
+            => Roslyn.Test.Utilities.AssertEx.Equal(parts, BreakIntoCharacterParts(original));
 
         private const bool CaseSensitive = true;
         private const bool CaseInsensitive = !CaseSensitive;
@@ -267,9 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         }
 
         private void AssertContainsType(PatternMatchKind type, IEnumerable<PatternMatch> results)
-        {
-            Assert.True(results.Any(r => r.Kind == type));
-        }
+            => Assert.True(results.Any(r => r.Kind == type));
 
         [Fact]
         public void MatchMultiWordPattern_ExactWithLowercase()
@@ -379,15 +333,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [Fact]
         public void MatchMultiWordPattern_BlankPattern()
-        {
-            Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", string.Empty));
-        }
+            => Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", string.Empty));
 
         [Fact]
         public void MatchMultiWordPattern_WhitespaceOnlyPattern()
-        {
-            Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", " "));
-        }
+            => Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", " "));
 
         [Fact]
         public void MatchMultiWordPattern_EachWordSeparately1()
@@ -418,15 +368,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [Fact]
         public void MatchMultiWordPattern_MixedCasing1()
-        {
-            Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", "mEta"));
-        }
+            => Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", "mEta"));
 
         [Fact]
         public void MatchMultiWordPattern_MixedCasing2()
-        {
-            Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", "Data"));
-        }
+            => Assert.Null(TryMatchMultiWordPattern("AddMetadataReference", "Data"));
 
         [Fact]
         public void MatchMultiWordPattern_AsteriskSplit()
@@ -439,9 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         [WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
         [Fact]
         public void MatchMultiWordPattern_LowercaseSubstring1()
-        {
-            Assert.Null(TryMatchMultiWordPattern("Operator", "a"));
-        }
+            => Assert.Null(TryMatchMultiWordPattern("Operator", "a"));
 
         [WorkItem(544628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544628")]
         [Fact]

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 #nullable enable
 
 using System;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert((object)typeSymbol != null);
 
-            return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst();
+            return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst() || typeSymbol.IsNativeIntegerType;
         }
 
         /// <summary>
@@ -148,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
         {
             return type.GetEnumUnderlyingType() ?? type;
+        }
+
+        public static bool IsNativeIntegerOrNullableNativeIntegerType(this TypeSymbol? type)
+        {
+            return type?.StrippedType().IsNativeIntegerType == true;
         }
 
         public static bool IsObjectType(this TypeSymbol type)
@@ -474,6 +481,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SpecialType.System_UInt32:
                     case SpecialType.System_Int64:
                     case SpecialType.System_UInt64:
+                    case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                    case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     case SpecialType.System_Char:
                     case SpecialType.System_Boolean:
                     case SpecialType.System_Single:
@@ -486,21 +495,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public static SpecialType GetSpecialTypeSafe(this TypeSymbol type)
+        public static SpecialType GetSpecialTypeSafe(this TypeSymbol? type)
         {
-            return (object)type != null ? type.SpecialType : SpecialType.None;
+            return type is object ? type.SpecialType : SpecialType.None;
         }
 
-        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
-            HashSet<DiagnosticInfo> localUseSiteDiagnostics = useSiteDiagnostics;
+            HashSet<DiagnosticInfo>? localUseSiteDiagnostics = useSiteDiagnostics;
             var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym,
                                         canDigThroughNullable: true); // System.Nullable is public
             useSiteDiagnostics = localUseSiteDiagnostics;
             return result is null;
         }
 
-        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             switch (type.TypeKind)
             {
@@ -664,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -900,6 +909,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
+        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        {
+            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerType, (object?)null, canDigThroughNullable: true);
+            return result is object;
+        }
+
+        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        {
+            return type.Type?.ContainsNativeInteger() == true;
+        }
+
         /// <summary>
         /// Return true if the type contains any tuples.
         /// </summary>
@@ -930,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbol? GetNonErrorGuess(this TypeSymbol type)
         {
             var result = ExtendedErrorTypeSymbol.ExtractNonErrorType(type);
-            RoslynDebug.Assert((object)result == null || !result.IsErrorType());
+            RoslynDebug.Assert((object?)result == null || !result.IsErrorType());
             return result;
         }
 
@@ -1020,7 +1040,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsIntrinsicType(this TypeSymbol type)
         {
-            return type.SpecialType.IsIntrinsicType();
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_Boolean:
+                case SpecialType.System_Char:
+                case SpecialType.System_SByte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_Byte:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_Single:
+                case SpecialType.System_Double:
+                // NOTE: VB treats System.DateTime as an intrinsic, while C# does not.
+                //case SpecialType.System_DateTime:
+                case SpecialType.System_Decimal:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public static bool IsPartial(this TypeSymbol type)
@@ -1473,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && attr.CommonConstructorArguments.Length == 1
                         && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal;
+                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
                         return true;
                     }
                 }
@@ -1628,23 +1670,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type.Type.ContainsTupleNames())
                 {
-                    SynthesizedAttributeData attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
-                    if (attr != null)
-                    {
-                        builder.Add(attr);
-                    }
+                    addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-
+                if (type.Type.ContainsNativeInteger())
+                {
+                    addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
+                }
                 if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    addIfNotNull(builder, moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type));
+                }
+
+                static void addIfNotNull(ArrayBuilder<Cci.ICustomAttribute> builder, SynthesizedAttributeData? attr)
+                {
                     if (attr != null)
                     {
                         builder.Add(attr);
                     }
                 }
             }
-
 
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
@@ -1692,6 +1736,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !returnType.IsGenericTaskType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumeratorType(declaringCompilation);
+        }
+
+        internal static int TypeToIndex(this TypeSymbol type)
+        {
+            switch (type.GetSpecialTypeSafe())
+            {
+                case SpecialType.System_Object: return 0;
+                case SpecialType.System_String: return 1;
+                case SpecialType.System_Boolean: return 2;
+                case SpecialType.System_Char: return 3;
+                case SpecialType.System_SByte: return 4;
+                case SpecialType.System_Int16: return 5;
+                case SpecialType.System_Int32: return 6;
+                case SpecialType.System_Int64: return 7;
+                case SpecialType.System_Byte: return 8;
+                case SpecialType.System_UInt16: return 9;
+                case SpecialType.System_UInt32: return 10;
+                case SpecialType.System_UInt64: return 11;
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType: return 12;
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType: return 13;
+                case SpecialType.System_Single: return 14;
+                case SpecialType.System_Double: return 15;
+                case SpecialType.System_Decimal: return 16;
+
+                case SpecialType.None:
+                    if ((object)type != null && type.IsNullableType())
+                    {
+                        TypeSymbol underlyingType = type.GetNullableUnderlyingType();
+
+                        switch (underlyingType.GetSpecialTypeSafe())
+                        {
+                            case SpecialType.System_Boolean: return 17;
+                            case SpecialType.System_Char: return 18;
+                            case SpecialType.System_SByte: return 19;
+                            case SpecialType.System_Int16: return 20;
+                            case SpecialType.System_Int32: return 21;
+                            case SpecialType.System_Int64: return 22;
+                            case SpecialType.System_Byte: return 23;
+                            case SpecialType.System_UInt16: return 24;
+                            case SpecialType.System_UInt32: return 25;
+                            case SpecialType.System_UInt64: return 26;
+                            case SpecialType.System_IntPtr when underlyingType.IsNativeIntegerType: return 27;
+                            case SpecialType.System_UIntPtr when underlyingType.IsNativeIntegerType: return 28;
+                            case SpecialType.System_Single: return 29;
+                            case SpecialType.System_Double: return 30;
+                            case SpecialType.System_Decimal: return 31;
+                        }
+                    }
+
+                    // fall through
+                    goto default;
+
+                default: return -1;
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
@@ -41,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsTupleType => false;
 
+        public bool IsNativeIntegerType => false;
+
         public ImmutableArray<ITypeSymbol> TupleElementTypes => default;
 
         public ImmutableArray<string> TupleElementNames => default;
@@ -52,24 +56,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember) => null;
 
         public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => throw new System.NotImplementedException();
 
         public override bool IsNamespace => false;
 
@@ -96,9 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         protected sealed override CodeGenerationSymbol Clone()
-        {
-            return CloneWithNullableAnnotation(this.NullableAnnotation);
-        }
+            => CloneWithNullableAnnotation(this.NullableAnnotation);
 
         protected abstract CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation);
     }

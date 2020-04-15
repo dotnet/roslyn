@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
@@ -754,6 +756,7 @@ Interface ISibling
 End Interface")
         End Function
 
+        <WorkItem(29584, "https://github.com/dotnet/roslyn/issues/29584")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateAbstractIntoSameType() As Task
             Await TestInRegularAndScriptAsync(
@@ -767,7 +770,7 @@ End Class",
         Goo()
     End Sub
 
-    Friend MustOverride Sub Goo()
+    Protected MustOverride Sub Goo()
 End Class",
 index:=1)
         End Function
@@ -3750,6 +3753,29 @@ Public Class C
     End Property
 End Class",
 index:=1)
+        End Function
+
+        <WorkItem(39001, "https://github.com/dotnet/roslyn/issues/39001")>
+        <WorkItem(1064815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064815")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodConditionalAccess5() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?[|.B|]()
+    End Sub
+End Structure",
+"Imports System
+
+Public Structure C
+    Sub Main(a As C?)
+        Dim x As Integer? = a?.B()
+    End Sub
+
+    Private Function B() As Integer
+        Throw New NotImplementedException()
+    End Function
+End Structure")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>

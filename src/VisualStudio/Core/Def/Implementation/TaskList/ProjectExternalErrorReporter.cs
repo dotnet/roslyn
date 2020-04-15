@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             if (errorId == null)
             {
                 // record NFW to see who violates contract.
-                WatsonReporter.Report(new Exception("errorId is null"));
+                WatsonReporter.ReportNonFatal(new Exception("errorId is null"));
                 return false;
             }
 
@@ -327,13 +329,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         }
 
         private string GetErrorId(ExternalError error)
-        {
-            return string.Format("{0}{1:0000}", _errorCodePrefix, error.iErrorID);
-        }
+            => string.Format("{0}{1:0000}", _errorCodePrefix, error.iErrorID);
 
         private static DiagnosticSeverity GetDiagnosticSeverity(ExternalError error)
-        {
-            return error.fError != 0 ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
-        }
+            => error.fError != 0 ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
     }
 }

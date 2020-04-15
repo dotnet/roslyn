@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -97,15 +99,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         public void Dispose()
-        {
-            StopTracking();
-        }
+            => StopTracking();
 
         internal TItem GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {
-                return default;
+                return null;
             }
 
             return _items[index];
@@ -199,9 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected static string GetFileName(string original, string mapped)
-        {
-            return mapped == null ? original : original == null ? mapped : Combine(original, mapped);
-        }
+            => mapped == null ? original : original == null ? mapped : Combine(original, mapped);
 
         private static string Combine(string path1, string path2)
         {
@@ -230,9 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         // we don't use these
         public object Identity(int index)
-        {
-            return null;
-        }
+            => null;
 
         public void StartCaching()
         {

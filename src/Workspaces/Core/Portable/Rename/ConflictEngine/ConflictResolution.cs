@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -55,9 +57,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         internal void UpdateCurrentSolution(Solution solution)
-        {
-            _newSolution = solution;
-        }
+            => _newSolution = solution;
 
         internal async Task RemoveAllRenameAnnotationsAsync(IEnumerable<DocumentId> documentWithRenameAnnotations, AnnotationTable<RenameAnnotation> annotationSet, CancellationToken cancellationToken)
         {
@@ -137,9 +137,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         internal void AddRelatedLocation(RelatedLocation location)
-        {
-            _relatedLocations.Add(location);
-        }
+            => _relatedLocations.Add(location);
 
         internal void AddOrReplaceRelatedLocation(RelatedLocation location)
         {
@@ -181,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             private readonly ConflictResolution _conflictResolution;
 
             public TestAccessor(ConflictResolution conflictResolution)
-            {
-                _conflictResolution = conflictResolution;
-            }
+                => _conflictResolution = conflictResolution;
 
             internal TextSpan GetResolutionTextSpan(
                 TextSpan originalSpan,

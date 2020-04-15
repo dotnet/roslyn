@@ -23,6 +23,7 @@ The following are considered inputs to the compiler for the purpose of determini
 - The default encoding (or the current code page) if the encoding is not specified
 - The existence, non-existence, and contents of files on the compiler's search paths (specified, e.g. by `/lib` or `/recurse`)
 - The CLR platform on which the compiler is run (e.g. the result of `double` arithmetic performed for constant-folding may use excess precision on some platforms).
+- The version of the zlib library that the CLR uses to implement compression (when `/embed` or `/debug:embedded` is used).
 - The value of `%LIBPATH%`, as it can affect analyzer dependency loading.
 
 At the moment the compiler also depends on the time of day and random numbers for GUIDs, so it is not deterministic unless you specify `/deterministic`.

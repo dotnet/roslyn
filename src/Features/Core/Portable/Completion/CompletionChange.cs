@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -80,29 +82,21 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         [Obsolete("Use WithTextChange instead", error: true)]
         public CompletionChange WithTextChanges(ImmutableArray<TextChange> textChanges)
-        {
-            return new CompletionChange(textChanges, NewPosition, IncludesCommitCharacter);
-        }
+            => new CompletionChange(textChanges, NewPosition, IncludesCommitCharacter);
 
         public CompletionChange WithTextChange(TextChange textChange)
-        {
-            return new CompletionChange(textChange, NewPosition, IncludesCommitCharacter);
-        }
+            => new CompletionChange(textChange, NewPosition, IncludesCommitCharacter);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionChange"/> with the <see cref="NewPosition"/> property changed.
         /// </summary>
         public CompletionChange WithNewPosition(int? newPostion)
-        {
-            return new CompletionChange(TextChange, newPostion, IncludesCommitCharacter);
-        }
+            => new CompletionChange(TextChange, newPostion, IncludesCommitCharacter);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionChange"/> with the <see cref="IncludesCommitCharacter"/> property changed.
         /// </summary>
         public CompletionChange WithIncludesCommitCharacter(bool includesCommitCharacter)
-        {
-            return new CompletionChange(TextChange, NewPosition, includesCommitCharacter);
-        }
+            => new CompletionChange(TextChange, NewPosition, includesCommitCharacter);
     }
 }

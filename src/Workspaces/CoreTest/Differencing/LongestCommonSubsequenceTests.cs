@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Text;
@@ -14,24 +16,16 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         private class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
         {
             protected override bool ItemsEqual(string oldSequence, int oldIndex, string newSequence, int newIndex)
-            {
-                return oldSequence[oldIndex] == newSequence[newIndex];
-            }
+                => oldSequence[oldIndex] == newSequence[newIndex];
 
             public IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(string oldSequence, string newSequence)
-            {
-                return GetMatchingPairs(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => GetMatchingPairs(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
             public IEnumerable<SequenceEdit> GetEdits(string oldSequence, string newSequence)
-            {
-                return GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => GetEdits(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
 
             public double ComputeDistance(string oldSequence, string newSequence)
-            {
-                return ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
-            }
+                => ComputeDistance(oldSequence, oldSequence.Length, newSequence, newSequence.Length);
         }
 
         private void VerifyMatchingPairs(IEnumerable<KeyValuePair<int, int>> actualPairs, string expectedPairsStr)

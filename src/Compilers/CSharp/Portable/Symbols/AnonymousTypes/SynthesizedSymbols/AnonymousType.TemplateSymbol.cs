@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -433,6 +435,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AttributeUsageInfo.Null;
             }
 
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+            internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -455,14 +461,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 string displayString;
                 if (this.Properties.Length == 0)
                 {
-                    displayString = "\\{ }";
+                    displayString = "{ }";
                 }
                 else
                 {
                     var builder = PooledStringBuilder.GetInstance();
                     var sb = builder.Builder;
 
-                    sb.Append("\\{ ");
+                    sb.Append("{ ");
                     int displayCount = Math.Min(this.Properties.Length, 10);
 
                     for (var fieldIndex = 0; fieldIndex < displayCount; fieldIndex++)

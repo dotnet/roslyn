@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -18,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         AbstractIntroduceVariableService<CSharpIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeDeclarationSyntax, QueryExpressionSyntax, NameSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpIntroduceVariableService()
         {
         }
@@ -45,19 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         }
 
         protected override bool IsInParameterInitializer(ExpressionSyntax expression)
-        {
-            return expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.Parameter);
-        }
+            => expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.Parameter);
 
         protected override bool IsInConstructorInitializer(ExpressionSyntax expression)
-        {
-            return expression.GetAncestorOrThis<ConstructorInitializerSyntax>() != null;
-        }
+            => expression.GetAncestorOrThis<ConstructorInitializerSyntax>() != null;
 
         protected override bool IsInAutoPropertyInitializer(ExpressionSyntax expression)
-        {
-            return expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.PropertyDeclaration);
-        }
+            => expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.PropertyDeclaration);
 
         protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)
         {
@@ -132,18 +130,18 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         }
 
         protected override IEnumerable<SyntaxNode> GetContainingExecutableBlocks(ExpressionSyntax expression)
-        {
-            return expression.GetAncestorsOrThis<BlockSyntax>();
-        }
+            => expression.GetAncestorsOrThis<BlockSyntax>();
 
         protected override IList<bool> GetInsertionIndices(TypeDeclarationSyntax destination, CancellationToken cancellationToken)
-        {
-            return destination.GetInsertionIndices(cancellationToken);
-        }
+            => destination.GetInsertionIndices(cancellationToken);
 
         protected override bool CanReplace(ExpressionSyntax expression)
+            => true;
+
+        protected override bool IsExpressionInStaticLocalFunction(ExpressionSyntax expression)
         {
-            return true;
+            var localFunction = expression.GetAncestor<LocalFunctionStatementSyntax>();
+            return localFunction != null && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
 
         protected override TNode RewriteCore<TNode>(

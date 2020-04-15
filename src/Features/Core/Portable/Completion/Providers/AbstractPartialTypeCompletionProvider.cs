@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractPartialTypeCompletionProvider : CommonCompletionProvider
+    internal abstract partial class AbstractPartialTypeCompletionProvider : LSPCompletionProvider
     {
         protected AbstractPartialTypeCompletionProvider()
         {
@@ -105,9 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool InSameProject(INamedTypeSymbol symbol, Compilation compilation)
-        {
-            return symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
-        }
+            => symbol.DeclaringSyntaxReferences.Any(r => compilation.SyntaxTrees.Contains(r.SyntaxTree));
 
         private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, SyntaxContext context)
         {

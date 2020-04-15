@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Simple1()
-        {
-            await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
-        }
+            => await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task DontFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()

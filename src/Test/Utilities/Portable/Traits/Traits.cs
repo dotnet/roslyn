@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -37,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
+            public const string CodeActionsAddDebuggerDisplay = "CodeActions.AddDebuggerDisplay";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
+            public const string CodeActionsAddExplicitCast = "CodeActions.AddExplicitCast";
             public const string CodeActionsAddFileBanner = "CodeActions.AddFileBanner";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
@@ -57,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConfiguration = "CodeActions.Configuration";
             public const string CodeActionsConvertAnonymousTypeToClass = "CodeActions.ConvertAnonymousTypeToClass";
             public const string CodeActionsConvertAnonymousTypeToTuple = "CodeActions.ConvertAnonymousTypeToTuple";
+            public const string CodeActionsConvertBetweenRegularAndVerbatimString = "CodeActions.ConvertBetweenRegularAndVerbatimString";
             public const string CodeActionsConvertForEachToFor = "CodeActions.ConvertForEachToFor";
             public const string CodeActionsConvertForEachToQuery = "CodeActions.ConvertForEachToQuery";
             public const string CodeActionsConvertForToForEach = "CodeActions.ConvertForToForEach";
@@ -78,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsFixAllOccurrences = "CodeActions.FixAllOccurrences";
             public const string CodeActionsFixReturnType = "CodeActions.FixReturnType";
             public const string CodeActionsFullyQualify = "CodeActions.FullyQualify";
+            public const string CodeActionsGenerateComparisonOperators = "CodeActions.GenerateComparisonOperators";
             public const string CodeActionsGenerateConstructor = "CodeActions.GenerateConstructor";
             public const string CodeActionsGenerateConstructorFromMembers = "CodeActions.GenerateConstructorFromMembers";
             public const string CodeActionsGenerateDefaultConstructors = "CodeActions.GenerateDefaultConstructors";
@@ -142,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsReplacePropertyWithMethods = "CodeActions.ReplacePropertyWithMethods";
             public const string CodeActionsResolveConflictMarker = "CodeActions.ResolveConflictMarker";
             public const string CodeActionsReverseForStatement = "CodeActions.ReverseForStatement";
+            public const string CodeActionsSimplifyConditional = "CodeActions.SimplifyConditional";
             public const string CodeActionsSimplifyInterpolation = "CodeActions.SimplifyInterpolation";
             public const string CodeActionsSimplifyThisOrMe = "CodeActions.SimplifyThisOrMe";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
@@ -197,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string DebuggingLocationName = "Debugging.LocationName";
             public const string DebuggingNameResolver = "Debugging.NameResolver";
             public const string DebuggingProximityExpressions = "Debugging.ProximityExpressions";
+            public const string DecompiledSource = nameof(DecompiledSource);
             public const string Diagnostics = nameof(Diagnostics);
             public const string DisposeAnalysis = nameof(DisposeAnalysis);
             public const string DocCommentFormatting = nameof(DocCommentFormatting);

@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -25,9 +26,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // GetDocument will return null for locations in #load'ed trees.
                 // TODO:  Remove this check and add logic to fetch the #load'ed tree's
                 // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
+                // TODO: the assert is also commented out becase generated syntax trees won't
+                // have a document until https://github.com/dotnet/roslyn/issues/42823 is fixed
                 if (originalDocument == null)
                 {
-                    Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                    // Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
                     continue;
                 }
 
@@ -71,9 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            return SpecializedTasks.EmptyImmutableArray<Project>();
-        }
+            => SpecializedTasks.EmptyImmutableArray<Project>();
 
         public Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,

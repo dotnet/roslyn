@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -20,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
         {
-            Debug.Assert((oldNode == null || oldNode.Equals(default)) == (kind == EditKind.Insert));
-            Debug.Assert((newNode == null || newNode.Equals(default)) == (kind == EditKind.Delete));
+            Debug.Assert((oldNode == null || oldNode.Equals(null)) == (kind == EditKind.Insert));
+            Debug.Assert((newNode == null || newNode.Equals(null)) == (kind == EditKind.Delete));
 
-            Debug.Assert((oldNode == null || oldNode.Equals(default)) ||
-                         (newNode == null || newNode.Equals(default)) ||
+            Debug.Assert((oldNode == null || oldNode.Equals(null)) ||
+                         (newNode == null || newNode.Equals(null)) ||
                          !comparer.TreesEqual(oldNode, newNode));
 
             _comparer = comparer;
@@ -60,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         public TNode NewNode => _newNode;
 
         public override bool Equals(object obj)
-        {
-            return obj is Edit<TNode> && Equals((Edit<TNode>)obj);
-        }
+            => obj is Edit<TNode> && Equals((Edit<TNode>)obj);
 
         public bool Equals(Edit<TNode> other)
         {
@@ -111,8 +111,6 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         private string DisplayPosition(TNode node)
-        {
-            return "@" + _comparer.GetSpan(node).Start;
-        }
+            => "@" + _comparer.GetSpan(node).Start;
     }
 }

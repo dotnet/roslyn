@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,13 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -44,6 +45,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool CanIntroduceVariableFor(TExpressionSyntax expression);
         protected abstract bool CanReplace(TExpressionSyntax expression);
 
+        protected abstract bool IsExpressionInStaticLocalFunction(TExpressionSyntax expression);
+
         protected abstract Task<Document> IntroduceQueryLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken);
         protected abstract Task<Document> IntroduceLocalAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
         protected abstract Task<Document> IntroduceFieldAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool isConstant, CancellationToken cancellationToken);
@@ -52,9 +55,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract int DetermineConstantInsertPosition(TTypeDeclarationSyntax oldDeclaration, TTypeDeclarationSyntax newDeclaration);
 
         protected virtual bool BlockOverlapsHiddenPosition(SyntaxNode block, CancellationToken cancellationToken)
-        {
-            return block.OverlapsHiddenPosition(cancellationToken);
-        }
+            => block.OverlapsHiddenPosition(cancellationToken);
 
         public async Task<CodeAction> IntroduceVariableAsync(
             Document document,
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
 
-                return default;
+                return null;
             }
         }
 
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 ? DetermineConstantInsertPosition(oldType, newType)
                 : DetermineFieldInsertPosition(oldType, newType);
 
-            var legalInsertionIndices = this.GetInsertionIndices(oldType, cancellationToken);
+            var legalInsertionIndices = GetInsertionIndices(oldType, cancellationToken);
             if (legalInsertionIndices[preferredInsertionIndex])
             {
                 return preferredInsertionIndex;
@@ -256,7 +257,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
             var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
             var semanticModel = semanticDocument.SemanticModel;
@@ -267,8 +267,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var declaringType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken);
             var reservedNames = declaringType.GetMembers().Select(m => m.Name);
 
-            return syntaxFacts.ToIdentifierToken(
-                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+            return semanticFacts.GenerateUniqueName(baseName, reservedNames);
         }
 
         protected static SyntaxToken GenerateUniqueLocalName(
@@ -352,6 +351,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         return IsInstanceMemberReference(currentOperation);
                     }
 
+                    // If the original expression is within a static local function, further checks are unnecessary since our scope has already been narrowed down to within the local function.
+                    // If the original expression is not within a static local function, we need to further check whether the expression we're comparing against is within a static local
+                    // function. If so, the expression is not a valid match since we cannot refer to instance variables from within static local functions.
+                    if (!IsExpressionInStaticLocalFunction(expressionInOriginal))
+                    {
+                        return !IsExpressionInStaticLocalFunction(nodeInCurrent);
+                    }
+
                     return true;
                 }
             }
@@ -372,13 +379,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             CancellationToken cancellationToken)
             where TNode : SyntaxNode
         {
-            var syntaxFacts = originalDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var generator = SyntaxGenerator.GetGenerator(originalDocument.Document);
             var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, withinNodeInCurrent, allOccurrences, cancellationToken);
 
             // Parenthesize the variable, and go and replace anything we find with it.
             // NOTE: we do not want elastic trivia as we want to just replace the existing code 
             // as is, while preserving the trivia there.  We do not want to update it.
-            var replacement = syntaxFacts.Parenthesize(variableName, includeElasticTrivia: false)
+            var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
                                          .WithAdditionalAnnotations(Formatter.Annotation);
 
             return RewriteCore(withinNodeInCurrent, replacement, matches);
@@ -435,7 +442,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return anonymousMethodParameters;
         }
 
-        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatements(
+        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatementsAsync(
             SemanticDocument semanticDocument,
             ISet<TExpressionSyntax> matches,
             CancellationToken cancellationToken)

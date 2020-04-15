@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,9 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal static class PropertyGenerator
     {
         public static bool CanBeGenerated(IPropertySymbol property)
-        {
-            return property.IsIndexer || property.Parameters.Length == 0;
-        }
+            => property.IsIndexer || property.Parameters.Length == 0;
 
         private static MemberDeclarationSyntax LastPropertyOrField(
             SyntaxList<MemberDeclarationSyntax> members)
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var initializer = CodeGenerationPropertyInfo.GetInitializer(property) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
-                : default;
+                : null;
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: property.Name.ToIdentifierToken(),
                 accessorList: accessorList,
-                expressionBody: default,
+                expressionBody: null,
                 initializer: initializer);
 
             propertyDeclaration = UseExpressionBodyIfDesired(

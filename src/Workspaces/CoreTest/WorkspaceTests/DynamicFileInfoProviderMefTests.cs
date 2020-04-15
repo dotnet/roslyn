@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal class TestDynamicFileInfoProvider : IDynamicFileInfoProvider
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestDynamicFileInfoProvider()
             {
             }
@@ -65,19 +68,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public event EventHandler<string> Updated;
 
             public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
-            {
-                return Task.FromResult<DynamicFileInfo>(null);
-            }
+                => Task.FromResult<DynamicFileInfo>(null);
 
             public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             private void OnUpdate()
-            {
-                Updated?.Invoke(this, "test");
-            }
+                => Updated?.Invoke(this, "test");
         }
         #endregion
     }

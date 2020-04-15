@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -525,9 +527,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPartial()
-        {
-            await VerifyKeywordAsync(@"partial $$");
-        }
+            => await VerifyKeywordAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedPartial()
@@ -539,9 +539,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAbstract()
-        {
-            await VerifyKeywordWithRefsAsync(@"abstract $$");
-        }
+            => await VerifyKeywordWithRefsAsync(@"abstract $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedAbstract()
@@ -553,15 +551,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterInternal()
-        {
-            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"internal $$");
-        }
+            => await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"internal $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterInternal_Interactive()
-        {
-            await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"internal $$");
-        }
+            => await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"internal $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedInternal()
@@ -573,15 +567,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPublic()
-        {
-            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"public $$");
-        }
+            => await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPublic_Interactive()
-        {
-            await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"public $$");
-        }
+            => await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedPublic()
@@ -630,9 +620,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterSealed()
-        {
-            await VerifyKeywordWithRefsAsync(@"sealed $$");
-        }
+            => await VerifyKeywordWithRefsAsync(@"sealed $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedSealed()
@@ -644,15 +632,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStatic()
-        {
-            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"static $$");
-        }
+            => await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"static $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStatic_Interactive()
-        {
-            await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"static $$");
-        }
+            => await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"static $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStatic_InClass()
@@ -664,15 +648,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStaticPublic()
-        {
-            await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"static public $$");
-        }
+            => await VerifyKeywordWithRefsAsync(SourceCodeKind.Regular, @"static public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStaticPublic_Interactive()
-        {
-            await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"static public $$");
-        }
+            => await VerifyKeywordWithRefsAsync(SourceCodeKind.Script, @"static public $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedStaticPublic()

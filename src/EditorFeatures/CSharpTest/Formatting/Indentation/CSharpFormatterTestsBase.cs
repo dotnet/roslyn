@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +24,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     [UseExportProvider]
-    public class CSharpFormatterTestsBase : CoreFormatterTestsBase
+    public class CSharpFormatterTestsBase : CSharpFormattingEngineTestBase
     {
         protected const string HtmlMarkup = @"<html>
     <body>
@@ -30,9 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
     </body>
 </html>";
         protected const int BaseIndentationOfNugget = 8;
-
-        internal override string GetLanguageName()
-            => LanguageNames.CSharp;
 
         protected static async Task<int> GetSmartTokenFormatterIndentationWorkerAsync(
             TestWorkspace workspace,
@@ -102,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         {
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
-            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
             if (baseIndentation.HasValue)
             {

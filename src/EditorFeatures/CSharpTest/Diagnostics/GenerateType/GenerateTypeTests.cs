@@ -1,13 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2732,7 +2732,7 @@ class Base
     protected int I;
 }",
 index: 1,
-options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -2981,7 +2981,7 @@ class Base
     public int I { get; protected set; }
 }",
 index: 1,
-options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
@@ -3060,7 +3060,7 @@ class Base
     protected int I { get; set; }
 }",
 index: 1,
-options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3091,7 +3091,7 @@ internal class T
     }
 }",
 index: 1,
-options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
+options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error));
         }
 
         #endregion
@@ -5353,32 +5353,50 @@ internal class Class
 }}",
     index: 1);
         }
-    }
-
-    public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
-    {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateTypeCodeFixProvider());
-
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
-            => FlattenActions(codeActions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        [WorkItem(13211, "https://github.com/dotnet/roslyn/issues/13211")]
-        public async Task TestGenerateOffOfIncompleteMember()
+        [WorkItem(270, "https://github.com/dotnet/roslyn/issues/270")]
+        public async Task TestGenerateInIsExpression()
         {
             await TestInRegularAndScriptAsync(
-@"class Class
+@"using System;
+ 
+class Program
 {
-    public [|Goo|]
+    static void Main(Exception p)
+    {
+        bool result = p is [|SampleType|];
+    }
 }",
-@"class Class
+@"using System;
+using System.Runtime.Serialization;
+
+class Program
 {
-    public Goo
+    static void Main(Exception p)
+    {
+        bool result = p is SampleType;
+    }
 }
 
-internal class Goo
+[Serializable]
+internal class SampleType : Exception
 {
+    public SampleType()
+    {
+    }
+
+    public SampleType(string message) : base(message)
+    {
+    }
+
+    public SampleType(string message, Exception innerException) : base(message, innerException)
+    {
+    }
+
+    protected SampleType(SerializationInfo info, StreamingContext context) : base(info, context)
+    {
+    }
 }",
 index: 1);
         }

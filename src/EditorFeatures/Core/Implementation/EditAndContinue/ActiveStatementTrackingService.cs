@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -36,14 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public event Action<bool>? TrackingSpansChanged;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ActiveStatementTrackingService()
         {
         }
 
         private void OnTrackingSpansChanged(bool leafChanged)
-        {
-            TrackingSpansChanged?.Invoke(leafChanged);
-        }
+            => TrackingSpansChanged?.Invoke(leafChanged);
 
         public void StartTracking(EditSession editSession)
         {
@@ -75,14 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         public IEnumerable<ActiveStatementTextSpan> GetSpans(SourceText source)
-        {
-            return _session?.GetSpans(source) ?? SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
-        }
+            => _session?.GetSpans(source) ?? SpecializedCollections.EmptyEnumerable<ActiveStatementTextSpan>();
 
         public void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans)
-        {
-            _session?.UpdateActiveStatementSpans(source, spans);
-        }
+            => _session?.UpdateActiveStatementSpans(source, spans);
 
         private sealed class TrackingSession
         {
@@ -140,9 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             private void DocumentOpened(object sender, DocumentEventArgs e)
-            {
-                _ = DocumentOpenedAsync(e.Document);
-            }
+                => _ = DocumentOpenedAsync(e.Document);
 
             private async Task DocumentOpenedAsync(Document document)
             {
@@ -194,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     var lastCommittedSolution = _editSession.DebuggingSession.LastCommittedSolution;
                     var currentSolution = _editSession.DebuggingSession.Workspace.CurrentSolution;
-                    var activeSpansToTrack = ArrayBuilder<(Document, Document, ITextSnapshot, ImmutableArray<ActiveStatement>)>.GetInstance();
+                    using var _ = ArrayBuilder<(Document, Document, ITextSnapshot, ImmutableArray<ActiveStatement>)>.GetInstance(out var activeSpansToTrack);
 
                     foreach (var (documentId, documentActiveStatements) in baseActiveStatements.DocumentMap)
                     {
@@ -228,8 +223,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                             TrackActiveSpansNoLock(baseDocument, document, snapshot, documentActiveStatements);
                         }
                     }
-
-                    activeSpansToTrack.Free();
 
                     _service.OnTrackingSpansChanged(leafChanged: true);
                 }
@@ -313,9 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             private void SetTrackingSpansNoLock(DocumentId documentId, ActiveStatementTrackingSpan[]? spans)
-            {
-                _trackingSpans[documentId] = spans;
-            }
+                => _trackingSpans[documentId] = spans;
 
             private static ActiveStatementTrackingSpan[] CreateTrackingSpans(ITextSnapshot snapshot, ImmutableArray<ActiveStatement> documentActiveStatements)
             {
@@ -330,9 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             private static ActiveStatementTrackingSpan CreateTrackingSpan(ITextSnapshot snapshot, Span span, ActiveStatementFlags flags)
-            {
-                return new ActiveStatementTrackingSpan(snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeExclusive), flags);
-            }
+                => new ActiveStatementTrackingSpan(snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeExclusive), flags);
 
             public bool TryGetSpan(ActiveStatementId id, SourceText source, out TextSpan span)
             {

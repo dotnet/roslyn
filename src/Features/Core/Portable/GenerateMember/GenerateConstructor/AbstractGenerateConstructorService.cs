@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,11 +36,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             => default;
 
         protected abstract string GenerateNameForArgument(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
-        protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) { return null; }
+        protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
         protected abstract RefKind GetRefKind(TArgumentSyntax argument);
         protected abstract bool IsNamedArgument(TArgumentSyntax argument);
         protected abstract ITypeSymbol GetArgumentType(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);
-        protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) { return null; }
+        protected virtual ITypeSymbol GetAttributeArgumentType(SemanticModel semanticModel, TAttributeArgumentSyntax argument, CancellationToken cancellationToken) => null;
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {

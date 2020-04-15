@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading;
@@ -32,12 +34,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         {
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var characterTyped = ";";
             var locationTyped = locations["type"].Single();
-            var documentText = await solution.GetDocumentFromURI(locationTyped.Uri).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(locationTyped.Uri).GetTextAsync();
 
-            var results = await RunFormatDocumentOnTypeAsync(solution, characterTyped, locationTyped);
+            var results = await RunFormatDocumentOnTypeAsync(workspace.CurrentSolution, characterTyped, locationTyped);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }

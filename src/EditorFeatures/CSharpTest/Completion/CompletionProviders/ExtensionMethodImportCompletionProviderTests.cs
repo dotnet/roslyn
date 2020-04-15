@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -6,10 +8,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -25,24 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool IsExpandedCompletion { get; set; } = true;
 
-        protected override void SetWorkspaceOptions(TestWorkspace workspace)
+        protected override OptionSet WithChangedOptions(OptionSet options)
         {
-            workspace.Options = workspace.Options
+            return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
-        protected override ExportProvider GetExportProvider()
-        {
-            return ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
-                .CreateExportProvider();
-        }
+        protected override ComposableCatalog GetExportCatalog()
+            => base.GetExportCatalog().WithPart(typeof(TestExperimentationService));
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new ExtensionMethodImportCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(ExtensionMethodImportCompletionProvider);
 
         public enum ReferenceType
         {
@@ -73,34 +70,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             get
             {
-                var predefinedTypes = new List<List<string>>
-                {
-                    new List<string>()
-                    { "int", "Int32", "System.Int32" },
-                    new List<string>()
-                    { "float", "Single", "System.Single" },
-                    new List<string>()
-                    { "uint", "UInt32", "System.UInt32" },
-                    new List<string>()
-                    { "bool", "Boolean", "System.Boolean"},
-                    new List<string>()
-                    { "string", "String", "System.String"},
-                    new List<string>()
-                    { "object", "Object", "System.Object"},
-                };
-
+                var predefinedTypes = new List<string>() { "string", "String", "System.String" };
                 var arraySuffixes = new[] { "", "[]", "[,]" };
 
-                foreach (var group in predefinedTypes)
+                foreach (var type1 in predefinedTypes)
                 {
-                    foreach (var type1 in group)
+                    foreach (var type2 in predefinedTypes)
                     {
-                        foreach (var type2 in group)
+                        foreach (var suffix in arraySuffixes)
                         {
-                            foreach (var suffix in arraySuffixes)
-                            {
-                                yield return new List<object>() { type1 + suffix, type2 + suffix };
-                            }
+                            yield return new List<object>() { type1 + suffix, type2 + suffix };
                         }
                     }
                 }
@@ -152,7 +131,7 @@ namespace Baz
 
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -190,7 +169,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -228,7 +207,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -266,7 +245,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -304,7 +283,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -341,7 +320,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -379,7 +358,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  displayTextSuffix: "<>",
@@ -418,7 +397,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -456,7 +435,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -494,7 +473,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -538,7 +517,7 @@ namespace Baz
     }}
 }}";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -581,7 +560,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -627,7 +606,7 @@ namespace Baz
     }}
 }}";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -674,7 +653,7 @@ namespace Baz
     }}
 }}";
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  displayTextSuffix: "<>",
@@ -713,56 +692,9 @@ namespace Baz
 }";
 
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemIsAbsentAsync(
+            await VerifyImportItemIsAbsentAsync(
                  markup,
                  "ExtentionMethod",
-                 inlineDescription: "Foo");
-        }
-
-        [InlineData(ReferenceType.Project)]
-        [InlineData(ReferenceType.Metadata)]
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestConflictingInternalExtensionMethods_NoIVT_InReference(ReferenceType refType)
-        {
-            var file1 = @"
-using System;
-
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
-
-namespace Foo
-{
-    internal static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}
-
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
-
-            var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
-                 markup,
-                 "ExtentionMethod",
-                 glyph: (int)Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
         }
 
@@ -795,7 +727,7 @@ namespace Baz
 }";
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
@@ -832,7 +764,7 @@ namespace Baz
 }";
 
             var markup = GetMarkup(file2, file1, refType);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodInternal,
@@ -873,7 +805,7 @@ namespace Baz
 }";
             var markup = GetMarkup(file2, file1, refType);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -911,7 +843,7 @@ namespace Baz
 }}";
             var markup = GetMarkup(file2, file1, ReferenceType.None);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -978,7 +910,7 @@ namespace Baz
 }}";
             var markup = GetMarkup(file2, file1, ReferenceType.Project, currentLanguage: LanguageNames.CSharp, referencedLanguage: LanguageNames.VisualBasic);
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -1013,7 +945,7 @@ namespace Baz
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Root");
 
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -1048,7 +980,7 @@ namespace Baz
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp);
 
-            await VerifyTypeImportItemIsAbsentAsync(
+            await VerifyImportItemIsAbsentAsync(
                  markup,
                  "ExtentionMethod",
                  inlineDescription: "");
@@ -1084,7 +1016,7 @@ namespace Baz
 }";
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
@@ -1134,7 +1066,7 @@ namespace Baz
 }}";
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  expectedMethodname,
                  glyph: (int)Glyph.ExtensionMethodInternal,
@@ -1176,7 +1108,7 @@ namespace Baz
 }}";
 
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemExistsAsync(
+            await VerifyImportItemExistsAsync(
                  markup,
                  "ExtMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
@@ -1211,20 +1143,236 @@ namespace Baz
     }
 }";
             var markup = GetMarkup(file2, file1, ReferenceType.None);
-            await VerifyTypeImportItemIsAbsentAsync(
+            await VerifyImportItemIsAbsentAsync(
                  markup,
                  "ExtMethod",
                  inlineDescription: "Foo");
         }
 
-        private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
+        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestExtensionMethodInPartialClass()
         {
-            return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
+            var file1 = @"
+using System;
+
+namespace Foo
+{
+    public static partial class ExtensionClass
+    {
+        public static bool ExtentionMethod1(this string x)
+            => true;
+    }
+}";
+            var currentFile = @"
+using System;
+
+namespace Foo
+{
+    public static partial class ExtensionClass
+    {
+        public static bool ExtentionMethod2(this string x)
+            => true;
+    }
+}
+
+namespace Baz
+{
+    public class Bat
+    {
+        public void M(string x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = CreateMarkupForSingleProject(currentFile, file1, LanguageNames.CSharp);
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod1",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod2",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
         }
 
-        private Task VerifyTypeImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
+        [InlineData(ReferenceType.Project, "public")]
+        [InlineData(ReferenceType.Project, "internal")]
+        [InlineData(ReferenceType.Metadata, "public")]  // We don't support internal extension method from non-source references.
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        public async Task TestExtensionMethodsInConflictingTypes(ReferenceType refType, string accessibility)
         {
-            return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
+            var refDoc = $@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{{
+    {accessibility} static class ExtensionClass
+    {{
+        public static bool ExtentionMethod1(this int x)
+            => true;
+    }}
+}}";
+            var srcDoc = @"
+using System;
+
+namespace Foo
+{
+    internal static class ExtensionClass
+    {
+        public static bool ExtentionMethod2(this int x)
+            => true;
+    }
+}
+
+namespace Baz
+{
+    public class Bat
+    {
+        public void M(int x)
+        {
+            x.$$
         }
+    }
+}";
+
+            var markup = refType switch
+            {
+                ReferenceType.Project => CreateMarkupForProjectWithProjectReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                ReferenceType.Metadata => CreateMarkupForProjectWithMetadataReference(srcDoc, refDoc, LanguageNames.CSharp, LanguageNames.CSharp),
+                _ => null,
+            };
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod1",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod2",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42325, "https://github.com/dotnet/roslyn/issues/42325")]
+        public async Task TestExtensionMethodsInConflictingTypesFromReferencedProjects()
+        {
+            var refDoc1 = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{
+    internal static class ExtensionClass
+    {
+        public static bool ExtentionMethod1(this int x)
+            => true;
+    }
+}";
+            var refDoc2 = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{
+    internal static class ExtensionClass
+    {
+        public static bool ExtentionMethod2(this int x)
+            => true;
+    }
+}";
+            var srcDoc = @"
+using System;
+
+namespace Baz
+{
+    public class Bat
+    {
+        public void M(int x)
+        {
+            x.$$
+        }
+    }
+}";
+
+            var markup = CreateMarkupForProjectWithMultupleProjectReferences(srcDoc, LanguageNames.CSharp, LanguageNames.CSharp, new[] { refDoc1, refDoc2 });
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod1",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+
+            await VerifyImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod2",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        [InlineData("", "", false)]
+        [InlineData("", "public", true)]
+        [InlineData("public", "", false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCSharpDefaultAccessibility(string containerAccessibility, string methodAccessibility, bool isAvailable)
+        {
+            var file1 = $@"
+using System;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
+
+namespace Foo
+{{
+    {containerAccessibility} static class ExtensionClass
+    {{
+        {methodAccessibility} static bool ExtentionMethod(this int x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference: true);
+
+            if (isAvailable)
+            {
+                await VerifyImportItemExistsAsync(
+                     markup,
+                     "ExtentionMethod",
+                     glyph: (int)Glyph.ExtensionMethodPublic,
+                     inlineDescription: "Foo");
+            }
+            else
+            {
+                await VerifyImportItemIsAbsentAsync(
+                     markup,
+                     "ExtentionMethod",
+                     inlineDescription: "Foo");
+            }
+        }
+        private Task VerifyImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
+            => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);
+
+        private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
+            => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
     }
 }

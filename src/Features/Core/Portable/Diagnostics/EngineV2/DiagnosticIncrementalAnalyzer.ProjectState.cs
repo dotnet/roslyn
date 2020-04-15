@@ -1,15 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -38,19 +37,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool FromBuild => _lastResult.FromBuild;
 
             public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
-            {
-                return _lastResult.DocumentIdsOrEmpty;
-            }
+                => _lastResult.DocumentIdsOrEmpty;
 
             public bool IsEmpty()
-            {
-                return _lastResult.IsEmpty;
-            }
+                => _lastResult.IsEmpty;
 
             public bool IsEmpty(DocumentId documentId)
-            {
-                return IsEmpty(_lastResult, documentId);
-            }
+                => IsEmpty(_lastResult, documentId);
 
             /// <summary>
             /// Return all diagnostics for the given project stored in this state
@@ -453,9 +446,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
-            {
-                return !result.DocumentIdsOrEmpty.Contains(documentId);
-            }
+                => !result.DocumentIdsOrEmpty.Contains(documentId);
 
             // we have this builder to avoid allocating collections unnecessarily.
             private sealed class Builder
@@ -477,24 +468,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 public void AddSyntaxLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _syntaxLocals, documentId, diagnostics);
-                }
+                    => Add(ref _syntaxLocals, documentId, diagnostics);
 
                 public void AddSemanticLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _semanticLocals, documentId, diagnostics);
-                }
+                    => Add(ref _semanticLocals, documentId, diagnostics);
 
                 public void AddNonLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    Add(ref _nonLocals, documentId, diagnostics);
-                }
+                    => Add(ref _nonLocals, documentId, diagnostics);
 
                 public void AddOthers(ImmutableArray<DiagnosticData> diagnostics)
-                {
-                    _others = diagnostics;
-                }
+                    => _others = diagnostics;
 
                 private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                 {
@@ -509,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public DiagnosticAnalysisResult ToResult()
                 {
-                    return DiagnosticAnalysisResult.CreateFromSerialization(_project, _version,
+                    return DiagnosticAnalysisResult.Create(_project, _version,
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,

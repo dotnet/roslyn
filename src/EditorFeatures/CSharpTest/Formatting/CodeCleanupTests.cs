@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -14,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -250,14 +254,21 @@ namespace M
 
         protected static async Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(
-                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(CodeCleanupAnalyzerProviderService)))
-                .CreateExportProvider();
+            var exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic).CreateExportProvider();
 
             using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider);
-            workspace.Options = workspace.Options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst);
-            workspace.Options = workspace.Options.WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups);
+
+            var solution = workspace.CurrentSolution
+                .WithOptions(workspace.Options
+                    .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
+                    .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups))
+                .WithAnalyzerReferences(new[]
+                {
+                    new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, FromFileLoader.Instance),
+                    new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, FromFileLoader.Instance)
+                });
+
+            workspace.TryApplyChanges(solution);
 
             // register this workspace to solution crawler so that analyzer service associate itself with given workspace
             var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
@@ -278,46 +289,16 @@ namespace M
             Assert.Equal(expected, actual.ToString());
         }
 
-        [Export(typeof(IHostDiagnosticAnalyzerPackageProvider))]
-        private class CodeCleanupAnalyzerProviderService : IHostDiagnosticAnalyzerPackageProvider
+        public class FromFileLoader : IAnalyzerAssemblyLoader
         {
-            private readonly HostDiagnosticAnalyzerPackage _info;
+            public static FromFileLoader Instance = new FromFileLoader();
 
-            [ImportingConstructor]
-            public CodeCleanupAnalyzerProviderService()
+            public void AddDependencyLocation(string fullPath)
             {
-                _info = new HostDiagnosticAnalyzerPackage("CodeCleanup", GetCompilerAnalyzerAssemblies().Distinct().ToImmutableArray());
             }
 
-            private static IEnumerable<string> GetCompilerAnalyzerAssemblies()
-            {
-                yield return typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location;
-                yield return typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location;
-            }
-
-            public IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader()
-            {
-                return FromFileLoader.Instance;
-            }
-
-            public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
-            {
-                return ImmutableArray.Create(_info);
-            }
-
-            public class FromFileLoader : IAnalyzerAssemblyLoader
-            {
-                public static FromFileLoader Instance = new FromFileLoader();
-
-                public void AddDependencyLocation(string fullPath)
-                {
-                }
-
-                public Assembly LoadFromPath(string fullPath)
-                {
-                    return Assembly.LoadFrom(fullPath);
-                }
-            }
+            public Assembly LoadFromPath(string fullPath)
+                => Assembly.LoadFrom(fullPath);
         }
     }
 }

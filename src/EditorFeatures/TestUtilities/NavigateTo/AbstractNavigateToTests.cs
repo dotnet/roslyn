@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -110,7 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         {
             using (var workspace = SetupWorkspace(content, createTrackingService))
             {
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
                 await body(workspace);
             }
         }
@@ -223,9 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             private readonly Workspace _workspace;
 
             public FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
+                => _workspace = workspace;
 
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
@@ -242,9 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             private readonly Workspace _workspace;
 
             public FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
+                => _workspace = workspace;
 
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
@@ -265,9 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public DocumentTrackingServiceFactory()
-            {
-                FactoryMethod = null;
-            }
+                => FactoryMethod = null;
 
             internal Func<HostWorkspaceServices, IDocumentTrackingService> FactoryMethod
             {
@@ -277,9 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            {
-                return FactoryMethod?.Invoke(workspaceServices);
-            }
+                => FactoryMethod?.Invoke(workspaceServices);
         }
     }
 }

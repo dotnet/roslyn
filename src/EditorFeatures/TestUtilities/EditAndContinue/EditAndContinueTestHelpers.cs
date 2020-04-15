@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -359,9 +361,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         private static string DisplaySpan(string source, TextSpan span)
-        {
-            return span + ": [" + source.Substring(span.Start, span.Length).Replace("\r\n", " ") + "]";
-        }
+            => span + ": [" + source.Substring(span.Start, span.Length).Replace("\r\n", " ") + "]";
 
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
@@ -384,9 +384,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)
-        {
-            return ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot));
-        }
+            => ToMatchingPairs(match.Matches.Where(partners => partners.Key != match.OldRoot));
 
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
         {
@@ -412,8 +410,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal static class EditScriptTestUtils
     {
         public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
-        {
-            AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
-        }
+            => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
     }
 }

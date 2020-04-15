@@ -1,14 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
@@ -19,9 +26,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SnapshotSerializationTestBase
     {
-        internal static Solution CreateFullSolution(HostServices hostServices = null)
+        internal static Solution CreateFullSolution(HostServices? hostServices = null)
         {
             var solution = new AdhocWorkspace(hostServices ?? Host.Mef.MefHostServices.DefaultHost).CurrentSolution;
+            var languages = ImmutableHashSet.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
+            var solutionOptions = solution.Workspace.Services.GetRequiredService<IOptionService>().GetSerializableOptionsSnapshot(languages);
+            solution = solution.WithOptions(solutionOptions);
+
             var csCode = "class A { }";
             var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
             var document1 = project1.AddDocument("Document1", SourceText.From(csCode));
@@ -30,13 +41,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project2 = document1.Project.Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic);
             var document2 = project2.AddDocument("Document2", SourceText.From(vbCode));
 
-            project1 = document2.Project.Solution.GetProject(project1.Id).AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")));
-            project1 = project1.AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
-            project1 = project1.AddAnalyzerReference(new AnalyzerFileReference(typeof(object).Assembly.Location, new TestAnalyzerAssemblyLoader()));
+            solution = document2.Project.Solution.GetRequiredProject(project1.Id)
+                .AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")))
+                .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+                .AddAnalyzerReference(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path1"), new TestAnalyzerAssemblyLoader()))
+                .AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project.Solution;
 
-            project1 = project1.AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project;
-
-            return project1.Solution.AddAnalyzerConfigDocuments(
+            return solution
+                .WithAnalyzerReferences(new[] { new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader()) })
+                .AddAnalyzerConfigDocuments(
                 ImmutableArray.Create(
                     DocumentInfo.Create(
                         DocumentId.CreateNewId(project1.Id),
@@ -47,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static async Task VerifyAssetAsync(IRemotableDataService service, SolutionStateChecksums solutionObject)
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
-                service, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes,
+                service, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes,
                 (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
 
             foreach (var projectChecksum in solutionObject.Projects)
@@ -130,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // re-create asset from object
             var syncService = (RemotableDataServiceFactory.Service)service;
-            var syncObject = await syncService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var syncObject = (await syncService.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             var recoveredValue = await service.GetValueAsync<T>(checksum).ConfigureAwait(false);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, syncService.Serializer_TestOnly);
@@ -264,23 +277,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         internal static async Task VerifySynchronizationObjectInServiceAsync(IRemotableDataService snapshotService, RemotableData syncObject)
-        {
-            await VerifyChecksumInServiceAsync(snapshotService, syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
-        }
+            => await VerifyChecksumInServiceAsync(snapshotService, syncObject.Checksum, syncObject.Kind).ConfigureAwait(false);
 
         internal static async Task VerifyChecksumInServiceAsync(IRemotableDataService snapshotService, Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Assert.NotNull(checksum);
             var service = (RemotableDataServiceFactory.Service)snapshotService;
-            var otherObject = await service.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+            var otherObject = (await service.TestOnly_GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }
 
         internal static void SynchronizationObjectEqual<T>(T checksumObject1, T checksumObject2) where T : RemotableData
-        {
-            ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
-        }
+            => ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
 
         internal static void ChecksumEqual(Checksum checksum1, WellKnownSynchronizationKind kind1, Checksum checksum2, WellKnownSynchronizationKind kind2)
         {
@@ -295,9 +304,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
+                => Assembly.LoadFrom(fullPath);
         }
     }
 }

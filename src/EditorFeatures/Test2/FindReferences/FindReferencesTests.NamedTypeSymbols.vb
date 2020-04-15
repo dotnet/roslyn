@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 
@@ -2080,7 +2082,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 class Class2
@@ -2112,7 +2114,7 @@ namespace PortableClassLibrary
 }]]>
         </Document>
     </Project>
-    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="C#" AssemblyName="MainLibrary" CommonReferences="true">
         <ProjectReference>PortableClassLibrary</ProjectReference>
         <Document><![CDATA[
 using System;

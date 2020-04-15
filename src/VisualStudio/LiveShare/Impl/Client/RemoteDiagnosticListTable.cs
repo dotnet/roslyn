@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,24 +26,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private bool _workspaceDiagnosticsPresent = false;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public RemoteDiagnosticListTable(
             SVsServiceProvider serviceProvider, RemoteLanguageServiceWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            this(workspace, diagnosticService, provider)
-        {
-            ConnectWorkspaceEvents();
-        }
-
-        private RemoteDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
-            : base(workspace, provider)
+            base(workspace, provider)
         {
             _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
+
+            ConnectWorkspaceEvents();
         }
 
         public void UpdateWorkspaceDiagnosticsPresent(bool diagnosticsPresent)
-        {
-            _workspaceDiagnosticsPresent = diagnosticsPresent;
-        }
+            => _workspaceDiagnosticsPresent = diagnosticsPresent;
 
         protected override void AddTableSourceIfNecessary(Solution solution)
         {
@@ -68,8 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         protected override void ShutdownSource()
-        {
-            _source.Shutdown();
-        }
+            => _source.Shutdown();
     }
 }

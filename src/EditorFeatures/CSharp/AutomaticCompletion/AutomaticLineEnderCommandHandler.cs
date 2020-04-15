@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -31,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
     internal class AutomaticLineEnderCommandHandler : AbstractAutomaticLineEnderCommandHandler
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations)
@@ -39,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         }
 
         protected override void NextAction(IEditorOperations editorOperation, Action nextAction)
-        {
-            editorOperation.InsertNewLine();
-        }
+            => editorOperation.InsertNewLine();
 
         protected override bool TreatAsReturn(Document document, int position, CancellationToken cancellationToken)
         {
@@ -165,9 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// wrap field in type
         /// </summary>
         private string WrapInType(string textToParse)
-        {
-            return "class C { " + textToParse + " }";
-        }
+            => "class C { " + textToParse + " }";
 
         /// <summary>
         /// make sure current location is okay to put semicolon
@@ -255,9 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// check whether the line is located at the end of the line
         /// </summary>
         private static bool LocatedAtTheEndOfLine(TextLine line, SyntaxToken lastToken)
-        {
-            return lastToken.IsMissing && lastToken.Span.End == line.EndIncludingLineBreak;
-        }
+            => lastToken.IsMissing && lastToken.Span.End == line.EndIncludingLineBreak;
 
         /// <summary>
         /// find owning usings/field/statement/expression-bodied member of the given position
@@ -285,8 +283,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         }
 
         private static SyntaxNode OwningNode(SyntaxNode n)
-        {
-            return n is ArrowExpressionClauseSyntax ? n.Parent : n;
-        }
+            => n is ArrowExpressionClauseSyntax ? n.Parent : n;
     }
 }

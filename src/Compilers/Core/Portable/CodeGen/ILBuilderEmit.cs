@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -595,6 +597,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 case ConstantValueTypeDiscriminator.UInt64:
                     EmitLongConstant(value.Int64Value);
                     break;
+                case ConstantValueTypeDiscriminator.NInt:
+                    EmitNativeIntConstant(value.Int32Value);
+                    break;
+                case ConstantValueTypeDiscriminator.NUInt:
+                    EmitNativeIntConstant(value.UInt32Value);
+                    break;
                 case ConstantValueTypeDiscriminator.Single:
                     EmitSingleConstant(value.SingleValue);
                     break;
@@ -690,6 +698,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 EmitOpCode(ILOpCode.Ldc_i8);
                 EmitInt64(value);
+            }
+        }
+
+        internal void EmitNativeIntConstant(long value)
+        {
+            if (value >= int.MinValue && value <= int.MaxValue)
+            {
+                EmitIntConstant((int)value);
+                EmitOpCode(ILOpCode.Conv_i);
+            }
+            else if (value >= uint.MinValue && value <= uint.MaxValue)
+            {
+                EmitIntConstant(unchecked((int)value));
+                EmitOpCode(ILOpCode.Conv_u);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(value);
             }
         }
 

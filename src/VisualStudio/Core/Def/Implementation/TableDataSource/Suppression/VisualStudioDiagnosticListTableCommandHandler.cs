@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.Shell;
@@ -34,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IWpfTableControl _tableControl;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticListTableCommandHandler(
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace,
@@ -136,19 +140,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void OnAddSuppressionsInSource(object sender, EventArgs e)
-        {
-            _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: true, projectHierarchyOpt: null);
-        }
+            => _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: true, projectHierarchyOpt: null);
 
         private void OnAddSuppressionsInSuppressionFile(object sender, EventArgs e)
-        {
-            _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: false, projectHierarchyOpt: null);
-        }
+            => _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: false, projectHierarchyOpt: null);
 
         private void OnRemoveSuppressions(object sender, EventArgs e)
-        {
-            _suppressionFixService.RemoveSuppressions(selectedErrorListEntriesOnly: true, projectHierarchyOpt: null);
-        }
+            => _suppressionFixService.RemoveSuppressions(selectedErrorListEntriesOnly: true, projectHierarchyOpt: null);
 
         private void OnErrorListSetSeveritySubMenuStatus(object sender, EventArgs e)
         {

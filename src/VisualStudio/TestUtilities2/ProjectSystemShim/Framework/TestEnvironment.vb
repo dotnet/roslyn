@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
 Imports System.ComponentModel.Composition.Hosting
@@ -8,7 +10,9 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
@@ -18,12 +22,11 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBro
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -48,7 +51,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                                             GetType(VisualStudioRuleSetManagerFactory),
                                             GetType(VsMetadataServiceFactory),
                                             GetType(VisualStudioMetadataReferenceManagerFactory),
-                                            GetType(MockWorkspaceEventListenerProvider))
+                                            GetType(MockWorkspaceEventListenerProvider),
+                                            GetType(MockDiagnosticUpdateSourceRegistrationService),
+                                            GetType(HostDiagnosticUpdateSource))
 
                 Return catalog
             End Function)
@@ -85,6 +90,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Inherits VisualStudioWorkspaceImpl
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New(exportProvider As Composition.ExportProvider)
                 MyBase.New(exportProvider,
                            exportProvider.GetExportedValue(Of MockServiceProvider))
@@ -161,6 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Public MockMonitorSelection As IVsMonitorSelection
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New(exportProvider As Composition.ExportProvider)
                 _exportProvider = exportProvider
             End Sub

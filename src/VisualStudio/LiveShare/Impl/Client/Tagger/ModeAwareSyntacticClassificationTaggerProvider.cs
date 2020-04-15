@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -17,11 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
     [Export(typeof(ITaggerProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(StringConstants.CSharpLspContentTypeName)]
+    [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class CSharpModeAwareSyntacticClassificationTaggerProvider : ModeAwareSyntacticClassificationTaggerProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpModeAwareSyntacticClassificationTaggerProvider(
             Lazy<TextMateClassificationTaggerProvider> textMateProvider,
             Lazy<SyntacticClassificationTaggerProvider> serverProvider,
@@ -34,11 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
     [Export(typeof(ITaggerProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(StringConstants.VBLspContentTypeName)]
+    [ContentType(ContentTypeNames.VBLspContentTypeName)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class VBModeAwareSyntacticClassificationTaggerProvider : ModeAwareSyntacticClassificationTaggerProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VBModeAwareSyntacticClassificationTaggerProvider(
             Lazy<TextMateClassificationTaggerProvider> textMateProvider,
             Lazy<SyntacticClassificationTaggerProvider> serverProvider,

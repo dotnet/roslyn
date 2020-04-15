@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -135,7 +137,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (parameter.RefKind == RefKind.In)
                 {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
+                }
+            }
+        }
+
+        internal static void EnsureNativeIntegerAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
+        {
+            // These parameters might not come from a compilation (example: lambdas evaluated in EE).
+            // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
+            if (compilation == null)
+            {
+                return;
+            }
+
+            foreach (var parameter in parameters)
+            {
+                if (parameter.TypeWithAnnotations.ContainsNativeInteger())
+                {
+                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
                 }
             }
         }
@@ -155,11 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
                     {
-                        compilation.EnsureNullableAttributeExists(diagnostics, parameter.GetNonNullSyntaxNode().Location, modifyCompilation);
+                        compilation.EnsureNullableAttributeExists(diagnostics, GetParameterLocation(parameter), modifyCompilation);
                     }
                 }
             }
         }
+
+        private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
 
         private static void CheckParameterModifiers(
             ParameterSyntax parameter, DiagnosticBag diagnostics)
@@ -354,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterSyntax parameterSyntax,
             SourceParameterSymbol parameter,
             BoundExpression defaultExpression,
+            BoundExpression convertedExpression,
             DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
@@ -409,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     hasErrors = true;
                 }
             }
-            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression))
+            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression.IsTypelessNew() ? convertedExpression : defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
                 diagnostics.Add(ErrorCode.ERR_DefaultValueMustBeConstant, parameterSyntax.Default.Value.Location, parameterSyntax.Identifier.ValueText);

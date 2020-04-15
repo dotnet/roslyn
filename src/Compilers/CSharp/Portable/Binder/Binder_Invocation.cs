@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -956,6 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var boundWithErrors = unboundLambda.BindForErrorRecovery();
                                 diagnostics.AddRange(boundWithErrors.Diagnostics);
                                 break;
+                            case BoundUnconvertedObjectCreationExpression _:
                             case BoundTupleLiteral _:
                                 // Tuple literals can contain unbound lambdas or switch expressions.
                                 _ = BindToNaturalType(argument, diagnostics);
@@ -1548,6 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            boundArgument = BindToNaturalType(boundArgument, diagnostics, reportNoTargetType: false);
             return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
         }
 

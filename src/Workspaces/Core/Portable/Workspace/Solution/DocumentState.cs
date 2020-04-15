@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -307,24 +310,15 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        /// <summary>
-        /// True if the content (text/tree) has changed.
-        /// </summary>
         public bool HasContentChanged(DocumentState oldState)
         {
             return oldState._treeSource != _treeSource
-                || oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
+                || HasTextChanged(oldState, ignoreUnchangeableDocument: false);
         }
 
-        /// <summary>
-        /// True if the Text has changed
-        /// </summary>
+        [Obsolete("Use TextDocumentState.HasTextChanged")]
         public bool HasTextChanged(DocumentState oldState)
-        {
-            return oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
-        }
+            => HasTextChanged(oldState, ignoreUnchangeableDocument: false);
 
         public DocumentState UpdateParseOptions(ParseOptions options)
         {
@@ -381,14 +375,23 @@ namespace Microsoft.CodeAnalysis
             return this.SetParseOptions(this.ParseOptions.WithKind(kind));
         }
 
+        // TODO: https://github.com/dotnet/roslyn/issues/37125
+        // if FilePath is null, then this will change the name of the underlying tree, but we aren't producing a new tree in that case.
         public DocumentState UpdateName(string name)
+            => UpdateAttributes(Attributes.With(name: name));
+
+        public DocumentState UpdateFolders(IReadOnlyList<string> folders)
+            => UpdateAttributes(Attributes.With(folders: folders));
+
+        private DocumentState UpdateAttributes(DocumentInfo.DocumentAttributes attributes)
         {
-            // TODO: if FilePath is null, then this will change the name of the underlying tree, but we aren't producing a new tree in that case.
+            Debug.Assert(attributes != Attributes);
+
             return new DocumentState(
                 _languageServices,
                 solutionServices,
                 Services,
-                Attributes.With(name: name),
+                attributes,
                 _options,
                 _analyzerConfigSetSource,
                 sourceText,
@@ -396,23 +399,10 @@ namespace Microsoft.CodeAnalysis
                 _treeSource);
         }
 
-        public DocumentState UpdateFolders(IList<string> folders)
+        public DocumentState UpdateFilePath(string? filePath)
         {
-            return new DocumentState(
-                _languageServices,
-                solutionServices,
-                Services,
-                Attributes.With(folders: folders),
-                _options,
-                _analyzerConfigSetSource,
-                sourceText,
-                TextAndVersionSource,
-                _treeSource);
-        }
-
-        public DocumentState UpdateFilePath(string filePath)
-        {
-            var newAttributes = this.Attributes.With(filePath: filePath);
+            var newAttributes = Attributes.With(filePath: filePath);
+            Debug.Assert(newAttributes != Attributes);
 
             // TODO: it's overkill to fully reparse the tree if we had the tree already; all we have to do is update the
             // file path and diagnostic options for that tree.
@@ -463,14 +453,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
-        {
-            return (DocumentState)base.UpdateText(newText, mode);
-        }
+            => (DocumentState)base.UpdateText(newText, mode);
 
         public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
-        {
-            return (DocumentState)base.UpdateText(newTextAndVersion, mode);
-        }
+            => (DocumentState)base.UpdateText(newTextAndVersion, mode);
 
         protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
         {
@@ -508,14 +494,9 @@ namespace Microsoft.CodeAnalysis
                 treeSource: newTreeSource);
         }
 
-        public new DocumentState UpdateText(TextLoader loader, PreservationMode mode)
-        {
-            return UpdateText(loader, text: null, mode: mode);
-        }
-
         internal DocumentState UpdateText(TextLoader loader, SourceText? text, PreservationMode mode)
         {
-            var documentState = (DocumentState)base.UpdateText(loader, mode);
+            var documentState = (DocumentState)UpdateText(loader, mode);
 
             // If we are given a SourceText directly, fork it since we didn't pass that into the base.
             // TODO: understand why this is being called this way at all. It seems we only have a text in a specific case
@@ -540,11 +521,6 @@ namespace Microsoft.CodeAnalysis
 
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
         {
-            if (newRoot == null)
-            {
-                throw new ArgumentNullException(nameof(newRoot));
-            }
-
             if (!SupportsSyntaxTree)
             {
                 throw new InvalidOperationException();
@@ -667,6 +643,16 @@ namespace Microsoft.CodeAnalysis
             return (lazyTextAndVersion, TreeAndVersion.Create(tree, treeVersion));
         }
 
+        internal override Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)
+        {
+            if (TextAndVersionSource is TreeTextSource)
+            {
+                return SpecializedTasks.Null<Diagnostic>();
+            }
+
+            return base.GetLoadDiagnosticAsync(cancellationToken);
+        }
+
         private VersionStamp GetNewerVersion()
         {
             if (TextAndVersionSource.TryGetValue(out var textAndVersion))
@@ -764,9 +750,10 @@ namespace Microsoft.CodeAnalysis
             {
                 var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
 
-                if (!RoslynString.IsNullOrEmpty(projectPath))
+                if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
                 {
-                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
                 }
             }
 

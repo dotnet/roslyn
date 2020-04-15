@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Threading;
@@ -60,9 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             /// actually revert back to the paused state where no work proceeds.
             /// </summary>
             public IDisposable GetEvaluatingScope()
-            {
-                return new ProgressStatusRAII(this);
-            }
+                => new ProgressStatusRAII(this);
 
             private void ChangeProgressStatus(ref int referenceCount, ProgressStatus status)
             {
@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             private void OnProgressChanged(ProgressData progressData)
-            {
-                ProgressChanged?.Invoke(this, progressData);
-            }
+                => ProgressChanged?.Invoke(this, progressData);
 
             private struct ProgressStatusRAII : IDisposable
             {
@@ -90,9 +88,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 public void Dispose()
-                {
-                    _owner.Pause();
-                }
+                    => _owner.Pause();
             }
         }
 

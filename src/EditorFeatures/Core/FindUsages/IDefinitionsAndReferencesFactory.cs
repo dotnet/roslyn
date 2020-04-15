@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -18,6 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
+    using static FindUsagesHelpers;
+
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
         DefinitionItem GetThirdPartyDefinitionItem(
@@ -28,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal class DefaultDefinitionsAndReferencesFactory : IDefinitionsAndReferencesFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultDefinitionsAndReferencesFactory()
         {
         }
@@ -92,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 definition = definition.OriginalDefinition;
             }
 
-            var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
-            var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();
+            var displayParts = GetDisplayParts(definition);
+            var nameDisplayParts = GetNameDisplayParts(definition);
 
             var tags = GlyphTags.GetTags(definition.GetGlyph());
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
@@ -202,37 +208,5 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }
-
-        private static SymbolDisplayFormat GetFormat(ISymbol definition)
-        {
-            return definition.Kind == SymbolKind.Parameter
-                ? s_parameterDefinitionFormat
-                : s_definitionFormat;
-        }
-
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
-            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
-
-        private static readonly SymbolDisplayFormat s_definitionFormat =
-            new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                parameterOptions: SymbolDisplayParameterOptions.IncludeType,
-                propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword | SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword,
-                localOptions: SymbolDisplayLocalOptions.IncludeType,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeContainingType |
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
-                    SymbolDisplayMemberOptions.IncludeModifiers |
-                    SymbolDisplayMemberOptions.IncludeParameters |
-                    SymbolDisplayMemberOptions.IncludeType,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-        private static readonly SymbolDisplayFormat s_parameterDefinitionFormat = s_definitionFormat
-            .AddParameterOptions(SymbolDisplayParameterOptions.IncludeName);
     }
 }

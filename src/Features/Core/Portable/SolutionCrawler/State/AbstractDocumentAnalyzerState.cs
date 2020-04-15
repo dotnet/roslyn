@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Threading;
@@ -13,28 +15,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
         protected abstract string StateName { get; }
 
         protected override DocumentId GetCacheKey(Document value)
-        {
-            return value.Id;
-        }
+            => value.Id;
 
         protected override Solution GetSolution(Document value)
-        {
-            return value.Project.Solution;
-        }
+            => value.Project.Solution;
 
         protected override bool ShouldCache(Document value)
-        {
-            return value.IsOpen();
-        }
+            => value.IsOpen();
 
         protected override Task<Stream> ReadStreamAsync(IPersistentStorage storage, Document value, CancellationToken cancellationToken)
-        {
-            return storage.ReadStreamAsync(value, StateName, cancellationToken);
-        }
+            => storage.ReadStreamAsync(value, StateName, cancellationToken);
 
         protected override Task<bool> WriteStreamAsync(IPersistentStorage storage, Document value, Stream stream, CancellationToken cancellationToken)
-        {
-            return storage.WriteStreamAsync(value, StateName, stream, cancellationToken);
-        }
+            => storage.WriteStreamAsync(value, StateName, stream, cancellationToken);
     }
 }

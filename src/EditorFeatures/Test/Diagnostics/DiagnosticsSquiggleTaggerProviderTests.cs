@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -31,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task Test_TagSourceDiffer()
         {
             var analyzer = new Analyzer();
-            var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
+            var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
             {
-                { LanguageNames.CSharp, new DiagnosticAnalyzer[] { analyzer } }
+                {  LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) }
             };
 
             using var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default);
@@ -130,8 +132,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             diagnosticService.CreateDiagnosticAndFireEvents(Location.Create(tree, span));
 
             using var disposable = tagger as IDisposable;
-            await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask();
-            await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateExpeditedWaitTask();
+            await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
+            await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
 
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -164,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
-            await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask();
-            await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateExpeditedWaitTask();
+            await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
+            await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
 
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -183,9 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
             public MockDiagnosticService(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
+                => _workspace = workspace;
 
             public IEnumerable<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
             {
@@ -233,14 +233,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             private DocumentId GetDocumentId()
-            {
-                return _workspace.CurrentSolution.Projects.Single().Documents.Single().Id;
-            }
+                => _workspace.CurrentSolution.Projects.Single().Documents.Single().Id;
 
             private ProjectId GetProjectId()
-            {
-                return _workspace.CurrentSolution.Projects.Single().Id;
-            }
+                => _workspace.CurrentSolution.Projects.Single().Id;
         }
 
         private class Analyzer : DiagnosticAnalyzer
@@ -264,9 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             public void ChangeSeverity()
-            {
-                _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
-            }
+                => _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
         }
     }
 }

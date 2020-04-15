@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -142,11 +144,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
 
             using var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider));
+
             var solution = previewWorkspace.CurrentSolution
-.AddProject("project", "project.dll", LanguageNames.CSharp)
-.AddDocument("document", "class { }")
-.Project
-.Solution;
+                .WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) })
+                .AddProject("project", "project.dll", LanguageNames.CSharp)
+                .AddDocument("document", "class { }")
+                .Project
+                .Solution;
 
             Assert.True(previewWorkspace.TryApplyChanges(solution));
 
@@ -169,6 +173,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             //// preview workspace and owner of the solution now share solution and its underlying text buffer
             var hostDocument = workspace.Projects.First().Documents.First();
 
+            previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
+
             //// enable preview diagnostics
             previewWorkspace.EnableDiagnostic();
 
@@ -184,6 +190,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
             using var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
+
             // set up listener to wait until diagnostic finish running
             var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
 
@@ -198,8 +207,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             // create a diff view
             WpfTestRunner.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
 
-            var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-            using var diffView = (DifferenceViewerPreview)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None));
+            var previewFactoryService = (PreviewFactoryService)workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
+            using var diffView = await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None);
             var foregroundService = workspace.GetService<IForegroundNotificationService>();
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
@@ -250,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         private void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
-            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, null, previewWorkspace.CurrentSolution);
+            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, previewWorkspace.CurrentSolution);
             var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
             var compilation = project.GetCompilationAsync().Result;

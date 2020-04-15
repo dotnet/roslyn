@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -54,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
         {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions.AllOptions);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.Concat(CodeStyleOptions.AllOptions));
+            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.AllOptions.As<IOption>());
+            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions).As<IOption>());
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

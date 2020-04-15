@@ -1,7 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -43,14 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
         }
 
         private static bool IsValidTerm(ExpressionType type)
-        {
-            return (type & ExpressionType.ValidTerm) == ExpressionType.ValidTerm;
-        }
+            => (type & ExpressionType.ValidTerm) == ExpressionType.ValidTerm;
 
         private static bool IsValidExpression(ExpressionType type)
-        {
-            return (type & ExpressionType.ValidExpression) == ExpressionType.ValidExpression;
-        }
+            => (type & ExpressionType.ValidExpression) == ExpressionType.ValidExpression;
 
         private static void AddSubExpressionTerms(ExpressionSyntax expression, IList<string> terms, ref ExpressionType expressionType)
         {

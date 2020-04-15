@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 return;
 
             var (document, _, cancellationToken) = context;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var member = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             Contract.ThrowIfNull(member);
 
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         private static (SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
         {
-            for (var node = token.Parent; node != null; node = node.Parent)
+            for (SyntaxNode? node = token.Parent; node != null; node = node.Parent)
             {
                 var result = node switch
                 {

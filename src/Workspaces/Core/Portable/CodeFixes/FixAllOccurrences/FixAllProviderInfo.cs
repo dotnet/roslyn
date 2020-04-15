@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -98,9 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-            {
-                return _supportedDiagnosticIds.Contains(diagnostic.Id);
-            }
+                => _supportedDiagnosticIds.Contains(diagnostic.Id);
         }
 
         private class SuppressionFixerFixAllProviderInfo : FixAllProviderInfo
@@ -117,9 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             public override bool CanBeFixed(Diagnostic diagnostic)
-            {
-                return _canBeSuppressedOrUnsuppressed(diagnostic);
-            }
+                => _canBeSuppressedOrUnsuppressed(diagnostic);
         }
     }
 }

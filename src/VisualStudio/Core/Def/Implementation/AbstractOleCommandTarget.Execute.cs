@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -136,14 +138,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private void ExecuteBrowserBackward(Action executeNextCommandTarget)
-        {
-            ExecuteBrowserNavigationCommand(navigateBackward: true, executeNextCommandTarget);
-        }
+            => ExecuteBrowserNavigationCommand(navigateBackward: true, executeNextCommandTarget);
 
         private void ExecuteBrowserForward(Action executeNextCommandTarget)
-        {
-            ExecuteBrowserNavigationCommand(navigateBackward: false, executeNextCommandTarget);
-        }
+            => ExecuteBrowserNavigationCommand(navigateBackward: false, executeNextCommandTarget);
 
         private void ExecuteBrowserNavigationCommand(bool navigateBackward, Action executeNextCommandTarget)
         {

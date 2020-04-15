@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -1491,7 +1493,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
@@ -1539,7 +1541,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
@@ -3219,7 +3221,7 @@ class C
     {
         return b != true;
     }
-}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions2.FalseWithSuggestionEnforcement));
         }
 
         [Fact, WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
@@ -3751,7 +3753,7 @@ csharp_style_expression_bodied_methods = false:silent
             await TestInRegularAndScriptAsync(input, expected);
         }
 
-        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDontApply()
         {
             var input = @"
@@ -3798,7 +3800,7 @@ class Program1
             await TestInRegularAndScriptAsync(input, expected);
         }
 
-        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        [Fact, WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209"), Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDontApply_GetName()
         {
             var input = @"
@@ -3841,6 +3843,91 @@ class MethodExtraction
 </Workspace>";
 
             await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestOnInvalidUsingStatement_MultipleStatements()
+        {
+            var input = @"
+class C
+{
+    void M()
+    {
+        [|var v = 0;
+        using System;|]
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        {|Rename:NewMethod|}();
+    }
+
+    private static void NewMethod()
+    {
+        var v = 0;
+        using System;
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestMissingOnInvalidUsingStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|using System;|]
+    }
+}");
+        }
+
+        [Fact, WorkItem(19461, "https://github.com/dotnet/roslyn/issues/19461")]
+        public async Task TestLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System;
+
+class Program
+{
+    void M()
+    {
+        int y = 0;
+        [|var x = local();
+        
+        int local()
+        {
+            return y;
+        }|]
+    }
+}", @"
+using System;
+
+class Program
+{
+    void M()
+    {
+        int y = 0;
+        {|Rename:NewMethod|}(y);
+    }
+
+    private static void NewMethod(int y)
+    {
+        var x = local();
+
+        int local()
+        {
+            return y;
+        }
+    }
+}");
         }
     }
 }

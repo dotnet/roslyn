@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -171,9 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 
         public SourceTextContainer GetOpenTextContainer()
-        {
-            return this.SubjectBuffer.AsTextContainer();
-        }
+            => this.SubjectBuffer.AsTextContainer();
 
         public void Dispose()
         {
@@ -401,9 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         private bool TryGetWhitespaceOnlyChanges(string leftText, string rightText, List<TextSpan> spansInLeftText, List<TextSpan> spansInRightText)
-        {
-            return TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
-        }
+            => TryGetWhitespaceGroup(leftText, spansInLeftText) && TryGetWhitespaceGroup(rightText, spansInRightText) && spansInLeftText.Count == spansInRightText.Count;
 
         private bool TryGetWhitespaceGroup(string text, List<TextSpan> groups)
         {

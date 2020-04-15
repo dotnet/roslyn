@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -76,8 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                                           .Distinct()
                                           .Take(MaxResults);
 
-                var displayService = project.LanguageServices.GetService<ISymbolDisplayService>();
-                var codeActions = CreateActions(document, node, semanticModel, proposedContainers, displayService).ToImmutableArray();
+                var codeActions = CreateActions(document, node, semanticModel, proposedContainers).ToImmutableArray();
 
                 if (codeActions.Length > 1)
                 {
@@ -96,12 +97,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         private IEnumerable<CodeAction> CreateActions(
             Document document, SyntaxNode node, SemanticModel semanticModel,
-            IEnumerable<INamespaceOrTypeSymbol> proposedContainers,
-            ISymbolDisplayService displayService)
+            IEnumerable<INamespaceOrTypeSymbol> proposedContainers)
         {
             foreach (var container in proposedContainers)
             {
-                var containerName = displayService.ToMinimalDisplayString(semanticModel, node.SpanStart, container);
+                var containerName = container.ToMinimalDisplayString(semanticModel, node.SpanStart);
 
                 var name = GetNodeName(document, node);
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
                 var codeAction = new MyCodeAction(
                     $"{containerName}.{memberName}",
-                    c => ProcessNode(document, node, containerName, c));
+                    c => ProcessNodeAsync(document, node, containerName, c));
 
                 yield return codeAction;
             }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             return name;
         }
 
-        private async Task<Document> ProcessNode(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        private async Task<Document> ProcessNodeAsync(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
         {
             var newRoot = await ReplaceNodeAsync(node, containerName, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
@@ -298,9 +298,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         }
 
         private bool HasAccessibleTypes(INamespaceSymbol @namespace, SemanticModel model, CancellationToken cancellationToken)
-        {
-            return Enumerable.Any(@namespace.GetAllTypes(cancellationToken), t => t.IsAccessibleWithin(model.Compilation.Assembly));
-        }
+            => Enumerable.Any(@namespace.GetAllTypes(cancellationToken), t => t.IsAccessibleWithin(model.Compilation.Assembly));
 
         private static IEnumerable<SymbolResult> GetContainers(
             ImmutableArray<SymbolResult> symbols, Compilation compilation)

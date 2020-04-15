@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
@@ -8,9 +10,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 {
     public class RegexPatternDetectorTests
     {
-        private void Match(string value, RegexOptions? expectedOptions = null)
+        private void Match(string value, RegexOptions? expectedOptions = null, string prefix = "//")
         {
-            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(value);
+            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(prefix + value);
             Assert.True(matched);
 
             if (expectedOptions != null)
@@ -19,136 +21,106 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
             }
         }
 
-        private void NoMatch(string value)
+        private void NoMatch(string value, string prefix = "//")
         {
-            var (matched, options) = RegexPatternDetector.TestAccessor.TryMatch(value);
+            var (matched, _) = RegexPatternDetector.TestAccessor.TryMatch(prefix + value);
             Assert.False(matched);
         }
 
         [Fact]
         public void TestSimpleForm()
-        {
-            Match("lang=regex");
-        }
+            => Match("lang=regex");
+
+        [Fact]
+        public void TestSimpleFormVB()
+            => Match("' lang=regex", prefix: "");
+
+        [Fact]
+        public void TestSimpleFormCSharpMultiLine()
+            => Match("/* lang=regex", prefix: "");
 
         [Fact]
         public void TestEndingInP()
-        {
-            Match("lang=regexp");
-        }
+            => Match("lang=regexp");
 
         [Fact]
         public void TestLanguageForm()
-        {
-            Match("language=regex");
-        }
+            => Match("language=regex");
 
         [Fact]
         public void TestLanguageFormWithP()
-        {
-            Match("language=regexp");
-        }
+            => Match("language=regexp");
 
         [Fact]
         public void TestLanguageFullySpelled()
-        {
-            NoMatch("languag=regexp");
-        }
+            => NoMatch("languag=regexp");
 
         [Fact]
         public void TestSpacesAroundEquals()
-        {
-            Match("lang = regex");
-        }
+            => Match("lang = regex");
 
         [Fact]
         public void TestSpacesAroundPieces()
-        {
-            Match(" lang=regex ");
-        }
+            => Match(" lang=regex ");
 
         [Fact]
         public void TestSpacesAroundPiecesAndEquals()
-        {
-            Match(" lang = regex ");
-        }
+            => Match(" lang = regex ");
 
         [Fact]
         public void TestSpaceBetweenRegexAndP()
-        {
-            Match("lang=regex p");
-        }
+            => Match("lang=regex p");
 
         [Fact]
         public void TestPeriodAtEnd()
-        {
-            Match("lang=regex.");
-        }
+            => Match("lang=regex.");
 
         [Fact]
         public void TestNotWithWordCharAtEnd()
-        {
-            NoMatch("lang=regexc");
-        }
+            => NoMatch("lang=regexc");
 
         [Fact]
         public void TestWithNoNWordBeforeStart1()
-        {
-            Match(":lang=regex");
-        }
+            => NoMatch(":lang=regex");
 
         [Fact]
         public void TestWithNoNWordBeforeStart2()
-        {
-            Match(": lang=regex");
-        }
+            => NoMatch(": lang=regex");
 
         [Fact]
         public void TestNotWithWordCharAtStart()
-        {
-            NoMatch("clang=regex");
-        }
+            => NoMatch("clang=regex");
 
         [Fact]
         public void TestOption()
-        {
-            Match("lang=regex,ecmascript", RegexOptions.ECMAScript);
-        }
+            => Match("lang=regex,ecmascript", RegexOptions.ECMAScript);
 
         [Fact]
         public void TestOptionWithSpaces()
-        {
-            Match("lang=regex , ecmascript", RegexOptions.ECMAScript);
-        }
+            => Match("lang=regex , ecmascript", RegexOptions.ECMAScript);
 
         [Fact]
         public void TestOptionFollowedByPeriod()
-        {
-            Match("lang=regex,ecmascript. Explanation", RegexOptions.ECMAScript);
-        }
+            => Match("lang=regex,ecmascript. Explanation", RegexOptions.ECMAScript);
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod()
-        {
-            Match("lang=regex,ecmascript,ignorecase. Explanation", RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
-        }
+            => Match("lang=regex,ecmascript,ignorecase. Explanation", RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         [Fact]
         public void TestMultiOptionFollowedByPeriod_CaseInsensitive()
-        {
-            Match("Language=Regexp,ECMAScript,IgnoreCase. Explanation", RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
-        }
+            => Match("Language=Regexp,ECMAScript,IgnoreCase. Explanation", RegexOptions.ECMAScript | RegexOptions.IgnoreCase);
 
         [Fact]
         public void TestInvalidOption1()
-        {
-            NoMatch("lang=regex,ignore");
-        }
+            => NoMatch("lang=regex,ignore");
 
         [Fact]
         public void TestInvalidOption2()
-        {
-            NoMatch("lang=regex,ecmascript,ignore");
-        }
+            => NoMatch("lang=regex,ecmascript,ignore");
+
+        [Fact]
+        public void TestNotOnDocComment()
+            => NoMatch("/// lang=regex,ignore", prefix: "");
     }
 }

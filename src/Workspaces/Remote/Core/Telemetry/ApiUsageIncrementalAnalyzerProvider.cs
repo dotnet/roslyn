@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -20,14 +24,13 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
     internal sealed class ApiUsageIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ApiUsageIncrementalAnalyzerProvider()
         {
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            return new Analyzer();
-        }
+            => new Analyzer();
 
         private sealed class Analyzer : IIncrementalAnalyzer
         {
@@ -39,12 +42,14 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
             private readonly HashSet<ProjectId> _reported = new HashSet<ProjectId>();
 
-            public void RemoveProject(ProjectId projectId)
+            public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             {
                 lock (_reported)
                 {
                     _reported.Remove(projectId);
                 }
+
+                return Task.CompletedTask;
             }
 
             public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -94,13 +99,25 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     }
                 }
 
-                var groupByAssembly = metadataSymbolUsed.GroupBy(s => s.ContainingAssembly);
-                var apiPerAssembly = groupByAssembly.Select(g => new
+                var groupByAssembly = metadataSymbolUsed.GroupBy(symbol => symbol.ContainingAssembly);
+                var apiPerAssembly = groupByAssembly.Select(assemblyGroup => new
                 {
                     // mark all string as PII (customer data)
-                    AssemblyName = new TelemetryPiiProperty(g.Key.Identity.Name),
-                    AssemblyVersion = g.Key.Identity.Version.ToString(),
-                    Symbols = g.Select(s => s.GetDocumentationCommentId()).Where(id => id != null).Select(id => new TelemetryPiiProperty(id))
+                    AssemblyName = new TelemetryPiiProperty(assemblyGroup.Key.Identity.Name),
+                    AssemblyVersion = assemblyGroup.Key.Identity.Version.ToString(),
+                    Namespaces = assemblyGroup.GroupBy(symbol => symbol.ContainingNamespace)
+                        .Select(namespaceGroup =>
+                        {
+                            var namespaceName = namespaceGroup.Key?.ToString() ?? string.Empty;
+
+                            return new
+                            {
+                                Namespace = new TelemetryPiiProperty(namespaceName),
+                                Symbols = namespaceGroup.Select(symbol => symbol.GetDocumentationCommentId())
+                                    .Where(id => id != null)
+                                    .Select(id => new TelemetryPiiProperty(id))
+                            };
+                        })
                 });
 
                 lock (_reported)
@@ -113,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
                         try
                         {
-                            RoslynServices.SessionOpt?.PostEvent(telemetryEvent);
+                            RoslynServices.TelemetrySession?.PostEvent(telemetryEvent);
                         }
                         catch
                         {
@@ -179,43 +196,28 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             }
 
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return false;
-            }
+                => false;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
-            public void RemoveDocument(DocumentId documentId)
-            {
-            }
+            public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+                => Task.CompletedTask;
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -120,15 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected abstract TLanguageService CreateLanguageService();
 
         protected void RegisterService<T>(Func<CancellationToken, Task<T>> serviceCreator)
-        {
-            AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
-        }
+            => AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
 
         // When registering a language service, we need to take its ComAggregate wrapper.
         protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
-        {
-            AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
-        }
+            => AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
 
         protected override void Dispose(bool disposing)
         {
@@ -172,9 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private async Task<bool> IsInIdeModeAsync(Workspace workspace)
-        {
-            return workspace != null && !await IsInCommandLineModeAsync().ConfigureAwait(true);
-        }
+            => workspace != null && !await IsInCommandLineModeAsync().ConfigureAwait(true);
 
         private async Task<bool> IsInCommandLineModeAsync()
         {
@@ -191,13 +187,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private void EnableRemoteHostClientService()
-        {
-            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
-        }
+            => ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Enable();
 
         private void DisableRemoteHostClientService()
-        {
-            ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
-        }
+            => ((RemoteHostClientServiceFactory.RemoteHostClientService)this.Workspace.Services.GetService<IRemoteHostClientService>()).Disable();
     }
 }

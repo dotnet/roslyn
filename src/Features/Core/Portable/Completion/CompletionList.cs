@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -125,38 +127,28 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         [Obsolete("Not used anymore.  Use WithSpan instead.", error: true)]
         public CompletionList WithDefaultSpan(TextSpan span)
-        {
-            return With(span: span);
-        }
+            => With(span: span);
 
         public CompletionList WithSpan(TextSpan span)
-        {
-            return With(span: span);
-        }
+            => With(span: span);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="Items"/> property changed.
         /// </summary>
         public CompletionList WithItems(ImmutableArray<CompletionItem> items)
-        {
-            return With(items: items);
-        }
+            => With(items: items);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="Rules"/> property changed.
         /// </summary>
         public CompletionList WithRules(CompletionRules rules)
-        {
-            return With(rules: rules);
-        }
+            => With(rules: rules);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionList"/> with the <see cref="SuggestionModeItem"/> property changed.
         /// </summary>
         public CompletionList WithSuggestionModeItem(CompletionItem suggestionModeItem)
-        {
-            return With(suggestionModeItem: suggestionModeItem);
-        }
+            => With(suggestionModeItem: suggestionModeItem);
 
         /// <summary>
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
@@ -173,9 +165,7 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly CompletionList _completionList;
 
             public TestAccessor(CompletionList completionList)
-            {
-                _completionList = completionList;
-            }
+                => _completionList = completionList;
 
             internal bool IsExclusive => _completionList._isExclusive;
         }

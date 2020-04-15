@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -27,17 +29,17 @@ namespace Microsoft.CodeAnalysis.AddImport
         where TSimpleNameSyntax : SyntaxNode
     {
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
+        protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFacts syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
         protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
-        protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFactsService syntaxFactsService, SyntaxNode node);
+        protected abstract bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFacts syntaxFactsService, SyntaxNode node);
         protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
         protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
         protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
+        protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
@@ -476,9 +478,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private static bool NotNull(SymbolReference reference)
-        {
-            return reference.SymbolResult.Symbol != null;
-        }
+            => reference.SymbolResult.Symbol != null;
 
         public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
             Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
@@ -535,11 +535,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
                 AddImportFixKind.PackageSymbol => !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
                     ? new ParentInstallPackageCodeAction(document, fixData, installerService)
-                    : default(CodeAction),
+                    : null,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
+        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 
@@ -548,10 +548,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }
 
-        protected bool AncestorOrSelfIsAwaitExpression(ISyntaxFactsService syntaxFactsService, SyntaxNode node)
+        protected bool AncestorOrSelfIsAwaitExpression(ISyntaxFacts syntaxFactsService, SyntaxNode node)
             => FirstAwaitExpressionAncestor(syntaxFactsService, node) != null;
 
-        private SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFactsService syntaxFactsService, SyntaxNode node)
-            => node.FirstAncestorOrSelf<SyntaxNode>(n => syntaxFactsService.IsAwaitExpression(n));
+        private SyntaxNode FirstAwaitExpressionAncestor(ISyntaxFacts syntaxFactsService, SyntaxNode node)
+            => node.FirstAncestorOrSelf<SyntaxNode, ISyntaxFacts>((n, syntaxFactsService) => syntaxFactsService.IsAwaitExpression(n), syntaxFactsService);
     }
 }

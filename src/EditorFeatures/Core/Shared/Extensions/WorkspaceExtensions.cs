@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -38,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// Update the solution so that the document with the Id has the text changes
         /// </summary>
         internal static void ApplyTextChanges(this Workspace workspace, DocumentId id, TextChange textChange, CancellationToken cancellationToken)
-        {
-            workspace.ApplyTextChanges(id, SpecializedCollections.SingletonEnumerable(textChange), cancellationToken);
-        }
+            => workspace.ApplyTextChanges(id, SpecializedCollections.SingletonEnumerable(textChange), cancellationToken);
 
         internal static Solution UpdateDocument(this Solution solution, DocumentId id, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
         {

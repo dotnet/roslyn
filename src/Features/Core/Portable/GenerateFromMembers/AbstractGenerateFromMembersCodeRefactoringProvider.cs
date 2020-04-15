@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -26,16 +28,16 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedDeclarations = syntaxFacts.GetSelectedFieldsAndProperties(root, textSpan, allowPartialSelection);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
+                tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
 
             if (selectedDeclarations.Length > 0)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var selectedMembers = selectedDeclarations.SelectMany(
-                    d => semanticFacts.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
+                var selectedMembers = selectedDeclarations.Select(
+                    d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
                 if (selectedMembers.Length > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;
@@ -56,25 +58,21 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
 
         private static bool IsReadableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol field: return IsViableField(field);
-                case IPropertySymbol property: return IsViableProperty(property) && !property.IsWriteOnly;
-                default: return false;
-            }
-        }
+                IFieldSymbol field => IsViableField(field),
+                IPropertySymbol property => IsViableProperty(property) && !property.IsWriteOnly,
+                _ => false,
+            };
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
                 // Can use non const fields and properties with setters in them.
-                case IFieldSymbol field: return IsViableField(field) && !field.IsConst;
-                case IPropertySymbol property: return IsViableProperty(property) && property.IsWritableInConstructor();
-                default: return false;
-            }
-        }
+                IFieldSymbol field => IsViableField(field) && !field.IsConst,
+                IPropertySymbol property => IsViableProperty(property) && property.IsWritableInConstructor(),
+                _ => false,
+            };
 
         private static bool IsViableField(IFieldSymbol field)
             => field.AssociatedSymbol == null;
@@ -117,8 +115,6 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
 
             return parameters.ToImmutableAndFree();
         }
-
-        private static readonly char[] s_underscore = { '_' };
 
         protected static readonly SymbolDisplayFormat SimpleFormat =
             new SymbolDisplayFormat(

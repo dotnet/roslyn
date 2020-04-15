@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,9 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal static class ConstructorGenerator
     {
         private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
-        {
-            return LastConstructor(members) ?? LastField(members);
-        }
+            => LastConstructor(members) ?? LastField(members);
 
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
@@ -104,9 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ArgumentListSyntax GenerateArgumentList(ImmutableArray<SyntaxNode> arguments)
-        {
-            return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
-        }
+            => SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
 
         private static BlockSyntax GenerateBlock(
             IMethodSymbol constructor)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -32,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
 
         public ProjectCacheService(Workspace workspace)
-        {
-            _workspace = workspace;
-        }
+            => _workspace = workspace;
 
         public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
         {
@@ -172,9 +172,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             public void Dispose()
-            {
-                _cacheService.DisableCaching(_key, this);
-            }
+                => _cacheService.DisableCaching(_key, this);
 
             internal void CreateStrongReference(object key, object? instance)
             {
@@ -190,9 +188,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             internal void CreateOwnerEntry(ICachedObjectOwner owner)
-            {
-                _ownerObjects.Add(new WeakReference<ICachedObjectOwner>(owner));
-            }
+                => _ownerObjects.Add(new WeakReference<ICachedObjectOwner>(owner));
 
             internal void FreeOwnerEntries()
             {

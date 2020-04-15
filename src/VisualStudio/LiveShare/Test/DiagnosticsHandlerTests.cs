@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -23,12 +25,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {|diagnostic:var|} i = 1;
     }
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
-            var workspace = (TestWorkspace)solution.Workspace;
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var diagnosticLocation = ranges["diagnostic"].First();
+            var diagnosticLocation = locations["diagnostic"].First();
 
-            var _ = await TestHandleAsync<TextDocumentParams, LSP.Diagnostic[]>(solution, CreateTestDocumentParams(diagnosticLocation.Uri));
+            var _ = await TestHandleAsync<TextDocumentParams, LSP.Diagnostic[]>(workspace.CurrentSolution, CreateTestDocumentParams(diagnosticLocation.Uri));
         }
 
         private static TextDocumentParams CreateTestDocumentParams(Uri uri)

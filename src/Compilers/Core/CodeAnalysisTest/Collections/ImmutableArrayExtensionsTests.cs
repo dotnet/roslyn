@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -449,6 +451,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(a.WhereAsArray(i => i % 2 == 0).SequenceEqual(ImmutableArray.Create<int>(0, 2, 4)));
             // Odd.
             Assert.True(a.WhereAsArray(i => i % 2 == 1).SequenceEqual(ImmutableArray.Create<int>(1, 3, 5)));
+        }
+
+        [Fact]
+        public void WhereAsArray_WithArg()
+        {
+            var x = new C();
+            Assert.Same(x, ImmutableArray.Create<object>(x).WhereAsArray((o, arg) => o == arg, x)[0]);
+
+            var a = ImmutableArray.Create(0, 1, 2, 3, 4, 5);
+            AssertEx.Equal(new[] { 3, 4, 5 }, a.WhereAsArray((i, j) => i > j, 2));
         }
 
         private class C

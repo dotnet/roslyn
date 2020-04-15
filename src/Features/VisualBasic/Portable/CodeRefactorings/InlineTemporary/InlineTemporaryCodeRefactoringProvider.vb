@@ -1,6 +1,9 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -18,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         Inherits CodeRefactoringProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -282,8 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 Return localDeclaration.RemoveNode(modifiedIdentifier, SyntaxRemoveOptions.KeepEndOfLine)
             End If
 
-            Contract.Fail("Failed to update local declaration")
-            Return localDeclaration
+            throw ExceptionUtilities.Unreachable
         End Function
 
         Private Function RemoveDefinition(modifiedIdentifier As ModifiedIdentifierSyntax, newBlock As SyntaxNode) As SyntaxNode
@@ -412,7 +415,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             explicitInitializer = explicitInitializer.CastIfPossible(local.Type,
                                                                      modifiedIdentifier.SpanStart,
                                                                      semanticModel,
-                                                                     wasCastAdded)
+                                                                     wasCastAdded,
+                                                                     cancellationToken)
 
             Return explicitInitializer.WithAdditionalAnnotations(s_expressionToInlineAnnotation)
         End Function

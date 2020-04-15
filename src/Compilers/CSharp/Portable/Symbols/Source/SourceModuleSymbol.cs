@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -511,17 +513,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.GetOrCreateData<ModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableContextAttribute))
+            else if (ReportExplicitUseOfReservedAttributes(in arguments,
+                ReservedAttributes.NullableContextAttribute | ReservedAttributes.NullablePublicOnlyAttribute))
             {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullableContextAttribute);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullablePublicOnlyAttribute))
-            {
-                ReportExplicitUseOfNullabilityAttribute(in arguments, AttributeDescription.NullablePublicOnlyAttribute);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
             {
-                attribute.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
+                CSharpAttributeData.DecodeSkipLocalsInitAttribute<ModuleWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
         }
 

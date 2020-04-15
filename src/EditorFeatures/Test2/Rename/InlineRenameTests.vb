@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -187,7 +189,7 @@ class Deconstructable
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInComments, renameInComments)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameFile, renameFile)
-            workspace.Options = optionSet
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
 
             Dim session = StartSession(workspace)
 
@@ -1838,5 +1840,67 @@ End Class
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
         End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenamesCorrectlyWhenCaseChanges()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class [|$$Test1|]
+{
+}
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Delete(New Span(caretPosition, 1))
+                textBuffer.Insert(caretPosition, "t")
+
+                session.Commit()
+                VerifyFileName(workspace, "test1")
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(36063, "https://github.com/dotnet/roslyn/issues/36063")>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function EditBackToOriginalNameThenCommit() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                class [|$$Test1|]
+                                {
+                                    void Blah()
+                                    {
+                                        [|Test1|] f = new [|Test1|]();
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+                textBuffer.Delete(New Span(caretPosition, "Bar".Length))
+
+                Dim committed = session.GetTestAccessor().CommitWorker(previewChanges:=False)
+                Assert.False(committed)
+
+                Await VerifyTagsAreCorrect(workspace, "Test1")
+            End Using
+        End Function
     End Class
 End Namespace

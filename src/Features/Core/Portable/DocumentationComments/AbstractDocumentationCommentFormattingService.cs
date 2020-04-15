@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Text;
@@ -90,9 +92,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             internal TaggedTextStyle Style => _styleStack.Peek();
 
             public void AppendSingleSpace()
-            {
-                _pendingSingleSpace = true;
-            }
+                => _pendingSingleSpace = true;
 
             public void AppendString(string s)
             {
@@ -157,24 +157,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             public void PushNavigationTarget(string target, string hint)
-            {
-                _navigationTargetStack.Push((target, hint));
-            }
+                => _navigationTargetStack.Push((target, hint));
 
             public void PopNavigationTarget()
-            {
-                _navigationTargetStack.Pop();
-            }
+                => _navigationTargetStack.Pop();
 
             public void PushStyle(TaggedTextStyle style)
-            {
-                _styleStack.Push(_styleStack.Peek() | style);
-            }
+                => _styleStack.Push(_styleStack.Peek() | style);
 
             public void PopStyle()
-            {
-                _styleStack.Pop();
-            }
+                => _styleStack.Pop();
 
             public void MarkBeginOrEndPara()
             {
@@ -214,9 +206,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             public string GetText()
-            {
-                return Builder.GetFullText();
-            }
+                => Builder.GetFullText();
 
             private void EmitPendingChars()
             {
@@ -384,26 +374,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (name == DocumentationCommentXmlNames.ListElementName)
             {
                 var rawListType = element.Attribute(DocumentationCommentXmlNames.TypeAttributeName)?.Value;
-                DocumentationCommentListType listType;
-                switch (rawListType)
+                var listType = rawListType switch
                 {
-                    case "table":
-                        listType = DocumentationCommentListType.Table;
-                        break;
-
-                    case "number":
-                        listType = DocumentationCommentListType.Number;
-                        break;
-
-                    case "bullet":
-                        listType = DocumentationCommentListType.Bullet;
-                        break;
-
-                    default:
-                        listType = DocumentationCommentListType.None;
-                        break;
-                }
-
+                    "table" => DocumentationCommentListType.Table,
+                    "number" => DocumentationCommentListType.Number,
+                    "bullet" => DocumentationCommentListType.Bullet,
+                    _ => DocumentationCommentListType.None,
+                };
                 state.PushList(listType);
             }
             else if (name == DocumentationCommentXmlNames.ItemElementName)

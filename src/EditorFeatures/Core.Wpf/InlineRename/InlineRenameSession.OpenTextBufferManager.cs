@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -156,19 +158,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public event Action SpansChanged;
 
             private void RaiseSpansChanged()
-            {
-                this.SpansChanged?.Invoke();
-            }
+                => this.SpansChanged?.Invoke();
 
             internal IEnumerable<RenameTrackingSpan> GetRenameTrackingSpans()
-            {
-                return _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Concat(_conflictResolutionRenameTrackingSpans);
-            }
+                => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Concat(_conflictResolutionRenameTrackingSpans);
 
             internal IEnumerable<SnapshotSpan> GetEditableSpansForSnapshot(ITextSnapshot snapshot)
-            {
-                return _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan.GetSpan(snapshot));
-            }
+                => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan.GetSpan(snapshot));
 
             internal void SetReferenceSpans(IEnumerable<TextSpan> spans)
             {

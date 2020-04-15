@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,9 +33,9 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First(), true);
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), true);
             AssertLocationsEqual(locations["reference"], results);
         }
 
@@ -57,9 +59,9 @@ class B
         var j = someInt + A.{|caret:|}{|reference:someInt|};
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First(), false);
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), false);
             AssertLocationsEqual(locations["reference"], results);
         }
 
@@ -84,9 +86,10 @@ class B
     }
 }"
             };
-            var (solution, locations) = CreateTestSolution(markups);
 
-            var results = await RunFindAllReferencesAsync(solution, locations["caret"].First(), true);
+            using var workspace = CreateTestWorkspace(markups, out var locations);
+
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), true);
             AssertLocationsEqual(locations["reference"], results);
         }
 
@@ -98,9 +101,9 @@ class B
 {
     {|caret:|}
 }";
-            var (solution, ranges) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
 
-            var results = await RunFindAllReferencesAsync(solution, ranges["caret"].First(), true);
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), true);
             Assert.Empty(results);
         }
 

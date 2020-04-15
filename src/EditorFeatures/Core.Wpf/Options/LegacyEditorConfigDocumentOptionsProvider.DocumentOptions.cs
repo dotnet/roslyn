@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -7,7 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
 
@@ -18,15 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private class DocumentOptions : IDocumentOptions
         {
             private readonly ICodingConventionsSnapshot _codingConventionSnapshot;
-            private readonly IErrorLoggerService _errorLogger;
             private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>> s_convertedDictionaryCache =
                 new ConditionalWeakTable<IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, string?>>();
 
-            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot, IErrorLoggerService errorLogger)
-            {
-                _codingConventionSnapshot = codingConventionSnapshot;
-                _errorLogger = errorLogger;
-            }
+            public DocumentOptions(ICodingConventionsSnapshot codingConventionSnapshot)
+                => _codingConventionSnapshot = codingConventionSnapshot;
 
             public bool TryGetDocumentOption(OptionKey option, out object? value)
             {
@@ -52,9 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 {
                     return editorConfigPersistence.TryGetOption(allRawConventions, option.Option.Type, out value);
                 }
-                catch (Exception ex)
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
-                    _errorLogger?.LogException(this, ex);
                     value = null;
                     return false;
                 }
@@ -70,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 private readonly IReadOnlyDictionary<string, object?> _underlyingDictionary;
 
                 public StringConvertingDictionary(IReadOnlyDictionary<string, object?> underlyingDictionary)
-                {
-                    _underlyingDictionary = underlyingDictionary ?? throw new ArgumentNullException(nameof(underlyingDictionary));
-                }
+                    => _underlyingDictionary = underlyingDictionary ?? throw new ArgumentNullException(nameof(underlyingDictionary));
 
                 public string? this[string key] => _underlyingDictionary[key]?.ToString();
 
@@ -106,9 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 }
 
                 IEnumerator IEnumerable.GetEnumerator()
-                {
-                    return GetEnumerator();
-                }
+                    => GetEnumerator();
             }
         }
     }

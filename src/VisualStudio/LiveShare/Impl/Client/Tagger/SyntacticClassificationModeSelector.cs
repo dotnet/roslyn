@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -27,9 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         }
 
         public static SyntacticClassificationModeSelector GetModeSelector(AbstractLspClientServiceFactory lspClientServiceFactory, ITextBuffer buffer)
-        {
-            return new SyntacticClassificationModeSelector(lspClientServiceFactory, buffer);
-        }
+            => new SyntacticClassificationModeSelector(lspClientServiceFactory, buffer);
 
         public SyntacticClassificationMode GetMode()
         {
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 return (SyntacticClassificationMode)_modeCache;
             }
 
-            if (!Workspace.TryGetWorkspace(_buffer.AsTextContainer(), out var workspace))
+            if (!CodeAnalysis.Workspace.TryGetWorkspace(_buffer.AsTextContainer(), out var workspace))
             {
                 return SyntacticClassificationMode.TextMate;
             }

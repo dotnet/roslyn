@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
@@ -104,9 +106,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         Private Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
                 Function(document As Document, cursorPosition As Integer, presenter As IStreamingFindUsagesPresenter)
+                    Dim lazyPresenter = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenter), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenter))
+                        DirectCast(New CSharpGoToDefinitionService(lazyPresenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(lazyPresenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
@@ -959,6 +962,75 @@ class C
             Test(workspace)
         End Sub
 
+        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToImplementedInterfaceMemberFromImpl1()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IFoo1 { void [|Bar|](); }
+
+class Foo : IFoo1
+{
+    public void $$Bar()
+    {
+
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToImplementedInterfaceMemberFromImpl2()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IFoo1 { void [|Bar|](); }
+
+class Foo : IFoo1
+{
+    void IFoo1.$$Bar()
+    {
+
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(41870, "https://github.com/dotnet/roslyn/issues/41870")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToImplementedInterfaceMemberFromImpl3()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IFoo1 { void [|Bar|](); }
+interface IFoo2 { void [|Bar|](); }
+
+class Foo : IFoo1, IFoo2
+{
+    public void $$Bar()
+    {
+
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
 #End Region
 
 #Region "CSharp TupleTests"

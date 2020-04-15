@@ -169,7 +169,7 @@ argument_list
   ;
 
 block
-  : '{' statement* '}'
+  : attribute_list* '{' statement* '}'
   ;
 
 arrow_expression_clause
@@ -406,12 +406,11 @@ statement
   ;
 
 break_statement
-  : 'break' ';'
+  : attribute_list* 'break' ';'
   ;
 
 checked_statement
-  : 'checked' block
-  | 'unchecked' block
+  : attribute_list* ('checked' | 'unchecked') block
   ;
 
 common_for_each_statement
@@ -420,43 +419,43 @@ common_for_each_statement
   ;
 
 for_each_statement
-  : 'await'? 'foreach' '(' type identifier_token 'in' expression ')' statement
+  : attribute_list* 'await'? 'foreach' '(' type identifier_token 'in' expression ')' statement
   ;
 
 for_each_variable_statement
-  : 'await'? 'foreach' '(' expression 'in' expression ')' statement
+  : attribute_list* 'await'? 'foreach' '(' expression 'in' expression ')' statement
   ;
 
 continue_statement
-  : 'continue' ';'
+  : attribute_list* 'continue' ';'
   ;
 
 do_statement
-  : 'do' statement 'while' '(' expression ')' ';'
+  : attribute_list* 'do' statement 'while' '(' expression ')' ';'
   ;
 
 empty_statement
-  : ';'
+  : attribute_list* ';'
   ;
 
 expression_statement
-  : expression ';'
+  : attribute_list* expression ';'
   ;
 
 fixed_statement
-  : 'fixed' '(' variable_declaration ')' statement
+  : attribute_list* 'fixed' '(' variable_declaration ')' statement
   ;
 
 for_statement
-  : 'for' '(' (variable_declaration? | (expression (',' expression)*)?) ';' expression? ';' (expression (',' expression)*)? ')' statement
+  : attribute_list* 'for' '(' (variable_declaration? | (expression (',' expression)*)?) ';' expression? ';' (expression (',' expression)*)? ')' statement
   ;
 
 goto_statement
-  : 'goto' ('case' | 'default')? expression? ';'
+  : attribute_list* 'goto' ('case' | 'default')? expression? ';'
   ;
 
 if_statement
-  : 'if' '(' expression ')' statement else_clause?
+  : attribute_list* 'if' '(' expression ')' statement else_clause?
   ;
 
 else_clause
@@ -464,27 +463,27 @@ else_clause
   ;
 
 labeled_statement
-  : identifier_token ':' statement
+  : attribute_list* identifier_token ':' statement
   ;
 
 local_declaration_statement
-  : 'await'? 'using'? modifier* variable_declaration ';'
+  : attribute_list* 'await'? 'using'? modifier* variable_declaration ';'
   ;
 
 local_function_statement
-  : modifier* type identifier_token type_parameter_list? parameter_list type_parameter_constraint_clause* (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type identifier_token type_parameter_list? parameter_list type_parameter_constraint_clause* (block | (arrow_expression_clause ';'))
   ;
 
 lock_statement
-  : 'lock' '(' expression ')' statement
+  : attribute_list* 'lock' '(' expression ')' statement
   ;
 
 return_statement
-  : 'return' expression? ';'
+  : attribute_list* 'return' expression? ';'
   ;
 
 switch_statement
-  : 'switch' '('? expression ')'? '{' switch_section* '}'
+  : attribute_list* 'switch' '('? expression ')'? '{' switch_section* '}'
   ;
 
 switch_section
@@ -572,11 +571,11 @@ default_switch_label
   ;
 
 throw_statement
-  : 'throw' expression? ';'
+  : attribute_list* 'throw' expression? ';'
   ;
 
 try_statement
-  : 'try' block catch_clause* finally_clause?
+  : attribute_list* 'try' block catch_clause* finally_clause?
   ;
 
 catch_clause
@@ -596,19 +595,19 @@ finally_clause
   ;
 
 unsafe_statement
-  : 'unsafe' block
+  : attribute_list* 'unsafe' block
   ;
 
 using_statement
-  : 'await'? 'using' '(' (variable_declaration | expression) ')' statement
+  : attribute_list* 'await'? 'using' '(' (variable_declaration | expression) ')' statement
   ;
 
 while_statement
-  : 'while' '(' expression ')' statement
+  : attribute_list* 'while' '(' expression ')' statement
   ;
 
 yield_statement
-  : 'yield' ('return' | 'break') expression? ';'
+  : attribute_list* 'yield' ('return' | 'break') expression? ';'
   ;
 
 expression
@@ -617,6 +616,7 @@ expression
   | array_creation_expression
   | assignment_expression
   | await_expression
+  | base_object_creation_expression
   | binary_expression
   | cast_expression
   | checked_expression
@@ -638,7 +638,6 @@ expression
   | make_ref_expression
   | member_access_expression
   | member_binding_expression
-  | object_creation_expression
   | omitted_array_size_expression
   | parenthesized_expression
   | postfix_unary_expression
@@ -701,6 +700,19 @@ assignment_expression
 
 await_expression
   : 'await' expression
+  ;
+
+base_object_creation_expression
+  : implicit_object_creation_expression
+  | object_creation_expression
+  ;
+
+implicit_object_creation_expression
+  : 'new' argument_list initializer_expression?
+  ;
+
+object_creation_expression
+  : 'new' type argument_list? initializer_expression?
   ;
 
 binary_expression
@@ -820,10 +832,6 @@ member_access_expression
 
 member_binding_expression
   : '.' simple_name
-  ;
-
-object_creation_expression
-  : 'new' type argument_list? initializer_expression?
   ;
 
 omitted_array_size_expression

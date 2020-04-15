@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -19,33 +21,25 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds namespace imports / using directives for namespace references found in the document.
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, OptionSet? options = null, CancellationToken cancellationToken = default)
-        {
-            return AddImportsFromSyntaxesAsync(document, safe: false, options, cancellationToken);
-        }
+            => AddImportsFromSyntaxesAsync(document, safe: false, options, cancellationToken);
 
         /// <summary>
         /// Adds namespace imports / using directives for namespace references found in the document within the span specified.
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, TextSpan span, OptionSet? options = null, CancellationToken cancellationToken = default)
-        {
-            return AddImportsFromSyntaxesAsync(document, new[] { span }, safe: false, options, cancellationToken);
-        }
+            => AddImportsFromSyntaxesAsync(document, new[] { span }, safe: false, options, cancellationToken);
 
         /// <summary>
         /// Adds namespace imports / using directives for namespace references found in the document within the sub-trees annotated with the <see cref="SyntaxAnnotation"/>.
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, SyntaxAnnotation annotation, OptionSet? options = null, CancellationToken cancellationToken = default)
-        {
-            return AddImportsFromSyntaxesAsync(document, annotation, safe: false, options, cancellationToken);
-        }
+            => AddImportsFromSyntaxesAsync(document, annotation, safe: false, options, cancellationToken);
 
         /// <summary>
         /// Adds namespace imports / using directives for namespace references found in the document within the spans specified.
         /// </summary>
         public static Task<Document> AddImportsAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? options = null, CancellationToken cancellationToken = default)
-        {
-            return AddImportsFromSyntaxesAsync(document, spans, safe: false, options, cancellationToken);
-        }
+            => AddImportsFromSyntaxesAsync(document, spans, safe: false, options, cancellationToken);
 
         /// <summary>
         /// Adds namespace imports / using directives for namespace references found in the document.
@@ -61,9 +55,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds namespace imports / using directives for namespace references found in the document within the span specified.
         /// </summary>
         internal static Task<Document> AddImportsFromSyntaxesAsync(Document document, TextSpan span, bool safe = true, OptionSet? options = null, CancellationToken cancellationToken = default)
-        {
-            return AddImportsFromSyntaxesAsync(document, new[] { span }, safe, options, cancellationToken);
-        }
+            => AddImportsFromSyntaxesAsync(document, new[] { span }, safe, options, cancellationToken);
 
         /// <summary>
         /// Adds namespace imports / using directives for namespace references found in the document within the sub-trees annotated with the <see cref="SyntaxAnnotation"/>.
@@ -105,9 +97,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Adds namespace imports / using directives for namespace references found in the document within the span specified.
         /// </summary>
         internal static Task<Document> AddImportsFromSymbolAnnotationAsync(Document document, TextSpan span, bool safe = true, OptionSet? options = null, CancellationToken cancellationToken = default)
-        {
-            return AddImportsFromSymbolAnnotationAsync(document, new[] { span }, safe, options, cancellationToken);
-        }
+            => AddImportsFromSymbolAnnotationAsync(document, new[] { span }, safe, options, cancellationToken);
 
         /// <summary>
         /// Adds namespace imports / using directives for namespace references found in the document within the sub-trees annotated with the <see cref="SyntaxAnnotation"/>.

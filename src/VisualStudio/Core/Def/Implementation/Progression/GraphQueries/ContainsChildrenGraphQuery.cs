@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -21,11 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbolAndProjectId = graphBuilder.GetSymbolAndProjectId(node);
 
-                    if (symbol != null)
+                    if (symbolAndProjectId.Symbol != null)
                     {
-                        var containsChildren = SymbolContainment.GetContainedSymbols(symbol).Any();
+                        var containsChildren = SymbolContainment.GetContainedSymbols(symbolAndProjectId).Any();
                         graphBuilder.AddDeferredPropertySet(node, DgmlNodeProperties.ContainsChildren, containsChildren);
                     }
                     else if (node.HasCategory(CodeNodeCategories.File))

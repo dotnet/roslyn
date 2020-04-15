@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,10 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             AccessorDeclarationSyntax accessorDeclaration,
             ArrayBuilder<BlockSpan> spans,
+            bool isMetadataAsSource,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(accessorDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(accessorDeclaration, spans, isMetadataAsSource);
 
             // fault tolerance
             if (accessorDeclaration.Body == null ||
@@ -26,9 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
+            SyntaxNodeOrToken current = accessorDeclaration;
+            var nextSibling = current.GetNextSibling();
+
+            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+            //
+            // All accessor kinds are grouped together in Metadata as Source.
+            var compressEmptyLines = isMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.AsNode() is AccessorDeclarationSyntax);
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 accessorDeclaration,
                 accessorDeclaration.Keyword,
+                compressEmptyLines: compressEmptyLines,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

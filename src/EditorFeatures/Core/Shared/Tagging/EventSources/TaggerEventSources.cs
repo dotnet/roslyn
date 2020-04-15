@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -24,14 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public static ITaggerEventSource Compose(IEnumerable<ITaggerEventSource> eventSources)
-        {
-            return new CompositionEventSource(eventSources.ToArray());
-        }
+            => new CompositionEventSource(eventSources.ToArray());
 
         public static ITaggerEventSource OnCaretPositionChanged(ITextView textView, ITextBuffer subjectBuffer, TaggerDelay delay)
-        {
-            return new CaretPositionChangedEventSource(textView, subjectBuffer, delay);
-        }
+            => new CaretPositionChangedEventSource(textView, subjectBuffer, delay);
 
         public static ITaggerEventSource OnCompletionClosed(
             IIntellisenseSessionStack sessionStack,
@@ -48,20 +47,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         /// <summary>
-        /// Reports an event any time the semantics have changed such that this 
-        /// <paramref name="subjectBuffer"/> should be retagged.  Semantics are considered changed 
-        /// for a buffer if an edit happens directly in that buffer, or if a top level visible 
-        /// change happens in any sibling document or in any dependent projects' documents.
+        /// Reports an event any time the workspace changes.
         /// </summary>
-        public static ITaggerEventSource OnSemanticChanged(ITextBuffer subjectBuffer, TaggerDelay delay, ISemanticChangeNotificationService notificationService)
+        public static ITaggerEventSource OnWorkspaceChanged(
+            ITextBuffer subjectBuffer, TaggerDelay delay, IAsynchronousOperationListener listener)
         {
-            return new SemanticChangedEventSource(subjectBuffer, delay, notificationService);
+            return new WorkspaceChangedEventSource(subjectBuffer, delay, listener);
         }
 
         public static ITaggerEventSource OnDocumentActiveContextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
-        {
-            return new DocumentActiveContextChangedEventSource(subjectBuffer, delay);
-        }
+            => new DocumentActiveContextChangedEventSource(subjectBuffer, delay);
 
         public static ITaggerEventSource OnSelectionChanged(
             ITextView textView,
@@ -101,13 +96,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public static ITaggerEventSource OnWorkspaceRegistrationChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
-        {
-            return new WorkspaceRegistrationChangedEventSource(subjectBuffer, delay);
-        }
+            => new WorkspaceRegistrationChangedEventSource(subjectBuffer, delay);
 
         public static ITaggerEventSource OnViewSpanChanged(IThreadingContext threadingContext, ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
-        {
-            return new ViewSpanChangedEventSource(threadingContext, textView, textChangeDelay, scrollChangeDelay);
-        }
+            => new ViewSpanChangedEventSource(threadingContext, textView, textChangeDelay, scrollChangeDelay);
     }
 }

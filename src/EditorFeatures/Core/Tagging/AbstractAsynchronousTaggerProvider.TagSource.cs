@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -301,19 +303,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void RaisePaused()
-            {
-                this.Paused?.Invoke(this, EventArgs.Empty);
-            }
+                => this.Paused?.Invoke(this, EventArgs.Empty);
 
             private void RaiseResumed()
-            {
-                this.Resumed?.Invoke(this, EventArgs.Empty);
-            }
+                => this.Resumed?.Invoke(this, EventArgs.Empty);
 
             private static T NextOrDefault<T>(IEnumerator<T> enumerator)
-            {
-                return enumerator.MoveNext() ? enumerator.Current : default;
-            }
+                => enumerator.MoveNext() ? enumerator.Current : default;
 
             /// <summary>
             /// Return all the spans that appear in only one of "latestSpans" or "previousSpans".

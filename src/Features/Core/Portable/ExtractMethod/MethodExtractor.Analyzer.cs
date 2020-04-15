@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable 
 
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
-                    return (parameters, returnType, default(VariableInfo), unsafeAddressTakenUsed);
+                    return (parameters, returnType, (VariableInfo?)null, unsafeAddressTakenUsed);
                 }
                 else
                 {
@@ -486,6 +488,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
+                    // If the variable doesn't have a name, it is invalid.
+                    if (symbol.Name.IsEmpty())
+                    {
+                        continue;
+                    }
+
                     if (!TryGetVariableStyle(
                             bestEffort, symbolMap, symbol, model, type,
                             captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
@@ -502,9 +510,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             private void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
-            {
-                variableInfoMap.Add(localOrParameter, variableInfo);
-            }
+                => variableInfoMap.Add(localOrParameter, variableInfo);
 
             private bool TryGetVariableStyle(
                 bool bestEffort,
@@ -561,7 +567,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
 
                 // don't blindly always return. make sure there is a write inside of the selection
-                if (SelectionResult.AllowMovingDeclaration || !writtenInside)
+                if (!writtenInside)
                 {
                     return true;
                 }
@@ -622,7 +628,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return false;
                 }
 
-                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
+                var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
                 if (cancellationTokenType != null && cancellationTokenType.Equals(type))
                 {
                     return true;
@@ -632,13 +638,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
-            => symbol switch
-            {
-                ILocalSymbol local => local.Type,
-                IParameterSymbol parameter => parameter.Type,
-                IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
-                _ => Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here"),
-            };
+                => symbol switch
+                {
+                    ILocalSymbol local => local.Type,
+                    IParameterSymbol parameter => parameter.Type,
+                    IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+                };
 
             protected VariableStyle AlwaysReturn(VariableStyle style)
             {
@@ -752,18 +758,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         case IParameterSymbol parameter:
                             AddTypeParametersToMap(TypeParameterCollector.Collect(parameter.Type), sortedMap);
                             continue;
+
                         case ILocalSymbol local:
                             AddTypeParametersToMap(TypeParameterCollector.Collect(local.Type), sortedMap);
                             continue;
-                        case IRangeVariableSymbol rangeVariable:
-                            {
-                                var type = GetRangeVariableType(model, rangeVariable);
-                                AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
-                                continue;
-                            }
-                    }
 
-                    Contract.Fail(FeaturesResources.Unknown_symbol_kind);
+                        case IRangeVariableSymbol rangeVariable:
+                            var type = GetRangeVariableType(model, rangeVariable);
+                            AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
+                            continue;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(symbol);
+                    }
                 }
             }
 
@@ -967,7 +974,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         style),
                     IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(compilation, parameter, type), style),
                     IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(compilation, rangeVariable, type), style),
-                    _ => Contract.FailWithReturn<VariableInfo>(FeaturesResources.Unknown),
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                 };
             }
         }

@@ -1,13 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// </summary>
     internal sealed class RegexSyntaxClassifier : AbstractSyntaxClassifier
     {
-        private static ObjectPool<Visitor> s_visitorPool = SharedPools.Default<Visitor>();
+        private static readonly ObjectPool<Visitor> s_visitorPool = SharedPools.Default<Visitor>();
 
         private readonly EmbeddedLanguageInfo _info;
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             // Do some quick syntactic checks before doing any complex work.
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _info.SyntaxFacts))
+            if (!RegexPatternDetector.IsPossiblyPatternToken(token, _info.SyntaxFacts))
             {
                 return;
             }

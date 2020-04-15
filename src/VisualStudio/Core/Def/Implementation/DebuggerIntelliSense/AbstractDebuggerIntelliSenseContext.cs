@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -113,9 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         internal bool TryInitialize()
-        {
-            return this.TrySetContext(_isImmediateWindow);
-        }
+            => this.TrySetContext(_isImmediateWindow);
 
         private bool TrySetContext(
             bool isImmediateWindow)
@@ -231,9 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private void TextBuffer_PostChanged(object sender, EventArgs e)
-        {
-            SetupImmediateWindowProjectionBuffer();
-        }
+            => SetupImmediateWindowProjectionBuffer();
 
         /// <summary>
         /// If there's a ? mark, we want to skip the ? mark itself, and include the text that follows it

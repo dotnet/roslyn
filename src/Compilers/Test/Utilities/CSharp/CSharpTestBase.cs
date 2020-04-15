@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -149,13 +151,37 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string MemberNotNullAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
+    public sealed class MemberNotNullAttribute : Attribute
+    {
+        public MemberNotNullAttribute(params string[] members) { }
+        public MemberNotNullAttribute(string member) { }
+    }
+}
+";
+
+        protected const string MemberNotNullWhenAttributeDefinition = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
+    public sealed class MemberNotNullWhenAttribute : Attribute
+    {
+        public MemberNotNullWhenAttribute(bool when, params string[] members) { }
+        public MemberNotNullWhenAttribute(bool when, string member) { }
+    }
+}
+";
+
         protected const string DoesNotReturnIfAttributeDefinition = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
     public class DoesNotReturnIfAttribute : Attribute
     {
-        public DoesNotReturnIfAttribute (bool condition) { }
+        public DoesNotReturnIfAttribute(bool condition) { }
     }
 }
 ";
@@ -166,7 +192,7 @@ namespace System.Diagnostics.CodeAnalysis
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class DoesNotReturnAttribute : Attribute
     {
-        public DoesNotReturnAttribute () { }
+        public DoesNotReturnAttribute() { }
     }
 }
 ";
@@ -502,6 +528,34 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        protected const string NativeIntegerAttributeDefinition =
+@"using System.Collections.Generic;
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(
+        AttributeTargets.Class |
+        AttributeTargets.Event |
+        AttributeTargets.Field |
+        AttributeTargets.GenericParameter |
+        AttributeTargets.Parameter |
+        AttributeTargets.Property |
+        AttributeTargets.ReturnValue,
+        AllowMultiple = false,
+        Inherited = false)]
+    public sealed class NativeIntegerAttribute : Attribute
+    {
+        public NativeIntegerAttribute()
+        {
+            TransformFlags = new[] { true };
+        }
+        public NativeIntegerAttribute(bool[] flags)
+        {
+            TransformFlags = flags;
+        }
+        public readonly IList<bool> TransformFlags;
+    }
+}";
+
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
             return WithNonNullTypes(options, NullableContextOptions.Enable);
@@ -786,7 +840,7 @@ namespace System.Runtime.CompilerServices
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
             CompileAndVerifyFieldMarshalCommon(
-                CreateCompilationWithMscorlib40(source),
+                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview),
                 getExpectedBlob,
                 isField);
 
@@ -1067,8 +1121,7 @@ namespace System.Runtime.CompilerServices
             UsesIsNullableVisitor.GetUses(builder, symbol);
 
             var format = SymbolDisplayFormat.TestFormat
-                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier)
                 .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeName);
 
             var symbols = builder.SelectAsArray(s => s.ToDisplayString(format));
@@ -1421,17 +1474,17 @@ namespace System.Runtime.CompilerServices
 
         #region Attributes
 
-        internal IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
+        internal static IEnumerable<string> GetAttributeNames(ImmutableArray<SynthesizedAttributeData> attributes)
         {
             return attributes.Select(a => a.AttributeClass.Name);
         }
 
-        internal IEnumerable<string> GetAttributeNames(ImmutableArray<CSharpAttributeData> attributes)
+        internal static IEnumerable<string> GetAttributeNames(ImmutableArray<CSharpAttributeData> attributes)
         {
             return attributes.Select(a => a.AttributeClass.Name);
         }
 
-        internal IEnumerable<string> GetAttributeStrings(ImmutableArray<CSharpAttributeData> attributes)
+        internal static IEnumerable<string> GetAttributeStrings(ImmutableArray<CSharpAttributeData> attributes)
         {
             return attributes.Select(a => a.ToString());
         }

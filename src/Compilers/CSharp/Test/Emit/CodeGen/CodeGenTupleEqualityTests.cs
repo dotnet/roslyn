@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1252,10 +1254,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write((default, default) == (default, default));
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(default, default) == (default, default)").WithArguments("==").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(default, default) == (default, default)").WithArguments("==", "default", "default").WithLocation(6, 30),
                 // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write((default, default) == (default, default));
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(default, default) == (default, default)").WithArguments("==").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(default, default) == (default, default)").WithArguments("==", "default", "default").WithLocation(6, 30),
                 // (7,30): error CS0034: Operator '==' is ambiguous on operands of type 'default' and '(default, default)'
                 //         System.Console.Write(default == (default, default));
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default == (default, default)").WithArguments("==", "default", "(default, default)").WithLocation(7, 30)
@@ -1299,10 +1301,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write((null, (default, default)) == (null, (default, default)));
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(null, (default, default)) == (null, (default, default))").WithArguments("==").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(null, (default, default)) == (null, (default, default))").WithArguments("==", "default", "default").WithLocation(6, 30),
                 // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write((null, (default, default)) == (null, (default, default)));
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(null, (default, default)) == (null, (default, default))").WithArguments("==").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(null, (default, default)) == (null, (default, default))").WithArguments("==", "default", "default").WithLocation(6, 30)
                 );
         }
 

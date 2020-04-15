@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
@@ -29,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private Workspace _workspace;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public AnalyzersFolderItemProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler)
@@ -40,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// <summary>
         /// Constructor for use only in unit tests. Bypasses MEF to set the project mapper, workspace and glyph service.
         /// </summary>
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal AnalyzersFolderItemProvider(IHierarchyItemToProjectIdMap projectMap, Workspace workspace, IAnalyzersCommandHandler commandHandler)
         {
             _projectMap = projectMap;

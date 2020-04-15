@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -293,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        protected override Task<bool> BuildProject()
+        protected override Task<bool> BuildProjectAsync()
         {
             var taskSource = new TaskCompletionSource<bool>();
 
@@ -307,14 +309,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         protected override void CancelBuildProject()
-        {
-            _dte.ExecuteCommand("Build.Cancel");
-        }
+            => _dte.ExecuteCommand("Build.Cancel");
 
         protected override IWaitIndicator GetWaitIndicator()
-        {
-            return _componentModel.GetService<IWaitIndicator>();
-        }
+            => _componentModel.GetService<IWaitIndicator>();
 
         /// <summary>
         /// Return namespaces that can be resolved in the latest interactive compilation.

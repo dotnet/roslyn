@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -199,12 +202,15 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return newDocument;
         }
 
-        private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet options, CancellationToken cancellationToken)
+        private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet optionSet, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingOptions.AllowDisjointSpanMerging);
+            var options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language);
 
-            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges();
+            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges();
 
             // If there are no changes then, do less work.
             if (textChanges.Count == 0)
@@ -249,11 +255,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             private readonly SourceText _text;
 
             public CleanUpNewLinesFormatter(SourceText text)
-            {
-                _text = text;
-            }
+                => _text = text;
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // Since we know the general shape of these new import statements, we simply look for where
                 // tokens are not on the same line and force them to only be separated by a single newline.

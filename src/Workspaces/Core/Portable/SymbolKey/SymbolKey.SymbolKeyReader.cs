@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -52,9 +54,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected char Eat(SymbolKeyType type)
-            {
-                return Eat((char)type);
-            }
+                => Eat((char)type);
 
             protected char Eat(char c)
             {
@@ -64,14 +64,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected void EatCloseParen()
-            {
-                Eat(CloseParenChar);
-            }
+                => Eat(CloseParenChar);
 
             protected void EatOpenParen()
-            {
-                Eat(OpenParenChar);
-            }
+                => Eat(OpenParenChar);
 
             public int ReadInteger()
             {
@@ -104,9 +100,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected char EatSpace()
-            {
-                return Eat(SpaceChar);
-            }
+                => Eat(SpaceChar);
 
             public bool ReadBoolean()
             {
@@ -166,9 +160,7 @@ namespace Microsoft.CodeAnalysis
             protected abstract TStringResult CreateNullForString();
 
             private void EatDoubleQuote()
-            {
-                Eat(DoubleQuoteChar);
-            }
+                => Eat(DoubleQuoteChar);
 
             public PooledArrayBuilder<TStringResult> ReadStringArray()
                 => ReadArray(_readString);
@@ -266,9 +258,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected override object CreateNullForString()
-            {
-                return null;
-            }
+                => null;
         }
 
         private class SymbolKeyReader : Reader<string>
@@ -495,9 +485,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             protected override string CreateNullForString()
-            {
-                return null;
-            }
+                => null;
 
             #endregion
 

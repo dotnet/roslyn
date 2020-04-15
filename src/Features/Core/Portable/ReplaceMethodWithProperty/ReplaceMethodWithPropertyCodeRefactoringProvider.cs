@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
@@ -23,6 +27,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private const string GetPrefix = "Get";
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReplaceMethodWithPropertyCodeRefactoringProvider()
         {
         }
@@ -56,14 +61,16 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             var hasGetPrefix = HasGetPrefix(methodName);
             var propertyName = hasGetPrefix
-                ? methodName.Substring(GetPrefix.Length)
+                ? NameGenerator.GenerateUniqueName(
+                    methodName.Substring(GetPrefix.Length),
+                    n => !methodSymbol.ContainingType.GetMembers(n).Any())
                 : methodName;
             var nameChanged = hasGetPrefix;
 
             // Looks good!
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                 string.Format(FeaturesResources.Replace_0_with_property, methodName),
-                c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
+                c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
                 methodName),
                 methodDeclaration.Span);
 
@@ -76,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 {
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                         string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
-                        c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
+                        c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
                         methodName + "-get/set"),
                         methodDeclaration.Span);
                 }
@@ -84,18 +91,12 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         }
 
         private static bool HasGetPrefix(SyntaxToken identifier)
-        {
-            return HasGetPrefix(identifier.ValueText);
-        }
+            => HasGetPrefix(identifier.ValueText);
 
         private static bool HasGetPrefix(string text)
-        {
-            return HasPrefix(text, GetPrefix);
-        }
+            => HasPrefix(text, GetPrefix);
         private static bool HasPrefix(string text, string prefix)
-        {
-            return text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
-        }
+            => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
 
         private IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
         {
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethod.DeclaringSyntaxReferences.Length == 1;
         }
 
-        private async Task<Solution> ReplaceMethodsWithProperty(
+        private async Task<Solution> ReplaceMethodsWithPropertyAsync(
             Document document,
             string propertyName,
             bool nameChanged,

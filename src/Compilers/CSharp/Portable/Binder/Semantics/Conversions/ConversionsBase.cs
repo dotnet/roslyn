@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (_lazyOtherNullability == null)
             {
-                _lazyOtherNullability = WithNullabilityCore(includeNullability);
+                Interlocked.CompareExchange(ref _lazyOtherNullability, WithNullabilityCore(includeNullability), null);
             }
             Debug.Assert(_lazyOtherNullability.IncludeNullability == includeNullability);
             Debug.Assert(_lazyOtherNullability._lazyOtherNullability == this);
@@ -97,7 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion fastConversion = FastClassifyConversion(sourceType, destination);
                 if (fastConversion.Exists)
                 {
-                    return fastConversion.IsImplicit ? fastConversion : Conversion.NoConversion;
+                    if (fastConversion.IsImplicit)
+                    {
+                        return fastConversion;
+                    }
                 }
                 else
                 {
@@ -926,6 +932,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ThrowExpression:
                     return Conversion.ImplicitThrow;
+
+                case BoundKind.UnconvertedObjectCreationExpression:
+                    return Conversion.ObjectCreation;
             }
 
             return Conversion.NoConversion;
@@ -1107,7 +1116,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return sbyte.MinValue <= value && value <= sbyte.MaxValue;
                     case SpecialType.System_Int16:
                         return short.MinValue <= value && value <= short.MaxValue;
+                    case SpecialType.System_IntPtr when destination.IsNativeIntegerType:
+                        return true;
                     case SpecialType.System_UInt32:
+                    case SpecialType.System_UIntPtr when destination.IsNativeIntegerType:
                         return uint.MinValue <= value;
                     case SpecialType.System_UInt64:
                         return (int)ulong.MinValue <= value;

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -6,10 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -21,115 +25,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
-        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
-        private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
+        private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
+
+        private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
+
+        // use eventMap and taskQueue to serialize events
+        private readonly EventMap _eventMap;
+        private readonly TaskQueue _eventQueue;
+
+        public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
 
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
+        private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
+
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            PrimaryWorkspace primaryWorkspace,
-            [Import(AllowDefault = true)]IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService = null,
-            [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource = null)
-            : this(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => GetHostDiagnosticAnalyzerPackage(diagnosticAnalyzerProviderService), isThreadSafe: true),
-                   diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
-                   hostDiagnosticUpdateSource,
-                   primaryWorkspace,
-                   registrationService, listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
-        {
-            // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test harness. Otherwise, it should never be null.
-        }
-
-        // protected for testing purposes.
-        protected DiagnosticAnalyzerService(
-            Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
-            IAnalyzerAssemblyLoader? hostAnalyzerAssemblyLoader,
-            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
-            PrimaryWorkspace primaryWorkspace,
-            IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener = null)
-            : this(new DiagnosticAnalyzerInfoCache(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace),
-                   hostDiagnosticUpdateSource,
-                   registrationService,
-                   listener)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : this(registrationService,
+                   listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
         {
         }
 
         // protected for testing purposes.
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         protected DiagnosticAnalyzerService(
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListener? listener = null)
-            : this(registrationService)
+            IAsynchronousOperationListener? listener)
         {
-            _analyzerInfoCache = analyzerInfoCache;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
-        }
 
-        private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IHostDiagnosticAnalyzerPackageProvider? diagnosticAnalyzerProviderService)
-            => diagnosticAnalyzerProviderService?.GetHostDiagnosticAnalyzerPackages() ?? ImmutableArray<HostDiagnosticAnalyzerPackage>.Empty;
+            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
+            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
+            _eventMap = new EventMap();
 
-        public ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project)
-        {
-            var map = _analyzerInfoCache.CreateDiagnosticAnalyzersPerReference(project);
-            return map.Values.SelectMany(v => v).ToImmutableArray();
-        }
+            // use diagnostic event task scheduler so that we never flood async events queue with million of events.
+            // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
+            _eventQueue = new TaskQueue(Listener, s_eventScheduler);
 
-        public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(Project? project)
-        {
-            if (project == null)
-            {
-                return ConvertReferenceIdentityToName(_analyzerInfoCache.GetHostDiagnosticDescriptorsPerReference());
-            }
-
-            return ConvertReferenceIdentityToName(_analyzerInfoCache.CreateDiagnosticDescriptorsPerReference(project), project);
-        }
-
-        private ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(
-            ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> descriptorsPerReference, Project? project = null)
-        {
-            var map = _analyzerInfoCache.CreateAnalyzerReferencesMap(project);
-
-            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticDescriptor>>();
-
-            foreach (var (id, descriptors) in descriptorsPerReference)
-            {
-                if (!map.TryGetValue(id, out var reference) || reference == null)
-                {
-                    continue;
-                }
-
-                var displayName = GetDisplayName(reference);
-                // if there are duplicates, merge descriptors
-                if (builder.TryGetValue(displayName, out var existing))
-                {
-                    builder[displayName] = existing.AddRange(descriptors);
-                    continue;
-                }
-
-                builder.Add(displayName, descriptors);
-            }
-
-            return builder.ToImmutable();
-        }
-
-        private static string GetDisplayName(AnalyzerReference reference)
-        {
-            return reference.Display ?? FeaturesResources.Unknown;
-        }
-
-        public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
-        {
-            return _analyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-        }
-
-        public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
-        {
-            return _analyzerInfoCache.IsAnalyzerSuppressed(analyzer, project);
+            registrationService.Register(this);
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
@@ -243,21 +181,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
-        public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)
-        {
-            return _analyzerInfoCache.IsCompilerDiagnostic(language, diagnostic);
-        }
-
-        public DiagnosticAnalyzer? GetCompilerDiagnosticAnalyzer(string language)
-        {
-            return _analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
-        }
-
-        public bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer)
-        {
-            return _analyzerInfoCache.IsCompilerDiagnosticAnalyzer(language, analyzer);
-        }
-
         public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
         {
             if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
@@ -268,12 +191,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public IEnumerable<AnalyzerReference> GetHostAnalyzerReferences()
-        {
-            // CreateAnalyzerReferencesMap will return only host analyzer reference map if project is not specified.
-            return _analyzerInfoCache.CreateAnalyzerReferencesMap(project: null).Values;
-        }
-
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             if (_map.TryGetValue(workspace, out var analyzer))
@@ -282,18 +199,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return false;
-        }
-
-        // virtual for testing purposes.
-        internal virtual Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator? logAggregator)
-        {
-            return (ex, analyzer, diagnostic) =>
-            {
-                // Log telemetry, if analyzer supports telemetry.
-                DiagnosticAnalyzerLogger.LogAnalyzerCrashCount(analyzer, ex, logAggregator);
-
-                AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
-            };
         }
     }
 }

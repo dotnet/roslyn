@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -54,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
             }
         }
 
-        public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, CodeAnalysis.Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
@@ -92,14 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         }
 
         public ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan)
-        {
-            return _originalService.FixClassification(text, classifiedSpan);
-        }
+            => _originalService.FixClassification(text, classifiedSpan);
 
         public ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
-        {
-            return _originalService.GetDefaultSyntaxClassifiers();
-        }
+            => _originalService.GetDefaultSyntaxClassifiers();
 
         /// <summary>
         /// Check if the experiment should run.
@@ -107,9 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
         /// and the experiment flight is enabled.
         /// </summary>
         public bool ShouldRunExperiment(string experimentName)
-        {
-            return ShouldRunExperiment(_roslynLspClientServiceFactory, _experimentationService, experimentName);
-        }
+            => ShouldRunExperiment(_roslynLspClientServiceFactory, _experimentationService, experimentName);
 
         public static bool ShouldRunExperiment(
             AbstractLspClientServiceFactory lspClientServiceFactory,

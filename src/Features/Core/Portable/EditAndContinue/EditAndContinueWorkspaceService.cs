@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -13,10 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
         private readonly EditSessionTelemetry _editSessionTelemetry;
         private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
-        private readonly ICompilationOutputsProviderService _compilationOutputsProvider;
+        private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
         /// <summary>
@@ -54,12 +53,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal EditAndContinueWorkspaceService(
             Workspace workspace,
             IActiveStatementTrackingService activeStatementTrackingService,
-            ICompilationOutputsProviderService compilationOutputsProvider,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             IActiveStatementProvider activeStatementProvider,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
-            Action<DebuggingSessionTelemetry.Data>? reportTelemetry = null)
+            Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
+            Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
@@ -70,8 +69,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
-            _compilationOutputsProvider = compilationOutputsProvider;
-            _reportTelemetry = reportTelemetry ?? ReportTelemetry;
+            _compilationOutputsProvider = testCompilationOutputsProvider ?? GetCompilationOutputs;
+            _reportTelemetry = testReportTelemetry ?? ReportTelemetry;
         }
 
         // test only:
@@ -82,6 +81,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public bool IsDebuggingSessionInProgress
             => _debuggingSession != null;
 
+        private static CompilationOutputs GetCompilationOutputs(Project project)
+        {
+            // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
+            // To work around we look for the PDB on the path specified in the PDB debug directory.
+            // https://github.com/dotnet/roslyn/issues/35065
+            return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputFilePaths.AssemblyPath);
+        }
+
         public void OnSourceFileUpdated(DocumentId documentId)
         {
             var debuggingSession = _debuggingSession;
@@ -91,18 +98,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(documentId, debuggingSession.CancellationToken));
             }
         }
-
-        /// <summary>
-        /// Invoked whenever a module instance is loaded to a process being debugged.
-        /// </summary>
-        public void OnManagedModuleInstanceLoaded(Guid mvid)
-            => _editSession?.ModuleInstanceLoadedOrUnloaded(mvid);
-
-        /// <summary>
-        /// Invoked whenever a module instance is unloaded from a process being debugged.
-        /// </summary>
-        public void OnManagedModuleInstanceUnloaded(Guid mvid)
-            => _editSession?.ModuleInstanceLoadedOrUnloaded(mvid);
 
         public void StartDebuggingSession()
         {
@@ -197,7 +192,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Allow user to make any changes in these documents, they won't be applied within the current debugging session.
                 // Do not report the file read error - it might be an intermittent issue. The error will be reported when the 
                 // change is attempted to be applied.
-                var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project.Id, cancellationToken).ConfigureAwait(false);
+                var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
                 if (mvid == Guid.Empty)
                 {
                     return ImmutableArray<Diagnostic>.Empty;
@@ -205,6 +200,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
                 if (oldDocumentState == CommittedSolution.DocumentState.OutOfSync ||
+                    oldDocumentState == CommittedSolution.DocumentState.Indeterminate ||
                     oldDocumentState == CommittedSolution.DocumentState.DesignTimeOnly)
                 {
                     // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
@@ -236,33 +232,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // is about to be updated, so that it can start initializing it for EnC update, reducing the amount of time applying
                     // the change blocks the UI when the user "continues".
                     debuggingSession.PrepareModuleForUpdate(mvid);
-
-                    // Check if EnC is allowed for all loaded modules corresponding to the project.
-                    var moduleDiagnostics = editSession.GetModuleDiagnostics(mvid, project.Name);
-
-                    if (!moduleDiagnostics.IsEmpty)
-                    {
-                        // track the document, so that we can refresh or clean diagnostics at the end of edit session:
-                        editSession.TrackDocumentWithReportedDiagnostics(document.Id);
-
-                        var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        Contract.ThrowIfNull(newSyntaxTree);
-
-                        var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
-
-                        var diagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
-                        foreach (var span in changedSpans)
-                        {
-                            var location = Location.Create(newSyntaxTree, span);
-
-                            foreach (var diagnostic in moduleDiagnostics)
-                            {
-                                diagnosticsBuilder.Add(diagnostic.ToDiagnostic(location));
-                            }
-                        }
-
-                        return diagnosticsBuilder.ToImmutableAndFree();
-                    }
                 }
 
                 if (analysis.RudeEditErrors.IsEmpty)
@@ -353,6 +322,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     yield break;
                 }
 
+                RoslynDebug.Assert(change.NewText is object);
                 if (change.Span.Length == 0 && change.NewText.Length == 0)
                 {
                     continue;
@@ -396,7 +366,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
-        public Task<SolutionUpdateStatus> GetSolutionUpdateStatusAsync(string sourceFilePath, CancellationToken cancellationToken)
+        public Task<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {
             // GetStatusAsync is called outside of edit session when the debugger is determining 
             // whether a source file checksum matches the one in PDB.
@@ -404,10 +374,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             if (editSession == null)
             {
-                return Task.FromResult(SolutionUpdateStatus.None);
+                return Task.FromResult(false);
             }
 
-            return editSession.GetSolutionUpdateStatusAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken);
+            return editSession.HasChangesAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken);
         }
 
         public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(CancellationToken cancellationToken)
@@ -428,8 +398,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     solution,
                     solutionUpdate.EmitBaselines,
                     solutionUpdate.Deltas,
-                    solutionUpdate.ModuleReaders,
-                    solutionUpdate.ChangedDocuments));
+                    solutionUpdate.ModuleReaders));
 
                 // commit/discard was not called:
                 Contract.ThrowIfFalse(previousPendingUpdate == null);
@@ -546,7 +515,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // This method is only called when the EnC is about to apply changes, at which point all active statements and 
-                // their exception regions will be needed. Hence it's not neccessary to scope this query down to just the instruction
+                // their exception regions will be needed. Hence it's not necessary to scope this query down to just the instruction
                 // the debugger is interested at this point while not calculating the others.
 
                 var baseActiveStatements = await editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -103,9 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
-        {
-            return null;
-        }
+            => null;
 
         public ImmutableArray<ISymbol> CandidateSymbols
         {
@@ -151,14 +151,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public override ImmutableArray<ISymbol> GetMembers()
-        {
-            return ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
-        }
+            => ImmutableArray.CreateRange(_members.Concat(this.TypeMembers));
 
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
-        {
-            return ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
-        }
+            => ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
 
         public override ImmutableArray<IMethodSymbol> InstanceConstructors
         {

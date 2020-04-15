@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return result;
         }
 
-        public static DiagnosticAnalysisResult CreateFromSerialization(
+        public static DiagnosticAnalysisResult Create(
             Project project,
             VersionStamp version,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
         {
-            return CreateFromSerialization(
+            return Create(
                 builder.Project,
                 builder.Version,
                 builder.SyntaxLocals,
@@ -252,19 +254,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             => (IsAggregatedForm || IsEmpty) ? ImmutableArray<DiagnosticData>.Empty : _others;
 
         public DiagnosticAnalysisResult ToAggregatedForm()
-        {
-            return new DiagnosticAnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
-        }
+            => new DiagnosticAnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
 
         public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId, bool fromBuild)
-        {
-            return new DiagnosticAnalysisResult(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
-        }
+            => new DiagnosticAnalysisResult(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
 
         public DiagnosticAnalysisResult Reset()
-        {
-            return new DiagnosticAnalysisResult(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
-        }
+            => new DiagnosticAnalysisResult(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
 
         public DiagnosticAnalysisResult DropExceptSyntax()
         {

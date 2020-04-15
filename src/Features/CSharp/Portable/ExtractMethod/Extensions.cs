@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -18,11 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal static class Extensions
     {
-        public static ExpressionSyntax? GetUnparenthesizedExpression(this SyntaxNode? node)
+        [return: NotNullIfNotNull("node")]
+        public static ExpressionSyntax? GetUnparenthesizedExpression(this ExpressionSyntax? node)
         {
             if (!(node is ParenthesizedExpressionSyntax parenthesizedExpression))
             {
-                return node as ExpressionSyntax;
+                return node;
             }
 
             return GetUnparenthesizedExpression(parenthesizedExpression.Expression);
@@ -45,14 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public static StatementSyntax GetParentLabeledStatementIfPossible(this SyntaxNode node)
-        {
-            return (StatementSyntax)((node.Parent is LabeledStatementSyntax) ? node.Parent : node);
-        }
+            => (StatementSyntax)((node.Parent is LabeledStatementSyntax) ? node.Parent : node);
 
         public static bool IsStatementContainerNode([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return node is BlockSyntax || node is SwitchSectionSyntax;
-        }
+            => node is BlockSyntax || node is SwitchSectionSyntax;
 
         public static BlockSyntax? GetBlockBody(this SyntaxNode? node)
         {
@@ -103,9 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public static bool UnderValidContext(this SyntaxToken token)
-        {
-            return token.GetAncestors<SyntaxNode>().Any(n => n.CheckTopLevel(token.Span));
-        }
+            => token.GetAncestors<SyntaxNode>().Any(n => n.CheckTopLevel(token.Span));
 
         public static bool PartOfConstantInitializerExpression(this SyntaxNode node)
         {
@@ -227,9 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public static bool HasSyntaxAnnotation(this HashSet<SyntaxAnnotation> set, SyntaxNode node)
-        {
-            return set.Any(a => node.GetAnnotatedNodesAndTokens(a).Any());
-        }
+            => set.Any(a => node.GetAnnotatedNodesAndTokens(a).Any());
 
         public static bool HasHybridTriviaBetween(this SyntaxToken token1, SyntaxToken token2)
         {
@@ -247,24 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public static bool IsArrayInitializer([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return node is InitializerExpressionSyntax && node.Parent is EqualsValueClauseSyntax;
-        }
+            => node is InitializerExpressionSyntax && node.Parent is EqualsValueClauseSyntax;
 
         public static bool IsExpressionInCast([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return node is ExpressionSyntax && node.Parent is CastExpressionSyntax;
-        }
-
-        public static bool IsExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return node is ExpressionSyntax;
-        }
+            => node is ExpressionSyntax && node.Parent is CastExpressionSyntax;
 
         public static bool IsObjectType(this ITypeSymbol? type)
-        {
-            return type == null || type.SpecialType == SpecialType.System_Object;
-        }
+            => type == null || type.SpecialType == SpecialType.System_Object;
 
         public static bool BetweenFieldAndNonFieldMember(this SyntaxToken token1, SyntaxToken token2)
         {

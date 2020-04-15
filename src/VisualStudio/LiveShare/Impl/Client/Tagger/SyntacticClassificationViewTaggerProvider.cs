@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Classification;
@@ -8,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification;
@@ -29,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         private readonly ClassificationTypeMap _typeMap;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SyntacticClassificationViewTaggerProvider(
             IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
@@ -42,9 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
-        }
+            => TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
 
         protected override async TPL.Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> taggerContext,

@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
@@ -21,9 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static readonly DiagnosticEventTaskScheduler s_eventScheduler = new DiagnosticEventTaskScheduler(blockingUpperBound: 100);
 
-        private readonly IAsynchronousOperationListener _listener;
         private readonly EventMap _eventMap;
-        private readonly SimpleTaskQueue _eventQueue;
+        private readonly TaskQueue _eventQueue;
 
         private readonly object _gate;
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DiagnosticService(
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()
@@ -40,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // use diagnostic event task scheduler so that we never flood async events queue with million of events.
             // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new SimpleTaskQueue(s_eventScheduler);
-
-            _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
+            _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), s_eventScheduler);
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
 
-            var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
-            _eventQueue.ScheduleTask(() =>
+            _eventQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
             {
                 if (!UpdateDataMap(source, args))
                 {
@@ -79,15 +78,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 ev.RaiseEvent(handler => handler(source, args));
-            }).CompletesAsyncOperation(eventToken);
+            }, CancellationToken.None);
         }
 
         private void RaiseDiagnosticsCleared(IDiagnosticUpdateSource source)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
 
-            var eventToken = _listener.BeginAsyncOperation(DiagnosticsUpdatedEventName);
-            _eventQueue.ScheduleTask(() =>
+            _eventQueue.ScheduleTask(DiagnosticsUpdatedEventName, () =>
             {
                 using var pooledObject = SharedPools.Default<List<DiagnosticsUpdatedArgs>>().GetPooledObject();
 
@@ -104,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ev.RaiseEvent(handler => handler(source, args));
                 }
-            }).CompletesAsyncOperation(eventToken);
+            }, CancellationToken.None);
         }
 
         private bool UpdateDataMap(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)

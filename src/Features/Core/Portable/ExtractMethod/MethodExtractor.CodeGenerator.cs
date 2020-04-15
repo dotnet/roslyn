@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
                     var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
-                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: this.Options, parseOptions: destination?.SyntaxTree.Options));
+                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination?.SyntaxTree.Options));
                     newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
                 }
                 else
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = previousMemberNode.Parent ?? previousMemberNode;
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
-                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: this.Options),
+                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: Options),
                         cancellationToken);
                 }
 

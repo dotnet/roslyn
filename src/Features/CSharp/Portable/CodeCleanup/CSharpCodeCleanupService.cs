@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,
                     new[] { IDEDiagnosticIds.AddBracesDiagnosticId }),
 
-                new DiagnosticSet(CSharpFeaturesResources.Add_accessibility_modifiers,
+                new DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
                     new[] { IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Sort_accessibility_modifiers,
@@ -187,8 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         }
 
         public EnabledDiagnosticOptions GetAllDiagnostics()
-        {
-            return new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
-        }
+            => new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
     }
 }

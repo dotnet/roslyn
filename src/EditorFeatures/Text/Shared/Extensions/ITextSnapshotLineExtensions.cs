@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -60,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         /// the line is empty or contains only whitespace.
         /// </summary>
         public static int? GetLastNonWhitespacePosition(this ITextSnapshotLine line)
-        {
-            return line.AsTextLine().GetLastNonWhitespacePosition();
-        }
+            => line.AsTextLine().GetLastNonWhitespacePosition();
 
         /// <summary>
         /// Determines whether the specified line is empty or contains whitespace only.
@@ -116,24 +116,16 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         }
 
         public static int GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(this ITextSnapshotLine line, IEditorOptions editorOptions)
-        {
-            return line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(editorOptions.GetTabSize());
-        }
+            => line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(editorOptions.GetTabSize());
 
         public static int GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(this ITextSnapshotLine line, int tabSize)
-        {
-            return line.GetText().GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
-        }
+            => line.GetText().GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
 
         public static int GetColumnFromLineOffset(this ITextSnapshotLine line, int lineOffset, IEditorOptions editorOptions)
-        {
-            return line.GetText().GetColumnFromLineOffset(lineOffset, editorOptions.GetTabSize());
-        }
+            => line.GetText().GetColumnFromLineOffset(lineOffset, editorOptions.GetTabSize());
 
         public static int GetLineOffsetFromColumn(this ITextSnapshotLine line, int column, IEditorOptions editorOptions)
-        {
-            return line.GetText().GetLineOffsetFromColumn(column, editorOptions.GetTabSize());
-        }
+            => line.GetText().GetLineOffsetFromColumn(column, editorOptions.GetTabSize());
 
         /// <summary>
         /// Checks if the given line at the given snapshot index starts with the provided value.
@@ -142,9 +134,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         {
             var snapshot = line.Snapshot;
             if (index + value.Length > snapshot.Length)
-            {
                 return false;
-            }
 
             for (var i = 0; i < value.Length; i++)
             {
@@ -159,12 +149,25 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 }
 
                 if (actualCharacter != expectedCharacter)
-                {
                     return false;
-                }
             }
 
             return true;
+        }
+
+        public static bool Contains(this ITextSnapshotLine line, int index, string value, bool ignoreCase)
+        {
+            var snapshot = line.Snapshot;
+            for (var i = index; i < line.End; i++)
+            {
+                if (i + value.Length > snapshot.Length)
+                    return false;
+
+                if (line.StartsWith(i, value, ignoreCase))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

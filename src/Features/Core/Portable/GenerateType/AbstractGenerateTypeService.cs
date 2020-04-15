@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         public abstract string GetRootNamespace(CompilationOptions options);
 
-        public abstract Task<Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location>> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
+        public abstract Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
@@ -218,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             // We can use a type parameter as long as it hasn't been used in an outer type.
             var canUse = state.TypeToGenerateInOpt == null
-                ? default(Func<string, bool>)
+                ? (Func<string, bool>)null
                 : s => state.TypeToGenerateInOpt.GetAllTypeParameters().All(t => t.Name != s);
 
             NameGenerator.EnsureUniquenessInPlace(names, isFixed, canUse);

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 #nullable enable
 
@@ -11,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis
     internal class FileTextLoaderOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FileTextLoaderOptionsProvider()
         {
         }
@@ -79,6 +83,8 @@ namespace Microsoft.CodeAnalysis
             Path = path;
             DefaultEncoding = defaultEncoding;
         }
+
+        internal sealed override string FilePath => Path;
 
         protected virtual SourceText CreateText(Stream stream, Workspace workspace)
         {
@@ -226,9 +232,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private string GetDebuggerDisplay()
-        {
-            return nameof(Path) + " = " + Path;
-        }
+            => nameof(Path) + " = " + Path;
 
         private static void ValidateFileLength(Workspace workspace, string path)
         {

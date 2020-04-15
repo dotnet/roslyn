@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             IEqualityComparer<string> identifierComparer)
         {
             _solution = solution;
-            this.Text = text;
+            Text = text;
             _language = language;
             _identifierComparer = identifierComparer;
         }
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 container = ((INamespaceOrTypeSymbol)container.ContainingType) ?? container.ContainingNamespace;
 
                 // We ran out of containers to match against before we matched all the names, so this type isn't a match.
-                if ((container == null) && (i > 0))
+                if (container == null && i > 0)
                 {
                     return false;
                 }
@@ -226,9 +227,7 @@ namespace Microsoft.CodeAnalysis.Debugging
         }
 
         private static IMethodSymbol GetPartialImplementationPartOrNull(ISymbol symbol)
-        {
-            return (symbol.Kind == SymbolKind.Method) ? ((IMethodSymbol)symbol).PartialImplementationPart : null;
-        }
+            => (symbol.Kind == SymbolKind.Method) ? ((IMethodSymbol)symbol).PartialImplementationPart : null;
 
         /// <summary>
         /// Is this method or property a valid place to set a breakpoint and does it match the expected parameter count?
@@ -278,27 +277,19 @@ namespace Microsoft.CodeAnalysis.Debugging
         }
 
         private static bool IsMismatch(ISymbol methodOrProperty, int? parameterCount)
-        {
-            switch (methodOrProperty)
+            => methodOrProperty switch
             {
-                case IMethodSymbol method: return method.Parameters.Length != parameterCount;
-                case IPropertySymbol property: return property.Parameters.Length != parameterCount;
-            }
-
-            return false;
-        }
+                IMethodSymbol method => method.Parameters.Length != parameterCount,
+                IPropertySymbol property => property.Parameters.Length != parameterCount,
+                _ => false,
+            };
 
         private static IEnumerable<INamedTypeSymbol> GetTypeMembersRecursive(INamespaceOrTypeSymbol container)
-        {
-            switch (container)
+            => container switch
             {
-                case INamespaceSymbol namespaceSymbol:
-                    return namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n));
-                case INamedTypeSymbol typeSymbol:
-                    return typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol);
-                default:
-                    return null;
-            }
-        }
+                INamespaceSymbol namespaceSymbol => namespaceSymbol.GetMembers().SelectMany(n => GetTypeMembersRecursive(n)),
+                INamedTypeSymbol typeSymbol => typeSymbol.GetTypeMembers().SelectMany(t => GetTypeMembersRecursive(t)).Concat(typeSymbol),
+                _ => null,
+            };
     }
 }

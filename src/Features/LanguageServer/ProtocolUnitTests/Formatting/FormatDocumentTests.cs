@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -32,11 +33,11 @@ void M()
         int i = 1;
     }
 }";
-            var (solution, locations) = CreateTestSolution(markup);
+            using var workspace = CreateTestWorkspace(markup, out var locations);
             var documentURI = locations["caret"].Single().Uri;
-            var documentText = await solution.GetDocumentFromURI(documentURI).GetTextAsync();
+            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(documentURI).GetTextAsync();
 
-            var results = await RunFormatDocumentAsync(solution, documentURI);
+            var results = await RunFormatDocumentAsync(workspace.CurrentSolution, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }

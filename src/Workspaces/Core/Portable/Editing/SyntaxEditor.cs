@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -103,9 +105,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         /// <param name="node">The node to remove that currently exists as part of the tree.</param>
         public void RemoveNode(SyntaxNode node)
-        {
-            RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
-        }
+            => RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
 
         /// <summary>
         /// Remove the node from the tree.
@@ -264,9 +264,7 @@ namespace Microsoft.CodeAnalysis.Editing
             internal readonly SyntaxNode Node;
 
             public Change(SyntaxNode node)
-            {
-                this.Node = node;
-            }
+                => this.Node = node;
 
             public abstract SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator);
         }
@@ -279,9 +277,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                return root;
-            }
+                => root;
         }
 
         private class RemoveChange : Change
@@ -295,9 +291,7 @@ namespace Microsoft.CodeAnalysis.Editing
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
-            {
-                return generator.RemoveNode(root, root.GetCurrentNode(this.Node), _options);
-            }
+                => generator.RemoveNode(root, root.GetCurrentNode(this.Node), _options);
         }
 
         private class ReplaceChange : Change

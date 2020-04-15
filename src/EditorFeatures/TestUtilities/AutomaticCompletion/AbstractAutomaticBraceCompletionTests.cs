@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -90,9 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
         }
 
         internal void CheckText(IBraceCompletionSession session, string result)
-        {
-            Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
-        }
+            => Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
 
         internal void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
         {
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
         }
 
-        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey, object> changedOptionSet = null)
+        internal Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
             var undoManager = workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>();
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
                     options = options.WithChangedOption(entry.Key, entry.Value);
                 }
 
-                workspace.Options = options;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
             }
 
             var document = workspace.Documents.First();
@@ -187,9 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             }
 
             public void Dispose()
-            {
-                this.Workspace.Dispose();
-            }
+                => this.Workspace.Dispose();
         }
     }
 }

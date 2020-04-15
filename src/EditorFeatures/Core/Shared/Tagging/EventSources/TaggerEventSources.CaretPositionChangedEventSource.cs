@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
@@ -23,19 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             public override void Connect()
-            {
-                _textView.Caret.PositionChanged += OnCaretPositionChanged;
-            }
+                => _textView.Caret.PositionChanged += OnCaretPositionChanged;
 
             public override void Disconnect()
-            {
-                _textView.Caret.PositionChanged -= OnCaretPositionChanged;
-            }
+                => _textView.Caret.PositionChanged -= OnCaretPositionChanged;
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
-            {
-                this.RaiseChanged();
-            }
+                => this.RaiseChanged();
         }
     }
 }

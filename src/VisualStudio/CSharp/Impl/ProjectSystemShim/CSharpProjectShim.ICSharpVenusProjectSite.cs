@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -11,9 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal partial class CSharpProjectShim : ICSharpVenusProjectSite
     {
         public void AddReferenceToCodeDirectory(string assemblyFileName, ICSharpProjectRoot project)
-        {
-            AddReferenceToCodeDirectoryEx(assemblyFileName, project, CompilerOptions.OPTID_IMPORTS);
-        }
+            => AddReferenceToCodeDirectoryEx(assemblyFileName, project, CompilerOptions.OPTID_IMPORTS);
 
         public void RemoveReferenceToCodeDirectory(string assemblyFileName, ICSharpProjectRoot project)
         {
@@ -33,9 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void OnDiskFileUpdated(string filename, ref System.Runtime.InteropServices.ComTypes.FILETIME pFT)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void OnCodeDirectoryAliasesChanged(ICSharpProjectRoot project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
         {

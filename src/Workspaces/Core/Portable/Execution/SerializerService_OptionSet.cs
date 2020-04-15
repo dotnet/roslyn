@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable enable
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
@@ -8,26 +12,19 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal partial class SerializerService
     {
-        // this is temporary solution until option is supported in compiler layer natively
-        // this won't serialize all options but some we pre-selected
-        public void SerializeOptionSet(OptionSet options, string language, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeOptionSet(SerializableOptionSet options, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            writer.WriteString(language);
-
-            var serializationService = GetOptionsSerializationService(language);
-            serializationService.WriteTo(options, writer, cancellationToken);
+            options.Serialize(writer, cancellationToken);
         }
 
-        private OptionSet DeserializeOptionSet(ObjectReader reader, CancellationToken cancellationToken)
+        private SerializableOptionSet DeserializeOptionSet(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var language = reader.ReadString();
-
-            var serializationService = GetOptionsSerializationService(language);
-            return serializationService.ReadOptionSetFrom(reader, cancellationToken);
+            var optionService = _workspaceServices.GetRequiredService<IOptionService>();
+            return SerializableOptionSet.Deserialize(reader, optionService, cancellationToken);
         }
     }
 }

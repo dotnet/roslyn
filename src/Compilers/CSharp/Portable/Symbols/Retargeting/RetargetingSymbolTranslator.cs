@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
@@ -181,6 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             private NamedTypeSymbol RetargetNamedTypeDefinition(NamedTypeSymbol type, RetargetOptions options)
             {
                 Debug.Assert(type.IsDefinition);
+
+                if (type.IsNativeIntegerType)
+                {
+                    var result = RetargetNamedTypeDefinition(type.NativeIntegerUnderlyingType, options);
+                    return result.SpecialType == SpecialType.None ? result : result.AsNativeInteger();
+                }
 
                 // Before we do anything else, check if we need to do special retargeting
                 // for primitive type references encoded with enum values in metadata signatures.
@@ -787,8 +795,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 foreach (var ts in sequence)
                 {
-                    // In incorrect code, a type parameter constraint list can contain primitive types.
-                    Debug.Assert(ts.TypeKind == TypeKind.Error || ts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
                     result.Add(Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName));
                 }
 

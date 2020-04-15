@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,16 +20,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExpressionBodyForLambdaCodeRefactoringProvider();
 
-        private IDictionary<OptionKey, object> UseExpressionBody =>
+        private IDictionary<OptionKey2, object> UseExpressionBody =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
-        private IDictionary<OptionKey, object> UseExpressionBodyDisabledDiagnostic =>
+        private IDictionary<OptionKey2, object> UseExpressionBodyDisabledDiagnostic =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
 
-        private IDictionary<OptionKey, object> UseBlockBody =>
+        private IDictionary<OptionKey2, object> UseBlockBody =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
 
-        private IDictionary<OptionKey, object> UseBlockBodyDisabledDiagnostic =>
+        private IDictionary<OptionKey2, object> UseBlockBodyDisabledDiagnostic =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

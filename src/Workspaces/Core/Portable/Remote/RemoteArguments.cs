@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,18 +18,22 @@ namespace Microsoft.CodeAnalysis.Remote
     internal class SerializableFindReferencesSearchOptions
     {
         public bool AssociatePropertyReferencesWithSpecificAccessor;
+        public bool Cascade;
 
         public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
         {
             return new SerializableFindReferencesSearchOptions
             {
-                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor
+                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor,
+                Cascade = options.Cascade,
             };
         }
 
         public FindReferencesSearchOptions Rehydrate()
         {
-            return new FindReferencesSearchOptions(AssociatePropertyReferencesWithSpecificAccessor);
+            return new FindReferencesSearchOptions(
+                associatePropertyReferencesWithSpecificAccessor: AssociatePropertyReferencesWithSpecificAccessor,
+                cascade: Cascade);
         }
     }
 
@@ -135,14 +140,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public override bool Equals(object obj)
-        {
-            return Equals(obj as SerializableSymbolUsageInfo);
-        }
+            => Equals(obj as SerializableSymbolUsageInfo);
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
-        }
+            => Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
     }
 
     internal class SerializableReferenceLocation

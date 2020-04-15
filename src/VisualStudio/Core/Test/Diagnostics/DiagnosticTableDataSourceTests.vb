@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -499,17 +501,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Async Function TestBingHelpLink_NoCustomType() As Task
             Using workspace = TestWorkspace.CreateCSharp("class A { int 111a; }")
-                Dim solution = workspace.CurrentSolution
-                Dim diagnostic = (Await solution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
+                Dim diagnostic = (Await workspace.CurrentSolution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
 
-                Dim helpMessage = diagnostic.GetBingHelpMessage(solution.Options)
+                Dim helpMessage = diagnostic.GetBingHelpMessage(workspace.Options)
                 Assert.Equal("Invalid token '111' in class, struct, or interface member declaration", helpMessage)
 
                 ' turn off custom type search
                 Dim optionServices = workspace.Services.GetService(Of IOptionService)()
                 optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch, False))
 
-                Dim helpMessage2 = diagnostic.GetBingHelpMessage(solution.Options)
+                Dim helpMessage2 = diagnostic.GetBingHelpMessage(optionServices.GetOptions())
                 Assert.Equal("Invalid token '{0}' in class, struct, or interface member declaration", helpMessage2)
             End Using
         End Function
@@ -618,6 +619,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Using workspace = TestWorkspace.Create(markup)
 
+                Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
+
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim service = New DiagnosticService(listenerProvider, Array.Empty(Of Lazy(Of IEventListener, EventListenerMetadata))())
 
@@ -627,7 +631,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 RunCompilerAnalyzer(workspace, service, listener)
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -670,7 +674,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 Dim service = New DiagnosticService(listenerProvider, Array.Empty(Of Lazy(Of IEventListener, EventListenerMetadata))())
-                Dim analyzerService = New MyDiagnosticAnalyzerService(ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty, service, listener)
+                Dim analyzerService = New MyDiagnosticAnalyzerService(service, listener)
 
                 Dim updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, listener)
 
@@ -753,7 +757,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 updateSource.OnSolutionBuildCompleted()
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -775,8 +779,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Sub RunCompilerAnalyzer(workspace As TestWorkspace, registrationService As IDiagnosticUpdateSourceRegistrationService, listener As IAsynchronousOperationListener)
             Dim snapshot = workspace.CurrentSolution
 
-            Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()
-            Dim analyzerService = New MyDiagnosticAnalyzerService(compilerAnalyzersMap, registrationService, listener)
+            Dim analyzerService = New MyDiagnosticAnalyzerService(registrationService, listener)
 
             Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
             service.Register(workspace)
@@ -811,14 +814,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Class MyDiagnosticAnalyzerService
             Inherits DiagnosticAnalyzerService
 
-            Friend Sub New(
-                    analyzersMap As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)),
-                    registrationService As IDiagnosticUpdateSourceRegistrationService,
-                    listener As IAsynchronousOperationListener)
-                MyBase.New(New DiagnosticAnalyzerInfoCache(ImmutableArray.Create(Of AnalyzerReference)(New TestAnalyzerReferenceByLanguage(analyzersMap)), hostDiagnosticUpdateSource:=Nothing),
-                      hostDiagnosticUpdateSource:=Nothing,
-                      registrationService:=registrationService,
-                      listener:=listener)
+            Friend Sub New(registrationService As IDiagnosticUpdateSourceRegistrationService, listener As IAsynchronousOperationListener)
+                MyBase.New(registrationService, listener)
             End Sub
         End Class
 

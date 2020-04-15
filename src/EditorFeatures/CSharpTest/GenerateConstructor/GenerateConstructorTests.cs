@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -426,7 +428,7 @@ class D
         this.X = x;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -558,7 +560,7 @@ class D : B
         this.X = x;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -722,7 +724,7 @@ class D
 
     public int X { get; private set; }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -854,7 +856,7 @@ class D : B
         this.X = x;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -941,7 +943,7 @@ class D : B
         this.X = x;
     }
 }",
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
+                options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Error));
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
@@ -2321,22 +2323,23 @@ enum A
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttrAttribute : Attribute
 {
-    private int[] v1;
+    private int[] vs;
     private A a1;
-    private bool v2;
-    private byte v3;
-    private char v4;
-    private short v5;
-    private int v6;
-    private long v7;
-    private double v8;
-    private float v9;
-    private string v10;
+    private bool v1;
+    private byte v2;
+    private char v3;
+    private short v4;
+    private int v5;
+    private long v6;
+    private double v7;
+    private float v8;
+    private string v9;
 
-    public MyAttrAttribute(int[] v1, A a1, bool v2, byte v3, char v4, short v5, int v6, long v7, double v8, float v9, string v10)
+    public MyAttrAttribute(int[] vs, A a1, bool v1, byte v2, char v3, short v4, int v5, long v6, double v7, float v8, string v9)
     {
-        this.v1 = v1;
+        this.vs = vs;
         this.a1 = a1;
+        this.v1 = v1;
         this.v2 = v2;
         this.v3 = v3;
         this.v4 = v4;
@@ -2345,7 +2348,6 @@ class MyAttrAttribute : Attribute
         this.v7 = v7;
         this.v8 = v8;
         this.v9 = v9;
-        this.v10 = v10;
     }
 }
 
@@ -3749,7 +3751,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestWitNestedNullability()
+        public async Task TestWithNestedNullability()
         {
             await TestInRegularAndScriptAsync(
 @"#nullable enable

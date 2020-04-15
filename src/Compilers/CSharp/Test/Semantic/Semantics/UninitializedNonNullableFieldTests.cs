@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1343,6 +1345,43 @@ class C
                 // (28,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
                 //     internal C(char c)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(28, 14));
+        }
+
+        [Fact]
+        [WorkItem(1090263, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090263")]
+        public void PropertyNoGetter()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class C
+{
+    public string P { }
+    public string P2 { set { } }
+    public string P3 { } = string.Empty;
+    public C()
+    {
+        P = """";
+        Console.WriteLine(P2);
+        P2 += """";
+    }
+}", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0548: 'C.P': property or indexer must have at least one accessor
+                //     public string P { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(5, 19),
+                // (7,19): error CS0548: 'C.P3': property or indexer must have at least one accessor
+                //     public string P3 { } = string.Empty;
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P3").WithArguments("C.P3").WithLocation(7, 19),
+                // (10,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         P = "";
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(10, 9),
+                // (11,27): error CS0154: The property or indexer 'C.P2' cannot be used in this context because it lacks the get accessor
+                //         Console.WriteLine(P2);
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P2").WithArguments("C.P2").WithLocation(11, 27),
+                // (12,9): error CS0154: The property or indexer 'C.P2' cannot be used in this context because it lacks the get accessor
+                //         P2 += "";
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P2").WithArguments("C.P2").WithLocation(12, 9)
+            );
         }
     }
 }

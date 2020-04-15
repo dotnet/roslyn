@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     internal sealed class TestFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestFormattingRuleFactoryServiceFactory()
         {
         }
@@ -31,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             public bool UseBaseIndentation = false;
 
             public bool ShouldUseBaseIndentation(Document document)
-            {
-                return UseBaseIndentation;
-            }
+                => UseBaseIndentation;
 
             public AbstractFormattingRule CreateRule(Document document, int position)
             {
@@ -47,14 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
-            {
-                return changes;
-            }
+                => changes;
 
             public bool ShouldNotFormatOrCommitOnPaste(Document document)
-            {
-                return UseBaseIndentation;
-            }
+                => UseBaseIndentation;
         }
     }
 }

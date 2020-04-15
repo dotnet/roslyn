@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Composition;
@@ -22,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioFrameworkAssemblyPathResolverFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
@@ -29,9 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
-        }
+            => new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
 
         private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
         {

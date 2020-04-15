@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
-                        FeaturesResources.Use_auto_property,
+                        AnalyzersResources.Use_auto_property,
                         c => ProcessResultAsync(context, diagnostic, c),
                         priority),
                     diagnostic);
@@ -118,10 +120,20 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Now, rename all usages of the field to point at the property.  Except don't actually 
             // rename the field itself.  We want to be able to find it again post rename.
-            var updatedSolution = await Renamer.RenameAsync(fieldLocations, propertySymbol.Name,
-                location => !location.SourceSpan.IntersectsWith(declaratorLocation.SourceSpan) &&
-                            CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit),
-                symbols => HasConflict(symbols, propertySymbol, compilation, cancellationToken),
+            //
+            // We're asking the rename API to update a bunch of references to an existing field to the same name as an
+            // existing property.  Rename will often flag this situation as an unresolvable conflict because the new
+            // name won't bind to the field anymore.
+            //
+            // To address this, we let rename know that there is no conflict if the new symbol it resolves to is the
+            // same as the property we're trying to get the references pointing to.
+
+            var updatedSolution = await Renamer.RenameAsync(
+                fieldLocations.Filter(
+                    location => !location.IntersectsWith(declaratorLocation) &&
+                                CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit)),
+                propertySymbol.Name,
+                nonConflictSymbols: ImmutableHashSet.Create<ISymbol>(propertySymbol),
                 cancellationToken).ConfigureAwait(false);
 
             solution = updatedSolution;
@@ -193,7 +205,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
                 var newRoot = editor.GetChangedRoot();
-                newRoot = Format(newRoot, fieldDocument, cancellationToken);
+                newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
 
                 return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
             }
@@ -206,8 +218,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var newFieldTreeRoot = fieldTreeRoot.RemoveNode(nodeToRemove, syntaxRemoveOptions);
                 var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-                newFieldTreeRoot = Format(newFieldTreeRoot, fieldDocument, cancellationToken);
-                newPropertyTreeRoot = Format(newPropertyTreeRoot, propertyDocument, cancellationToken);
+                newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
+                newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, cancellationToken).ConfigureAwait(false);
 
                 updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -256,7 +268,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return canEdit[sourceTree];
         }
 
-        private SyntaxNode Format(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
         {
             var formattingRules = GetFormattingRules(document);
             if (formattingRules == null)
@@ -264,7 +276,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return newRoot;
             }
 
-            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options: null, rules: formattingRules, cancellationToken: cancellationToken);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options, formattingRules, cancellationToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(
@@ -321,34 +334,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return true;
         }
 
-        private bool? HasConflict(IEnumerable<ISymbol> symbols, IPropertySymbol property, Compilation compilation, CancellationToken cancellationToken)
-        {
-            // We're asking the rename API to update a bunch of references to an existing field to
-            // the same name as an existing property.  Rename will often flag this situation as
-            // an unresolvable conflict because the new name won't bind to the field anymore.
-            //
-            // To address this, we let rename know that there is no conflict if the new symbol it
-            // resolves to is the same as the property we're trying to get the references pointing
-            // to.
-
-            foreach (var symbol in symbols)
-            {
-                if (symbol is IPropertySymbol otherProperty)
-                {
-                    var mappedProperty = otherProperty.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IPropertySymbol;
-                    if (property.Equals(mappedProperty))
-                    {
-                        // No conflict.
-                        return false;
-                    }
-                }
-            }
-
-            // Just do the default check.
-            return null;
-        }
-
-        private class UseAutoPropertyCodeAction : CodeAction.SolutionChangeAction
+        private class UseAutoPropertyCodeAction : CustomCodeActions.SolutionChangeAction
         {
             public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, CodeActionPriority priority)
                 : base(title, createChangedSolution, title)

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -75,14 +77,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool IsCandidateLocation => this.CandidateReason != CandidateReason.None;
 
         public static bool operator ==(ReferenceLocation left, ReferenceLocation right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(ReferenceLocation left, ReferenceLocation right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public override bool Equals(object obj)
         {
@@ -126,8 +124,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private string GetDebuggerDisplay()
-        {
-            return string.Format("{0}: {1}", this.Document.Name, this.Location);
-        }
+            => string.Format("{0}: {1}", this.Document.Name, this.Location);
     }
 }

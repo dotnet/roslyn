@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -17,29 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         protected static SymbolDisplayPart Keyword(SyntaxKind kind)
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
 
         protected static SymbolDisplayPart Punctuation(SyntaxKind kind)
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
 
         protected static SymbolDisplayPart Text(string text)
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
 
         protected static SymbolDisplayPart Space()
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
 
         protected static SymbolDisplayPart NewLine()
-        {
-            return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
-        }
+            => new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
 
         private static readonly IList<SymbolDisplayPart> _separatorParts = new List<SymbolDisplayPart>
             {
@@ -69,8 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         /// </summary>
         [Obsolete("Expected to exist by IntelliCode. This can be removed once their unnecessary use of this is removed.")]
         protected IList<TaggedText> GetAwaitableUsage(IMethodSymbol method, SemanticModel semanticModel, int position)
-        {
-            return SpecializedCollections.EmptyList<TaggedText>();
-        }
+            => SpecializedCollections.EmptyList<TaggedText>();
     }
 }

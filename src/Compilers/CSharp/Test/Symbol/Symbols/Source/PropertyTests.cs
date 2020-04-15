@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
@@ -1559,6 +1561,11 @@ class B {
         public void CanNotReadPropertyFromAmbiguousGenericClass()
         {
             const string ilSource = @"
+.assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '09f9df97-a228-4ca4-9b71-151909f205e6'
+{
+}
+
 .class public A`1<T> {
   .method public static int32 get_Goo() { ldnull throw }
   .property int32 Goo() { .get int32 A`1::get_Goo() }
@@ -1569,6 +1576,8 @@ class B {
   .property int32 Goo() { .get int32 A::get_Goo() }
 }
 ";
+            var ref0 = CompileIL(ilSource, prependDefaultHeader: false);
+
             const string cSharpSource = @"
 class B {
   static void Main() {
@@ -1576,10 +1585,10 @@ class B {
   }
 }
 ";
-            CreateCompilationWithILAndMscorlib40(cSharpSource, ilSource).VerifyDiagnostics(
-                // (4,16): error CS0104: 'A<>' is an ambiguous reference between 'A<T>' and 'A<T>'
+            CreateCompilation(cSharpSource, references: new[] { ref0 }).VerifyDiagnostics(
+                // (4,16): error CS0433: The type 'A<T>' exists in both '09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and '09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //     object x = A<int>.Goo;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "A<int>").WithArguments("A<>", "A<T>", "A<T>").WithLocation(4, 16));
+                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "A<int>").WithArguments("09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "A<T>", "09f9df97-a228-4ca4-9b71-151909f205e6, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 16));
         }
 
         [WorkItem(538789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538789")]

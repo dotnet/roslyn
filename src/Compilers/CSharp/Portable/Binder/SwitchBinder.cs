@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // compute the constant value to place in the label symbol
                         var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                         Debug.Assert(caseLabel.Value != null);
-                        var boundLabelExpression = sectionBinder.BindRValueWithoutTargetType(caseLabel.Value, tempDiagnosticBag);
+                        var boundLabelExpression = sectionBinder.BindValue(caseLabel.Value, tempDiagnosticBag, BindValueKind.RValue);
                         boundLabelExpression = ConvertCaseExpression(labelSyntax, boundLabelExpression, sectionBinder, out boundLabelConstantOpt, tempDiagnosticBag);
                         break;
 
