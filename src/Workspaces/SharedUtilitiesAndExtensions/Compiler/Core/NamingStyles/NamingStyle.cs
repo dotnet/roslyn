@@ -208,10 +208,10 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private static string Substring(string name, TextSpan wordSpan)
             => name.Substring(wordSpan.Start, wordSpan.Length);
 
-        private static Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
-        private static Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsLowerCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsLower(val[span.Start]);
+        private static readonly Func<string, TextSpan, bool> s_firstCharIsUpperCase = (val, span) => !DoesCharacterHaveCasing(val[span.Start]) || char.IsUpper(val[span.Start]);
 
-        private static Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
+        private static readonly Func<string, TextSpan, bool> s_wordIsAllUpperCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             return true;
         };
 
-        private static Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
+        private static readonly Func<string, TextSpan, bool> s_wordIsAllLowerCase = (val, span) =>
         {
             for (int i = span.Start, n = span.End; i < n; i++)
             {

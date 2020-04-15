@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
     internal static class VisualStudioMSBuildLocator
     {
-        private static Lazy<(Version version, string path)> s_versionAndPath = new Lazy<(Version version, string path)>(FindMSBuildToolsPathFromVisualStudioCore);
+        private static readonly Lazy<(Version version, string path)> s_versionAndPath = new Lazy<(Version version, string path)>(FindMSBuildToolsPathFromVisualStudioCore);
 
         public static bool TryFindMSBuildToolsPath(out (Version version, string path) versionAndPath)
         {
