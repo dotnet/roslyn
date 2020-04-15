@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
 #if CODE_STYLE
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var wrappingLength = document.Project.AnalyzerOptions.GetOption(UseConditionalExpressionOptions.ConditionalExpressionWrappingLength, document.Project.Language, tree, cancellationToken);
 #else
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
