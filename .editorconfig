@@ -225,11 +225,6 @@ dotnet_diagnostic.RS0037.severity = none
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none
 
-[*.{cs,vb}]
-# Temporary workaround to enable FixAll in solution for IDE0036 and IDE0040
-dotnet_diagnostic.IDE0036.severity = none
-dotnet_diagnostic.IDE0040.severity = none
-
 [src/{Analyzers,CodeStyle,Features,Workspaces}/**/*.{cs,vb}]
 # IDE0005: Remove unnecessary usings/imports
 dotnet_diagnostic.IDE0005.severity = warning
