@@ -68,14 +68,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         [Fact]
+		public void TupleType()
+        {
+            (int, int) tup = (1, 2);
+            Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
+        }
+
+		[Fact]
         public void ArrayMethodParameters()
         {
             var result = s_formatter.FormatMethodSignature(Signatures.Arrays);
             Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(int[], int[,], int[,,])", result);
         }
 
-        [Fact]
-        public void ArrayOfInt32_NoMembers()
+		[Fact]        public void ArrayOfInt32_NoMembers()
         {
             object o = new int[4] { 3, 4, 5, 6 };
             var str = s_formatter.FormatObject(o, HiddenOptions);

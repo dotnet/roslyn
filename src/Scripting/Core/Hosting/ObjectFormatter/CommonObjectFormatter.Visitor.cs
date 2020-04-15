@@ -713,9 +713,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 try
                 {
                     string str = obj.ToString();
-                    result.Append('[');
-                    result.Append(str);
-                    result.Append(']');
+                    if (obj is ITuple)
+                    {
+                        result.Append(str);
+                    }
+                    else
+                    {
+                        result.Append('[');
+                        result.Append(str);
+                        result.Append(']');
+                    }
                 }
                 catch (Exception e)
                 {
