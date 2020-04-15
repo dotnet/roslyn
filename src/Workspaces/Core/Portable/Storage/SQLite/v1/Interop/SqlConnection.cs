@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using SQLitePCL;
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         /// <summary>
         /// The raw handle to the underlying DB.
         /// </summary>
-        private readonly sqlite3 _handle;
+        private readonly SafeSqliteHandle _handle;
 
         /// <summary>
         /// For testing purposes to simulate failures during testing.
@@ -70,44 +70,41 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 
             Contract.ThrowIfNull(handle);
 
+            SafeSqliteHandle wrapper;
             try
             {
-                raw.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-                return new SqlConnection(handle, faultInjector, queryToStatement);
+                wrapper = new SafeSqliteHandle(handle);
+            }
+            catch
+            {
+                raw.sqlite3_close(handle);
+                throw;
+            }
+
+            try
+            {
+                using var _ = wrapper.Lease();
+                raw.sqlite3_busy_timeout(wrapper.DangerousGetHandle(), (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+                return new SqlConnection(wrapper, faultInjector, queryToStatement);
             }
             catch
             {
                 // If we failed to create connection, ensure that we still release the sqlite
                 // handle.
-                raw.sqlite3_close(handle);
+                wrapper.Dispose();
                 throw;
             }
         }
 
-        private SqlConnection(sqlite3 handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
+        private SqlConnection(SafeSqliteHandle handle, IPersistentStorageFaultInjector faultInjector, Dictionary<string, SqlStatement> queryToStatement)
         {
-            // This constructor avoids allocations since failure (e.g. OutOfMemoryException) would
-            // leave the object partially-constructed, and the finalizer would run later triggering
-            // a crash.
             _handle = handle;
             _faultInjector = faultInjector;
             _queryToStatement = queryToStatement;
         }
 
-        ~SqlConnection()
-        {
-            if (!Environment.HasShutdownStarted)
-            {
-                var ex = new InvalidOperationException("SqlConnection was not properly closed");
-                _faultInjector?.OnFatalError(ex);
-                FatalError.Report(new InvalidOperationException("SqlConnection was not properly closed"));
-            }
-        }
-
         internal void Close_OnlyForUseBySqlPersistentStorage()
         {
-            GC.SuppressFinalize(this);
-
             Contract.ThrowIfNull(_handle);
 
             // release all the cached statements we have.
@@ -123,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             _queryToStatement.Clear();
 
             // Finally close our handle to the actual DB.
-            ThrowIfNotOk(raw.sqlite3_close(_handle));
+            _handle.Dispose();
         }
 
         public void ExecuteCommand(string command, bool throwOnError = true)
@@ -141,10 +138,32 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         {
             if (!_queryToStatement.TryGetValue(query, out var statement))
             {
-                var result = (Result)raw.sqlite3_prepare_v2(_handle, query, out var rawStatement);
+                using var _ = _handle.Lease();
+
+                var result = (Result)raw.sqlite3_prepare_v2(_handle.DangerousGetHandle(), query, out var rawStatement);
                 ThrowIfNotOk(result);
-                statement = new SqlStatement(this, rawStatement);
-                _queryToStatement[query] = statement;
+
+                SafeSqliteStatementHandle wrapper;
+                try
+                {
+                    wrapper = new SafeSqliteStatementHandle(_handle, rawStatement);
+                }
+                catch
+                {
+                    raw.sqlite3_finalize(rawStatement);
+                    throw;
+                }
+
+                try
+                {
+                    statement = new SqlStatement(this, wrapper);
+                    _queryToStatement[query] = statement;
+                }
+                catch
+                {
+                    wrapper.Dispose();
+                    throw;
+                }
             }
 
             return new ResettableSqlStatement(statement);
@@ -216,7 +235,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             => ExecuteCommand("rollback transaction", throwOnError);
 
         public int LastInsertRowId()
-            => (int)raw.sqlite3_last_insert_rowid(_handle);
+        {
+            using var _ = _handle.Lease();
+            return (int)raw.sqlite3_last_insert_rowid(_handle.DangerousGetHandle());
+        }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
         public Stream ReadBlob_MustRunInTransaction(string tableName, string columnName, long rowId)
@@ -236,7 +258,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             }
 
             const int ReadOnlyFlags = 0;
-            var result = raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
+
+            using var _ = _handle.Lease();
+            var result = raw.sqlite3_blob_open(_handle.DangerousGetHandle(), "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
             if (result == raw.SQLITE_ERROR)
             {
                 // can happen when rowId points to a row that hasn't been written to yet.
@@ -244,19 +268,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             }
 
             ThrowIfNotOk(result);
-            try
-            {
-                return ReadBlob(blob);
-            }
-            finally
-            {
-                ThrowIfNotOk(raw.sqlite3_blob_close(blob));
-            }
+
+            using var blobHandle = new SafeSqliteBlobHandle(_handle, blob);
+            return ReadBlob(blobHandle);
         }
 
-        private Stream ReadBlob(sqlite3_blob blob)
+        private Stream ReadBlob(SafeSqliteBlobHandle blob)
         {
-            var length = raw.sqlite3_blob_bytes(blob);
+            using var _ = blob.Lease();
+
+            var length = raw.sqlite3_blob_bytes(blob.DangerousGetHandle());
 
             // If it's a small blob, just read it into one of our pooled arrays, and then
             // create a PooledStream over it. 
@@ -268,17 +289,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             {
                 // Otherwise, it's a large stream.  Just take the hit of allocating.
                 var bytes = new byte[length];
-                ThrowIfNotOk(raw.sqlite3_blob_read(blob, bytes, length, offset: 0));
+                ThrowIfNotOk(raw.sqlite3_blob_read(blob.DangerousGetHandle(), bytes, length, offset: 0));
                 return new MemoryStream(bytes);
             }
         }
 
-        private Stream ReadBlobIntoPooledStream(sqlite3_blob blob, int length)
+        private Stream ReadBlobIntoPooledStream(SafeSqliteBlobHandle blob, int length)
         {
+            using var _ = blob.Lease();
+
             var bytes = SQLitePersistentStorage.GetPooledBytes();
             try
             {
-                ThrowIfNotOk(raw.sqlite3_blob_read(blob, bytes, length, offset: 0));
+                ThrowIfNotOk(raw.sqlite3_blob_read(blob.DangerousGetHandle(), bytes, length, offset: 0));
 
                 // Copy those bytes into a pooled stream
                 return SerializableBytes.CreateReadableStream(bytes, length);
@@ -296,7 +319,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         public void ThrowIfNotOk(Result result)
             => ThrowIfNotOk(_handle, result);
 
-        public static void ThrowIfNotOk(sqlite3 handle, Result result)
+        public static void ThrowIfNotOk(SafeSqliteHandle handle, Result result)
         {
             if (result != Result.OK)
             {
@@ -307,9 +330,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         public void Throw(Result result)
             => Throw(_handle, result);
 
-        public static void Throw(sqlite3 handle, Result result)
-            => throw new SqlException(result,
-                raw.sqlite3_errmsg(handle) + "\r\n" +
-                raw.sqlite3_errstr(raw.sqlite3_extended_errcode(handle)));
+        public static void Throw(SafeSqliteHandle handle, Result result)
+        {
+            using var _ = handle.Lease();
+
+            throw new SqlException(result,
+                raw.sqlite3_errmsg(handle.DangerousGetHandle()) + "\r\n" +
+                raw.sqlite3_errstr(raw.sqlite3_extended_errcode(handle.DangerousGetHandle())));
+        }
     }
 }
