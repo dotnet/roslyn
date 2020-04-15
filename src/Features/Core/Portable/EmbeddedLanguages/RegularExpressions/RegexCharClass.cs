@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
-    using static WorkspacesResources;
+    using static FeaturesResources;
 
     /// <summary>
     /// Minimal copy of https://github.com/dotnet/corefx/blob/master/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
