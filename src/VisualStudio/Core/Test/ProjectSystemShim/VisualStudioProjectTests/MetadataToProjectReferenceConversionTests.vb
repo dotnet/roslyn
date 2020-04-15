@@ -5,7 +5,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.IntegrationTest.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Roslyn.Test.Utilities
 
@@ -113,8 +112,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         ' This is a test for a potential race between two operations; with 20 iterations on my machine either all would fail
         ' or one might pass, it seems the race is easy enough to hit without the fix.
         <WpfTheory>
-        <IterationData(20)>
-        Public Sub ProjectBeingAddedWhileOutputPathBeingUpdatedDoesNotRace(iteration As Integer)
+        <CombinatorialData>
+        Public Sub ProjectBeingAddedWhileOutputPathBeingUpdatedDoesNotRace(<CombinatorialRange(0, 20)> iteration As Integer)
             Using environment = New TestEnvironment()
                 Dim referencingProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencingProject", LanguageNames.CSharp)
                 Dim referencedProject = environment.ProjectFactory.CreateAndAddToWorkspace("referencedProject", LanguageNames.CSharp)
