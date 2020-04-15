@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Friend Partial Class VisualBasicIntroduceVariableService
+    Partial Friend Class VisualBasicIntroduceVariableService
         Protected Overrides Function IntroduceQueryLocalAsync(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,

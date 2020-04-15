@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
-    Friend Partial Class MemberDeclarationsOrganizer
+    Partial Friend Class MemberDeclarationsOrganizer
         Public Class Comparer
             Implements IComparer(Of StatementSyntax)
             ' TODO(cyrusn): Allow users to specify the ordering they want
