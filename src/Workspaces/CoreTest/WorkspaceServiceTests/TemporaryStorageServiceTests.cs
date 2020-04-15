@@ -183,6 +183,44 @@ namespace Microsoft.CodeAnalysis.UnitTests
             GC.Collect(2);
         }
 
+        // [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+#pragma warning disable IDE0051 // Remove unused private members - We want to keep this test around, but not have it disabled/associated with a bug
+        private void TestTemporaryStorageScaling()
+#pragma warning restore IDE0051 // Remove unused private members
+        {
+            // This will churn through 4GB of memory.  It validates that we don't
+            // use up our address space in a 32 bit process.
+            if (Environment.Is64BitOperatingSystem && !Environment.Is64BitProcess)
+            {
+                var textFactory = new TextFactoryService();
+                var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
+
+                using var data = SerializableBytes.CreateWritableStream();
+                for (var i = 0; i < 1024 * 128; i++)
+                {
+                    data.WriteByte(1);
+                }
+
+                // Create 4GB of memory mapped files
+                var fileCount = (int)((long)4 * 1024 * 1024 * 1024 / data.Length);
+                var storageHandles = new List<ITemporaryStreamStorage>(fileCount);
+                for (var i = 0; i < fileCount; i++)
+                {
+                    var s = service.CreateTemporaryStreamStorage(CancellationToken.None);
+                    storageHandles.Add(s);
+                    data.Position = 0;
+                    s.WriteStreamAsync(data).Wait();
+                }
+
+                for (var i = 0; i < 1024 * 5; i++)
+                {
+                    using var s = storageHandles[i].ReadStreamAsync().Result;
+                    Assert.Equal(1, s.ReadByte());
+                    storageHandles[i].Dispose();
+                }
+            }
+        }
+
         [Fact]
         public void StreamTest1()
         {
