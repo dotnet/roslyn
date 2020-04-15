@@ -9,6 +9,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             private static CultureInfo s_enUsCulture = CultureInfo.GetCultureInfo("en-US");
 
             private readonly ArrayBuilder<DateAndTimeItem> _items;
+            private readonly ICurrentCultureProvider _cultureProvider;
             private readonly TextSpan _replacementSpan;
 
             /// <summary>
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
                 ArrayBuilder<DateAndTimeItem> items)
             {
                 _items = items;
+                _cultureProvider = context.Document.Project.Solution.Workspace.Services.GetRequiredService<ICurrentCultureProvider>();
 
                 var startPosition = context.Position;
                 while (char.IsLetter(text[startPosition - 1]))
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             {
                 var userFormat = _userFormatPrefix + displayText + _userFormatSuffix;
 
-                var primaryCulture = CultureInfo.CurrentCulture;
+                var primaryCulture = _cultureProvider.CurrentCulture;
                 var secondaryCulture = s_enUsCulture;
                 var hideCulture = primaryCulture.Equals(secondaryCulture);
 

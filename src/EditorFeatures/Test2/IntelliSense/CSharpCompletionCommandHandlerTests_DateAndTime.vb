@@ -94,9 +94,8 @@ class c
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExample1(showCompletionInArgumentLists As Boolean) As Task
-            Using New CultureContext(New CultureInfo("en-US", useUserOverride:=False))
-                Using state = TestStateFactory.CreateCSharpTestState(
-    <Document><![CDATA[
+            Using state = TestStateFactory.CreateCSharpTestState(
+<Document><![CDATA[
 using System;
 class c
 {
@@ -105,24 +104,26 @@ class c
         d.ToString("hh:mm:$$");
     }
 }
-]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists,
+                extraExportedTypes:=New List(Of Type) From {GetType(TestCurrentCultureProvider)})
 
-                    state.SendInvokeCompletionList()
-                    state.SendTypeChars("ss")
-                    Await state.AssertSelectedCompletionItem("ss", inlineDescription:=FeaturesResources.second_2_digits)
+                Dim culture = state.Workspace.Services.GetService(Of TestCurrentCultureProvider)
+                culture.SetCurrentCulture(CultureInfo.GetCultureInfo("en-US"))
 
-                    Dim description = Await state.GetSelectedItemDescriptionAsync()
-                    Assert.Contains(description.Text, "hh:mm:ss → 01:45:30")
-                    Dim text = description.Text
-                End Using
+                state.SendInvokeCompletionList()
+                state.SendTypeChars("ss")
+                Await state.AssertSelectedCompletionItem("ss", inlineDescription:=FeaturesResources.second_2_digits)
+
+                Dim description = Await state.GetSelectedItemDescriptionAsync()
+                Assert.Contains(description.Text, "hh:mm:ss → 01:45:30")
+                Dim text = description.Text
             End Using
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExample2(showCompletionInArgumentLists As Boolean) As Task
-            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
-                Using state = TestStateFactory.CreateCSharpTestState(
-    <Document><![CDATA[
+            Using state = TestStateFactory.CreateCSharpTestState(
+<Document><![CDATA[
 using System;
 class c
 {
@@ -131,16 +132,19 @@ class c
         d.ToString("hh:mm:$$");
     }
 }
-]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists,
+                extraExportedTypes:=New List(Of Type) From {GetType(TestCurrentCultureProvider)})
 
-                    state.SendInvokeCompletionList()
-                    state.SendTypeChars("ss")
-                    Await state.AssertSelectedCompletionItem("ss", inlineDescription:=FeaturesResources.second_2_digits)
+                Dim culture = state.Workspace.Services.GetService(Of TestCurrentCultureProvider)
+                culture.SetCurrentCulture(CultureInfo.GetCultureInfo("fr-FR"))
 
-                    Dim description = Await state.GetSelectedItemDescriptionAsync()
-                    Dim text = description.Text
-                    Assert.Contains(description.Text, "hh:mm:ss → 01:45:30")
-                End Using
+                state.SendInvokeCompletionList()
+                state.SendTypeChars("ss")
+                Await state.AssertSelectedCompletionItem("ss", inlineDescription:=FeaturesResources.second_2_digits)
+
+                Dim description = Await state.GetSelectedItemDescriptionAsync()
+                Dim text = description.Text
+                Assert.Contains(description.Text, "hh:mm:ss → 01:45:30")
             End Using
         End Function
     End Class
