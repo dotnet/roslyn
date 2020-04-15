@@ -789,7 +789,7 @@ End Sub")
         End Sub
 
         <Fact, WorkItem(31720, "https://github.com/dotnet/roslyn/issues/31720")>
-        Sub TestGetAttributeOnMethodBodies()
+        Public Sub TestGetAttributeOnMethodBodies()
             Dim compilation = Compile("
 Imports System
 <AttributeUsage(System.AttributeTargets.All)>
