@@ -51,7 +51,7 @@
     <ICSharpCodeDecompilerVersion>5.0.2.5153</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildVersion>15.3.409</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.3.409</MicrosoftBuildFrameworkVersion>
-    <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildLocatorVersion>1.2.6</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.3.409</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.3.409</MicrosoftBuildTasksCoreVersion>
     <!--
@@ -214,7 +214,7 @@
     <xunitVersion>2.4.1-pre.build.4059</xunitVersion>
     <xunitanalyzersVersion>0.10.0</xunitanalyzersVersion>
     <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
-    <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
+    <XunitCombinatorialVersion>1.3.2</XunitCombinatorialVersion>
     <xunitextensibilitycoreVersion>$(xunitVersion)</xunitextensibilitycoreVersion>
     <xunitrunnerconsoleVersion>2.4.1-pre.build.4059</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>

@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (val2 < val1)
                     {
                         secondNumberTokenLocal = secondNumberTokenLocal.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                            WorkspacesResources.Illegal_x_y_with_x_less_than_y,
+                            FeaturesResources.Illegal_x_y_with_x_less_than_y,
                             secondNumberTokenLocal.GetSpan()));
                         secondNumberToken = secondNumberTokenLocal;
                     }
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexPrimaryExpressionNode ParseUnexpectedCloseParenToken()
         {
             var token = _currentToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(
-                new EmbeddedDiagnostic(WorkspacesResources.Too_many_close_parens, _currentToken.GetSpan()));
+                new EmbeddedDiagnostic(FeaturesResources.Too_many_close_parens, _currentToken.GetSpan()));
 
             // Technically, since an error occurred, we can do whatever we want here.  However,
             // the spirit of the native parser is that top level sequence elements are allowed
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
                 default:
                     return CreateMissingToken(RegexKind.CloseParenToken).AddDiagnosticIfNone(
-                        new EmbeddedDiagnostic(WorkspacesResources.Not_enough_close_parens, GetTokenStartPositionSpan(_currentToken)));
+                        new EmbeddedDiagnostic(FeaturesResources.Not_enough_close_parens, GetTokenStartPositionSpan(_currentToken)));
             }
         }
 
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     {
                         // Native parser reports "Unrecognized grouping construct", *except* for (?)
                         openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                            WorkspacesResources.Unrecognized_grouping_construct,
+                            FeaturesResources.Unrecognized_grouping_construct,
                             openParenToken.GetSpan()));
                     }
 
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (!HasCapture((int)capture.Value))
                     {
                         capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                            WorkspacesResources.Reference_to_undefined_group,
+                            FeaturesResources.Reference_to_undefined_group,
                             capture.GetSpan()));
                     }
                 }
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 {
                     innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                     capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        WorkspacesResources.Malformed,
+                        FeaturesResources.Malformed,
                         capture.GetSpan()));
                     MoveBackBeforePreviousScan();
                 }
@@ -873,14 +873,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 else
                 {
                     openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        WorkspacesResources.Alternation_conditions_cannot_be_comments,
+                        FeaturesResources.Alternation_conditions_cannot_be_comments,
                         openParenToken.GetSpan()));
                 }
             }
             else if (_lexer.IsAt("(?'"))
             {
                 openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Alternation_conditions_do_not_capture_and_cannot_be_named,
+                    FeaturesResources.Alternation_conditions_do_not_capture_and_cannot_be_named,
                     openParenToken.GetSpan()));
             }
             else if (_lexer.IsAt("(?<"))
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     !_lexer.IsAt("(?<="))
                 {
                     openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        WorkspacesResources.Alternation_conditions_do_not_capture_and_cannot_be_named,
+                        FeaturesResources.Alternation_conditions_do_not_capture_and_cannot_be_named,
                         openParenToken.GetSpan()));
                 }
             }
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return new RegexAlternationNode(
                     topAlternation.Left,
                     topAlternation.BarToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        WorkspacesResources.Too_many_bars_in_conditional_grouping,
+                        FeaturesResources.Too_many_bars_in_conditional_grouping,
                         topAlternation.BarToken.GetSpan())),
                     topAlternation.Right);
             }
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_lexer.Position == _lexer.Text.Length)
             {
                 openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Unrecognized_grouping_construct,
+                    FeaturesResources.Unrecognized_grouping_construct,
                     GetSpan(openParenToken, openToken)));
             }
 
@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 else
                 {
                     openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
+                        FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
                         GetTokenSpanIncludingEOF(_currentToken)));
 
                     // If we weren't at the end of the text, go back to before whatever character
@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (capture.Kind == RegexKind.NumberToken && (int)capture.Value == 0)
             {
                 capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Capture_number_cannot_be_zero,
+                    FeaturesResources.Capture_number_cannot_be_zero,
                     capture.GetSpan()));
             }
 
@@ -1039,13 +1039,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
                 openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Unrecognized_grouping_construct,
+                    FeaturesResources.Unrecognized_grouping_construct,
                     GetSpan(openParenToken, openToken)));
             }
             else
             {
                 openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
+                    FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
                     _currentToken.GetSpan()));
 
                 // Rewind to where we were before seeing this bogus character.
@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 ConsumeCurrentToken(allowTrivia: false);
 
                 openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
+                    FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
                     GetTokenSpanIncludingEOF(_currentToken)));
 
                 // If we weren't at the end of the text, go back to before whatever character
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (!HasCapture(val))
                 {
                     captureToken = captureToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        string.Format(WorkspacesResources.Reference_to_undefined_group_number_0, val),
+                        string.Format(FeaturesResources.Reference_to_undefined_group_number_0, val),
                         captureToken.GetSpan()));
                 }
             }
@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (!HasCapture(val))
                 {
                     captureToken = captureToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        string.Format(WorkspacesResources.Reference_to_undefined_group_name_0, val),
+                        string.Format(FeaturesResources.Reference_to_undefined_group_name_0, val),
                         captureToken.GetSpan()));
                 }
             }
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     return new RegexSimpleOptionsGroupingNode(
                         openParenToken, questionToken, optionsToken,
                         CreateMissingToken(RegexKind.CloseParenToken).AddDiagnosticIfNone(
-                            new EmbeddedDiagnostic(WorkspacesResources.Unrecognized_grouping_construct, openParenToken.GetSpan())));
+                            new EmbeddedDiagnostic(FeaturesResources.Unrecognized_grouping_construct, openParenToken.GetSpan())));
             }
         }
 
@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (closeBracketToken.IsMissing)
             {
                 closeBracketToken = closeBracketToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Unterminated_character_class_set,
+                    FeaturesResources.Unterminated_character_class_set,
                     GetTokenStartPositionSpan(_currentToken)));
             }
 
@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         leftCh > rightCh)
                     {
                         minusToken = minusToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                            WorkspacesResources.x_y_range_in_reverse_order,
+                            FeaturesResources.x_y_range_in_reverse_order,
                             minusToken.GetSpan()));
                     }
 
@@ -1500,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         if (afterRangeMinus)
                         {
                             backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                                string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, nextChar),
+                                string.Format(FeaturesResources.Cannot_include_class_0_in_character_range, nextChar),
                                 GetSpan(backslashToken, _currentToken)));
                         }
 
@@ -1586,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_currentToken.Kind != RegexKind.CloseBracketToken && _currentToken.Kind != RegexKind.EndOfFile)
             {
                 minusToken = minusToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.A_subtraction_must_be_the_last_element_in_a_character_class,
+                    FeaturesResources.A_subtraction_must_be_the_last_element_in_a_character_class,
                     GetTokenStartPositionSpan(minusToken)));
             }
 
@@ -1608,7 +1608,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
                 backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Illegal_backslash_at_end_of_pattern,
+                    FeaturesResources.Illegal_backslash_at_end_of_pattern,
                     backslashToken.GetSpan()));
                 return new RegexSimpleEscapeNode(backslashToken, CreateMissingToken(RegexKind.TextToken));
             }
@@ -1654,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
                 backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Illegal_backslash_at_end_of_pattern,
+                    FeaturesResources.Illegal_backslash_at_end_of_pattern,
                     backslashToken.GetSpan()));
                 return new RegexSimpleEscapeNode(backslashToken, CreateMissingToken(RegexKind.TextToken));
             }
@@ -1784,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (openToken.IsMissing)
             {
                 backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Malformed_named_back_reference,
+                    FeaturesResources.Malformed_named_back_reference,
                     GetSpan(backslashToken, typeToken)));
                 return new RegexSimpleEscapeNode(backslashToken, typeToken.With(kind: RegexKind.TextToken));
             }
@@ -1883,7 +1883,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (!HasOption(_options, RegexOptions.ECMAScript) && RegexCharClass.IsWordChar(ch))
                     {
                         typeToken = typeToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                            string.Format(WorkspacesResources.Unrecognized_escape_sequence_0, ch),
+                            string.Format(FeaturesResources.Unrecognized_escape_sequence_0, ch),
                             typeToken.GetSpan()));
                     }
 
@@ -1915,7 +1915,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_currentToken.Kind == RegexKind.EndOfFile)
             {
                 typeToken = typeToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Missing_control_character,
+                    FeaturesResources.Missing_control_character,
                     typeToken.GetSpan()));
                 return new RegexControlEscapeNode(backslashToken, typeToken, CreateMissingToken(RegexKind.TextToken));
             }
@@ -1955,7 +1955,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 else
                 {
                     typeToken = typeToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        WorkspacesResources.Unrecognized_control_character,
+                        FeaturesResources.Unrecognized_control_character,
                         _currentToken.GetSpan()));
 
                     // Don't consume the bogus control character.
@@ -2001,7 +2001,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             if (_lexer.Text.Length - _lexer.Position < "{x}".Length)
             {
-                message = WorkspacesResources.Incomplete_character_escape;
+                message = FeaturesResources.Incomplete_character_escape;
                 return false;
             }
 
@@ -2010,7 +2010,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             if (_currentToken.Kind != RegexKind.OpenBraceToken)
             {
-                message = WorkspacesResources.Malformed_character_escape;
+                message = FeaturesResources.Malformed_character_escape;
                 return false;
             }
 
@@ -2021,13 +2021,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             ConsumeCurrentToken(allowTrivia: false);
             if (_currentToken.Kind != RegexKind.CloseBraceToken)
             {
-                message = WorkspacesResources.Incomplete_character_escape;
+                message = FeaturesResources.Incomplete_character_escape;
                 return false;
             }
 
             if (category == null)
             {
-                message = WorkspacesResources.Unknown_property;
+                message = FeaturesResources.Unknown_property;
                 return false;
             }
 
@@ -2051,13 +2051,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 current.Kind == RegexKind.SimpleOptionsGrouping)
             {
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    WorkspacesResources.Quantifier_x_y_following_nothing, token.GetSpan()));
+                    FeaturesResources.Quantifier_x_y_following_nothing, token.GetSpan()));
             }
             else if (current is RegexQuantifierNode ||
                      current is RegexLazyQuantifierNode)
             {
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    string.Format(WorkspacesResources.Nested_quantifier_0, token.VirtualChars.First()), token.GetSpan()));
+                    string.Format(FeaturesResources.Nested_quantifier_0, token.VirtualChars.First()), token.GetSpan()));
             }
         }
     }
