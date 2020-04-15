@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbol.Kind == SymbolKind.RangeVariable;
         }
 
-        CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
+        private CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
             return CommonCompletionItem.Create(
                 name,

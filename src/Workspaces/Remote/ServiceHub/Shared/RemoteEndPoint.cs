@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RemoteEndPoint : IDisposable
     {
-        const string UnexpectedExceptionLogMessage = "Unexpected exception from JSON-RPC";
+        private const string UnexpectedExceptionLogMessage = "Unexpected exception from JSON-RPC";
 
         private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
         {

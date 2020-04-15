@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    interface IRemoteDiagnosticAnalyzerService
+    internal interface IRemoteDiagnosticAnalyzerService
     {
         Task CalculateDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken);
         void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken);
