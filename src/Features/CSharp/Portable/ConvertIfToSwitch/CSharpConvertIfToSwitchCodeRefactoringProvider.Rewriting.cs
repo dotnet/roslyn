@@ -33,16 +33,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections)
         {
             return ReturnStatement(
-                SwitchExpression((ExpressionSyntax)target, SeparatedList(sections.Select(AsSwitchExpressionArmSyntax))));
+                SwitchExpression(
+                    (ExpressionSyntax)target,
+                    SeparatedList(sections.Select(AsSwitchExpressionArmSyntax))));
         }
 
         private static SwitchExpressionArmSyntax AsSwitchExpressionArmSyntax(AnalyzedSwitchSection section)
         {
-            // In a switch expression, we expect only a single label
-            Debug.Assert(section.Labels.IsDefault || section.Labels.Length == 1);
-            var (pattern, whenClause) = section.Labels.IsDefault
-                ? (DiscardPattern(), null)
-                : (AsPatternSyntax(section.Labels[0].Pattern), AsWhenClause(section.Labels[0]));
+            if (section.Labels.IsDefault)
+                return SwitchExpressionArm(DiscardPattern(), AsExpressionSyntax(section.Body));
+
+            var pattern = AsPatternSyntax(section.Labels[0].Pattern);
+            var whenClause = AsWhenClause(section.Labels[0]);
+
+            Debug.Assert(whenClause == null || section.Labels.Length == 1, "We shouldn't have guards when we're combining multiple cases into a single arm");
+
+            for (int i = 1; i < section.Labels.Length; i++)
+            {
+                var label = section.Labels[i];
+                Debug.Assert(label.Guards.Length == 0, "We shouldn't have guards when we're combining multiple cases into a single arm");
+                var nextPattern = AsPatternSyntax(label.Pattern);
+                pattern = BinaryPattern(SyntaxKind.OrPattern, pattern, nextPattern);
+            }
+
             return SwitchExpressionArm(pattern, whenClause, AsExpressionSyntax(section.Body));
         }
 

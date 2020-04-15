@@ -1636,6 +1636,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestComparison_SwitchExpression_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M(int i)
+    {
+        [||]if (5 >= i || 1 <= i)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M(int i)
+    {
+        return i switch
+        {
+            <= 5 or >= 1 => 1,
+            _ => 2
+        };
+    }
+}", index: 1, parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestComplexIf_CSharp8()
         {
             await TestMissingAsync(

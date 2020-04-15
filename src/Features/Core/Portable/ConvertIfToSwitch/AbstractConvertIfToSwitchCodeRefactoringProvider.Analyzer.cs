@@ -437,6 +437,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             CaseGuard = 1 << 4,
             // C# 8.0 features
             SwitchExpression = 1 << 5,
+            // C# 9.0 features
+            OrPattern = 1 << 6,
         }
     }
 }

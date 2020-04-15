@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -32,9 +33,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             bool convertToSwitchExpression,
             CancellationToken cancellationToken)
         {
-            var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
             var ifSpan = ifStatement.Span;
+            var options = root.SyntaxTree.Options;
 
             var @switch = convertToSwitchExpression
                 ? CreateSwitchExpressionStatement(target, sections)
