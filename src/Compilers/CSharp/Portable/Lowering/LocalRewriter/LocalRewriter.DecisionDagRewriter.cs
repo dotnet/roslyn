@@ -231,6 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
+                {
+                    _mightAssignSomething = true;
+                    return null;
+                }
+
                 public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
                 {
                     _mightAssignSomething = true;

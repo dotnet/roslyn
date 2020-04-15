@@ -3317,6 +3317,53 @@ struct S
         }
 
         [Fact]
+        public void DoNotShareTempMutatedThroughPointer_01()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static unsafe void Main()
+    {
+        S s;
+        s = new S(1);
+        Console.Write(s switch
+        {
+            { N: 1 } when Mutate(&s.N) => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        Console.Write(new S(1) switch
+        {
+            { N: 1 } s0 when Mutate(&s0.N) => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+    }
+
+    static unsafe bool Mutate(int* p)
+    {
+        (*p) ++;
+        return false;
+    }
+}
+struct S
+{
+    public int N;
+    public int Q => N;
+
+    public S(int n) => N = n;
+}
+";
+            var expectedOutput = "22";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void DoNotShareTempMutatedThroughReceiver_02()
         {
             var source = @"
