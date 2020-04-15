@@ -242,8 +242,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             if (AllParameters[_selectedIndex!.Value] is AddedParameterViewModel)
             {
-                ParameterViewModel parameterToRemove = AllParameters[_selectedIndex!.Value];
-                _parametersWithoutDefaultValues.Remove(parameterToRemove);
+                var parameterToRemove = AllParameters[_selectedIndex!.Value];
+
+                if (_parametersWithoutDefaultValues.Contains(parameterToRemove))
+                {
+                    _parametersWithoutDefaultValues.Remove(parameterToRemove);
+                }
+                else
+                {
+                    _parametersWithDefaultValues.Remove(parameterToRemove);
+                }
             }
             else
             {
