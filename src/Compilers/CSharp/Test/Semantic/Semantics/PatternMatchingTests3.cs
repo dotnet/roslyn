@@ -3408,6 +3408,100 @@ struct S : I
         }
 
         [Fact]
+        public void DoNotShareTempMutatedThroughReceiverInExpressionTree_02()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        M<S>(new S(1));
+    }
+
+    static void M<S>(S news) where S : I
+    {
+        S s;
+        s = copy();
+        Console.Write(s switch
+        {
+            { N: 1 } when Invoke(() => s.No()) => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        Console.Write(copy() switch
+        {
+            { N: 1 } s0 when Invoke(() => s0.No()) => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        s = copy();
+        Console.Write(s switch
+        {
+            { N: 1 } when Invoke(() => s.Nope) => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        Console.Write(copy() switch
+        {
+            { N: 1 } s0 when Invoke(() => s0.Nope) => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        s = copy();
+        Console.Write(s switch
+        {
+            { N: 1 } when Invoke(() => s[0]) => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        Console.Write(copy() switch
+        {
+            { N: 1 } s0 when Invoke(() => s0[0]) => 1,
+            { Q: 1 } => 2,
+            _ => 3,
+        });
+
+        S copy() => news;
+    }
+
+    static bool Invoke(Expression<Func<bool>> e) => e.Compile()();
+}
+interface I
+{
+    int N { get; }
+    int Q { get; }
+
+    bool No();
+    bool Nope { get; }
+    bool this[int t] { get; }
+}
+struct S : I
+{
+    public int N { get; private set; }
+    public int Q => N;
+
+    public S(int n) => N = n;
+
+    public bool No() { N++; return false; }
+    public bool Nope { get { N++; return false; } }
+    public bool this[int t] { get { N++; return false; } }
+}
+";
+            var expectedOutput = "222222";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void DoNotShareTempMutatedThroughLambda_01()
         {
             var source = @"
