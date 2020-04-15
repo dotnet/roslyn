@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ChangeSignature
     Public Class AddParameterViewModelTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Sub AddParameter_SubmittingRequiresBothTypeAndName()
+        Public Sub AddParameter_SubmittingRequiresTypeAndNameAndCallsiteValue()
             Dim markup = <Text><![CDATA[
 class MyClass
 {
@@ -38,6 +38,9 @@ class MyClass
             Assert.False(viewModel.TrySubmit())
 
             viewModel.VerbatimTypeName = "int"
+            Assert.False(viewModel.TrySubmit())
+
+            viewModel.CallSiteValue = "7"
             Assert.True(viewModel.TrySubmit())
         End Sub
 
