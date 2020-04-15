@@ -3360,7 +3360,7 @@ struct S
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
-            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
         [Fact]
