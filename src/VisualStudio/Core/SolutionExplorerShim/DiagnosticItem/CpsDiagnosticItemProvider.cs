@@ -35,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CpsDiagnosticItemProvider(
-            [Import(typeof(AnalyzersCommandHandler))]IAnalyzersCommandHandler commandHandler,
-            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
+            [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _commandHandler = commandHandler;
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));

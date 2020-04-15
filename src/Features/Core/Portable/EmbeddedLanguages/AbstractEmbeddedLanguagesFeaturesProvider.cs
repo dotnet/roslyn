@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         {
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageFeatures(info),
-                new RegexEmbeddedLanguageFeatures(this, info),
+                new RegexEmbeddedLanguage(this, info),
                 new FallbackEmbeddedLanguage(info));
         }
 

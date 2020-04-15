@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -38,9 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddTypeParameterConstraintClauseOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
-            if (node is TypeParameterConstraintClauseSyntax typeParameterConstraintClause)
+            if (node is TypeParameterConstraintClauseSyntax { Parent: { } declaringNode })
             {
-                var declaringNode = typeParameterConstraintClause.Parent;
                 var baseToken = declaringNode.GetFirstToken();
                 AddIndentBlockOperation(list, baseToken, node.GetFirstToken(), node.GetLastToken());
             }
@@ -85,7 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // see whether we are the last statement
-            var switchStatement = node.Parent as SwitchStatementSyntax;
+            RoslynDebug.AssertNotNull(node.Parent);
+            var switchStatement = (SwitchStatementSyntax)node.Parent;
             var lastSection = switchStatement.Sections.Last() == node;
 
             if (section.Statements.Count == 0)
