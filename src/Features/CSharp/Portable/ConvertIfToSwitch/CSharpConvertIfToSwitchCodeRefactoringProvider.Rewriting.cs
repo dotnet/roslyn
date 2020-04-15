@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         private static WhenClauseSyntax? AsWhenClause(AnalyzedSwitchLabel label)
             => AsWhenClause(label.Guards
                 .Select(e => e.WalkUpParentheses())
-                .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, current, prev)));
+                .AggregateOrDefault((prev, current) => BinaryExpression(SyntaxKind.LogicalAndExpression, prev, current)));
 
         private static WhenClauseSyntax? AsWhenClause(ExpressionSyntax? expression)
             => expression is null ? null : WhenClause(expression);

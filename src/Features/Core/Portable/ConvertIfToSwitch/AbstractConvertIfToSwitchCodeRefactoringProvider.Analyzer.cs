@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             private AnalyzedSwitchLabel? ParseSwitchLabel(IOperation operation)
             {
                 using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var guards);
-                var pattern = ParsePattern(operation, guards, checkTargetExpression: true);
+                var pattern = ParsePattern(operation, guards);
                 if (pattern is null)
                     return null;
 
@@ -236,12 +236,12 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 Right,
             }
 
-            private ConstantResult DetermineConstant(IBinaryOperation op, bool checkTargetExpression)
+            private ConstantResult DetermineConstant(IBinaryOperation op)
             {
                 return (op.LeftOperand, op.RightOperand) switch
                 {
-                    var (e, v) when IsConstant(v) && CheckTargetExpression(e, checkTargetExpression) => ConstantResult.Right,
-                    var (v, e) when IsConstant(v) && CheckTargetExpression(e, checkTargetExpression) => ConstantResult.Left,
+                    var (e, v) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Right,
+                    var (v, e) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Left,
                     _ => ConstantResult.None,
                 };
             }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             //           && ( <expr0> >= <const> | <const> <= <expr0> )  //     VB
             //
             private AnalyzedPattern? ParsePattern(
-                IOperation operation, ArrayBuilder<TExpressionSyntax> guards, bool checkTargetExpression)
+                IOperation operation, ArrayBuilder<TExpressionSyntax> guards)
             {
                 switch (operation)
                 {
@@ -291,8 +291,32 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                     // Check tihs below the cases that produce Relational/Ranges.  We would prefer to use those if
                     // available before utilizing a CaseGuard.
-                    case IBinaryOperation { OperatorKind: ConditionalAnd } op:
-                        return TryParseAndPattern(op, guards, checkTargetExpression) ?? TryParseCaseGuard(op, guards, checkTargetExpression);
+                    case IBinaryOperation { OperatorKind: ConditionalAnd } op
+                        when Supports(Feature.AndPattern) || Supports(Feature.CaseGuard):
+                        {
+                            var leftPattern = ParsePattern(op.LeftOperand, guards);
+                            if (leftPattern == null)
+                                return null;
+
+                            if (Supports(Feature.AndPattern))
+                            {
+                                var guardCount = guards.Count;
+                                var rightPattern = ParsePattern(op.RightOperand, guards);
+                                if (rightPattern != null)
+                                    return new AnalyzedPattern.And(leftPattern, rightPattern);
+
+                                // Making a pattern out of the RHS didn't work.  Reset the guards back to where we started.
+                                guards.Count = guardCount;
+                            }
+
+                            if (Supports(Feature.CaseGuard) && op.RightOperand.Syntax is TExpressionSyntax node)
+                            {
+                                guards.Add(node);
+                                return leftPattern;
+                            }
+
+                            return null;
+                        }
 
                     case IIsTypeOperation op
                         when Supports(Feature.TypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
@@ -303,45 +327,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         return new AnalyzedPattern.Source(pattern);
 
                     case IParenthesizedOperation op:
-                        return ParsePattern(op.Operand, guards, checkTargetExpression);
+                        return ParsePattern(op.Operand, guards);
                 }
 
                 return null;
-            }
-
-            private AnalyzedPattern? TryParseAndPattern(
-                IBinaryOperation op, ArrayBuilder<TExpressionSyntax> guards, bool checkTargetExpression)
-            {
-                if (!Supports(Feature.AndPattern))
-                    return null;
-
-                var guardCount = guards.Count;
-                var rightPattern = ParsePattern(op.RightOperand, guards, checkTargetExpression: false);
-                if (rightPattern == null)
-                {
-                    // Making a pattern out of the RHS didn't work.  Reset the guards back to where we started.
-                    guards.Count = guardCount;
-                    return null;
-                }
-
-                var leftPattern = ParsePattern(op.LeftOperand, guards, checkTargetExpression);
-                if (leftPattern == null)
-                    return null;
-
-                return new AnalyzedPattern.And(leftPattern, rightPattern);
-            }
-
-            private AnalyzedPattern? TryParseCaseGuard(
-                IBinaryOperation op, ArrayBuilder<TExpressionSyntax> guards, bool checkTargetExpression)
-            {
-                if (!Supports(Feature.CaseGuard))
-                    return null;
-
-                if (!(op.RightOperand.Syntax is TExpressionSyntax node))
-                    return null;
-
-                guards.Add(node);
-                return ParsePattern(op.LeftOperand, guards, checkTargetExpression);
             }
 
             private enum BoundKind
@@ -435,7 +424,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     : operation.ConstantValue.HasValue;
             }
 
-            private bool CheckTargetExpression(IOperation operation, bool checkTargetExpression)
+            private bool CheckTargetExpression(IOperation operation)
             {
                 if (operation is IConversionOperation { IsImplicit: false } op)
                 {
