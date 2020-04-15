@@ -4,14 +4,15 @@
 
 #nullable enable
 
+using System;
 using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 {
     internal sealed class SafeSqliteBlobHandle : SafeSqliteChildHandle<sqlite3_blob>
     {
-        public SafeSqliteBlobHandle(SafeSqliteHandle sqliteHandle, sqlite3_blob wrapper)
-            : base(sqliteHandle, wrapper.ptr, wrapper)
+        public SafeSqliteBlobHandle(SafeSqliteHandle sqliteHandle, sqlite3_blob? wrapper)
+            : base(sqliteHandle, wrapper?.ptr ?? IntPtr.Zero, wrapper)
         {
         }
 

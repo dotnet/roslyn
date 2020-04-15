@@ -10,10 +10,11 @@ using System.Runtime.InteropServices;
 namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 {
     internal abstract class SafeSqliteHandle<T> : SafeHandle
+        where T : class
     {
-        protected readonly T Wrapper;
+        protected readonly T? Wrapper;
 
-        public SafeSqliteHandle(IntPtr handle, T wrapper)
+        public SafeSqliteHandle(IntPtr handle, T? wrapper)
             : base(invalidHandleValue: IntPtr.Zero, ownsHandle: true)
         {
             Wrapper = wrapper;
@@ -23,6 +24,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         public override bool IsInvalid => handle == IntPtr.Zero;
 
         public new T DangerousGetHandle()
-            => Wrapper;
+            => Wrapper!;
     }
 }

@@ -61,37 +61,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             // one is only used from a single thread at a time.
             // see https://sqlite.org/threadsafe.html for more detail
             var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_NOMUTEX;
-            var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
+            var handle = NativeMethods.sqlite3_open_v2(databasePath, (int)flags, vfs: null, out var result);
 
             if (result != Result.OK)
             {
+                handle.Dispose();
                 throw new SqlException(result, $"Could not open database file: {databasePath} ({result})");
             }
 
-            Contract.ThrowIfNull(handle);
-
-            SafeSqliteHandle wrapper;
             try
             {
-                wrapper = new SafeSqliteHandle(handle);
-            }
-            catch
-            {
-                raw.sqlite3_close(handle);
-                throw;
-            }
-
-            try
-            {
-                using var _ = wrapper.Lease();
-                raw.sqlite3_busy_timeout(wrapper.DangerousGetHandle(), (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
-                return new SqlConnection(wrapper, faultInjector, queryToStatement);
+                using var _ = handle.Lease();
+                raw.sqlite3_busy_timeout(handle.DangerousGetHandle(), (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+                return new SqlConnection(handle, faultInjector, queryToStatement);
             }
             catch
             {
                 // If we failed to create connection, ensure that we still release the sqlite
                 // handle.
-                wrapper.Dispose();
+                handle.Dispose();
                 throw;
             }
         }
@@ -140,28 +128,17 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             {
                 using var _ = _handle.Lease();
 
-                var result = (Result)raw.sqlite3_prepare_v2(_handle.DangerousGetHandle(), query, out var rawStatement);
-                ThrowIfNotOk(result);
-
-                SafeSqliteStatementHandle wrapper;
+                var handle = NativeMethods.sqlite3_prepare_v2(_handle, query, out var result);
                 try
                 {
-                    wrapper = new SafeSqliteStatementHandle(_handle, rawStatement);
-                }
-                catch
-                {
-                    raw.sqlite3_finalize(rawStatement);
-                    throw;
-                }
+                    ThrowIfNotOk(result);
 
-                try
-                {
-                    statement = new SqlStatement(this, wrapper);
+                    statement = new SqlStatement(this, handle);
                     _queryToStatement[query] = statement;
                 }
                 catch
                 {
-                    wrapper.Dispose();
+                    handle.Dispose();
                     throw;
                 }
             }
@@ -259,9 +236,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 
             const int ReadOnlyFlags = 0;
 
-            using var _ = _handle.Lease();
-            var result = raw.sqlite3_blob_open(_handle.DangerousGetHandle(), "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
-            if (result == raw.SQLITE_ERROR)
+            using var blob = NativeMethods.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var result);
+
+            if (result == Result.ERROR)
             {
                 // can happen when rowId points to a row that hasn't been written to yet.
                 return null;
@@ -269,8 +246,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 
             ThrowIfNotOk(result);
 
-            using var blobHandle = new SafeSqliteBlobHandle(_handle, blob);
-            return ReadBlob(blobHandle);
+            return ReadBlob(blob);
         }
 
         private Stream ReadBlob(SafeSqliteBlobHandle blob)
