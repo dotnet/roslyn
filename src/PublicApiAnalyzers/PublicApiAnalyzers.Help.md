@@ -17,6 +17,14 @@ This can be done by:
   </ItemGroup>
 ```
 
+## Nullable reference type support
+
+To enable support for [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references) add the following at the top of each `PublicAPI.*.txt` file:
+
+```xml
+#nullable enable
+```
+
 ## Conditional API Differences
 
 Sometimes APIs vary by compilation symbol such as target framework.
