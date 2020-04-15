@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -653,18 +652,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
-            bool isSymbolDefinedInSource(Location l) => l.IsInSource;
-            return symbols.WhereAsArray(s =>
+            static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
+            return symbols.WhereAsArray((s, arg) =>
                 (s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
-                    hideAdvancedMembers,
-                    compilation,
-                    editorBrowsableAttributeConstructor,
-                    typeLibTypeAttributeConstructors,
-                    typeLibFuncAttributeConstructors,
-                    typeLibVarAttributeConstructors,
-                    hideModuleNameAttribute));
+                    arg.hideAdvancedMembers,
+                    arg.compilation,
+                    arg.editorBrowsableAttributeConstructor,
+                    arg.typeLibTypeAttributeConstructors,
+                    arg.typeLibFuncAttributeConstructors,
+                    arg.typeLibVarAttributeConstructors,
+                    arg.hideModuleNameAttribute),
+                (hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor, typeLibTypeAttributeConstructors, typeLibFuncAttributeConstructors, typeLibVarAttributeConstructors, hideModuleNameAttribute));
         }
 
         private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol

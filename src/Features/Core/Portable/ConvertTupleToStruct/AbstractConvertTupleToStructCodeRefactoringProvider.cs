@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             Document document, SyntaxNode tupleExprOrTypeNode)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var containingMember = tupleExprOrTypeNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodLevelMember) ?? tupleExprOrTypeNode;
+            var containingMember = tupleExprOrTypeNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts) ?? tupleExprOrTypeNode;
 
             return ImmutableArray.Create(new DocumentToUpdate(
                 document, ImmutableArray.Create(containingMember)));

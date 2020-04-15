@@ -119,18 +119,5 @@ class C
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedWritesPath).Trim());
         }
-
-        private class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
-        {
-            public void AddDependencyLocation(string fullPath)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                throw new NotImplementedException();
-            }
-        }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -33,8 +35,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId);
 
-        protected abstract bool IsRef(IReturnOperation returnOperation);
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
@@ -47,26 +47,31 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             Document document, Diagnostic diagnostic,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement)!;
+            var containingSymbol = semanticModel.GetEnclosingSymbol(ifStatement.SpanStart, cancellationToken);
 
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation,
+                    syntaxFacts, ifOperation, containingSymbol,
+                    out var trueStatement, out var falseStatement,
                     out var trueReturn, out var falseReturn))
             {
                 return;
             }
 
+            var anyReturn = (trueReturn ?? falseReturn)!;
             var conditionalExpression = await CreateConditionalExpressionAsync(
-                document, ifOperation, trueReturn, falseReturn,
-                trueReturn.ReturnedValue, falseReturn.ReturnedValue,
-                IsRef(trueReturn), cancellationToken).ConfigureAwait(false);
+                document, ifOperation,
+                trueStatement, falseStatement,
+                trueReturn?.ReturnedValue ?? trueStatement,
+                falseReturn?.ReturnedValue ?? falseStatement,
+                anyReturn.GetRefKind(containingSymbol) != RefKind.None, cancellationToken).ConfigureAwait(false);
 
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            var returnStatement = trueReturn.Kind == OperationKind.YieldReturn
+            var returnStatement = anyReturn.Kind == OperationKind.YieldReturn
                 ? (TStatementSyntax)generatorInternal.YieldReturnStatement(conditionalExpression)
                 : (TStatementSyntax)editor.Generator.ReturnStatement(conditionalExpression);
 
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // as the 'false' statement.  If so, remove it explicitly.
             if (ifOperation.WhenFalse == null)
             {
-                editor.RemoveNode(falseReturn.Syntax, GetRemoveOptions(syntaxFacts, falseReturn.Syntax));
+                editor.RemoveNode(falseStatement.Syntax, GetRemoveOptions(syntaxFacts, falseStatement.Syntax));
             }
         }
 

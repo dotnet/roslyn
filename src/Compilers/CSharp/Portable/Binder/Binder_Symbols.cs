@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bound type if syntax binds to a type in the current context and
         /// null if syntax binds to "var" keyword in the current context.
         /// </returns>
-        internal TypeWithAnnotations BindTypeWithAnnotationsOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
+        internal TypeWithAnnotations BindTypeOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
         {
             var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == symbol.IsDefault);
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUseSiteDiagnostics(constructedType.Type.OriginalDefinition, diagnostics, syntax);
                     var type = (NamedTypeSymbol)constructedType.Type;
                     var location = syntax.Location;
-                    type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
+                    type.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics));
                 }
                 else if (constructedType.Type.IsTypeParameterDisallowingAnnotation())
                 {
@@ -812,21 +812,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            Symbol bindingResult;
-            // If we were looking up the identifier "dynamic" at the topmost level and didn't find anything good,
-            // we actually have the type dynamic (assuming /langversion is at least 4).
+            Symbol bindingResult = null;
+
+            // If we were looking up "dynamic" or "nint" at the topmost level and didn't find anything good,
+            // use that particular type (assuming the /langversion is supported).
             if ((object)qualifierOpt == null &&
-                (node.Parent == null ||
-                 node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as an attribute type
-                 SyntaxFacts.IsInTypeOnlyContext(node)) &&
-                node.Identifier.ValueText == "dynamic" &&
-                !IsViableType(result) &&
-                Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                !IsViableType(result))
             {
-                bindingResult = Compilation.DynamicType;
-                ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                if (node.Identifier.ValueText == "dynamic")
+                {
+
+                    if ((node.Parent == null ||
+                          node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as attribute type
+                          SyntaxFacts.IsInTypeOnlyContext(node)) &&
+                         Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                    {
+                        bindingResult = Compilation.DynamicType;
+                        ReportUseSiteDiagnosticForDynamic(diagnostics, node);
+                    }
+                }
+                else
+                {
+                    bindingResult = BindNativeIntegerSymbolIfAny(node, diagnostics);
+                }
             }
-            else
+
+            if (bindingResult is null)
             {
                 bool wasError;
 
@@ -845,11 +856,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return NamespaceOrTypeOrAliasSymbolWithAnnotations.CreateUnannotated(AreNullableAnnotationsEnabled(node.Identifier), bindingResult);
         }
 
+        /// <summary>
+        /// If the node is "nint" or "nuint", return the corresponding native integer symbol.
+        /// Otherwise return null.
+        /// </summary>
+        private NamedTypeSymbol BindNativeIntegerSymbolIfAny(IdentifierNameSyntax node, DiagnosticBag diagnostics)
+        {
+            SpecialType specialType;
+            switch (node.Identifier.Text)
+            {
+                case "nint":
+                    specialType = SpecialType.System_IntPtr;
+                    break;
+                case "nuint":
+                    specialType = SpecialType.System_UIntPtr;
+                    break;
+                default:
+                    return null;
+            }
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureNativeInt, diagnostics);
+            return this.GetSpecialType(specialType, diagnostics, node).AsNativeInteger();
+        }
+
         private void ReportUseSiteDiagnosticForDynamic(DiagnosticBag diagnostics, IdentifierNameSyntax node)
         {
             // Dynamic type might be bound in a declaration context where we need to synthesize the DynamicAttribute.
             // Here we report the use site error (ERR_DynamicAttributeMissing) for missing DynamicAttribute type or it's constructors.
-            //                  
+            //
             // BREAKING CHANGE: Native compiler reports ERR_DynamicAttributeMissing at emit time when synthesizing DynamicAttribute.
             //                  Currently, in Roslyn we don't support reporting diagnostics while synthesizing attributes, these diagnostics are reported at bind time.
             //                  Hence, we report this diagnostic here. Note that DynamicAttribute has two constructors, and either of them may be used while
@@ -1589,8 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             //if names match, arities match, and containing symbols match (recursively), ...
-                            if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                                mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                            if (NameAndArityMatchRecursively(srcSymbol, mdSymbol))
                             {
                                 if (srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.NamedType)
                                 {
@@ -1647,8 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         //if names match, arities match, and containing symbols match (recursively), ...
                         if (first != second &&
-                            first.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                                second.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                            NameAndArityMatchRecursively(first, second))
                         {
                             // suppress reporting the error if we found multiple symbols from source module
                             // since an error has already been reported from the declaration

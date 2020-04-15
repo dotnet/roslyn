@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -240,20 +241,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// This dictionary stores the previously computed diagnostics for the published file so that we can
         /// union the currently computed diagnostics (e.g. for dA) with previously computed diagnostics (e.g. from dB).
         /// </summary>
-        internal readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> _publishedFileToDiagnostics =
+        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> _publishedFileToDiagnostics =
             new Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>>();
 
         /// <summary>
         /// Stores the mapping of a document to the uri(s) of diagnostics previously produced for this document.
         /// When we get empty diagnostics for the document we need to find the uris we previously published for this document.
         /// Then we can publish the updated diagnostics set for those uris (either empty or the diagnostic contributions from other documents).
-        /// </summary>
-        internal readonly Dictionary<DocumentId, ImmutableSortedSet<Uri>> _documentsToPublishedUris = new Dictionary<DocumentId, ImmutableSortedSet<Uri>>();
-
-        /// <summary>
-        /// Basic comparer for Uris used by <see cref="_documentsToPublishedUris"/> when publishing notifications for mapped files.
+        /// We use a sorted set to ensure consistency in the order in which we report URIs.
         /// While it's not necessary to publish a document's mapped file diagnostics in a particular order,
         /// it does make it much easier to write tests and debug issues if we have a consistent ordering.
+        /// </summary>
+        private readonly Dictionary<DocumentId, ImmutableSortedSet<Uri>> _documentsToPublishedUris = new Dictionary<DocumentId, ImmutableSortedSet<Uri>>();
+
+        /// <summary>
+        /// Basic comparer for Uris used by <see cref="_documentsToPublishedUris"/> when publishing notifications.
         /// </summary>
         private static readonly Comparer<Uri> s_uriComparer = Comparer<Uri>.Create((uri1, uri2)
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
@@ -267,6 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // We need to join the uris from current diagnostics with those previously published
             // so that we clear out any diagnostics in mapped files that are no longer a part
             // of the current diagnostics set (because the diagnostics were fixed).
+            // Use sorted set to have consistent publish ordering for tests and debugging.
             var urisForCurrentDocument = _documentsToPublishedUris.GetOrValue(document.Id, ImmutableSortedSet.Create<Uri>(s_uriComparer)).Union(fileUriToDiagnostics.Keys);
 
             // Update the mapping for this document to be the uris we're about to publish diagnostics for.
@@ -389,6 +392,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: true);
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
+        }
+
+        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        internal class TestAccessor
+        {
+            private readonly InProcLanguageServer _server;
+
+            internal TestAccessor(InProcLanguageServer server)
+            {
+                _server = server;
+            }
+
+            internal ImmutableArray<Uri> GetFileUrisInPublishDiagnostics()
+                => _server._publishedFileToDiagnostics.Keys.ToImmutableArray();
+
+            internal ImmutableArray<DocumentId> GetDocumentIdsInPublishedUris()
+                => _server._documentsToPublishedUris.Keys.ToImmutableArray();
+
+            internal IImmutableSet<Uri> GetFileUrisForDocument(DocumentId documentId)
+                => _server._documentsToPublishedUris.GetOrValue(documentId, ImmutableSortedSet<Uri>.Empty);
+
+            internal ImmutableArray<LanguageServer.Protocol.Diagnostic> GetDiagnosticsForUriAndDocument(DocumentId documentId, Uri uri)
+            {
+                if (_server._publishedFileToDiagnostics.TryGetValue(uri, out var dict) && dict.TryGetValue(documentId, out var diagnostics))
+                {
+                    return diagnostics;
+                }
+
+                return ImmutableArray<LanguageServer.Protocol.Diagnostic>.Empty;
+            }
         }
     }
 }

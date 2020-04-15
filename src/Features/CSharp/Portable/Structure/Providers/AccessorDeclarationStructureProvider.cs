@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
-            // All accessor kinds are grouped together.
-            var compressEmptyLines = !nextSibling.IsNode || nextSibling.AsNode() is AccessorDeclarationSyntax;
+            // All accessor kinds are grouped together in Metadata as Source.
+            var compressEmptyLines = isMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.AsNode() is AccessorDeclarationSyntax);
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 accessorDeclaration,

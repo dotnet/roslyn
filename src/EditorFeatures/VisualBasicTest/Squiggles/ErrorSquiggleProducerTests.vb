@@ -28,12 +28,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
             End Using
         End Function
 
-        Private Async Function ProduceSquiggles(analyzerMap As Dictionary(Of String, DiagnosticAnalyzer()), content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
-            Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Return (Await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2
-            End Using
-        End Function
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Function ErrorTagGeneratedForSimpleError() As Task
             ' Make sure we have errors from the tree
@@ -96,12 +90,15 @@ Class C1
     End Sub
 End Class"
 
-            Dim analyzerMap = New Dictionary(Of String, DiagnosticAnalyzer())
-            analyzerMap.Add(LanguageNames.VisualBasic,
-                    {
+            Dim analyzerMap = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)) From
+            {
+                {
+                    LanguageNames.VisualBasic,
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(
                         New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(),
-                        New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer()
-                    })
+                        New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer())
+                }
+            }
 
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim options As New Dictionary(Of OptionKey2, Object)

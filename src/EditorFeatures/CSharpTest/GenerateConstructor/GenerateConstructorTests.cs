@@ -3751,7 +3751,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestWitNestedNullability()
+        public async Task TestWithNestedNullability()
         {
             await TestInRegularAndScriptAsync(
 @"#nullable enable

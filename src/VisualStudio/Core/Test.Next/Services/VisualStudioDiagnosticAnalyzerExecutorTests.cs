@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -172,40 +173,25 @@ End Class";
                 var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
-                // add host analyzer as global assets
-                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
-                var assetBuilder = new CustomAssetBuilder(workspace);
+                var options = workspace.Options
+                    .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
 
-                var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
-                snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
-
-                var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
-                Assert.True(await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService,
-                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    workspace.CurrentSolution,
-                    new[] { new Checksum[] { asset.Checksum } },
-                    callbackTarget: null,
-                    CancellationToken.None));
-
-                // set option
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent.ToPublicOption(), new CodeStyleOption<bool>(false, NotificationOption.Suggestion))));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
 
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First();
 
-                var runner = CreateAnalyzerRunner(workspace);
+                var runner = CreateAnalyzerRunner();
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 // no result for open file only analyzer unless forced
-                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, getSkippedAnalyzersInfo: null, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
                 Assert.Empty(result.AnalysisResult);
 
-                result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, getSkippedAnalyzersInfo: null, forcedAnalysis: true, cancellationToken: CancellationToken.None);
+                result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: true, cancellationToken: CancellationToken.None);
                 var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
                 // check result
@@ -232,29 +218,18 @@ End Class";
 
                 // add host analyzer as global assets
                 var snapshotService = workspace.Services.GetService<IRemotableDataService>();
-                var assetBuilder = new CustomAssetBuilder(workspace);
-
-                var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
-                snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
-
-                var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
-                Assert.True(await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService,
-                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    workspace.CurrentSolution,
-                    new[] { new Checksum[] { asset.Checksum } },
-                    callbackTarget: null,
-                    cancellationToken: CancellationToken.None));
+                var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
 
-                var runner = CreateAnalyzerRunner(workspace);
-                var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
-                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+                var runner = CreateAnalyzerRunner();
+                var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
 
-                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, getSkippedAnalyzersInfo: null, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                var compilationWithAnalyzers = (await project.GetCompilationAsync())
+                    .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+
+                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
                 var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
@@ -264,17 +239,16 @@ End Class";
             }
         }
 
-        private static DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner(Workspace workspace)
+        private static DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner()
         {
             return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(
                 AsynchronousOperationListenerProvider.NullListener,
-                new DiagnosticAnalyzerInfoCache(),
-                hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
+                new DiagnosticAnalyzerInfoCache());
         }
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default)
         {
-            var executor = CreateAnalyzerRunner(workspace);
+            var executor = CreateAnalyzerRunner();
 
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
@@ -283,7 +257,7 @@ End Class";
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                     new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
-            var result = await executor.AnalyzeAsync(analyzerDriver, project, getSkippedAnalyzersInfo: null, forcedAnalysis: true, cancellationToken: cancellationToken);
+            var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
