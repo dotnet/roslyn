@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
 
         Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System})
 
-        Private _ienumerableInt As INamedTypeSymbol
+        Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
         Public Sub New()
             Me._ienumerableInt = _emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_emptyCompilation.GetSpecialType(SpecialType.System_Int32))

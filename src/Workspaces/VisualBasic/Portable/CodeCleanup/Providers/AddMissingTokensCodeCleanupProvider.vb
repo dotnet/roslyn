@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private ReadOnly _document As Document
             Private ReadOnly _modifiedSpan As TextSpan
 
-            Private _model As SemanticModel = Nothing
+            Private ReadOnly _model As SemanticModel = Nothing
 
             Private Sub New(document As Document, semanticModel As SemanticModel, spans As ImmutableArray(Of TextSpan), modifiedSpan As TextSpan, cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)

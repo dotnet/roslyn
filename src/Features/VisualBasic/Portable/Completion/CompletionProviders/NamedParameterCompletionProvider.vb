@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         ' Typing : or = should not filter the list, but they should commit the list.
-        Private Shared s_itemRules As CompletionItemRules = CompletionItemRules.Default.
+        Private Shared ReadOnly s_itemRules As CompletionItemRules = CompletionItemRules.Default.
             WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c, "="c)).
             WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, ":"c, "="c))
 

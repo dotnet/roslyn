@@ -715,15 +715,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 #Region "Declarations"
 
-        Private Shared s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static Or DeclarationModifiers.WithEvents
-        Private Shared s_methodModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.Async Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
-        Private Shared s_constructorModifiers As DeclarationModifiers = DeclarationModifiers.Static
-        Private Shared s_propertyModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
-        Private Shared s_indexerModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
-        Private Shared s_classModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static
-        Private Shared s_structModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
-        Private Shared s_interfaceModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
-        Private Shared s_accessorModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Virtual
+        Private Shared ReadOnly s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static Or DeclarationModifiers.WithEvents
+        Private Shared ReadOnly s_methodModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.Async Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Private Shared ReadOnly s_constructorModifiers As DeclarationModifiers = DeclarationModifiers.Static
+        Private Shared ReadOnly s_propertyModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Private Shared ReadOnly s_indexerModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Private Shared ReadOnly s_classModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static
+        Private Shared ReadOnly s_structModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
+        Private Shared ReadOnly s_interfaceModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
+        Private Shared ReadOnly s_accessorModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Virtual
 
         Private Function GetAllowedModifiers(kind As SyntaxKind) As DeclarationModifiers
             Select Case kind
