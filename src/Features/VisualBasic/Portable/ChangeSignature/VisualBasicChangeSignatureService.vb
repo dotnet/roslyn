@@ -493,9 +493,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim invocation = TryCast(node, InvocationExpressionSyntax)
             Dim objectCreation = TryCast(node, ObjectCreationExpressionSyntax)
             If invocation IsNot Nothing Then
-                GetArgumentListDetails(invocation.ArgumentList, argumentCount, lastArgumentIsNamed, lastArgumentExpression)
+                GetArgumentListDetailsRegardingParamsArrays(invocation.ArgumentList, argumentCount, lastArgumentIsNamed, lastArgumentExpression)
             ElseIf objectCreation IsNot Nothing Then
-                GetArgumentListDetails(objectCreation.ArgumentList, argumentCount, lastArgumentIsNamed, lastArgumentExpression)
+                GetArgumentListDetailsRegardingParamsArrays(objectCreation.ArgumentList, argumentCount, lastArgumentIsNamed, lastArgumentExpression)
             Else
                 Throw ExceptionUtilities.UnexpectedValue(node.Kind())
             End If
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return IsParamsArrayExpandedHelper(symbolInfo.Symbol, argumentCount, lastArgumentIsNamed, semanticModel, lastArgumentExpression, cancellationToken)
         End Function
 
-        Private Sub GetArgumentListDetails(
+        Private Sub GetArgumentListDetailsRegardingParamsArrays(
             argumentList As ArgumentListSyntax,
             ByRef argumentCount As Integer,
             ByRef lastArgumentIsNamed As Boolean,
@@ -511,7 +511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             argumentCount = argumentList.Arguments.Count
             Dim isNamed = argumentList.Arguments.LastOrDefault()?.IsNamed
-            lastArgumentIsNamed = isNamed.HasValue AndAlso isNamed.Value
+            lastArgumentIsNamed = isNamed.GetValueOrDefault()
             lastArgumentExpression = argumentList.Arguments.LastOrDefault()?.GetExpression()
         End Sub
 

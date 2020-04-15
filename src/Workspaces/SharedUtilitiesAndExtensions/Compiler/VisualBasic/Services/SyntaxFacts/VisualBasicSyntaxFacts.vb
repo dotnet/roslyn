@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedArgument
             Dim arg = TryCast(node, SimpleArgumentSyntax)
-            Return arg IsNot Nothing AndAlso arg.NameColonEquals IsNot Nothing
+            Return arg?.NameColonEquals IsNot Nothing
         End Function
 
         Public Function IsNameOfNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfNamedArgument
@@ -1905,9 +1905,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Dim xmlElement = TryCast(node, XmlElementSyntax)
             If xmlElement IsNot Nothing Then
                 Dim name = TryCast(xmlElement.StartTag.Name, XmlNameSyntax)
-                If name IsNot Nothing Then
-                    Return name.LocalName.ValueText = DocumentationCommentXmlNames.ParameterElementName
-                End If
+                Return name?.LocalName.ValueText = DocumentationCommentXmlNames.ParameterElementName
             End If
 
             Return False

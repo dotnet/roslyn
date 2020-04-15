@@ -985,6 +985,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     if (lastArgumentIsNamed)
                     {
+                        // If the last argument is named, then it cannot be part of an expanded params array.
                         return false;
                     }
                     else

@@ -478,12 +478,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             bool isReducedExtensionMethod,
             bool isParamsArrayExpanded) where T : BaseArgumentListSyntax
         {
+            // Reorders and removes arguments
+            // e.g. P(a, b, c) ==> P(c, a)
             var newArguments = PermuteArgumentList(
                 declarationSymbol,
                 argumentList.Arguments,
                 signaturePermutation.WithoutAddedParameters(),
                 isReducedExtensionMethod);
 
+            // Adds new arguments into the updated list
+            // e.g. P(c, a) ==> P(x, c, a, y)
             newArguments = AddNewArgumentsToList(
                 declarationSymbol,
                 newArguments,
