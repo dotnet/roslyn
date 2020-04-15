@@ -521,8 +521,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp
 #if DEBUG
             ,
-            [CallerLineNumber]int createdAtLineNumber = 0,
-            [CallerFilePath]string? createdAtFilePath = null
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string? createdAtFilePath = null
 #endif
             )
         {
@@ -1368,8 +1368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp,
             SyntaxNode? syntaxOpt = null
 #if DEBUG
-            , [CallerLineNumber]int callerLineNumber = 0
-            , [CallerFilePath]string? callerFilePath = null
+            , [CallerLineNumber] int callerLineNumber = 0
+            , [CallerFilePath] string? callerFilePath = null
 #endif
             )
         {

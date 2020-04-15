@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public EditAndContinueWorkspaceServiceFactory(
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            [Import(AllowDefault = true)]IActiveStatementProvider activeStatementProvider,
-            [Import(AllowDefault = true)]IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
+            [Import(AllowDefault = true)] IActiveStatementProvider activeStatementProvider,
+            [Import(AllowDefault = true)] IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider)
         {
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;

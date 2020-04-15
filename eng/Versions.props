@@ -30,7 +30,7 @@
     <RoslynDiagnosticsNugetPackageVersion>3.0.0-beta2.20169.3</RoslynDiagnosticsNugetPackageVersion>
     <CodeStyleLayerCodeAnalysisVersion>3.3.1</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20210.2</MicrosoftCodeAnalysisTestingVersion>
-    <CodeStyleAnalyzerVersion>3.6.0-2.20157.5</CodeStyleAnalyzerVersion>
+    <CodeStyleAnalyzerVersion>3.7.0-1.20210.7</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerPackagesVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerPackagesVersion>

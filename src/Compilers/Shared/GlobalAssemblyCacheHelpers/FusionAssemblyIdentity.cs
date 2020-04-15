@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DllImport("clr", EntryPoint = "CreateAssemblyNameObject", CharSet = CharSet.Unicode, PreserveSig = true)]
-        private static extern int RealCreateAssemblyNameObject(out IAssemblyName ppEnum, [MarshalAs(UnmanagedType.LPWStr)]string szAssemblyName, uint dwFlags, IntPtr pvReserved);
+        private static extern int RealCreateAssemblyNameObject(out IAssemblyName ppEnum, [MarshalAs(UnmanagedType.LPWStr)] string szAssemblyName, uint dwFlags, IntPtr pvReserved);
 
         private const int ERROR_INSUFFICIENT_BUFFER = unchecked((int)0x8007007A);
         private const int FUSION_E_INVALID_NAME = unchecked((int)0x80131047);

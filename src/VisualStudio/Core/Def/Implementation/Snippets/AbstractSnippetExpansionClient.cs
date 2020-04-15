@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        public int PositionCaretForEditing(IVsTextLines pBuffer, [ComAliasName("Microsoft.VisualStudio.TextManager.Interop.TextSpan")]VsTextSpan[] ts)
+        public int PositionCaretForEditing(IVsTextLines pBuffer, [ComAliasName("Microsoft.VisualStudio.TextManager.Interop.TextSpan")] VsTextSpan[] ts)
         {
             // If the formatted location of the $end$ position (the inserted comment) was on an
             // empty line and indented, then we have already removed the white space on that line

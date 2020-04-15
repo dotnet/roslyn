@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal static class IVsHierarchyExtensions
     {
-        public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, int propertyId, [MaybeNull] [NotNullWhen(returnValue: true)] out T value)
+        public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, int propertyId, [MaybeNull][NotNullWhen(returnValue: true)] out T value)
         {
             if (ErrorHandler.Failed(hierarchy.GetProperty(itemId, propertyId, out var property)) ||
                 !(property is T))
@@ -26,16 +26,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        public static bool TryGetProperty<T>(this IVsHierarchy hierarchy, int propertyId, [MaybeNull] [NotNullWhen(returnValue: true)] out T value)
+        public static bool TryGetProperty<T>(this IVsHierarchy hierarchy, int propertyId, [MaybeNull][NotNullWhen(returnValue: true)] out T value)
         {
             const uint root = VSConstants.VSITEMID_ROOT;
             return hierarchy.TryGetItemProperty(root, propertyId, out value);
         }
 
-        public static bool TryGetProperty<T>(this IVsHierarchy hierarchy, __VSHPROPID propertyId, [MaybeNull] [NotNullWhen(returnValue: true)] out T value)
+        public static bool TryGetProperty<T>(this IVsHierarchy hierarchy, __VSHPROPID propertyId, [MaybeNull][NotNullWhen(returnValue: true)] out T value)
             => hierarchy.TryGetProperty((int)propertyId, out value);
 
-        public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, __VSHPROPID propertyId, [MaybeNull] [NotNullWhen(returnValue: true)] out T value)
+        public static bool TryGetItemProperty<T>(this IVsHierarchy hierarchy, uint itemId, __VSHPROPID propertyId, [MaybeNull][NotNullWhen(returnValue: true)] out T value)
             => hierarchy.TryGetItemProperty(itemId, (int)propertyId, out value);
 
         public static bool TryGetGuidProperty(this IVsHierarchy hierarchy, int propertyId, out Guid guid)
