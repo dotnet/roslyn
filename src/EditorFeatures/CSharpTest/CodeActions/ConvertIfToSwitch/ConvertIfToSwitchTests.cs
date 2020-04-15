@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestMultipleCases_02()
+        public async Task TestMultipleCases_02_CSharp8()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -224,7 +224,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}");
+}", parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMultipleCases_02_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is string s && s.Length > 0) M(0);
+        else if (o is int i && i > 0) M(1);
+        else return;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s when s.Length > 0:
+                M(0);
+                break;
+            case int i when i > 0:
+                M(1);
+                break;
+            default:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -381,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestIsPatternExpression_02()
+        public async Task TestIsPatternExpression_02_CSharp8()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -406,7 +438,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}");
+}", parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestIsPatternExpression_02_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object o)
+    {
+        [||]if (o is string s && s.Length == 5)
+                return;
+            else if (o is int i)
+                return;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s when s.Length == 5:
+                return;
+            case int i:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
@@ -1021,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 
         [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestCompoundLogicalAnd1()
+        public async Task TestCompoundLogicalAnd1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1046,12 +1107,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}");
+}", parseOptions: CSharp8);
         }
 
         [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestCompoundLogicalAnd2()
+        public async Task TestCompoundLogicalAnd1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && i == 2)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 and 2:
+                return;
+            case 10:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd2_CSharp8()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1076,12 +1167,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}");
+}", parseOptions: CSharp8);
         }
 
         [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestCompoundLogicalAnd3()
+        public async Task TestCompoundLogicalAnd2_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && i == 2 && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 and 2 and 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd3_CSharp8()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1106,7 +1227,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}");
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd3_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && i == 2 && (i == 3))
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 and 2 and 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
         }
 
         [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
@@ -1136,7 +1287,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}");
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestCompoundLogicalAnd4_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 1 && (i == 2) && i == 3)
+            return;
+        else if (i == 10)
+            return;
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 1 and 2 and 3:
+                return;
+            case 10:
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
         }
 
         [WorkItem(21360, "https://github.com/dotnet/roslyn/issues/21360")]

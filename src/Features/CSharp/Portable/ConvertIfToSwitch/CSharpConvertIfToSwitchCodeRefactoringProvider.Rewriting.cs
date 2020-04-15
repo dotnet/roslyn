@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern)
             => pattern switch
             {
+                AnalyzedPattern.And p => BinaryPattern(SyntaxKind.AndPattern, AsPatternSyntax(p.LeftPattern), AsPatternSyntax(p.RightPattern)),
                 AnalyzedPattern.Constant p => ConstantPattern(p.ExpressionSyntax),
                 AnalyzedPattern.Source p => p.PatternSyntax,
                 AnalyzedPattern.Type p => DeclarationPattern((TypeSyntax)p.IsExpressionSyntax.Right, DiscardDesignation()),
