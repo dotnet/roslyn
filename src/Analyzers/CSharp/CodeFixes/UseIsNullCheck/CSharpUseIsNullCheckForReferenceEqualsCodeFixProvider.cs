@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
 
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     using static SyntaxFactory;
