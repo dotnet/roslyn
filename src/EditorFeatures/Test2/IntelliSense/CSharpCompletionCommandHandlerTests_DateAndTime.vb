@@ -113,7 +113,7 @@ class c
                 Dim description = Await state.GetSelectedItemDescriptionAsync()
                 Dim text = description.Text
 
-                If CultureInfo.CurrentCulture.Name <> "e-US" Then
+                If CultureInfo.CurrentCulture.Name <> "en-US" Then
                     Assert.Contains($"hh:mm:ss (en-US) → 01:45:30", text)
                     Assert.Contains($"hh:mm:ss ({CultureInfo.CurrentCulture.Name}) → 01:45:30", text)
                 Else
