@@ -708,26 +708,29 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M1",
 @"{
-  // Code size       33 (0x21)
+  // Code size       35 (0x23)
   .maxstack  1
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""bool bool?.HasValue.get""
-  IL_0007:  brfalse.s  IL_0016
-  IL_0009:  br.s       IL_0018
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0012:  brtrue.s   IL_001d
-  IL_0014:  br.s       IL_001f
-  IL_0016:  ldc.i4.1
-  IL_0017:  ret
-  IL_0018:  ldarg.1
-  IL_0019:  brfalse.s  IL_000b
-  IL_001b:  ldc.i4.2
-  IL_001c:  ret
-  IL_001d:  ldc.i4.3
+  .locals init (bool? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool bool?.HasValue.get""
+  IL_0009:  brfalse.s  IL_0018
+  IL_000b:  br.s       IL_001a
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""bool bool?.GetValueOrDefault()""
+  IL_0014:  brtrue.s   IL_001f
+  IL_0016:  br.s       IL_0021
+  IL_0018:  ldc.i4.1
+  IL_0019:  ret
+  IL_001a:  ldarg.1
+  IL_001b:  brfalse.s  IL_000d
+  IL_001d:  ldc.i4.2
   IL_001e:  ret
-  IL_001f:  ldc.i4.4
+  IL_001f:  ldc.i4.3
   IL_0020:  ret
+  IL_0021:  ldc.i4.4
+  IL_0022:  ret
 }");
             compVerifier.VerifyIL("C.M2",
 @"{
@@ -989,35 +992,38 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.SwitchBasedPatternMatching",
 @"{
-  // Code size       67 (0x43)
+  // Code size       69 (0x45)
   .maxstack  2
-  .locals init (int V_0) //n
+  .locals init (int V_0, //n
+                object V_1)
   IL_0000:  ldarg.1
-  IL_0001:  isinst     ""int""
-  IL_0006:  brfalse.s  IL_0011
-  IL_0008:  ldarg.1
-  IL_0009:  unbox.any  ""int""
-  IL_000e:  stloc.0
-  IL_000f:  br.s       IL_001a
-  IL_0011:  ldarg.1
-  IL_0012:  isinst     ""string""
-  IL_0017:  brtrue.s   IL_0029
-  IL_0019:  ret
-  IL_001a:  ldloc.0
-  IL_001b:  ldc.i4.1
-  IL_001c:  bne.un.s   IL_0034
-  IL_001e:  ldstr      ""1""
-  IL_0023:  call       ""void System.Console.WriteLine(string)""
-  IL_0028:  ret
-  IL_0029:  ldstr      ""s""
-  IL_002e:  call       ""void System.Console.WriteLine(string)""
-  IL_0033:  ret
-  IL_0034:  ldloc.0
-  IL_0035:  ldc.i4.2
-  IL_0036:  bne.un.s   IL_0042
-  IL_0038:  ldstr      ""2""
-  IL_003d:  call       ""void System.Console.WriteLine(string)""
-  IL_0042:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  isinst     ""int""
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.1
+  IL_000b:  unbox.any  ""int""
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_001c
+  IL_0013:  ldloc.1
+  IL_0014:  isinst     ""string""
+  IL_0019:  brtrue.s   IL_002b
+  IL_001b:  ret
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  bne.un.s   IL_0036
+  IL_0020:  ldstr      ""1""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+  IL_002b:  ldstr      ""s""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  ret
+  IL_0036:  ldloc.0
+  IL_0037:  ldc.i4.2
+  IL_0038:  bne.un.s   IL_0044
+  IL_003a:  ldstr      ""2""
+  IL_003f:  call       ""void System.Console.WriteLine(string)""
+  IL_0044:  ret
 }");
         }
 
@@ -1835,38 +1841,41 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       73 (0x49)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (string V_0, //name
-                string V_1) //name
+                string V_1, //name
+                Person V_2)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0048
-  IL_0003:  ldarg.1
-  IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_0015
-  IL_000c:  ldarg.1
-  IL_000d:  isinst     ""Student""
-  IL_0012:  brtrue.s   IL_0029
-  IL_0014:  ret
-  IL_0015:  ldloc.0
-  IL_0016:  brtrue.s   IL_000c
-  IL_0018:  ldstr      ""Hey ""
-  IL_001d:  ldloc.0
-  IL_001e:  call       ""string string.Concat(string, string)""
-  IL_0023:  call       ""void System.Console.WriteLine(string)""
-  IL_0028:  ret
-  IL_0029:  ldloc.0
-  IL_002a:  stloc.1
-  IL_002b:  ldloc.1
-  IL_002c:  brfalse.s  IL_0048
-  IL_002e:  ldstr      ""Student has name of length {0}!""
-  IL_0033:  ldloc.1
-  IL_0034:  callvirt   ""int string.Length.get""
-  IL_0039:  box        ""int""
-  IL_003e:  call       ""string string.Format(string, object)""
-  IL_0043:  call       ""void System.Console.WriteLine(string)""
-  IL_0048:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  brfalse.s  IL_004a
+  IL_0005:  ldloc.2
+  IL_0006:  callvirt   ""string Person.Name.get""
+  IL_000b:  stloc.0
+  IL_000c:  br.s       IL_0017
+  IL_000e:  ldloc.2
+  IL_000f:  isinst     ""Student""
+  IL_0014:  brtrue.s   IL_002b
+  IL_0016:  ret
+  IL_0017:  ldloc.0
+  IL_0018:  brtrue.s   IL_000e
+  IL_001a:  ldstr      ""Hey ""
+  IL_001f:  ldloc.0
+  IL_0020:  call       ""string string.Concat(string, string)""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
+  IL_002b:  ldloc.0
+  IL_002c:  stloc.1
+  IL_002d:  ldloc.1
+  IL_002e:  brfalse.s  IL_004a
+  IL_0030:  ldstr      ""Student has name of length {0}!""
+  IL_0035:  ldloc.1
+  IL_0036:  callvirt   ""int string.Length.get""
+  IL_003b:  box        ""int""
+  IL_0040:  call       ""string string.Format(string, object)""
+  IL_0045:  call       ""void System.Console.WriteLine(string)""
+  IL_004a:  ret
 }");
         }
 
@@ -2282,91 +2291,100 @@ Closed Open -> Opened
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Door.ChangeState0",
 @"{
-  // Code size       59 (0x3b)
+  // Code size       61 (0x3d)
   .maxstack  2
-  .locals init (Door.DoorState V_0) //oldState
+  .locals init (Door.DoorState V_0, //oldState
+                Door.Action V_1)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  switch    (
-        IL_0016,
-        IL_001c,
-        IL_0025)
-  IL_0014:  br.s       IL_0039
-  IL_0016:  ldarg.1
-  IL_0017:  ldc.i4.1
-  IL_0018:  beq.s      IL_002b
-  IL_001a:  br.s       IL_0039
-  IL_001c:  ldarg.1
-  IL_001d:  brfalse.s  IL_002d
-  IL_001f:  ldarg.1
-  IL_0020:  ldc.i4.2
-  IL_0021:  beq.s      IL_002f
-  IL_0023:  br.s       IL_0039
-  IL_0025:  ldarg.1
-  IL_0026:  ldc.i4.3
-  IL_0027:  beq.s      IL_0034
-  IL_0029:  br.s       IL_0039
-  IL_002b:  ldc.i4.1
-  IL_002c:  ret
-  IL_002d:  ldc.i4.0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  switch    (
+        IL_0018,
+        IL_001e,
+        IL_0027)
+  IL_0016:  br.s       IL_003b
+  IL_0018:  ldloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  beq.s      IL_002d
+  IL_001c:  br.s       IL_003b
+  IL_001e:  ldloc.1
+  IL_001f:  brfalse.s  IL_002f
+  IL_0021:  ldloc.1
+  IL_0022:  ldc.i4.2
+  IL_0023:  beq.s      IL_0031
+  IL_0025:  br.s       IL_003b
+  IL_0027:  ldloc.1
+  IL_0028:  ldc.i4.3
+  IL_0029:  beq.s      IL_0036
+  IL_002b:  br.s       IL_003b
+  IL_002d:  ldc.i4.1
   IL_002e:  ret
-  IL_002f:  ldarg.2
-  IL_0030:  brfalse.s  IL_0039
-  IL_0032:  ldc.i4.2
-  IL_0033:  ret
-  IL_0034:  ldarg.2
-  IL_0035:  brfalse.s  IL_0039
-  IL_0037:  ldc.i4.1
-  IL_0038:  ret
-  IL_0039:  ldloc.0
+  IL_002f:  ldc.i4.0
+  IL_0030:  ret
+  IL_0031:  ldarg.2
+  IL_0032:  brfalse.s  IL_003b
+  IL_0034:  ldc.i4.2
+  IL_0035:  ret
+  IL_0036:  ldarg.2
+  IL_0037:  brfalse.s  IL_003b
+  IL_0039:  ldc.i4.1
   IL_003a:  ret
+  IL_003b:  ldloc.0
+  IL_003c:  ret
 }");
             compVerifier.VerifyIL("Door.ChangeState1",
-            @"{
-  // Code size       67 (0x43)
+@"{
+  // Code size       71 (0x47)
   .maxstack  2
-  .locals init (Door.DoorState V_0)
+  .locals init (Door.DoorState V_0,
+                Door.DoorState V_1,
+                Door.Action V_2)
   IL_0000:  ldarg.0
-  IL_0001:  switch    (
-        IL_0014,
-        IL_001a,
-        IL_0023)
-  IL_0012:  br.s       IL_003f
-  IL_0014:  ldarg.1
-  IL_0015:  ldc.i4.1
-  IL_0016:  beq.s      IL_0029
-  IL_0018:  br.s       IL_003f
-  IL_001a:  ldarg.1
-  IL_001b:  brfalse.s  IL_002d
-  IL_001d:  ldarg.1
-  IL_001e:  ldc.i4.2
-  IL_001f:  beq.s      IL_0031
-  IL_0021:  br.s       IL_003f
-  IL_0023:  ldarg.1
-  IL_0024:  ldc.i4.3
-  IL_0025:  beq.s      IL_0038
-  IL_0027:  br.s       IL_003f
-  IL_0029:  ldc.i4.1
-  IL_002a:  stloc.0
-  IL_002b:  br.s       IL_0041
-  IL_002d:  ldc.i4.0
+  IL_0001:  stloc.1
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.2
+  IL_0004:  ldloc.1
+  IL_0005:  switch    (
+        IL_0018,
+        IL_001e,
+        IL_0027)
+  IL_0016:  br.s       IL_0043
+  IL_0018:  ldloc.2
+  IL_0019:  ldc.i4.1
+  IL_001a:  beq.s      IL_002d
+  IL_001c:  br.s       IL_0043
+  IL_001e:  ldloc.2
+  IL_001f:  brfalse.s  IL_0031
+  IL_0021:  ldloc.2
+  IL_0022:  ldc.i4.2
+  IL_0023:  beq.s      IL_0035
+  IL_0025:  br.s       IL_0043
+  IL_0027:  ldloc.2
+  IL_0028:  ldc.i4.3
+  IL_0029:  beq.s      IL_003c
+  IL_002b:  br.s       IL_0043
+  IL_002d:  ldc.i4.1
   IL_002e:  stloc.0
-  IL_002f:  br.s       IL_0041
-  IL_0031:  ldarg.2
-  IL_0032:  brfalse.s  IL_003f
-  IL_0034:  ldc.i4.2
-  IL_0035:  stloc.0
-  IL_0036:  br.s       IL_0041
-  IL_0038:  ldarg.2
-  IL_0039:  brfalse.s  IL_003f
-  IL_003b:  ldc.i4.1
-  IL_003c:  stloc.0
-  IL_003d:  br.s       IL_0041
-  IL_003f:  ldarg.0
+  IL_002f:  br.s       IL_0045
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0045
+  IL_0035:  ldarg.2
+  IL_0036:  brfalse.s  IL_0043
+  IL_0038:  ldc.i4.2
+  IL_0039:  stloc.0
+  IL_003a:  br.s       IL_0045
+  IL_003c:  ldarg.2
+  IL_003d:  brfalse.s  IL_0043
+  IL_003f:  ldc.i4.1
   IL_0040:  stloc.0
-  IL_0041:  ldloc.0
-  IL_0042:  ret
+  IL_0041:  br.s       IL_0045
+  IL_0043:  ldarg.0
+  IL_0044:  stloc.0
+  IL_0045:  ldloc.0
+  IL_0046:  ret
 }");
         }
 
@@ -2432,25 +2450,28 @@ Closed Open -> Opened
 }");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size       47 (0x2f)
+  // Code size       49 (0x31)
   .maxstack  2
+  .locals init (string V_0)
   IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""a""
-  IL_0006:  call       ""bool string.op_Equality(string, string)""
-  IL_000b:  brtrue.s   IL_002e
-  IL_000d:  ldarg.1
-  IL_000e:  ldstr      ""b""
-  IL_0013:  call       ""bool string.op_Equality(string, string)""
-  IL_0018:  brtrue.s   IL_0027
-  IL_001a:  ldarg.1
-  IL_001b:  ldstr      ""c""
-  IL_0020:  call       ""bool string.op_Equality(string, string)""
-  IL_0025:  pop
-  IL_0026:  ret
-  IL_0027:  ldarg.1
-  IL_0028:  call       ""bool Program.Pure(string)""
-  IL_002d:  pop
-  IL_002e:  ret
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldstr      ""a""
+  IL_0008:  call       ""bool string.op_Equality(string, string)""
+  IL_000d:  brtrue.s   IL_0030
+  IL_000f:  ldloc.0
+  IL_0010:  ldstr      ""b""
+  IL_0015:  call       ""bool string.op_Equality(string, string)""
+  IL_001a:  brtrue.s   IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""c""
+  IL_0022:  call       ""bool string.op_Equality(string, string)""
+  IL_0027:  pop
+  IL_0028:  ret
+  IL_0029:  ldarg.1
+  IL_002a:  call       ""bool Program.Pure(string)""
+  IL_002f:  pop
+  IL_0030:  ret
 }");
         }
 

@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// A utility class that is used to scan a when clause to determine if it might assign a variable,
-            /// directly or indirectly. Used to determine if we can skip the allocation of pattern-matching
-            /// temporary variables and use user-declared variables instead, because we can conclude that they
-            /// are not mutated while the pattern-matching automaton is running.
+            /// A utility class that is used to scan a when clause to determine if it might assign a pattern variable
+            /// declared in that case, directly or indirectly. Used to determine if we can skip the allocation of
+            /// pattern-matching temporary variables and use user-declared pattern variables instead, because we can
+            /// conclude that they are not mutated by a when clause while the pattern-matching automaton is running.
             /// </summary>
-            protected sealed class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+            protected sealed class WhenClauseMightAssignPatternVariableWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
                 private bool _mightAssignSomething;
 
@@ -137,13 +137,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool mightMutate =
                         // might be a call to a local function that assigns something
                         node.Method.MethodKind == MethodKind.LocalFunction ||
-                        // or perhaps we are passing a variable by ref and mutating it that way
-                        !node.ArgumentRefKindsOpt.IsDefault;
+                        // or perhaps we are passing a variable by ref and mutating it that way, e.g. `int.Parse(..., out x)`
+                        !node.ArgumentRefKindsOpt.IsDefault ||
+                        // or perhaps we are calling a mutating method of a value type
+                        MethodMayMutateReceiver(node.ReceiverOpt, node.Method);
 
                     if (mightMutate)
                         _mightAssignSomething = true;
                     else
                         base.VisitCall(node);
+                    return null;
+                }
+
+                private static bool MethodMayMutateReceiver(BoundExpression receiver, MethodSymbol method)
+                {
+                    return
+                        method != null &&
+                        !method.IsStatic &&
+                        !method.IsEffectivelyReadOnly &&
+                        receiver.Type?.IsReferenceType == false &&
+                        // methods of primitive types do not mutate their receiver
+                        !method.ContainingType.SpecialType.IsPrimitiveRecursiveStruct();
+                }
+
+                public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+                {
+                    bool mightMutate =
+                        // We only need to check the get accessor because an assigment would cause _mightAssignSomething to be set to true in the caller
+                        MethodMayMutateReceiver(node.ReceiverOpt, node.PropertySymbol.GetMethod);
+
+                    if (mightMutate)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitPropertyAccess(node);
 
                     return null;
                 }
@@ -155,6 +181,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+                {
+                    _mightAssignSomething = true;
+                    return null;
+                }
+
+                public override BoundNode VisitConversion(BoundConversion node)
+                {
+                    visitConversion(node.Conversion);
+                    if (!_mightAssignSomething)
+                        base.VisitConversion(node);
+                    return null;
+
+                    void visitConversion(Conversion conversion)
+                    {
+                        switch (conversion.Kind)
+                        {
+                            case ConversionKind.MethodGroup:
+                                if (conversion.Method.MethodKind == MethodKind.LocalFunction)
+                                {
+                                    _mightAssignSomething = true;
+                                }
+                                break;
+                            default:
+                                if (!conversion.UnderlyingConversions.IsDefault)
+                                {
+                                    foreach (var underlying in conversion.UnderlyingConversions)
+                                    {
+                                        visitConversion(underlying);
+                                        if (_mightAssignSomething)
+                                            return;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+
+                public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+                {
+                    bool mightMutate =
+                        node.MethodOpt?.MethodKind == MethodKind.LocalFunction;
+
+                    if (mightMutate)
+                        _mightAssignSomething = true;
+                    else
+                        base.VisitDelegateCreationExpression(node);
+
+                    return null;
+                }
+
+                public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
                 {
                     _mightAssignSomething = true;
                     return null;
@@ -217,8 +294,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
                 {
-                    // Although property arguments with ref indexers are not declarable in C#, they may be usable
-                    if (!node.ArgumentRefKindsOpt.IsDefault)
+                    bool mightMutate =
+                        !node.ArgumentRefKindsOpt.IsDefault ||
+                        // We only need to check the get accessor because an assigment would cause _mightAssignSomething to be set to true in the caller
+                        MethodMayMutateReceiver(node.ReceiverOpt, node.Indexer.GetMethod);
+
+                    if (mightMutate)
                         _mightAssignSomething = true;
                     else
                         base.VisitIndexerAccess(node);
@@ -248,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // in a different section via the use of a local function), so we need to analyze all
                 // of the when clauses to see if they are all simple enough to conclude that they do
                 // not mutate pattern variables.
-                var mightAssignWalker = new WhenClauseMightAssignWalker();
+                var mightAssignWalker = new WhenClauseMightAssignPatternVariableWalker();
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
                     .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));
