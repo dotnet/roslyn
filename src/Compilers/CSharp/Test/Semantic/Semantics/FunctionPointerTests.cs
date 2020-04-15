@@ -1442,6 +1442,7 @@ unsafe class C
     void M(delegate*<void> ptr)
     {
         dynamic d = ptr;
+        d = (dynamic)ptr;
         ptr = d;
         ptr = (delegate*<void>)d;
     }
@@ -1451,12 +1452,15 @@ unsafe class C
                 // (6,21): error CS0029: Cannot implicitly convert type 'delegate*<void>' to 'dynamic'
                 //         dynamic d = ptr;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr").WithArguments("delegate*<void>", "dynamic").WithLocation(6, 21),
-                // (7,15): error CS0029: Cannot implicitly convert type 'dynamic' to 'delegate*<void>'
+                // (7,13): error CS0030: Cannot convert type 'delegate*<void>' to 'dynamic'
+                //         d = (dynamic)ptr;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(dynamic)ptr").WithArguments("delegate*<void>", "dynamic").WithLocation(7, 13),
+                // (8,15): error CS0029: Cannot implicitly convert type 'dynamic' to 'delegate*<void>'
                 //         ptr = d;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("dynamic", "delegate*<void>").WithLocation(7, 15),
-                // (8,15): error CS0030: Cannot convert type 'dynamic' to 'delegate*<void>'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("dynamic", "delegate*<void>").WithLocation(8, 15),
+                // (9,15): error CS0030: Cannot convert type 'dynamic' to 'delegate*<void>'
                 //         ptr = (delegate*<void>)d;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate*<void>)d").WithArguments("dynamic", "delegate*<void>").WithLocation(8, 15)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate*<void>)d").WithArguments("dynamic", "delegate*<void>").WithLocation(9, 15)
             );
         }
 
@@ -1806,7 +1810,7 @@ unsafe class C
         }
 
         [Fact]
-        public void ClsComplaince()
+        public void ClsCompliance()
         {
 
             var comp = CreateCompilationWithFunctionPointers(@"
@@ -1897,7 +1901,7 @@ unsafe class C
         }
 
         [Fact]
-        public void MethodCallOnFunctionPointerTypeDoesNotCrash()
+        public void MethodCallOnFunctionPointerType()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C

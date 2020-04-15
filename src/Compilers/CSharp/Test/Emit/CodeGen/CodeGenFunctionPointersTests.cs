@@ -4212,7 +4212,7 @@ static unsafe class C
         }
 
         [Fact]
-        public void RecusivelyUsedTypeInFunctionPointer()
+        public void RecursivelyUsedTypeInFunctionPointer()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
 namespace Interop
