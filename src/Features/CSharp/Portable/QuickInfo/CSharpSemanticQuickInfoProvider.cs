@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
-            var bindableParent = syntaxFacts.GetBindableParent(token);
-            var symbolInfo = semanticModel.GetSymbolInfo(bindableParent, cancellationToken);
+            var bindableParent = syntaxFacts.TryGetBindableParent(token);
+            var symbolInfo = bindableParent != null ? semanticModel.GetSymbolInfo(bindableParent, cancellationToken) : default;
 
             if (symbolInfo.Symbol == null || string.IsNullOrEmpty(symbolInfo.Symbol.Name))
             {

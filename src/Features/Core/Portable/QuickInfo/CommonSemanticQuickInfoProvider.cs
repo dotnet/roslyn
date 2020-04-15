@@ -418,8 +418,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             var symbols = GetSymbolsFromToken(token, document.Project.Solution.Workspace, semanticModel, cancellationToken);
 
-            var bindableParent = syntaxFacts.GetBindableParent(token);
-            var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
+            var bindableParent = syntaxFacts.TryGetBindableParent(token);
+            var overloads = bindableParent != null
+                ? semanticModel.GetMemberGroup(bindableParent, cancellationToken)
+                : ImmutableArray<ISymbol>.Empty;
 
             symbols = symbols.Where(IsOk)
                              .Where(s => IsAccessible(s, enclosingType))
