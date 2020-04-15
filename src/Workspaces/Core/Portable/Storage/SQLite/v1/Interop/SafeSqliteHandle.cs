@@ -4,31 +4,20 @@
 
 #nullable enable
 
-using System;
-using System.Runtime.InteropServices;
 using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 {
-    internal sealed class SafeSqliteHandle : SafeHandle
+    internal sealed class SafeSqliteHandle : SafeSqliteHandle<sqlite3>
     {
-        private readonly sqlite3 _wrapper;
-
-        public SafeSqliteHandle(sqlite3 handle)
-            : base(IntPtr.Zero, ownsHandle: true)
+        public SafeSqliteHandle(sqlite3 wrapper)
+            : base(wrapper.ptr, wrapper)
         {
-            _wrapper = handle;
-            SetHandle(handle.ptr);
         }
-
-        public override bool IsInvalid => handle == IntPtr.Zero;
-
-        public new sqlite3 DangerousGetHandle()
-            => _wrapper;
 
         protected override bool ReleaseHandle()
         {
-            raw.sqlite3_close(_wrapper);
+            raw.sqlite3_close(Wrapper);
             return true;
         }
     }

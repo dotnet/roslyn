@@ -15,11 +15,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     /// <seealso cref="SafeHandleExtensions.Lease"/>
     internal readonly struct SafeHandleLease : IDisposable
     {
-        private readonly SafeHandle _handle;
+        private readonly SafeHandle? _handle;
 
         internal SafeHandleLease(SafeHandle handle)
             => _handle = handle;
 
+        /// <summary>
+        /// Releases the <see cref="SafeHandle"/> lease. The behavior of this method is unspecified if called more than
+        /// once.
+        /// </summary>
         public void Dispose()
             => _handle?.DangerousRelease();
     }
