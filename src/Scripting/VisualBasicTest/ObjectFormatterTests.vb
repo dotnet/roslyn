@@ -77,10 +77,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
         End Sub
 
         <Fact>
-        Public Sub Arrays()
+        Public Sub ArrayMethodParameters()
             Dim method = GetType(Sort).GetMethod(NameOf(Sort.ArrayParameter))
             Dim result = New TestVisualBasicObjectFormatter(maximumLineLength:=100).FormatMethodSignature(method)
-            Assert.Equal("ObjectFormatterFixtures.Sort.ArrayParameter(Integer())", result)
+            Assert.Equal("ObjectFormatterFixtures.Sort.ArrayParameter(Integer(), Integer(,), Integer(,,))", result)
         End Sub
 
         <Fact>

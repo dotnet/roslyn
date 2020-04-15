@@ -50,7 +50,7 @@ namespace ObjectFormatterFixtures
         public readonly uint aE = 1;
         public readonly long aF = -1;
         public readonly ulong AG = 1;
-        public void ArrayParameter(int[] array) { }
+        public void ArrayParameter(int[] arrayOne, int[,] arrayTwo, int[,,] arrayThree) { }
     }
 
     internal class RecursiveRootHidden
