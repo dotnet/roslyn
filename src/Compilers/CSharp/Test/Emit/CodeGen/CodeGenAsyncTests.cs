@@ -5606,5 +5606,30 @@ class Program
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
+
+        [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
+        public void Repro_40251()
+        {
+            const string source = @"
+using System.Threading.Tasks;
+
+class IntCode
+{
+    public async Task Step(int i, Task t)
+    {
+        await t;
+        ReadMemory() = i switch
+        {
+            _ => throw null
+        };
+    }
+
+    private ref long ReadMemory() => throw null;
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
