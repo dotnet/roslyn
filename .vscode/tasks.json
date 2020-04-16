@@ -47,6 +47,36 @@
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
+    },
+    {
+        "label": "run tests in current file (netcoreapp3.1)",
+        "command": "powershell",
+        "type": "shell",
+        "args": [
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${relativeFile}",
+          "-framework",
+          "netcoreapp3.1",
+          "-filter",
+          "${fileBasenameNoExtension}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
+    },
+    {
+        "label": "run tests in current project (netcoreapp3.1)",
+        "command": "powershell",
+        "type": "shell",
+        "args": [
+          "${workspaceRoot}/scripts/vscode-run-tests.ps1",
+          "-filePath",
+          "${relativeFile}",
+          "-framework",
+          "netcoreapp3.1"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "test"
     }
   ]
 }
