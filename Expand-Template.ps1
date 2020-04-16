@@ -83,20 +83,20 @@ try {
     git mv Library.sln "$LibraryName.sln"
     git mv src/Library/Library.csproj "src/Library/$LibraryName.csproj"
     git mv src/Library "src/$LibraryName"
-    git mv src/Library.Tests/Library.Tests.csproj "src/Library.Tests/$LibraryName.Tests.csproj"
-    git mv src/Library.Tests "src/$LibraryName.Tests"
+    git mv test/Library.Tests/Library.Tests.csproj "test/Library.Tests/$LibraryName.Tests.csproj"
+    git mv test/Library.Tests "test/$LibraryName.Tests"
 
     # Refresh solution file both to update paths and give the projects unique GUIDs
     dotnet sln remove src/Library/Library.csproj
-    dotnet sln remove src/Library.Tests/Library.Tests.csproj
+    dotnet sln remove test/Library.Tests/Library.Tests.csproj
     dotnet sln add "src/$LibraryName"
-    dotnet sln add "src/$LibraryName.Tests"
+    dotnet sln add "test/$LibraryName.Tests"
     git add "$LibraryName.sln"
 
     # Update project reference in test project. Add before removal to keep the same ItemGroup in place.
-    dotnet add "src/$LibraryName.Tests" reference "src/$LibraryName"
-    dotnet remove "src/$LibraryName.Tests" reference src/Library/Library.csproj
-    git add "src/$LibraryName.Tests/$LibraryName.Tests.csproj"
+    dotnet add "test/$LibraryName.Tests" reference "src/$LibraryName"
+    dotnet remove "test/$LibraryName.Tests" reference src/Library/Library.csproj
+    git add "test/$LibraryName.Tests/$LibraryName.Tests.csproj"
 
     # Establish a new strong-name key
     & $sn.Path -k 2048 src/strongname.snk
@@ -107,17 +107,17 @@ try {
         'Library'=$LibraryName
         'COMPANY-PLACEHOLDER'=$Author
     }
-    Replace-Placeholders -Path "src/$LibraryName.Tests/CalculatorTests.cs" -Replacements @{
+    Replace-Placeholders -Path "test/$LibraryName.Tests/CalculatorTests.cs" -Replacements @{
         'Library'=$LibraryName
         'COMPANY-PLACEHOLDER'=$Author
     }
     Replace-Placeholders -Path "LICENSE" -Replacements @{
         'COMPANY-PLACEHOLDER'=$Author
     }
-    Replace-Placeholders -Path "src/stylecop.json" -Replacements @{
+    Replace-Placeholders -Path "stylecop.json" -Replacements @{
         'COMPANY-PLACEHOLDER'=$Author
     }
-    Replace-Placeholders -Path "src/Directory.Build.props" -Replacements @{
+    Replace-Placeholders -Path "Directory.Build.props" -Replacements @{
         'COMPANY-PLACEHOLDER'=$Author
     }
     Replace-Placeholders -Path "README.md" -Replacements @{
@@ -174,4 +174,4 @@ try {
 }
 
 # When testing this script, all the changes can be quickly reverted with this command:
-# git reset HEAD :/README.md :/LICENSE :/azure-pipelines.yml :/src :/azure-pipelines; git co -- :/README.md :/LICENSE :/azure-pipelines.yml :/src :/azure-pipelines; git clean -fd :/src
+# git reset HEAD :/README.md :/LICENSE :/azure-pipelines.yml :/src :/test :/azure-pipelines; git co -- :/README.md :/LICENSE :/azure-pipelines.yml :/src :/azure-pipelines; git clean -fd :/src :/test

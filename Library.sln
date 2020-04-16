@@ -5,19 +5,31 @@ VisualStudioVersion = 16.0.29322.22
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library", "src\Library\Library.csproj", "{C06D702E-6FC7-453B-BDDF-608F825EC003}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library.Tests", "src\Library.Tests\Library.Tests.csproj", "{DC5F3D1C-A9A3-44B7-A3C0-82C1FF4C3336}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library.Tests", "test\Library.Tests\Library.Tests.csproj", "{DC5F3D1C-A9A3-44B7-A3C0-82C1FF4C3336}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1CE9670B-D5FF-46A7-9D00-24E70E6ED48B}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		src\Directory.Build.props = src\Directory.Build.props
-		src\Directory.Build.targets = src\Directory.Build.targets
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
 		global.json = global.json
 		nuget.config = nuget.config
-		src\shipping.ruleset = src\shipping.ruleset
-		src\stylecop.json = src\stylecop.json
-		src\tests.ruleset = src\tests.ruleset
+		stylecop.json = stylecop.json
 		version.json = version.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9E154A29-1796-4B85-BD81-B6A385D8FF71}"
+	ProjectSection(SolutionItems) = preProject
+		src\.editorconfig = src\.editorconfig
+		src\Directory.Build.props = src\Directory.Build.props
+		src\Directory.Build.targets = src\Directory.Build.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{36CCE840-6FE5-4DB9-A8D5-8CF3CB6D342A}"
+	ProjectSection(SolutionItems) = preProject
+		test\.editorconfig = test\.editorconfig
+		test\Directory.Build.props = test\Directory.Build.props
+		test\Directory.Build.targets = test\Directory.Build.targets
 	EndProjectSection
 EndProject
 Global
@@ -37,6 +49,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9E154A29-1796-4B85-BD81-B6A385D8FF71} = {1CE9670B-D5FF-46A7-9D00-24E70E6ED48B}
+		{36CCE840-6FE5-4DB9-A8D5-8CF3CB6D342A} = {1CE9670B-D5FF-46A7-9D00-24E70E6ED48B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E3944F6A-384B-4B0F-B93F-3BD513DC57BD}
