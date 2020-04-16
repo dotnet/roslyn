@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
-using Roslyn.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -55,11 +55,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (!newDocumentName.Equals(document.Name))
             {
-<<<<<<< HEAD
                 var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, cancellationToken).ConfigureAwait(false);
-=======
-                var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, optionSet, cancellationToken).ConfigureAwait(false);
->>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
 
                 if (renameAction is object)
                 {
@@ -72,12 +68,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 document.Project.Id,
                 document.Id,
                 newDocumentName,
-<<<<<<< HEAD
                 document.Folders,
                 optionSet);
-=======
-                document.Folders);
->>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
         }
 
         /// <summary>
@@ -109,11 +101,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (!newFolders.SequenceEqual(document.Folders))
             {
-<<<<<<< HEAD
                 var action = await SyncNamespaceDocumentAction.TryCreateAsync(document, newFolders, cancellationToken).ConfigureAwait(false);
-=======
-                var action = await SyncNamespaceDocumentAction.TryCreateAsync(document, newFolders, optionSet, cancellationToken).ConfigureAwait(false);
->>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
 
                 if (action is object)
                 {
@@ -126,12 +114,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 document.Project.Id,
                 document.Id,
                 document.Name,
-<<<<<<< HEAD
                 newFolders,
                 optionSet);
-=======
-                newFolders);
->>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
         }
 
         internal static Task<Solution> RenameSymbolAsync(
