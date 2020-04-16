@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return raw.sqlite3_errmsg(db.DangerousGetHandle());
         }
 
+        public static string sqlite3_errstr(int rc)
+        {
+            return raw.sqlite3_errstr(rc);
+        }
+
         public static int sqlite3_extended_errcode(SafeSqliteHandle db)
         {
             using var _ = db.Lease();

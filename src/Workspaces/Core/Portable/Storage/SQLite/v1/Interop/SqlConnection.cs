@@ -8,7 +8,6 @@ using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
-using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 {
@@ -298,7 +297,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
         {
             throw new SqlException(result,
                 NativeMethods.sqlite3_errmsg(handle) + "\r\n" +
-                raw.sqlite3_errstr(NativeMethods.sqlite3_extended_errcode(handle)));
+                NativeMethods.sqlite3_errstr(NativeMethods.sqlite3_extended_errcode(handle)));
         }
     }
 }
