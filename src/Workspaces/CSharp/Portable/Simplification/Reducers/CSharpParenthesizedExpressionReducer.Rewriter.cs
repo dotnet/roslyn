@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
-    internal partial class CSharpParenthesesReducer
+    internal partial class CSharpParenthesizedExpressionReducer
     {
         private class Rewriter : AbstractReductionRewriter
         {
