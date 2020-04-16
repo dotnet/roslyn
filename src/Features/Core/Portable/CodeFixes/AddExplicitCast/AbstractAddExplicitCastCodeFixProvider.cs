@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             var diagnostic = context.Diagnostics.First();
 
             var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var spanNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true)
@@ -123,13 +122,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             string diagnosticId, TExpressionSyntax spanNode, CancellationToken cancellationToken,
             out ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> potentialConversionTypes);
 
-        protected abstract bool IsObjectCreationExpression(TExpressionSyntax targetNode);
-
         protected abstract bool IsConversionUserDefined(
             SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
         protected ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
             SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
             ArrayBuilder<(TExpressionSyntax node, ITypeSymbol type)> mutablePotentialConversionTypes)
         {
             using var _ = ArrayBuilder<(TExpressionSyntax, ITypeSymbol)>.GetInstance(out var validPotentialConversionTypes);
@@ -141,11 +139,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 // For cases like object creation expression. for example:
                 // Derived d = [||]new Base();
                 // It is always invalid except the target node has explicit conversion operator or is numeric.
-                if (IsObjectCreationExpression(targetNode)
+                if (syntaxFacts.IsObjectCreationExpression(targetNode)
                     && !IsConversionUserDefined(semanticModel, targetNode, targetNodeConversionType))
                 {
                     continue;
                 }
+
 
                 validPotentialConversionTypes.Add(conversionTuple);
             }

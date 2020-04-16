@@ -93,12 +93,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             End Select
 
             ' clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, mutablePotentialConversionTypes)
+            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel,
+                document.GetRequiredLanguageService(Of ISyntaxFactsService), mutablePotentialConversionTypes)
             Return Not potentialConversionTypes.IsEmpty
-        End Function
-
-        Protected Overrides Function IsObjectCreationExpression(targetNode As ExpressionSyntax) As Boolean
-            Return targetNode.Kind() = SyntaxKind.ObjectCreationExpression
         End Function
 
         Protected Overrides Function ClassifyConversionExists(semanticModel As SemanticModel,

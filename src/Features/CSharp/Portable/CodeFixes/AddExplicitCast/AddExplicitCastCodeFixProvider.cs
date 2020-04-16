@@ -67,9 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return newRoot;
         }
 
-        protected override bool IsObjectCreationExpression(ExpressionSyntax targetNode)
-            => targetNode.IsKind(SyntaxKind.ObjectCreationExpression);
-
         protected override bool TryGetTargetTypeInfo(Document document, SemanticModel semanticModel, SyntaxNode root,
             string diagnosticId, ExpressionSyntax spanNode, CancellationToken cancellationToken,
             out ImmutableArray<(ExpressionSyntax, ITypeSymbol)> potentialConversionTypes)
@@ -106,7 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             }
 
             // clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel, mutablePotentialConversionTypes);
+            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel,
+                document.GetRequiredLanguageService<ISyntaxFactsService>(),
+                mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
         }
 
