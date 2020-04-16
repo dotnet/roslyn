@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     {
         var c = !(a <= 10 || b is false);
     }
-}", parseOptions: CSharp8);
+}", parseOptions: CSharp9);
         }
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     {
         var c = !(a <= 10 || b is true);
     }
-}", parseOptions: CSharp8);
+}", parseOptions: CSharp9);
         }
     }
 }
