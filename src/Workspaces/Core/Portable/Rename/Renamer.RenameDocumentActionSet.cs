@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Information about rename document calls that allows them to be applied as individual actions.
         /// 
-        /// Updates a solution with the actions determined at analysis time. To apply all actions
+        /// To apply all actions
         /// use <see cref="UpdateSolutionAsync(Solution, CancellationToken)"/>, or use a subset
         /// of the actions by calling <see cref="UpdateSolutionAsync(Solution, ImmutableArray{RenameDocumentAction}, CancellationToken)"/>. 
         /// Each action has a description of the changes that it will apply that can be presented to a user.
@@ -30,19 +31,21 @@ namespace Microsoft.CodeAnalysis.Rename
             private readonly string _documentName;
             private readonly IReadOnlyList<string> _documentFolders;
             private readonly ProjectId _projectId;
-
+            private readonly OptionSet _optionSet;
             internal RenameDocumentActionSet(
                 ImmutableArray<RenameDocumentAction> actions,
                 ProjectId projectId,
                 DocumentId documentId,
                 string documentName,
-                IReadOnlyList<string> documentFolders)
+                IReadOnlyList<string> documentFolders,
+                OptionSet optionSet)
             {
                 ApplicableActions = actions;
                 _documentFolders = documentFolders;
                 _documentId = documentId;
                 _documentName = documentName;
                 _projectId = projectId;
+                _optionSet = optionSet;
             }
 
             /// <summary>
@@ -67,6 +70,11 @@ namespace Microsoft.CodeAnalysis.Rename
             /// </remarks>
             public async Task<Solution> UpdateSolutionAsync(Solution solution, ImmutableArray<RenameDocumentAction> actions, CancellationToken cancellationToken)
             {
+                if (solution is null)
+                {
+                    throw new ArgumentNullException(nameof(solution));
+                }
+
                 if (actions.Any(a => !ApplicableActions.Contains(a)))
                 {
                     throw new ArgumentException(WorkspacesResources.Cannot_apply_action_that_is_not_in_applicableactions);
@@ -90,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 foreach (var action in actions)
                 {
                     document = solution.GetRequiredDocument(documentId);
-                    solution = await action.GetModifiedSolutionAsync(document, cancellationToken).ConfigureAwait(false);
+                    solution = await action.GetModifiedSolutionAsync(document, _optionSet, cancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;
@@ -112,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 var project = solution.GetRequiredProject(_projectId);
                 return project.Documents.FirstOrDefault(d => d.Name == _documentName && d.Folders.SequenceEqual(_documentFolders))
-                    ?? throw new InvalidOperationException("Unable to find document that was used for analysis in current solution");
+                    ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
         }
 

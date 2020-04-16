@@ -28,9 +28,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
             private RenameSymbolDocumentAction(
                 AnalysisResult analysis,
-                OptionSet optionSet,
                 ImmutableArray<ErrorResource> errors)
-                : base(errors, optionSet)
+                : base(errors)
             {
                 _analysis = analysis;
             }
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Rename
             public override string GetDescription(CultureInfo? culture)
                 => string.Format(WorkspacesResources.ResourceManager.GetString("Rename_0_to_1", culture ?? WorkspacesResources.Culture)!, _analysis.OriginalDocumentName, _analysis.NewDocumentName);
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, CancellationToken cancellationToken)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var solution = document.Project.Solution;
                 var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(document, _analysis.OriginalSymbolName!, cancellationToken).ConfigureAwait(false);
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbol = semanticModel.GetDeclaredSymbol(matchingTypeDeclaration, cancellationToken);
 
-                    solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, OptionSet, cancellationToken).ConfigureAwait(false);
+                    solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, optionSet, cancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;
@@ -59,17 +58,40 @@ namespace Microsoft.CodeAnalysis.Rename
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-                var typeDeclarations = syntaxRoot.DescendantNodesAndSelf().Where(syntaxFacts.IsTypeDeclaration);
+                var typeDeclarations = syntaxRoot.DescendantNodesAndSelf(n => !syntaxFacts.IsMethodBody(n)).Where(syntaxFacts.IsTypeDeclaration);
                 return typeDeclarations.FirstOrDefault(d => syntaxFacts.GetDisplayName(d, DisplayNameOptions.None).Equals(name, StringComparison.OrdinalIgnoreCase));
             }
 
-            public static async Task<RenameSymbolDocumentAction?> TryCreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
+            public static async Task<RenameSymbolDocumentAction?> TryCreateAsync(Document document, string newName, CancellationToken cancellationToken)
             {
-                var analysis = await AnalysisResult.CreateAsync(document, newName, optionSet, cancellationToken).ConfigureAwait(false);
+                var analysis = await AnalyzeAsync(document, newName, cancellationToken).ConfigureAwait(false);
 
-                if (analysis.ShouldApplyAction)
+                if (analysis.HasValue)
                 {
-                    return new RenameSymbolDocumentAction(analysis, optionSet, ImmutableArray<ErrorResource>.Empty);
+                    return new RenameSymbolDocumentAction(analysis.Value, ImmutableArray<ErrorResource>.Empty);
+                }
+
+                return null;
+            }
+
+            private static async Task<AnalysisResult?> AnalyzeAsync(Document document, string newName, CancellationToken cancellationToken)
+            {
+                // TODO: Detect naming conflicts ahead of time
+                var originalSymbolName = Path.GetFileNameWithoutExtension(document.Name);
+                var matchingDeclaration = await GetMatchingTypeDeclarationAsync(document, originalSymbolName, cancellationToken).ConfigureAwait(false);
+
+                if (matchingDeclaration is object)
+                {
+                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var symbol = semanticModel.GetDeclaredSymbol(matchingDeclaration, cancellationToken);
+                    var newSymbolName = Path.GetFileNameWithoutExtension(newName);
+
+                    if (symbol is null || symbol.Name == newSymbolName)
+                    {
+                        return null;
+                    }
+
+                    return new AnalysisResult(document, newName, newSymbolName, symbol.Name);
                 }
 
                 return null;
@@ -80,34 +102,18 @@ namespace Microsoft.CodeAnalysis.Rename
                 public string OriginalDocumentName { get; }
                 public string NewDocumentName { get; }
                 public string NewSymbolName { get; }
-                public string? OriginalSymbolName { get; }
-                public bool ShouldApplyAction => OriginalSymbolName != null && NewSymbolName != OriginalSymbolName;
+                public string OriginalSymbolName { get; }
 
-                private AnalysisResult(
+                public AnalysisResult(
                     Document document,
-                    string newName,
-                    ISymbol? symbol = null)
+                    string newDocumentName,
+                    string newSymbolName,
+                    string originalSymbolName)
                 {
                     OriginalDocumentName = document.Name;
-                    NewDocumentName = newName;
-                    NewSymbolName = Path.GetFileNameWithoutExtension(newName);
-                    OriginalSymbolName = symbol?.Name;
-                }
-
-                public static async Task<AnalysisResult> CreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
-                {
-                    // TODO: Detect naming conflicts ahead of time
-                    var originalSymbolName = Path.GetFileNameWithoutExtension(document.Name);
-                    var matchingDeclaration = await GetMatchingTypeDeclarationAsync(document, originalSymbolName, cancellationToken).ConfigureAwait(false);
-
-                    if (matchingDeclaration is object)
-                    {
-                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        var symbol = semanticModel.GetDeclaredSymbol(matchingDeclaration, cancellationToken);
-                        return new AnalysisResult(document, newName, symbol);
-                    }
-
-                    return new AnalysisResult(document, newName);
+                    NewDocumentName = newDocumentName;
+                    NewSymbolName = newSymbolName;
+                    OriginalSymbolName = originalSymbolName;
                 }
             }
         }

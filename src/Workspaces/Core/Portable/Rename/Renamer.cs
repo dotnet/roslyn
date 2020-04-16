@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (!newDocumentName.Equals(document.Name))
             {
-                var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, optionSet, cancellationToken).ConfigureAwait(false);
+                var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, cancellationToken).ConfigureAwait(false);
 
                 if (renameAction is object)
                 {
@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 document.Project.Id,
                 document.Id,
                 newDocumentName,
-                document.Folders);
+                document.Folders,
+                optionSet);
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (!newFolders.SequenceEqual(document.Folders))
             {
-                var action = await SyncNamespaceDocumentAction.TryCreateAsync(document, newFolders, optionSet, cancellationToken).ConfigureAwait(false);
+                var action = await SyncNamespaceDocumentAction.TryCreateAsync(document, newFolders, cancellationToken).ConfigureAwait(false);
 
                 if (action is object)
                 {
@@ -113,7 +114,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 document.Project.Id,
                 document.Id,
                 document.Name,
-                newFolders);
+                newFolders,
+                optionSet);
         }
 
         internal static Task<Solution> RenameSymbolAsync(

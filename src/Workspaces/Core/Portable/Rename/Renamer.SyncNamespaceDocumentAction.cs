@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             private readonly AnalysisResult _analysis;
 
-            private SyncNamespaceDocumentAction(AnalysisResult analysis, OptionSet optionSet, ImmutableArray<ErrorResource> errors)
-                : base(errors, optionSet)
+            private SyncNamespaceDocumentAction(AnalysisResult analysis, ImmutableArray<ErrorResource> errors)
+                : base(errors)
             {
                 _analysis = analysis;
             }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Rename
             public override string GetDescription(CultureInfo? culture)
                 => WorkspacesResources.ResourceManager.GetString("Sync_namespace_to_folder_structure", culture ?? WorkspacesResources.Culture)!;
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, CancellationToken cancellationToken)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
             {
                 // If we are modifying the solution, we shouldn't have offered a change if the target namespace
                 // could not be determined
@@ -69,38 +69,49 @@ namespace Microsoft.CodeAnalysis.Rename
                 return solution;
             }
 
-            public static Task<SyncNamespaceDocumentAction?> TryCreateAsync(Document document, IReadOnlyList<string> newFolders, OptionSet optionSet, CancellationToken _)
+            public static Task<SyncNamespaceDocumentAction?> TryCreateAsync(Document document, IReadOnlyList<string> newFolders, CancellationToken _)
             {
                 using var _1 = ArrayBuilder<ErrorResource>.GetInstance(out var errors);
 
                 var analysisResult = Analyze(document, newFolders);
 
-                if (analysisResult.SupportsSyncNamespace && analysisResult.TargetNamespace is object)
+                if (analysisResult.HasValue)
                 {
-                    return Task.FromResult<SyncNamespaceDocumentAction?>(new SyncNamespaceDocumentAction(analysisResult, optionSet, errors.ToImmutable()));
+                    return Task.FromResult<SyncNamespaceDocumentAction?>(new SyncNamespaceDocumentAction(analysisResult.Value, errors.ToImmutable()));
                 }
 
                 return Task.FromResult<SyncNamespaceDocumentAction?>(null);
             }
 
-            private static AnalysisResult Analyze(Document document, IReadOnlyCollection<string> newFolders)
+            private static AnalysisResult? Analyze(Document document, IReadOnlyCollection<string> newFolders)
             {
-                var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                // https://github.com/dotnet/roslyn/issues/41841
+                // VB implementation is incomplete for sync namespace
+                if (document.Project.Language == LanguageNames.CSharp)
+                {
+                    var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
+                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    var targetNamespace = changeNamespaceService.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
 
-                return new AnalysisResult(
-                    supportsSyncNamespace: document.Project.Language == LanguageNames.CSharp, // VB implementation is incomplete for sync namespace
-                    targetNamespace: changeNamespaceService.TryBuildNamespaceFromFolders(newFolders, syntaxFacts));
+                    if (targetNamespace is null)
+                    {
+                        return null;
+                    }
+
+                    return new AnalysisResult(targetNamespace);
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             private readonly struct AnalysisResult
             {
-                public bool SupportsSyncNamespace { get; }
-                public string? TargetNamespace { get; }
+                public string TargetNamespace { get; }
 
-                public AnalysisResult(bool supportsSyncNamespace, string? targetNamespace)
+                public AnalysisResult(string targetNamespace)
                 {
-                    SupportsSyncNamespace = supportsSyncNamespace;
                     TargetNamespace = targetNamespace;
                 }
             }

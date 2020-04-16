@@ -22,17 +22,15 @@ namespace Microsoft.CodeAnalysis.Rename
         public abstract class RenameDocumentAction
         {
             private readonly ImmutableArray<ErrorResource> _errorStringKeys;
-            protected OptionSet OptionSet { get; }
 
             public ImmutableArray<string> GetErrors(CultureInfo? culture = null)
                 => _errorStringKeys.SelectAsArray(s => string.Format(WorkspacesResources.ResourceManager.GetString(s.FormatString, culture ?? WorkspacesResources.Culture)!, s.Arguments));
 
             public abstract string GetDescription(CultureInfo? culture = null);
-            internal abstract Task<Solution> GetModifiedSolutionAsync(Document document, CancellationToken cancellationToken);
+            internal abstract Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
 
-            internal RenameDocumentAction(ImmutableArray<ErrorResource> errors, OptionSet optionSet)
+            internal RenameDocumentAction(ImmutableArray<ErrorResource> errors)
             {
-                OptionSet = optionSet;
                 _errorStringKeys = errors;
             }
 
