@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             _semanticModel = semanticModel;
         }
 
-        public int Compare([AllowNull] (TExpressionSyntax syntax, ITypeSymbol symbol) x,
-            [AllowNull] (TExpressionSyntax syntax, ITypeSymbol symbol) y)
+        public int Compare((TExpressionSyntax syntax, ITypeSymbol symbol) x,
+            (TExpressionSyntax syntax, ITypeSymbol symbol) y)
         {
             // if the argument is different, keep the original order
             if (!x.syntax.Equals(y.syntax))

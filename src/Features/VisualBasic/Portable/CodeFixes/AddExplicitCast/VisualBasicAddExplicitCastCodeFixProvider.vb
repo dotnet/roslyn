@@ -46,7 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             ' TODO:
             ' the Simplifier doesn't remove the redundant cast from the expression
             ' Issue link: https : //github.com/dotnet/roslyn/issues/41500
-            Dim castExpression = targetNode.Cast(conversionType, Nothing).WithAdditionalAnnotations(Simplifier.Annotation)
+            Dim castExpression = targetNode.Cast(
+                conversionType, isResultPredefinedCast:=Nothing).WithAdditionalAnnotations(Simplifier.Annotation)
             Dim newRoot = currentRoot.ReplaceNode(targetNode, castExpression)
             Return newRoot
         End Function
