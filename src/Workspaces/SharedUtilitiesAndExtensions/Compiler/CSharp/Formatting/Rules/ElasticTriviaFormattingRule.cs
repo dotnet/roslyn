@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return null;
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
-            var operation = nextOperation.Invoke();
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
             if (operation == null)
             {
                 // If there are more than one Type Parameter Constraint Clause then each go in separate line
@@ -218,9 +218,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return FormattingOperations.CreateAdjustNewLinesOperation(2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
-            var operation = nextOperation.Invoke();
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
             if (operation == null)
             {
                 return null;

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new TokenBasedFormattingRule(cachedOptions);
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             ////////////////////////////////////////////////////
             // brace related operations
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // for (int i = 10; i < 10; i++) case
             if (previousToken.IsSemicolonInForStatement())
             {
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
 
             // ; case in the switch case statement and else condition
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         private AdjustNewLinesOperation AdjustNewLinesAfterSemicolonToken(
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             //////////////////////////////////////////////////////
             // ";" related operations
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         private readonly struct CachedOptions : IEquatable<CachedOptions>

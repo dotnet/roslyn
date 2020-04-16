@@ -72,14 +72,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0, previousToken, currentToken);
-            return action.Invoke();
+            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0);
+            return action.Invoke(in previousToken, in currentToken);
         }
 
         public AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken);
-            return action.Invoke();
+            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0);
+            return action.Invoke(in previousToken, in currentToken);
         }
 
         private static ImmutableArray<AbstractFormattingRule> FilterToRulesImplementingMethod(ImmutableArray<AbstractFormattingRule> rules, string name)

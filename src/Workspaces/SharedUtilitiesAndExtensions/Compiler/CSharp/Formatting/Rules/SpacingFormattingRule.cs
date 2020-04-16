@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new SpacingFormattingRule(cachedOptions);
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             RoslynDebug.Assert(previousToken.Parent != null && currentToken.Parent != null);
 
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
         public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)

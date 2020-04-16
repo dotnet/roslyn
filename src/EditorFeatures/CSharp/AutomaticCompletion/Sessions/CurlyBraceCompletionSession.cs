@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 return new BraceCompletionFormattingRule(_indentStyle, cachedOptions);
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // Eg Cases -
                 // new MyObject {
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     }
                 }
 
-                return base.GetAdjustNewLinesOperation(previousToken, currentToken, in nextOperation);
+                return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
             }
 
             public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)

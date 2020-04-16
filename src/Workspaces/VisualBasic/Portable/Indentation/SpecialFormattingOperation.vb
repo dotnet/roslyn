@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             ' don't suppress anything
         End Sub
 
-        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' unlike regular one. force position of attribute
             Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return Nothing
         End Function
 
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             Dim spaceOperation = MyBase.GetAdjustSpacesOperationSlow(previousToken, currentToken, nextOperation)
 
             ' if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
