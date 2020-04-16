@@ -81,7 +81,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal readonly struct TestAccessor
         {
+#pragma warning disable IDE0052 // Remove unread private members - hold onto the Roslyn services.
             private readonly RoslynServices _roslynServices;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public TestAccessor(RoslynServices roslynServices)
                 => _roslynServices = roslynServices;

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 containingType, out var hasEquals, out var hasGetHashCode);
 
             var actions = await CreateActionsAsync(
-                document, textSpan, typeDeclaration, containingType, viableMembers,
+                document, typeDeclaration, containingType, viableMembers,
                 hasEquals, hasGetHashCode, withDialog: true, cancellationToken).ConfigureAwait(false);
 
             context.RegisterRefactorings(actions);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         var typeDeclaration = syntaxFacts.GetContainingTypeDeclaration(root, textSpan.Start);
 
                         return await CreateActionsAsync(
-                            document, textSpan, typeDeclaration, info.ContainingType, info.SelectedMembers,
+                            document, typeDeclaration, info.ContainingType, info.SelectedMembers,
                             hasEquals, hasGetHashCode, withDialog: false, cancellationToken).ConfigureAwait(false);
                     }
                 }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         private async Task<ImmutableArray<CodeAction>> CreateActionsAsync(
-            Document document, TextSpan textSpan, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> selectedMembers,
+            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> selectedMembers,
             bool hasEquals, bool hasGetHashCode, bool withDialog, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task<CodeAction>>.GetInstance(out var tasks);
@@ -204,22 +204,22 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 // the user would need to bother just generating that member without also
                 // generating 'Equals' as well.
                 tasks.Add(CreateCodeActionAsync(
-                    document, textSpan, typeDeclaration, containingType, selectedMembers,
+                    document, typeDeclaration, containingType, selectedMembers,
                     generateEquals: true, generateGetHashCode: false, withDialog, cancellationToken));
                 tasks.Add(CreateCodeActionAsync(
-                    document, textSpan, typeDeclaration, containingType, selectedMembers,
+                    document, typeDeclaration, containingType, selectedMembers,
                     generateEquals: true, generateGetHashCode: true, withDialog, cancellationToken));
             }
             else if (!hasEquals)
             {
                 tasks.Add(CreateCodeActionAsync(
-                    document, textSpan, typeDeclaration, containingType, selectedMembers,
+                    document, typeDeclaration, containingType, selectedMembers,
                     generateEquals: true, generateGetHashCode: false, withDialog, cancellationToken));
             }
             else if (!hasGetHashCode)
             {
                 tasks.Add(CreateCodeActionAsync(
-                    document, textSpan, typeDeclaration, containingType, selectedMembers,
+                    document, typeDeclaration, containingType, selectedMembers,
                     generateEquals: false, generateGetHashCode: true, withDialog, cancellationToken));
             }
 
@@ -228,16 +228,16 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         private Task<CodeAction> CreateCodeActionAsync(
-            Document document, TextSpan textSpan, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
+            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
             bool generateEquals, bool generateGetHashCode, bool withDialog, CancellationToken cancellationToken)
         {
             return withDialog
-                ? CreateCodeActionWithDialogAsync(document, textSpan, typeDeclaration, containingType, members, generateEquals, generateGetHashCode, cancellationToken)
-                : CreateCodeActionWithoutDialogAsync(document, textSpan, typeDeclaration, containingType, members, generateEquals, generateGetHashCode, cancellationToken);
+                ? CreateCodeActionWithDialogAsync(document, typeDeclaration, containingType, members, generateEquals, generateGetHashCode, cancellationToken)
+                : CreateCodeActionWithoutDialogAsync(document, typeDeclaration, containingType, members, generateEquals, generateGetHashCode, cancellationToken);
         }
 
         private async Task<CodeAction> CreateCodeActionWithDialogAsync(
-            Document document, TextSpan textSpan, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
+            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
             bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -272,12 +272,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             return new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                this, document, textSpan, typeDeclaration, containingType, members,
+                this, document, typeDeclaration, containingType, members,
                 pickMembersOptions.ToImmutable(), generateEquals, generateGetHashCode);
         }
 
         private async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
-            Document document, TextSpan textSpan, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
+            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
             bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
         {
             var implementIEquatable = false;
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             return new GenerateEqualsAndGetHashCodeAction(
-                document, textSpan, typeDeclaration, containingType, members,
+                document, typeDeclaration, containingType, members,
                 generateEquals, generateGetHashCode, implementIEquatable, generateOperators);
         }
     }

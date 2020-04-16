@@ -76,8 +76,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return _importedProviders;
         }
 
-        private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
-
         private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
         {
             var providers = GetAllProviders(roles);

@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -25,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
     internal class CSharpMetadataAsSourceService : AbstractMetadataAsSourceService
     {
         private static readonly AbstractFormattingRule s_memberSeparationRule = new FormattingRule();
+        public static readonly CSharpMetadataAsSourceService Instance = new CSharpMetadataAsSourceService();
 
-        public CSharpMetadataAsSourceService(HostLanguageServices languageServices)
-            : base(languageServices.GetService<ICodeGenerationService>())
+        private CSharpMetadataAsSourceService()
         {
         }
 

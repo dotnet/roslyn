@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.Remote
             AllowNonPublicInvocation = false
         };
 
-        // these are for debugging purpose. once we find out root cause of the issue
-        // we will remove these.
-        private static JsonRpcDisconnectedEventArgs? s_debuggingLastDisconnectReason;
-        private static string? s_debuggingLastDisconnectCallstack;
-
         private readonly TraceSource _logger;
         private readonly JsonRpc _rpc;
 
@@ -329,9 +324,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void ReportNonFatalWatson(Exception exception)
         {
-            s_debuggingLastDisconnectReason = _debuggingLastDisconnectReason;
-            s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;
-
             FatalError.ReportWithoutCrash(exception);
         }
 

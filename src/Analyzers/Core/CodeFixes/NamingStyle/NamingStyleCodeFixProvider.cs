@@ -108,9 +108,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 
         private class FixNameCodeAction : CodeAction
         {
+#pragma warning disable IDE0052 // Remove unread private members - used in non-CodeStyle project context
             private readonly Solution _startingSolution;
             private readonly ISymbol _symbol;
             private readonly string _newName;
+#pragma warning restore IDE0052 // Remove unread private members
+
             private readonly string _title;
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
             private readonly string _equivalenceKey;

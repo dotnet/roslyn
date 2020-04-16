@@ -26,8 +26,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private struct DefinitionProject
         {
+#pragma warning disable IDE0052 // Remove unread private members
             private readonly ProjectId _sourceProjectId;
             private readonly string _assemblyName;
+#pragma warning restore IDE0052 // Remove unread private members
 
             public DefinitionProject(ProjectId sourceProjectId, string assemblyName)
             {

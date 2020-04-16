@@ -38,8 +38,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected readonly LocalizableString _localizableTitle;
         protected readonly LocalizableString _localizableMessageFormat;
 
-        private readonly bool _configurable;
-
         protected AbstractCodeStyleDiagnosticAnalyzer(
             string descriptorId, LocalizableString title,
             LocalizableString? messageFormat = null,
@@ -48,11 +46,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             DescriptorId = descriptorId;
             _localizableTitle = title;
             _localizableMessageFormat = messageFormat ?? title;
-            _configurable = configurable;
 
-            Descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat);
-            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor(DescriptorId);
-            UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(descriptorId + "WithoutSuggestion");
+            Descriptor = CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, isConfigurable: configurable);
+            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor(DescriptorId, configurable);
+            UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(descriptorId + "WithoutSuggestion", configurable);
 
             SupportedDiagnostics = ImmutableArray.Create(
                 Descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
@@ -67,10 +64,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableMessageFormat = Descriptor.MessageFormat;
         }
 
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
+        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId, bool isConfigurable = true)
             => CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessageFormat,
-                isUnnecessary: true);
+                isUnnecessary: true,
+                isConfigurable);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 

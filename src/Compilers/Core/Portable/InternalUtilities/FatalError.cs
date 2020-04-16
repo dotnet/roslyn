@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         private static Action<Exception>? s_fatalHandler;
         private static Action<Exception>? s_nonFatalHandler;
 
+#pragma warning disable IDE0052 // Remove unread private members - We want to hold onto last exception to make investigation easier
         private static Exception? s_reportedException;
         private static string? s_reportedExceptionMessage;
+#pragma warning restore IDE0052
 
         /// <summary>
         /// Set by the host to a fail fast trigger, 

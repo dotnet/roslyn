@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private string? _host;
         private int _primaryInstance;
+#pragma warning disable IDE0052 // Remove unread private members
         private PerformanceReporter? _performanceReporter;
+#pragma warning restore IDE0052 // Remove unread private members
 
         static RemoteHostService()
         {

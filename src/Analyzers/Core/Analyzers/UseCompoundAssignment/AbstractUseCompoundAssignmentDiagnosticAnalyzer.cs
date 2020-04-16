@@ -28,12 +28,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         /// </summary>
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;
 
-        /// <summary>
-        /// Maps from an assignment form (like AddAssignmentExpression) to the corresponding
-        /// operator type (like PlusEqualsToken).
-        /// </summary>
-        private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _assignmentToTokenMap;
-
         protected AbstractUseCompoundAssignmentDiagnosticAnalyzer(
             ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
@@ -43,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                        nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _syntaxFacts = syntaxFacts;
-            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
+            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _);
         }
 
         protected abstract TSyntaxKind GetAnalysisKind();

@@ -167,7 +167,10 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class AddAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
+#pragma warning disable IDE0052 // Remove unread private members
+                // PROTOTYPE: right now there is no way to tell a GeneratorDriver that an additional file has been added
                 private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
+#pragma warning restore IDE0052 // Remove unread private members
 
                 public AddAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
                 {
@@ -185,7 +188,10 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class RemoveAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
+#pragma warning disable IDE0052 // Remove unread private members
+                // PROTOTYPE: right now there is no way to tell a GeneratorDriver that an additional file has been added
                 private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
+#pragma warning restore IDE0052 // Remove unread private members
 
                 public RemoveAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
                 {

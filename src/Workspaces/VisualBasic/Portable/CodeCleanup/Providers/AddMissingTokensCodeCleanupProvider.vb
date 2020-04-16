@@ -33,16 +33,11 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Class AddMissingTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Private ReadOnly _document As Document
-            Private ReadOnly _modifiedSpan As TextSpan
-
             Private ReadOnly _model As SemanticModel = Nothing
 
-            Private Sub New(document As Document, semanticModel As SemanticModel, spans As ImmutableArray(Of TextSpan), modifiedSpan As TextSpan, cancellationToken As CancellationToken)
+            Private Sub New(semanticModel As SemanticModel, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
-                Me._document = document
-                Me._modifiedSpan = modifiedSpan
                 Me._model = semanticModel
             End Sub
 
@@ -51,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim semanticModel = If(document Is Nothing, Nothing,
                     Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
-                Return New AddMissingTokensRewriter(document, semanticModel, spans, modifiedSpan, cancellationToken)
+                Return New AddMissingTokensRewriter(semanticModel, spans, cancellationToken)
             End Function
 
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode

@@ -18,8 +18,10 @@ namespace Microsoft.CodeAnalysis.Host
         private Workspace _workspace;
         private readonly TaskQueue _taskQueue;
 
+#pragma warning disable IDE0052 // Remove unread private members
         // Used to keep a strong reference to the built compilations so they are not GC'd
         private Compilation[] _mostRecentCompilations;
+#pragma warning restore IDE0052 // Remove unread private members
 
         private readonly object _buildGate = new object();
         private CancellationTokenSource _cancellationSource;

@@ -14,7 +14,9 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class SnapshotService : ServiceBase
     {
+#pragma warning disable IDE0052 // Remove unread private members - Can this field be removed?
         private readonly AssetSource _source;
+#pragma warning restore IDE0052 // Remove unread private members
 
         public SnapshotService(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
