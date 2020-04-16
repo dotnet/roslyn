@@ -2191,9 +2191,14 @@ namespace Microsoft.CodeAnalysis.Editing
         #region Patterns
 
         internal abstract bool SupportsPatterns(ParseOptions options);
-        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isToken, SyntaxNode pattern);
+
+        internal abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
         internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
         internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
+        internal abstract SyntaxNode NotPattern(SyntaxNode pattern);
+        internal abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
+        internal abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
 
         #endregion
     }

@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ISyntaxKinds SyntaxKinds { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
+        bool SupportsNotPattern(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
-
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsBinaryExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+        void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right);
 
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
@@ -390,8 +391,26 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
+        bool IsIsPatternExpression(SyntaxNode node);
+
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
+
+        bool IsAnyPattern(SyntaxNode node);
+
+        bool IsAndPattern(SyntaxNode node);
+        bool IsBinaryPattern(SyntaxNode node);
+        bool IsConstantPattern(SyntaxNode node);
+        bool IsNotPattern(SyntaxNode node);
+        bool IsOrPattern(SyntaxNode node);
+        bool IsParenthesizedPattern(SyntaxNode node);
+        bool IsUnaryPattern(SyntaxNode node);
+
+        SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node);
+        SyntaxNode GetPatternOfParenthesizedPattern(SyntaxNode node);
+
+        void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+        void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
 
         /// <summary>
         /// <paramref name="fullHeader"/> controls how much of the type header should be considered. If <see

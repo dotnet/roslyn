@@ -17,6 +17,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -1546,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
             var initializersExpressions = node.Declaration.Variables
                 .Where(v => v.Initializer != null)
-                .SelectAsArray(initializedV => initializedV.Initializer.Value);
+                .SelectAsArray<VariableDeclaratorSyntax, ExpressionSyntax>(initializedV => initializedV.Initializer.Value);
             return IsOnHeader(root, position, node, node, holes: initializersExpressions);
         }
 
@@ -1988,5 +1990,87 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         internal static bool ParentIsLocalDeclarationStatement(SyntaxNode node)
             => node?.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ?? false;
+
+        public void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right)
+        {
+            var isPatternExpression = (IsPatternExpressionSyntax)node;
+            left = isPatternExpression.Expression;
+            isToken = isPatternExpression.IsKeyword;
+            right = isPatternExpression.Pattern;
+        }
+
+        public bool IsIsPatternExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.IsPatternExpression);
+
+        public bool IsAnyPattern(SyntaxNode node)
+            => node is PatternSyntax;
+
+        public bool IsConstantPattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ConstantPattern);
+
+        public SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node)
+            => ((ConstantPatternSyntax)node).Expression;
+
+#if CODE_STYLE
+
+        public bool SupportsNotPattern(ParseOptions options) => false;
+        public bool IsAndPattern(SyntaxNode node) => false;
+        public bool IsBinaryPattern(SyntaxNode node) => false;
+        public bool IsNotPattern(SyntaxNode node) => false;
+        public bool IsOrPattern(SyntaxNode node) => false;
+        public bool IsParenthesizedPattern(SyntaxNode node) => false;
+        public bool IsUnaryPattern(SyntaxNode node) => false;
+
+        public SyntaxNode GetPatternOfParenthesizedPattern(SyntaxNode node)
+            => throw ExceptionUtilities.Unreachable;
+
+        public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+            => throw ExceptionUtilities.Unreachable;
+
+        public void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
+            => throw ExceptionUtilities.Unreachable;
+
+#else
+
+        public bool SupportsNotPattern(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion.IsCSharp9OrAbove();
+
+        public bool IsAndPattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.AndPattern);
+
+        public bool IsBinaryPattern(SyntaxNode node)
+            => node is BinaryPatternSyntax;
+
+        public bool IsNotPattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.NotPattern);
+
+        public bool IsOrPattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.OrPattern);
+
+        public bool IsParenthesizedPattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.ParenthesizedPattern);
+
+        public bool IsUnaryPattern(SyntaxNode node)
+            => node is UnaryPatternSyntax;
+
+        public SyntaxNode GetPatternOfParenthesizedPattern(SyntaxNode node)
+            => ((ParenthesizedPatternSyntax)node).Pattern;
+
+        public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        {
+            var binaryPattern = (BinaryPatternSyntax)node;
+            left = binaryPattern.LeftPattern;
+            operatorToken = binaryPattern.PatternOperator;
+            right = binaryPattern.RightPattern;
+        }
+
+        public void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
+        {
+            var unaryPattern = (UnaryPatternSyntax)node;
+            operatorToken = unaryPattern.PatternOperator;
+            pattern = unaryPattern.Pattern;
+        }
+
+#endif
     }
 }

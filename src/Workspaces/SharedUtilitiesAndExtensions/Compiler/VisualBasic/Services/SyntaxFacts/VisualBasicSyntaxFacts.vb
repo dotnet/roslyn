@@ -2250,5 +2250,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End Select
             Return False
         End Function
+
+        Public Function SupportsNotPattern(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsNotPattern
+            Return False
+        End Function
+
+        Public Function IsIsPatternExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsPatternExpression
+            Return False
+        End Function
+
+        Public Function IsAnyPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyPattern
+            Return False
+        End Function
+
+        Public Function IsAndPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAndPattern
+            Return False
+        End Function
+
+        Public Function IsBinaryPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryPattern
+            Return False
+        End Function
+
+        Public Function IsConstantPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConstantPattern
+            Return False
+        End Function
+
+        Public Function IsNotPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNotPattern
+            Return False
+        End Function
+
+        Public Function IsOrPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOrPattern
+            Return False
+        End Function
+
+        Public Function IsParenthesizedPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParenthesizedPattern
+            Return False
+        End Function
+
+        Public Function IsUnaryPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUnaryPattern
+            Return False
+        End Function
+
+        Public Sub GetPartsOfIsPatternExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef isToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfIsPatternExpression
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Function GetExpressionOfConstantPattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfConstantPattern
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Function GetPatternOfParenthesizedPattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetPatternOfParenthesizedPattern
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Sub GetPartsOfBinaryPattern(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBinaryPattern
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Public Sub GetPartsOfUnaryPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef pattern As SyntaxNode) Implements ISyntaxFacts.GetPartsOfUnaryPattern
+            Throw ExceptionUtilities.Unreachable
+        End Sub
     End Class
 End Namespace
