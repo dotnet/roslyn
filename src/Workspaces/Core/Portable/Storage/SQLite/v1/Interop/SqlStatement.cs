@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v1.Interop

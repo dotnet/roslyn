@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 using Roslyn.Utilities;
 using SQLitePCL;
 

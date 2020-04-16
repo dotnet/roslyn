@@ -8,7 +8,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
+namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
     /// <summary>
     /// The base handle type for an SQLite resource that exists within the context of a parent handle, and should always

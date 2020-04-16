@@ -7,7 +7,7 @@
 using System;
 using SQLitePCL;
 
-namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
+namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
     internal sealed class SafeSqliteHandle : SafeSqliteHandle<sqlite3>
     {

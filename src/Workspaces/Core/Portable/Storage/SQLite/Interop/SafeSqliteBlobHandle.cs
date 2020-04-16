@@ -7,18 +7,18 @@
 using System;
 using SQLitePCL;
 
-namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
+namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
-    internal sealed class SafeSqliteStatementHandle : SafeSqliteChildHandle<sqlite3_stmt>
+    internal sealed class SafeSqliteBlobHandle : SafeSqliteChildHandle<sqlite3_blob>
     {
-        public SafeSqliteStatementHandle(SafeSqliteHandle sqliteHandle, sqlite3_stmt? wrapper)
+        public SafeSqliteBlobHandle(SafeSqliteHandle sqliteHandle, sqlite3_blob? wrapper)
             : base(sqliteHandle, wrapper?.ptr ?? IntPtr.Zero, wrapper)
         {
         }
 
         protected override bool ReleaseChildHandle()
         {
-            var result = (Result)raw.sqlite3_finalize(Wrapper);
+            var result = (Result)raw.sqlite3_blob_close(Wrapper);
             return result == Result.OK;
         }
     }

@@ -7,7 +7,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
+namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
     internal abstract class SafeSqliteHandle<T> : SafeHandle
         where T : class
