@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         None,
         DefinedInMetadata,
         IncorrectKind,
-        InsufficientParameters
+        DeclarationLanguageServiceNotFound,
+        DeclarationMethodPositionNotFound,
     }
 }

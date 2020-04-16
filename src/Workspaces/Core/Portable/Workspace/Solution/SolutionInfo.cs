@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -41,10 +42,29 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectInfo> Projects { get; }
 
-        private SolutionInfo(SolutionAttributes attributes, IReadOnlyList<ProjectInfo> projects)
+        /// <summary>
+        /// The analyzers initially associated with this solution.
+        /// </summary>
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
+
+        private SolutionInfo(SolutionAttributes attributes, IReadOnlyList<ProjectInfo> projects, IReadOnlyList<AnalyzerReference> analyzerReferences)
         {
             Attributes = attributes;
             Projects = projects;
+            AnalyzerReferences = analyzerReferences;
+        }
+
+        // 3.5.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        /// <summary>
+        /// Create a new instance of a SolutionInfo.
+        /// </summary>
+        public static SolutionInfo Create(
+            SolutionId id,
+            VersionStamp version,
+            string? filePath,
+            IEnumerable<ProjectInfo>? projects)
+        {
+            return Create(id, version, filePath, projects, analyzerReferences: null);
         }
 
         /// <summary>
@@ -54,14 +74,16 @@ namespace Microsoft.CodeAnalysis
             SolutionId id,
             VersionStamp version,
             string? filePath = null,
-            IEnumerable<ProjectInfo>? projects = null)
+            IEnumerable<ProjectInfo>? projects = null,
+            IEnumerable<AnalyzerReference>? analyzerReferences = null)
         {
             return new SolutionInfo(
                 new SolutionAttributes(
                     id ?? throw new ArgumentNullException(nameof(id)),
                     version,
                     filePath),
-                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)));
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(projects, nameof(projects)),
+                PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
         }
 
         internal ImmutableHashSet<string> GetProjectLanguages()

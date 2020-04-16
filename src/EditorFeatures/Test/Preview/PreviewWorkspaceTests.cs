@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var persistentService = previewWorkspace.Services.GetService<IPersistentStorageService>();
             Assert.NotNull(persistentService);
 
-            var storage = persistentService.GetStorage(previewWorkspace.CurrentSolution);
+            using var storage = persistentService.GetStorage(previewWorkspace.CurrentSolution);
             Assert.True(storage is NoOpPersistentStorage);
         }
 
@@ -144,11 +144,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
 
             using var previewWorkspace = new PreviewWorkspace(VisualStudioMefHostServices.Create(EditorServicesUtil.ExportProvider));
+
             var solution = previewWorkspace.CurrentSolution
-.AddProject("project", "project.dll", LanguageNames.CSharp)
-.AddDocument("document", "class { }")
-.Project
-.Solution;
+                .WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) })
+                .AddProject("project", "project.dll", LanguageNames.CSharp)
+                .AddDocument("document", "class { }")
+                .Project
+                .Solution;
 
             Assert.True(previewWorkspace.TryApplyChanges(solution));
 
@@ -171,6 +173,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             //// preview workspace and owner of the solution now share solution and its underlying text buffer
             var hostDocument = workspace.Projects.First().Documents.First();
 
+            previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
+
             //// enable preview diagnostics
             previewWorkspace.EnableDiagnostic();
 
@@ -186,6 +190,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
             using var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider);
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
+
             // set up listener to wait until diagnostic finish running
             var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
 

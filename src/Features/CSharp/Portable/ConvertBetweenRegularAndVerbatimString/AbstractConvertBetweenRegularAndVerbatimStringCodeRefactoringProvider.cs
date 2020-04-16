@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 
             var (document, _, cancellationToken) = context;
 
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
+            var charService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
 
             using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var subStringTokens);
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         {
             using var _ = PooledStringBuilder.GetInstance(out var sb);
 
-            var charService = document.GetRequiredLanguageService<IVirtualCharService>();
+            var charService = document.GetRequiredLanguageService<IVirtualCharLanguageService>();
             var newStringExpression = convert(charService, sb, stringExpression).WithTriviaFrom(stringExpression);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
