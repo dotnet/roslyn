@@ -99,7 +99,7 @@ namespace AnalyzerRunner
 
             using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties, AnalyzerRunnerMefHostServices.DefaultServices))
             {
-                Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken: cancellationToken).ConfigureAwait(false);
+                Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, progress: null, cancellationToken).ConfigureAwait(false);
                 var projectIds = solution.ProjectIds;
 
                 foreach (var workspaceDiagnostic in workspace.Diagnostics)

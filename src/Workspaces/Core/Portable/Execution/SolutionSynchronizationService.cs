@@ -43,15 +43,6 @@ namespace Microsoft.CodeAnalysis.Execution
                 _assetStorages = storages;
             }
 
-            public void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken)
-                => _assetStorages.AddGlobalAsset(value, asset, cancellationToken);
-
-            public CustomAsset? GetGlobalAsset(object value, CancellationToken cancellationToken)
-                => _assetStorages.GetGlobalAsset(value, cancellationToken);
-
-            public void RemoveGlobalAsset(object value, CancellationToken cancellationToken)
-                => _assetStorages.RemoveGlobalAsset(value, cancellationToken);
-
             public async ValueTask<PinnedRemotableDataScope> CreatePinnedRemotableDataScopeAsync(Solution solution, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationServiceFactory_CreatePinnedRemotableDataScopeAsync, cancellationToken))

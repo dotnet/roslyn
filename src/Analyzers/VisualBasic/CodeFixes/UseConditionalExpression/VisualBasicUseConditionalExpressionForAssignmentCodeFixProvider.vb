@@ -28,6 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Public Sub New()
         End Sub
 
+        Protected Overrides Function ConvertToExpression(throwOperation As IThrowOperation) As ExpressionSyntax
+            ' VB does not have throw expressions
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance
         End Function

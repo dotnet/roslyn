@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -57,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetValue(binaryOperatorSpacingValue.Trim(), out var value) ? value : BinaryOperatorSpacingOptions.Single;
 
         private static string GetSpacingAroundBinaryOperatorEditorConfigString(BinaryOperatorSpacingOptions value)
-            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : null;
+            => s_binaryOperatorSpacingOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : "";
 
         internal static LabelPositionOptions ParseEditorConfigLabelPositioning(string labelIndentationValue)
             => s_labelPositionOptionsEditorConfigMap.TryGetValue(labelIndentationValue.Trim(), out var value) ? value : LabelPositionOptions.NoIndent;
 
         private static string GetLabelPositionOptionEditorConfigString(LabelPositionOptions value)
-            => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : null;
+            => s_labelPositionOptionsEditorConfigMap.TryGetKey(value, out var key) ? key : "";
 
         internal static bool DetermineIfNewLineOptionIsSet(string value, NewLineOption optionName)
         {

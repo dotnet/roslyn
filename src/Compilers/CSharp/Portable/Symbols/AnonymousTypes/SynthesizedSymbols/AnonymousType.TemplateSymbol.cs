@@ -461,14 +461,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 string displayString;
                 if (this.Properties.Length == 0)
                 {
-                    displayString = "\\{ }";
+                    displayString = "{ }";
                 }
                 else
                 {
                     var builder = PooledStringBuilder.GetInstance();
                     var sb = builder.Builder;
 
-                    sb.Append("\\{ ");
+                    sb.Append("{ ");
                     int displayCount = Math.Min(this.Properties.Length, 10);
 
                     for (var fieldIndex = 0; fieldIndex < displayCount; fieldIndex++)
