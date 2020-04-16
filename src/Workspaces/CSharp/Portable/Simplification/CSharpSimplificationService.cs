@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
                 new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),

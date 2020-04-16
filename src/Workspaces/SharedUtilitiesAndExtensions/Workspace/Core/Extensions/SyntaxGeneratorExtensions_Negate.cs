@@ -11,6 +11,10 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Shared.Extensions;
+#endif
+
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SyntaxGeneratorExtensions

@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 new CSharpNameReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpDefaultExpressionReducer());
 
         private class FormattingRule : AbstractMetadataFormattingRule

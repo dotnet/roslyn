@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsUnaryPattern(SyntaxNode node);
 
         SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node);
-        SyntaxNode GetPatternOfParenthesizedPattern(SyntaxNode node);
+        void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen);
 
         void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);

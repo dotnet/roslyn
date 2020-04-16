@@ -2299,9 +2299,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public Function GetPatternOfParenthesizedPattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetPatternOfParenthesizedPattern
+        Public Sub GetPartsOfParenthesizedPattern(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef pattern As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfParenthesizedPattern
             Throw ExceptionUtilities.Unreachable
-        End Function
+        End Sub
 
         Public Sub GetPartsOfBinaryPattern(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBinaryPattern
             Throw ExceptionUtilities.Unreachable

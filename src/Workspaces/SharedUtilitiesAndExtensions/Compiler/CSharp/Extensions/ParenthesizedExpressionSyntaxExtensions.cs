@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Extensions;
@@ -660,5 +662,107 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.QualifiedName,
                 SyntaxKind.SimpleMemberAccessExpression);
         }
+
+#if !CODE_STYLE
+
+        public static bool CanRemoveParentheses(this ParenthesizedPatternSyntax node, SemanticModel semanticModel)
+        {
+            if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
+            {
+                // int x = (3;
+                return false;
+            }
+
+            var pattern = node.Pattern;
+
+            // We wrap a parenthesized pattern and we're parenthesized.  We can remove our parens.
+            if (pattern is ParenthesizedPatternSyntax)
+                return true;
+
+            // (not ...) -> not ...
+            //
+            // this is safe because unary patterns have the highest precedence, so even if you had:
+            // (not ...) or (not ...)
+            //
+            // you can safely convert to `not ... or not ...`
+            var patternPrecedence = GetPatternPrecedence(pattern);
+            if (patternPrecedence == OperatorPrecedence.Primary || patternPrecedence == OperatorPrecedence.Unary)
+                return true;
+
+            // We're parenthesized and are inside a parenthesized pattern.  We can remove our parens.
+            // ((x)) -> (x)
+            if (node.Parent is ParenthesizedPatternSyntax)
+                return true;
+
+            // x is (...)  ->  x is ...
+            if (node.Parent is IsPatternExpressionSyntax)
+                return true;
+
+            // (x or y) => ...  ->    x or y => ...
+            if (node.Parent is SwitchExpressionArmSyntax)
+                return true;
+
+            // X: (y or z)      ->    X: y or z
+            if (node.Parent is SubpatternSyntax)
+                return true;
+
+            // case (x or y):   ->    case x or y:
+            if (node.Parent is CasePatternSwitchLabelSyntax)
+                return true;
+
+            // Operator precedence cases:
+            // - If the parent is not an expression, do not remove parentheses
+            // - Otherwise, parentheses may be removed if doing so does not change operator associations.
+            return node.Parent is PatternSyntax patternParent &&
+                   !RemovalChangesAssociation(node, patternParent, semanticModel);
+        }
+
+        private static bool RemovalChangesAssociation(
+            ParenthesizedPatternSyntax node, PatternSyntax parentPattern, SemanticModel semanticModel)
+        {
+            var pattern = node.Pattern;
+            var precedence = GetPatternPrecedence(pattern);
+            var parentPrecedence = GetPatternPrecedence(parentPattern);
+            if (precedence == OperatorPrecedence.None || parentPrecedence == OperatorPrecedence.None)
+            {
+                // Be conservative if the expression or its parent has no precedence.
+                return true;
+            }
+
+            // Association always changes if the expression's precedence is lower that its parent.
+            return precedence < parentPrecedence;
+        }
+
+        private static OperatorPrecedence GetPatternPrecedence(PatternSyntax pattern)
+        {
+            switch (pattern)
+            {
+                case ConstantPatternSyntax _:
+                case DiscardPatternSyntax _:
+                case DeclarationPatternSyntax _:
+                case RecursivePatternSyntax _:
+                case TypePatternSyntax _:
+                case VarPatternSyntax _:
+                    return OperatorPrecedence.Primary;
+
+                case UnaryPatternSyntax _:
+                case RelationalPatternSyntax _:
+                    return OperatorPrecedence.Unary;
+
+                case BinaryPatternSyntax binaryPattern:
+                    if (binaryPattern.IsKind(SyntaxKind.AndPattern))
+                        return OperatorPrecedence.LogicalAnd;
+
+                    if (binaryPattern.IsKind(SyntaxKind.OrPattern))
+                        return OperatorPrecedence.LogicalOr;
+
+                    break;
+            }
+
+            Debug.Fail("Unhandled pattern type");
+            return OperatorPrecedence.None;
+        }
+
+#endif
     }
 }

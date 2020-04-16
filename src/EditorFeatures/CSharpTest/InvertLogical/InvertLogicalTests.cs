@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
-        public async Task InvertIsPattern1_CSharp8()
+        public async Task InvertIsTypePattern1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
-        public async Task InvertIsPattern1_CSharp9()
+        public async Task InvertIsTypePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
 @"class C

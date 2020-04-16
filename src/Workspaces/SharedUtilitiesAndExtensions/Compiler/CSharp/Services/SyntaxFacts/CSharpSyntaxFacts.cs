@@ -2021,7 +2021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsParenthesizedPattern(SyntaxNode node) => false;
         public bool IsUnaryPattern(SyntaxNode node) => false;
 
-        public SyntaxNode GetPatternOfParenthesizedPattern(SyntaxNode node)
+        public void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen);
             => throw ExceptionUtilities.Unreachable;
 
         public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
@@ -2053,8 +2053,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsUnaryPattern(SyntaxNode node)
             => node is UnaryPatternSyntax;
 
-        public SyntaxNode GetPatternOfParenthesizedPattern(SyntaxNode node)
-            => ((ParenthesizedPatternSyntax)node).Pattern;
+        public void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen)
+        {
+            var parenthesizedPattern = (ParenthesizedPatternSyntax)node;
+            openParen = parenthesizedPattern.OpenParenToken;
+            pattern = parenthesizedPattern.Pattern;
+            closeParen = parenthesizedPattern.CloseParenToken;
+        }
 
         public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
