@@ -502,5 +502,89 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     }
 }", parseOptions: CSharp9);
         }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsAndPattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string and object;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is string and object));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsAndPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string and object;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is not string or not object);
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsOrPattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string or object;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is string or object));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsOrPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string or object;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is not string and not object);
+    }
+}", parseOptions: CSharp9);
+        }
     }
 }
