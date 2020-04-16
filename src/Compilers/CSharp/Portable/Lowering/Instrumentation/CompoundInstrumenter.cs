@@ -186,6 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory);
         }
 
+        public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            return Previous.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory);
+        }
+
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
             return Previous.InstrumentSwitchBindCasePatternVariables(bindings);

@@ -406,6 +406,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
         }
 
+        public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            return new BoundSequencePointExpression(original.Syntax, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
+        }
+
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
             // Mark the code that binds pattern variables to their values as hidden.

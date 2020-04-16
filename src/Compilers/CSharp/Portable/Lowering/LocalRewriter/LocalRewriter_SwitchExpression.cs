@@ -92,10 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sectionBuilder.Add(_factory.Label(arm.Label));
                     var loweredValue = _localRewriter.VisitExpression(arm.Value);
                     if (GenerateSequencePoints)
-                    {
-                        // Should go through this._localRewriter._instrumenter; see https://github.com/dotnet/roslyn/issues/42810
-                        loweredValue = new BoundSequencePointExpression(arm.Value.Syntax, loweredValue, loweredValue.Type);
-                    }
+                        loweredValue = this._localRewriter._instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
 
                     sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), loweredValue));
                     sectionBuilder.Add(_factory.Goto(afterSwitchExpression));
