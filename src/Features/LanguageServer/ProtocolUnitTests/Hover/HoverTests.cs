@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
-            var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n A great method\r\n\r\nReturns:\r\n  a string\r\n");
+            var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n A great method\r\n\r\nReturns:\r\n  a string");
 
             var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
             AssertJsonEquals(expected, results);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
-            var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n A great method\r\n\r\nExceptions:\r\n  System.NullReferenceException\r\n");
+            var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n A great method\r\n\r\nExceptions:\r\n  System.NullReferenceException");
 
             var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
             AssertJsonEquals(expected, results);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
-            var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n A great method\r\n\r\nRemarks are cool too.\r\n");
+            var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n A great method\r\n\r\nRemarks are cool too.");
 
             var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
             AssertJsonEquals(expected, results);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
-            var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n A great method\r\n\r\n• Item 1.\r\n• Item 2.\r\n");
+            var expected = CreateHover(expectedLocation, "string A.Method(int i)\r\n A great method\r\n\r\n• Item 1.\r\n• Item 2.");
 
             var results = await RunGetHoverAsync(workspace.CurrentSolution, expectedLocation).ConfigureAwait(false);
             AssertJsonEquals(expected, results);

@@ -57,19 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // TODO - This should return correctly formatted markdown from quick info.
             // https://github.com/dotnet/roslyn/issues/43387
             static string GetMarkdownString(QuickInfoItem info)
-            {
-                var stringBuilder = new StringBuilder();
-
-                foreach (var section in info.Sections)
-                {
-                    if (!string.IsNullOrEmpty(section.Text))
-                    {
-                        stringBuilder.Append(section.Text).Append("\r\n");
-                    }
-                }
-
-                return stringBuilder.ToString();
-            }
+                => string.Join("\r\n", info.Sections.Select(section => section.Text).Where(text => !string.IsNullOrEmpty(text)));
         }
     }
 }
