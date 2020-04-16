@@ -18,7 +18,7 @@ jobs:
 - job: VS_Integration
   pool:
     name: NetCorePublic-Pool
-    queue: buildpool.windows.10.amd64.vs2019.pre.open
+    queue: BuildPool.Windows.VS2019.Pre.Scouting.Open
   strategy:
     maxParallel: 2
     matrix:
