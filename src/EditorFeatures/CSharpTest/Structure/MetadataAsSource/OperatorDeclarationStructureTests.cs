@@ -73,5 +73,24 @@ class Goo
             await VerifyBlockSpansAsync(code,
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator3()
+        {
+            const string code = @"
+class C
+{
+    $${|#0:public static int operator +(int i){|textspan:
+    {
+    }|#0}
+|}
+    public static int operator -(int i)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
     }
 }

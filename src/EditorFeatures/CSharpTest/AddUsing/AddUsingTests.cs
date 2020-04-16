@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         {
             await TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index,
-                parameters: new TestParameters(options: options, fixProviderData: outOfProcess, priority: priority));
+                parameters: new TestParameters(options: options, runProviderOutOfProc: outOfProcess, priority: priority));
         }
     }
 
@@ -69,9 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
             Workspace workspace, TestParameters parameters)
         {
-            var outOfProcess = (bool)parameters.fixProviderData;
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
+                workspace.CurrentSolution.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, parameters.runProviderOutOfProc)));
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }

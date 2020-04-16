@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {

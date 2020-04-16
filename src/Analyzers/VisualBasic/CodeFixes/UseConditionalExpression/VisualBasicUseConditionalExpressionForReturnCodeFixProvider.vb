@@ -5,12 +5,15 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
-Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+#If CODE_STYLE Then
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
@@ -23,9 +26,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Public Sub New()
         End Sub
 
-        Protected Overrides Function IsRef(returnOperation As IReturnOperation) As Boolean
-            ' VB does not have ref returns.
-            Return False
+        Protected Overrides Function ConvertToExpression(throwOperation As IThrowOperation) As ExpressionSyntax
+            ' VB does not have throw expressions
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule

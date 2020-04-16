@@ -52,6 +52,11 @@
         <target state="new">Changes to expression trees may result in behavior changes at runtime</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="new">Convert to conditional expression</target>
@@ -105,6 +110,11 @@
       <trans-unit id="Add_missing_cases">
         <source>Add missing cases</source>
         <target state="new">Add missing cases</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_name_can_be_simplified">
+        <source>Member name can be simplified</source>
+        <target state="new">Member name can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -232,6 +242,11 @@
         <target state="new">Simplify collection initialization</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_interpolation">
         <source>Simplify interpolation</source>
         <target state="new">Simplify interpolation</target>
@@ -285,6 +300,11 @@
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
         <target state="new">Use explicitly provided tuple name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_inferred_member_name">
+        <source>Use inferred member name</source>
+        <target state="new">Use inferred member name</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DiagnosticService(
             IAsynchronousOperationListenerProvider listenerProvider,
-            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()
+            [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : this()
         {
             // queue to serialize events.
             _eventMap = new EventMap();

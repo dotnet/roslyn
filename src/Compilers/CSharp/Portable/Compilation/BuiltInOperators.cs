@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetSimpleBuiltInOperators(UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
+        internal void GetSimpleBuiltInOperators(UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators, bool skipNativeIntegerOperators)
         {
             if (_builtInUnaryOperators == null)
             {
@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.UIntPostfixIncrement,
                         (int)UnaryOperatorKind.LongPostfixIncrement,
                         (int)UnaryOperatorKind.ULongPostfixIncrement,
+                        (int)UnaryOperatorKind.NIntPostfixIncrement,
+                        (int)UnaryOperatorKind.NUIntPostfixIncrement,
                         (int)UnaryOperatorKind.CharPostfixIncrement,
                         (int)UnaryOperatorKind.FloatPostfixIncrement,
                         (int)UnaryOperatorKind.DoublePostfixIncrement,
@@ -70,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedUIntPostfixIncrement,
                         (int)UnaryOperatorKind.LiftedLongPostfixIncrement,
                         (int)UnaryOperatorKind.LiftedULongPostfixIncrement,
+                        (int)UnaryOperatorKind.LiftedNIntPostfixIncrement,
+                        (int)UnaryOperatorKind.LiftedNUIntPostfixIncrement,
                         (int)UnaryOperatorKind.LiftedCharPostfixIncrement,
                         (int)UnaryOperatorKind.LiftedFloatPostfixIncrement,
                         (int)UnaryOperatorKind.LiftedDoublePostfixIncrement,
@@ -85,6 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.UIntPostfixDecrement,
                         (int)UnaryOperatorKind.LongPostfixDecrement,
                         (int)UnaryOperatorKind.ULongPostfixDecrement,
+                        (int)UnaryOperatorKind.NIntPostfixDecrement,
+                        (int)UnaryOperatorKind.NUIntPostfixDecrement,
                         (int)UnaryOperatorKind.CharPostfixDecrement,
                         (int)UnaryOperatorKind.FloatPostfixDecrement,
                         (int)UnaryOperatorKind.DoublePostfixDecrement,
@@ -97,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedUIntPostfixDecrement,
                         (int)UnaryOperatorKind.LiftedLongPostfixDecrement,
                         (int)UnaryOperatorKind.LiftedULongPostfixDecrement,
+                        (int)UnaryOperatorKind.LiftedNIntPostfixDecrement,
+                        (int)UnaryOperatorKind.LiftedNUIntPostfixDecrement,
                         (int)UnaryOperatorKind.LiftedCharPostfixDecrement,
                         (int)UnaryOperatorKind.LiftedFloatPostfixDecrement,
                         (int)UnaryOperatorKind.LiftedDoublePostfixDecrement,
@@ -112,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.UIntPrefixIncrement,
                         (int)UnaryOperatorKind.LongPrefixIncrement,
                         (int)UnaryOperatorKind.ULongPrefixIncrement,
+                        (int)UnaryOperatorKind.NIntPrefixIncrement,
+                        (int)UnaryOperatorKind.NUIntPrefixIncrement,
                         (int)UnaryOperatorKind.CharPrefixIncrement,
                         (int)UnaryOperatorKind.FloatPrefixIncrement,
                         (int)UnaryOperatorKind.DoublePrefixIncrement,
@@ -124,6 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedUIntPrefixIncrement,
                         (int)UnaryOperatorKind.LiftedLongPrefixIncrement,
                         (int)UnaryOperatorKind.LiftedULongPrefixIncrement,
+                        (int)UnaryOperatorKind.LiftedNIntPrefixIncrement,
+                        (int)UnaryOperatorKind.LiftedNUIntPrefixIncrement,
                         (int)UnaryOperatorKind.LiftedCharPrefixIncrement,
                         (int)UnaryOperatorKind.LiftedFloatPrefixIncrement,
                         (int)UnaryOperatorKind.LiftedDoublePrefixIncrement,
@@ -137,6 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.UShortPrefixDecrement,
                         (int)UnaryOperatorKind.IntPrefixDecrement,
                         (int)UnaryOperatorKind.UIntPrefixDecrement,
+                        (int)UnaryOperatorKind.NIntPrefixDecrement,
+                        (int)UnaryOperatorKind.NUIntPrefixDecrement,
                         (int)UnaryOperatorKind.LongPrefixDecrement,
                         (int)UnaryOperatorKind.ULongPrefixDecrement,
                         (int)UnaryOperatorKind.CharPrefixDecrement,
@@ -151,6 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedUIntPrefixDecrement,
                         (int)UnaryOperatorKind.LiftedLongPrefixDecrement,
                         (int)UnaryOperatorKind.LiftedULongPrefixDecrement,
+                        (int)UnaryOperatorKind.LiftedNIntPrefixDecrement,
+                        (int)UnaryOperatorKind.LiftedNUIntPrefixDecrement,
                         (int)UnaryOperatorKind.LiftedCharPrefixDecrement,
                         (int)UnaryOperatorKind.LiftedFloatPrefixDecrement,
                         (int)UnaryOperatorKind.LiftedDoublePrefixDecrement,
@@ -162,6 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.UIntUnaryPlus,
                         (int)UnaryOperatorKind.LongUnaryPlus,
                         (int)UnaryOperatorKind.ULongUnaryPlus,
+                        (int)UnaryOperatorKind.NIntUnaryPlus,
+                        (int)UnaryOperatorKind.NUIntUnaryPlus,
                         (int)UnaryOperatorKind.FloatUnaryPlus,
                         (int)UnaryOperatorKind.DoubleUnaryPlus,
                         (int)UnaryOperatorKind.DecimalUnaryPlus,
@@ -169,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.LiftedUIntUnaryPlus,
                         (int)UnaryOperatorKind.LiftedLongUnaryPlus,
                         (int)UnaryOperatorKind.LiftedULongUnaryPlus,
+                        (int)UnaryOperatorKind.LiftedNIntUnaryPlus,
+                        (int)UnaryOperatorKind.LiftedNUIntUnaryPlus,
                         (int)UnaryOperatorKind.LiftedFloatUnaryPlus,
                         (int)UnaryOperatorKind.LiftedDoubleUnaryPlus,
                         (int)UnaryOperatorKind.LiftedDecimalUnaryPlus,
@@ -177,11 +197,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         (int)UnaryOperatorKind.IntUnaryMinus,
                         (int)UnaryOperatorKind.LongUnaryMinus,
+                        (int)UnaryOperatorKind.NIntUnaryMinus,
                         (int)UnaryOperatorKind.FloatUnaryMinus,
                         (int)UnaryOperatorKind.DoubleUnaryMinus,
                         (int)UnaryOperatorKind.DecimalUnaryMinus,
                         (int)UnaryOperatorKind.LiftedIntUnaryMinus,
                         (int)UnaryOperatorKind.LiftedLongUnaryMinus,
+                        (int)UnaryOperatorKind.LiftedNIntUnaryMinus,
                         (int)UnaryOperatorKind.LiftedFloatUnaryMinus,
                         (int)UnaryOperatorKind.LiftedDoubleUnaryMinus,
                         (int)UnaryOperatorKind.LiftedDecimalUnaryMinus,
@@ -197,10 +219,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)UnaryOperatorKind.UIntBitwiseComplement,
                         (int)UnaryOperatorKind.LongBitwiseComplement,
                         (int)UnaryOperatorKind.ULongBitwiseComplement,
+                        (int)UnaryOperatorKind.NIntBitwiseComplement,
+                        (int)UnaryOperatorKind.NUIntBitwiseComplement,
                         (int)UnaryOperatorKind.LiftedIntBitwiseComplement,
                         (int)UnaryOperatorKind.LiftedUIntBitwiseComplement,
                         (int)UnaryOperatorKind.LiftedLongBitwiseComplement,
                         (int)UnaryOperatorKind.LiftedULongBitwiseComplement,
+                        (int)UnaryOperatorKind.LiftedNIntBitwiseComplement,
+                        (int)UnaryOperatorKind.LiftedNUIntBitwiseComplement,
                     }),
                     // No built-in operator true or operator false
                     ImmutableArray<UnaryOperatorSignature>.Empty,
@@ -210,7 +236,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Interlocked.CompareExchange(ref _builtInUnaryOperators, allOperators, null);
             }
 
-            operators.AddRange(_builtInUnaryOperators[kind.OperatorIndex()]);
+            foreach (var op in _builtInUnaryOperators[kind.OperatorIndex()])
+            {
+                if (skipNativeIntegerOperators)
+                {
+                    switch (op.Kind.OperandTypes())
+                    {
+                        case UnaryOperatorKind.NInt:
+                        case UnaryOperatorKind.NUInt:
+                            continue;
+                    }
+                }
+                operators.Add(op);
+            }
         }
 
         internal UnaryOperatorSignature GetSignature(UnaryOperatorKind kind)
@@ -226,6 +264,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperatorKind.UInt: opType = _compilation.GetSpecialType(SpecialType.System_UInt32); break;
                 case UnaryOperatorKind.Long: opType = _compilation.GetSpecialType(SpecialType.System_Int64); break;
                 case UnaryOperatorKind.ULong: opType = _compilation.GetSpecialType(SpecialType.System_UInt64); break;
+                case UnaryOperatorKind.NInt: opType = _compilation.CreateNativeIntegerTypeSymbol(signed: true); break;
+                case UnaryOperatorKind.NUInt: opType = _compilation.CreateNativeIntegerTypeSymbol(signed: false); break;
                 case UnaryOperatorKind.Char: opType = _compilation.GetSpecialType(SpecialType.System_Char); break;
                 case UnaryOperatorKind.Float: opType = _compilation.GetSpecialType(SpecialType.System_Single); break;
                 case UnaryOperatorKind.Double: opType = _compilation.GetSpecialType(SpecialType.System_Double); break;
@@ -255,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetSimpleBuiltInOperators(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
+        internal void GetSimpleBuiltInOperators(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators, bool skipNativeIntegerOperators)
         {
             if (_builtInOperators == null)
             {
@@ -287,6 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntMultiplication,
                         (int)BinaryOperatorKind.LongMultiplication,
                         (int)BinaryOperatorKind.ULongMultiplication,
+                        (int)BinaryOperatorKind.NIntMultiplication,
+                        (int)BinaryOperatorKind.NUIntMultiplication,
                         (int)BinaryOperatorKind.FloatMultiplication,
                         (int)BinaryOperatorKind.DoubleMultiplication,
                         (int)BinaryOperatorKind.DecimalMultiplication,
@@ -294,6 +336,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntMultiplication,
                         (int)BinaryOperatorKind.LiftedLongMultiplication,
                         (int)BinaryOperatorKind.LiftedULongMultiplication,
+                        (int)BinaryOperatorKind.LiftedNIntMultiplication,
+                        (int)BinaryOperatorKind.LiftedNUIntMultiplication,
                         (int)BinaryOperatorKind.LiftedFloatMultiplication,
                         (int)BinaryOperatorKind.LiftedDoubleMultiplication,
                         (int)BinaryOperatorKind.LiftedDecimalMultiplication,
@@ -304,6 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntAddition,
                         (int)BinaryOperatorKind.LongAddition,
                         (int)BinaryOperatorKind.ULongAddition,
+                        (int)BinaryOperatorKind.NIntAddition,
+                        (int)BinaryOperatorKind.NUIntAddition,
                         (int)BinaryOperatorKind.FloatAddition,
                         (int)BinaryOperatorKind.DoubleAddition,
                         (int)BinaryOperatorKind.DecimalAddition,
@@ -311,6 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntAddition,
                         (int)BinaryOperatorKind.LiftedLongAddition,
                         (int)BinaryOperatorKind.LiftedULongAddition,
+                        (int)BinaryOperatorKind.LiftedNIntAddition,
+                        (int)BinaryOperatorKind.LiftedNUIntAddition,
                         (int)BinaryOperatorKind.LiftedFloatAddition,
                         (int)BinaryOperatorKind.LiftedDoubleAddition,
                         (int)BinaryOperatorKind.LiftedDecimalAddition,
@@ -324,6 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntSubtraction,
                         (int)BinaryOperatorKind.LongSubtraction,
                         (int)BinaryOperatorKind.ULongSubtraction,
+                        (int)BinaryOperatorKind.NIntSubtraction,
+                        (int)BinaryOperatorKind.NUIntSubtraction,
                         (int)BinaryOperatorKind.FloatSubtraction,
                         (int)BinaryOperatorKind.DoubleSubtraction,
                         (int)BinaryOperatorKind.DecimalSubtraction,
@@ -331,6 +381,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntSubtraction,
                         (int)BinaryOperatorKind.LiftedLongSubtraction,
                         (int)BinaryOperatorKind.LiftedULongSubtraction,
+                        (int)BinaryOperatorKind.LiftedNIntSubtraction,
+                        (int)BinaryOperatorKind.LiftedNUIntSubtraction,
                         (int)BinaryOperatorKind.LiftedFloatSubtraction,
                         (int)BinaryOperatorKind.LiftedDoubleSubtraction,
                         (int)BinaryOperatorKind.LiftedDecimalSubtraction,
@@ -341,6 +393,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntDivision,
                         (int)BinaryOperatorKind.LongDivision,
                         (int)BinaryOperatorKind.ULongDivision,
+                        (int)BinaryOperatorKind.NIntDivision,
+                        (int)BinaryOperatorKind.NUIntDivision,
                         (int)BinaryOperatorKind.FloatDivision,
                         (int)BinaryOperatorKind.DoubleDivision,
                         (int)BinaryOperatorKind.DecimalDivision,
@@ -348,6 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntDivision,
                         (int)BinaryOperatorKind.LiftedLongDivision,
                         (int)BinaryOperatorKind.LiftedULongDivision,
+                        (int)BinaryOperatorKind.LiftedNIntDivision,
+                        (int)BinaryOperatorKind.LiftedNUIntDivision,
                         (int)BinaryOperatorKind.LiftedFloatDivision,
                         (int)BinaryOperatorKind.LiftedDoubleDivision,
                         (int)BinaryOperatorKind.LiftedDecimalDivision,
@@ -358,6 +414,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntRemainder,
                         (int)BinaryOperatorKind.LongRemainder,
                         (int)BinaryOperatorKind.ULongRemainder,
+                        (int)BinaryOperatorKind.NIntRemainder,
+                        (int)BinaryOperatorKind.NUIntRemainder,
                         (int)BinaryOperatorKind.FloatRemainder,
                         (int)BinaryOperatorKind.DoubleRemainder,
                         (int)BinaryOperatorKind.DecimalRemainder,
@@ -365,6 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntRemainder,
                         (int)BinaryOperatorKind.LiftedLongRemainder,
                         (int)BinaryOperatorKind.LiftedULongRemainder,
+                        (int)BinaryOperatorKind.LiftedNIntRemainder,
+                        (int)BinaryOperatorKind.LiftedNUIntRemainder,
                         (int)BinaryOperatorKind.LiftedFloatRemainder,
                         (int)BinaryOperatorKind.LiftedDoubleRemainder,
                         (int)BinaryOperatorKind.LiftedDecimalRemainder,
@@ -375,10 +435,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntLeftShift,
                         (int)BinaryOperatorKind.LongLeftShift,
                         (int)BinaryOperatorKind.ULongLeftShift,
+                        (int)BinaryOperatorKind.NIntLeftShift,
+                        (int)BinaryOperatorKind.NUIntLeftShift,
                         (int)BinaryOperatorKind.LiftedIntLeftShift,
                         (int)BinaryOperatorKind.LiftedUIntLeftShift,
                         (int)BinaryOperatorKind.LiftedLongLeftShift,
                         (int)BinaryOperatorKind.LiftedULongLeftShift,
+                        (int)BinaryOperatorKind.LiftedNIntLeftShift,
+                        (int)BinaryOperatorKind.LiftedNUIntLeftShift,
                     }),
                     GetSignaturesFromBinaryOperatorKinds(new []
                     {
@@ -386,10 +450,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntRightShift,
                         (int)BinaryOperatorKind.LongRightShift,
                         (int)BinaryOperatorKind.ULongRightShift,
+                        (int)BinaryOperatorKind.NIntRightShift,
+                        (int)BinaryOperatorKind.NUIntRightShift,
                         (int)BinaryOperatorKind.LiftedIntRightShift,
                         (int)BinaryOperatorKind.LiftedUIntRightShift,
                         (int)BinaryOperatorKind.LiftedLongRightShift,
                         (int)BinaryOperatorKind.LiftedULongRightShift,
+                        (int)BinaryOperatorKind.LiftedNIntRightShift,
+                        (int)BinaryOperatorKind.LiftedNUIntRightShift,
                     }),
                     GetSignaturesFromBinaryOperatorKinds(new []
                     {
@@ -397,6 +465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntEqual,
                         (int)BinaryOperatorKind.LongEqual,
                         (int)BinaryOperatorKind.ULongEqual,
+                        (int)BinaryOperatorKind.NIntEqual,
+                        (int)BinaryOperatorKind.NUIntEqual,
                         (int)BinaryOperatorKind.FloatEqual,
                         (int)BinaryOperatorKind.DoubleEqual,
                         (int)BinaryOperatorKind.DecimalEqual,
@@ -405,6 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntEqual,
                         (int)BinaryOperatorKind.LiftedLongEqual,
                         (int)BinaryOperatorKind.LiftedULongEqual,
+                        (int)BinaryOperatorKind.LiftedNIntEqual,
+                        (int)BinaryOperatorKind.LiftedNUIntEqual,
                         (int)BinaryOperatorKind.LiftedFloatEqual,
                         (int)BinaryOperatorKind.LiftedDoubleEqual,
                         (int)BinaryOperatorKind.LiftedDecimalEqual,
@@ -418,6 +490,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntNotEqual,
                         (int)BinaryOperatorKind.LongNotEqual,
                         (int)BinaryOperatorKind.ULongNotEqual,
+                        (int)BinaryOperatorKind.NIntNotEqual,
+                        (int)BinaryOperatorKind.NUIntNotEqual,
                         (int)BinaryOperatorKind.FloatNotEqual,
                         (int)BinaryOperatorKind.DoubleNotEqual,
                         (int)BinaryOperatorKind.DecimalNotEqual,
@@ -426,6 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntNotEqual,
                         (int)BinaryOperatorKind.LiftedLongNotEqual,
                         (int)BinaryOperatorKind.LiftedULongNotEqual,
+                        (int)BinaryOperatorKind.LiftedNIntNotEqual,
+                        (int)BinaryOperatorKind.LiftedNUIntNotEqual,
                         (int)BinaryOperatorKind.LiftedFloatNotEqual,
                         (int)BinaryOperatorKind.LiftedDoubleNotEqual,
                         (int)BinaryOperatorKind.LiftedDecimalNotEqual,
@@ -439,6 +515,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntGreaterThan,
                         (int)BinaryOperatorKind.LongGreaterThan,
                         (int)BinaryOperatorKind.ULongGreaterThan,
+                        (int)BinaryOperatorKind.NIntGreaterThan,
+                        (int)BinaryOperatorKind.NUIntGreaterThan,
                         (int)BinaryOperatorKind.FloatGreaterThan,
                         (int)BinaryOperatorKind.DoubleGreaterThan,
                         (int)BinaryOperatorKind.DecimalGreaterThan,
@@ -446,6 +524,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntGreaterThan,
                         (int)BinaryOperatorKind.LiftedLongGreaterThan,
                         (int)BinaryOperatorKind.LiftedULongGreaterThan,
+                        (int)BinaryOperatorKind.LiftedNIntGreaterThan,
+                        (int)BinaryOperatorKind.LiftedNUIntGreaterThan,
                         (int)BinaryOperatorKind.LiftedFloatGreaterThan,
                         (int)BinaryOperatorKind.LiftedDoubleGreaterThan,
                         (int)BinaryOperatorKind.LiftedDecimalGreaterThan,
@@ -456,6 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntLessThan,
                         (int)BinaryOperatorKind.LongLessThan,
                         (int)BinaryOperatorKind.ULongLessThan,
+                        (int)BinaryOperatorKind.NIntLessThan,
+                        (int)BinaryOperatorKind.NUIntLessThan,
                         (int)BinaryOperatorKind.FloatLessThan,
                         (int)BinaryOperatorKind.DoubleLessThan,
                         (int)BinaryOperatorKind.DecimalLessThan,
@@ -463,6 +545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntLessThan,
                         (int)BinaryOperatorKind.LiftedLongLessThan,
                         (int)BinaryOperatorKind.LiftedULongLessThan,
+                        (int)BinaryOperatorKind.LiftedNIntLessThan,
+                        (int)BinaryOperatorKind.LiftedNUIntLessThan,
                         (int)BinaryOperatorKind.LiftedFloatLessThan,
                         (int)BinaryOperatorKind.LiftedDoubleLessThan,
                         (int)BinaryOperatorKind.LiftedDecimalLessThan,
@@ -473,6 +557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LongGreaterThanOrEqual,
                         (int)BinaryOperatorKind.ULongGreaterThanOrEqual,
+                        (int)BinaryOperatorKind.NIntGreaterThanOrEqual,
+                        (int)BinaryOperatorKind.NUIntGreaterThanOrEqual,
                         (int)BinaryOperatorKind.FloatGreaterThanOrEqual,
                         (int)BinaryOperatorKind.DoubleGreaterThanOrEqual,
                         (int)BinaryOperatorKind.DecimalGreaterThanOrEqual,
@@ -480,6 +566,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LiftedLongGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LiftedULongGreaterThanOrEqual,
+                        (int)BinaryOperatorKind.LiftedNIntGreaterThanOrEqual,
+                        (int)BinaryOperatorKind.LiftedNUIntGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LiftedFloatGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDoubleGreaterThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDecimalGreaterThanOrEqual,
@@ -490,6 +578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntLessThanOrEqual,
                         (int)BinaryOperatorKind.LongLessThanOrEqual,
                         (int)BinaryOperatorKind.ULongLessThanOrEqual,
+                        (int)BinaryOperatorKind.NIntLessThanOrEqual,
+                        (int)BinaryOperatorKind.NUIntLessThanOrEqual,
                         (int)BinaryOperatorKind.FloatLessThanOrEqual,
                         (int)BinaryOperatorKind.DoubleLessThanOrEqual,
                         (int)BinaryOperatorKind.DecimalLessThanOrEqual,
@@ -497,6 +587,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedUIntLessThanOrEqual,
                         (int)BinaryOperatorKind.LiftedLongLessThanOrEqual,
                         (int)BinaryOperatorKind.LiftedULongLessThanOrEqual,
+                        (int)BinaryOperatorKind.LiftedNIntLessThanOrEqual,
+                        (int)BinaryOperatorKind.LiftedNUIntLessThanOrEqual,
                         (int)BinaryOperatorKind.LiftedFloatLessThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDoubleLessThanOrEqual,
                         (int)BinaryOperatorKind.LiftedDecimalLessThanOrEqual,
@@ -507,11 +599,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntAnd,
                         (int)BinaryOperatorKind.LongAnd,
                         (int)BinaryOperatorKind.ULongAnd,
+                        (int)BinaryOperatorKind.NIntAnd,
+                        (int)BinaryOperatorKind.NUIntAnd,
                         (int)BinaryOperatorKind.BoolAnd,
                         (int)BinaryOperatorKind.LiftedIntAnd,
                         (int)BinaryOperatorKind.LiftedUIntAnd,
                         (int)BinaryOperatorKind.LiftedLongAnd,
                         (int)BinaryOperatorKind.LiftedULongAnd,
+                        (int)BinaryOperatorKind.LiftedNIntAnd,
+                        (int)BinaryOperatorKind.LiftedNUIntAnd,
                         (int)BinaryOperatorKind.LiftedBoolAnd,
                     }),
                     GetSignaturesFromBinaryOperatorKinds(new []
@@ -520,11 +616,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntXor,
                         (int)BinaryOperatorKind.LongXor,
                         (int)BinaryOperatorKind.ULongXor,
+                        (int)BinaryOperatorKind.NIntXor,
+                        (int)BinaryOperatorKind.NUIntXor,
                         (int)BinaryOperatorKind.BoolXor,
                         (int)BinaryOperatorKind.LiftedIntXor,
                         (int)BinaryOperatorKind.LiftedUIntXor,
                         (int)BinaryOperatorKind.LiftedLongXor,
                         (int)BinaryOperatorKind.LiftedULongXor,
+                        (int)BinaryOperatorKind.LiftedNIntXor,
+                        (int)BinaryOperatorKind.LiftedNUIntXor,
                         (int)BinaryOperatorKind.LiftedBoolXor,
                     }),
                     GetSignaturesFromBinaryOperatorKinds(new []
@@ -533,11 +633,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.UIntOr,
                         (int)BinaryOperatorKind.LongOr,
                         (int)BinaryOperatorKind.ULongOr,
+                        (int)BinaryOperatorKind.NIntOr,
+                        (int)BinaryOperatorKind.NUIntOr,
                         (int)BinaryOperatorKind.BoolOr,
                         (int)BinaryOperatorKind.LiftedIntOr,
                         (int)BinaryOperatorKind.LiftedUIntOr,
                         (int)BinaryOperatorKind.LiftedLongOr,
                         (int)BinaryOperatorKind.LiftedULongOr,
+                        (int)BinaryOperatorKind.LiftedNIntOr,
+                        (int)BinaryOperatorKind.LiftedNUIntOr,
                         (int)BinaryOperatorKind.LiftedBoolOr,
                     }),
                 };
@@ -547,7 +651,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Interlocked.CompareExchange(ref _builtInOperators, allOperators, null);
             }
 
-            operators.AddRange(_builtInOperators[kind.IsLogical() ? 1 : 0][kind.OperatorIndex()]);
+            foreach (var op in _builtInOperators[kind.IsLogical() ? 1 : 0][kind.OperatorIndex()])
+            {
+                if (skipNativeIntegerOperators)
+                {
+                    switch (op.Kind.OperandTypes())
+                    {
+                        case BinaryOperatorKind.NInt:
+                        case BinaryOperatorKind.NUInt:
+                            continue;
+                    }
+                }
+                operators.Add(op);
+            }
         }
 
         internal BinaryOperatorSignature GetSignature(BinaryOperatorKind kind)
@@ -566,16 +682,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Addition:
                     return new BinaryOperatorSignature(kind, left, RightType(kind), ReturnType(kind));
                 case BinaryOperatorKind.LeftShift:
-
                 case BinaryOperatorKind.RightShift:
-                    TypeSymbol returnType = _compilation.GetSpecialType(SpecialType.System_Int32);
-
+                    TypeSymbol rightType = _compilation.GetSpecialType(SpecialType.System_Int32);
                     if (kind.IsLifted())
                     {
-                        returnType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(returnType);
+                        rightType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(rightType);
                     }
-
-                    return new BinaryOperatorSignature(kind, left, returnType, left);
+                    return new BinaryOperatorSignature(kind, left, rightType, left);
 
                 case BinaryOperatorKind.Equal:
                 case BinaryOperatorKind.NotEqual:
@@ -602,6 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
                     case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
                     case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.NInt: return _compilation.CreateNativeIntegerTypeSymbol(signed: true);
+                    case BinaryOperatorKind.NUInt: return _compilation.CreateNativeIntegerTypeSymbol(signed: false);
                     case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
                     case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
                     case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
@@ -632,6 +747,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
                     case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
                     case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.NInt: return _compilation.CreateNativeIntegerTypeSymbol(signed: true);
+                    case BinaryOperatorKind.NUInt: return _compilation.CreateNativeIntegerTypeSymbol(signed: false);
                     case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
                     case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
                     case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
@@ -662,6 +779,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.UInt: return _compilation.GetSpecialType(SpecialType.System_UInt32);
                     case BinaryOperatorKind.Long: return _compilation.GetSpecialType(SpecialType.System_Int64);
                     case BinaryOperatorKind.ULong: return _compilation.GetSpecialType(SpecialType.System_UInt64);
+                    case BinaryOperatorKind.NInt: return _compilation.CreateNativeIntegerTypeSymbol(signed: true);
+                    case BinaryOperatorKind.NUInt: return _compilation.CreateNativeIntegerTypeSymbol(signed: false);
                     case BinaryOperatorKind.Float: return _compilation.GetSpecialType(SpecialType.System_Single);
                     case BinaryOperatorKind.Double: return _compilation.GetSpecialType(SpecialType.System_Double);
                     case BinaryOperatorKind.Decimal: return _compilation.GetSpecialType(SpecialType.System_Decimal);
@@ -689,6 +808,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.UInt: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt32));
                 case BinaryOperatorKind.Long: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Int64));
                 case BinaryOperatorKind.ULong: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_UInt64));
+                case BinaryOperatorKind.NInt: return nullable.Construct(_compilation.CreateNativeIntegerTypeSymbol(signed: true));
+                case BinaryOperatorKind.NUInt: return nullable.Construct(_compilation.CreateNativeIntegerTypeSymbol(signed: false));
                 case BinaryOperatorKind.Float: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Single));
                 case BinaryOperatorKind.Double: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Double));
                 case BinaryOperatorKind.Decimal: return nullable.Construct(_compilation.GetSpecialType(SpecialType.System_Decimal));

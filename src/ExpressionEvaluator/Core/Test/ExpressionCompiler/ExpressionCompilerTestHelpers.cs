@@ -372,8 +372,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             int methodToken,
             string qualifiedName,
             string expectedIL,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
+            [CallerLineNumber] int expectedValueSourceLine = 0,
+            [CallerFilePath] string expectedValueSourcePath = null)
         {
             var parts = qualifiedName.Split('.');
             if (parts.Length != 2)

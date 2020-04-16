@@ -108,20 +108,5 @@ public class C
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();
         }
-
-        private sealed class TestAdditionalText : AdditionalText
-        {
-            private readonly SourceText _text;
-
-            public TestAdditionalText(string path, SourceText text)
-            {
-                this.Path = path;
-                _text = text;
-            }
-
-            public override string Path { get; }
-
-            public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken)) => _text;
-        }
     }
 }
