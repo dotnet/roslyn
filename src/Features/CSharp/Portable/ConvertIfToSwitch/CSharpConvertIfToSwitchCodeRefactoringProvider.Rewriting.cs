@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         {
             { BinaryOperatorKind.NotEquals, SyntaxKind.ExclamationEqualsToken },
             { BinaryOperatorKind.LessThan, SyntaxKind.LessThanToken },
-            { BinaryOperatorKind.GreaterThan,  SyntaxKind.GreaterThanToken },
-            { BinaryOperatorKind.LessThanOrEqual,  SyntaxKind.LessThanEqualsToken },
-            { BinaryOperatorKind.GreaterThanOrEqual,  SyntaxKind.GreaterThanEqualsToken },
+            { BinaryOperatorKind.GreaterThan, SyntaxKind.GreaterThanToken },
+            { BinaryOperatorKind.LessThanOrEqual, SyntaxKind.LessThanEqualsToken },
+            { BinaryOperatorKind.GreaterThanOrEqual, SyntaxKind.GreaterThanEqualsToken },
         };
 
         public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections)
