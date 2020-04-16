@@ -91,7 +91,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 
         internal void Close_OnlyForUseBySqlPersistentStorage()
         {
-            Contract.ThrowIfNull(_handle);
+            // Dispose of the underlying handle at the end of cleanup
+            using var _ = _handle;
 
             // release all the cached statements we have.
             //
@@ -104,9 +105,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             }
 
             _queryToStatement.Clear();
-
-            // Finally close our handle to the actual DB.
-            _handle.Dispose();
         }
 
         public void ExecuteCommand(string command, bool throwOnError = true)
