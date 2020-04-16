@@ -225,11 +225,6 @@ dotnet_diagnostic.RS0037.severity = none
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction
 dotnet_diagnostic.RS0005.severity = none
 
-[*.{cs,vb}]
-# Temporary workaround to enable FixAll in solution for IDE0051 and IDE0052
-dotnet_diagnostic.IDE0051.severity = none
-dotnet_diagnostic.IDE0052.severity = none
-
 [src/{Analyzers,CodeStyle,Features,Workspaces}/**/*.{cs,vb}]
 # IDE0005: Remove unnecessary usings/imports
 dotnet_diagnostic.IDE0005.severity = warning
@@ -243,6 +238,7 @@ dotnet_diagnostic.IDE0040.severity = warning
 # IDE0044: Make field readonly
 dotnet_diagnostic.IDE0044.severity = warning
 
+# CONSIDER: Are IDE0051 and IDE0052 too noisy to be warnings for IDE editing scenarios? Should they be made build-only warnings?
 # IDE0051: Remove unused private member
 dotnet_diagnostic.IDE0051.severity = warning
 
