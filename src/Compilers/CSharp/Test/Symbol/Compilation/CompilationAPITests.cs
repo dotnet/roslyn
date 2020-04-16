@@ -2076,6 +2076,44 @@ class C { }", options: TestOptions.Script);
             Assert.False(arc.ReferenceManagerEquals(ars));
         }
 
+        [Fact]
+        public void ReferenceManagerReuse_WithScriptCompilationInfo()
+        {
+            // Note: The following results would change if we optimized sharing more: https://github.com/dotnet/roslyn/issues/43397
+
+            var c1 = CSharpCompilation.CreateScriptCompilation("c1");
+            Assert.NotNull(c1.ScriptCompilationInfo);
+            Assert.Null(c1.ScriptCompilationInfo.PreviousScriptCompilation);
+
+            var c2 = c1.WithScriptCompilationInfo(null);
+            Assert.Null(c2.ScriptCompilationInfo);
+            Assert.True(c2.ReferenceManagerEquals(c1));
+
+            var c3 = c2.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: null, returnType: typeof(int), globalsType: null));
+            Assert.NotNull(c3.ScriptCompilationInfo);
+            Assert.Null(c3.ScriptCompilationInfo.PreviousScriptCompilation);
+            Assert.True(c3.ReferenceManagerEquals(c2));
+
+            var c4 = c3.WithScriptCompilationInfo(null);
+            Assert.Null(c4.ScriptCompilationInfo);
+            Assert.True(c4.ReferenceManagerEquals(c3));
+
+            var c5 = c4.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: c1, returnType: typeof(int), globalsType: null));
+            Assert.False(c5.ReferenceManagerEquals(c4));
+
+            var c6 = c5.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: c1, returnType: typeof(bool), globalsType: null));
+            Assert.True(c6.ReferenceManagerEquals(c5));
+
+            var c7 = c6.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: c2, returnType: typeof(bool), globalsType: null));
+            Assert.False(c7.ReferenceManagerEquals(c6));
+
+            var c8 = c7.WithScriptCompilationInfo(new CSharpScriptCompilationInfo(previousCompilationOpt: null, returnType: typeof(bool), globalsType: null));
+            Assert.False(c8.ReferenceManagerEquals(c7));
+
+            var c9 = c8.WithScriptCompilationInfo(null);
+            Assert.True(c9.ReferenceManagerEquals(c8));
+        }
+
         private sealed class EvolvingTestReference : PortableExecutableReference
         {
             private readonly IEnumerator<Metadata> _metadataSequence;
