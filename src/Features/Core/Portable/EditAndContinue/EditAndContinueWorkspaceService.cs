@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly Workspace _workspace;
         private readonly IActiveStatementTrackingService _trackingService;
-        private readonly IActiveStatementProvider _activeStatementProvider;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IDebuggeeModuleMetadataProvider _debugeeModuleMetadataProvider;
         private readonly EditAndContinueDiagnosticUpdateSource _emitDiagnosticsUpdateSource;
@@ -55,7 +54,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             IActiveStatementTrackingService activeStatementTrackingService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
-            IActiveStatementProvider activeStatementProvider,
             IDebuggeeModuleMetadataProvider debugeeModuleMetadataProvider,
             Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
             Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
@@ -63,7 +61,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _emitDiagnosticsUpdateSource = diagnosticUpdateSource;
-            _activeStatementProvider = activeStatementProvider;
             _debugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             _trackingService = activeStatementTrackingService;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
@@ -101,16 +98,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void StartDebuggingSession()
         {
-            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(_workspace, _debugeeModuleMetadataProvider, _activeStatementProvider, _compilationOutputsProvider), null);
+            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(_workspace, _debugeeModuleMetadataProvider, _compilationOutputsProvider), null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
-        public void StartEditSession()
+        public void StartEditSession(ActiveStatementProvider activeStatementsProvider)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, activeStatementsProvider);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
@@ -231,7 +228,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Once we detected a change in a document let the debugger know that the corresponding loaded module
                     // is about to be updated, so that it can start initializing it for EnC update, reducing the amount of time applying
                     // the change blocks the UI when the user "continues".
-                    debuggingSession.PrepareModuleForUpdate(mvid);
+                    debuggingSession.PrepareModuleForUpdate(mvid, cancellationToken);
                 }
 
                 if (analysis.RudeEditErrors.IsEmpty)
