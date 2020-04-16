@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckContainsProject(projectId);
 
-            var newState = _state.WithProjectCompilationOutputFilePaths(projectId, paths);
+            var newState = _state.WithProjectCompilationOutputFilePaths(projectId, in paths);
             if (newState == _state)
             {
                 return this;

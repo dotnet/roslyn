@@ -1381,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 if (!skipDeclarationAnalysis &&
-                    !TryExecuteDeclaringReferenceActions(symbolEvent, analysisScope, analysisStateOpt, isGeneratedCodeSymbol, perSymbolActions, cancellationToken))
+                    !TryExecuteDeclaringReferenceActions(symbolEvent, analysisScope, analysisStateOpt, isGeneratedCodeSymbol, in perSymbolActions, cancellationToken))
                 {
                     processedState = EventProcessedState.NotProcessed;
                 }
@@ -1389,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers = default;
                 if (processedState.Kind == EventProcessedStateKind.Processed &&
                     hasPerSymbolActions &&
-                    !TryExecuteSymbolEndActions(perSymbolActions, symbolEvent, analysisScope, analysisStateOpt, cancellationToken, out subsetProcessedAnalyzers))
+                    !TryExecuteSymbolEndActions(in perSymbolActions, symbolEvent, analysisScope, analysisStateOpt, cancellationToken, out subsetProcessedAnalyzers))
                 {
                     processedState = subsetProcessedAnalyzers.IsDefaultOrEmpty ? EventProcessedState.NotProcessed : EventProcessedState.CreatePartiallyProcessed(subsetProcessedAnalyzers);
                 }

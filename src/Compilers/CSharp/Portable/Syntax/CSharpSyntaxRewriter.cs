@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node != visitedNode || separator != visitedSeparator)
                     {
                         alternate = new SeparatedSyntaxListBuilder<TNode>(count);
-                        alternate.AddRange(list, i);
+                        alternate.AddRange(in list, i);
                     }
                 }
 
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             throw new InvalidOperationException(CodeAnalysisResources.SeparatorIsExpected);
                         }
-                        alternate.AddSeparator(visitedSeparator);
+                        alternate.AddSeparator(in visitedSeparator);
                     }
                     else
                     {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node != visitedNode)
                     {
                         alternate = new SeparatedSyntaxListBuilder<TNode>(count);
-                        alternate.AddRange(list, i);
+                        alternate.AddRange(in list, i);
                     }
                 }
 
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (visited != item && alternate == null)
                     {
                         alternate = new SyntaxTriviaListBuilder(count);
-                        alternate.Add(list, 0, index);
+                        alternate.Add(in list, 0, index);
                     }
 
                     if (alternate != null && visited.Kind() != SyntaxKind.None)

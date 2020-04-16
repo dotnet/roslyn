@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder.EnterRegion(root);
             builder.AppendNewBlock(builder._entry, linkToPrevious: false);
             builder._currentBasicBlock = null;
-            builder.SetCurrentContext(context);
+            builder.SetCurrentContext(in context);
 
             builder.EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
 
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                                              continueDispatchAfterFinally,
                                                              dispatchedExceptionsFromRegions,
                                                              out bool isolatedFellThrough);
-                    visited.UnionWith(isolated);
+                    visited.UnionWith(in isolated);
 
                     continueDispatch = isolatedFellThrough &&
                                        blocks[@finally.LastBlockOrdinal].FallThrough.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling;

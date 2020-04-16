@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 b1[i] = a1[i] = r.NextBool();
                 b2[i] = a2[i] = r.NextBool();
             }
-            bool changed = b1.IntersectWith(b2);
+            bool changed = b1.IntersectWith(in b2);
             bool changed2 = false;
             for (int i = 0; i < capacity; i++)
             {
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 b2[i] = a2[i] = r.NextBool();
             }
 
-            bool changed = b1.UnionWith(b2);
+            bool changed = b1.UnionWith(in b2);
             bool changed2 = false;
 
             for (int i = 0; i < maxCapacity; i++)

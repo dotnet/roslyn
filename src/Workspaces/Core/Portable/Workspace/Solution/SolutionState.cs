@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState WithProjectCompilationOutputFilePaths(ProjectId projectId, in CompilationOutputFilePaths paths)
         {
             var oldProject = GetRequiredProjectState(projectId);
-            var newProject = oldProject.WithCompilationOutputFilePaths(paths);
+            var newProject = oldProject.WithCompilationOutputFilePaths(in paths);
 
             if (oldProject == newProject)
             {

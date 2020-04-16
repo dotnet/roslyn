@@ -402,7 +402,7 @@ recurse:
             {
                 case SyntaxKind.ArrayType:
                     var arrayTypeSyntax = (ArrayTypeSyntax)type;
-                    arrayTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
+                    arrayTypeSyntax.ElementType.VisitRankSpecifiers(action, in argument);
                     foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
                     {
                         action(rankSpecifier, argument);
@@ -425,7 +425,7 @@ recurse:
                     for (int index = 0; index < elementsCount - 1; index++)
                     {
                         var element = tupleTypeSyntax.Elements[index];
-                        element.Type.VisitRankSpecifiers(action, argument);
+                        element.Type.VisitRankSpecifiers(action, in argument);
                     }
 
                     type = tupleTypeSyntax.Elements[elementsCount - 1].Type;
@@ -443,14 +443,14 @@ recurse:
                     for (int index = 0; index < argsCount - 1; index++)
                     {
                         var typeArgument = genericNameSyntax.TypeArgumentList.Arguments[index];
-                        typeArgument.VisitRankSpecifiers(action, argument);
+                        typeArgument.VisitRankSpecifiers(action, in argument);
                     }
 
                     type = genericNameSyntax.TypeArgumentList.Arguments[argsCount - 1];
                     goto recurse;
                 case SyntaxKind.QualifiedName:
                     var qualifiedNameSyntax = (QualifiedNameSyntax)type;
-                    qualifiedNameSyntax.Left.VisitRankSpecifiers(action, argument);
+                    qualifiedNameSyntax.Left.VisitRankSpecifiers(action, in argument);
                     type = qualifiedNameSyntax.Right;
                     goto recurse;
                 case SyntaxKind.AliasQualifiedName:

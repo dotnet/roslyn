@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void Add(in SyntaxTriviaList list)
         {
-            this.Add(list, 0, list.Count);
+            this.Add(in list, 0, list.Count);
         }
 
         public void Add(in SyntaxTriviaList list, int offset, int length)

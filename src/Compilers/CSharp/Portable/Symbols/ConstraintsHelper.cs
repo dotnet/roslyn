@@ -416,13 +416,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, arg);
+        private static readonly Func<TypeSymbol, CheckConstraintsArgs, bool, bool> s_checkConstraintsSingleTypeFunc = (type, arg, unused) => CheckConstraintsSingleType(type, in arg);
 
         private static bool CheckConstraintsSingleType(TypeSymbol type, in CheckConstraintsArgs args)
         {
             if (type.Kind == SymbolKind.NamedType)
             {
-                ((NamedTypeSymbol)type).CheckConstraints(args);
+                ((NamedTypeSymbol)type).CheckConstraints(in args);
             }
             else if (type.Kind == SymbolKind.PointerType)
             {

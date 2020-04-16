@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (i >= startIndex)
                 {
-                    if (AreIdentical(stackNode, node))
+                    if (AreIdentical(in stackNode, in node))
                     {
                         var sim = node.FullSpan.Length;
                         if (sim > similarity)
@@ -365,9 +365,9 @@ namespace Microsoft.CodeAnalysis
                             return;
                         }
                     }
-                    else if (AreSimilar(stackNode, node))
+                    else if (AreSimilar(in stackNode, in node))
                     {
-                        var sim = GetSimilarity(stackNode, node);
+                        var sim = GetSimilarity(in stackNode, in node);
 
                         // Are these really the same? This may be expensive so only check this if 
                         // similarity is rated equal to them being identical.
@@ -400,15 +400,15 @@ namespace Microsoft.CodeAnalysis
 
                             j++;
 
-                            if (AreIdentical(child, node))
+                            if (AreIdentical(in child, in node))
                             {
                                 index = i;
                                 similarity = node.FullSpan.Length;
                                 return;
                             }
-                            else if (AreSimilar(child, node))
+                            else if (AreSimilar(in child, in node))
                             {
-                                var sim = GetSimilarity(child, node);
+                                var sim = GetSimilarity(in child, in node);
                                 if (sim > similarity)
                                 {
                                     index = i;
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis
                 var insertedNode = _newNodes.Pop();
                 var newSpan = insertedNode.FullSpan;
 
-                RecordChange(new TextChangeRange(oldSpan, newSpan.Length), removedNode, insertedNode);
+                RecordChange(new TextChangeRange(oldSpan, newSpan.Length), in removedNode, insertedNode);
             }
             else
             {

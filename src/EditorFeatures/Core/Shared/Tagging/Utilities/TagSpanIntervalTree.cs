@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var nodeValues = values?.Select(ts => new TagNode(ts, trackingMode));
 
             var introspector = new IntervalIntrospector(textBuffer.CurrentSnapshot);
-            _tree = IntervalTree.Create(introspector, nodeValues);
+            _tree = IntervalTree.Create(in introspector, nodeValues);
         }
 
         public ITextBuffer Buffer => _textBuffer;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
             var introspector = new IntervalIntrospector(snapshot);
-            var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, introspector);
+            var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, in introspector);
 
             List<ITagSpan<TTag>> result = null;
             foreach (var tagNode in intersectingIntervals)

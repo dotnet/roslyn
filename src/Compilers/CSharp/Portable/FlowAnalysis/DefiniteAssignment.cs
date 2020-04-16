@@ -2159,7 +2159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Normalize(ref other);
                 }
 
-                return self.Assigned.IntersectWith(other.Assigned);
+                return self.Assigned.IntersectWith(in other.Assigned);
             }
             else if (!self.Reachable)
             {

@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.Depth >= SyntaxWalkerDepth.Trivia)
             {
-                this.VisitLeadingTrivia(token);
-                this.VisitTrailingTrivia(token);
+                this.VisitLeadingTrivia(in token);
+                this.VisitTrailingTrivia(in token);
             }
         }
 

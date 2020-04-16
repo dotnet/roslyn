@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis
             where TDirective : SyntaxNode
         {
             List<TDirective>? directives = null;
-            GetDirectives(this, filter, ref directives);
+            GetDirectives(in this, filter, ref directives);
             return directives ?? SpecializedCollections.EmptyList<TDirective>();
         }
 
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var trivia in node.DescendantTrivia(node => node.ContainsDirectives, descendIntoTrivia: true))
             {
-                _ = GetDirectivesInTrivia(trivia, filter, ref directives);
+                _ = GetDirectivesInTrivia(in trivia, filter, ref directives);
             }
         }
 
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var tr in trivia)
             {
-                if (!GetDirectivesInTrivia(tr, filter, ref directives) && tr.GetStructure() is SyntaxNode node)
+                if (!GetDirectivesInTrivia(in tr, filter, ref directives) && tr.GetStructure() is SyntaxNode node)
                 {
                     GetDirectives(node, filter, ref directives);
                 }
