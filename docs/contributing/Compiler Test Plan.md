@@ -308,6 +308,8 @@ __makeref( x )
 - Interpolated string
 - Tuple literal
 - Tuple
+- Default literal
+- Implicit object creation
 
 ## Types 
 
