@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private struct DefinitionProject
         {
-#pragma warning disable IDE0052 // Remove unread private members
+#pragma warning disable IDE0052 // Remove unread private members - DefinitionProject is used as a key for dictionaries.
             private readonly ProjectId _sourceProjectId;
             private readonly string _assemblyName;
 #pragma warning restore IDE0052 // Remove unread private members
