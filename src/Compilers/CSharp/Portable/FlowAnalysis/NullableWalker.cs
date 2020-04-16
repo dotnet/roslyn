@@ -3170,11 +3170,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParameterSymbol parameter,
                     TypeWithState operandType)
                 {
+                    TypeWithAnnotations targetTypeWithNullability = parameter.TypeWithAnnotations;
+
+                    if (isLifted && targetTypeWithNullability.Type.IsNonNullableValueType())
+                    {
+                        targetTypeWithNullability = TypeWithAnnotations.Create(MakeNullableOf(targetTypeWithNullability));
+                    }
+
                     _ = VisitConversion(
                         expr as BoundConversion,
                         operand,
                         conversion,
-                        parameter.TypeWithAnnotations,
+                        targetTypeWithNullability,
                         operandType,
                         checkConversion: true,
                         fromExplicitCast: false,
@@ -5365,7 +5372,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstraintsHelper.CheckMethodConstraints(
                 method,
                 _conversions,
-                includeNullability: true,
                 compilation,
                 diagnosticsBuilder,
                 nullabilityBuilder,
@@ -5730,7 +5736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!_disableDiagnostics)
                 {
                     var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
-                    tupleOpt.CheckConstraints(_conversions, includeNullability: true, typeSyntax: node.Syntax, locations, currentCompilation: compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
+                    tupleOpt.CheckConstraints(_conversions, typeSyntax: node.Syntax, locations, currentCompilation: compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
                 }
 
                 SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
@@ -7593,7 +7599,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportNullabilityMismatchInArgument(Location argument, TypeSymbol argumentType, ParameterSymbol parameterOpt, TypeSymbol parameterType, bool forOutput)
         {
             ReportDiagnostic(forOutput ? ErrorCode.WRN_NullabilityMismatchInArgumentForOutput : ErrorCode.WRN_NullabilityMismatchInArgument,
-                argument, argumentType, parameterType,
+                argument, argumentType,
+                parameterOpt?.Type.IsNonNullableValueType() == true && parameterType.IsNullableType() ? parameterOpt.Type : parameterType, // Compensate for operator lifting
                 GetParameterAsDiagnosticArgument(parameterOpt),
                 GetContainingSymbolAsDiagnosticArgument(parameterOpt));
         }

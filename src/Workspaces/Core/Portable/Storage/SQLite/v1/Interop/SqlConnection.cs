@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
             {
                 var ex = new InvalidOperationException("SqlConnection was not properly closed");
                 _faultInjector?.OnFatalError(ex);
-                FatalError.Report(new InvalidOperationException("SqlConnection was not properly closed"));
+                FatalError.Report(ex);
             }
         }
 

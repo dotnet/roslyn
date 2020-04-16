@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ResolvedReference> explicitReferenceMap,
             ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings,
             int totalReferencedAssemblyCount,
-            [Out]ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)> result)
+            [Out] ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)> result)
         {
             Debug.Assert(result.Count == 0);
 

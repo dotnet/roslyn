@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         int IVsLanguageServiceBuildErrorReporter2.ReportError(
             string bstrErrorMessage,
             string bstrErrorId,
-            [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority,
+            [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
             int iLine,
             int iColumn,
             string bstrFileName)
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         void IVsLanguageServiceBuildErrorReporter2.ReportError2(
             string bstrErrorMessage,
             string bstrErrorId,
-            [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority,
+            [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
             int iStartLine,
             int iStartColumn,
             int iEndLine,

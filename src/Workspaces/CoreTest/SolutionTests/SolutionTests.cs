@@ -553,6 +553,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void WithProjectCompilationOutputFilePaths()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+
+            // any character is allowed
+            var path = "\0<>a/b/*.dll";
+
+            SolutionTestHelpers.TestProperty(
+                solution,
+                (s, value) => s.WithProjectCompilationOutputFilePaths(projectId, value),
+                s => s.GetProject(projectId)!.CompilationOutputFilePaths,
+                new CompilationOutputFilePaths(path),
+                defaultThrows: false);
+
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputFilePaths(null!, new CompilationOutputFilePaths("x.dll")));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputFilePaths(ProjectId.CreateNewId(), new CompilationOutputFilePaths("x.dll")));
+        }
+
+        [Fact]
         public void WithProjectDefaultNamespace()
         {
             var projectId = ProjectId.CreateNewId();
@@ -903,7 +925,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void AddAnalyzerReferences()
+        public void AddAnalyzerReferences_Project()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
             var projectId = solution.Projects.Single().Id;
@@ -930,7 +952,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void RemoveAnalyzerReference()
+        public void RemoveAnalyzerReference_Project()
         {
             var solution = CreateSolutionWithProjectAndDocuments();
             var projectId = solution.Projects.Single().Id;
@@ -953,6 +975,65 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // project not in solution:
             Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(ProjectId.CreateNewId(), analyzerRef1));
+        }
+
+        [Fact]
+        public void WithAnalyzerReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var analyzerRef = (AnalyzerReference)new TestAnalyzerReference();
+
+            SolutionTestHelpers.TestListProperty(solution,
+                (old, value) => old.WithAnalyzerReferences(value),
+                opt => opt.AnalyzerReferences,
+                analyzerRef,
+                allowDuplicates: false);
+        }
+
+        [Fact]
+        public void AddAnalyzerReferences()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+
+            var solution2 = solution.AddAnalyzerReferences(EmptyEnumerable<AnalyzerReference>());
+            Assert.Same(solution, solution2);
+
+            var analyzerRef1 = new TestAnalyzerReference();
+            var analyzerRef2 = new TestAnalyzerReference();
+
+            var solution3 = solution.AddAnalyzerReferences(OnceEnumerable(analyzerRef1, analyzerRef2));
+            AssertEx.Equal(new[] { analyzerRef1, analyzerRef2 }, solution3.AnalyzerReferences);
+
+            var solution4 = solution3.AddAnalyzerReferences(new AnalyzerReference[0]);
+
+            Assert.Same(solution, solution2);
+            Assert.Throws<ArgumentNullException>("analyzerReferences", () => solution.AddAnalyzerReferences(null!));
+            Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => solution.AddAnalyzerReferences(new AnalyzerReference[] { null! }));
+            Assert.Throws<ArgumentException>("analyzerReferences[1]", () => solution.AddAnalyzerReferences(new[] { analyzerRef1, analyzerRef1 }));
+
+            // dup:
+            Assert.Throws<InvalidOperationException>(() => solution3.AddAnalyzerReferences(new[] { analyzerRef1 }));
+        }
+
+        [Fact]
+        public void RemoveAnalyzerReference()
+        {
+            var solution = CreateSolutionWithProjectAndDocuments();
+            var analyzerRef1 = new TestAnalyzerReference();
+            var analyzerRef2 = new TestAnalyzerReference();
+
+            solution = solution.WithAnalyzerReferences(new[] { analyzerRef1, analyzerRef2 });
+
+            var solution2 = solution.RemoveAnalyzerReference(analyzerRef1);
+            AssertEx.Equal(new[] { analyzerRef2 }, solution2.AnalyzerReferences);
+
+            var solution3 = solution2.RemoveAnalyzerReference(analyzerRef2);
+            Assert.Empty(solution3.AnalyzerReferences);
+
+            Assert.Throws<ArgumentNullException>("analyzerReference", () => solution.RemoveAnalyzerReference(null!));
+
+            // removing a reference that's not in the list:
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(new TestAnalyzerReference()));
         }
 
 #nullable restore
