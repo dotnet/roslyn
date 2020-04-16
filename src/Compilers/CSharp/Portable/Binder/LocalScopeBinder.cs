@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 kind = LocalDeclarationKind.Constant;
                             }
-                            else if (decl.UsingKeyword != default(SyntaxToken))
+                            else if (decl.UsingKeyword != default)
                             {
                                 kind = LocalDeclarationKind.UsingVariable;
                             }
@@ -231,11 +231,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 kind = LocalDeclarationKind.RegularVariable;
                             }
+
                             foreach (var vdecl in decl.Declaration.Variables)
                             {
-                                var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder);
-                                locals.Add(localSymbol);
+                                bool isDiscard = kind == LocalDeclarationKind.UsingVariable && vdecl.Identifier.IsUnderscoreToken();
 
+                                if (!isDiscard)
+                                {
+                                    var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder);
+                                    locals.Add(localSymbol);
+                                }
                                 // also gather expression-declared variables from the bracketed argument lists and the initializers
                                 ExpressionVariableFinder.FindExpressionVariables(this, locals, vdecl, localDeclarationBinder);
                             }

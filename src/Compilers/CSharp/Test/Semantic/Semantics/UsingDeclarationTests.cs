@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Roslyn.Test.Utilities;
@@ -14,6 +16,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     /// </summary>
     public class UsingDeclarationTests : CompilingTestBase
     {
+        [Fact, WorkItem(43292, "https://github.com/dotnet/roslyn/issues/43292")]
+        public void UsingDiscard()
+        {
+            var source = @"
+using System;
+class C
+{
+    async void M1()
+    {
+        using var _ = (IDisposable)null;
+        using IDisposable _ = (IDisposable)null;
+        using IDisposable _ = (IDisposable)null, _ = (IDisposable)null;
+
+        await using var _ = (IAsyncDisposable)null;
+        await using IAsyncDisposable _ = (IAsyncDisposable)null;
+        _.ToString(); // 1
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0103: The name '_' does not exist in the current context
+                //         _.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(13, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+            Assert.Equal(6, declarators.Count());
+            foreach (var declarator in declarators)
+            {
+                if (declarator.Identifier.ToString() == "_")
+                {
+                    Assert.Null(model.GetDeclaredSymbol(declarator));
+                }
+            }
+        }
+
         [Fact]
         public void UsingVariableIsNotReportedAsUnused()
         {

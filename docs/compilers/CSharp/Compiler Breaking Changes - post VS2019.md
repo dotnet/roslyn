@@ -121,3 +121,9 @@ public class Derived : Base<string?>
 }
 ```
 
+20. https://github.com/dotnet/roslyn/issues/43292 In *Visual Studio 2019 version 16.3* and onwards, the compiler considered `using` declarations using an underscore identifier to declare a local named `_`. In *Visual Studio 2019 version 16.7*, those no longer declare locals, they are instead discards. The following becomes an error:
+``` csharp
+using var _ = (IDisposable)null;
+_.ToString(); // the name '_' doesn't exist in this context
+```
+
