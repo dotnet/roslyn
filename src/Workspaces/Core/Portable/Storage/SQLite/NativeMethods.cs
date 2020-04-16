@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             try
             {
+                // Always return a non-null handle to match default P/Invoke marshaling behavior. SafeHandle.IsInvalid
+                // will be true when the handle is not usable, but the handle instance can be disposed either way.
                 return new SafeSqliteHandle(wrapper);
             }
             catch
@@ -45,6 +47,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             try
             {
+                // Always return a non-null handle to match default P/Invoke marshaling behavior. SafeHandle.IsInvalid
+                // will be true when the handle is not usable, but the handle instance can be disposed either way.
                 return new SafeSqliteStatementHandle(db, wrapper);
             }
             catch
@@ -66,6 +70,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             try
             {
+                // Always return a non-null handle to match default P/Invoke marshaling behavior. SafeHandle.IsInvalid
+                // will be true when the handle is not usable, but the handle instance can be disposed either way.
                 return new SafeSqliteBlobHandle(db, wrapper);
             }
             catch
