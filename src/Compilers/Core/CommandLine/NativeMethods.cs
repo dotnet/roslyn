@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static extern bool CreateProcess
         (
             string? lpApplicationName,
-            [In, Out]StringBuilder lpCommandLine,
+            [In, Out] StringBuilder lpCommandLine,
             IntPtr lpProcessAttributes,
             IntPtr lpThreadAttributes,
             [In, MarshalAs(UnmanagedType.Bool)]

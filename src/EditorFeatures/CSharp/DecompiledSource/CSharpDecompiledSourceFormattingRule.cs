@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         {
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
             SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var operation = GetAdjustNewLinesOperation(previousToken, currentToken);
