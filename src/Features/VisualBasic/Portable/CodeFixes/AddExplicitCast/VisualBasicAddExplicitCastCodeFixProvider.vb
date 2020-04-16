@@ -35,8 +35,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 Return ImmutableArray.Create(BC30512, BC42016, BC30518, BC30519)
             End Get
         End Property
-
-
         Protected Overrides Function GetDescription(context As CodeFixContext, semanticModel As SemanticModel,
                 Optional targetNode As SyntaxNode = Nothing, Optional conversionType As ITypeSymbol = Nothing) As String
             If targetNode IsNot Nothing Then
