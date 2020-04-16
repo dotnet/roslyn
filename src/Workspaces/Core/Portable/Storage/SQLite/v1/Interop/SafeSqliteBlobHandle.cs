@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v1.Interop
 
         protected override bool ReleaseChildHandle()
         {
-            raw.sqlite3_blob_close(Wrapper);
-            return true;
+            var result = (Result)raw.sqlite3_blob_close(Wrapper);
+            return result == Result.OK;
         }
     }
 }
