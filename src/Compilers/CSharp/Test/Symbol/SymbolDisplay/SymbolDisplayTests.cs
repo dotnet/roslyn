@@ -2530,6 +2530,33 @@ namespace N1 {
                 SymbolDisplayPartKind.NamespaceName);
         }
 
+        public class ScriptGlobals
+        {
+            public void Print(object obj) { }
+        }
+
+        [Fact]
+        public void TestMinimalNamespace__()
+        {
+            var text = @"Print()";
+            var tree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Script);
+
+            var comp = CSharpCompilation.CreateScriptCompilation(
+                "submission1",
+                tree,
+                TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                returnType: typeof(object),
+                globalsType: typeof(ScriptGlobals));
+
+            var model = comp.GetSemanticModel(tree);
+            var hostTypeSymbol = comp.GetHostObjectTypeSymbol();
+
+            var format = new SymbolDisplayFormat();
+            var displayParts = hostTypeSymbol.ToMinimalDisplayParts(model, position: 0, format);
+
+            //Verify(description, expectedText, expectedKinds);
+        }
+
         [Fact]
         public void TestRemoveAttributeSuffix1()
         {
