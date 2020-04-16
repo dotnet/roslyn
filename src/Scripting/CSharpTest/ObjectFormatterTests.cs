@@ -70,9 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void ArrayMethodParameters()
         {
-            var method = typeof(Sort).GetMethod(nameof(Sort.ArrayParameter));
-            var result = s_formatter.FormatMethodSignature(method);
-            Assert.Equal("ObjectFormatterFixtures.Sort.ArrayParameter(int[], int[,], int[,,])", result);
+            var result = s_formatter.FormatMethodSignature(Signatures.Arrays);
+            Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(int[], int[,], int[,,])", result);
         }
 
         [Fact]
