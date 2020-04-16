@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -31,9 +33,10 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly HostWorkspaceServices _workspaceServices;
 
-        private readonly IReferenceSerializationService _hostSerializationService;
-        private readonly ITemporaryStorageService2 _tempService;
+        private readonly ITemporaryStorageService _storageService;
         private readonly ITextFactoryService _textService;
+        private readonly IDocumentationProviderService? _documentationService;
+        private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
 
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
@@ -42,9 +45,10 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             _workspaceServices = workspaceServices;
 
-            _hostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
-            _tempService = _workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2;
-            _textService = _workspaceServices.GetService<ITextFactoryService>();
+            _storageService = workspaceServices.GetRequiredService<ITemporaryStorageService>();
+            _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
+            _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+            _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
 
             _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
         }
@@ -57,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (value is IChecksummedObject)
+                if (value is IChecksummedObject checksummedObject)
                 {
-                    return ((IChecksummedObject)value).Checksum;
+                    return checksummedObject.Checksum;
                 }
 
                 switch (kind)
@@ -74,10 +78,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(kind, value, this);
 
                     case WellKnownSynchronizationKind.MetadataReference:
-                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
+                        return Checksum.Create(kind, CreateChecksum((MetadataReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.AnalyzerReference:
-                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, usePathFromAssembly: true, cancellationToken));
+                        return Checksum.Create(kind, CreateChecksum((AnalyzerReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.SourceText:
                         return Checksum.Create(kind, ((SourceText)value).GetChecksum());
@@ -98,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (value is ChecksumWithChildren)
+                if (value is ChecksumWithChildren checksumWithChildren)
                 {
-                    SerializeChecksumWithChildren((ChecksumWithChildren)value, writer, cancellationToken);
+                    SerializeChecksumWithChildren(checksumWithChildren, writer, cancellationToken);
                     return;
                 }
 
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKind.AnalyzerReference:
-                        SerializeAnalyzerReference((AnalyzerReference)value, writer, usePathFromAssembly: true, cancellationToken: cancellationToken);
+                        SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKind.SourceText:
@@ -152,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
+        [return: MaybeNull]
         public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
@@ -203,9 +208,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private IOptionsSerializationService GetOptionsSerializationService(string languageName)
-        {
-            return _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<IOptionsSerializationService>());
-        }
+            => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
     }
 
     // TODO: convert this to sub class rather than using enum with if statement.

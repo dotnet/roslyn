@@ -29,9 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
+            SyntaxNodeOrToken current = propertyDeclaration;
+            var nextSibling = current.GetNextSibling();
+
+            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+            //
+            // Properties are grouped together with indexers in Metadata as Source.
+            var compressEmptyLines = isMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.PropertyDeclaration) || nextSibling.IsKind(SyntaxKind.IndexerDeclaration));
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 propertyDeclaration,
                 propertyDeclaration.Identifier,
+                compressEmptyLines: compressEmptyLines,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

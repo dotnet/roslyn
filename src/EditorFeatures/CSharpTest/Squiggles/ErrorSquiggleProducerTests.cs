@@ -112,15 +112,13 @@ class Program
 
             workspace.ApplyOptions(options);
 
-            var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
+            var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
                 {
                     {
                         LanguageNames.CSharp,
-                        new DiagnosticAnalyzer[]
-                        {
+                        ImmutableArray.Create<DiagnosticAnalyzer>(
                             new CSharpSimplifyTypeNamesDiagnosticAnalyzer(),
-                            new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer()
-                        }
+                            new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer())
                     }
                 };
 
@@ -243,7 +241,7 @@ class Program
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-            var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
+            var spans = await _producer.GetErrorsFromUpdateSource(workspace, updateArgs);
 
             Assert.Equal(1, spans.Count());
             var first = spans.First();
@@ -274,7 +272,7 @@ class Program
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 0)),
                         _producer.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
-            var spans = await _producer.GetErrorsFromUpdateSource(workspace, document, updateArgs);
+            var spans = await _producer.GetErrorsFromUpdateSource(workspace, updateArgs);
 
             Assert.Equal(2, spans.Count());
             var first = spans.First();

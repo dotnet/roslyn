@@ -94,9 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             }
 
             private bool ShouldPreserveTrivia(SyntaxTriviaList trivia)
-            {
-                return trivia.Any(t => !t.IsWhitespaceOrEndOfLine());
-            }
+                => trivia.Any(t => !t.IsWhitespaceOrEndOfLine());
 
             private ISet<UsingDirectiveSyntax> GetUsingsToRemove(
                 SyntaxList<UsingDirectiveSyntax> oldUsings,

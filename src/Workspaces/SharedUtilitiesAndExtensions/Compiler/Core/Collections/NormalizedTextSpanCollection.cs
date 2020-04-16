@@ -378,9 +378,7 @@ namespace Microsoft.CodeAnalysis.Shared
         /// <param name="right">The second set.</param>
         /// <returns><c>true</c> if the two sets are not equivalent, otherwise <c>false</c>.</returns>
         public static bool operator !=(NormalizedTextSpanCollection left, NormalizedTextSpanCollection right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         /// <summary>
         /// Determines whether this span set overlaps with another span set.

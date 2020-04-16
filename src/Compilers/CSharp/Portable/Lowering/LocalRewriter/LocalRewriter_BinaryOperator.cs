@@ -495,6 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       by including it as a part of whenNull, but there is a concern 
             //       that it can lead to code duplication
             var optimize = conditionalLeft != null &&
+                operatorKind != BinaryOperatorKind.LiftedBoolOr && operatorKind != BinaryOperatorKind.LiftedBoolAnd &&
                 !ReadIsSideeffecting(loweredRight) &&
                 (conditionalLeft.WhenNullOpt == null || conditionalLeft.WhenNullOpt.IsDefaultValue());
 

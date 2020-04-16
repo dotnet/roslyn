@@ -8,10 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -326,11 +323,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return result;
         }
 
-        private static ImmutableDictionary<string, string> GetProperties(ObjectReader reader, int count)
+        private static ImmutableDictionary<string, string?> GetProperties(ObjectReader reader, int count)
         {
             if (count > 0)
             {
-                var properties = ImmutableDictionary.CreateBuilder<string, string>();
+                var properties = ImmutableDictionary.CreateBuilder<string, string?>();
                 for (var i = 0; i < count; i++)
                 {
                     properties.Add(reader.ReadString(), reader.ReadString());
@@ -339,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 return properties.ToImmutable();
             }
 
-            return ImmutableDictionary<string, string>.Empty;
+            return ImmutableDictionary<string, string?>.Empty;
         }
 
         private static IReadOnlyList<string> GetCustomTags(ObjectReader reader, int count)

@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.FindSymbols.Finders
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -16,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
         Implements ILanguageServiceReferenceFinder
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

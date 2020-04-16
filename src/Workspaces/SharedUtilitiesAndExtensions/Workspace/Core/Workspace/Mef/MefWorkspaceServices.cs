@@ -137,9 +137,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         public override bool IsSupported(string languageName)
-        {
-            return this.GetSupportedLanguages().Contains(languageName);
-        }
+            => this.GetSupportedLanguages().Contains(languageName);
 
         public override HostLanguageServices GetLanguageServices(string languageName)
         {
@@ -178,8 +176,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
-        {
-            return _languageServicesMap.TryGetValue(languageName, out languageServices);
-        }
+            => _languageServicesMap.TryGetValue(languageName, out languageServices);
     }
 }

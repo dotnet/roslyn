@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -77,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (targetDocument != null)
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
-                    var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+                    var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
                     return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
                 }
             }
@@ -121,16 +124,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Check whether decompilation is supported for the project. We currently only support this for C# projects.
             if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
             {
+                var eulaService = project.Solution.Workspace.Services.GetRequiredService<IDecompilerEulaService>();
                 allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
-                if (allowDecompilation && !project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer))
+                if (allowDecompilation && !ThreadingContext.JoinableTaskFactory.Run(() => eulaService.IsAcceptedAsync(cancellationToken)))
                 {
-                    var notificationService = project.Solution.Workspace.Services.GetService<INotificationService>();
+                    var notificationService = project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
                     allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
                     if (allowDecompilation)
                     {
-                        var workspace = project.Solution.Workspace;
-                        workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                            .WithChangedOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer, true)));
+                        ThreadingContext.JoinableTaskFactory.Run(() => eulaService.MarkAcceptedAsync(cancellationToken));
                     }
                 }
             }
@@ -163,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (openedDocument != null)
             {
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;
-                var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+                var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 return navigationService.TryNavigateToSpan(
                     workspace: editorWorkspace,
@@ -176,9 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
-        {
-            return TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
-        }
+            => TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
 
         private bool TryNotifyForSpecificSymbol(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool WouldNavigateToSymbol(
             DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
-            out string filePath, out int lineNumber, out int charOffset)
+            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
         {
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool WouldNotifyToSpecificSymbol(
             DefinitionItem definitionItem, string rqName, Solution solution, CancellationToken cancellationToken,
-            out string filePath, out int lineNumber, out int charOffset)
+            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
         {
             AssertIsForeground();
 
@@ -271,9 +271,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             DefinitionItem definitionItem,
             string rqName,
             CancellationToken cancellationToken,
-            out IVsHierarchy hierarchy,
+            [NotNullWhen(true)] out IVsHierarchy? hierarchy,
             out uint itemID,
-            out IVsSymbolicNavigationNotify navigationNotify)
+            [NotNullWhen(true)] out IVsSymbolicNavigationNotify? navigationNotify)
         {
             AssertIsForeground();
 
@@ -315,18 +315,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private bool TryGetVsHierarchyAndItemId(Document document, out IVsHierarchy hierarchy, out uint itemID)
+        private bool TryGetVsHierarchyAndItemId(Document document, [NotNullWhen(true)] out IVsHierarchy? hierarchy, out uint itemID)
         {
             AssertIsForeground();
 
-            if (document.Project.Solution.Workspace is VisualStudioWorkspace visualStudioWorkspace)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspace visualStudioWorkspace
+                && document.FilePath is object)
             {
                 hierarchy = visualStudioWorkspace.GetHierarchy(document.Project.Id);
-                itemID = hierarchy.TryGetItemId(document.FilePath);
-
-                if (itemID != VSConstants.VSITEMID_NIL)
+                if (hierarchy is object)
                 {
-                    return true;
+                    itemID = hierarchy.TryGetItemId(document.FilePath);
+                    if (itemID != VSConstants.VSITEMID_NIL)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -338,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private IVsRunningDocumentTable GetRunningDocumentTable()
         {
             var runningDocumentTable = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable>();
-            Debug.Assert(runningDocumentTable != null);
+            RoslynDebug.Assert(runningDocumentTable != null);
             return runningDocumentTable;
         }
     }

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -54,14 +53,10 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
-        {
-            Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
-        }
+            => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
         private void OnDocumentClosed(object sender, DocumentEventArgs args)
-        {
-            Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
-        }
+            => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
         {

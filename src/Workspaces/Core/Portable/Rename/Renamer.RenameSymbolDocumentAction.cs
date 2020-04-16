@@ -28,8 +28,14 @@ namespace Microsoft.CodeAnalysis.Rename
 
             private RenameSymbolDocumentAction(
                 AnalysisResult analysis,
+<<<<<<< HEAD
                 ImmutableArray<ErrorResource> errors)
                 : base(errors)
+=======
+                OptionSet optionSet,
+                ImmutableArray<ErrorResource> errors)
+                : base(errors, optionSet)
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
             {
                 _analysis = analysis;
             }
@@ -37,7 +43,11 @@ namespace Microsoft.CodeAnalysis.Rename
             public override string GetDescription(CultureInfo? culture)
                 => string.Format(WorkspacesResources.ResourceManager.GetString("Rename_0_to_1", culture ?? WorkspacesResources.Culture)!, _analysis.OriginalDocumentName, _analysis.NewDocumentName);
 
+<<<<<<< HEAD
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
+=======
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, CancellationToken cancellationToken)
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
             {
                 var solution = document.Project.Solution;
                 var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(document, _analysis.OriginalSymbolName!, cancellationToken).ConfigureAwait(false);
@@ -47,7 +57,11 @@ namespace Microsoft.CodeAnalysis.Rename
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbol = semanticModel.GetDeclaredSymbol(matchingTypeDeclaration, cancellationToken);
 
+<<<<<<< HEAD
                     solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, optionSet, cancellationToken).ConfigureAwait(false);
+=======
+                    solution = await RenameSymbolAsync(solution, symbol, _analysis.NewSymbolName, OptionSet, cancellationToken).ConfigureAwait(false);
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
                 }
 
                 return solution;
@@ -58,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
+<<<<<<< HEAD
                 var typeDeclarations = syntaxRoot.DescendantNodesAndSelf(n => !syntaxFacts.IsMethodBody(n)).Where(syntaxFacts.IsTypeDeclaration);
                 return typeDeclarations.FirstOrDefault(d => syntaxFacts.GetDisplayName(d, DisplayNameOptions.None).Equals(name, StringComparison.OrdinalIgnoreCase));
             }
@@ -92,6 +107,19 @@ namespace Microsoft.CodeAnalysis.Rename
                     }
 
                     return new AnalysisResult(document, newName, newSymbolName, symbol.Name);
+=======
+                var typeDeclarations = syntaxRoot.DescendantNodesAndSelf().Where(syntaxFacts.IsTypeDeclaration);
+                return typeDeclarations.FirstOrDefault(d => syntaxFacts.GetDisplayName(d, DisplayNameOptions.None).Equals(name, StringComparison.OrdinalIgnoreCase));
+            }
+
+            public static async Task<RenameSymbolDocumentAction?> TryCreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
+            {
+                var analysis = await AnalysisResult.CreateAsync(document, newName, optionSet, cancellationToken).ConfigureAwait(false);
+
+                if (analysis.ShouldApplyAction)
+                {
+                    return new RenameSymbolDocumentAction(analysis, optionSet, ImmutableArray<ErrorResource>.Empty);
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
                 }
 
                 return null;
@@ -102,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 public string OriginalDocumentName { get; }
                 public string NewDocumentName { get; }
                 public string NewSymbolName { get; }
+<<<<<<< HEAD
                 public string OriginalSymbolName { get; }
 
                 public AnalysisResult(
@@ -114,6 +143,36 @@ namespace Microsoft.CodeAnalysis.Rename
                     NewDocumentName = newDocumentName;
                     NewSymbolName = newSymbolName;
                     OriginalSymbolName = originalSymbolName;
+=======
+                public string? OriginalSymbolName { get; }
+                public bool ShouldApplyAction => OriginalSymbolName != null && NewSymbolName != OriginalSymbolName;
+
+                private AnalysisResult(
+                    Document document,
+                    string newName,
+                    ISymbol? symbol = null)
+                {
+                    OriginalDocumentName = document.Name;
+                    NewDocumentName = newName;
+                    NewSymbolName = Path.GetFileNameWithoutExtension(newName);
+                    OriginalSymbolName = symbol?.Name;
+                }
+
+                public static async Task<AnalysisResult> CreateAsync(Document document, string newName, OptionSet optionSet, CancellationToken cancellationToken)
+                {
+                    // TODO: Detect naming conflicts ahead of time
+                    var originalSymbolName = Path.GetFileNameWithoutExtension(document.Name);
+                    var matchingDeclaration = await GetMatchingTypeDeclarationAsync(document, originalSymbolName, cancellationToken).ConfigureAwait(false);
+
+                    if (matchingDeclaration is object)
+                    {
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        var symbol = semanticModel.GetDeclaredSymbol(matchingDeclaration, cancellationToken);
+                        return new AnalysisResult(document, newName, symbol);
+                    }
+
+                    return new AnalysisResult(document, newName);
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
                 }
             }
         }

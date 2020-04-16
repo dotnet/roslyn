@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
@@ -1293,9 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         private static SyntaxToken FindTokenOnLeftOfNode(SyntaxNode node)
-        {
-            return node.FindTokenOnLeftOfPosition(node.SpanStart);
-        }
+            => node.FindTokenOnLeftOfPosition(node.SpanStart);
 
 
         public static bool IsPossibleTupleOpenParenOrComma(this SyntaxToken possibleCommaOrParen)
@@ -1436,9 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool HasNames(this TupleExpressionSyntax tuple)
-        {
-            return tuple.Arguments.Any(a => a.NameColon != null);
-        }
+            => tuple.Arguments.Any(a => a.NameColon != null);
 
         public static bool IsValidContextForFromClause(
             this SyntaxTree syntaxTree,

@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -29,20 +32,17 @@ namespace Microsoft.CodeAnalysis.Formatting
             _containPredicate = (value, start, end) => Contains(value, start, end, in Introspector);
         }
 
+        [return: MaybeNull]
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
-        }
+            => GetSmallestContainingIntervalWorker(start, length, _edgeExclusivePredicate);
 
+        [return: MaybeNull]
         public T GetSmallestEdgeInclusivelyContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
-        }
+            => GetSmallestContainingIntervalWorker(start, length, _edgeInclusivePredicate);
 
+        [return: MaybeNull]
         public T GetSmallestContainingInterval(int start, int length)
-        {
-            return GetSmallestContainingIntervalWorker(start, length, _containPredicate);
-        }
+            => GetSmallestContainingIntervalWorker(start, length, _containPredicate);
 
         private bool ContainsEdgeExclusive(T value, int start, int length)
         {
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return thisStart <= otherStart && otherEnd <= thisEnd;
         }
 
+        [return: MaybeNull]
         private T GetSmallestContainingIntervalWorker(int start, int length, Func<T, int, int, bool> predicate)
         {
             var result = default(T);
@@ -125,9 +126,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                     if (predicate(currentNode.Value, start, length))
                     {
                         // hold onto best answer
-                        if (EqualityComparer<T>.Default.Equals(result, default) ||
-                            (Introspector.GetStart(result) <= Introspector.GetStart(currentNode.Value) &&
-                             Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result)))
+                        if (EqualityComparer<T/*??*/>.Default.Equals(result!, default!) ||
+                            (Introspector.GetStart(result!) <= Introspector.GetStart(currentNode.Value) &&
+                             Introspector.GetLength(currentNode.Value) < Introspector.GetLength(result!)))
                         {
                             result = currentNode.Value;
                         }
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         {
                             // right side tree doesn't have any answer or if the right side has
                             // an answer but left side can have better answer then try left side
-                            if (EqualityComparer<T>.Default.Equals(result, default) ||
+                            if (EqualityComparer<T/*??*/>.Default.Equals(result!, default!) ||
                                 Introspector.GetStart(parentNode.Value) == Introspector.GetStart(currentNode.Value))
                             {
                                 // put left as new root, and break out inner loop

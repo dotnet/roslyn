@@ -5,7 +5,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -106,18 +105,12 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public override string ToString()
-        {
-            return string.Format("{0} - {1}", this.Feature, this.Name);
-        }
+            => string.Format("{0} - {1}", this.Feature, this.Name);
 
         public static bool operator ==(OptionDefinition left, OptionDefinition right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(OptionDefinition left, OptionDefinition right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

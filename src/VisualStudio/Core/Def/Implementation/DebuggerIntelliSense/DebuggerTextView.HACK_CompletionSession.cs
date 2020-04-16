@@ -56,9 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         }
 
         private void CompletionOrSignatureHelpSession_Dismissed(object sender, EventArgs e)
-        {
-            HACK_RemoveShimCompletionSession();
-        }
+            => HACK_RemoveShimCompletionSession();
 
         /// <remarks>
         /// Dev11's debugger intellisense uses the old completion shims and routes commands through
@@ -85,9 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             public int Count = 0;
 
             public void Commit()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             // We've got a bunch of unused events, so disable the unused event warning.
 #pragma warning disable 67
@@ -99,9 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
 
             public void Filter()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public bool IsStarted
             {
@@ -122,9 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             public event EventHandler<ValueChangedEventArgs<CompletionSet>> SelectedCompletionSetChanged;
 
             public void Collapse()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public void Dismiss()
             {
@@ -134,14 +126,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             public event EventHandler Dismissed;
 
             public SnapshotPoint? GetTriggerPoint(ITextSnapshot textSnapshot)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ITrackingPoint GetTriggerPoint(ITextBuffer textBuffer)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             // The shim controller actually does check IsDismissed immediately after checking for a
             // session, so this implementation can't throw. 
@@ -151,9 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
 
             public bool Match()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public IIntellisensePresenter Presenter
             {
@@ -166,16 +152,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             public event EventHandler PresenterChanged;
 
             public void Recalculate()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public event EventHandler Recalculated;
 
             public void Start()
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public ITextView TextView
             {

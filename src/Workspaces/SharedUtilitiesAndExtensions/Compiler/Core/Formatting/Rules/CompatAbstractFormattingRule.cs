@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        public override sealed AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var nextOperationCopy = nextOperation;
             return GetAdjustNewLinesOperationSlow(previousToken, currentToken, options, ref nextOperationCopy);
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         [Obsolete("Do not call this method directly (it will Stack Overflow).", error: true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public override sealed AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override sealed AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
             var nextOperationCopy = nextOperation;
             return GetAdjustSpacesOperationSlow(previousToken, currentToken, options, ref nextOperationCopy);
@@ -66,48 +68,36 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// filtering/replacing operations returned by NextOperation
         /// </summary>
         public virtual void AddSuppressOperationsSlow(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextSuppressOperationAction nextOperation)
-        {
-            base.AddSuppressOperations(list, node, options, in nextOperation);
-        }
+            => base.AddSuppressOperations(list, node, options, in nextOperation);
 
         /// <summary>
         /// returns AnchorIndentationOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
         public virtual void AddAnchorIndentationOperationsSlow(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextAnchorIndentationOperationAction nextOperation)
-        {
-            base.AddAnchorIndentationOperations(list, node, options, in nextOperation);
-        }
+            => base.AddAnchorIndentationOperations(list, node, options, in nextOperation);
 
         /// <summary>
         /// returns IndentBlockOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
         public virtual void AddIndentBlockOperationsSlow(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextIndentBlockOperationAction nextOperation)
-        {
-            base.AddIndentBlockOperations(list, node, options, in nextOperation);
-        }
+            => base.AddIndentBlockOperations(list, node, options, in nextOperation);
 
         /// <summary>
         /// returns AlignTokensOperations under a node either by itself or by filtering/replacing operations returned by NextOperation
         /// </summary>
         public virtual void AddAlignTokensOperationsSlow(List<AlignTokensOperation> list, SyntaxNode node, AnalyzerConfigOptions options, ref NextAlignTokensOperationAction nextOperation)
-        {
-            base.AddAlignTokensOperations(list, node, options, in nextOperation);
-        }
+            => base.AddAlignTokensOperations(list, node, options, in nextOperation);
 
         /// <summary>
         /// returns AdjustNewLinesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustNewLinesOperation GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustNewLinesOperation nextOperation)
-        {
-            return base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
-        }
+        public virtual AdjustNewLinesOperation? GetAdjustNewLinesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustNewLinesOperation nextOperation)
+            => base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
 
         /// <summary>
         /// returns AdjustSpacesOperation between two tokens either by itself or by filtering/replacing a operation returned by NextOperation
         /// </summary>
-        public virtual AdjustSpacesOperation GetAdjustSpacesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustSpacesOperation nextOperation)
-        {
-            return base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
-        }
+        public virtual AdjustSpacesOperation? GetAdjustSpacesOperationSlow(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, ref NextGetAdjustSpacesOperation nextOperation)
+            => base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
     }
 }

@@ -246,8 +246,6 @@ namespace Microsoft.CodeAnalysis.Differencing
         }
 
         private static bool ContainsPair(Dictionary<TNode, TNode> dict, TNode a, TNode b)
-        {
-            return dict.TryGetValue(a, out var value) && value.Equals(b);
-        }
+            => dict.TryGetValue(a, out var value) && value.Equals(b);
     }
 }

@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
@@ -100,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function GetTriviaList(cancellationToken As Threading.CancellationToken) As List(Of SyntaxTrivia)
+            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As SyntaxTriviaList
                 Throw New NotImplementedException()
             End Function
         End Class

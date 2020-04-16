@@ -71,14 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override object GetItemKey(object data) => data;
 
                 protected override object GetOrUpdateAggregationKey(object data)
-                {
-                    return data;
-                }
+                    => data;
 
                 public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
-                {
-                    return new TableEntriesSource(this);
-                }
+                    => new TableEntriesSource(this);
 
                 public override AbstractTableEntriesSnapshot<DiagnosticTableItem> CreateSnapshot(AbstractTableEntriesSource<DiagnosticTableItem> source, int version, ImmutableArray<DiagnosticTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
@@ -100,9 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly BuildTableDataSource _source;
 
                     public TableEntriesSource(BuildTableDataSource source)
-                    {
-                        _source = source;
-                    }
+                        => _source = source;
 
                     public override object Key => _source._key;
                     public override string BuildTool => PredefinedBuildTools.Build;
@@ -117,9 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     public override ImmutableArray<ITrackingPoint> GetTrackingPoints(ImmutableArray<DiagnosticTableItem> items)
-                    {
-                        return ImmutableArray<ITrackingPoint>.Empty;
-                    }
+                        => ImmutableArray<ITrackingPoint>.Empty;
                 }
 
                 private class TableEntriesSnapshot : AbstractTableEntriesSnapshot<DiagnosticTableItem>

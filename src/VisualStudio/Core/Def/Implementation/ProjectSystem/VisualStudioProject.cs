@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.PlatformUI;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private CompilationOptions? _compilationOptions;
         private ParseOptions? _parseOptions;
         private bool _hasAllInformation = true;
-        private string? _intermediateOutputFilePath;
+        private string? _compilationOutputAssemblyFilePath;
         private string? _outputFilePath;
         private string? _outputRefFilePath;
         private string? _defaultNamespace;
@@ -244,21 +245,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        internal string? IntermediateOutputFilePath
+        internal string? CompilationOutputAssemblyFilePath
         {
-            get => _intermediateOutputFilePath;
-            set
-            {
-                // The Project System doesn't always indicate whether we emit PDB, what kind of PDB we emit nor the path of the PDB.
-                // To work around we look for the PDB on the path specified in the PDB debug directory.
-                // https://github.com/dotnet/roslyn/issues/35065
-                _workspace.SetCompilationOutputs(Id, new CompilationOutputFilesWithImplicitPdbPath(value));
-
-                // Unlike OutputFilePath and OutputRefFilePath, the intermediate output path isn't represented in the workspace anywhere;
-                // thus, we won't mutate the solution. We'll still call ChangeProjectOutputPath so we have the rest of the output path tracking
-                // for any P2P reference conversion.
-                ChangeProjectOutputPath(ref _intermediateOutputFilePath, value, s => s);
-            }
+            get => _compilationOutputAssemblyFilePath;
+            set => ChangeProjectOutputPath(
+                       ref _compilationOutputAssemblyFilePath,
+                       value,
+                       s => s.WithProjectCompilationOutputFilePaths(Id, s.GetRequiredProject(Id).CompilationOutputFilePaths.WithAssemblyPath(value)));
         }
 
         public string? OutputFilePath
@@ -368,9 +361,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private volatile int _disposed = 0;
 
             internal BatchScope(VisualStudioProject visualStudioProject)
-            {
-                _project = visualStudioProject;
-            }
+                => _project = visualStudioProject;
 
             public void Dispose()
             {
@@ -562,9 +553,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Source File Addition/Removal
 
         public void AddSourceFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, ImmutableArray<string> folders = default)
-        {
-            _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
-        }
+            => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
         public DocumentId AddSourceTextContainer(
             SourceTextContainer textContainer,
@@ -577,19 +566,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public bool ContainsSourceFile(string fullPath)
-        {
-            return _sourceFiles.ContainsFile(fullPath);
-        }
+            => _sourceFiles.ContainsFile(fullPath);
 
         public void RemoveSourceFile(string fullPath)
-        {
-            _sourceFiles.RemoveFile(fullPath);
-        }
+            => _sourceFiles.RemoveFile(fullPath);
 
         public void RemoveSourceTextContainer(SourceTextContainer textContainer)
-        {
-            _sourceFiles.RemoveTextContainer(textContainer);
-        }
+            => _sourceFiles.RemoveTextContainer(textContainer);
 
         #endregion
 
@@ -597,19 +580,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         // TODO: should AdditionalFiles have source code kinds?
         public void AddAdditionalFile(string fullPath, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
-        {
-            _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
-        }
+            => _additionalFiles.AddFile(fullPath, sourceCodeKind, folders: default);
 
         public bool ContainsAdditionalFile(string fullPath)
-        {
-            return _additionalFiles.ContainsFile(fullPath);
-        }
+            => _additionalFiles.ContainsFile(fullPath);
 
         public void RemoveAdditionalFile(string fullPath)
-        {
-            _additionalFiles.RemoveFile(fullPath);
-        }
+            => _additionalFiles.RemoveFile(fullPath);
 
         #endregion
 
@@ -622,14 +599,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public bool ContainsAnalyzerConfigFile(string fullPath)
-        {
-            return _analyzerConfigFiles.ContainsFile(fullPath);
-        }
+            => _analyzerConfigFiles.ContainsFile(fullPath);
 
         public void RemoveAnalyzerConfigFile(string fullPath)
-        {
-            _analyzerConfigFiles.RemoveFile(fullPath);
-        }
+            => _analyzerConfigFiles.RemoveFile(fullPath);
 
         #endregion
 
@@ -712,16 +685,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void AddAnalyzerReference(string fullPath)
         {
-            if (string.IsNullOrEmpty(fullPath))
-            {
-                throw new ArgumentException("message", nameof(fullPath));
-            }
+            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
             var visualStudioAnalyzer = new VisualStudioAnalyzer(
                 fullPath,
                 _hostDiagnosticUpdateSource,
                 Id,
-                _workspace,
                 Language);
 
             lock (_gate)
@@ -1007,15 +976,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 _eventSubscriptionTracker.Clear();
-
-                // Clear any file watchers we still have for references
-                foreach (PortableExecutableReference reference in _workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences)
-                {
-                    _workspace.FileWatchedReferenceFactory.StopWatchingReference(reference);
-                }
             }
 
-            _workspace.ApplyChangeToWorkspace(w => w.OnProjectRemoved(Id));
+            IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
+
+            _workspace.ApplyChangeToWorkspace(w =>
+            {
+                // Acquire the remaining metadata references inside the workspace lock. This is critical
+                // as another project being removed at the same time could result in project to project
+                // references being converted to metadata references (or vice versa) and we might either
+                // miss stopping a file watcher or might end up double-stopping a file watcher.
+                remainingMetadataReferences = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences;
+                w.OnProjectRemoved(Id);
+            });
+
+            Contract.ThrowIfNull(remainingMetadataReferences);
+
+            foreach (PortableExecutableReference reference in remainingMetadataReferences)
+            {
+                _workspace.FileWatchedReferenceFactory.StopWatchingReference(reference);
+            }
         }
 
         /// <summary>
@@ -1046,9 +1026,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public void ReorderSourceFiles(ImmutableArray<string> filePaths)
-        {
-            _sourceFiles.ReorderFiles(filePaths);
-        }
+            => _sourceFiles.ReorderFiles(filePaths);
 
         /// <summary>
         /// Clears a list and zeros out the capacity. The lists we use for batching are likely to get large during an initial load, but after
@@ -1426,9 +1404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             public void ProcessFileChange(string filePath)
-            {
-                ProcessFileChange(filePath, filePath);
-            }
+                => ProcessFileChange(filePath, filePath);
 
             /// <summary>
             /// Process file content changes
@@ -1619,9 +1595,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 private readonly IDocumentServiceProvider _provider;
 
                 public DynamicFileDocumentServiceProvider(IDocumentServiceProvider provider)
-                {
-                    _provider = provider;
-                }
+                    => _provider = provider;
 
                 TService IDocumentServiceProvider.GetService<TService>()
                 {
@@ -1646,9 +1620,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
-                }
+                    => Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
             }
         }
     }

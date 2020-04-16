@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Host
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspaceAsynchronousOperationListenerProvider(IAsynchronousOperationListenerProvider listenerProvider)
-        {
-            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-        }
+            => _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
 
         public IAsynchronousOperationListener GetListener()
             => _listener;

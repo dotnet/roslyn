@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
+        private InitializerExpressionSyntax? GetInitializerNode(SyntaxNode node)
             => node switch
             {
                 ObjectCreationExpressionSyntax objectCreationNode => objectCreationNode.Initializer,
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return null;
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
         {
             var operation = nextOperation.Invoke();
             if (operation == null)
@@ -102,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     currentToken.IsKind(SyntaxKind.WhereKeyword) &&
                     currentToken.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
                 {
+                    RoslynDebug.AssertNotNull(previousToken.Parent);
+
                     // Check if there is another TypeParameterConstraintClause before
                     if (previousToken.Parent.Ancestors().OfType<TypeParameterConstraintClauseSyntax>().Any())
                     {
@@ -148,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return CreateAdjustNewLinesOperation(line, AdjustNewLinesOption.ForceLines);
         }
 
-        private AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
+        private AdjustNewLinesOperation? GetAdjustNewLinesOperationBetweenMembers(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             if (!FormattingRangeHelper.InBetweenTwoMembers(previousToken, currentToken))
             {
@@ -214,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return FormattingOperations.CreateAdjustNewLinesOperation(2 /* +1 for member itself and +1 for a blank line*/, AdjustNewLinesOption.ForceLines);
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
             var operation = nextOperation.Invoke();
             if (operation == null)
@@ -316,14 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     break;
             }
 
-            if ((currentToken.Kind() == SyntaxKind.FromKeyword && currentToken.Parent.Kind() == SyntaxKind.FromClause) ||
-                (currentToken.Kind() == SyntaxKind.LetKeyword && currentToken.Parent.Kind() == SyntaxKind.LetClause) ||
-                (currentToken.Kind() == SyntaxKind.WhereKeyword && currentToken.Parent.Kind() == SyntaxKind.WhereClause) ||
-                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.Kind() == SyntaxKind.JoinClause) ||
-                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.Kind() == SyntaxKind.JoinIntoClause) ||
-                (currentToken.Kind() == SyntaxKind.OrderByKeyword && currentToken.Parent.Kind() == SyntaxKind.OrderByClause) ||
-                (currentToken.Kind() == SyntaxKind.SelectKeyword && currentToken.Parent.Kind() == SyntaxKind.SelectClause) ||
-                (currentToken.Kind() == SyntaxKind.GroupKeyword && currentToken.Parent.Kind() == SyntaxKind.GroupClause))
+            if ((currentToken.Kind() == SyntaxKind.FromKeyword && currentToken.Parent.IsKind(SyntaxKind.FromClause)) ||
+                (currentToken.Kind() == SyntaxKind.LetKeyword && currentToken.Parent.IsKind(SyntaxKind.LetClause)) ||
+                (currentToken.Kind() == SyntaxKind.WhereKeyword && currentToken.Parent.IsKind(SyntaxKind.WhereClause)) ||
+                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.IsKind(SyntaxKind.JoinClause)) ||
+                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.IsKind(SyntaxKind.JoinIntoClause)) ||
+                (currentToken.Kind() == SyntaxKind.OrderByKeyword && currentToken.Parent.IsKind(SyntaxKind.OrderByClause)) ||
+                (currentToken.Kind() == SyntaxKind.SelectKeyword && currentToken.Parent.IsKind(SyntaxKind.SelectClause)) ||
+                (currentToken.Kind() == SyntaxKind.GroupKeyword && currentToken.Parent.IsKind(SyntaxKind.GroupClause)))
             {
                 return 1;
             }
@@ -386,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
             else if (
                 nextToken.Kind() == SyntaxKind.WhileKeyword &&
-                nextToken.Parent.Kind() == SyntaxKind.DoStatement)
+                nextToken.Parent.IsKind(SyntaxKind.DoStatement))
             {
                 return 1;
             }
@@ -435,8 +440,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private int GetNumberOfLines(IEnumerable<SyntaxTrivia> triviaList)
-        {
-            return triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
-        }
+            => triviaList.Sum(t => t.ToFullString().Replace("\r\n", "\r").Cast<char>().Count(c => SyntaxFacts.IsNewLine(c)));
     }
 }

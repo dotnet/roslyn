@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -55,7 +55,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (!newDocumentName.Equals(document.Name))
             {
+<<<<<<< HEAD
                 var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, cancellationToken).ConfigureAwait(false);
+=======
+                var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, optionSet, cancellationToken).ConfigureAwait(false);
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
 
                 if (renameAction is object)
                 {
@@ -68,8 +72,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 document.Project.Id,
                 document.Id,
                 newDocumentName,
+<<<<<<< HEAD
                 document.Folders,
                 optionSet);
+=======
+                document.Folders);
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
         }
 
         /// <summary>
@@ -101,7 +109,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (!newFolders.SequenceEqual(document.Folders))
             {
+<<<<<<< HEAD
                 var action = await SyncNamespaceDocumentAction.TryCreateAsync(document, newFolders, cancellationToken).ConfigureAwait(false);
+=======
+                var action = await SyncNamespaceDocumentAction.TryCreateAsync(document, newFolders, optionSet, cancellationToken).ConfigureAwait(false);
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
 
                 if (action is object)
                 {
@@ -114,14 +126,18 @@ namespace Microsoft.CodeAnalysis.Rename
                 document.Project.Id,
                 document.Id,
                 document.Name,
+<<<<<<< HEAD
                 newFolders,
                 optionSet);
+=======
+                newFolders);
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
         }
 
         internal static Task<Solution> RenameSymbolAsync(
             Solution solution, SymbolAndProjectId symbolAndProjectId, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
         {
-            return RenameSymbolAsync(solution, symbolAndProjectId, newName, optionSet, filter: null, cancellationToken: cancellationToken);
+            return RenameSymbolAsync(solution, symbolAndProjectId, newName, optionSet, nonConflictSymbols: null, cancellationToken);
         }
 
         internal static Task<RenameLocations> GetRenameLocationsAsync(
@@ -147,29 +163,16 @@ namespace Microsoft.CodeAnalysis.Rename
         internal static async Task<Solution> RenameAsync(
             RenameLocations locations,
             string newName,
-            Func<Location, bool> filter = null,
-            Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
+            ImmutableHashSet<ISymbol> nonConflictSymbols = null,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(newName))
-            {
                 throw new ArgumentException(nameof(newName));
-            }
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var symbolAndProjectId = locations.SymbolAndProjectId;
-            if (filter != null)
-            {
-                locations = new RenameLocations(
-                    locations.Locations.Where(loc => filter(loc.Location)).ToSet(),
-                    symbolAndProjectId, locations.Solution,
-                    locations.ReferencedSymbols, locations.ImplicitLocations.Where(loc => filter(loc.Location)),
-                    locations.Options);
-            }
-
             var conflictResolution = await ConflictResolver.ResolveConflictsAsync(
-                locations, symbolAndProjectId.Symbol.Name, newName, locations.Options, hasConflict, cancellationToken).ConfigureAwait(false);
+                locations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
 
             return conflictResolution.NewSolution;
         }
@@ -179,25 +182,20 @@ namespace Microsoft.CodeAnalysis.Rename
             SymbolAndProjectId symbolAndProjectId,
             string newName,
             OptionSet options,
-            Func<Location, bool> filter,
-            Func<IEnumerable<ISymbol>, bool?> hasConflict = null,
+            ImmutableHashSet<ISymbol> nonConflictSymbols = null,
             CancellationToken cancellationToken = default)
         {
             if (solution == null)
-            {
                 throw new ArgumentNullException(nameof(solution));
-            }
 
             if (symbolAndProjectId.Symbol == null)
-            {
                 throw new ArgumentNullException(nameof(symbolAndProjectId));
-            }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             options ??= solution.Workspace.Options;
             var renameLocations = await GetRenameLocationsAsync(solution, symbolAndProjectId, options, cancellationToken).ConfigureAwait(false);
-            return await RenameAsync(renameLocations, newName, filter, hasConflict, cancellationToken).ConfigureAwait(false);
+            return await RenameAsync(renameLocations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
     }
 }

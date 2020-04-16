@@ -89,7 +89,8 @@
     </Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName>
 
     <!--     
-      Exclude dependencies that are not inserted from Roslyn repo.
+      Exclude dependencies that are not inserted from Roslyn repo and are installed by other VS components.
+      
       Note: can't use globs due to https://github.com/Microsoft/msbuild/issues/3791.
       
       these dependency should be removed once StreamJsonRpc adds a build target for
@@ -101,26 +102,33 @@
     -->
     <ItemGroup>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.'))"/>
+      <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.ServiceHub.'))"/>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('System.Composition.'))"/>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.Internal.VisualStudio.'))"/>
       <_Dependency Remove="EnvDTE"/>
       <_Dependency Remove="EnvDTE80"/>
+      <_Dependency Remove="Microsoft.Bcl.AsyncInterfaces"/>
       <_Dependency Remove="Microsoft.Build"/>
       <_Dependency Remove="Microsoft.Build.Framework"/>
+      <_Dependency Remove="Microsoft.Diagnostics.Tracing.EventSource.Redist"/>
       <_Dependency Remove="Microsoft.MSXML"/>
+      <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
+      <_Dependency Remove="Microsoft.Win32.Registry"/>
+      <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="Newtonsoft.Json"/>
+      <_Dependency Remove="NuGet.VisualStudio"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
-      <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.ValueTuple"/>
+      <_Dependency Remove="System.Security.AccessControl"/>
+      <_Dependency Remove="System.Security.Principal.Windows"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
       <_Dependency Remove="VSLangProj80"/>
-      <_Dependency Remove="Microsoft.Win32.Registry"/>
-      <_Dependency Remove="System.Security.AccessControl"/>
-      <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="VSLangProj140"/>
+      <_Dependency Remove="VsWebSite.Interop"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -556,9 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(int index, IEnumerable<IMethodSymbol> methods, AttributeArgumentSyntax argumentOpt = null)
-            {
-                return InferTypeInAttributeArgument(index, methods.Select(m => m.Parameters), argumentOpt);
-            }
+                => InferTypeInAttributeArgument(index, methods.Select(m => m.Parameters), argumentOpt);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArgument(int index, IEnumerable<IMethodSymbol> methods, ArgumentSyntax argumentOpt, InvocationExpressionSyntax parentInvocationExpressionToTypeInfer)
             {
@@ -1120,9 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInConditionalAccessExpression(ConditionalAccessExpressionSyntax expression)
-            {
-                return InferTypes(expression);
-            }
+                => InferTypes(expression);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInConditionalExpression(ConditionalExpressionSyntax conditional, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
             {
@@ -1155,9 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInDefaultExpression(DefaultExpressionSyntax defaultExpression)
-            {
-                return InferTypes(defaultExpression);
-            }
+                => InferTypes(defaultExpression);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInDoStatement(DoStatementSyntax doStatement, SyntaxToken? previousToken = null)
             {
@@ -1266,9 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInImplicitArrayCreation(ImplicitArrayCreationExpressionSyntax implicitArray, SyntaxToken previousToken)
-            {
-                return InferTypes(implicitArray.SpanStart);
-            }
+                => InferTypes(implicitArray.SpanStart);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInInitializerExpression(
                 InitializerExpressionSyntax initializerExpression,

@@ -22,14 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class FixAllGetFixesService : IFixAllGetFixesService, IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixAllGetFixesService()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return this;
-        }
+            => this;
 
         public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllContext fixAllContext)
         {

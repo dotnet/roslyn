@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -65,23 +64,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 : descriptor.GetEffectiveSeverity(options);
         }
 
-        public static bool IsCompilerAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            // TODO: find better way.
-            var typeString = analyzer.GetType().FullName;
-            if (typeString == CSharpCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            if (typeString == VisualBasicCompilerAnalyzerTypeName)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
         {
             // Get the unique ID for given diagnostic analyzer.
@@ -91,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
-            => analyzer.GetType().Assembly.GetName().Name;
+            => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable;
 
         public static OptionSet GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
@@ -140,7 +122,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #pragma warning disable CS0612 // Type or member is obsolete
             var optionSet = await analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
 #pragma warning restore CS0612 // Type or member is obsolete
-            return (T)optionSet?.GetOption(new OptionKey(option, language)) ?? (T)option.DefaultValue!;
+
+            if (optionSet != null)
+            {
+                value = optionSet.GetOption<T>(new OptionKey(option, language));
+            }
+
+            return value ?? (T)option.DefaultValue!;
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
@@ -234,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 warningLevel: 0,
                 projectId: projectId,
                 customTags: ImmutableArray<string>.Empty,
-                properties: ImmutableDictionary<string, string>.Empty,
+                properties: ImmutableDictionary<string, string?>.Empty,
                 language: language);
         }
 
@@ -248,9 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
-        {
-            return analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
-        }
+            => analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
 
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             Project project,
@@ -321,8 +307,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             Document document,
             AnalysisKind kind,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
             CompilationWithAnalyzers? compilationWithAnalyzers,
-            Func<Project, ISkippedAnalyzersInfo>? getSkippedAnalyzersInfo,
             TextSpan? span,
             CancellationToken cancellationToken)
         {
@@ -375,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
             var singleAnalyzer = ImmutableArray.Create(analyzer);
-            var skippedAnalyzerInfo = getSkippedAnalyzersInfo?.Invoke(document.Project) ?? SkippedHostAnalyzersInfo.Default;
+            var skippedAnalyzerInfo = document.Project.GetSkippedAnalyzersInfo(analyzerInfoCache);
             ImmutableArray<string> filteredIds;
 
             switch (kind)
@@ -498,9 +484,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
-        {
-            return (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
-        }
+            => (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
 
         private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)
         {

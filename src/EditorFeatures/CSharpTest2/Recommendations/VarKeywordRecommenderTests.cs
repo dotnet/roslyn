@@ -359,9 +359,7 @@ $$"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestVarPatternInIs()
-        {
-            await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
-        }
+            => await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterRefInMemberContext()

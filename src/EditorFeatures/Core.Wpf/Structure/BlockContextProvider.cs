@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
             private readonly RoslynBlockContextProvider _provider;
 
             public BlockContextSource(RoslynBlockContextProvider provider)
-            {
-                _provider = provider;
-            }
+                => _provider = provider;
 
             public void Dispose()
             {

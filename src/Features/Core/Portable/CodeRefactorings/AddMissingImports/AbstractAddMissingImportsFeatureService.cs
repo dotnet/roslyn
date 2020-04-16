@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingOptions.AllowDisjointSpanMerging);
             var options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language);
 
-            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges();
+            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges(cancellationToken);
 
             // If there are no changes then, do less work.
             if (textChanges.Count == 0)
@@ -255,9 +255,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             private readonly SourceText _text;
 
             public CleanUpNewLinesFormatter(SourceText text)
-            {
-                _text = text;
-            }
+                => _text = text;
 
             public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
             {

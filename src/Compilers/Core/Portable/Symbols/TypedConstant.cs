@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull] [NotNullWhen(returnValue: true)] out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull][NotNullWhen(returnValue: true)] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {

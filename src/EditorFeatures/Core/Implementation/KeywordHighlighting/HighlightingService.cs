@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new PooledObjects.ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public HighlightingService(
             [ImportMany] IEnumerable<Lazy<IHighlighter, LanguageMetadata>> highlighters)
         {

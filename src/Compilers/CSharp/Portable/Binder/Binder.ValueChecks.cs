@@ -206,6 +206,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
+
+                case BoundKind.UnconvertedObjectCreationExpression:
+                    if (valueKind == BindValueKind.RValue)
+                    {
+                        return expr;
+                    }
+                    break;
             }
 
             bool hasResolutionErrors = false;

@@ -303,9 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         protected void AddAggregateKey(object data, object aggregateKey)
-        {
-            _aggregateKeyMap.Add(GetItemKey(data), aggregateKey);
-        }
+            => _aggregateKeyMap.Add(GetItemKey(data), aggregateKey);
 
         protected object TryGetAggregateKey(object data)
         {
@@ -319,9 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void RemoveAggregateKey_NoLock(object data)
-        {
-            _aggregateKeyMap.Remove(GetItemKey(data));
-        }
+            => _aggregateKeyMap.Remove(GetItemKey(data));
 
         IDisposable ITableDataSource.Subscribe(ITableDataSink sink)
         {
@@ -375,14 +371,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             public void Remove(ITableEntriesSnapshotFactory factory)
-            {
-                _sink.RemoveFactory(factory);
-            }
+                => _sink.RemoveFactory(factory);
 
             public void RemoveAll()
-            {
-                _sink.RemoveAllFactories();
-            }
+                => _sink.RemoveAllFactories();
 
             public void Dispose()
             {
@@ -401,14 +393,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             private void Register()
-            {
-                UpdateSubscriptions(s => s.Add(this));
-            }
+                => UpdateSubscriptions(s => s.Add(this));
 
             private void UnRegister()
-            {
-                UpdateSubscriptions(s => s.Remove(this));
-            }
+                => UpdateSubscriptions(s => s.Remove(this));
 
             private void UpdateSubscriptions(Func<ImmutableArray<SubscriptionWithoutLock>, ImmutableArray<SubscriptionWithoutLock>> update)
             {

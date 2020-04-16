@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string DebuggingLocationName = "Debugging.LocationName";
             public const string DebuggingNameResolver = "Debugging.NameResolver";
             public const string DebuggingProximityExpressions = "Debugging.ProximityExpressions";
+            public const string DecompiledSource = nameof(DecompiledSource);
             public const string Diagnostics = nameof(Diagnostics);
             public const string DisposeAnalysis = nameof(DisposeAnalysis);
             public const string DocCommentFormatting = nameof(DocCommentFormatting);

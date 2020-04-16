@@ -6,14 +6,10 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Threading;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
@@ -25,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public RenameTrackingCodeRefactoringProvider(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)

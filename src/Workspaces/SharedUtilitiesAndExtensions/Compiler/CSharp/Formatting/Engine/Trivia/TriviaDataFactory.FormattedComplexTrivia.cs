@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -56,34 +58,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                return _textChanges;
-            }
+                => _textChanges;
 
-            public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)
-            {
-                return _formatter.FormatToSyntaxTrivia(cancellationToken);
-            }
+            public override SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken)
+                => _formatter.FormatToSyntaxTrivia(cancellationToken);
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override TriviaData WithIndentation(int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void Format(FormattingContext context, ChainedFormattingRules formattingRules, Action<int, TokenStream, TriviaData> formattingResultApplier, CancellationToken cancellationToken, int tokenPairIndex = TokenPairIndexNotNeeded)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

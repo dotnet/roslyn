@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -16,9 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         private readonly ConflictingIdentifierTracker _tracker;
 
         public LabelConflictVisitor(SyntaxToken tokenBeingRenamed)
-        {
-            _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
-        }
+            => _tracker = new ConflictingIdentifierTracker(tokenBeingRenamed, StringComparer.Ordinal);
 
         public override void DefaultVisit(SyntaxNode node)
         {

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -15,6 +14,10 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -220,9 +223,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     private static void DisposeProjectCache(IDisposable projectCache)
-                    {
-                        projectCache?.Dispose();
-                    }
+                        => projectCache?.Dispose();
 
                     private void DisposeProjectCache()
                     {
@@ -452,9 +453,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     private Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
-                    {
-                        return RemoveDocumentAsync(Analyzers, documentId, cancellationToken);
-                    }
+                        => RemoveDocumentAsync(Analyzers, documentId, cancellationToken);
 
                     private static async Task RemoveDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId, CancellationToken cancellationToken)
                     {

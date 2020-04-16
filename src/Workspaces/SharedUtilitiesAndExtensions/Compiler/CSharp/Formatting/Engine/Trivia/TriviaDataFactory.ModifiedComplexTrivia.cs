@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -50,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
-            {
-                return _original.WithSpace(space, context, formattingRules);
-            }
+                => _original.WithSpace(space, context, formattingRules);
 
             public override TriviaData WithLine(
                 int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
@@ -100,15 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         cancellationToken));
             }
 
-            public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+            public override SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken)
+                => throw new NotImplementedException();
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -141,14 +140,10 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public override bool Equals(object obj)
-        {
-            return Equals(obj as SerializableSymbolUsageInfo);
-        }
+            => Equals(obj as SerializableSymbolUsageInfo);
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
-        }
+            => Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
     }
 
     internal class SerializableReferenceLocation

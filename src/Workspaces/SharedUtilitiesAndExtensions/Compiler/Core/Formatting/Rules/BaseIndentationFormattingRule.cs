@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     internal class BaseIndentationFormattingRule : AbstractFormattingRule
     {
-        private readonly AbstractFormattingRule _vbHelperFormattingRule;
+        private readonly AbstractFormattingRule? _vbHelperFormattingRule;
         private readonly int _baseIndentation;
         private readonly SyntaxToken _token1;
         private readonly SyntaxToken _token2;
-        private readonly SyntaxNode _commonNode;
+        private readonly SyntaxNode? _commonNode;
         private readonly TextSpan _span;
 
-        public BaseIndentationFormattingRule(SyntaxNode root, TextSpan span, int baseIndentation, AbstractFormattingRule vbHelperFormattingRule = null)
+        public BaseIndentationFormattingRule(SyntaxNode root, TextSpan span, int baseIndentation, AbstractFormattingRule? vbHelperFormattingRule = null)
         {
             _span = span;
             SetInnermostNodeForSpan(root, ref _span, out _token1, out _token2, out _commonNode);
@@ -65,44 +67,44 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private void AdjustIndentBlockOperation(List<IndentBlockOperation> list)
         {
-            for (var i = 0; i < list.Count; i++)
-            {
-                var operation = list[i];
-
-                // already filtered out operation
-                if (operation == null)
+            list.RemoveOrTransformAll(
+                (operation, self) =>
                 {
-                    continue;
-                }
+                    // already filtered out operation
+                    if (operation == null)
+                    {
+                        return null;
+                    }
 
-                // if span is same as us, make sure we only include ourselves.
-                if (_span == operation.TextSpan && !Myself(operation))
-                {
-                    list[i] = null;
-                    continue;
-                }
+                    // if span is same as us, make sure we only include ourselves.
+                    if (self._span == operation.TextSpan && !self.Myself(operation))
+                    {
+                        return null;
+                    }
 
-                // inside of us, skip it.
-                if (_span.Contains(operation.TextSpan))
-                {
-                    continue;
-                }
+                    // inside of us, skip it.
+                    if (self._span.Contains(operation.TextSpan))
+                    {
+                        return operation;
+                    }
 
-                // throw away operation that encloses ourselves
-                if (operation.TextSpan.Contains(_span))
-                {
-                    list[i] = null;
-                    continue;
-                }
+                    // throw away operation that encloses ourselves
+                    if (operation.TextSpan.Contains(self._span))
+                    {
+                        return null;
+                    }
 
-                // now we have an interesting case where indentation block intersects with us.
-                // this can happen if code is split in two different script blocks or nuggets.
-                // here, we will re-adjust block to be contained within our span.
-                if (operation.TextSpan.IntersectsWith(_span))
-                {
-                    list[i] = CloneAndAdjustFormattingOperation(operation);
-                }
-            }
+                    // now we have an interesting case where indentation block intersects with us.
+                    // this can happen if code is split in two different script blocks or nuggets.
+                    // here, we will re-adjust block to be contained within our span.
+                    if (operation.TextSpan.IntersectsWith(self._span))
+                    {
+                        return self.CloneAndAdjustFormattingOperation(operation);
+                    }
+
+                    return operation;
+                },
+                this);
         }
 
         private bool Myself(IndentBlockOperation operation)
@@ -129,11 +131,9 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         }
 
         private TextSpan AdjustTextSpan(TextSpan textSpan)
-        {
-            return TextSpan.FromBounds(Math.Max(_span.Start, textSpan.Start), Math.Min(_span.End, textSpan.End));
-        }
+            => TextSpan.FromBounds(Math.Max(_span.Start, textSpan.Start), Math.Min(_span.End, textSpan.End));
 
-        private void SetInnermostNodeForSpan(SyntaxNode root, ref TextSpan span, out SyntaxToken token1, out SyntaxToken token2, out SyntaxNode commonNode)
+        private void SetInnermostNodeForSpan(SyntaxNode root, ref TextSpan span, out SyntaxToken token1, out SyntaxToken token2, out SyntaxNode? commonNode)
         {
             commonNode = null;
 
@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         private static TextSpan GetSpanFromTokens(TextSpan span, SyntaxToken token1, SyntaxToken token2)
         {
             var tree = token1.SyntaxTree;
+            RoslynDebug.AssertNotNull(tree);
 
             // adjust span to include all whitespace before and after the given span.
             var start = token1.Span.End;

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new IndexerDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIndexer()
+        public async Task TestIndexer1()
         {
             const string code = @"
 class C
@@ -25,6 +25,41 @@ class C
     {
         get { }
     }|}|}
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIndexer2()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string this[int index]{|textspan:
+    {
+        get { }
+    }|}|}
+    int Value => 0;
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIndexer3()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string this[int index]{|textspan:
+    {
+        get { }
+    }|}|}
+
+    int Value => 0;
 }";
 
             await VerifyBlockSpansAsync(code,

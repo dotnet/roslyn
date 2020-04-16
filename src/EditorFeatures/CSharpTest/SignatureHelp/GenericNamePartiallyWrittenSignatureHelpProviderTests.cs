@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
         }
 
         internal override ISignatureHelpProvider CreateSignatureHelpProvider()
-        {
-            return new GenericNamePartiallyWrittenSignatureHelpProvider();
-        }
+            => new GenericNamePartiallyWrittenSignatureHelpProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task NestedGenericUnterminated()

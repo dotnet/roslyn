@@ -73,14 +73,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         protected MemberListItem CreateInheritedMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden)
-        {
-            return CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: true);
-        }
+            => CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: true);
 
         protected MemberListItem CreateSimpleMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden)
-        {
-            return CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: false);
-        }
+            => CreateMemberListItem(memberSymbol, projectId, hidden, isInherited: false);
 
         private MemberListItem CreateMemberListItem(ISymbol memberSymbol, ProjectId projectId, bool hidden, bool isInherited)
         {
@@ -477,14 +473,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private class AssemblySymbolComparer : IEqualityComparer<Tuple<ProjectId, IAssemblySymbol>>
         {
             public bool Equals(Tuple<ProjectId, IAssemblySymbol> x, Tuple<ProjectId, IAssemblySymbol> y)
-            {
-                return x.Item2.Identity.Equals(y.Item2.Identity);
-            }
+                => x.Item2.Identity.Equals(y.Item2.Identity);
 
             public int GetHashCode(Tuple<ProjectId, IAssemblySymbol> obj)
-            {
-                return obj.Item2.Identity.GetHashCode();
-            }
+                => obj.Item2.Identity.GetHashCode();
         }
 
         public ImmutableHashSet<Tuple<ProjectId, IAssemblySymbol>> GetAssemblySet(Solution solution, string languageName, CancellationToken cancellationToken)

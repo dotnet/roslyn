@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         }
 
         public virtual bool ShowItemGrayedIfNear(NavigationBarItem item)
-        {
-            return true;
-        }
+            => true;
     }
 }

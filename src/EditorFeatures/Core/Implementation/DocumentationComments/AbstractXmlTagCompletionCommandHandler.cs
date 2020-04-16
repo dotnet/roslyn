@@ -22,16 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         public string DisplayName => EditorFeaturesResources.XML_End_Tag_Completion;
 
         public AbstractXmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
-        {
-            _undoHistory = undoHistory;
-        }
+            => _undoHistory = undoHistory;
 
         protected abstract void TryCompleteTag(ITextView textView, ITextBuffer subjectBuffer, Document document, SnapshotPoint position, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
-        {
-            return nextHandler();
-        }
+            => nextHandler();
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {

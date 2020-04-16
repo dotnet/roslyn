@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         AbstractChangeNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpChangeNamespaceService()
         {
         }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
+        private static readonly SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
             new SimplePool<MultiDictionary<string, ISymbol>>(() => new MultiDictionary<string, ISymbol>());
 
         private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Cache of project to the checksum for it so that we don't have to expensively recompute
         /// this each time we get a project.
         /// </summary>
-        private static ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
+        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
             new ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>>();
 
         public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
@@ -144,11 +144,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly Func<ISymbol, bool> s_useSymbolNoPrivate =
             s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
 
-        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivateOrInternal =
-            s => s.CanBeReferencedByName &&
-            s.DeclaredAccessibility != Accessibility.Private &&
-            s.DeclaredAccessibility != Accessibility.Internal;
-
         // generate nodes for symbols that share the same name, and all their descendants
         private static void GenerateSourceNodes(
             string name,
@@ -181,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
+        private static readonly Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
             (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivate);
 
         private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)

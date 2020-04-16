@@ -10,7 +10,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+<<<<<<< HEAD
 using Microsoft.CodeAnalysis.Options;
+=======
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -20,7 +23,11 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Information about rename document calls that allows them to be applied as individual actions.
         /// 
+<<<<<<< HEAD
         /// To apply all actions
+=======
+        /// Updates a solution with the actions determined at analysis time. To apply all actions
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
         /// use <see cref="UpdateSolutionAsync(Solution, CancellationToken)"/>, or use a subset
         /// of the actions by calling <see cref="UpdateSolutionAsync(Solution, ImmutableArray{RenameDocumentAction}, CancellationToken)"/>. 
         /// Each action has a description of the changes that it will apply that can be presented to a user.
@@ -31,21 +38,32 @@ namespace Microsoft.CodeAnalysis.Rename
             private readonly string _documentName;
             private readonly IReadOnlyList<string> _documentFolders;
             private readonly ProjectId _projectId;
+<<<<<<< HEAD
             private readonly OptionSet _optionSet;
+=======
+
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
             internal RenameDocumentActionSet(
                 ImmutableArray<RenameDocumentAction> actions,
                 ProjectId projectId,
                 DocumentId documentId,
                 string documentName,
+<<<<<<< HEAD
                 IReadOnlyList<string> documentFolders,
                 OptionSet optionSet)
+=======
+                IReadOnlyList<string> documentFolders)
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
             {
                 ApplicableActions = actions;
                 _documentFolders = documentFolders;
                 _documentId = documentId;
                 _documentName = documentName;
                 _projectId = projectId;
+<<<<<<< HEAD
                 _optionSet = optionSet;
+=======
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
             }
 
             /// <summary>
@@ -70,11 +88,14 @@ namespace Microsoft.CodeAnalysis.Rename
             /// </remarks>
             public async Task<Solution> UpdateSolutionAsync(Solution solution, ImmutableArray<RenameDocumentAction> actions, CancellationToken cancellationToken)
             {
+<<<<<<< HEAD
                 if (solution is null)
                 {
                     throw new ArgumentNullException(nameof(solution));
                 }
 
+=======
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
                 if (actions.Any(a => !ApplicableActions.Contains(a)))
                 {
                     throw new ArgumentException(WorkspacesResources.Cannot_apply_action_that_is_not_in_applicableactions);
@@ -98,7 +119,11 @@ namespace Microsoft.CodeAnalysis.Rename
                 foreach (var action in actions)
                 {
                     document = solution.GetRequiredDocument(documentId);
+<<<<<<< HEAD
                     solution = await action.GetModifiedSolutionAsync(document, _optionSet, cancellationToken).ConfigureAwait(false);
+=======
+                    solution = await action.GetModifiedSolutionAsync(document, cancellationToken).ConfigureAwait(false);
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
                 }
 
                 return solution;
@@ -120,7 +145,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 var project = solution.GetRequiredProject(_projectId);
                 return project.Documents.FirstOrDefault(d => d.Name == _documentName && d.Folders.SequenceEqual(_documentFolders))
+<<<<<<< HEAD
                     ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+=======
+                    ?? throw new InvalidOperationException("Unable to find document that was used for analysis in current solution");
+>>>>>>> d7785e81292987663a30efef90f6d988cd9bce2c
             }
         }
 

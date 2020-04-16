@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NamingStyles
 {
-    internal partial struct NamingStyle
+    internal partial struct NamingStyle : IEquatable<NamingStyle>
     {
         public Guid ID { get; }
         public string Name { get; }
@@ -61,6 +61,32 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
             return new NamingStyle(this.ID,
                 newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is NamingStyle other
+                && Equals(other);
+        }
+
+        public bool Equals(NamingStyle other)
+        {
+            return ID == other.ID
+                && Name == other.Name
+                && Prefix == other.Prefix
+                && Suffix == other.Suffix
+                && WordSeparator == other.WordSeparator
+                && CapitalizationScheme == other.CapitalizationScheme;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(ID.GetHashCode(),
+                Hash.Combine(Name?.GetHashCode() ?? 0,
+                    Hash.Combine(Prefix?.GetHashCode() ?? 0,
+                        Hash.Combine(Suffix?.GetHashCode() ?? 0,
+                            Hash.Combine(WordSeparator?.GetHashCode() ?? 0,
+                                (int)CapitalizationScheme)))));
         }
 
         public string CreateName(ImmutableArray<string> words)

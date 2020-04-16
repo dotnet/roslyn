@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new ConversionOperatorDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestOperator()
+        public async Task TestOperator1()
         {
             const string code = @"
 class C
@@ -24,6 +24,43 @@ class C
     {|hint:$$public static explicit operator C(byte i){|textspan:
     {
     }|}|}
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator2()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static explicit operator C(byte i){|textspan:
+    {
+    }|}|}
+    public static explicit operator C(short i)
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestOperator3()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public static explicit operator C(byte i){|textspan:
+    {
+    }|}|}
+
+    public static explicit operator C(short i)
+    {
+    }
 }";
 
             await VerifyBlockSpansAsync(code,

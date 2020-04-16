@@ -2,26 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal struct LineColumnDelta
+    internal readonly struct LineColumnDelta
     {
         public static LineColumnDelta Default = new LineColumnDelta(lines: 0, spaces: 0, whitespaceOnly: true, forceUpdate: false);
 
-        // relative line number between calls
-        public int Lines { get; private set; }
+        /// <summary>
+        /// relative line number between calls
+        /// </summary>
+        public readonly int Lines;
 
-        // relative spaces between calls
-        public int Spaces { get; private set; }
+        /// <summary>
+        /// relative spaces between calls
+        /// </summary>
+        public readonly int Spaces;
 
-        // there is only whitespace in this space
-        public bool WhitespaceOnly { get; private set; }
+        /// <summary>
+        /// there is only whitespace in this space
+        /// </summary>
+        public readonly bool WhitespaceOnly;
 
-        // force text change regardless line and space changes
-        public bool ForceUpdate { get; private set; }
+        /// <summary>
+        /// force text change regardless line and space changes
+        /// </summary>
+        public readonly bool ForceUpdate;
 
-        public LineColumnDelta(int lines, int spaces) : this()
+        public LineColumnDelta(int lines, int spaces)
         {
             this.Lines = lines;
             this.Spaces = spaces;
@@ -47,22 +56,18 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             if (delta.Lines <= 0)
             {
-                return new LineColumnDelta
-                {
-                    Lines = this.Lines,
-                    Spaces = this.Spaces + delta.Spaces,
-                    WhitespaceOnly = this.WhitespaceOnly && delta.WhitespaceOnly,
-                    ForceUpdate = this.ForceUpdate || delta.ForceUpdate
-                };
+                return new LineColumnDelta(
+                    Lines,
+                    Spaces + delta.Spaces,
+                    WhitespaceOnly && delta.WhitespaceOnly,
+                    ForceUpdate || delta.ForceUpdate);
             }
 
-            return new LineColumnDelta
-            {
-                Lines = this.Lines + delta.Lines,
-                Spaces = delta.Spaces,
-                WhitespaceOnly = delta.WhitespaceOnly,
-                ForceUpdate = this.ForceUpdate || delta.ForceUpdate || (this.Spaces > 0)
-            };
+            return new LineColumnDelta(
+                Lines + delta.Lines,
+                delta.Spaces,
+                delta.WhitespaceOnly,
+                ForceUpdate || delta.ForceUpdate || Spaces > 0);
         }
     }
 }

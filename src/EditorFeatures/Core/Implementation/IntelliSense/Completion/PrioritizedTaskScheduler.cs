@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         }
 
         protected override void QueueTask(Task task)
-        {
-            _tasks.Add(task);
-        }
+            => _tasks.Add(task);
 
         // A class derived from TaskScheduler implements this function to support inline execution
         // of a task on a thread that initiates a wait on that task object.

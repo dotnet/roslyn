@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Editing
         private readonly Modifiers _modifiers;
 
         private DeclarationModifiers(Modifiers modifiers)
-        {
-            _modifiers = modifiers;
-        }
+            => _modifiers = modifiers;
 
         internal DeclarationModifiers(
             bool isStatic = false,

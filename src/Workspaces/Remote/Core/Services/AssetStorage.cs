@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,9 +44,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly TimeSpan _gcAfterTimeSpan;
 
-        private readonly ConcurrentDictionary<Checksum, Entry> _globalAssets =
-            new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
-
         private readonly ConcurrentDictionary<Checksum, Entry> _assets =
             new ConcurrentDictionary<Checksum, Entry>(concurrencyLevel: 4, capacity: 10);
 
@@ -82,16 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public AssetSource? AssetSource => _assetSource;
 
         public void SetAssetSource(AssetSource assetSource)
-        {
-            _assetSource = assetSource;
-        }
-
-        public bool TryAddGlobalAsset(Checksum checksum, object value)
-        {
-            UpdateLastActivityTime();
-
-            return _globalAssets.TryAdd(checksum, new Entry(value));
-        }
+            => _assetSource = assetSource;
 
         public bool TryAddAsset(Checksum checksum, object value)
         {
@@ -100,30 +87,13 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assets.TryAdd(checksum, new Entry(value));
         }
 
-        public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
-        {
-            UpdateLastActivityTime();
-
-            foreach (var asset in _globalAssets)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var value = asset.Value.Object;
-                if (value is T tValue)
-                {
-                    yield return tValue;
-                }
-            }
-        }
-
         public bool TryGetAsset<T>(Checksum checksum, [MaybeNull, NotNullWhen(true)] out T value)
         {
             UpdateLastActivityTime();
 
             using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
             {
-                if (!_globalAssets.TryGetValue(checksum, out var entry) &&
-                    !_assets.TryGetValue(checksum, out entry))
+                if (!_assets.TryGetValue(checksum, out var entry))
                 {
                     value = default;
                     return false;
@@ -138,9 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public void UpdateLastActivityTime()
-        {
-            _lastActivityTime = DateTime.UtcNow;
-        }
+            => _lastActivityTime = DateTime.UtcNow;
 
         private void Update(Entry entry)
         {

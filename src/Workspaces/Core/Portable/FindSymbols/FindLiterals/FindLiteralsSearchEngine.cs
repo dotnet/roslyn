@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -77,17 +75,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public async Task FindReferencesAsync()
         {
-            await _progressTracker.AddItemsAsync(1).ConfigureAwait(false);
-            try
+            await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
+
+            if (_searchKind != SearchKind.None)
             {
-                if (_searchKind != SearchKind.None)
-                {
-                    await FindReferencesWorkerAsync().ConfigureAwait(false);
-                }
-            }
-            finally
-            {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
+                await FindReferencesWorkerAsync().ConfigureAwait(false);
             }
         }
 
