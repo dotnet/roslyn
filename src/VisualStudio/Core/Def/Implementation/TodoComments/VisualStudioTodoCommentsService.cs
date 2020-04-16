@@ -52,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
-        private AsyncBatchingWorkQueue<DocumentAndComments>? _workQueue;
+        private readonly TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>> _workQueueSource
+            = new TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>>();
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
@@ -92,10 +93,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
         private async Task StartWorkerAsync(CancellationToken cancellationToken)
         {
-            _workQueue = new AsyncBatchingWorkQueue<DocumentAndComments>(
-                TimeSpan.FromSeconds(1),
-                ProcessTodoCommentInfosAsync,
-                cancellationToken);
+            _workQueueSource.SetResult(
+                new AsyncBatchingWorkQueue<DocumentAndComments>(
+                    TimeSpan.FromSeconds(1),
+                    ProcessTodoCommentInfosAsync,
+                    cancellationToken));
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -198,11 +200,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
+        public async Task ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_workQueue);
-            _workQueue.AddWork(new DocumentAndComments(documentId, infos));
-            return Task.CompletedTask;
+            var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
+            workQueue.AddWork(new DocumentAndComments(documentId, infos));
         }
 
         /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
