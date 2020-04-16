@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _valueMap = new Dictionary<TKey, TValue>(analysisValueProvider.KeyComparer);
         }
 
-        internal bool TryGetValue(TKey key, [MaybeNull] [NotNullWhen(true)] out TValue value)
+        internal bool TryGetValue(TKey key, [MaybeNull][NotNullWhen(true)] out TValue value)
         {
             // First try to get the cached value for this compilation.
             lock (_valueMap)

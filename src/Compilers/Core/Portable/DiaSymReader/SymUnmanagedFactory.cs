@@ -33,19 +33,19 @@ namespace Microsoft.DiaSymReader
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = CreateSymReaderFactoryName)]
-        private extern static void CreateSymReader32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
+        private extern static void CreateSymReader32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName64, EntryPoint = CreateSymReaderFactoryName)]
-        private extern static void CreateSymReader64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
+        private extern static void CreateSymReader64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = CreateSymWriterFactoryName)]
-        private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
+        private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName64, EntryPoint = CreateSymWriterFactoryName)]
-        private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
+        private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
         [DllImport("kernel32")]
         private static extern IntPtr LoadLibrary(string path);
@@ -56,7 +56,7 @@ namespace Microsoft.DiaSymReader
         [DllImport("kernel32")]
         private static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
 
-        private delegate void NativeFactory(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object instance);
+        private delegate void NativeFactory(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object instance);
 
 #if !NET20
         private static Lazy<Func<string, string>> s_lazyGetEnvironmentVariable = new Lazy<Func<string, string>>(() =>

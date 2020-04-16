@@ -44,7 +44,7 @@ class Program
                 options: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
+                diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
@@ -63,7 +63,7 @@ class Program
                 options: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
+                diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
