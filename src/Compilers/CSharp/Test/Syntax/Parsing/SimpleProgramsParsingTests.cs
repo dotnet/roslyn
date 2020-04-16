@@ -1493,9 +1493,6 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
         public void NewKeyword()
         {
             UsingTree(@"new ",
-                // (1,5): error CS1031: Type expected
-                // new 
-                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 5),
                 // (1,5): error CS1526: A new expression requires (), [], or {} after type
                 // new 
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "").WithLocation(1, 5),
