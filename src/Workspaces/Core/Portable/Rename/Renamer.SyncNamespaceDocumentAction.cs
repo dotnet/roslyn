@@ -4,10 +4,8 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -17,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -42,10 +39,6 @@ namespace Microsoft.CodeAnalysis.Rename
 
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
             {
-                // If we are modifying the solution, we shouldn't have offered a change if the target namespace
-                // could not be determined
-                RoslynDebug.AssertNotNull(_analysis.TargetNamespace);
-
                 var solution = document.Project.Solution;
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
