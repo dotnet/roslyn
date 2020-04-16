@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
     {
         private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
         private readonly AbstractExtractInterfaceService _extractInterfaceService;
+
         public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
         {
             _extractInterfaceService = extractInterfaceService;

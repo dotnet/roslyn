@@ -183,10 +183,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             GC.Collect(2);
         }
 
-        // [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-#pragma warning disable IDE0051 // Remove unused private members - We want to keep this test around, but not have it disabled/associated with a bug
-        private void TestTemporaryStorageScaling()
-#pragma warning restore IDE0051 // Remove unused private members
+        [Fact(Skip = "This test exists so it can be locally executed for scale testing, when required. Do not remove this test or unskip it in CI.")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTemporaryStorageScaling()
         {
             // This will churn through 4GB of memory.  It validates that we don't
             // use up our address space in a 32 bit process.
