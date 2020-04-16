@@ -512,8 +512,8 @@ namespace Roslyn.Test.Utilities
             string expected,
             string actual,
             bool escapeQuotes = true,
-            [CallerFilePath]string expectedValueSourcePath = null,
-            [CallerLineNumber]int expectedValueSourceLine = 0)
+            [CallerFilePath] string expectedValueSourcePath = null,
+            [CallerLineNumber] int expectedValueSourceLine = 0)
         {
             var normalizedExpected = NormalizeWhitespace(expected);
             var normalizedActual = NormalizeWhitespace(actual);

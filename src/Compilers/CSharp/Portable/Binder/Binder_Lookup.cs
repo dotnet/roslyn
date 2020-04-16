@@ -553,14 +553,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var mdSymbol = symbols[secondBest.Index];
 
                 //if names match, arities match, and containing symbols match (recursively), ...
-                if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                    mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                if (NameAndArityMatchRecursively(srcSymbol, mdSymbol))
                 {
                     return originalSymbols[best.Index];
                 }
             }
 
             return null;
+        }
+
+        private static bool NameAndArityMatchRecursively(Symbol x, Symbol y)
+        {
+            while (true)
+            {
+                if (isRoot(x))
+                {
+                    return isRoot(y);
+                }
+                if (isRoot(y))
+                {
+                    return false;
+                }
+                if (x.Name != y.Name || x.GetArity() != y.GetArity())
+                {
+                    return false;
+                }
+                x = x.ContainingSymbol;
+                y = y.ContainingSymbol;
+            }
+
+            static bool isRoot(Symbol symbol) => symbol is null || symbol is NamespaceSymbol { IsGlobalNamespace: true };
         }
 
         private bool IsSingleViableAttributeType(LookupResult result, out Symbol symbol)

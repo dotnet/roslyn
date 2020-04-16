@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.Telemetry;
 
