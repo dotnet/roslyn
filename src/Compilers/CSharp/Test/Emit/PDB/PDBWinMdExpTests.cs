@@ -203,29 +203,30 @@ namespace X
 
             string expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
 <token-map>
-  <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""6"" start-column=""23"" end-line=""6"" end-column=""24""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""6"" start-column=""23"" end-line=""6"" end-column=""24""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""6"" start-column=""23"" end-line=""6"" end-column=""24""/>
-  <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""8"" start-column=""22"" end-line=""8"" end-column=""30""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""14"" start-column=""10"" end-line=""14"" end-column=""18""/>
-  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""18"" start-column=""18"" end-line=""18"" end-column=""19""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""18"" start-column=""18"" end-line=""18"" end-column=""19""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""18"" start-column=""18"" end-line=""18"" end-column=""19""/>
-  <token-location token=""0x14xxxxxx"" file=""source.cs"" start-line=""18"" start-column=""18"" end-line=""18"" end-column=""19""/>
-  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""20"" start-column=""23"" end-line=""20"" end-column=""25""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""20"" start-column=""23"" end-line=""20"" end-column=""25""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""20"" start-column=""23"" end-line=""20"" end-column=""25""/>
-  <token-location token=""0x14xxxxxx"" file=""source.cs"" start-line=""20"" start-column=""23"" end-line=""20"" end-column=""25""/>
-  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""22"" start-column=""14"" end-line=""22"" end-column=""15""/>
-  <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""22"" start-column=""14"" end-line=""22"" end-column=""15""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""22"" start-column=""18"" end-line=""22"" end-column=""21""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""22"" start-column=""23"" end-line=""22"" end-column=""26""/>
-  <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""24"" start-column=""14"" end-line=""24"" end-column=""16""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""26"" start-column=""4"" end-line=""26"" end-column=""7""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""27"" start-column=""4"" end-line=""27"" end-column=""7""/>
-  <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""30"" start-column=""14"" end-line=""30"" end-column=""18""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""32"" start-column=""4"" end-line=""32"" end-column=""7""/>
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""33"" start-column=""4"" end-line=""33"" end-column=""7""/>
+  <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""6"" start-column=""23"" end-line=""6"" end-column=""24"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""6"" start-column=""23"" end-line=""6"" end-column=""24"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""6"" start-column=""23"" end-line=""6"" end-column=""24"" />
+  <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""8"" start-column=""22"" end-line=""8"" end-column=""30"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""10"" start-column=""10"" end-line=""10"" end-column=""18"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""14"" start-column=""10"" end-line=""14"" end-column=""18"" />
+  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""18"" start-column=""18"" end-line=""18"" end-column=""19"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""18"" start-column=""18"" end-line=""18"" end-column=""19"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""18"" start-column=""18"" end-line=""18"" end-column=""19"" />
+  <token-location token=""0x14xxxxxx"" file=""source.cs"" start-line=""18"" start-column=""18"" end-line=""18"" end-column=""19"" />
+  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""20"" start-column=""23"" end-line=""20"" end-column=""25"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""20"" start-column=""23"" end-line=""20"" end-column=""25"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""20"" start-column=""23"" end-line=""20"" end-column=""25"" />
+  <token-location token=""0x14xxxxxx"" file=""source.cs"" start-line=""20"" start-column=""23"" end-line=""20"" end-column=""25"" />
+  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""22"" start-column=""14"" end-line=""22"" end-column=""15"" />
+  <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""22"" start-column=""14"" end-line=""22"" end-column=""15"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""22"" start-column=""18"" end-line=""22"" end-column=""21"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""22"" start-column=""23"" end-line=""22"" end-column=""26"" />
+  <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""24"" start-column=""14"" end-line=""24"" end-column=""16"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""26"" start-column=""4"" end-line=""26"" end-column=""7"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""27"" start-column=""4"" end-line=""27"" end-column=""7"" />
+  <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""30"" start-column=""14"" end-line=""30"" end-column=""18"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""32"" start-column=""4"" end-line=""32"" end-column=""7"" />
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""33"" start-column=""4"" end-line=""33"" end-column=""7"" />
 </token-map>";
 
             var compilation = CreateCompilationWithMscorlib45(
