@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                     return default;
             }
 
-            var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+            var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
 
             // Nullability is a reference type only feature, value types can use
             // something like "int?"  to be nullable but that ends up encasing as
