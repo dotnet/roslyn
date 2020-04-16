@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return GetNegationOfUnaryPattern(expressionOrPattern, generator, syntaxFacts);
 
             return syntaxFacts.IsAnyPattern(expressionOrPattern)
-                ? generator.NotPattern(generator.ParenthesizedPattern(expressionOrPattern))
+                ? generator.NotPattern(expressionOrPattern)
                 : generator.LogicalNotExpression(expressionOrPattern);
 
 #endif
@@ -367,9 +367,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = generatorInternal.SyntaxFacts;
 
             var expression = syntaxFacts.GetExpressionOfConstantPattern(pattern);
-            var negated = generator.Negate(generatorInternal, expression, semanticModel, cancellationToken);
+            if (syntaxFacts.IsTrueLiteralExpression(expression))
+                return generator.ConstantPattern(generator.FalseLiteralExpression());
 
-            return generator.ConstantPattern(negated);
+            if (syntaxFacts.IsFalseLiteralExpression(expression))
+                return generator.ConstantPattern(generator.TrueLiteralExpression());
+
+            return generator.NotPattern(pattern);
         }
 
 #endif

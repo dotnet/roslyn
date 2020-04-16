@@ -334,5 +334,89 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     }
 }", parseOptions: CSharp9);
         }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsNullPattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is null;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is null));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsNullPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is null;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is not null);
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsNotNullPattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is not null;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is not null));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsNotNullPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is not null;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is null);
+    }
+}", parseOptions: CSharp9);
+        }
     }
 }
