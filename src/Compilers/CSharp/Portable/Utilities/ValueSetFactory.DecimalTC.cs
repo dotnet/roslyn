@@ -6,7 +6,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
