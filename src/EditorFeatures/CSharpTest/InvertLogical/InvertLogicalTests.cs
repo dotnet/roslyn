@@ -418,5 +418,89 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     }
 }", parseOptions: CSharp9);
         }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsTruePattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is true;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is true));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsTruePattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is true;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is false);
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsFalsePattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is false;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is false));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsFalsePattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is false;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is true);
+    }
+}", parseOptions: CSharp8);
+        }
     }
 }
