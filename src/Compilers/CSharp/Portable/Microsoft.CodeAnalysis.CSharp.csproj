@@ -20,9 +20,8 @@
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="BoundTree\BoundNodes.xml" />
+    <None Include="BoundTree\BoundNodes.xsd" />
     <None Include="Generated\CSharp.Generated.g4" />
     <None Include="Syntax\Syntax.xml" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
