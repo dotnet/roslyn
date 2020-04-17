@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureTargetTypedObjectCreation: // syntax check
                 case MessageID.IDS_FeatureMemberNotNull:
                 case MessageID.IDS_FeatureNativeInt:
-                case MessageID.IDS_FeatureModuleInitializers:
+                case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
