@@ -31,14 +31,14 @@ namespace Analyzer.Utilities.UnitTests.Options
             // Arrange
             var callCount = 0;
             var symbolNames = ImmutableArray.Create("a", "b");
-            Func<string, SymbolNamesWithValueOption<Unit>.NameParts> func = symbolName =>
+            SymbolNamesWithValueOption<Unit>.NameParts func(string symbolName)
             {
                 if (symbolNames.Contains(symbolName))
                 {
                     callCount++;
                 }
                 return new SymbolNamesWithValueOption<Unit>.NameParts(symbolName);
-            };
+            }
 
             // Act
             SymbolNamesWithValueOption<Unit>.Create(symbolNames, GetCompilation(), null, func);

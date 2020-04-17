@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 if (currentAssignedValue.IsLiteralState &&
                     AnalysisEntityFactory.TryCreate(target, out var targetEntity))
                 {
-                    if (CurrentAnalysisData.TryGetValue(targetEntity, out ValueContentAbstractValue existingTargetValue) &&
+                    if (CurrentAnalysisData.TryGetValue(targetEntity, out var existingTargetValue) &&
                         existingTargetValue.IsLiteralState)
                     {
                         var newValue = currentAssignedValue.IntersectLiteralValues(existingTargetValue);

@@ -571,21 +571,21 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     string publicApiName = symbol.ToDisplayString(format);
 
                     ITypeSymbol? memberType = null;
-                    if (symbol is IMethodSymbol)
+                    if (symbol is IMethodSymbol method)
                     {
-                        memberType = ((IMethodSymbol)symbol).ReturnType;
+                        memberType = method.ReturnType;
                     }
-                    else if (symbol is IPropertySymbol)
+                    else if (symbol is IPropertySymbol property)
                     {
-                        memberType = ((IPropertySymbol)symbol).Type;
+                        memberType = property.Type;
                     }
-                    else if (symbol is IEventSymbol)
+                    else if (symbol is IEventSymbol @event)
                     {
-                        memberType = ((IEventSymbol)symbol).Type;
+                        memberType = @event.Type;
                     }
-                    else if (symbol is IFieldSymbol)
+                    else if (symbol is IFieldSymbol field)
                     {
-                        memberType = ((IFieldSymbol)symbol).Type;
+                        memberType = field.Type;
                     }
 
                     if (memberType != null)
@@ -770,8 +770,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             /// </summary>
             private sealed class ObliviousDetector : SymbolVisitor<bool>
             {
-                public readonly static ObliviousDetector IgnoreTopLevelNullabilityInstance = new ObliviousDetector(ignoreTopLevelNullability: true);
-                public readonly static ObliviousDetector Instance = new ObliviousDetector(ignoreTopLevelNullability: false);
+                public static readonly ObliviousDetector IgnoreTopLevelNullabilityInstance = new ObliviousDetector(ignoreTopLevelNullability: true);
+                public static readonly ObliviousDetector Instance = new ObliviousDetector(ignoreTopLevelNullability: false);
 
                 private readonly bool _ignoreTopLevelNullability;
 
