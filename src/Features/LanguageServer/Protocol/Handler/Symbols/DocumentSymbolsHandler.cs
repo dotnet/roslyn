@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<object[]> HandleRequestAsync(Solution solution, DocumentSymbolParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, supportsRazorFeatures);
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();

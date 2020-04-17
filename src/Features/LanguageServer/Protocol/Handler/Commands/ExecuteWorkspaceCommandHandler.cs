@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// by delegating to a handler for the specific command requested.
         /// </summary>
         public Task<object> HandleRequestAsync(Solution solution, LSP.ExecuteCommandParams request, LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+            bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
             var commandName = request.Command;
             if (string.IsNullOrEmpty(commandName) || !_executeCommandHandlers.TryGetValue(commandName, out var executeCommandHandler))

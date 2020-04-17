@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            LSP.ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, supportsRazorFeatures);
             if (document == null)
             {
                 return locations.ToArrayAndFree();

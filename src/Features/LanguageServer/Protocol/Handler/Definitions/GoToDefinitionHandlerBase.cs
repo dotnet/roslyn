@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public GoToDefinitionHandlerBase(IMetadataAsSourceFileService metadataAsSourceFileService)
             => _metadataAsSourceFileService = metadataAsSourceFileService;
 
-        protected async Task<LSP.Location[]> GetDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, bool typeOnly, CancellationToken cancellationToken)
+        protected async Task<LSP.Location[]> GetDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, bool typeOnly, bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, supportsRazorFeatures);
             if (document == null)
             {
                 return locations.ToArrayAndFree();

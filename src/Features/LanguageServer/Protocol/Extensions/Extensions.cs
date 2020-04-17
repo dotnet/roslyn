@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
-        public static Document GetDocumentFromURI(this Solution solution, Uri fileName)
+        public static Document? GetDocumentFromURI(this Solution solution, Uri fileName, bool supportsRazorFeatures = false)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -31,10 +33,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var document = solution.GetDocument(documentId);
 
-            var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
-            if (documentPropertiesService.DesignTimeOnly)
+            if (supportsRazorFeatures)
             {
-                return null;
+                var documentPropertiesService = document?.Services.GetService<DocumentPropertiesService>();
+                // Razor generated documents always have designtimeonly set to true.
+                // If it's not set, don't return the document as only razor documents should be returned in razor scenarios.
+                // This workaround should be removed when https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
+                // is fixed (so that the razor language server is only asked about razor buffers).
+                if (documentPropertiesService?.DesignTimeOnly != true)
+                {
+                    return null;
+                }
             }
 
             return document;

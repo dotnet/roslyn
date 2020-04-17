@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
 
         private static async Task<LSP.Hover> RunGetHoverAsync(Solution solution, LSP.Location caret)
             => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-                solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+                solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), false, CancellationToken.None);
 
         private static LSP.Hover CreateHover(LSP.Location location, string text)
             => new LSP.Hover()

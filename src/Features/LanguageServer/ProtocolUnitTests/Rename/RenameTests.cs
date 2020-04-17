@@ -46,6 +46,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 
         private static async Task<WorkspaceEdit> RunRenameAsync(Solution solution, LSP.Location renameLocation, string renamevalue)
            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(LSP.Methods.TextDocumentRenameName,
-               solution, CreateRenameParams(renameLocation, renamevalue), new LSP.ClientCapabilities(), CancellationToken.None);
+               solution, CreateRenameParams(renameLocation, renamevalue), new LSP.ClientCapabilities(), false, CancellationToken.None);
     }
 }

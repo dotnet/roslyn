@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<LSP.TextEdit[]> HandleRequestAsync(Solution solution, LSP.DocumentFormattingParams request, LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+            bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
-            return await GetTextEditsAsync(solution, request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            return await GetTextEditsAsync(solution, request.TextDocument.Uri, supportsRazorFeatures, cancellationToken).ConfigureAwait(false);
         }
     }
 }

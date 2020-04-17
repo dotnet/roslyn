@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<SymbolInformation[]> HandleRequestAsync(Solution solution, WorkspaceSymbolParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
             var searchTasks = Task.WhenAll(solution.Projects.Select(project => SearchProjectAsync(project, request, cancellationToken)));
             return (await searchTasks.ConfigureAwait(false)).SelectMany(s => s).ToArray();

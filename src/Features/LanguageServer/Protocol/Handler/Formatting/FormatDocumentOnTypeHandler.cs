@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities? clientCapabilities,
-            CancellationToken cancellationToken)
+            bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, supportsRazorFeatures);
             if (document != null)
             {
                 var formattingService = document.Project.LanguageServices.GetRequiredService<IEditorFormattingService>();

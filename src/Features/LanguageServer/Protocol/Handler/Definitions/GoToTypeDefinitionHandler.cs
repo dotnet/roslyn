@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            LSP.ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
-            return await GetDefinitionAsync(solution, request, typeOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await GetDefinitionAsync(solution, request, typeOnly: true, supportsRazorFeatures: supportsRazorFeatures, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }

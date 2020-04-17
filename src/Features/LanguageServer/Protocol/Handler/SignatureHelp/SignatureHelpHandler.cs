@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             => _allProviders = allProviders;
 
         public async Task<LSP.SignatureHelp> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            LSP.ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, supportsRazorFeatures);
             if (document == null)
             {
                 return new LSP.SignatureHelp();

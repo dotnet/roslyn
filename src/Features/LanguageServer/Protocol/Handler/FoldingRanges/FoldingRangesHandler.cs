@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<FoldingRange[]> HandleRequestAsync(Solution solution, FoldingRangeParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, supportsRazorFeatures);
             if (document == null)
             {
                 return foldingRanges.ToArrayAndFree();

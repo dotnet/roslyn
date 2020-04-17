@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, Solution solution, RequestType request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken) where RequestType : class
+            LSP.ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken) where RequestType : class
         {
             Contract.ThrowIfNull(solution);
             Contract.ThrowIfNull(request);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var handler = (IRequestHandler<RequestType, ResponseType>?)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            return handler.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken);
+            return handler.HandleRequestAsync(solution, request, clientCapabilities, supportsRazorFeatures, cancellationToken);
         }
     }
 }
