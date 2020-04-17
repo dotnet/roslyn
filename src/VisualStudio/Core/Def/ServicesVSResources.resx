@@ -1416,8 +1416,8 @@ I agree to all of the foregoing:</value>
   <data name="Optional_with_default_value_colon" xml:space="preserve">
     <value>Optional with default value:</value>
   </data>
-  <data name="Parameter_kind_colon" xml:space="preserve">
-    <value>Parameter kind:</value>
+  <data name="Parameter_kind" xml:space="preserve">
+    <value>Parameter kind</value>
   </data>
   <data name="Required" xml:space="preserve">
     <value>Required</value>
@@ -1426,8 +1426,8 @@ I agree to all of the foregoing:</value>
     <value>Use named argument</value>
     <comment>"argument" is a programming term for a value passed to a function</comment>
   </data>
-  <data name="Value_to_inject_at_call_sites_colon" xml:space="preserve">
-    <value>Value to inject at call sites:</value>
+  <data name="Value_to_inject_at_call_sites" xml:space="preserve">
+    <value>Value to inject at call sites</value>
   </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
@@ -1474,5 +1474,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Optional_parameters_must_provide_a_default_value" xml:space="preserve">
     <value>Optional parameters must provide a default value</value>
+  </data>
+  <data name="Parameter_information" xml:space="preserve">
+    <value>Parameter information</value>
   </data>
 </root>

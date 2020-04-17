@@ -467,9 +467,14 @@
         <target state="new">Parameter name:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_kind_colon">
-        <source>Parameter kind:</source>
-        <target state="new">Parameter kind:</target>
+      <trans-unit id="Parameter_information">
+        <source>Parameter information</source>
+        <target state="new">Parameter information</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_kind">
+        <source>Parameter kind</source>
+        <target state="new">Parameter kind</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_name_contains_invalid_characters">
@@ -737,9 +742,9 @@
         <target state="translated">O valor retornado por chamada é implicitamente ignorado</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_to_inject_at_call_sites_colon">
-        <source>Value to inject at call sites:</source>
-        <target state="new">Value to inject at call sites:</target>
+      <trans-unit id="Value_to_inject_at_call_sites">
+        <source>Value to inject at call sites</source>
+        <target state="new">Value to inject at call sites</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2017">
