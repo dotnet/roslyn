@@ -3558,7 +3558,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
         internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isKeyword, SyntaxNode pattern)
-            => SyntaxFactory.IsPatternExpression((ExpressionSyntax)expression, isKeyword, (PatternSyntax)pattern);
+            => SyntaxFactory.IsPatternExpression(
+                (ExpressionSyntax)expression,
+                isKeyword == default ? SyntaxFactory.Token(SyntaxKind.IsKeyword) : isKeyword,
+                (PatternSyntax)pattern);
 
         internal override SyntaxNode ConstantPattern(SyntaxNode expression)
             => SyntaxFactory.ConstantPattern((ExpressionSyntax)expression);
