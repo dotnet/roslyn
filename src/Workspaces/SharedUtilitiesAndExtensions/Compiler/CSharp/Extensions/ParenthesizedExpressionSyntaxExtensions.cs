@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+
+#if !CODE_STYLE
+using System.Diagnostics;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {

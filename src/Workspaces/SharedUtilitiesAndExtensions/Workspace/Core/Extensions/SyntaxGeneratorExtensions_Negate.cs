@@ -9,7 +9,10 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Simplification;
+
+#if !CODE_STYLE
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
