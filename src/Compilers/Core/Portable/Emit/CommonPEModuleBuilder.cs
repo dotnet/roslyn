@@ -946,8 +946,6 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return true; }
         }
 
-        internal Cci.RootModuleType RootModuleType => _rootModuleType;
-
         #endregion
 
         public sealed override Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context)

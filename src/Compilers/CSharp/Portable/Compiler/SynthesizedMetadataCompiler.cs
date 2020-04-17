@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(moduleBeingBuilt != null);
 
-            moduleBeingBuilt.RootModuleType.Freeze();
-
             var compiler = new SynthesizedMetadataCompiler(moduleBeingBuilt, cancellationToken);
             compiler.Visit(compilation.SourceModule.GlobalNamespace);
         }

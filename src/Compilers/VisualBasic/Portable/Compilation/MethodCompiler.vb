@@ -248,15 +248,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     compiler.CompileSynthesizedMethods(privateImplClass)
                 End If
-
-                Dim rootModuleType = moduleBeingBuiltOpt.RootModuleType
-                If rootModuleType IsNot Nothing Then
-                    ' all threads that were adding methods must be finished now, we can freeze the class:
-                    ' PROTOTYPE(module-initializers): what should happen when a VB method is marked with `<ModuleInitializer>`?
-                    rootModuleType.Freeze()
-
-                    compiler.CompileSynthesizedMethods(rootModuleType)
-                End If
             End If
 
             Dim entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, diagnostics, cancellationToken)
@@ -847,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Sub CompileSynthesizedMethods(privateImplClass As Cci.INamespaceTypeDefinition)
+        Private Sub CompileSynthesizedMethods(privateImplClass As PrivateImplementationDetails)
             Debug.Assert(_moduleBeingBuiltOpt IsNot Nothing)
 
             Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)

@@ -5,16 +5,11 @@
 #nullable enable
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
-using System.Threading;
-using Microsoft.CodeAnalysis.Emit;
+using System.Reflection.Metadata;
 using Roslyn.Utilities;
+using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
@@ -23,163 +18,288 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
-        // Once frozen, the collections of fields, methods and types are immutable.
-        private int _frozen;
-
-        private bool IsFrozen => _frozen != 0;
-
-        internal void Freeze()
+        public TypeDefinitionHandle TypeDef
         {
-            var wasFrozen = Interlocked.Exchange(ref _frozen, 1);
-            if (wasFrozen != 0)
-            {
-                throw new InvalidOperationException();
-            }
-
-            _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).ToImmutableArray();
-
-            // PROTOTYPE(module-initializers): require deterministic order
-            _orderedModuleInitializerMethods = _moduleInitializerMethods.ToImmutableArray();
+            get { return default(TypeDefinitionHandle); }
         }
 
-        private ImmutableArray<IMethodDefinition> _orderedSynthesizedMethods;
-        private readonly ConcurrentDictionary<string, IMethodDefinition> _synthesizedMethods = new ConcurrentDictionary<string, Cci.IMethodDefinition>();
-
-        // Add a new synthesized method indexed by its name if the method isn't already present.
-        internal bool TryAddSynthesizedMethod(IMethodDefinition method)
+        public ITypeDefinition ResolvedType
         {
-            Debug.Assert(!IsFrozen);
-#nullable disable // Can 'method.Name' be null? https://github.com/dotnet/roslyn/issues/39166
-            return _synthesizedMethods.TryAdd(method.Name, method);
-#nullable enable
+            get { return this; }
         }
 
-        internal IMethodDefinition? GetSynthesizedMethod(string name)
+        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
         {
-            return _synthesizedMethods.TryGetValue(name, out var method) ? method : null;
+            return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
+        }
+
+        public bool MangleName
+        {
+            get { return false; }
+        }
+
+        public string Name
+        {
+            get { return "<Module>"; }
+        }
+
+        public ushort Alignment
+        {
+            get { return 0; }
+        }
+
+        public ITypeReference? GetBaseClass(EmitContext context)
+        {
+            return null;
+        }
+
+        public IEnumerable<IEventDefinition> GetEvents(EmitContext context)
+        {
+            return SpecializedCollections.EmptyEnumerable<IEventDefinition>();
+        }
+
+        public IEnumerable<MethodImplementation> GetExplicitImplementationOverrides(EmitContext context)
+        {
+            return SpecializedCollections.EmptyEnumerable<MethodImplementation>();
+        }
+
+        public IEnumerable<IFieldDefinition> GetFields(EmitContext context)
+        {
+            return SpecializedCollections.EmptyEnumerable<IFieldDefinition>();
+        }
+
+        public bool HasDeclarativeSecurity
+        {
+            get { return false; }
+        }
+
+        public IEnumerable<Cci.TypeReferenceWithAttributes> Interfaces(EmitContext context)
+        {
+            return SpecializedCollections.EmptyEnumerable<Cci.TypeReferenceWithAttributes>();
+        }
+
+        public bool IsAbstract
+        {
+            get { return false; }
+        }
+
+        public bool IsBeforeFieldInit
+        {
+            get { return false; }
+        }
+
+        public bool IsComObject
+        {
+            get { return false; }
+        }
+
+        public bool IsGeneric
+        {
+            get { return false; }
+        }
+
+        public bool IsInterface
+        {
+            get { return false; }
+        }
+
+        public bool IsDelegate
+        {
+            get { return false; }
+        }
+
+        public bool IsRuntimeSpecial
+        {
+            get { return false; }
+        }
+
+        public bool IsSerializable
+        {
+            get { return false; }
+        }
+
+        public bool IsSpecialName
+        {
+            get { return false; }
+        }
+
+        public bool IsWindowsRuntimeImport
+        {
+            get { return false; }
+        }
+
+        public bool IsSealed
+        {
+            get { return false; }
+        }
+
+        public LayoutKind Layout
+        {
+            get { return LayoutKind.Auto; }
         }
 
         public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
         {
-            Debug.Assert(IsFrozen);
-            return _orderedSynthesizedMethods;
+            return SpecializedCollections.EmptyEnumerable<IMethodDefinition>();
         }
 
-        private ImmutableArray<IMethodDefinition> _orderedModuleInitializerMethods;
-        private readonly ConcurrentBag<IMethodDefinition> _moduleInitializerMethods = new ConcurrentBag<IMethodDefinition>();
-
-        internal void AddModuleInitializerMethod(IMethodDefinition method)
+        public IEnumerable<INestedTypeDefinition> GetNestedTypes(EmitContext context)
         {
-            Debug.Assert(!IsFrozen);
-            _moduleInitializerMethods.Add(method);
+            return SpecializedCollections.EmptyEnumerable<INestedTypeDefinition>();
         }
 
-        internal ImmutableArray<IMethodDefinition> GetModuleInitializerMethods()
+        public IEnumerable<IPropertyDefinition> GetProperties(EmitContext context)
         {
-            Debug.Assert(IsFrozen);
-            return _orderedModuleInitializerMethods;
+            return SpecializedCollections.EmptyEnumerable<IPropertyDefinition>();
         }
 
-        public TypeDefinitionHandle TypeDef => default;
+        public uint SizeOf
+        {
+            get { return 0; }
+        }
 
-        public ITypeDefinition ResolvedType => this;
+        public CharSet StringFormat
+        {
+            get { return CharSet.Ansi; }
+        }
 
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context) => SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
+        public bool IsPublic
+        {
+            get { return false; }
+        }
 
-        public bool MangleName => false;
+        public bool IsNested
+        {
+            get { return false; }
+        }
 
-        public string Name => "<Module>";
+        IEnumerable<IGenericTypeParameter> ITypeDefinition.GenericParameters
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
 
-        public ushort Alignment => 0;
+        ushort ITypeDefinition.GenericParameterCount
+        {
+            get
+            {
+                return 0;
+            }
+        }
 
-        public ITypeReference? GetBaseClass(EmitContext context) => null;
+        IEnumerable<SecurityAttribute> ITypeDefinition.SecurityAttributes
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
 
-        public IEnumerable<IEventDefinition> GetEvents(EmitContext context) => SpecializedCollections.EmptyEnumerable<IEventDefinition>();
+        void IReference.Dispatch(MetadataVisitor visitor)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
 
-        public IEnumerable<MethodImplementation> GetExplicitImplementationOverrides(EmitContext context) => SpecializedCollections.EmptyEnumerable<MethodImplementation>();
+        bool ITypeReference.IsEnum
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
 
-        public IEnumerable<IFieldDefinition> GetFields(EmitContext context) => SpecializedCollections.EmptyEnumerable<IFieldDefinition>();
+        bool ITypeReference.IsValueType
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
 
-        public bool HasDeclarativeSecurity => false;
+        ITypeDefinition ITypeReference.GetResolvedType(EmitContext context)
+        {
+            return this;
+        }
 
-        public IEnumerable<TypeReferenceWithAttributes> Interfaces(EmitContext context) => SpecializedCollections.EmptyEnumerable<TypeReferenceWithAttributes>();
+        PrimitiveTypeCode ITypeReference.TypeCode
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
 
-        public bool IsAbstract => false;
+        ushort INamedTypeReference.GenericParameterCount
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
 
-        public bool IsBeforeFieldInit => false;
+        IUnitReference INamespaceTypeReference.GetUnit(EmitContext context)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
 
-        public bool IsComObject => false;
+        string INamespaceTypeReference.NamespaceName
+        {
+            get
+            {
+                return string.Empty;
+            }
+        }
 
-        public bool IsGeneric => false;
+        IGenericMethodParameterReference? ITypeReference.AsGenericMethodParameterReference
+        {
+            get
+            {
+                return null;
+            }
+        }
 
-        public bool IsInterface => false;
+        IGenericTypeInstanceReference? ITypeReference.AsGenericTypeInstanceReference
+        {
+            get
+            {
+                return null;
+            }
+        }
 
-        public bool IsDelegate => false;
+        IGenericTypeParameterReference? ITypeReference.AsGenericTypeParameterReference
+        {
+            get
+            {
+                return null;
+            }
+        }
 
-        public bool IsRuntimeSpecial => false;
+        INamespaceTypeDefinition ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
+        {
+            return this;
+        }
 
-        public bool IsSerializable => false;
+        INamespaceTypeReference ITypeReference.AsNamespaceTypeReference
+        {
+            get
+            {
+                return this;
+            }
+        }
 
-        public bool IsSpecialName => false;
+        INestedTypeDefinition? ITypeReference.AsNestedTypeDefinition(EmitContext context)
+        {
+            return null;
+        }
 
-        public bool IsWindowsRuntimeImport => false;
+        INestedTypeReference? ITypeReference.AsNestedTypeReference
+        {
+            get
+            {
+                return null;
+            }
+        }
 
-        public bool IsSealed => false;
+        ISpecializedNestedTypeReference? ITypeReference.AsSpecializedNestedTypeReference
+        {
+            get
+            {
+                return null;
+            }
+        }
 
-        public LayoutKind Layout => LayoutKind.Auto;
+        ITypeDefinition ITypeReference.AsTypeDefinition(EmitContext context)
+        {
+            return this;
+        }
 
-        public IEnumerable<INestedTypeDefinition> GetNestedTypes(EmitContext context) => SpecializedCollections.EmptyEnumerable<INestedTypeDefinition>();
-
-        public IEnumerable<IPropertyDefinition> GetProperties(EmitContext context) => SpecializedCollections.EmptyEnumerable<IPropertyDefinition>();
-
-        public uint SizeOf => 0;
-
-        public CharSet StringFormat => CharSet.Ansi;
-
-        public bool IsPublic => false;
-
-        public bool IsNested => false;
-
-        IEnumerable<IGenericTypeParameter> ITypeDefinition.GenericParameters => throw ExceptionUtilities.Unreachable;
-
-        ushort ITypeDefinition.GenericParameterCount => 0;
-
-        IEnumerable<SecurityAttribute> ITypeDefinition.SecurityAttributes => throw ExceptionUtilities.Unreachable;
-
-        void IReference.Dispatch(MetadataVisitor visitor) => throw ExceptionUtilities.Unreachable;
-
-        bool ITypeReference.IsEnum => throw ExceptionUtilities.Unreachable;
-
-        bool ITypeReference.IsValueType => throw ExceptionUtilities.Unreachable;
-
-        ITypeDefinition ITypeReference.GetResolvedType(EmitContext context) => this;
-
-        PrimitiveTypeCode ITypeReference.TypeCode => throw ExceptionUtilities.Unreachable;
-
-        ushort INamedTypeReference.GenericParameterCount => throw ExceptionUtilities.Unreachable;
-
-        IUnitReference INamespaceTypeReference.GetUnit(EmitContext context) => throw ExceptionUtilities.Unreachable;
-
-        string INamespaceTypeReference.NamespaceName => string.Empty;
-
-        IGenericMethodParameterReference? ITypeReference.AsGenericMethodParameterReference => null;
-
-        IGenericTypeInstanceReference? ITypeReference.AsGenericTypeInstanceReference => null;
-
-        IGenericTypeParameterReference? ITypeReference.AsGenericTypeParameterReference => null;
-
-        INamespaceTypeDefinition ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => this;
-
-        INamespaceTypeReference ITypeReference.AsNamespaceTypeReference => this;
-
-        INestedTypeDefinition? ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
-
-        INestedTypeReference? ITypeReference.AsNestedTypeReference => null;
-
-        ISpecializedNestedTypeReference? ITypeReference.AsSpecializedNestedTypeReference => null;
-
-        ITypeDefinition ITypeReference.AsTypeDefinition(EmitContext context) => this;
-
-        IDefinition IReference.AsDefinition(EmitContext context) => this;
+        IDefinition IReference.AsDefinition(EmitContext context)
+        {
+            return this;
+        }
     }
 }

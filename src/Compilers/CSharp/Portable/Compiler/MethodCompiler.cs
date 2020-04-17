@@ -175,15 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
                 }
-
-                var rootModuleType = moduleBeingBuiltOpt.RootModuleType;
-                if (rootModuleType != null)
-                {
-                    // all threads that were adding methods must be finished now, we can freeze the class:
-                    rootModuleType.Freeze();
-
-                    methodCompiler.CompileSynthesizedMethods(rootModuleType, diagnostics);
-                }
             }
 
             // If we are trying to emit and there's an error without a corresponding diagnostic (e.g. because
@@ -524,20 +515,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 hasStaticConstructor = true;
                             }
-
-                            if (_moduleBeingBuiltOpt is object && method is SourceMethodSymbolWithAttributes { MethodKind: MethodKind.Ordinary, IsModuleInitializer: true })
-                            {
-                                var rootModuleType = _moduleBeingBuiltOpt.RootModuleType;
-                                rootModuleType.AddModuleInitializerMethod(method);
-
-                                if (rootModuleType.GetSynthesizedMethod(WellKnownMemberNames.StaticConstructorName) is null)
-                                {
-                                    rootModuleType.TryAddSynthesizedMethod(
-                                        new SynthesizedRootModuleTypeStaticConstructor(
-                                            rootModuleType,
-                                            new SynthesizedRootModuleType(_moduleBeingBuiltOpt.SourceModule.GlobalNamespace, rootModuleType)));
-                                }
-                            }
                             break;
                         }
 
@@ -664,12 +641,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             compilationState.Free();
         }
 
-        private void CompileSynthesizedMethods(Cci.INamespaceTypeDefinition synthesizedTopLevelType, DiagnosticBag diagnostics)
+        private void CompileSynthesizedMethods(PrivateImplementationDetails privateImplClass, DiagnosticBag diagnostics)
         {
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
-            foreach (MethodSymbol method in synthesizedTopLevelType.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics, metadataOnly: false, includePrivateMembers: true)))
+            foreach (MethodSymbol method in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics, metadataOnly: false, includePrivateMembers: true)))
             {
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
                 method.GenerateMethodBody(compilationState, diagnostics);
