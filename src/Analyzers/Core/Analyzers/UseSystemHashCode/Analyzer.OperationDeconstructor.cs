@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return false;
             }
 
-            private static bool TryGetFieldOrProperty(IOperation operation, [NotNullWhen(true)]out ISymbol? symbol)
+            private static bool TryGetFieldOrProperty(IOperation operation, [NotNullWhen(true)] out ISymbol? symbol)
             {
                 operation = Unwrap(operation);
 

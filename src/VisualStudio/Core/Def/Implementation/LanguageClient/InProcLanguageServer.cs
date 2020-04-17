@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly LanguageServerProtocol _protocol;
+        private readonly bool _supportsHover;
         private readonly CodeAnalysis.Workspace _workspace;
 
         // The VS LSP client supports streaming using IProgress<T> on various requests.
@@ -63,10 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private VSClientCapabilities _clientCapabilities;
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
-            CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService, string? clientName)
+            CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService, string? clientName, bool supportsHover)
         {
             _protocol = protocol;
             _workspace = workspace;
+            _supportsHover = supportsHover;
 
             _jsonRpc = new JsonRpc(outputStream, inputStream, this);
             _jsonRpc.StartListening();
@@ -84,13 +86,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName)]
-        public Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
+        public async Task<InitializeResult> InitializeAsync(JToken input, CancellationToken cancellationToken)
         {
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(JsonSerializer);
-            return _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(JsonSerializer), _clientCapabilities, cancellationToken);
+            var serverCapabilities = await _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(JsonSerializer), _clientCapabilities, cancellationToken).ConfigureAwait(false);
+            // As soon as LSP supports classifications in hover, we can remove this and always advertise hover support.
+            // Tracking - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138/
+            serverCapabilities.Capabilities.HoverProvider = _supportsHover;
+            return serverCapabilities;
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
@@ -157,6 +163,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.GetDocumentHighlightAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentHoverName)]
+        public Task<Hover> GetTextDocumentDocumentHoverAsync(JToken input, CancellationToken cancellationToken)
+        {
+            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
+            return _protocol.GetHoverAsync(_workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName)]
@@ -249,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// When we query for diagnostic on dA, we get a subset of the diagnostics on m1 (missing the contributions from dB)
         /// Since each publish diagnostics notification replaces diagnostics per document,
         /// we must union the diagnostics contribution from dB and dA to produce all diagnostics for m1 and publish all at once.
-        /// 
+        ///
         /// This dictionary stores the previously computed diagnostics for the published file so that we can
         /// union the currently computed diagnostics (e.g. for dA) with previously computed diagnostics (e.g. from dB).
         /// </summary>
