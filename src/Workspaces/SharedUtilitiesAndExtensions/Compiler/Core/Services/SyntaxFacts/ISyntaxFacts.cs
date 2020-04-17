@@ -377,13 +377,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node);
 
+#nullable enable
         /// <summary>
-        /// Returns the parent node that binds to the symbols that the IDE prefers for features like
-        /// Quick Info and Find All References. For example, if the token is part of the type of
-        /// an object creation, the parenting object creation expression is returned so that binding
-        /// will return constructor symbols.
+        /// Returns the parent node that binds to the symbols that the IDE prefers for features like Quick Info and Find
+        /// All References. For example, if the token is part of the type of an object creation, the parenting object
+        /// creation expression is returned so that binding will return constructor symbols.
         /// </summary>
-        SyntaxNode GetBindableParent(SyntaxToken token);
+        SyntaxNode? TryGetBindableParent(SyntaxToken token);
+#nullable disable
 
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode root, CancellationToken cancellationToken);
         bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);

@@ -329,7 +329,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFactsService.GetBestOrAllSymbols
-            Return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
+            Return If(node Is Nothing,
+                      ImmutableArray(Of ISymbol).Empty,
+                      semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
         End Function
 
         Private Function ISemanticFactsService_GenerateUniqueName(
