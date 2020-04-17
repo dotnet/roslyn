@@ -10,6 +10,11 @@ using IEnumerator = System.Collections.IEnumerator;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
+    internal interface IByRefComparer<T>
+    {
+        int Compare(in T first, in T second);
+    }
+
     /// <summary>
     /// Segmented list implementation, copied from Microsoft.Exchange.Collections.
     /// </summary>
@@ -222,9 +227,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="comparer">Comparer to use.</param>
         /// <returns>Non-negative position of the element if found, negative binary complement of the position of the next element if not found.</returns>
         /// <remarks>The implementation was copied from CLR BinarySearch implementation.</remarks>
-        public int BinarySearch(T item, IComparer<T> comparer)
+        public int BinarySearch<TComparer>(in T item, TComparer comparer)
+            where TComparer : IByRefComparer<T>
         {
-            return BinarySearch(item, 0, _count - 1, comparer);
+            return BinarySearch(in item, 0, _count - 1, comparer);
         }
 
         /// <summary>
@@ -235,7 +241,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <param name="high">The highest index in which to search.</param>
         /// <param name="comparer">Comparer to use.</param>
         /// <returns>The index </returns>
-        public int BinarySearch(T item, int low, int high, IComparer<T> comparer)
+        public int BinarySearch<TComparer>(in T item, int low, int high, TComparer comparer)
+            where TComparer : IByRefComparer<T>
         {
             if (low < 0 || low > high)
             {
@@ -250,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             while (low <= high)
             {
                 var i = low + ((high - low) >> 1);
-                var order = comparer.Compare(_items[i >> _segmentShift][i & _offsetMask], item);
+                var order = comparer.Compare(in _items[i >> _segmentShift][i & _offsetMask], in item);
 
                 if (order == 0)
                 {

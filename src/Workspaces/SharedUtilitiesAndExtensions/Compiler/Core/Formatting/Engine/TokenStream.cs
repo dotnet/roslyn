@@ -500,9 +500,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             return this.GetTriviaData(tokenData1, tokenData2).SecondTokenIsFirstTokenOnLine;
         }
 
-        private int GetTokenIndexInStream(SyntaxToken token)
+        private int GetTokenIndexInStream(in SyntaxToken token)
         {
-            var tokenIndex = _tokens.BinarySearch(token, TokenOrderComparer.Instance);
+            var tokenIndex = _tokens.BinarySearch(in token, TokenOrderComparer.Instance);
             if (tokenIndex < 0)
             {
                 return -1;
@@ -560,13 +560,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private sealed class TokenOrderComparer : IComparer<SyntaxToken>
+        private readonly struct TokenOrderComparer : IByRefComparer<SyntaxToken>
         {
             public static readonly TokenOrderComparer Instance = new TokenOrderComparer();
 
-            private TokenOrderComparer() { }
-
-            public int Compare(SyntaxToken x, SyntaxToken y)
+            public int Compare(in SyntaxToken x, in SyntaxToken y)
                 => x.FullSpan.CompareTo(y.FullSpan);
         }
     }
