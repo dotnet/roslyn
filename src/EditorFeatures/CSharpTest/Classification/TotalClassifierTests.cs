@@ -6,9 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -1857,6 +1855,122 @@ class Program
                 Local("n"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NotPattern()
+        {
+            await TestAsync(
+@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is not Person p)
+        {
+        }
+    }
+}",
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Keyword("not"),
+                Class("Person"),
+                Local("p"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task OrPattern()
+        {
+            await TestAsync(
+@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person or int)
+        {
+        }
+    }
+}",
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Class("Person"),
+                Keyword("or"),
+                Keyword("int"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task RelationalPattern()
+        {
+            await TestAsync(
+@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is >= 0)
+        {
+        }
+    }
+}",
+                Keyword("class"),
+                Class("Person"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ControlKeyword("if"),
+                Punctuation.OpenParen,
+                Parameter("o"),
+                Keyword("is"),
+                Operators.GreaterThanEquals,
+                NumericLiteral("0"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
