@@ -530,7 +530,8 @@
     <value>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</value>
   </data>
   <data name="In_other_binary_operators" xml:space="preserve">
-    <value>In other binary operators:  &amp;&amp;   ||   ??</value>
+    <value>In other binary operators:  &amp;&amp;   ||   ??   and   or</value>
+    <comment>'and' and 'or' are C# keywords and should not be localized</comment>
   </data>
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
@@ -552,6 +553,7 @@
   </data>
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>
+    <comment>'is' and 'as' are C# keywords and should not be localized</comment>
   </data>
   <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
     <value>Perform additional code cleanup during formatting</value>
