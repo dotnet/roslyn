@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// A subtype of <see cref="CompletionService"/> that aggregates completions from one or more <see cref="CompletionProvider"/>s.
     /// </summary>
-    public abstract class CompletionServiceWithProviders : CompletionService, IEqualityComparer<ImmutableHashSet<string>>
+    public abstract partial class CompletionServiceWithProviders : CompletionService, IEqualityComparer<ImmutableHashSet<string>>
     {
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
 
@@ -665,35 +665,6 @@ namespace Microsoft.CodeAnalysis.Completion
                     options,
                     defaultSpan: null,
                     cancellationToken);
-            }
-        }
-
-        private class ProjectCompletionProvider
-            : AbstractProjectExtensionProvider<CompletionProvider, ExportCompletionProviderAttribute>
-        {
-            public ProjectCompletionProvider(AnalyzerReference reference)
-                : base(reference)
-            {
-            }
-
-            protected override bool SupportsLanguage(ExportCompletionProviderAttribute exportAttribute, string language)
-            {
-                return exportAttribute.Language == null
-                    || exportAttribute.Language.Length == 0
-                    || exportAttribute.Language.Contains(language);
-            }
-
-            protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CompletionProvider> extensions)
-            {
-                // check whether the analyzer reference knows how to return completion providers directly.
-                if (reference is ICompletionProviderFactory completionProviderFactory)
-                {
-                    extensions = completionProviderFactory.GetCompletionProviders();
-                    return true;
-                }
-
-                extensions = default;
-                return false;
             }
         }
     }

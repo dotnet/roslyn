@@ -22,25 +22,18 @@ namespace Microsoft.CodeAnalysis
             _extensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
         }
 
+        protected abstract bool SupportsLanguage(TExportAttribute exportAttribute, string language);
+
+        protected abstract bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<TExtension> extensions);
+
         public ImmutableArray<TExtension> GetExtensions(string language)
         {
             return ImmutableInterlocked.GetOrAdd(ref _extensionsPerLanguage, language, (language, provider) => provider.CreateExtensions(language), this);
         }
 
-        protected virtual bool SupportsLanguage(TExportAttribute exportAttribute, string language)
-        {
-            return true;
-        }
-
-        protected virtual bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<TExtension> extensions)
-        {
-            extensions = default;
-            return false;
-        }
-
         private ImmutableArray<TExtension> CreateExtensions(string language)
         {
-            // check whether the analyzer reference knows how to return fixers directly.
+            // check whether the analyzer reference knows how to return extensions directly.
             if (TryGetExtensionsFromReference(_reference, out var extensions))
             {
                 return extensions;
