@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
                 isDestructorTypeContext: isDestructorTypeContext,
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
-                isStartPatternContext: syntaxTree.IsStartPatternContext(leftToken, position),
-                isAfterPatternContext: syntaxTree.IsAfterPatternContext(leftToken, position),
+                isStartPatternContext: syntaxTree.IsAtStartOfPattern(leftToken, position),
+                isAfterPatternContext: syntaxTree.IsAtEndOfPattern(leftToken, position),
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isInArgumentList: isArgumentListToken,
                 cancellationToken: cancellationToken);

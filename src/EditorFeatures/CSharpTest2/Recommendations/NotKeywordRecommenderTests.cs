@@ -65,6 +65,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMiddleofCompletePattern()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is $$ 1 or 2)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMiddleofCompletePattern_MultipleParens()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is ((($$ 1 or 2))))"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtBeginningOfSwitchExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -137,6 +151,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"switch (e)
 {
     case ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtBeginningOfSwitchStatement_AfterOpenParen_CompleteStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
+@"switch (e)
+{
+    case ($$ 1)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

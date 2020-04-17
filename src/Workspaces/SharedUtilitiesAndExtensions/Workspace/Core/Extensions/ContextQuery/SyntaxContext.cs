@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isInImportsDirective,
             bool isWithinAsyncMethod,
             bool isPossibleTupleContext,
-            bool isStartPatternContext,
-            bool isAfterPatternContext,
+            bool isAtStartOfPattern,
+            bool isAtEndOfPattern,
             bool isRightSideOfNumericType,
             bool isOnArgumentListBracketOrComma,
             CancellationToken cancellationToken)
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsInImportsDirective = isInImportsDirective;
             this.IsWithinAsyncMethod = isWithinAsyncMethod;
             this.IsPossibleTupleContext = isPossibleTupleContext;
-            this.IsStartPatternContext = isStartPatternContext;
-            this.IsAfterPatternContext = isAfterPatternContext;
+            this.IsAtStartOfPattern = isAtStartOfPattern;
+            this.IsAtEndOfPattern = isAtEndOfPattern;
             this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
             this.IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsInImportsDirective { get; }
         public bool IsWithinAsyncMethod { get; }
         public bool IsPossibleTupleContext { get; }
-        public bool IsStartPatternContext { get; }
-        public bool IsAfterPatternContext { get; }
+        public bool IsAtStartOfPattern { get; }
+        public bool IsAtEndOfPattern { get; }
 
         public bool IsRightSideOfNumericType { get; }
         public bool IsOnArgumentListBracketOrComma { get; }

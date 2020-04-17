@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
 
             if (deconstruction is null)
             {
-                // Debug.Fail("The diagnostic can only be produced in context of a deconstruction-assignment or deconstruction-foreach");
+                Debug.Fail("The diagnostic can only be produced in context of a deconstruction-assignment or deconstruction-foreach");
                 return;
             }
 
