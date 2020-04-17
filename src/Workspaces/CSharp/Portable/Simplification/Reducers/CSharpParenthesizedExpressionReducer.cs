@@ -14,12 +14,12 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
-    internal partial class CSharpParenthesesReducer : AbstractCSharpReducer
+    internal partial class CSharpParenthesizedExpressionReducer : AbstractCSharpReducer
     {
         private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
             () => new Rewriter(s_pool));
 
-        public CSharpParenthesesReducer() : base(s_pool)
+        public CSharpParenthesizedExpressionReducer() : base(s_pool)
         {
         }
 

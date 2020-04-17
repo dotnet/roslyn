@@ -3822,7 +3822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return False
         End Function
 
-        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, pattern As SyntaxNode) As SyntaxNode
+        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, isToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
@@ -3831,6 +3831,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function NotPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function OrPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function ParenthesizedPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function TypePattern(type As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
