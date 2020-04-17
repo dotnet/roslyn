@@ -33,11 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             if (node.CanRemoveParentheses(semanticModel))
             {
-                // TODO(DustinCa): We should not be skipping elastic trivia below.
-                // However, the formatter seems to mess up trailing trivia in some
-                // cases if elastic trivia is there -- and it's not clear why.
-                // Specifically remove the elastic trivia formatting rule doesn't
-                // have any effect.
                 var resultNode = CSharpSyntaxFacts.Instance.Unparenthesize(node);
                 return SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);
             }
