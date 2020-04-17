@@ -771,6 +771,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Nothing)
         End Function
 
+        Protected Overrides ReadOnly Property CommonScriptGlobalsType As ITypeSymbol
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
 #End Region
 
 #Region "Syntax Trees"

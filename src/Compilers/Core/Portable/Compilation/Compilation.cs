@@ -855,6 +855,12 @@ namespace Microsoft.CodeAnalysis
         protected abstract ITypeSymbol CommonDynamicType { get; }
 
         /// <summary>
+        /// A symbol representing the script globals type.
+        /// </summary>
+        internal ITypeSymbol? ScriptGlobalsType => CommonScriptGlobalsType;
+        protected abstract ITypeSymbol? CommonScriptGlobalsType { get; }
+
+        /// <summary>
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>

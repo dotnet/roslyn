@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
 
+        // The type of host object model if available.
+        private TypeSymbol? _lazyHostObjectTypeSymbol;
+
         // All imports (using directives and extern aliases) in syntax trees in this compilation.
         // NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
         // and re-created.
@@ -1452,8 +1455,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        // The type of host object model if available.
-        private TypeSymbol? _lazyHostObjectTypeSymbol;
+        protected override ITypeSymbol? CommonScriptGlobalsType
+            => GetHostObjectTypeSymbol()?.GetPublicSymbol();
 
         internal TypeSymbol? GetHostObjectTypeSymbol()
         {
