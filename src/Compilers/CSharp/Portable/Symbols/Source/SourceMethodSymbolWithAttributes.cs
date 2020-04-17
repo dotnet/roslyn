@@ -485,7 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ModuleInitializerAttribute))
             {
                 MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
-                CSharpAttributeData.DecodeModuleInitializerAttribute(ref arguments);
+                // PROTOTYPE(module-initializers): diagnostics
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasModuleInitializerAttribute = true;
             }
             else
             {
