@@ -16,7 +16,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
@@ -270,23 +269,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var solutionService = CreateSolutionService(solutionInfo);
                     await solutionService.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
-                }
-            }, cancellationToken);
-        }
-
-        public Task SynchronizeGlobalAssetsAsync(PinnedSolutionInfo solutionInfo, Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async () =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
-                {
-                    var assetProvider = SolutionService.CreateAssetProvider(solutionInfo, AssetStorage);
-                    var assets = await assetProvider.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var (checksum, value) in assets)
-                    {
-                        AssetStorage.TryAddGlobalAsset(checksum, value);
-                    }
                 }
             }, cancellationToken);
         }

@@ -59,27 +59,5 @@ End Enum
             compilation.GetAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAnalyzerOptions()
         End Sub
-
-        Private NotInheritable Class TestAdditionalText
-            Inherits AdditionalText
-
-            Private ReadOnly _path As String
-            Private ReadOnly _text As SourceText
-
-            Public Sub New(path As String, text As SourceText)
-                _path = path
-                _text = text
-            End Sub
-
-            Public Overrides ReadOnly Property Path As String
-                Get
-                    Return _path
-                End Get
-            End Property
-
-            Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
-                Return _text
-            End Function
-        End Class
     End Class
 End Namespace

@@ -1473,16 +1473,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        public bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration)
+        public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, out SyntaxNode typeDeclaration)
         {
             var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(root, position);
             typeDeclaration = node;
             if (node == null)
-            {
                 return false;
-            }
 
-            return IsOnHeader(root, position, node, node.Identifier);
+            var lastToken = (node as TypeDeclarationSyntax)?.TypeParameterList?.GetLastToken() ?? node.Identifier;
+            if (fullHeader)
+                lastToken = node.BaseList?.GetLastToken() ?? lastToken;
+
+            return IsOnHeader(root, position, node, lastToken);
         }
 
         public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration)

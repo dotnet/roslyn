@@ -248,5 +248,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddSynthesizedAttribute(ref attributes,
                 this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
+
+        /// <summary>
+        /// Returns an instance of a symbol that represents an native integer
+        /// if this underlying symbol represents System.IntPtr or System.UIntPtr.
+        /// For other symbols, throws <see cref="System.InvalidOperationException"/>.
+        /// </summary>
+        internal override NamedTypeSymbol AsNativeInteger()
+        {
+            throw new System.InvalidOperationException();
+        }
+
+        /// <summary>
+        /// If this is a native integer, returns the symbol for the underlying type,
+        /// either <see cref="System.IntPtr"/> or <see cref="System.UIntPtr"/>.
+        /// Otherwise, returns null.
+        /// </summary>
+        internal override NamedTypeSymbol? NativeIntegerUnderlyingType => null;
     }
 }

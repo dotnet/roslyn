@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VSTypeScriptDiagnosticAnalyzerLanguageService(
-            [Import(AllowDefault = true)]IVSTypeScriptDiagnosticAnalyzerImplementation? implementation = null)
+            [Import(AllowDefault = true)] IVSTypeScriptDiagnosticAnalyzerImplementation? implementation = null)
         {
             Implementation = implementation;
         }
