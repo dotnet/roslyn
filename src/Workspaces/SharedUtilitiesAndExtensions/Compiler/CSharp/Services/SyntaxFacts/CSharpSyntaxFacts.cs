@@ -1420,6 +1420,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsBinaryExpression(SyntaxNode node)
             => node is BinaryExpressionSyntax;
 
+        public bool IsIsExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.IsExpression);
+
         public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var binaryExpression = (BinaryExpressionSyntax)node;
@@ -1991,6 +1994,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         internal static bool ParentIsLocalDeclarationStatement(SyntaxNode node)
             => node?.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ?? false;
 
+        public bool IsIsPatternExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.IsPatternExpression);
+
         public void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right)
         {
             var isPatternExpression = (IsPatternExpressionSyntax)node;
@@ -1998,12 +2004,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             isToken = isPatternExpression.IsKeyword;
             right = isPatternExpression.Pattern;
         }
-
-        public bool IsIsExpression(SyntaxNode node)
-            => node.IsKind(SyntaxKind.IsExpression);
-
-        public bool IsIsPatternExpression(SyntaxNode node)
-            => node.IsKind(SyntaxKind.IsPatternExpression);
 
         public bool IsAnyPattern(SyntaxNode node)
             => node is PatternSyntax;
