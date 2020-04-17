@@ -2,9 +2,15 @@
   "isRoot": true,
   "tools": {
     "dotnet-format": {
-      "version": "3.2.107801",
+      "version": "3.3.111304",
       "commands": [
         "dotnet-format"
+      ]
+    },
+    "powershell": {
+      "version": "6.2.4",
+      "commands": [
+        "pwsh"
       ]
     }
   }

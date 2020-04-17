@@ -7,6 +7,8 @@ param (
 Set-StrictMode -version 3.0
 $ErrorActionPreference="Stop"
 
+. (Join-Path $PSScriptRoot "../eng/build-utils.ps1")
+
 Push-Location
 
 $fileInfo = Get-ItemProperty $filePath
@@ -21,7 +23,7 @@ try
         if ($files)
         {
             Pop-Location
-            $dotnetPath = Resolve-Path "$PSScriptRoot/../.dotnet/dotnet.exe" -Relative
+            $dotnetPath = Resolve-Path (Ensure-DotNetSdk) -Relative
 
             $projectFileInfo = $files[0]
             $projectDir = Resolve-Path $projectFileInfo.Directory -Relative
@@ -29,7 +31,8 @@ try
             $filterArg = if ($filter) {" --filter $filter"} else {""}
             $logFileName = if ($filter) {$fileInfo.Name} else {$projectFileInfo.Name}
 
-            $resultsPath = Resolve-Path "$PSScriptRoot/../artifacts/TestResults" -Relative
+            $resultsPath = Join-Path (Resolve-Path "$PSScriptRoot/.." -Relative) "/artifacts/TestResults"
+            New-Item -ItemType Directory -Force -Path $resultsPath | Out-Null
 
             $invocation = "$dotnetPath test $projectDir$filterArg --framework $framework --logger `"html;LogFileName=$logfileName.html`" --results-directory $resultsPath"
             Write-Output "> $invocation"

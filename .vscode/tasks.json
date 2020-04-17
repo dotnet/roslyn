@@ -50,12 +50,13 @@
     },
     {
         "label": "run tests in current file (netcoreapp3.1)",
-        "command": "powershell",
-        "type": "shell",
+        "command": "dotnet",
+        "type": "process",
         "args": [
+          "pwsh",
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
           "-filePath",
-          "${relativeFile}",
+          "${file}",
           "-framework",
           "netcoreapp3.1",
           "-filter",
@@ -66,12 +67,13 @@
     },
     {
         "label": "run tests in current project (netcoreapp3.1)",
-        "command": "powershell",
-        "type": "shell",
+        "command": "dotnet",
+        "type": "process",
         "args": [
+          "pwsh",
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
           "-filePath",
-          "${relativeFile}",
+          "${file}",
           "-framework",
           "netcoreapp3.1"
         ],
