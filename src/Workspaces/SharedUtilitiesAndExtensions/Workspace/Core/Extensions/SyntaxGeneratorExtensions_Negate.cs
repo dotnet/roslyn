@@ -66,9 +66,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (negateBinary && syntaxFacts.IsBinaryExpression(expressionOrPattern))
                 return GetNegationOfBinaryExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
 
-            if (negateBinary && syntaxFacts.IsIsPatternExpression(expressionOrPattern))
-                return GetNegationOfIsPatternExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
-
             if (syntaxFacts.IsLiteralExpression(expressionOrPattern))
                 return GetNegationOfLiteralExpression(expressionOrPattern, generator, semanticModel);
 
@@ -78,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if CODE_STYLE
             return generator.LogicalNotExpression(expressionOrPattern);
 #else
+            if (negateBinary && syntaxFacts.IsIsPatternExpression(expressionOrPattern))
+                return GetNegationOfIsPatternExpression(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
 
             if (syntaxFacts.IsParenthesizedPattern(expressionOrPattern))
             {
@@ -175,6 +174,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+#if !CODE_STYLE
+
         private static SyntaxNode GetNegationOfBinaryPattern(
             SyntaxNode pattern,
             SyntaxGenerator generator,
@@ -268,6 +269,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return true;
         }
+
+#endif
 
         private static SyntaxNode NewBinaryOperation(
             IBinaryOperation binaryOperation,
