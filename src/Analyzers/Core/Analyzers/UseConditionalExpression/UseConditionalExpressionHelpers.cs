@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFacts syntaxFacts, IConditionalOperation ifOperation,
             IOperation whenTrue, IOperation whenFalse)
         {
-            // Will likely screw things up if the if directive spans any preprocessor directives. So
+            // Will likely not work as intended if the if directive spans any preprocessor directives. So
             // do not offer for now.  Note: we pass in both the node for the ifOperation and the
             // whenFalse portion.  The whenFalse portion isn't necessary under the ifOperation.  For
             // example in:

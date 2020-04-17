@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
         /// </summary>
-        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, [NotNullWhen(true)]out Solution? solution)
+        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, [NotNullWhen(true)] out Solution? solution)
         {
             if (solutionInfo == null)
             {

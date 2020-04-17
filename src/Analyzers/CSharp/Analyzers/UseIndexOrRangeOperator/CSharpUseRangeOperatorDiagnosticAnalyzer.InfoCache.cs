@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -20,15 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         public class InfoCache
         {
             /// <summary>
-            /// The System.Range type.  Needed so that we only fixup code if we see the type
-            /// we're using has an indexer that takes a Range.
+            /// The <see cref="T:System.Range"/> type.  Needed so that we only fixup code if we see the type
+            /// we're using has an indexer that takes a <see cref="T:System.Range"/>.
             /// </summary>
+            [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
             public readonly INamedTypeSymbol RangeType;
             private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo;
 
             public InfoCache(Compilation compilation)
             {
-                RangeType = compilation.GetTypeByMetadataName("System.Range");
+                RangeType = compilation.GetBestTypeByMetadataName("System.Range");
 
                 _methodToMemberInfo = new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
 

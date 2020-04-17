@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
 
         public ITemporaryTextStorage? Storage => _text?.Storage;
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out TextAndVersion value)
+        public override bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
         {
             if (_text != null && _text.TryGetValue(out var text))
             {
