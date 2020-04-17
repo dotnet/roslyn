@@ -11,6 +11,7 @@ $ErrorActionPreference="Stop"
 
 Push-Location
 
+$originalCwd = Get-Location
 $fileInfo = Get-ItemProperty $filePath
 Set-Location $fileInfo.Directory
 
@@ -19,7 +20,7 @@ try {
         # search up from the current file for a folder containing a csproj
         $files = Get-ChildItem *.csproj
         if ($files) {
-            Pop-Location
+            Set-Location $originalCwd
             $dotnetPath = Resolve-Path (Ensure-DotNetSdk) -Relative
 
             $projectFileInfo = $files[0]
@@ -35,7 +36,7 @@ try {
             Write-Output "> $invocation"
             Invoke-Expression $invocation
 
-            break
+            exit 0
         }
         else {
             $location = Get-Location
@@ -43,7 +44,8 @@ try {
             if ((Get-Location).Path -eq $location.Path) {
                 # our location didn't change. We must be at the drive root, so give up
                 Write-Host "Failed to run tests. $fileInfo is not part of a C# project."
-                break
+
+                exit 1
             }
         }
     }
