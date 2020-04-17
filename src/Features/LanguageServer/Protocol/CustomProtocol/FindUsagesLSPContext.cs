@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -24,12 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     internal class FindUsagesLSPContext : FindUsagesContext
     {
-
         private const int MaxResultsChunkSize = 32;
-
-        private int _id = 0;
-
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         private readonly Dictionary<DefinitionItem, int> _definitionToId =
             new Dictionary<DefinitionItem, int>();
@@ -41,6 +37,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+
+        // Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
+        // We need this sempahore to ensure that we aren't making concurrent
+        // modifications to data such as _id, _definitionToId, and _resultsChunk.
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+
+        // Unique identifier given to each definition and reference.
+        private int _id = 0;
 
         public override CancellationToken CancellationToken { get; }
 
@@ -61,77 +65,111 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         public async override Task OnCompletedAsync()
         {
-            var results = Array.Empty<VSReferenceItem>();
+            var referencesToReport = ArrayBuilder<VSReferenceItem>.GetInstance();
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
                 if (_resultsChunk.IsEmpty())
                 {
+                    referencesToReport.Free();
                     return;
                 }
 
-                results = _resultsChunk.ToArray();
+                referencesToReport.AddRange(_resultsChunk.ToArray());
                 _resultsChunk.Clear();
             }
 
-            _progress.Report(results);
+            // We can report outside of the lock here since _progress is thread-safe.
+            _progress.Report(referencesToReport.ToArrayAndFree());
         }
 
         public async override Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
+            var referencesToReport = ArrayBuilder<VSReferenceItem>.GetInstance();
+
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
-                if (!_definitionToId.ContainsKey(definition))
+                if (_definitionToId.ContainsKey(definition))
                 {
-                    // Assinging a new id to the definition
-                    _definitionToId.Add(definition, _id);
+                    return;
+                }
 
-                    // VSReferenceItem currently doesn't support the ClassifiedTextElement type for DefinitionText,
-                    // so for now we just pass in a string.
-                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1100009
-                    var classifiedText = definition.GetClassifiedText();
-                    var definitionText = "";
-                    foreach (var text in classifiedText.Runs)
-                    {
-                        definitionText += text.Text;
-                    }
+                // Assigning a new id to the definition
+                _id++;
+                _definitionToId.Add(definition, _id);
 
-                    // Creating a new VSReferenceItem for the definition
-                    var definitionItem = await GenerateVSReferenceItemAsync(
-                        _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
-                        definition.DisplayableProperties, _metadataAsSourceFileService, definitionText,
-                        symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
+                // VSReferenceItem currently doesn't support the ClassifiedTextElement type for DefinitionText,
+                // so for now we just pass in a string.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
+                var classifiedText = definition.GetClassifiedText();
 
-                    if (definitionItem.Location != null)
-                    {
-                        AddAndReportResultsIfAtMax(definitionItem);
-                        _id++;
-                    }
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                foreach (var text in classifiedText.Runs)
+                {
+                    pooledBuilder.Builder.Append(text.Text);
+                }
+
+                var definitionText = pooledBuilder.ToStringAndFree();
+
+                // Creating a new VSReferenceItem for the definition
+                var definitionItem = await GenerateVSReferenceItemAsync(
+                    _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
+                    definition.DisplayableProperties, _metadataAsSourceFileService, definitionText,
+                    symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
+
+                if (definitionItem != null)
+                {
+                    AddToReferencesToReport(referencesToReport, definitionItem);
                 }
             }
+
+            if (referencesToReport.IsEmpty())
+            {
+                referencesToReport.Free();
+                return;
+            }
+
+            // We can report outside of the lock here since _progress is thread-safe.
+            _progress.Report(referencesToReport.ToArrayAndFree());
         }
 
         public async override Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
+            var referencesToReport = ArrayBuilder<VSReferenceItem>.GetInstance();
+
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
-                if (_definitionToId.TryGetValue(reference.Definition, out var definitionId))
+                // Each reference should be associated with a definition. If this somehow isn't the
+                // case, we bail out early.
+                if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
                 {
-                    // Creating a new VSReferenceItem for the reference
-                    var referenceItem = await GenerateVSReferenceItemAsync(
-                        _id, definitionId, _document, _position, reference.SourceSpan,
-                        reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
-                        reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
+                    return;
+                }
 
-                    if (referenceItem.Location != null)
-                    {
-                        AddAndReportResultsIfAtMax(referenceItem);
-                        _id++;
-                    }
+                _id++;
+
+                // Creating a new VSReferenceItem for the reference
+                var referenceItem = await GenerateVSReferenceItemAsync(
+                    _id, definitionId, _document, _position, reference.SourceSpan,
+                    reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
+                    reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
+
+                if (referenceItem != null)
+                {
+                    AddToReferencesToReport(referencesToReport, referenceItem);
                 }
             }
+
+            if (referencesToReport.IsEmpty())
+            {
+                referencesToReport.Free();
+                return;
+            }
+
+            // We can report outside of the lock here since _progress is thread-safe.
+            _progress.Report(referencesToReport.ToArrayAndFree());
         }
 
-        private void AddAndReportResultsIfAtMax(VSReferenceItem item)
+        private void AddToReferencesToReport(ArrayBuilder<VSReferenceItem> referencesToReport, VSReferenceItem item)
         {
             _resultsChunk.Add(item);
             if (_resultsChunk.Count < MaxResultsChunkSize)
@@ -139,11 +177,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 return;
             }
 
-            _progress.Report(_resultsChunk.ToArray());
+            referencesToReport.AddRange(_resultsChunk.ToArray());
             _resultsChunk.Clear();
         }
 
-        private static async Task<LSP.VSReferenceItem> GenerateVSReferenceItemAsync(
+        private static async Task<LSP.VSReferenceItem?> GenerateVSReferenceItemAsync(
             int id,
             int? definitionId,
             Document document,
@@ -155,28 +193,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             SymbolUsageInfo? symbolUsageInfo,
             CancellationToken cancellationToken)
         {
-            LSP.Location? location = null;
-
-            // If we have no source span, our location may be in metadata.
-            if (documentSpan == default)
+            var location = await ComputeLocationAsync(document, position, documentSpan, metadataAsSourceFileService, cancellationToken).ConfigureAwait(false);
+            if (location == null)
             {
-                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (symbol != null && symbol.Locations != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
-                {
-                    var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(
-                        document.Project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
-
-                    var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-                    location = new LSP.Location
-                    {
-                        Uri = new Uri(declarationFile.FilePath),
-                        Range = ProtocolConversions.LinePositionToRange(linePosSpan),
-                    };
-                }
+                return null;
             }
-            else
+
+            // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata
+            // reference, and those don't show up in the results list in Roslyn FAR anyway.
+            var text = await ComputeTextAsync(id, definitionId, documentSpan, definitionText, cancellationToken).ConfigureAwait(false);
+            if (text == null)
             {
-                location = await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+                return null;
             }
 
             // TO-DO: The Origin property should be added once Rich-Nav is completed.
@@ -196,25 +224,68 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 Location = location,
                 ProjectName = documentSpan == default ? null : documentSpan.Document.Project.Name,
                 ResolutionStatus = ResolutionStatusKind.ConfirmedAsReference,
+                Text = text,
             };
 
-            // Properly assigning the text property.
-            if (id == definitionId)
-            {
-                result.Text = definitionText;
-            }
-            else if (documentSpan != default)
-            {
-                var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                    documentSpan, cancellationToken).ConfigureAwait(false);
-                var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                var docText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                result.Text = new ClassifiedTextElement(
-                    classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
-            }
-
             return result;
+
+            static async Task<LSP.Location?> ComputeLocationAsync(
+                Document document,
+                int position,
+                DocumentSpan documentSpan,
+                IMetadataAsSourceFileService metadataAsSourceFileService,
+                CancellationToken cancellationToken)
+            {
+                // If we have no source span, our location may be in metadata.
+                if (documentSpan == default)
+                {
+                    var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+
+                    if (symbol == null || symbol.Locations == null || symbol.Locations.IsEmpty || !symbol.Locations.First().IsInMetadata)
+                    {
+                        // We couldn't find the location in metadata and it's not in any of our known documents.
+                        return null;
+                    }
+
+                    var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(
+                        document.Project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+
+                    var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
+
+                    return new LSP.Location
+                    {
+                        Uri = new Uri(declarationFile.FilePath),
+                        Range = ProtocolConversions.LinePositionToRange(linePosSpan),
+                    };
+                }
+
+                // We do have a source span, so compute location normally.
+                return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+            }
+
+            static async Task<object?> ComputeTextAsync(
+                int id, int? definitionId,
+                DocumentSpan documentSpan,
+                string? definitionText,
+                CancellationToken cancellationToken)
+            {
+                if (id == definitionId)
+                {
+                    return definitionText;
+                }
+                else if (documentSpan != default)
+                {
+                    var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                        documentSpan, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
+                    var docText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    return new ClassifiedTextElement(
+                        classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
+                }
+
+                return null;
+            }
         }
     }
 }
