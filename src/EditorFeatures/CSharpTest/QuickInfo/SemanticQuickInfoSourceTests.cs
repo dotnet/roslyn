@@ -6955,5 +6955,86 @@ class Program
                 Documentation("Summary text"),
                 Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoNotPattern1()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is not $$Person p)
+        {
+        }
+    }
+}",
+                MainDescription("class Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoNotPattern2()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is $$not Person p)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern1()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is $$Person or int)
+        {
+        }
+    }
+}", MainDescription("class Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern2()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person or $$int)
+        {
+        }
+    }
+}", MainDescription("struct System.Int32"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task QuickInfoOrPattern3()
+        {
+            await TestAsync(@"
+class Person
+{
+    void Goo(object o)
+    {
+        if (o is Person $$or int)
+        {
+        }
+    }
+}");
+        }
     }
 }

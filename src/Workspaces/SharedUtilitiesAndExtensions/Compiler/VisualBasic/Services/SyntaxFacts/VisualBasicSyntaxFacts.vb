@@ -1104,7 +1104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Contract.ThrowIfFalse(index = memberId)
         End Sub
 
-        Public Function GetBindableParent(token As SyntaxToken) As SyntaxNode Implements ISyntaxFacts.GetBindableParent
+        Public Function TryGetBindableParent(token As SyntaxToken) As SyntaxNode Implements ISyntaxFacts.TryGetBindableParent
             Dim node = token.Parent
             While node IsNot Nothing
                 Dim parent = node.Parent
