@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
+using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
@@ -24,41 +25,44 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             _lsifJsonWriter = lsifJsonWriter;
         }
 
-        public async Task GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices)
+        public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices)
         {
             var projectVertex = new Graph.Project(kind: GetLanguageKind(compilation.Language), new Uri(projectPath));
             _lsifJsonWriter.Write(projectVertex);
             _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId()));
 
-            var documentIds = new List<Id<Graph.Document>>();
+            var documentIds = new ConcurrentBag<Id<Graph.Document>>();
 
             // We create a ResultSetTracker to track all top-level symbols in the project. We don't want all writes to immediately go to
-            // the JSON file once we support parallel processing, so we'll accumulate them and then apply at once.
+            // the JSON file -- we support parallel processing, so we'll accumulate them and then apply at once to avoid a lot
+            // of contention on shared locks.
             var topLevelSymbolsWriter = new InMemoryLsifJsonWriter();
             var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation);
 
-            foreach (var syntaxTree in compilation.SyntaxTrees)
+            Parallel.ForEach(compilation.SyntaxTrees, syntaxTree =>
             {
                 var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
                 // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
                 // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
                 // LSIF file. Becasue of the rule that vertices must be written before they're used by an edge, we'll flush any top-
-                // level symbol result sets made first, since the document contents will point to that.
+                // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
+                // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
+                // is preserved.
                 var documentWriter = new InMemoryLsifJsonWriter();
-                var documentId = await GenerateForDocument(semanticModel, languageServices, topLevelSymbolsResultSetTracker, documentWriter);
+                var documentId = GenerateForDocument(semanticModel, languageServices, topLevelSymbolsResultSetTracker, documentWriter);
                 topLevelSymbolsWriter.CopyToAndEmpty(_lsifJsonWriter);
                 documentWriter.CopyToAndEmpty(_lsifJsonWriter);
 
                 documentIds.Add(documentId);
-            }
+            });
 
-            _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds));
+            _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray()));
 
             _lsifJsonWriter.Write(new Event(Event.EventKind.End, projectVertex.GetId()));
         }
 
-        private static Task<Id<Graph.Document>> GenerateForDocument(
+        private static Id<Graph.Document> GenerateForDocument(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
             IResultSetTracker topLevelSymbolsResultSetTracker,
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices));
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId()));
 
-            return Task.FromResult(documentVertex.GetId());
+            return documentVertex.GetId();
         }
 
         private static bool IncludeSymbolInReferences(ISymbol symbol)

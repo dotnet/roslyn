@@ -4,14 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking
 {
     internal sealed class SymbolHoldingResultSetTracker : IResultSetTracker
     {
         private readonly Dictionary<ISymbol, TrackedResultSet> _symbolToResultSetId = new Dictionary<ISymbol, TrackedResultSet>();
+        private readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private readonly ILsifJsonWriter _lsifJsonWriter;
 
         /// <summary>
@@ -30,26 +33,51 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
 
         private TrackedResultSet GetTrackedResultSet(ISymbol symbol)
         {
-            if (!_symbolToResultSetId.TryGetValue(symbol, out var trackedResultSet))
+            TrackedResultSet trackedResultSet;
+
+            // First acquire a simple read lock to see if we already have a result set; we do this with
+            // just a read lock to ensure we aren't contending a lot if the symbol already exists which
+            // is the most common case.
+            using (_readerWriterLock.DisposableRead())
             {
+                if (_symbolToResultSetId.TryGetValue(symbol, out trackedResultSet))
+                {
+                    return trackedResultSet;
+                }
+            }
+
+            using (var upgradeableReadLock = _readerWriterLock.DisposableUpgradeableRead())
+            {
+                // Check a second for the result set since a request could have gotten between us
+                if (_symbolToResultSetId.TryGetValue(symbol, out trackedResultSet))
+                {
+                    return trackedResultSet;
+                }
+
+                // We still don't have it, so we have to start writing now
+                upgradeableReadLock.EnterWrite();
+
                 var resultSet = new ResultSet();
                 _lsifJsonWriter.Write(resultSet);
                 trackedResultSet = new TrackedResultSet(resultSet.GetId());
                 _symbolToResultSetId.Add(symbol, trackedResultSet);
+            }
 
-                // Since we're creating a ResultSet for a symbol for the first time, let's also attach the moniker. We only generate
-                // monikers for original definitions as we don't have a moniker system for those, but also because the place where
-                // monikers are needed -- cross-solution find references and go to definition -- only operates on original definitions
-                // anyways.
-                if (symbol.OriginalDefinition.Equals(symbol))
+            // Since we're creating a ResultSet for a symbol for the first time, let's also attach the moniker. We only generate
+            // monikers for original definitions as we don't have a moniker system for those, but also because the place where
+            // monikers are needed -- cross-solution find references and go to definition -- only operates on original definitions
+            // anyways.
+            //
+            // This we do outside the lock -- whichever thread was the one to create this was the one that
+            // gets to write out the moniker, but others can use the ResultSet Id at this point.
+            if (symbol.OriginalDefinition.Equals(symbol))
+            {
+                var monikerVertex = TryCreateMonikerVertexForSymbol(symbol);
+
+                if (monikerVertex != null)
                 {
-                    var monikerVertex = TryCreateMonikerVertexForSymbol(symbol);
-
-                    if (monikerVertex != null)
-                    {
-                        _lsifJsonWriter.Write(monikerVertex);
-                        _lsifJsonWriter.Write(Edge.Create("moniker", trackedResultSet.Id, monikerVertex.GetId()));
-                    }
+                    _lsifJsonWriter.Write(monikerVertex);
+                    _lsifJsonWriter.Write(Edge.Create("moniker", trackedResultSet.Id, monikerVertex.GetId()));
                 }
             }
 
@@ -104,7 +132,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
 
             /// <summary>
             /// A map which holds the per-symbol results that are linked from the resultSet. The value will be null if the entry was
-            /// added via <see cref="ResultSetNeedsInformationalEdgeAdded"/>.
+            /// added via <see cref="ResultSetNeedsInformationalEdgeAdded"/>. Concurrent acecss is guarded with a monitor lock
+            /// on this field itself, with the belief that concurrent access for a single symbol is relatively rare.
             /// </summary>
             /// <remarks>
             /// This class assumes that we more or less have two kinds of edges in the LSIF world:
@@ -126,41 +155,47 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
 
             public Id<T> GetResultId<T>(string edgeKind, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter) where T : Vertex
             {
-                if (_edgeKindToVertexId.TryGetValue(edgeKind, out var existingId))
+                lock (_edgeKindToVertexId)
                 {
-                    if (!existingId.HasValue)
+                    if (_edgeKindToVertexId.TryGetValue(edgeKind, out var existingId))
                     {
-                        throw new Exception($"This ResultSet already has an edge of {edgeKind} as {nameof(ResultSetNeedsInformationalEdgeAdded)} was called with this edge kind.");
+                        if (!existingId.HasValue)
+                        {
+                            throw new Exception($"This ResultSet already has an edge of {edgeKind} as {nameof(ResultSetNeedsInformationalEdgeAdded)} was called with this edge kind.");
+                        }
+
+                        // TODO: this is a violation of the type system here, really: we're assuming that all calls to this function with the same edge kind
+                        // will have the same type parameter. If that's violated, the Id returned here isn't really the right type.
+                        return new Id<T>(existingId.Value.NumericId);
                     }
 
-                    // TODO: this is a violation of the type system here, really: we're assuming that all calls to this function with the same edge kind
-                    // will have the same type parameter. If that's violated, the Id returned here isn't really the right type.
-                    return new Id<T>(existingId.Value.NumericId);
+                    T vertex = vertexCreator();
+                    _edgeKindToVertexId.Add(edgeKind, vertex.GetId().As<T, Vertex>());
+
+                    lsifJsonWriter.Write(vertex);
+                    lsifJsonWriter.Write(Edge.Create(edgeKind, Id, vertex.GetId()));
+
+                    return vertex.GetId();
                 }
-
-                T vertex = vertexCreator();
-                _edgeKindToVertexId.Add(edgeKind, vertex.GetId().As<T, Vertex>());
-
-                lsifJsonWriter.Write(vertex);
-                lsifJsonWriter.Write(Edge.Create(edgeKind, Id, vertex.GetId()));
-
-                return vertex.GetId();
             }
 
             public bool ResultSetNeedsInformationalEdgeAdded(string edgeKind)
             {
-                if (_edgeKindToVertexId.TryGetValue(edgeKind, out var existingId))
+                lock (_edgeKindToVertexId)
                 {
-                    if (existingId.HasValue)
+                    if (_edgeKindToVertexId.TryGetValue(edgeKind, out var existingId))
                     {
-                        throw new InvalidOperationException($"This edge kind was already called with a call to {nameof(GetResultId)} which would imply we are mixing edge types incorrectly.");
+                        if (existingId.HasValue)
+                        {
+                            throw new InvalidOperationException($"This edge kind was already called with a call to {nameof(GetResultId)} which would imply we are mixing edge types incorrectly.");
+                        }
+
+                        return false;
                     }
 
-                    return false;
+                    _edgeKindToVertexId.Add(edgeKind, null);
+                    return true;
                 }
-
-                _edgeKindToVertexId.Add(edgeKind, null);
-                return true;
             }
         }
     }

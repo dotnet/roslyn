@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
-                    await lsifGenerator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices);
+                    lsifGenerator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices);
                     generationForProjectStopwatch.Stop();
 
                     totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             using var lsifWriter = new TextLsifJsonWriter(outputWriter, outputFormat);
             var lsifGenerator = new Generator(lsifWriter);
 
-            await lsifGenerator.GenerateForCompilation(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices);
+            lsifGenerator.GenerateForCompilation(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices);
             await logFile.WriteLineAsync($"Generation for {compilerInvocation.ProjectFilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
         }
     }

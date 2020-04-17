@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
             For Each project In workspace.CurrentSolution.Projects
                 Dim compilation = Await project.GetCompilationAsync()
-                Await generator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices)
+                generator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices)
             Next
 
             Return New TestLsifOutput(testLsifJsonWriter, workspace)

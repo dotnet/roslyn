@@ -9,21 +9,31 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 {
     internal sealed class InMemoryLsifJsonWriter : ILsifJsonWriter
     {
-        private readonly List<Element> _elements = new List<Element>();
+        private readonly object _gate = new object();
+        private List<Element> _elements = new List<Element>();
 
         public void Write(Element element)
         {
-            _elements.Add(element);
+            lock (_gate)
+            {
+                _elements.Add(element);
+            }
         }
 
         public void CopyToAndEmpty(ILsifJsonWriter writer)
         {
-            foreach (var element in _elements)
+            List<Element> localElements;
+
+            lock (_gate)
+            {
+                localElements = _elements;
+                _elements = new List<Element>();
+            }
+
+            foreach (var element in localElements)
             {
                 writer.Write(element);
             }
-
-            _elements.Clear();
         }
     }
 }

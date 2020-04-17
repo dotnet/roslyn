@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
         private readonly JsonTextWriter _jsonTextWriter;
         private readonly JsonSerializer _jsonSerializer;
         private readonly LsifFormat _format;
+        private readonly object _writeGate = new object();
 
         public TextLsifJsonWriter(TextWriter outputWriter, LsifFormat format)
         {
@@ -40,11 +41,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 
         public void Write(Element element)
         {
-            _jsonSerializer.Serialize(_jsonTextWriter, element);
-
-            if (_format == LsifFormat.Line)
+            lock (_writeGate)
             {
-                _jsonTextWriter.WriteWhitespace("\r\n");
+                _jsonSerializer.Serialize(_jsonTextWriter, element);
+
+                if (_format == LsifFormat.Line)
+                {
+                    _jsonTextWriter.WriteWhitespace("\r\n");
+                }
             }
         }
 
