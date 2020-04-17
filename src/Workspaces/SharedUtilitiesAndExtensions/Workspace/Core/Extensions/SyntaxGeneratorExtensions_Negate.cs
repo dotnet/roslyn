@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         semanticModel,
                         negateBinary,
                         cancellationToken))
-                    .WithTriviaFrom<SyntaxNode>(expressionOrPattern);
+                    .WithTriviaFrom(expressionOrPattern);
             }
 
             if (negateBinary && syntaxFacts.IsBinaryExpression(expressionOrPattern))
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         semanticModel,
                         negateBinary,
                         cancellationToken))
-                    .WithTriviaFrom<SyntaxNode>(expressionOrPattern);
+                    .WithTriviaFrom(expressionOrPattern);
             }
 
             if (negateBinary && syntaxFacts.IsBinaryPattern(expressionOrPattern))
@@ -166,11 +166,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 var newBinaryExpressionSyntax = NewBinaryOperation(binaryOperation, newLeftOperand, negatedKind, newRightOperand, generator, cancellationToken)
-                    .WithTriviaFrom<SyntaxNode>(expressionNode);
+                    .WithTriviaFrom(expressionNode);
 
                 var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
                 var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
-                return newBinaryExpressionSyntax.ReplaceToken<SyntaxNode>(newToken, newTokenWithTrivia);
+                return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
             }
         }
 
@@ -194,11 +194,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 syntaxFacts.IsOrPattern(pattern) ? generator.AndPattern(newLeft, newRight) :
                 throw ExceptionUtilities.UnexpectedValue(pattern.RawKind);
 
-            newPattern = newPattern.WithTriviaFrom<SyntaxNode>(pattern);
+            newPattern = newPattern.WithTriviaFrom(pattern);
 
             syntaxFacts.GetPartsOfBinaryPattern(newPattern, out _, out var newToken, out _);
             var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
-            return newPattern.ReplaceToken<SyntaxNode>(newToken, newTokenWithTrivia);
+            return newPattern.ReplaceToken(newToken, newTokenWithTrivia);
         }
 
         private static SyntaxNode GetNegationOfIsPatternExpression(SyntaxNode isExpression, SyntaxGenerator generator, SyntaxGeneratorInternal generatorInternal, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -408,10 +408,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                newLiteralExpression = generator.LogicalNotExpression(expression.WithoutTrivia<SyntaxNode>());
+                newLiteralExpression = generator.LogicalNotExpression(expression.WithoutTrivia());
             }
 
-            return newLiteralExpression.WithTriviaFrom<SyntaxNode>(expression);
+            return newLiteralExpression.WithTriviaFrom(expression);
         }
 
 #if !CODE_STYLE
@@ -444,8 +444,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(expression);
             var operand = syntaxFacts.GetOperandOfPrefixUnaryExpression(expression);
 
-            return operand.WithPrependedLeadingTrivia<SyntaxNode>(operatorToken.LeadingTrivia)
-                          .WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation);
+            return operand.WithPrependedLeadingTrivia(operatorToken.LeadingTrivia)
+                          .WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
 #if !CODE_STYLE
@@ -459,8 +459,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (syntaxFacts.IsNotPattern(pattern))
             {
-                return subPattern.WithPrependedLeadingTrivia<SyntaxNode>(opToken.LeadingTrivia)
-                                 .WithAdditionalAnnotations<SyntaxNode>(Simplifier.Annotation);
+                return subPattern.WithPrependedLeadingTrivia(opToken.LeadingTrivia)
+                                 .WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
             // TODO: add support for more unary patterns.  for example, `< 0` can be negated to `>= 0`
