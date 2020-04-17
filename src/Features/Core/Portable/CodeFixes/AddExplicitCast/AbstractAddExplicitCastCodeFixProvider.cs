@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -122,9 +123,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             string diagnosticId, TExpressionSyntax spanNode, CancellationToken cancellationToken,
             out ImmutableArray<(TExpressionSyntax node, ITypeSymbol type)> potentialConversionTypes);
 
-        protected abstract bool IsConversionUserDefined(
-            SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
-
         protected ImmutableArray<(TExpressionSyntax, ITypeSymbol)> FilterValidPotentialConversionTypes(
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFacts,
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 // Derived d = [||]new Base();
                 // It is always invalid except the target node has explicit conversion operator or is numeric.
                 if (syntaxFacts.IsObjectCreationExpression(targetNode)
-                    && !IsConversionUserDefined(semanticModel, targetNode, targetNodeConversionType))
+                    && !ClassifyConversion(semanticModel, targetNode, targetNodeConversionType).IsUserDefined)
                 {
                     continue;
                 }
@@ -151,10 +149,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             return validPotentialConversionTypes.Distinct().ToImmutableArray();
         }
 
-        protected abstract bool ClassifyConversionExists(
-            SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
-
-        protected abstract bool IsConversionIdentity(
+        protected abstract CommonConversion ClassifyConversion(
             SemanticModel semanticModel, TExpressionSyntax expression, ITypeSymbol type);
 
         protected abstract SeparatedSyntaxList<SyntaxNode> GetArguments(SyntaxNode argumentList);
@@ -240,13 +235,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
                 if (parameters[parameterIndex].IsParams
                     && parameterType is IArrayTypeSymbol paramsType
-                    && ClassifyConversionExists(semanticModel, argumentExpression, paramsType.ElementType))
+                    && ClassifyConversion(semanticModel, argumentExpression, paramsType.ElementType).Exists)
                 {
                     newArguments.Add(GenerateNewArgument(arguments[i], paramsType.ElementType));
                     FindTargetArgumentAndConversionType(semanticModel, arguments[i], argumentExpression,
                         paramsType.ElementType, ref targetArgument, ref targetArgumentConversionType);
                 }
-                else if (ClassifyConversionExists(semanticModel, argumentExpression, parameterType))
+                else if (ClassifyConversion(semanticModel, argumentExpression, parameterType).Exists)
                 {
                     newArguments.Add(GenerateNewArgument(arguments[i], parameterType));
                     FindTargetArgumentAndConversionType(semanticModel, arguments[i], argumentExpression, parameterType,
@@ -280,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 TExpressionSyntax argumentExpression, ITypeSymbol conversionType, ref SyntaxNode? targetArgument,
                 ref ITypeSymbol? targetArgumentConversionType)
             {
-                if (targetArgument is null && !IsConversionIdentity(semanticModel, argumentExpression, conversionType))
+                if (targetArgument is null && !ClassifyConversion(semanticModel, argumentExpression, conversionType).IsIdentity)
                     targetArgument = argument;
                 if (argument.Equals(targetArgument))
                     targetArgumentConversionType = conversionType;

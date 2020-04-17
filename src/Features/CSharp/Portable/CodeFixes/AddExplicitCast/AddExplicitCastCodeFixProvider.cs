@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -109,14 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return !potentialConversionTypes.IsEmpty;
         }
 
-        protected override bool ClassifyConversionExists(SemanticModel semanticModel, ExpressionSyntax expression,
-            ITypeSymbol type)
-            => semanticModel.ClassifyConversion(expression, type).Exists;
-
-        protected override bool IsConversionIdentity(SemanticModel semanticModel, ExpressionSyntax expression,
-            ITypeSymbol type)
-            => semanticModel.ClassifyConversion(expression, type).IsIdentity;
-
         protected override SeparatedSyntaxList<SyntaxNode> GetArguments(SyntaxNode argumentList)
         {
             if (argumentList is ArgumentListSyntax normalArgumentList)
@@ -186,9 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return oldArgumentList;
         }
 
-        protected override bool IsConversionUserDefined(SemanticModel semanticModel, ExpressionSyntax expression,
+        protected override CommonConversion ClassifyConversion(SemanticModel semanticModel, ExpressionSyntax expression,
             ITypeSymbol type)
-            => semanticModel.ClassifyConversion(expression, type).IsUserDefined;
+            => semanticModel.ClassifyConversion(expression, type).ToCommonConversion();
 
         protected override bool IsInvocationExpressionWithNewArgumentsApplicable(
             SemanticModel semanticModel, SyntaxNode root, SyntaxNode oldArgumentList,

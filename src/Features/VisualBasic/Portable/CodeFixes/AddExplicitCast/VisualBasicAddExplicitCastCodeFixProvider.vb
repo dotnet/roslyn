@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -93,14 +94,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Return Not potentialConversionTypes.IsEmpty
         End Function
 
-        Protected Overrides Function ClassifyConversionExists(semanticModel As SemanticModel,
-                expression As ExpressionSyntax, type As ITypeSymbol) As Boolean
-            Return semanticModel.ClassifyConversion(expression, type).Exists
-        End Function
-
-        Protected Overrides Function IsConversionIdentity(semanticModel As SemanticModel,
-                expression As ExpressionSyntax, type As ITypeSymbol) As Boolean
-            Return semanticModel.ClassifyConversion(expression, type).IsIdentity
+        Protected Overrides Function ClassifyConversion(semanticModel As SemanticModel,
+                expression As ExpressionSyntax, type As ITypeSymbol) As CommonConversion
+            Return semanticModel.ClassifyConversion(expression, type).ToCommonConversion()
         End Function
 
         Protected Overrides Function GetArguments(argumentList As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
@@ -139,11 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 oldArgumentList As SyntaxNode, newArguments As List(Of SyntaxNode)) As SyntaxNode
             Return If(TryCast(oldArgumentList, ArgumentListSyntax)?.WithArguments(SyntaxFactory.SeparatedList(newArguments)),
                 oldArgumentList)
-        End Function
-
-        Protected Overrides Function IsConversionUserDefined(semanticModel As SemanticModel,
-                expression As ExpressionSyntax, type As ITypeSymbol) As Boolean
-            Return semanticModel.ClassifyConversion(expression, type).IsUserDefined
         End Function
 
         Protected Overrides Function IsInvocationExpressionWithNewArgumentsApplicable(
