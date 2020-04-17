@@ -1019,7 +1019,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             Contract.ThrowIfFalse(index == memberId);
         }
 
-        public SyntaxNode GetBindableParent(SyntaxToken token)
+#nullable enable
+
+        public SyntaxNode? TryGetBindableParent(SyntaxToken token)
         {
             var node = token.Parent;
             while (node != null)
@@ -1084,8 +1086,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 node = parent;
             }
 
-            return node;
+            // Patterns are never bindable (though their constituent types/exprs may be).
+            return node is PatternSyntax ? null : node;
         }
+
+#nullable disable
 
         public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode root, CancellationToken cancellationToken)
         {
