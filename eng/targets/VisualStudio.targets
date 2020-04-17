@@ -35,14 +35,14 @@
   <Target Name="IncludeVsixLocalOnlyItems">
     <!-- This is shamelessly ripped from Microsoft.VsSDK.targets -->
     <ItemGroup>
-      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' == ''">
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' and '%(Content.VSIXSubPath)' == ''">
         <!-- Sets VSIXSubPath for content items that are nonlinked files -->
         <VSIXSubPath Condition="'%(Content.Link)' == ''">%(Content.RelativeDir)</VSIXSubPath>
         <!-- Sets VSIXSubPath for content items that are linked files -->
         <VSIXSubPath Condition="'%(Content.Link)' != ''">$([System.IO.Path]::GetDirectoryName(%(Content.Link)))</VSIXSubPath>
       </VSIXSourceItemLocalOnly>
 
-      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' AND '%(Content.VSIXSubPath)' != ''" />
+      <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)' == 'true' and '%(Content.VSIXSubPath)' != ''" />
     </ItemGroup>
   </Target>
 
@@ -94,7 +94,7 @@
       </VSIXCopyLocalReferenceSourceItem>
 
       <!-- Add PkgDef* items for assets that specify PkgDefEntry -->
-      <PkgDefBindingRedirects Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'BindingRedirect' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
+      <PkgDefBindingRedirect Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'BindingRedirect' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
       <PkgDefCodeBase Include="@(_AssetsWithMetadata->'%(Path)')" Condition="'%(_AssetsWithMetadata.PkgDefEntry)' == 'CodeBase' and %(_AssetsWithMetadata.AssetType) == 'runtime'" />
     </ItemGroup>
   </Target>
@@ -142,5 +142,5 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
   </ItemGroup>
 
-  <Import Project="GeneratePkgDef.targets" Condition="'$(IsVsixProject)' == 'true' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true'" />
+  <Import Project="GeneratePkgDef.targets" Condition="'$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 </Project>

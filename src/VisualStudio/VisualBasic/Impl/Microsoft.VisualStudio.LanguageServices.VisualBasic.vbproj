@@ -22,7 +22,7 @@
                                Name="VisualBasicPackage"
                                Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage"
                                AllowsBackgroundLoad="true"/>
-    <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

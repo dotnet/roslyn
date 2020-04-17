@@ -16,7 +16,7 @@
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\Dependencies</ExtensionInstallationFolder>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>
     <!-- 

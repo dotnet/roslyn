@@ -33,10 +33,13 @@
          Merges the content of the file whose path is specified in the identity of the item to the generated pkgdef file.
          The path may be relative to the project being built.
          
-         Project may specify these items using Content item group with PkgDefEntry="FileContent" metadata set like so:
-           <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent"/>.
+         Project may specify these items using None item group with PkgDefEntry="FileContent" metadata set like so:
+           <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent"/>.
     
          PkgDefFileContent allows the project to add arbitrary static content. The other kinds are used to generate dynamic content.
+         
+         Note: We use None items since we do not want them to be included in VSIX and we want them to be displayed in Solution Explorer
+         (if we used Content items they would get included in the VSIX by VSSDK by default).
   -->
   
   <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" />
@@ -49,8 +52,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <_FileContentEntries Include="@(Content)" Condition="'%(Content.PkgDefEntry)' == 'FileContent'">
-        <FullFilePath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '%(Content.Identity)'))</FullFilePath>
+      <_FileContentEntries Include="@(None)" Condition="'%(None.PkgDefEntry)' == 'FileContent'">
+        <FullFilePath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '%(None.Identity)'))</FullFilePath>
       </_FileContentEntries>
 
       <PkgDefFileContent Include="@(_FileContentEntries->'%(FullFilePath)')" />
@@ -107,12 +110,7 @@
   <Target Name="GeneratePkgDef"          
           DependsOnTargets="$(GeneratePkgDefDependsOn);_SetGeneratePkgDefInputsOutputs"
           Inputs="$(MSBuildAllProjects)"
-          Outputs="$(_GeneratePkgDefOutputFile)"
-          Condition="'@(PkgDefPackageRegistration)' != '' or
-                     '@(PkgDefInstalledProduct)' != '' or
-                     '@(PkgDefBindingRedirect)' != '' or
-                     '@(PkgDefCodeBase)' != '' or
-                     '@(PkgDefFileContent)' != '' or">
+          Outputs="$(_GeneratePkgDefOutputFile)">
     <ItemGroup>
       <_AssemblyDependencyEntry Include="@(PkgDefBindingRedirect)" Kind="BindingRedirect" />
       <_AssemblyDependencyEntry Include="@(PkgDefCodeBase)" Kind="CodeBase" />
@@ -149,18 +147,22 @@
     </ItemGroup>
     
     <Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid Items="@(_AssemblyDependencyEntry)" InputMetadata="HashBase" OutputMetadata="Guid">
-      <Output TaskParameter="OutputItems" ItemName="_AssemblyDependencyEntry"/>
+      <Output TaskParameter="OutputItems" ItemName="_AssemblyDependencyEntryWithGuid"/>
     </Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid>
   
     <ItemGroup>
+      <_AssemblyDependencyEntry Remove="@(_AssemblyDependencyEntry)" />
+      <_AssemblyDependencyEntry Include="@(_AssemblyDependencyEntryWithGuid)" />
+
       <_PkgDefEntry Include="@(PkgDefPackageRegistration)">
         <RawValue>
           <![CDATA[[$RootKey$\Packages\%(PkgDefPackageRegistration.Identity)]
 @="%(PkgDefPackageRegistration.Name)"
 "InprocServer32"="$WinDir$\SYSTEM32\MSCOREE.DLL"
 "Class"="%(PkgDefPackageRegistration.Class)"
+%(PkgDefPackageRegistration._AssemblyOrCodeBase)
 "AllowsBackgroundLoad"=%(PkgDefPackageRegistration._AllowsBackgroundLoad)
-%(PkgDefPackageRegistration._AssemblyOrCodeBase)]]>
+]]>
         </RawValue>
       </_PkgDefEntry>
       
@@ -172,7 +174,8 @@
 "PID"="%(PkgDefInstalledProduct._PID)"
 "ProductDetails"="%(PkgDefInstalledProduct.ProductDetails)"
 "UseInterface"=dword:00000000
-"UseVSProductID"=dword:00000000]]>
+"UseVSProductID"=dword:00000000
+]]>
         </RawValue>
       </_PkgDefEntry>
       
@@ -184,7 +187,8 @@
 "culture"="%(_AssemblyDependencyEntry.Culture)"
 "oldVersion"="%(_AssemblyDependencyEntry.OldAssemblyVersion)-%(_AssemblyDependencyEntry.AssemblyVersion)"
 "newVersion"="%(_AssemblyDependencyEntry.AssemblyVersion)"
-"codeBase"="$PackageFolder$\%(_AssemblyDependencyEntry.AssemblyFileName)"]]>
+"codeBase"="$PackageFolder$\%(_AssemblyDependencyEntry.AssemblyFileName)"
+]]>
         </RawValue>
       </_PkgDefEntry>
       
@@ -195,7 +199,8 @@
 "publicKeyToken"="%(_AssemblyDependencyEntry.PublicKeyToken)"
 "culture"="%(_AssemblyDependencyEntry.Culture)"
 "version"="%(_AssemblyDependencyEntry.AssemblyVersion)"
-"codeBase"="$PackageFolder$\%(_AssemblyDependencyEntry.AssemblyFileName)"]]>
+"codeBase"="$PackageFolder$\%(_AssemblyDependencyEntry.AssemblyFileName)"
+]]>
         </RawValue>
       </_PkgDefEntry>
     </ItemGroup>
@@ -213,6 +218,9 @@
     <ReadLinesFromFile File="%(_FilesToMerge.Identity)" Condition="'@(_FilesToMerge)' != ''">
       <Output TaskParameter="Lines" ItemName="_PkgDefLines"/>
     </ReadLinesFromFile>
+
+    <Error Text="GeneratePkgDefFile is true but the project did not produce any entries (PkgDef* items) to be written to pkgdef file"
+           Condition="'@(_PkgDefLines)' == ''"/>
 
     <!-- Write final pkgdef content. If the CTO file was changed, touch the pkgdef file to cause a re-merge (see VSSDK targets). -->
     <WriteLinesToFile File="$(_GeneratePkgDefOutputFile)"

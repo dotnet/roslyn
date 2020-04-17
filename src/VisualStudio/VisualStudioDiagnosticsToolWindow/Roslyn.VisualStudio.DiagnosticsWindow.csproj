@@ -19,7 +19,7 @@
                                Name="Roslyn Diagnostics Window"
                                Class="Roslyn.VisualStudio.DiagnosticsWindow.VisualStudioDiagnosticsWindowPackage"
                                AllowsBackgroundLoad="true"/>
-    <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="RemoteHost\**" />

@@ -19,7 +19,7 @@
                                Name="IntegrationTestServicePackage"
                                Class="Microsoft.VisualStudio.IntegrationTest.Setup.IntegrationTestServicePackage"
                                AllowsBackgroundLoad="true"/>
-    <Content Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -56,7 +56,7 @@
       <Name>Diagnostics</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+      <PkgDefEntry>CodeBase</PkgDefEntry>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
       <Name>Workspaces</Name>
@@ -68,10 +68,10 @@
     </ProjectReference>
     <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj">
       <Name>IntegrationService</Name>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+      <PkgDefEntry>CodeBase</PkgDefEntry>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <NuGetPackageToIncludeInVsix Include="Microsoft.Diagnostics.Runtime" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Diagnostics.Runtime" PkgDefEntry="CodeBase" />
   </ItemGroup>
 </Project>
