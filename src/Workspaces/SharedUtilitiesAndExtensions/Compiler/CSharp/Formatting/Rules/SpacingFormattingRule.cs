@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return nextOperation.Invoke();
             }
 
-            System.Diagnostics.Debug.Assert(previousToken.Parent != null && currentToken.Parent != null);
+            RoslynDebug.Assert(previousToken.Parent != null && currentToken.Parent != null);
 
             var previousKind = previousToken.Kind();
             var currentKind = currentToken.Kind();
