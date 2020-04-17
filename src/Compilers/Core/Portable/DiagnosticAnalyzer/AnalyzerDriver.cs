@@ -1684,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Apply bulk configuration from analyzer options for analyzer diagnostics, if applicable.
             var tree = diagnostic?.Location.SourceTree;
-            if (tree == null || analyzerOptions == null || diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler))
+            if (tree == null || analyzerOptions == null || diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler) || diagnostic.IsNotConfigurable())
             {
                 return diagnostic;
             }

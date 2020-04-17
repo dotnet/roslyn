@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class ChainedFormattingRules
     {
-        private static readonly ConcurrentDictionary<(Type type, string name), Type> s_typeImplementingMethod = new ConcurrentDictionary<(Type type, string name), Type>();
+        private static readonly ConcurrentDictionary<(Type type, string name), Type?> s_typeImplementingMethod = new ConcurrentDictionary<(Type type, string name), Type?>();
 
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly AnalyzerConfigOptions _options;
@@ -68,13 +70,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             action.Invoke();
         }
 
-        public AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+        public AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0, previousToken, currentToken, _options);
             return action.Invoke();
         }
 
-        public AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
+        public AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken, _options);
             return action.Invoke();
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }).ToImmutableArray();
         }
 
-        private static Type GetTypeImplementingMethod(object obj, string name)
+        private static Type? GetTypeImplementingMethod(object obj, string name)
         {
             return s_typeImplementingMethod.GetOrAdd(
                 (obj.GetType(), name),

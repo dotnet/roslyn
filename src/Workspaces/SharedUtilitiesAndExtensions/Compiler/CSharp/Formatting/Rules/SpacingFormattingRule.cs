@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -9,19 +11,20 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class SpacingFormattingRule : BaseFormattingRule
     {
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (options == null)
             {
                 return nextOperation.Invoke();
             }
 
-            System.Diagnostics.Debug.Assert(previousToken.Parent != null && currentToken.Parent != null);
+            RoslynDebug.Assert(previousToken.Parent != null && currentToken.Parent != null);
 
             var previousKind = previousToken.Kind();
             var currentKind = currentToken.Kind();
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // Semicolons in an empty for statement.  i.e.   for(;;)
             if (previousParentKind == SyntaxKind.ForStatement
-                && this.IsEmptyForStatement((ForStatementSyntax)previousToken.Parent))
+                && this.IsEmptyForStatement((ForStatementSyntax)previousToken.Parent!))
             {
                 if (currentKind == SyntaxKind.SemicolonToken
                     && (previousKind != SyntaxKind.SemicolonToken
@@ -347,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Right of Range expressions
             if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
             {
-                var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
+                var rangeExpression = (RangeExpressionSyntax)previousToken.Parent!;
                 var hasRightOperand = rangeExpression.RightOperand != null;
                 if (hasRightOperand)
                 {
@@ -358,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Left of Range expressions
             if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
             {
-                var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
+                var rangeExpression = (RangeExpressionSyntax)currentToken.Parent!;
                 var hasLeftOperand = rangeExpression.LeftOperand != null;
                 if (hasLeftOperand)
                 {

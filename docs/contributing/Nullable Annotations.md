@@ -21,12 +21,11 @@ struct SyntaxTrivia {
     }
 }
 ```
-- **DO** use explicit validation such as `RoslynDebug.Assert` or 
-`Contract.ThrowIfNull` to validate state that is passed into the method if it 
-avoids the need for suppressions later in the method.
+- **DO** use explicit validation such as `Debug.Assert` or 
+`Contract.ThrowIfNull` to capture internal program invariants.
 ```cs
 void M1(SyntaxNode node) {
-    RoslynDebug.Assert(node.Parent is object);
+    Debug.Assert(node.Parent is object);
     ...
     M2(node.Parent);
 }

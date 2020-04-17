@@ -724,12 +724,7 @@ class C
 }");
         }
 
-#if CODE_STYLE
-        [WorkItem(41462, "https://github.com/dotnet/roslyn/issues/41462")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41462")]
-#else
         [Fact]
-#endif
         [WorkItem(42770, "https://github.com/dotnet/roslyn/issues/42770")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestPreserveAwait()
