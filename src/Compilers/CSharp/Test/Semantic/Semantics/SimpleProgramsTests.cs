@@ -6565,5 +6565,77 @@ else
                 );
         }
 
+        [Fact]
+        public void Return_12()
+        {
+            var text = @"
+System.Console.WriteLine(1);
+return;
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics(
+                // (4,1): warning CS0162: Unreachable code detected
+                // System.Console.WriteLine(2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(4, 1)
+                );
+        }
+
+        [Fact]
+        public void Return_13()
+        {
+            var text = @"
+System.Console.WriteLine(1);
+return 13;
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
+            CompileAndVerify(comp, expectedOutput: "1", expectedReturnCode: 13).VerifyDiagnostics(
+                // (4,1): warning CS0162: Unreachable code detected
+                // System.Console.WriteLine(2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(4, 1)
+                );
+        }
+
+        [Fact]
+        public void Return_14()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+return default;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "Hi!", expectedReturnCode: 0);
+        }
+
+        [Fact]
+        public void Return_15()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(""hello "");
+await Task.Factory.StartNew(() => 5);
+Console.Write(""async main"");
+return default;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "hello async main", expectedReturnCode: 0);
+        }
     }
 }
