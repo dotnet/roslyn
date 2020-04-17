@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Linq;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
-            LSP.ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
+            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
             CompletionResolveData data;
             if (completionItem.Data is CompletionResolveData)
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var request = data.CompletionParams;
 
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, supportsRazorFeatures);
+            var document = solution.GetDocumentFromURI(request.TextDocument.Uri, clientName);
             if (document == null)
             {
                 return completionItem;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var completionService = document.Project.LanguageServices.GetService<CompletionService>();
+            var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {

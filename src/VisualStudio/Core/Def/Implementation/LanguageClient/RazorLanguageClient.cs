@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     {
         public const string ClientName = "RazorCSharp";
 
-        protected override bool SupportsRazorFeatures => true;
-
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>

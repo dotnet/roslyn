@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -39,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
         private readonly LanguageServerProtocol _protocol;
-        private readonly bool _supportsRazorFeatures;
         private readonly CodeAnalysis.Workspace _workspace;
 
         // The VS LSP client supports streaming using IProgress<T> on various requests.
@@ -63,11 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private VSClientCapabilities _clientCapabilities;
 
         public InProcLanguageServer(Stream inputStream, Stream outputStream, LanguageServerProtocol protocol,
-            CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService, string? clientName, bool supportsHover)
+            CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService, string? clientName)
         {
             _protocol = protocol;
             _workspace = workspace;
-            _supportsRazorFeatures = supportsHover;
 
             _jsonRpc = new JsonRpc(outputStream, inputStream, this);
             _jsonRpc.StartListening();
@@ -92,11 +91,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // to avoid losing them.
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(JsonSerializer);
             var serverCapabilities = await _protocol.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName,
-                _workspace.CurrentSolution, input.ToObject<InitializeParams>(JsonSerializer), _clientCapabilities, false, cancellationToken).ConfigureAwait(false);
+                _workspace.CurrentSolution, input.ToObject<InitializeParams>(JsonSerializer), _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
 
             // As soon as LSP supports classifications in hover, we can remove this and always advertise hover support.
+            // For now, just support for the razor lsp client.
             // Tracking - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138/
-            serverCapabilities.Capabilities.HoverProvider = _supportsRazorFeatures;
+            serverCapabilities.Capabilities.HoverProvider = Equals(_clientName, RazorLanguageClient.ClientName);
             return serverCapabilities;
         }
 
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Methods.TextDocumentDefinitionName,
-                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentRenameName)]
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var renameParams = input.ToObject<RenameParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName,
-                _workspace.CurrentSolution, renameParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, renameParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName)]
@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var referencesParams = input.ToObject<ReferenceParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<ReferenceParams, VSReferenceItem[]>(Methods.TextDocumentReferencesName,
-                _workspace.CurrentSolution, referencesParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, referencesParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName)]
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var completionParams = input.ToObject<CompletionParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<CompletionParams, CompletionItem[]>(Methods.TextDocumentCompletionName,
-                _workspace.CurrentSolution, completionParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, completionParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionResolveName)]
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var completionItem = input.ToObject<CompletionItem>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName,
-                _workspace.CurrentSolution, completionItem, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, completionItem, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName)]
@@ -169,15 +169,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, DocumentHighlight[]>(Methods.TextDocumentDocumentHighlightName,
-                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentHoverName)]
-        public Task<Hover> GetTextDocumentDocumentHoverAsync(JToken input, CancellationToken cancellationToken)
+        public Task<Hover?> GetTextDocumentDocumentHoverAsync(JToken input, CancellationToken cancellationToken)
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
-            return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, Hover>(Methods.TextDocumentHoverName,
-                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+            return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, Hover?>(Methods.TextDocumentHoverName,
+                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName)]
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var documentSymbolParams = input.ToObject<DocumentSymbolParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<DocumentSymbolParams, object[]>(Methods.TextDocumentDocumentSymbolName,
-                _workspace.CurrentSolution, documentSymbolParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, documentSymbolParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentFormattingName)]
@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var documentFormattingParams = input.ToObject<DocumentFormattingParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<DocumentFormattingParams, TextEdit[]>(Methods.TextDocumentFormattingName,
-                _workspace.CurrentSolution, documentFormattingParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, documentFormattingParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName)]
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var documentOnTypeFormattingParams = input.ToObject<DocumentOnTypeFormattingParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(Methods.TextDocumentOnTypeFormattingName,
-                _workspace.CurrentSolution, documentOnTypeFormattingParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, documentOnTypeFormattingParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName)]
@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
             return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Methods.TextDocumentImplementationName,
-                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentRangeFormattingName)]
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var documentRangeFormattingParams = input.ToObject<DocumentRangeFormattingParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<DocumentRangeFormattingParams, TextEdit[]>(Methods.TextDocumentRangeFormattingName,
-                _workspace.CurrentSolution, documentRangeFormattingParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, documentRangeFormattingParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName)]
@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, SignatureHelp>(Methods.TextDocumentSignatureHelpName,
-                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.WorkspaceSymbolName)]
@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var workspaceSymbolParams = input.ToObject<WorkspaceSymbolParams>(JsonSerializer);
             return _protocol.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]>(Methods.WorkspaceSymbolName,
-                _workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, _supportsRazorFeatures, cancellationToken);
+                _workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
 #pragma warning disable VSTHRD100 // Avoid async void methods

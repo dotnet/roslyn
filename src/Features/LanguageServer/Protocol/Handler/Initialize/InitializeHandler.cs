@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .ToImmutableArray();
         }
 
-        public Task<LSP.InitializeResult> HandleRequestAsync(Solution solution, LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
+        public Task<LSP.InitializeResult> HandleRequestAsync(Solution solution, LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
             var triggerCharacters = _completionProviders.SelectMany(lz => GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 

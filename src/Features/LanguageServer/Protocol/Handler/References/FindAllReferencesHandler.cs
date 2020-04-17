@@ -47,11 +47,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Solution solution,
             ReferenceParams referenceParams,
             ClientCapabilities clientCapabilities,
+            string? clientName,
             CancellationToken cancellationToken)
         {
             Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
 
-            var document = solution.GetDocumentFromURI(referenceParams.TextDocument.Uri);
+            var document = solution.GetDocumentFromURI(referenceParams.TextDocument.Uri, clientName);
             if (document == null)
             {
                 return Array.Empty<LSP.VSReferenceItem>();

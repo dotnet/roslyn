@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
-        public static Document? GetDocumentFromURI(this Solution solution, Uri fileName, bool supportsRazorFeatures = false)
+        public static Document? GetDocumentFromURI(this Solution solution, Uri fileName, string? clientName = null)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var document = solution.GetDocument(documentId);
 
-            if (supportsRazorFeatures)
+            if (clientName != null)
             {
                 var documentPropertiesService = document?.Services.GetService<DocumentPropertiesService>();
-                // Razor generated documents always have designtimeonly set to true.
-                // If it's not set, don't return the document as only razor documents should be returned in razor scenarios.
+                // When a client name is specified, only return documents that have a matching client name.
+                // Allows the razor lsp server to return results only for razor documents.
                 // This workaround should be removed when https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
                 // is fixed (so that the razor language server is only asked about razor buffers).
-                if (documentPropertiesService?.DesignTimeOnly != true)
+                if (!Equals(documentPropertiesService?.DiagnosticsLspClientName, clientName))
                 {
                     return null;
                 }

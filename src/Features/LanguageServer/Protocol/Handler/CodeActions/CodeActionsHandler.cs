@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<LSP.SumType<LSP.Command, LSP.CodeAction>[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities, bool supportsRazorFeatures, CancellationToken cancellationToken)
+            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
         {
             var codeActions = await GetCodeActionsAsync(solution,
                 request.TextDocument.Uri,
                 request.Range,
-                supportsRazorFeatures, cancellationToken).ConfigureAwait(false);
+                clientName, cancellationToken).ConfigureAwait(false);
 
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
             codeActions = codeActions.Where(c => !(c is CodeActionWithOptions));
