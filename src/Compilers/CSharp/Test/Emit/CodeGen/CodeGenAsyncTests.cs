@@ -5608,7 +5608,7 @@ class Program
         }
 
         [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
-        public void Repro_40251()
+        public void AssignRefAfterAwait()
         {
             const string source = @"
 using System.Threading.Tasks;
@@ -5630,6 +5630,36 @@ class IntCode
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyEmitDiagnostics();
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
+        public void AssignRefWithAwait()
+        {
+            const string source = @"
+using System.Threading.Tasks;
+
+class IntCode
+{
+    public async Task Step(Task<int> t)
+    {
+        ReadMemory() = await t;
+    }
+
+    private ref long ReadMemory() => throw null;
+}
+";
+            var expected = new[]
+            {
+                // (8,9): error CS8178: 'await' cannot be used in an expression containing a call to 'IntCode.ReadMemory()' because it returns by reference
+                //         ReadMemory() = await t;
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "ReadMemory()").WithArguments("IntCode.ReadMemory()").WithLocation(8, 9)
+            };
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyEmitDiagnostics(expected);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(expected);
         }
     }
 }
