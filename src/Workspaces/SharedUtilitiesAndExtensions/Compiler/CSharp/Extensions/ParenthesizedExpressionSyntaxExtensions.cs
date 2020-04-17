@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // (not ...) or (not ...)
             //
             // you can safely convert to `not ... or not ...`
-            var patternPrecedence = GetPatternPrecedence(pattern);
+            var patternPrecedence = pattern.GetPrecedence();
             if (patternPrecedence == OperatorPrecedence.Primary || patternPrecedence == OperatorPrecedence.Unary)
                 return true;
 

@@ -16,11 +16,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAddRequiredParenthesesDiagnosticAnalyzer :
+    internal class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer :
         AbstractAddRequiredParenthesesDiagnosticAnalyzer<
             ExpressionSyntax, ExpressionSyntax, SyntaxKind>
     {
-        public CSharpAddRequiredParenthesesDiagnosticAnalyzer()
+        public CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
             : base(CSharpPrecedenceService.Instance)
         {
         }
