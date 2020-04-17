@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?>
+    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<LSP.SumType<LSP.CompletionItem[], LSP.CompletionList>?> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
+        public async Task<LSP.CompletionItem[]> HandleRequestAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);

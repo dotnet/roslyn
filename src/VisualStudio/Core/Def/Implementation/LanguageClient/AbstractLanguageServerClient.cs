@@ -27,11 +27,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private InProcLanguageServer? _languageServer;
 
         /// <summary>
-        /// Allows the implementation to specify if hover should be supported from this language client.
-        /// Can be removed as soon as LSP supports classifications in hover.
-        /// Tracking - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138/
+        /// Allows the implementation to specify if c# razor features should be supported from this Language server.
+        /// Can be removed as soon as
+        ///   - LSP supports classifications in hover https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138/
+        ///   - Live share supports client name - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
         /// </summary>
-        protected virtual bool SupportsHover => false;
+        protected virtual bool SupportsRazorFeatures => false;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -78,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             Contract.ThrowIfFalse(_languageServer == null, "This language server has already been initialized");
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService, clientName: _diagnosticsClientName, SupportsHover);
+            _languageServer = new InProcLanguageServer(serverStream, serverStream, _languageServerProtocol, _workspace, _diagnosticService, clientName: _diagnosticsClientName, SupportsRazorFeatures);
             return Task.FromResult(new Connection(clientStream, clientStream));
         }
 

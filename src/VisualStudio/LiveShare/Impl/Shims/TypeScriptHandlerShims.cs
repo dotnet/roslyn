@@ -30,7 +30,7 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionName)]
-    internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, object?, Solution>
+    internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, LanguageServer.Protocol.CompletionItem[], Solution>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -38,18 +38,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
         }
 
-        public async Task<object?> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public Task<LanguageServer.Protocol.CompletionItem[]> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             // The VS LSP client supports streaming using IProgress<T> on various requests.
             // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
             var request = ((JObject)input).ToObject<CompletionParams>(InProcLanguageServer.JsonSerializer);
-            // The return definition for TextDocumentCompletionName is SumType<CompletionItem[], CompletionList>.
-            // However Live Share is unable to handle a SumType return when using ILspRequestHandler.
-            // So instead we just return the actual value from the SumType.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1059193 tracks the fix.
-            var result = await base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken).ConfigureAwait(false);
-            return result?.Value;
+            return base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken);
         }
     }
 
@@ -175,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentImplementationName)]
-    internal class TypeScriptFindImplementationsHandlerShim : FindImplementationsHandler, ILspRequestHandler<TextDocumentPositionParams, object?, Solution>
+    internal class TypeScriptFindImplementationsHandlerShim : FindImplementationsHandler, ILspRequestHandler<TextDocumentPositionParams, LanguageServer.Protocol.Location[], Solution>
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -184,15 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         public TypeScriptFindImplementationsHandlerShim(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public async Task<object?> HandleAsync(TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-        {
-            // The return definition for TextDocumentImplementationName is SumType<Location, Location[]>.
-            // However Live Share is unable to handle a SumType return when using ILspRequestHandler.
-            // So instead we just return the actual value from the SumType.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1059193 tracks the fix.
-            var result = await base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken).ConfigureAwait(false);
-            return result?.Value;
-        }
+        public Task<LanguageServer.Protocol.Location[]> HandleAsync(TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), cancellationToken);
 
         protected override async Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
         {

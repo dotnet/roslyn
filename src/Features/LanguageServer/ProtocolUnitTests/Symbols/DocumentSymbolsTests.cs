@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 }
             };
 
-            return await GetLanguageServer(solution).GetDocumentSymbolsAsync(solution, request, clientCapabilities, CancellationToken.None);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(LSP.Methods.TextDocumentDocumentSymbolName,
+                solution, request, clientCapabilities, CancellationToken.None);
         }
 
         private static void AssertDocumentSymbolEquals(LSP.DocumentSymbol expected, LSP.DocumentSymbol actual)

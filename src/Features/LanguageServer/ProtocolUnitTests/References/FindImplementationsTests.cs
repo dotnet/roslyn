@@ -80,6 +80,7 @@ class A : IA
         }
 
         private static async Task<LSP.Location[]> RunFindImplementationAsync(Solution solution, LSP.Location caret)
-            => (LSP.Location[])await GetLanguageServer(solution).FindImplementationsAsync(solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+            => await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentImplementationName,
+                solution, CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -28,7 +29,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var documentId = solution.GetDocumentIdsWithFilePath(fileName.AbsolutePath).FirstOrDefault() ??
                              solution.GetDocumentIdsWithFilePath(fileName.LocalPath).FirstOrDefault();
 
-            return solution.GetDocument(documentId);
+            var document = solution.GetDocument(documentId);
+
+            var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
+            if (documentPropertiesService.DesignTimeOnly)
+            {
+                return null;
+            }
+
+            return document;
+
         }
 
         public static async Task<int> GetPositionFromLinePositionAsync(this Document document, LinePosition linePosition, CancellationToken cancellationToken)
