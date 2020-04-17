@@ -301,8 +301,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         array = array.Update(spilledExpression, spilledIndices.AsImmutableOrNull, array.IsLValue, array.Type)
 
-                        If evaluateSideEffects Then
-                            ' Make sure side effects are checked
+                        ' An assignment target is only evaluated on write, so don't evaluate it's side effects
+                        If evaluateSideEffects And Not isAssignmentTarget Then
                             builder.AddStatement(Me.F.ExpressionStatement(array))
                         End If
 
@@ -332,7 +332,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          fieldAccess.Type)
 
                         If evaluateSideEffectsHere Then
-                            ' Make sure side effects are checked
                             builder.AddStatement(Me.F.ExpressionStatement(fieldAccess))
                         End If
 

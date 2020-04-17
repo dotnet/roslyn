@@ -4526,6 +4526,185 @@ Before Assignment arr[0].y is: True")
 
         [Fact]
         [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
+        public void KeepLtrSemantics_AssignmentToArray()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Assign(int[] arr)
+    {
+        arr[0] = await Write(""RHS"");
+    }
+
+    static async Task Main(string[] args)
+    {
+        await TestIndexerThrows();
+        await TestIndexerSucceeds();
+        await TestReassignsArrayAndIndexerDuringAwait();
+    }
+
+    static async Task TestIndexerThrows()
+    {
+        Console.WriteLine(nameof(TestIndexerThrows));
+        
+        var arr = new int[0];
+        Console.WriteLine(""Before Assignment"");
+        try
+        {
+            await Assign(arr);
+        }
+        catch (IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Caught IndexOutOfRangeException"");
+        }
+    }
+
+    static async Task TestIndexerSucceeds()
+    {
+        Console.WriteLine(nameof(TestIndexerSucceeds));
+
+        var arr = new int[1];
+        Console.WriteLine(""Before Assignment arr[0] is: "" + arr[0]);
+        await Assign(arr);
+        Console.WriteLine(""After Assignment arr[0] is: "" + arr[0]);
+    }
+
+    static async Task TestReassignsArrayAndIndexerDuringAwait()
+    {
+        Console.WriteLine(nameof(TestReassignsArrayAndIndexerDuringAwait));
+
+        var arr = new int[1];
+        var arrCopy = arr;
+        var index = 0;
+        Console.WriteLine(""Before Assignment arr.Length is: "" + arr.Length);
+        Console.WriteLine(""Before Assignment arrCopy[0] is: "" + arrCopy[0]);
+        arr[index] = await WriteAndReassign(""RHS"");
+        Console.WriteLine(""After Assignment arr.Length is: "" + arr.Length);
+        Console.WriteLine(""After Assignment arrCopy[0] is: "" + arrCopy[0]);
+
+        async Task<int> WriteAndReassign(string s)
+        {
+            await Task.Yield();
+            arr = new int[0];
+            index = 1;
+            Console.WriteLine(s);
+            return 42;
+        }
+    }
+
+    static async Task<int> Write(string s)
+    {
+        await Task.Yield();
+        Console.WriteLine(s);
+        return 42;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"TestIndexerThrows
+Before Assignment
+RHS
+Caught IndexOutOfRangeException
+TestIndexerSucceeds
+Before Assignment arr[0] is: 0
+RHS
+After Assignment arr[0] is: 42
+TestReassignsArrayAndIndexerDuringAwait
+Before Assignment arr.Length is: 1
+Before Assignment arrCopy[0] is: 0
+RHS
+After Assignment arr.Length is: 0
+After Assignment arrCopy[0] is: 42")
+                .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+{
+  // Code size      176 (0xb0)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Assign>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004f
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""int[] Program.<Assign>d__0.arr""
+    IL_0011:  stfld      ""int[] Program.<Assign>d__0.<>7__wrap1""
+    IL_0016:  ldstr      ""RHS""
+    IL_001b:  call       ""System.Threading.Tasks.Task<int> Program.Write(string)""
+    IL_0020:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0025:  stloc.2
+    IL_0026:  ldloca.s   V_2
+    IL_0028:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_002d:  brtrue.s   IL_006b
+    IL_002f:  ldarg.0
+    IL_0030:  ldc.i4.0
+    IL_0031:  dup
+    IL_0032:  stloc.0
+    IL_0033:  stfld      ""int Program.<Assign>d__0.<>1__state""
+    IL_0038:  ldarg.0
+    IL_0039:  ldloc.2
+    IL_003a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Assign>d__0.<>u__1""
+    IL_003f:  ldarg.0
+    IL_0040:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Assign>d__0.<>t__builder""
+    IL_0045:  ldloca.s   V_2
+    IL_0047:  ldarg.0
+    IL_0048:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Assign>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Assign>d__0)""
+    IL_004d:  leave.s    IL_00af
+    IL_004f:  ldarg.0
+    IL_0050:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Assign>d__0.<>u__1""
+    IL_0055:  stloc.2
+    IL_0056:  ldarg.0
+    IL_0057:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Assign>d__0.<>u__1""
+    IL_005c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0062:  ldarg.0
+    IL_0063:  ldc.i4.m1
+    IL_0064:  dup
+    IL_0065:  stloc.0
+    IL_0066:  stfld      ""int Program.<Assign>d__0.<>1__state""
+    IL_006b:  ldloca.s   V_2
+    IL_006d:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0072:  stloc.1
+    IL_0073:  ldarg.0
+    IL_0074:  ldfld      ""int[] Program.<Assign>d__0.<>7__wrap1""
+    IL_0079:  ldc.i4.0
+    IL_007a:  ldloc.1
+    IL_007b:  stelem.i4
+    IL_007c:  ldarg.0
+    IL_007d:  ldnull
+    IL_007e:  stfld      ""int[] Program.<Assign>d__0.<>7__wrap1""
+    IL_0083:  leave.s    IL_009c
+  }
+  catch System.Exception
+  {
+    IL_0085:  stloc.3
+    IL_0086:  ldarg.0
+    IL_0087:  ldc.i4.s   -2
+    IL_0089:  stfld      ""int Program.<Assign>d__0.<>1__state""
+    IL_008e:  ldarg.0
+    IL_008f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Assign>d__0.<>t__builder""
+    IL_0094:  ldloc.3
+    IL_0095:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_009a:  leave.s    IL_00af
+  }
+  IL_009c:  ldarg.0
+  IL_009d:  ldc.i4.s   -2
+  IL_009f:  stfld      ""int Program.<Assign>d__0.<>1__state""
+  IL_00a4:  ldarg.0
+  IL_00a5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Assign>d__0.<>t__builder""
+  IL_00aa:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00af:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]
         public void KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField()
         {
             var source = @"

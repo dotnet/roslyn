@@ -9841,6 +9841,177 @@ Before Assignment arr[0].y is: True").VerifyIL("Program.VB$StateMachine_0_Assign
 }")
         End Sub
 
+
+        <Fact>
+        <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
+        Public Sub KeepLtrSemantics_AssignmentToArray()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Assign(ByVal arr As Integer()) As Task
+        arr(0) = Await Write(""RHS"")
+    End Function
+
+    Public Sub Main(ByVal args As String())
+        TestIndexerThrows().Wait()
+        TestIndexerSucceeds().Wait()
+        TestReassignsArrayAndIndexerDuringAwait().Wait()
+    End Sub
+
+    Private Async Function TestIndexerThrows() As Task
+        Console.WriteLine(NameOf(Program.TestIndexerThrows))
+        Dim arr = New Integer(-1) {}
+        Console.WriteLine(""Before Assignment"")
+
+        Try
+            Await Assign(arr)
+        Catch __unusedIndexOutOfRangeException1__ As IndexOutOfRangeException
+            Console.WriteLine(""Caught IndexOutOfRangeException"")
+        End Try
+    End Function
+
+    Private Async Function TestIndexerSucceeds() As Task
+        Console.WriteLine(NameOf(Program.TestIndexerSucceeds))
+        Dim arr = New Integer(0) {}
+        Console.WriteLine(""Before Assignment arr[0] is: "" & arr(0))
+        Await Assign(arr)
+        Console.WriteLine(""After Assignment arr[0] is: "" & arr(0))
+    End Function
+
+    Private Async Function TestReassignsArrayAndIndexerDuringAwait() As Task
+        Console.WriteLine(NameOf(Program.TestReassignsArrayAndIndexerDuringAwait))
+        Dim arr = New Integer(0) {}
+        Dim arrCopy = arr
+        Dim index = 0
+        Console.WriteLine(""Before Assignment arr.Length is: "" & arr.Length)
+        Console.WriteLine(""Before Assignment arrCopy[0] is: "" & arrCopy(0))
+        
+        Dim WriteAndReassign As Func(Of String, Task(Of Integer)) = 
+            Async Function(ByVal s As String)
+                Await Task.Yield()
+                arr = New Integer(-1) {}
+                index = 1
+                Console.WriteLine(s)
+                Return 42
+            End Function
+        
+        arr(index) = Await WriteAndReassign(""RHS"")
+        Console.WriteLine(""After Assignment arr.Length is: "" & arr.Length)
+        Console.WriteLine(""After Assignment arrCopy[0] is: "" & arrCopy(0))
+    End Function
+
+    Private Async Function Write(ByVal s As String) As Task(Of Integer)
+        Await Task.Yield()
+        Console.WriteLine(s)
+        Return 42
+    End Function
+End Module"
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(comp, expectedOutput:="TestIndexerThrows
+Before Assignment
+RHS
+Caught IndexOutOfRangeException
+TestIndexerSucceeds
+Before Assignment arr[0] is: 0
+RHS
+After Assignment arr[0] is: 42
+TestReassignsArrayAndIndexerDuringAwait
+Before Assignment arr.Length is: 1
+Before Assignment arrCopy[0] is: 0
+RHS
+After Assignment arr.Length is: 0
+After Assignment arrCopy[0] is: 42").VerifyIL("Program.VB$StateMachine_0_Assign.MoveNext", "
+{
+  // Code size      195 (0xc3)
+  .maxstack  4
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004f
+    IL_000a:  ldarg.0
+    IL_000b:  ldarg.0
+    IL_000c:  ldfld      ""Program.VB$StateMachine_0_Assign.$VB$Local_arr As Integer()""
+    IL_0011:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer()""
+    IL_0016:  ldstr      ""RHS""
+    IL_001b:  call       ""Function Program.Write(String) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0020:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0025:  stloc.1
+    IL_0026:  ldloca.s   V_1
+    IL_0028:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_002d:  brtrue.s   IL_006b
+    IL_002f:  ldarg.0
+    IL_0030:  ldc.i4.0
+    IL_0031:  dup
+    IL_0032:  stloc.0
+    IL_0033:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0038:  ldarg.0
+    IL_0039:  ldloc.1
+    IL_003a:  stfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_003f:  ldarg.0
+    IL_0040:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_0045:  ldloca.s   V_1
+    IL_0047:  ldarg.0
+    IL_0048:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_0_Assign)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_0_Assign)""
+    IL_004d:  leave.s    IL_00c2
+    IL_004f:  ldarg.0
+    IL_0050:  ldc.i4.m1
+    IL_0051:  dup
+    IL_0052:  stloc.0
+    IL_0053:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_005e:  stloc.1
+    IL_005f:  ldarg.0
+    IL_0060:  ldflda     ""Program.VB$StateMachine_0_Assign.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0065:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_006b:  ldarg.0
+    IL_006c:  ldfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer()""
+    IL_0071:  ldc.i4.0
+    IL_0072:  ldloca.s   V_1
+    IL_0074:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_0079:  ldloca.s   V_1
+    IL_007b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0081:  stelem.i4
+    IL_0082:  ldarg.0
+    IL_0083:  ldnull
+    IL_0084:  stfld      ""Program.VB$StateMachine_0_Assign.$U1 As Integer()""
+    IL_0089:  leave.s    IL_00ad
+  }
+  catch System.Exception
+  {
+    IL_008b:  dup
+    IL_008c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0091:  stloc.2
+    IL_0092:  ldarg.0
+    IL_0093:  ldc.i4.s   -2
+    IL_0095:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+    IL_009a:  ldarg.0
+    IL_009b:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+    IL_00a0:  ldloc.2
+    IL_00a1:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a6:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00ab:  leave.s    IL_00c2
+  }
+  IL_00ad:  ldarg.0
+  IL_00ae:  ldc.i4.s   -2
+  IL_00b0:  dup
+  IL_00b1:  stloc.0
+  IL_00b2:  stfld      ""Program.VB$StateMachine_0_Assign.$State As Integer""
+  IL_00b7:  ldarg.0
+  IL_00b8:  ldflda     ""Program.VB$StateMachine_0_Assign.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder""
+  IL_00bd:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00c2:  ret
+}")
+        End Sub
+
         <Fact>
         <WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")>
         Public Sub KeepLtrSemantics_StructFieldAccessOnStructFieldAccessOnClassField()
