@@ -51,6 +51,7 @@
 
   <ItemGroup>
     <None Include=".editorconfig" />
+    <None Include="App.config" />
     <None Include="README.md" />
   </ItemGroup>
 
