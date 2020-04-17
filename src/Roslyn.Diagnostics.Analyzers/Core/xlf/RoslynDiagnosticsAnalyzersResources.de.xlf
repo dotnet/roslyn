@@ -198,13 +198,13 @@
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
-        <source>Use 'null' instead of 'default' for reference types.</source>
-        <target state="translated">Verwenden Sie für Verweistypen "null" anstelle von "default".</target>
+        <source>Use 'null' instead of 'default' for nullable types.</source>
+        <target state="needs-review-translation">Verwenden Sie für Verweistypen "null" anstelle von "default".</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
-        <source>Use 'null' instead of 'default' for reference types</source>
-        <target state="translated">Für Verweistypen "null" anstelle von "default" verwenden</target>
+        <source>Use 'null' instead of 'default' for nullable types</source>
+        <target state="needs-review-translation">Für Verweistypen "null" anstelle von "default" verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">

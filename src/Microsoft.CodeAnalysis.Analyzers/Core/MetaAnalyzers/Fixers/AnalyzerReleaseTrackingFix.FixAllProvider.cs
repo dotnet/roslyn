@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                     var newSolution = _solution;
                     foreach (var projectId in _projectIds)
                     {
-                        newSolution = await AddAnalyzerReleaseTrackingFilesAsync(newSolution.GetProject(projectId)).ConfigureAwait(false);
+                        newSolution = await AddAnalyzerReleaseTrackingFilesAsync(newSolution.GetProject(projectId)!).ConfigureAwait(false);
                     }
 
                     return newSolution;
