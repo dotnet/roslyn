@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         public VisualStudioTodoCommentsService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
-            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
+            [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
             : base(threadingContext)
         {
             _workspace = workspace;

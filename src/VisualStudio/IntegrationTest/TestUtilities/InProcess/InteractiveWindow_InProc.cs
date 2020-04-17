@@ -4,10 +4,12 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -163,7 +165,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SubmitText(string text)
         {
-            _interactiveWindow.SubmitAsync(new[] { text }).Wait();
+            using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            _interactiveWindow.SubmitAsync(new[] { text }).WithCancellation(cts.Token).Wait();
         }
 
         public void CloseWindow()
