@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RewriteDeconstruction(lhsTargets, conversion, leftType, conditional.Alternative, isUsed: true)!,
                     conditional.ConstantValue,
                     leftType,
-                    true,
+                    wasTargetTyped: true,
                     leftType);
             }
 

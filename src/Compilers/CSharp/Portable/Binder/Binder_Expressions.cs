@@ -289,22 +289,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                             object trueArg = op.Consequence.Display;
                             object falseArg = op.Alternative.Display;
-                            if (op.NoCommonTypeError == ErrorCode.ERR_InvalidQM)
+                            if (op.NoCommonTypeError == ErrorCode.ERR_InvalidQM && trueArg is Symbol trueSymbol && falseArg is Symbol falseSymbol)
                             {
-                                if (trueArg is Symbol trueSymbol && falseArg is Symbol falseSymbol)
-                                {
-                                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
-                                    trueArg = distinguisher.First;
-                                    falseArg = distinguisher.Second;
-                                }
+                                // ERR_InvalidQM is an error that there is no conversion between the two types. They might be the same
+                                // type name from different assemblies, so we disambiguate the display.
+                                SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
+                                trueArg = distinguisher.First;
+                                falseArg = distinguisher.Second;
+                            }
 
-                                diagnostics.Add(ErrorCode.ERR_InvalidQM, op.Syntax.Location, trueArg, falseArg);
-                            }
-                            else
-                            {
-                                Debug.Assert(op.NoCommonTypeError == ErrorCode.ERR_AmbigQM);
-                                diagnostics.Add(ErrorCode.ERR_AmbigQM, op.Syntax.Location, trueArg, falseArg);
-                            }
+                            diagnostics.Add(op.NoCommonTypeError, op.Syntax.Location, trueArg, falseArg);
                         }
 
                         result = ConvertConditionalExpression(op, type, conversionIfTargetTyped: null, diagnostics, hasErrors);

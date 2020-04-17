@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The switch expression conversion is "lowest priority", so that if there is a conversion from the expression's
             // type it will be preferred over the switch expression conversion.  Technically, we would want the language
             // specification to say that the switch expression conversion only "exists" if there is no implicit conversion
-            // from the type, and we accomplish that by making it lowest priority.  The same for the conditional expression
-            // conversion.
+            // from the type, and we accomplish that by making it lowest priority.  The same is true for the conditional
+            // expression conversion.
             conversion = GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
             if (conversion.Exists)
             {

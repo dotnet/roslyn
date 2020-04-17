@@ -24,15 +24,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestImplicitConversions_Good()
         {
+            // NOTE: Some of these are currently error cases, but they would become accepted (non-error) cases
+            // if we extend the spec to permit target typing even when there is a natural type.  Until then,
+            // they are error cases but included here for convenience.
+
             // Implicit constant expression conversions
             TestConditional("b ? 1 : 2", "System.Int16", "System.Int32",
                 // (6,26): error CS0266: Cannot implicitly convert type 'int' to 'short'. An explicit conversion exists (are you missing a cast?)
                 //         System.Int16 t = b ? 1 : 2;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b ? 1 : 2").WithArguments("int", "short").WithLocation(6, 26)
                 );
+            TestConditional("b ? -1L : 1UL", "System.Double", null);
 
             // Implicit reference conversions
             TestConditional("b ? GetB() : GetC()", "A", null);
+            TestConditional("b ? Get<IOut<B>>() : Get<IOut<C>>()", "IOut<A>", null);
+            TestConditional("b ? Get<IOut<IOut<B>>>() : Get<IOut<IOut<C>>>()", "IOut<IOut<A>>", null);
+            TestConditional("b ? Get<IOut<B[]>>() : Get<IOut<C[]>>()", "IOut<A[]>", null);
+            TestConditional("b ? Get<U>() : Get<V>()", "T", null);
 
             // Implicit numeric conversions
             TestConditional("b ? GetUInt() : GetInt()", "System.Int64", null);
@@ -66,6 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // Method group conversions
             TestConditional("b ? M1 : M2", "Del", null);
+
+            // Pointer conversions
+            TestConditional("b ? GetIntp() : GetLongp()", "void*", null);
+            TestConditional("b ? null : null", "System.Int32*", null);
         }
 
         [Fact]
@@ -157,6 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
+        [Fact]
+        public void SpeculatingOnATargetTypedExpression()
+        {
+
+        }
+
         private static void TestConditional(string conditionalExpression, string targetType, string? naturalType, params DiagnosticDescription[] expectedDiagnostics)
         {
             TestConditional(conditionalExpression, targetType, naturalType, null, expectedDiagnostics);
@@ -172,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = $@"
 class Program
 {{
-    void Test<T, U>(bool b)
+    unsafe void Test<T, U, V>(bool b) where T : class where U : class, T where V : class, T
     {{
         {targetType} t = {conditionalExpression};
         Use(t);
@@ -184,7 +203,11 @@ class Program
     D GetD() {{ return null; }}
     int GetInt() {{ return 1; }}
     uint GetUInt() {{ return 1; }}
+    T Get<T>() where T : class {{ return null; }}
     void Use(object t) {{ }}
+    unsafe void Use(void* t) {{ }}
+    unsafe int* GetIntp() {{ return null; }}
+    unsafe long* GetLongp() {{ return null; }}
 
     static int M1(int x) => x;
     static int M2(int x) => x;
@@ -200,6 +223,9 @@ class D : A {{ [System.Obsolete(""D"", true)] public static implicit operator X(
 
 class X {{ }}
 
+interface IOut<out T> {{ }}
+interface IIn<in T> {{ }}
+
 delegate int Del(int x);
 ";
 
@@ -207,7 +233,7 @@ delegate int Del(int x);
             parseOptions = parseOptions.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion());
             var tree = Parse(source, options: parseOptions);
 
-            var comp = CreateCompilation(tree);
+            var comp = CreateCompilation(tree, options: TestOptions.DebugDll.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var compUnit = tree.GetCompilationUnitRoot();
@@ -232,7 +258,7 @@ delegate int Del(int x);
                 Assert.Equal(naturalType, model.GetTypeInfo(conditionalExpr).Type.ToTestDisplayString());
             }
 
-            var convertedType = targetType;
+            var convertedType = targetType switch { "void*" => "System.Void*", _ => targetType };
             Assert.Equal(convertedType, model.GetTypeInfo(conditionalExpr).ConvertedType.ToTestDisplayString());
 
             if (!expectedDiagnostics.Any())

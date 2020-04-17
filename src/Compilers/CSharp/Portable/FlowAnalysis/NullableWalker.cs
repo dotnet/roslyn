@@ -3697,20 +3697,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
-        {
-            return VisitConditionalOperatorCore(node, node.Condition, isRef: false, node.Consequence, node.Alternative);
-        }
-
-        public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
-        {
-            return VisitConditionalOperatorCore(node, node.Condition, node.IsRef, node.Consequence, node.Alternative);
-        }
-
-        private BoundNode VisitConditionalOperatorCore(
+        protected override BoundNode VisitConditionalOperatorCore(
             BoundExpression node,
-            BoundExpression condition,
             bool isRef,
+            BoundExpression condition,
             BoundExpression originalConsequence,
             BoundExpression originalAlternative)
         {

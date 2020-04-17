@@ -2574,8 +2574,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitConditionalOperatorCore(node, node.IsRef, node.Condition, node.Consequence, node.Alternative);
         }
 
-        private BoundNode VisitConditionalOperatorCore(
-            BoundNode node,
+        protected virtual BoundNode VisitConditionalOperatorCore(
+            BoundExpression node,
             bool isByRef,
             BoundExpression condition,
             BoundExpression consequence,

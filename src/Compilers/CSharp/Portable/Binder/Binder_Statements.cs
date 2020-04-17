@@ -2190,7 +2190,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         bool reportedError = false;
                         foreach (var arm in switchExpression.SwitchArms)
+                        {
                             tryConversion(arm.Value, ref reportedError, ref useSiteDiagnostics);
+                        }
 
                         Debug.Assert(reportedError);
                         return;
@@ -2200,9 +2202,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var conditionalOperator = (BoundUnconvertedConditionalOperator)operand;
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         bool reportedError = false;
-                        foreach (var side in new[] { conditionalOperator.Consequence, conditionalOperator.Alternative })
-                            tryConversion(side, ref reportedError, ref useSiteDiagnostics);
-
+                        tryConversion(conditionalOperator.Consequence, ref reportedError, ref useSiteDiagnostics);
+                        tryConversion(conditionalOperator.Alternative, ref reportedError, ref useSiteDiagnostics);
                         Debug.Assert(reportedError);
                         return;
                     }
