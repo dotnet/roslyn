@@ -235,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim builder As New SpillBuilder()
 
                 Debug.Assert(left.IsLValue)
-                Dim spilledLeft As BoundExpression = SpillLValue(left, isReceiver:=False, builder:=builder)
+                Dim spilledLeft As BoundExpression = SpillLValue(left, isReceiver:=False, evaluateSideEffects:=True, builder:=builder, isAssignmentTarget:=True)
 
                 Dim rightAsSpillSequence = DirectCast(right, BoundSpillSequence)
                 builder.AddSpill(rightAsSpillSequence)
@@ -565,7 +565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' to enforce order of evaluation and to decrease the size of the code that we will duplicate (1 - receiver evaluation during capture,
                             ' 2 - value type receiver evaluation). 
                             If Not receiver.Type.IsReferenceType Then
-                                receiver = SpillValue(receiver, isReceiver:=True, builder:=builder)
+                                receiver = SpillValue(receiver, isReceiver:=True, evaluateSideEffects:=True, builder:=builder)
                             End If
 
                             ' If receiver is not spilled, we can use a local to capture receiver's value. If receiver is spilled, use SpillRValue to accomplish this
@@ -600,7 +600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         Else
                             Debug.Assert(conditionalAccessReceiverPlaceholderReplacementInfo.IsSpilled)
-                            placeholderReplacement = SpillValue(receiver, isReceiver:=True, builder:=builder)
+                            placeholderReplacement = SpillValue(receiver, isReceiver:=True, evaluateSideEffects:=True, builder:=builder)
                             nullCheckTarget = placeholderReplacement.MakeRValue()
                         End If
                     Else
