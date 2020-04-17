@@ -14,14 +14,11 @@ Push-Location
 $fileInfo = Get-ItemProperty $filePath
 Set-Location $fileInfo.Directory
 
-try
-{
-    while ($true)
-    {
+try {
+    while ($true) {
         # search up from the current file for a folder containing a csproj
         $files = Get-ChildItem *.csproj
-        if ($files)
-        {
+        if ($files) {
             Pop-Location
             $dotnetPath = Resolve-Path (Ensure-DotNetSdk) -Relative
 
@@ -40,12 +37,10 @@ try
 
             break
         }
-        else
-        {
+        else {
             $location = Get-Location
             Set-Location ..
-            if ((Get-Location).Path -eq $location.Path)
-            {
+            if ((Get-Location).Path -eq $location.Path) {
                 # our location didn't change. We must be at the drive root, so give up
                 Write-Host "Failed to run tests. $fileInfo is not part of a C# project."
                 break
@@ -53,7 +48,6 @@ try
         }
     }
 }
-finally
-{
+finally {
     Pop-Location
 }
