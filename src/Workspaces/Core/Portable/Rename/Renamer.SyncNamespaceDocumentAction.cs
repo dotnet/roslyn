@@ -109,6 +109,5 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
         }
-
     }
 }

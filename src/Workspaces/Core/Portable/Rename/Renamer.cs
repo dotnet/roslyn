@@ -57,15 +57,11 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 var renameAction = await RenameSymbolDocumentAction.TryCreateAsync(document, newDocumentName, cancellationToken).ConfigureAwait(false);
 
-                if (renameAction is object)
-                {
-                    actions.Add(renameAction);
-                }
+                actions.AddIfNotNull(renameAction);
             }
 
             return new RenameDocumentActionSet(
                 actions.ToImmutable(),
-                document.Project.Id,
                 document.Id,
                 newDocumentName,
                 document.Folders,
@@ -103,15 +99,11 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 var action = await SyncNamespaceDocumentAction.TryCreateAsync(document, newFolders, cancellationToken).ConfigureAwait(false);
 
-                if (action is object)
-                {
-                    actions.Add(action);
-                }
+                actions.AddIfNotNull(action);
             }
 
             return new RenameDocumentActionSet(
                 actions.ToImmutable(),
-                document.Project.Id,
                 document.Id,
                 document.Name,
                 newFolders,

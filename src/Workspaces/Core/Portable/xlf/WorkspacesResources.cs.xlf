@@ -17,10 +17,10 @@
         <target state="translated">Soubory C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_apply_action_that_is_not_in_applicableactions">
-        <source>Cannot apply action that is not in ApplicableActions</source>
-        <target state="new">Cannot apply action that is not in ApplicableActions</target>
-        <note>"ApplicableActions" is a property on the RenameDocumentActionSet</note>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="new">Cannot apply action that is not in '{0}'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>

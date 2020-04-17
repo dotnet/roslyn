@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Rename
     public static partial class Renamer
     {
         /// <summary>
-        /// Action that will rename a type to match the current document name
+        /// Action that will rename a type to match the current document name.
         /// </summary>
         internal sealed class RenameSymbolDocumentAction : RenameDocumentAction
         {
@@ -99,10 +99,25 @@ namespace Microsoft.CodeAnalysis.Rename
 
             private readonly struct AnalysisResult
             {
+                /// <summary>
+                /// Name of the document that the action was produced for.
+                /// </summary>
                 public string OriginalDocumentName { get; }
+
+                /// <summary>
+                /// The new document name that will be used.
+                /// </summary>
                 public string NewDocumentName { get; }
-                public string NewSymbolName { get; }
+
+                /// <summary>
+                /// The original name of the symbol that will be changed.
+                /// </summary>
                 public string OriginalSymbolName { get; }
+
+                /// <summary>
+                /// The new name for the symbol.
+                /// </summary>
+                public string NewSymbolName { get; }
 
                 public AnalysisResult(
                     Document document,

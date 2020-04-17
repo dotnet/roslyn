@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         /// <summary>
         /// Information about rename document calls that allows them to be applied as individual actions.
-        /// 
+        /// <para />
         /// To apply all actions use <see cref="UpdateSolutionAsync(Solution, CancellationToken)"/>, or use a subset
         /// of the actions by calling <see cref="UpdateSolutionAsync(Solution, ImmutableArray{RenameDocumentAction}, CancellationToken)"/>. 
+        /// Actions can be applied in any order.
         /// Each action has a description of the changes that it will apply that can be presented to a user.
         /// </summary>
         public sealed class RenameDocumentActionSet
@@ -29,12 +30,10 @@ namespace Microsoft.CodeAnalysis.Rename
             private readonly DocumentId _documentId;
             private readonly string _documentName;
             private readonly IReadOnlyList<string> _documentFolders;
-            private readonly ProjectId _projectId;
             private readonly OptionSet _optionSet;
 
             internal RenameDocumentActionSet(
                 ImmutableArray<RenameDocumentAction> actions,
-                ProjectId projectId,
                 DocumentId documentId,
                 string documentName,
                 IReadOnlyList<string> documentFolders,
@@ -44,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Rename
                 _documentFolders = documentFolders;
                 _documentId = documentId;
                 _documentName = documentName;
-                _projectId = projectId;
                 _optionSet = optionSet;
             }
 
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 if (actions.Any(a => !ApplicableActions.Contains(a)))
                 {
-                    throw new ArgumentException(WorkspacesResources.Cannot_apply_action_that_is_not_in_applicableactions);
+                    throw new ArgumentException(string.Format(WorkspacesResources.Cannot_apply_action_that_is_not_in_0, nameof(ApplicableActions)));
                 }
 
                 // Prior to updating the solution it's possible the document id has changed between the time 
@@ -118,11 +116,10 @@ namespace Microsoft.CodeAnalysis.Rename
                     return solution.GetRequiredDocument(_documentId);
                 }
 
-                var project = solution.GetRequiredProject(_projectId);
+                var project = solution.GetRequiredProject(_documentId.ProjectId);
                 return project.Documents.FirstOrDefault(d => d.Name == _documentName && d.Folders.SequenceEqual(_documentFolders))
                     ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
             }
         }
-
     }
 }
