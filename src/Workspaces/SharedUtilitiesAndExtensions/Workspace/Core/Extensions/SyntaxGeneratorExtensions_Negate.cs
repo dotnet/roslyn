@@ -216,6 +216,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     if (syntaxFacts.IsTypePattern(negated))
                     {
+                        // We started with `x is not t`.  Unwrap the type pattern for 't' and create a simple `is` binary expr `x is t`.
                         var type = syntaxFacts.GetTypeOfTypePattern(negated);
                         return generator.IsTypeExpression(left, type);
                     }
