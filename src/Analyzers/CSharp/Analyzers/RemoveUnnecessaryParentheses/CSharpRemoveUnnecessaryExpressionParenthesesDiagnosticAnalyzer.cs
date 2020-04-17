@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
     internal class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer
         : AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<SyntaxKind, ParenthesizedExpressionSyntax>
     {
+        protected override SyntaxKind GetSyntaxKind()
+            => SyntaxKind.ParenthesizedExpression;
+
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
 

@@ -759,10 +759,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 case BinaryPatternSyntax binaryPattern:
                     if (binaryPattern.IsKind(SyntaxKind.AndPattern))
-                        return OperatorPrecedence.LogicalAnd;
+                        return OperatorPrecedence.ConditionalAnd;
 
                     if (binaryPattern.IsKind(SyntaxKind.OrPattern))
-                        return OperatorPrecedence.LogicalOr;
+                        return OperatorPrecedence.ConditionalOr;
 
                     break;
             }

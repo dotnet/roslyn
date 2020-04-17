@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MisplacedUsingDirectives\MisplacedUsingDirectivesCodeFixProviderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersCompilerErrorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\RemoveUnnecessaryPatternParenthesesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\RemoveUnreachableCodeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyConditionalTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\SimplifyInterpolationTests.cs" />
