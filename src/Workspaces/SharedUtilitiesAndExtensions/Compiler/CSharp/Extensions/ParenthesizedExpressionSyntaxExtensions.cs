@@ -723,8 +723,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             ParenthesizedPatternSyntax node, PatternSyntax parentPattern, SemanticModel semanticModel)
         {
             var pattern = node.Pattern;
-            var precedence = GetPatternPrecedence(pattern);
-            var parentPrecedence = GetPatternPrecedence(parentPattern);
+            var precedence = pattern.GetPrecedence();
+            var parentPrecedence = parentPattern.GetPrecedence();
             if (precedence == OperatorPrecedence.None || parentPrecedence == OperatorPrecedence.None)
             {
                 // Be conservative if the expression or its parent has no precedence.
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return precedence < parentPrecedence;
         }
 
-        private static OperatorPrecedence GetPatternPrecedence(PatternSyntax pattern)
+        public static OperatorPrecedence GetPrecedence(this PatternSyntax pattern)
         {
             switch (pattern)
             {
