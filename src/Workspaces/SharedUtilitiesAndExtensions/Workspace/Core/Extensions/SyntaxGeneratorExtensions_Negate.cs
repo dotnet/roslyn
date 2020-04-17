@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (syntaxFacts.IsParenthesizedPattern(expressionOrPattern))
             {
+                // Push the negation inside the parenthesized pattern.
                 return generatorInternal.AddParentheses(
                     generator.Negate(
                         generatorInternal,
@@ -94,10 +95,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return GetNegationOfBinaryPattern(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
 
             if (syntaxFacts.IsConstantPattern(expressionOrPattern))
-                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
+                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal);
 
             if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
                 return GetNegationOfUnaryPattern(expressionOrPattern, generator, syntaxFacts);
+
+            // TODO(cyrusn): We could support negating relational patterns in the future.  i.e.
+            //
+            //      not >= 0   ->    < 0
 
             return syntaxFacts.IsAnyPattern(expressionOrPattern)
                 ? generator.NotPattern(expressionOrPattern)
@@ -183,6 +188,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            // Apply demorgans's law here.
+            //
+            //  not (a and b)   ->   not a or not b
+            //  not (a or b)    ->   not a and not b
+
             var syntaxFacts = generatorInternal.SyntaxFacts;
             syntaxFacts.GetPartsOfBinaryPattern(pattern, out var left, out var operatorToken, out var right);
 
@@ -421,11 +431,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static SyntaxNode GetNegationOfConstantPattern(
             SyntaxNode pattern,
             SyntaxGenerator generator,
-            SyntaxGeneratorInternal generatorInternal,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            SyntaxGeneratorInternal generatorInternal)
         {
             var syntaxFacts = generatorInternal.SyntaxFacts;
+
+            // If we have `is true/false` just swap that to be `is false/true`.
 
             var expression = syntaxFacts.GetExpressionOfConstantPattern(pattern);
             if (syntaxFacts.IsTrueLiteralExpression(expression))
@@ -434,6 +444,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (syntaxFacts.IsFalseLiteralExpression(expression))
                 return generator.ConstantPattern(generator.TrueLiteralExpression());
 
+            // Otherwise, just negate the entire pattern, we don't have anything else special we can do here.
             return generator.NotPattern(pattern);
         }
 
@@ -459,14 +470,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             syntaxFacts.GetPartsOfUnaryPattern(pattern, out var opToken, out var subPattern);
 
+            // not not p    ->   p
             if (syntaxFacts.IsNotPattern(pattern))
             {
                 return subPattern.WithPrependedLeadingTrivia(opToken.LeadingTrivia)
                                  .WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
-            // TODO: add support for more unary patterns.  for example, `< 0` can be negated to `>= 0`
-
+            // If there are other interesting unary patterns in the future, we can support specialized logic for
+            // negating them here.
             return generator.NotPattern(pattern);
         }
 
