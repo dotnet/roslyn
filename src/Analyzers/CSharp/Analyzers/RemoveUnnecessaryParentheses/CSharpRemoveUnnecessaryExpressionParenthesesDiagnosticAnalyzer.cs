@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             }
 
             var inner = parenthesizedExpression.Expression;
-            var innerKind = inner.Kind();
             var innerPrecedence = inner.GetOperatorPrecedence();
             var innerIsSimple = innerPrecedence == OperatorPrecedence.Primary ||
                                 innerPrecedence == OperatorPrecedence.None;
