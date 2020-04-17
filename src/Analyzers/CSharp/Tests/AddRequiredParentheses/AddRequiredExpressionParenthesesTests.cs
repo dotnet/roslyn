@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
-    public partial class AddRequiredParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AddRequiredExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());

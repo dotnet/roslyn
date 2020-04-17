@@ -12,7 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredExpressionParenthesesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\ConvertAnonymousTypeToTupleTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
