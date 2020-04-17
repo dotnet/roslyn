@@ -370,13 +370,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         RemoteHost_Connect = 297,
         RemoteHost_Disconnect = 298,
 
-        RemoteHostClientService_AddGlobalAssetsAsync = 299,
-        RemoteHostClientService_RemoveGlobalAssets = 300,
+        // obsolete: RemoteHostClientService_AddGlobalAssetsAsync = 299,
+        // obsolete: RemoteHostClientService_RemoveGlobalAssets = 300,
         RemoteHostClientService_Enabled = 301,
         RemoteHostClientService_Restarted = 302,
 
         RemoteHostService_SynchronizePrimaryWorkspaceAsync = 303,
-        RemoteHostService_SynchronizeGlobalAssetsAsync = 304,
+        // obsolete: RemoteHostService_SynchronizeGlobalAssetsAsync = 304,
 
         AssetStorage_CleanAssets = 305,
         AssetStorage_TryGetAsset = 306,

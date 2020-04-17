@@ -100,7 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             SolutionId.CreateNewId(solutionFilePath),
                             VersionStamp.Create(),
                             solutionFilePath,
-                            projects: new[] { projectInfo }));
+                            projects: new[] { projectInfo },
+                            analyzerReferences: w.CurrentSolution.AnalyzerReferences));
                 }
                 else
                 {
