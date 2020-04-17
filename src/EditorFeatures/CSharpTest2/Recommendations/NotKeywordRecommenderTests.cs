@@ -201,6 +201,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         if (test is { P: (1 or $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterConstant()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is 1 $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterMultipleConstants()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is 1 or 2 $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterType()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is int $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRelationalOperator()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is >= 0 $$"));
+        }
 #endif
     }
 }
