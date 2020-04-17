@@ -1894,5 +1894,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     }
 }", parseOptions: CSharp9);
         }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestComplexIf_Precedence_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int i)
+    {
+        [||]if (i == 0 || i is < 10 or > 20 && i is >= 30 or <= 40)
+        {
+            return;
+        }
+    }
+}",
+@"class C
+{
+    void M(int i)
+    {
+        switch (i)
+        {
+            case 0:
+            case (< 10 or > 20) and (>= 30 or <= 40):
+                return;
+        }
+    }
+}", parseOptions: CSharp9);
+        }
     }
 }
