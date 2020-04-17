@@ -33,8 +33,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
-        protected abstract string GetDescription(CodeFixContext context, SemanticModel semanticModel,
-            SyntaxNode? targetNode = null, ITypeSymbol? conversionType = null);
+        /// <summary>
+        /// Given targetNode and conversionType, generate sub item name like "Cast to 'conversionType'"
+        /// </summary>
+        protected abstract string GetSubItemName(CodeFixContext context, SemanticModel semanticModel,
+            SyntaxNode targetNode, ITypeSymbol conversionType);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             if (potentialConversionTypes.Length == 1)
             {
                 context.RegisterCodeFix(new MyCodeAction(
-                    GetDescription(context, semanticModel),
+                    FeaturesResources.Add_explicit_cast,
                     c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                     context.Diagnostics);
             }
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                     var targetNode = potentialConversionTypes[i].node;
                     var conversionType = potentialConversionTypes[i].type;
                     actions.Add(new MyCodeAction(
-                        GetDescription(context, semanticModel, targetNode, conversionType),
+                        GetSubItemName(context, semanticModel, targetNode, conversionType),
                         _ => ApplySingleConversionToDocumentAsync(document, ApplyFix(root, targetNode, conversionType))));
                 }
 
@@ -90,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
                 }
 
                 context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
-                    GetDescription(context, semanticModel),
+                    FeaturesResources.Add_explicit_cast,
                     actions.ToImmutableAndFree(), isInlinable: false),
                     context.Diagnostics);
             }

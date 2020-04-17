@@ -45,17 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
 
-        protected override string GetDescription(CodeFixContext context, SemanticModel semanticModel,
-            SyntaxNode? targetNode = null, ITypeSymbol? conversionType = null)
+        protected override string GetSubItemName(CodeFixContext context, SemanticModel semanticModel,
+            SyntaxNode targetNode, ITypeSymbol conversionType)
         {
-            if (conversionType is object)
-            {
-                return string.Format(
-                    CSharpFeaturesResources.Convert_type_to_0,
-                    conversionType.ToMinimalDisplayString(semanticModel, context.Span.Start));
-            }
-            return FeaturesResources.Add_explicit_cast;
+            return string.Format(
+                CSharpFeaturesResources.Convert_type_to_0,
+                conversionType.ToMinimalDisplayString(semanticModel, context.Span.Start));
         }
+
         protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode,
             ITypeSymbol conversionType)
         {
