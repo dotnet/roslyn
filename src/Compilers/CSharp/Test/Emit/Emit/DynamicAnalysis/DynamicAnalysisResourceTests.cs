@@ -925,7 +925,8 @@ class C
 
     static object obj = null!;
 }" + InstrumentationHelperSource;
-            CompileAndVerify(source, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage))).VerifyIL("C..cctor()",
+            var emitOptions = EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage));
+            CompileAndVerify(source, emitOptions: emitOptions).VerifyIL("C..cctor()",
 @"{
   // Code size       57 (0x39)
   .maxstack  5
@@ -963,25 +964,8 @@ class C
 {
     static object obj = null!;
 }" + InstrumentationHelperSource;
-            CompileAndVerify(source, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage))).VerifyIL("C..cctor()",
-@"{
-  // Code size       51 (0x33)
-  .maxstack  5
-  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-  IL_0005:  ldtoken    ""C..cctor()""
-  IL_000a:  ldelem.ref
-  IL_000b:  brtrue.s   IL_0032
-  IL_000d:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-  IL_0012:  ldtoken    ""C..cctor()""
-  IL_0017:  ldtoken    Source Document 0
-  IL_001c:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-  IL_0021:  ldtoken    ""C..cctor()""
-  IL_0026:  ldelema    ""bool[]""
-  IL_002b:  ldc.i4.0
-  IL_002c:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
-  IL_0031:  pop
-  IL_0032:  ret
-}");
+            var emitOptions = EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage));
+            CompileAndVerify(source, emitOptions: emitOptions).VerifyMemberInIL("C..cctor()", false);
         }
 
         private class SpanResult
