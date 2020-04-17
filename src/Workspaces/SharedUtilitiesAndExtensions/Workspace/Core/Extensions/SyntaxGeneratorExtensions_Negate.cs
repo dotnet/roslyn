@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                     else
                     {
+                        // Keep this as a normal `is-pattern`, just with the pattern portion negated.
                         return generator.IsPatternExpression(left, isToken, negated);
                     }
                 }
