@@ -2199,6 +2199,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode NotPattern(SyntaxNode pattern);
         internal abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
         internal abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
+        internal abstract SyntaxNode TypePattern(SyntaxNode type);
 
         #endregion
     }

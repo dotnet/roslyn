@@ -3850,6 +3850,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotImplementedException()
         End Function
 
+        Friend Overrides Function TypePattern(type As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
 #End Region
 
     End Class

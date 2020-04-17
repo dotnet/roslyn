@@ -53,6 +53,15 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation is IDeclarationPatternOperation)
             {
+#if !CODE_STYLE
+                while (operation.Parent is IBinaryPatternOperation ||
+                       operation.Parent is INegatedPatternOperation ||
+                       operation.Parent is IRelationalPatternOperation)
+                {
+                    operation = operation.Parent;
+                }
+#endif
+
                 switch (operation.Parent)
                 {
                     case IPatternCaseClauseOperation _:

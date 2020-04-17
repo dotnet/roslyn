@@ -302,14 +302,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     void M(bool x, int a, object b)
     {
-        var c = a > 10 [||]&& b is string s;
+        var c = a > 10 [||]&& b is string;
     }
 }",
 @"class C
 {
     void M(bool x, int a, object b)
     {
-        var c = !(a <= 10 || !(b is string s));
+        var c = !(a <= 10 || !(b is string));
     }
 }", parseOptions: CSharp8);
         }
@@ -323,14 +323,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     void M(bool x, int a, object b)
     {
-        var c = a > 10 [||]&& b is string s;
+        var c = a > 10 [||]&& b is string;
     }
 }",
 @"class C
 {
     void M(bool x, int a, object b)
     {
-        var c = !(a <= 10 || b is not string s);
+        var c = !(a <= 10 || b is not string);
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsNotTypePattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is not string;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is not string));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsNotTypePattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is not string;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is string);
     }
 }", parseOptions: CSharp9);
         }
@@ -583,6 +625,174 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
     void M(bool x, int a, object b)
     {
         var c = !(a <= 10 || b is not string and not object);
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsTypeWithDesignationPattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string s;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is string s));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsTypeWithDesignationPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string s;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is string s));
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsVarPattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is var s;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is var s));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsVarPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is var s;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is var s));
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsAndWithDesignationPattern1_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string s and object;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is string s and object));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsAndWithDesignationPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string s and object;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is string s and object));
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsAndWithDesignationPattern2_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string and object s;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is string and object s));
+    }
+}", parseOptions: CSharp8);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
+        public async Task InvertIsAndWithDesignationPattern2_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is string and object s;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || !(b is string and object s));
     }
 }", parseOptions: CSharp9);
         }

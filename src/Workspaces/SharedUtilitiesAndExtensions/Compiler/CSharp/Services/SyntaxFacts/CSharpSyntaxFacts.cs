@@ -18,12 +18,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
@@ -1999,6 +1999,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             right = isPatternExpression.Pattern;
         }
 
+        public bool IsIsExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.IsExpression);
+
         public bool IsIsPatternExpression(SyntaxNode node)
             => node.IsKind(SyntaxKind.IsPatternExpression);
 
@@ -2008,8 +2011,33 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsConstantPattern(SyntaxNode node)
             => node.IsKind(SyntaxKind.ConstantPattern);
 
+        public bool IsDeclarationPattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.DeclarationPattern);
+
+        public bool IsRecursivePattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.RecursivePattern);
+
+        public bool IsVarPattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.VarPattern);
+
         public SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node)
             => ((ConstantPatternSyntax)node).Expression;
+
+        public void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation)
+        {
+            var declarationPattern = (DeclarationPatternSyntax)node;
+            type = declarationPattern.Type;
+            designation = declarationPattern.Designation;
+        }
+
+        public void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode positionalPart, out SyntaxNode propertyPart, out SyntaxNode designation)
+        {
+            var recursivePattern = (RecursivePatternSyntax)node;
+            type = recursivePattern.Type;
+            positionalPart = recursivePattern.PositionalPatternClause;
+            propertyPart = recursivePattern.PropertyPatternClause;
+            designation = recursivePattern.Designation;
+        }
 
 #if CODE_STYLE
 
@@ -2019,15 +2047,19 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsNotPattern(SyntaxNode node) => false;
         public bool IsOrPattern(SyntaxNode node) => false;
         public bool IsParenthesizedPattern(SyntaxNode node) => false;
+        public bool IsTypePattern(SyntaxNode node) => false;
         public bool IsUnaryPattern(SyntaxNode node) => false;
 
-        public void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen);
+        public void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen)
             => throw ExceptionUtilities.Unreachable;
 
         public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
             => throw ExceptionUtilities.Unreachable;
 
         public void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
+            => throw ExceptionUtilities.Unreachable;
+
+        public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => throw ExceptionUtilities.Unreachable;
 
 #else
@@ -2049,6 +2081,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsParenthesizedPattern(SyntaxNode node)
             => node.IsKind(SyntaxKind.ParenthesizedPattern);
+
+        public bool IsTypePattern(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypePattern);
 
         public bool IsUnaryPattern(SyntaxNode node)
             => node is UnaryPatternSyntax;
@@ -2075,6 +2110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             operatorToken = unaryPattern.PatternOperator;
             pattern = unaryPattern.Pattern;
         }
+
+        public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
+            => ((TypePatternSyntax)node).Type;
 
 #endif
     }

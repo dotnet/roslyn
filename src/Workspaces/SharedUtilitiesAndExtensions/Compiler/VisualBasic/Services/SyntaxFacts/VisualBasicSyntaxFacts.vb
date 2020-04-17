@@ -2255,6 +2255,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsIsExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsExpression
+            Return node.IsKind(SyntaxKind.TypeOfIsExpression)
+        End Function
+
         Public Function IsIsPatternExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsPatternExpression
             Return False
         End Function
@@ -2275,6 +2279,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsDeclarationPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationPattern
+            Return False
+        End Function
+
         Public Function IsNotPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNotPattern
             Return False
         End Function
@@ -2287,7 +2295,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsRecursivePattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsRecursivePattern
+            Return False
+        End Function
+
         Public Function IsUnaryPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUnaryPattern
+            Return False
+        End Function
+
+        Public Function IsTypePattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypePattern
+            Return False
+        End Function
+
+        Public Function IsVarPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVarPattern
             Return False
         End Function
 
@@ -2310,5 +2330,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Sub GetPartsOfUnaryPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef pattern As SyntaxNode) Implements ISyntaxFacts.GetPartsOfUnaryPattern
             Throw ExceptionUtilities.Unreachable
         End Sub
+
+        Public Sub GetPartsOfDeclarationPattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef designation As SyntaxNode) Implements ISyntaxFacts.GetPartsOfDeclarationPattern
+            Throw New NotImplementedException()
+        End Sub
+
+        Public Sub GetPartsOfRecursivePattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef positionalPart As SyntaxNode, ByRef propertyPart As SyntaxNode, ByRef designation As SyntaxNode) Implements ISyntaxFacts.GetPartsOfRecursivePattern
+            Throw New NotImplementedException()
+        End Sub
+
+        Public Function GetTypeOfTypePattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfTypePattern
+            Throw New NotImplementedException()
+        End Function
     End Class
 End Namespace

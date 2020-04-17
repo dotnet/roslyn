@@ -116,7 +116,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetObjectCreationType(SyntaxNode node);
 
         bool IsBinaryExpression(SyntaxNode node);
+        bool IsIsExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+
+        bool IsIsPatternExpression(SyntaxNode node);
         void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right);
 
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
@@ -391,8 +394,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
-        bool IsIsPatternExpression(SyntaxNode node);
-
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
 
@@ -401,16 +402,24 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsAndPattern(SyntaxNode node);
         bool IsBinaryPattern(SyntaxNode node);
         bool IsConstantPattern(SyntaxNode node);
+        bool IsDeclarationPattern(SyntaxNode node);
         bool IsNotPattern(SyntaxNode node);
         bool IsOrPattern(SyntaxNode node);
         bool IsParenthesizedPattern(SyntaxNode node);
+        bool IsRecursivePattern(SyntaxNode node);
+        bool IsTypePattern(SyntaxNode node);
         bool IsUnaryPattern(SyntaxNode node);
+        bool IsVarPattern(SyntaxNode node);
 
         SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node);
         void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen);
 
         void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+        void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation);
+        void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode positionalPart, out SyntaxNode propertyPart, out SyntaxNode designation);
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
+
+        SyntaxNode GetTypeOfTypePattern(SyntaxNode node);
 
         /// <summary>
         /// <paramref name="fullHeader"/> controls how much of the type header should be considered. If <see

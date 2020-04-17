@@ -3580,6 +3580,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode ParenthesizedPattern(SyntaxNode pattern)
             => Parenthesize(pattern);
 
+        internal override SyntaxNode TypePattern(SyntaxNode type)
+            => SyntaxFactory.TypePattern((TypeSyntax)type);
+
         #endregion
     }
 }
