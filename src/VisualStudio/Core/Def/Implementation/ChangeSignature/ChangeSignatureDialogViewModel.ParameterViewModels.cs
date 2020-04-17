@@ -97,16 +97,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _addedParameter = addedParameter;
             }
 
-            /// <summary>
-            /// Display text for the type in the UI, including a marker if it doesn't bind.
-            /// </summary>
             public override string Type => _addedParameter.TypeName;
 
             public override Visibility TypeWarningVisibility => _addedParameter.TypeBinds ? Visibility.Collapsed : Visibility.Visible;
 
             public override string ParameterName => _addedParameter.Name;
 
-            public override bool IsRemoved { get => false; set => throw new InvalidOperationException(); }
+            public override bool IsRemoved 
+            {
+                get => false;
+                set => throw new InvalidOperationException();
+            }
 
             public override string FullAutomationText
             {
@@ -136,7 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // Newly added parameters cannot have modifiers yet
             public override string Modifier => string.Empty;
 
-            // Only required parameters are supported currently
             public override string Default => _addedParameter.DefaultValue;
 
             public override bool IsRequired => _addedParameter.IsRequired;
