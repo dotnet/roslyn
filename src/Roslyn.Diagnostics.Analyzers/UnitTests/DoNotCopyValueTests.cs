@@ -85,12 +85,12 @@ class C
 {{
     async Task M({csharpAwaitableType} task)
     {{
-        var local = await task;
+        var local = {{|#0:await task|}};
     }}
 }}
 ",
                 // /0/Test0.cs(10,21): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'Await' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(10, 21, 10, 31).WithArguments("System.Runtime.InteropServices.GCHandle", "Await"));
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "Await"));
 
             await VerifyVB.VerifyAnalyzerAsync($@"
 Imports System.Runtime.CompilerServices
@@ -99,11 +99,11 @@ Imports System.Threading.Tasks
 
 Class C
     Async Function M(task as {visualBasicAwaitableType}) As Task
-        Dim local = Await task
+        Dim local = {{|#0:Await task|}}
     End Function
 End Class",
                 // /0/Test0.vb(8,21): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'Await' operation
-                VerifyVB.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(8, 21, 8, 31).WithArguments("System.Runtime.InteropServices.GCHandle", "Await"));
+                VerifyVB.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "Await"));
         }
 
         [Theory]
@@ -190,14 +190,14 @@ class C
 {
     void M()
     {
-        var local = GetRef();
+        var local = {|#0:GetRef()|};
     }
 
     ref GCHandle GetRef() => throw null;
 }
 ",
                 // /0/Test0.cs(8,21): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'Invocation' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(8, 21, 8, 29).WithArguments("System.Runtime.InteropServices.GCHandle", "Invocation"));
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "Invocation"));
         }
 
         [Fact]
@@ -225,15 +225,15 @@ class C
         _ = reflocal.Target;
         _ = reflocal.Target;
 
-        _ = readonlyfield.Target;
-        _ = refreadonlylocal.Target;
+        _ = {|#0:readonlyfield|}.Target;
+        _ = {|#1:refreadonlylocal|}.Target;
     }
 }
 ",
                 // /0/Test0.cs(23,13): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'FieldReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(23, 13, 23, 26).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
                 // /0/Test0.cs(17,13): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(24, 13, 24, 29).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(1).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
         }
 
         [Fact]
@@ -261,15 +261,15 @@ class C
         _ = reflocal.AddrOfPinnedObject();
         _ = reflocal.AddrOfPinnedObject();
 
-        _ = readonlyfield.AddrOfPinnedObject();
-        _ = refreadonlylocal.AddrOfPinnedObject();
+        _ = {|#0:readonlyfield|}.AddrOfPinnedObject();
+        _ = {|#1:refreadonlylocal|}.AddrOfPinnedObject();
     }
 }
 ",
                 // /0/Test0.cs(23,13): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'FieldReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(23, 13, 23, 26).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
                 // /0/Test0.cs(17,13): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(24, 13, 24, 29).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(1).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
         }
 
         [Fact]
@@ -305,13 +305,13 @@ class C
         local.XIn();
 
         // Failure cases.
-        {|CS0192:readonlyfield|}.XRef();
-        {|CS1510:refreadonlylocal|}.XRef();
-        field.X();
-        readonlyfield.X();
-        local.X();
-        reflocal.X();
-        refreadonlylocal.X();
+        {|#0:{|CS0192:readonlyfield|}|}.XRef();
+        {|#1:{|CS1510:refreadonlylocal|}|}.XRef();
+        {|#2:field|}.X();
+        {|#3:readonlyfield|}.X();
+        {|#4:local|}.X();
+        {|#5:reflocal|}.X();
+        {|#6:refreadonlylocal|}.X();
     }
 }
 
@@ -323,19 +323,19 @@ static class E
 }
 ",
                 // /0/Test0.cs(31,9): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'FieldReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(31, 9, 31, 22).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
                 // /0/Test0.cs(32,9): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(32, 9, 32, 25).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"),
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(1).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"),
                 // /0/Test0.cs(33,9): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'FieldReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(33, 9, 33, 14).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(2).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
                 // /0/Test0.cs(34,9): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'FieldReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(34, 9, 34, 22).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(3).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
                 // /0/Test0.cs(35,9): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(35, 9, 35, 14).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"),
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(4).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"),
                 // /0/Test0.cs(36,9): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(36, 9, 36, 17).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"),
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(5).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"),
                 // /0/Test0.cs(37,9): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(37, 9, 37, 25).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(6).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
         }
 
         [Theory]
@@ -491,7 +491,7 @@ class C
 
     int ReturnReadonlyFieldMemberProperty()
     {
-        return _readonlyField.Property;
+        return {|#0:_readonlyField|}.Property;
     }
 
     int ReturnParameterMemberProperty(CannotCopy parameter)
@@ -557,7 +557,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
                     // non-copyable field.
                     //
                     // /0/Test0.cs(42,16): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'FieldReference' operation
-                    VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(42, 16, 42, 30).WithArguments("CannotCopy", "FieldReference"),
+                    VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("CannotCopy", "FieldReference"),
                 },
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
@@ -660,7 +660,7 @@ class C
     void Method(object value)
     {
         Method(_canCopy);
-        Method(_cannotCopy);
+        Method({|#0:_cannotCopy|});
     }
 }
 
@@ -676,7 +676,7 @@ struct CannotCopy
 internal sealed class NonCopyableAttribute : System.Attribute { }
 ",
                 // /0/Test0.cs(12,16): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'FieldReference' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithSpan(12, 16, 12, 27).WithArguments("CannotCopy", "FieldReference"));
+                VerifyCS.Diagnostic(DoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("CannotCopy", "FieldReference"));
         }
 
         [Fact]
@@ -687,11 +687,11 @@ using System.Runtime.InteropServices;
 
 class C
 {
-    GCHandle? field = null;
+    GCHandle? field {|#0:= null|};
 }
 ",
                 // /0/Test0.cs(6,21): warning RS0042: Do not wrap non-copyable type 'System.Runtime.InteropServices.GCHandle?' in 'FieldInitializer' operation
-                VerifyCS.Diagnostic(DoNotCopyValue.AvoidNullableWrapperRule).WithSpan(6, 21, 6, 27).WithArguments("System.Runtime.InteropServices.GCHandle?", "FieldInitializer"));
+                VerifyCS.Diagnostic(DoNotCopyValue.AvoidNullableWrapperRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle?", "FieldInitializer"));
         }
     }
 }
