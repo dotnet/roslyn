@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // Note: All of the below fields are accessed in parallel and may only be accessed
         // when protected by lock (SyncObject)
         private readonly Queue<TElement> _data = new Queue<TElement>();
-        private Queue<TaskCompletionSource<TElement>> _waiters;
+        private Queue<TaskCompletionSource<Optional<TElement>>> _waiters;
         private bool _completed;
         private bool _disallowEnqueue;
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new InvalidOperationException($"Cannot enqueue data after PromiseNotToEnqueue.");
             }
 
-            TaskCompletionSource<TElement> waiter;
+            TaskCompletionSource<Optional<TElement>> waiter;
             lock (SyncObject)
             {
                 if (_completed)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool CompleteCore()
         {
-            Queue<TaskCompletionSource<TElement>> existingWaiters;
+            Queue<TaskCompletionSource<Optional<TElement>>> existingWaiters;
             lock (SyncObject)
             {
                 if (_completed)
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
                     foreach (var tcs in existingWaiters)
                     {
-                        tcs.SetCanceled();
+                        tcs.SetResult(default);
                     }
                 }
 
@@ -224,7 +224,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public Task<TElement> DequeueAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return WithCancellationAsync(DequeueCoreAsync(), cancellationToken);
+            var optionalResult = TryDequeueAsync(cancellationToken);
+            if (optionalResult.IsCompletedSuccessfully)
+            {
+                var result = optionalResult.Result;
+                return result.HasValue
+                    ? Task.FromResult(result.Value)
+                    : Task.FromCanceled<TElement>(new CancellationToken(canceled: true));
+            }
+
+            return dequeueSlowAsync(optionalResult);
+
+            static async Task<TElement> dequeueSlowAsync(ValueTask<Optional<TElement>> optionalResult)
+            {
+                var result = await optionalResult.ConfigureAwait(false);
+                if (!result.HasValue)
+                    new CancellationToken(canceled: true).ThrowIfCancellationRequested();
+
+                return result.Value;
+            }
+        }
+
+        /// <summary>
+        /// Gets a task whose result is the element at the head of the queue. If the queue
+        /// is empty, the returned task waits for an element to be enqueued. If <see cref="Complete"/> 
+        /// is called before an element becomes available, the returned task is completed and
+        /// <see cref="Optional{T}.HasValue"/> will be <see langword="false"/>.
+        /// </summary>
+        public ValueTask<Optional<TElement>> TryDequeueAsync(CancellationToken cancellationToken)
+        {
+            return WithCancellationAsync(TryDequeueCoreAsync(), cancellationToken);
         }
 
         /// <summary>
@@ -232,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Note: The early cancellation behavior is intentional.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        private static Task<T> WithCancellationAsync<T>(Task<T> task, CancellationToken cancellationToken)
+        private static ValueTask<T> WithCancellationAsync<T>(ValueTask<T> task, CancellationToken cancellationToken)
         {
             if (task.IsCompleted || !cancellationToken.CanBeCanceled)
             {
@@ -241,14 +270,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (cancellationToken.IsCancellationRequested)
             {
-                return new Task<T>(() => default(T), cancellationToken);
+                task.Preserve();
+                return new ValueTask<T>(Task.FromCanceled<T>(cancellationToken));
             }
 
-            return task.ContinueWith(t => t, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
+            return new ValueTask<T>(task.AsTask().ContinueWith(t => t, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap());
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        private Task<TElement> DequeueCoreAsync()
+        private ValueTask<Optional<TElement>> TryDequeueCoreAsync()
         {
             lock (SyncObject)
             {
@@ -256,25 +286,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // in the queue.  This keeps the behavior in line with TryDequeue
                 if (_data.Count > 0)
                 {
-                    return Task.FromResult(_data.Dequeue());
+                    return new ValueTask<Optional<TElement>>(_data.Dequeue());
                 }
 
                 if (_completed)
                 {
-                    var tcs = new TaskCompletionSource<TElement>();
-                    tcs.SetCanceled();
-                    return tcs.Task;
+                    return new ValueTask<Optional<TElement>>(default(Optional<TElement>));
                 }
                 else
                 {
                     if (_waiters == null)
                     {
-                        _waiters = new Queue<TaskCompletionSource<TElement>>();
+                        _waiters = new Queue<TaskCompletionSource<Optional<TElement>>>();
                     }
 
-                    var waiter = new TaskCompletionSource<TElement>();
+                    var waiter = new TaskCompletionSource<Optional<TElement>>();
                     _waiters.Enqueue(waiter);
-                    return waiter.Task;
+                    return new ValueTask<Optional<TElement>>(waiter.Task);
                 }
             }
         }

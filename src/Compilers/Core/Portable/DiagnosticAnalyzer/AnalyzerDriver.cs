@@ -1199,29 +1199,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     CompilationEvent e;
-                    try
+                    if (!CompilationEventQueue.TryDequeue(out e))
                     {
-                        if (!CompilationEventQueue.TryDequeue(out e))
+                        if (!prePopulatedEventQueue)
                         {
-                            if (!prePopulatedEventQueue)
+                            var optionalEvent = await CompilationEventQueue.TryDequeueAsync(cancellationToken).ConfigureAwait(false);
+                            if (!optionalEvent.HasValue)
                             {
-                                e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
-                            }
-                            else
-                            {
-                                return completedEvent;
-                            }
-                        }
-                    }
-                    catch (TaskCanceledException) when (!prePopulatedEventQueue)
-                    {
-                        // When the queue is completed with a pending DequeueAsync return then a 
-                        // TaskCanceledException will be thrown.  This just signals the queue is 
-                        // complete and we should finish processing it.
+                                // When the queue is completed with a pending TryDequeueAsync return, the
+                                // the Optional<T> will not have a value. This signals the queue has reached
+                                // completion and no more items will be added to it.
 
-                        // This failure is being tracked by https://github.com/dotnet/roslyn/issues/5962
-                        // Debug.Assert(CompilationEventQueue.IsCompleted, "DequeueAsync should never throw unless the AsyncQueue<T> is completed.");
-                        break;
+                                // This failure is being tracked by https://github.com/dotnet/roslyn/issues/5962
+                                // Debug.Assert(CompilationEventQueue.IsCompleted, "TryDequeueAsync should provide a value unless the AsyncQueue<T> is completed.");
+                                break;
+                            }
+
+                            e = optionalEvent.Value;
+                        }
+                        else
+                        {
+                            return completedEvent;
+                        }
                     }
 
                     // Don't process the compilation completed event as other worker threads might still be processing other compilation events.
