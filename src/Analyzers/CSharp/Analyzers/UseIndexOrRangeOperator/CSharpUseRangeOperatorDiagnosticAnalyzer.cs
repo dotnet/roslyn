@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -17,19 +18,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     using static Helpers;
 
     /// <summary>
-    /// Analyzer that looks for several variants of code like `s.Slice(start, end - start)` and
-    /// offers to update to `s[start..end]` or `s.Slice(start..end)`.  In order to convert to the
+    /// <para>Analyzer that looks for several variants of code like <c>s.Slice(start, end - start)</c> and
+    /// offers to update to <c>s[start..end]</c> or <c>s.Slice(start..end)</c>.  In order to convert to the
     /// indexer, the type being called on needs a slice-like method that takes two ints, and returns
-    /// an instance of the same type. It also needs a Length/Count property, as well as an indexer
-    /// that takes a System.Range instance.  In order to convert between methods, there need to be
+    /// an instance of the same type. It also needs a <c>Length</c>/<c>Count</c> property, as well as an indexer
+    /// that takes a <see cref="T:System.Range"/> instance.  In order to convert between methods, there need to be
     /// two overloads that are equivalent except that one takes two ints, and the other takes a
-    /// System.Range.
+    /// <see cref="T:System.Range"/>.</para>
     ///
-    /// It is assumed that if the type follows this shape that it is well behaved and that this
+    /// <para>It is assumed that if the type follows this shape that it is well behaved and that this
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
-    /// could always limit the feature to only work on a whitelist of known safe types.
+    /// could always limit the feature to only work on a whitelist of known safe types.</para>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
     internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         // public const string UseIndexer = nameof(UseIndexer);
