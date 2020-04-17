@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-        public async Task TestAlwaysUnnecessaryForUnaryPattern1()
+        public async Task TestNotAlwaysUnnecessaryForUnaryPattern1()
         {
             await TestAsync(
 @"class C
@@ -230,11 +230,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         bool x = o is a or not b;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-        public async Task TestAlwaysUnnecessaryForUnaryPattern2()
+        public async Task TestNotAlwaysUnnecessaryForUnaryPattern2()
         {
             await TestAsync(
 @"class C
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         bool x = o is not a or b;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
     }
 }

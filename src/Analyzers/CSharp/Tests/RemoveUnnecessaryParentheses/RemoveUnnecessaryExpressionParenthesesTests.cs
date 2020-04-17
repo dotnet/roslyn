@@ -2478,5 +2478,49 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
+
+#if !CODE_STYLE
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestAlwaysUnnecessaryForPrimaryPattern1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        bool x = o is 1 or $$(2);
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        bool x = o is 1 or 2;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestAlwaysUnnecessaryForPrimaryPattern2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object o)
+    {
+        bool x = o is $$(1) or 2;
+    }
+}",
+@"class C
+{
+    void M(object o)
+    {
+        bool x = o is 1 or 2;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+#endif
     }
 }

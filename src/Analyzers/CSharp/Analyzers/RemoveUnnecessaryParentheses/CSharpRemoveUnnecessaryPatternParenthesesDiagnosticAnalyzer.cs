@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             var inner = parenthesizedPattern.Pattern;
             var innerPrecedence = inner.GetOperatorPrecedence();
             var innerIsSimple = innerPrecedence == OperatorPrecedence.Primary ||
-                                innerPrecedence == OperatorPrecedence.Unary ||
                                 innerPrecedence == OperatorPrecedence.None;
 
             if (!(parenthesizedPattern.Parent is PatternSyntax))
@@ -79,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             // (and the inner expression is not a primary expression).  in other words, this
             // is helps clarify precedence:
             //
-            //      a + (b * c)
+            //      a or (b and c)
             //
             // However, this does not:
             //
-            //      a + (b.Length)
+            //      a or (b)
             clarifiesPrecedence = !innerIsSimple &&
                                   parentPattern.GetOperatorPrecedence() != innerPrecedence;
             return true;
