@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             ExpressionSyntax, ExpressionSyntax, SyntaxKind>
     {
         public CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
-            : base(CSharpPrecedenceService.Instance)
+            : base(CSharpExpressionPrecedenceService.Instance)
         {
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             }
         }
 
-        protected override ExpressionSyntax? TryGetParentExpression(ExpressionSyntax binaryLike)
+        protected override ExpressionSyntax? TryGetAppropriateParent(ExpressionSyntax binaryLike)
             => binaryLike.Parent is ConstantPatternSyntax
                 ? binaryLike.Parent.Parent as ExpressionSyntax
                 : binaryLike.Parent as ExpressionSyntax;

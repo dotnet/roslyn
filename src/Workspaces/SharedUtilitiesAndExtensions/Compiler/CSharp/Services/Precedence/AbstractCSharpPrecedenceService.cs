@@ -3,23 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Precedence;
 
 namespace Microsoft.CodeAnalysis.CSharp.Precedence
 {
-    internal class CSharpPrecedenceService : AbstractPrecedenceService<ExpressionSyntax, OperatorPrecedence>
+    internal abstract class AbstractCSharpPrecedenceService<TSyntax> : AbstractPrecedenceService<TSyntax, OperatorPrecedence>
+        where TSyntax : SyntaxNode
     {
-        public static readonly CSharpPrecedenceService Instance = new CSharpPrecedenceService();
-
-        private CSharpPrecedenceService()
+        protected AbstractCSharpPrecedenceService()
         {
         }
 
-        public override OperatorPrecedence GetOperatorPrecedence(ExpressionSyntax expression)
-            => expression.GetOperatorPrecedence();
-
-        public override PrecedenceKind GetPrecedenceKind(OperatorPrecedence precedence)
+        public sealed override PrecedenceKind GetPrecedenceKind(OperatorPrecedence precedence)
         {
             switch (precedence)
             {
