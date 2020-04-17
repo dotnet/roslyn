@@ -26508,30 +26508,31 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
 
                 compilation.VerifyDiagnostics(
-                    // (2,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (2,8): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return H.TakeOutParam(1, out int x1);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(2, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "H.TakeOutParam(1, out int x1)").WithArguments("bool", "int").WithLocation(2, 8),
                     // (3,1): warning CS0162: Unreachable code detected
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.WRN_UnreachableCode, "H").WithLocation(3, 1),
-                    // (6,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (6,8): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return H.TakeOutParam(2, out int x2);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(6, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "H.TakeOutParam(2, out int x2)").WithArguments("bool", "int").WithLocation(6, 8),
                     // (6,34): error CS0128: A local variable or function named 'x2' is already defined in this scope
                     // return H.TakeOutParam(2, out int x2);
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(6, 34),
-                    // (8,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (8,8): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return H.TakeOutParam(3, out int x3);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(8, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "H.TakeOutParam(3, out int x3)").WithArguments("bool", "int").WithLocation(8, 8),
                     // (9,8): error CS0128: A local variable or function named 'x3' is already defined in this scope
                     // object x3;
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x3").WithArguments("x3").WithLocation(9, 8),
                     // (9,8): warning CS0168: The variable 'x3' is declared but never used
                     // object x3;
                     Diagnostic(ErrorCode.WRN_UnreferencedVar, "x3").WithArguments("x3").WithLocation(9, 8),
-                    // (11,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (11,8): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return H.Dummy(H.TakeOutParam(41, out int x4),
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(11, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"H.Dummy(H.TakeOutParam(41, out int x4),
+               H.TakeOutParam(42, out int x4))").WithArguments("bool", "int").WithLocation(11, 8),
                     // (12,43): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                H.TakeOutParam(42, out int x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 43),
@@ -26651,30 +26652,31 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
 
                 compilation.VerifyDiagnostics(
-                    // (2,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (2,8): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return H.TakeOutParam(1, out var x1);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(2, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "H.TakeOutParam(1, out var x1)").WithArguments("bool", "int").WithLocation(2, 8),
                     // (3,1): warning CS0162: Unreachable code detected
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.WRN_UnreachableCode, "H").WithLocation(3, 1),
-                    // (6,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (6,8): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return H.TakeOutParam(2, out var x2);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(6, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "H.TakeOutParam(2, out var x2)").WithArguments("bool", "int").WithLocation(6, 8),
                     // (6,34): error CS0128: A local variable or function named 'x2' is already defined in this scope
                     // return H.TakeOutParam(2, out var x2);
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(6, 34),
-                    // (8,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (8,8): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return H.TakeOutParam(3, out var x3);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(8, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "H.TakeOutParam(3, out var x3)").WithArguments("bool", "int").WithLocation(8, 8),
                     // (9,8): error CS0128: A local variable or function named 'x3' is already defined in this scope
                     // object x3;
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x3").WithArguments("x3").WithLocation(9, 8),
                     // (9,8): warning CS0168: The variable 'x3' is declared but never used
                     // object x3;
                     Diagnostic(ErrorCode.WRN_UnreferencedVar, "x3").WithArguments("x3").WithLocation(9, 8),
-                    // (11,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (11,8): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return H.Dummy(H.TakeOutParam(41, out var x4),
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(11, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, @"H.Dummy(H.TakeOutParam(41, out var x4),
+               H.TakeOutParam(42, out var x4))").WithArguments("bool", "int").WithLocation(11, 8),
                     // (12,43): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                H.TakeOutParam(42, out var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(12, 43),

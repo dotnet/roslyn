@@ -33,20 +33,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declaration = declaration;
 
             bool hasAwait = declaration.HasAwaitExpressions;
+            bool hasReturnWithExpression = declaration.HasReturnWithExpression;
 
-            if (hasAwait)
+            switch (hasAwait, hasReturnWithExpression)
             {
-                _returnType = Binder.GetWellKnownType(containingType.DeclaringCompilation, WellKnownType.System_Threading_Tasks_Task, diagnostics, NoLocation.Singleton);
-            }
-            else
-            {
-                _returnType = Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Void, NoLocation.Singleton, diagnostics);
+                case (true, false):
+                    _returnType = Binder.GetWellKnownType(containingType.DeclaringCompilation, WellKnownType.System_Threading_Tasks_Task, diagnostics, NoLocation.Singleton);
+                    break;
+                case (false, false):
+                    _returnType = Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Void, NoLocation.Singleton, diagnostics);
+                    break;
+                case (true, true):
+                    _returnType = Binder.GetWellKnownType(containingType.DeclaringCompilation, WellKnownType.System_Threading_Tasks_Task_T, diagnostics, NoLocation.Singleton).
+                                      Construct(Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Int32, NoLocation.Singleton, diagnostics));
+                    break;
+                case (false, true):
+                    _returnType = Binder.GetSpecialType(containingType.DeclaringCompilation, SpecialType.System_Int32, NoLocation.Singleton, diagnostics);
+                    break;
             }
 
             this.MakeFlags(
                 MethodKind.Ordinary,
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
-                returnsVoid: !hasAwait,
+                returnsVoid: !hasAwait && !hasReturnWithExpression,
                 isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: false);
         }

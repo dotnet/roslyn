@@ -539,8 +539,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Do not descend into functions and expressions
             return node is object &&
-                   node.DescendantNodesAndSelf(child => !IsNestedFunction(child) && !(node is ExpressionSyntax)).
-                       OfType<YieldStatementSyntax>().Any();
+                   node.DescendantNodesAndSelf(child => !IsNestedFunction(child) && !(node is ExpressionSyntax)).Any(n => n is YieldStatementSyntax);
+        }
+
+        internal static bool HasReturnWithExpression(SyntaxNode? node)
+        {
+            // Do not descend into functions and expressions
+            return node is object &&
+                   node.DescendantNodesAndSelf(child => !IsNestedFunction(child) && !(node is ExpressionSyntax)).Any(n => n is ReturnStatementSyntax { Expression: { } });
         }
     }
 }

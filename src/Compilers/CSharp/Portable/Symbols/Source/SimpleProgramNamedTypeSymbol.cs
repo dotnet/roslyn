@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override NamedTypeSymbol AsNativeInteger()
         {
-            throw new System.InvalidOperationException();
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>

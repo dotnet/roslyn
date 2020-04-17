@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool acceptSimpleProgram = node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular;
             bool hasAwaitExpressions = false;
             bool isIterator = false;
+            bool hasReturnWithExpression = false;
             GlobalStatementSyntax firstGlobalStatement = null;
 
             var childrenBuilder = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
@@ -79,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         isIterator = SyntaxFacts.HasYieldOperations(topLevelStatement);
                     }
+
+                    if (!hasReturnWithExpression)
+                    {
+                        hasReturnWithExpression = SyntaxFacts.HasReturnWithExpression(topLevelStatement);
+                    }
                 }
                 else if (!hasGlobalMembers && member.Kind() != SyntaxKind.IncompleteMember)
                 {
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap all global statements in a compilation unit into a simple program type:
             if (firstGlobalStatement is object)
             {
-                childrenBuilder.Add(CreateSimpleProgram(firstGlobalStatement, hasAwaitExpressions, isIterator));
+                childrenBuilder.Add(CreateSimpleProgram(firstGlobalStatement, hasAwaitExpressions, isIterator, hasReturnWithExpression));
             }
 
             // wrap all members that are defined in a namespace or compilation unit into an implicit type:
@@ -121,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator)
+        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.SimpleProgram,
@@ -129,7 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arity: 0,
                 modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
                 declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |
-                           (isIterator ? SingleTypeDeclaration.TypeDeclarationFlags.IsIterator : SingleTypeDeclaration.TypeDeclarationFlags.None),
+                           (isIterator ? SingleTypeDeclaration.TypeDeclarationFlags.IsIterator : SingleTypeDeclaration.TypeDeclarationFlags.None) |
+                           (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None),
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
                 nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
                 memberNames: ImmutableHashSet<string>.Empty,
