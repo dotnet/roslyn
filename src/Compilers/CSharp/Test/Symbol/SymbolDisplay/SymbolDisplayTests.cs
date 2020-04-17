@@ -2540,22 +2540,53 @@ namespace N1 {
         {
             var text = @"Print()";
             var tree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Script);
+            var hostReference = MetadataReference.CreateFromFile(typeof(ScriptGlobals).Assembly.Location);
 
             var comp = CSharpCompilation.CreateScriptCompilation(
                 "submission1",
                 tree,
-                TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                TargetFrameworkUtil.GetReferences(TargetFramework.Standard).Concat(hostReference),
                 returnType: typeof(object),
                 globalsType: typeof(ScriptGlobals));
 
             var model = comp.GetSemanticModel(tree);
             var hostTypeSymbol = comp.GetHostObjectTypeSymbol();
+            var printSymbol = hostTypeSymbol.GetMember("Print");
 
-            var format = new SymbolDisplayFormat();
-            var displayParts = hostTypeSymbol.ToMinimalDisplayParts(model, position: 0, format);
+            var displayParts = printSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat);
 
             //Verify(description, expectedText, expectedKinds);
         }
+
+        private static readonly SymbolDisplayFormat s_memberSignatureDisplayFormat =
+                new SymbolDisplayFormat(
+                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                    memberOptions:
+                        SymbolDisplayMemberOptions.IncludeRef |
+                        SymbolDisplayMemberOptions.IncludeType |
+                        SymbolDisplayMemberOptions.IncludeParameters |
+                        SymbolDisplayMemberOptions.IncludeContainingType,
+                    kindOptions:
+                        SymbolDisplayKindOptions.IncludeMemberKeyword,
+                    propertyStyle:
+                        SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+                    parameterOptions:
+                        SymbolDisplayParameterOptions.IncludeName |
+                        SymbolDisplayParameterOptions.IncludeType |
+                        SymbolDisplayParameterOptions.IncludeParamsRefOut |
+                        SymbolDisplayParameterOptions.IncludeExtensionThis |
+                        SymbolDisplayParameterOptions.IncludeDefaultValue |
+                        SymbolDisplayParameterOptions.IncludeOptionalBrackets,
+                    localOptions:
+                        SymbolDisplayLocalOptions.IncludeRef |
+                        SymbolDisplayLocalOptions.IncludeType,
+                    miscellaneousOptions:
+                        SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                        SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                        SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
+                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
         [Fact]
         public void TestRemoveAttributeSuffix1()
