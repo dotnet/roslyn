@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                     VBFeaturesResources.Cast_0_to_1, targetNode.GetText(),
                     conversionType.ToMinimalDisplayString(semanticModel, context.Span.Start))
             End If
-            Return VBFeaturesResources.Add_explicit_cast
+            Return FeaturesResources.Add_explicit_cast
         End Function
 
         Protected Overrides Function ApplyFix(currentRoot As SyntaxNode, targetNode As ExpressionSyntax,

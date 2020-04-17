@@ -1242,7 +1242,4 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Cast_0_to_1" xml:space="preserve">
     <value>Cast '{0}' to '{1}'</value>
   </data>
-  <data name="Add_explicit_cast" xml:space="preserve">
-    <value>Add explicit cast</value>
-  </data>
 </root>

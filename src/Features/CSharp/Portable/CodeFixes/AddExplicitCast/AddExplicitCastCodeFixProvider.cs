@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     CSharpFeaturesResources.Convert_type_to_0,
                     conversionType.ToMinimalDisplayString(semanticModel, context.Span.Start));
             }
-            return CSharpFeaturesResources.Add_explicit_cast;
+            return FeaturesResources.Add_explicit_cast;
         }
         protected override SyntaxNode ApplyFix(SyntaxNode currentRoot, ExpressionSyntax targetNode,
             ITypeSymbol conversionType)
