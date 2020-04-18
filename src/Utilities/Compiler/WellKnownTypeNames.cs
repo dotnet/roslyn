@@ -291,6 +291,9 @@ namespace Analyzer.Utilities
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksGenericValueTask = "System.Threading.Tasks.ValueTask`1";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
+        public const string SystemThreadingTasksTaskCompletionSource = "System.Threading.Tasks.TaskCompletionSource`1";
+        public const string SystemThreadingTasksTaskContinuationOptions = "System.Threading.Tasks.TaskContinuationOptions";
+        public const string SystemThreadingTasksTaskCreationOptions = "System.Threading.Tasks.TaskCreationOptions";
         public const string SystemThreadingTasksTaskFactory = "System.Threading.Tasks.TaskFactory";
         public const string SystemThreadingTasksTaskScheduler = "System.Threading.Tasks.TaskScheduler";
         public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
