@@ -173,6 +173,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static readonly SymbolAndProjectIdComparer SymbolEquivalenceInstance =
             new SymbolAndProjectIdComparer(SymbolEquivalenceComparer.Instance);
 
+        /// <summary>
+        /// An equality comparer for <see cref="SymbolAndProjectId"/> that considers two instances the same if their
+        /// <see cref="SymbolAndProjectId.Symbol"/>'s are equal (not <see cref="SymbolEqualityComparer"/>).
+        /// </summary>
+        public static readonly SymbolAndProjectIdComparer SymbolInstance =
+            new SymbolAndProjectIdComparer(EqualityComparer<ISymbol>.Default);
+
         private readonly IEqualityComparer<ISymbol> _underlyingComparer;
 
         public SymbolAndProjectIdComparer(IEqualityComparer<ISymbol> underlyingComparer)
