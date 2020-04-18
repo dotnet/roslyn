@@ -101,6 +101,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIList1 = "System.Collections.Generic.IList`1";
         public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemCollectionsGenericKeyNotFoundException = "System.Collections.Generic.KeyNotFoundException";
+        public const string SystemCollectionsGenericList1 = "System.Collections.Generic.List`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemCollectionsIEnumerable = "System.Collections.IEnumerable";
         public const string SystemCollectionsIEnumerator = "System.Collections.IEnumerator";
@@ -180,7 +181,7 @@ namespace Analyzer.Utilities
         public const string SystemIOCompressionZipFileExtensions = "System.IO.Compression.ZipFileExtensions";
         public const string SystemIODirectory = "System.IO.Directory";
         public const string SystemIODirectoryInfo = "System.IO.DirectoryInfo";
-        public const string SystemIOFileFullName = "System.IO.File";
+        public const string SystemIOFile = "System.IO.File";
         public const string SystemIOFileInfo = "System.IO.FileInfo";
         public const string SystemIOFileStream = "System.IO.FileStream";
         public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
@@ -191,6 +192,7 @@ namespace Analyzer.Utilities
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
         public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemMarshalByRefObject = "System.MarshalByRefObject";
+        public const string SystemMemory1 = "System.Memory`1";
         public const string SystemNetHttpHttpClient = "System.Net.Http.HttpClient";
         public const string SystemNetHttpHttpClientHandler = "System.Net.Http.HttpClientHandler";
         public const string SystemNetHttpWinHttpHandler = "System.Net.Http.WinHttpHandler";
@@ -206,6 +208,9 @@ namespace Analyzer.Utilities
         public const string SystemObsoleteAttribute = "System.ObsoleteAttribute";
         public const string SystemOutOfMemoryException = "System.OutOfMemoryException";
         public const string SystemRandom = "System.Random";
+        public const string SystemRange = "System.Range";
+        public const string SystemReadOnlyMemory1 = "System.ReadOnlyMemory`1";
+        public const string SystemReadOnlySpan1 = "System.ReadOnlySpan`1";
         public const string SystemReflectionAssemblyFullName = "System.Reflection.Assembly";
         public const string SystemReflectionAssemblyVersionAttribute = "System.Reflection.AssemblyVersionAttribute";
         public const string SystemReflectionMemberInfo = "System.Reflection.MemberInfo";
@@ -271,6 +276,7 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyX509CertificatesX509Store = "System.Security.Cryptography.X509Certificates.X509Store";
         public const string SystemSerializableAttribute = "System.SerializableAttribute";
         public const string SystemSingle = "System.Single";
+        public const string SystemSpan1 = "System.Span`1";
         public const string SystemStackOverflowException = "System.StackOverflowException";
         public const string SystemString = "System.String";
         public const string SystemStringComparison = "System.StringComparison";
@@ -284,6 +290,9 @@ namespace Analyzer.Utilities
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
         public const string SystemThreadingTasksGenericValueTask = "System.Threading.Tasks.ValueTask`1";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
+        public const string SystemThreadingTasksTaskCompletionSource = "System.Threading.Tasks.TaskCompletionSource`1";
+        public const string SystemThreadingTasksTaskContinuationOptions = "System.Threading.Tasks.TaskContinuationOptions";
+        public const string SystemThreadingTasksTaskCreationOptions = "System.Threading.Tasks.TaskCreationOptions";
         public const string SystemThreadingTasksTaskFactory = "System.Threading.Tasks.TaskFactory";
         public const string SystemThreadingTasksTaskScheduler = "System.Threading.Tasks.TaskScheduler";
         public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";

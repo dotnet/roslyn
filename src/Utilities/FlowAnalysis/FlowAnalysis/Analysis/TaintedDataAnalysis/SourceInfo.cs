@@ -157,7 +157,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override bool Equals(object obj)
         {
-            return obj is SourceInfo other ? this.Equals(other) : false;
+            return obj is SourceInfo other && this.Equals(other);
         }
 
         public bool Equals(SourceInfo other)

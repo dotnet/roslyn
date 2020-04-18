@@ -158,13 +158,13 @@
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
-        <source>Use 'null' instead of 'default' for reference types.</source>
-        <target state="translated">参照型には、'default' の代わりに 'null' を使用します。</target>
+        <source>Use 'null' instead of 'default' for nullable types.</source>
+        <target state="needs-review-translation">参照型には、'default' の代わりに 'null' を使用します。</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
-        <source>Use 'null' instead of 'default' for reference types</source>
-        <target state="translated">参照型には、'default' の代わりに 'null' を使用してください</target>
+        <source>Use 'null' instead of 'default' for nullable types</source>
+        <target state="needs-review-translation">参照型には、'default' の代わりに 'null' を使用してください</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">

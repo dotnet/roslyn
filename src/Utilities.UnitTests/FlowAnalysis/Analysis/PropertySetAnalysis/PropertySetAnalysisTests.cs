@@ -90,6 +90,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         InterproceduralAnalysisConfiguration.Create(
                             new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
                             dummy,
+                            symbol,
+                            compilation,
                             InterproceduralAnalysisKind.ContextSensitive,
                             cancellationSource.Token));
                 ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =

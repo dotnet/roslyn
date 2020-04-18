@@ -158,13 +158,13 @@
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
-        <source>Use 'null' instead of 'default' for reference types.</source>
-        <target state="translated">Use 'null' em vez de 'default' para tipos de referência.</target>
+        <source>Use 'null' instead of 'default' for nullable types.</source>
+        <target state="needs-review-translation">Use 'null' em vez de 'default' para tipos de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
-        <source>Use 'null' instead of 'default' for reference types</source>
-        <target state="translated">Use 'null' em vez de 'default' para tipos de referência</target>
+        <source>Use 'null' instead of 'default' for nullable types</source>
+        <target state="needs-review-translation">Use 'null' em vez de 'default' para tipos de referência</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">
