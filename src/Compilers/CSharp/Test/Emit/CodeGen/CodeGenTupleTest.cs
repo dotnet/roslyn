@@ -26756,5 +26756,29 @@ public class Class
             var comp2 = CreateCompilation(source1, references: new[] { comp1.EmitToImageReference() }, options: TestOptions.DebugDll);
             CompileAndVerify(comp2);
         }
+
+        [Fact]
+        [WorkItem(1090920, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090920")]
+        public void GetSymbolInfoOnInitializerOfValueTupleField()
+        {
+
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1 = default;
+        public ValueTuple(T1 item1) { }
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source }, options: TestOptions.DebugDll);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var literal = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            Assert.True(model.GetSymbolInfo(literal).IsEmpty);
+        }
     }
 }
