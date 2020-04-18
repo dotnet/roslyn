@@ -2007,6 +2007,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw new NotImplementedException();
         }
 
+        private ImmutableQueue<SourceMethodSymbolWithAttributes> _moduleInitializerMethods = ImmutableQueue<SourceMethodSymbolWithAttributes>.Empty;
+
+        internal void AddModuleInitializerMethod(SourceMethodSymbolWithAttributes method)
+        {
+            Debug.Assert(!_declarationDiagnosticsFrozen);
+            ImmutableInterlocked.Enqueue(ref _moduleInitializerMethods, method);
+        }
+
+        internal ImmutableQueue<SourceMethodSymbolWithAttributes> GetModuleInitializerMethods()
+        {
+            Debug.Assert(_declarationDiagnosticsFrozen);
+            return _moduleInitializerMethods;
+        }
+
         #endregion
 
         #region Binding

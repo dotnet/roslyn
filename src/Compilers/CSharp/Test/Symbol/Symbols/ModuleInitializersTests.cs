@@ -15,28 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         private static readonly CSharpParseOptions s_parseOptions = TestOptions.RegularPreview;
 
         [Fact]
-        public static void ModuleInitializerAttributeIsDecoded()
-        {
-            var source =
-@"using System.Runtime.CompilerServices;
-
-class C
-{
-    [ModuleInitializer]
-    internal static void M1() { }
-
-    internal static void M2() { }
-}
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
-";
-            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-
-            Assert.True(compilation.GetMember<SourceMethodSymbolWithAttributes>("C.M1").IsModuleInitializer);
-            Assert.False(compilation.GetMember<SourceMethodSymbolWithAttributes>("C.M2").IsModuleInitializer);
-        }
-
-        [Fact]
         public static void ModuleInitializersNotUsableInCSharp8()
         {
             var source =

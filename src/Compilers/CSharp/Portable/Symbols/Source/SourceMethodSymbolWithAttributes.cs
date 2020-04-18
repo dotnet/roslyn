@@ -486,6 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
                 // PROTOTYPE(module-initializers): diagnostics
+                DeclaringCompilation.AddModuleInitializerMethod(this);
             }
             else
             {
@@ -1017,7 +1018,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
         }
-
-        internal bool IsModuleInitializer => GetDecodedWellKnownAttributeData()?.HasModuleInitializerAttribute ?? false;
     }
 }
