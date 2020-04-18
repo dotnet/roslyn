@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
-                if (method is SynthesizedStaticConstructor && context.Module.GetMethodBody(method) is null)
+                if (method.IsImplicitStaticConstructor && context.Module.GetMethodBody(method) is null)
                 {
                     continue;
                 }

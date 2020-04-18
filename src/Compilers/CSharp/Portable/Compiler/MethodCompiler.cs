@@ -1102,60 +1102,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Don't lower if we're not emitting or if there were errors. 
                 // Methods that had binding errors are considered too broken to be lowered reliably.
-                if (_moduleBeingBuiltOpt == null || hasErrors || isEmptySynthesizedStaticConstructor(processedInitializers.BoundInitializers))
+                if (_moduleBeingBuiltOpt == null || hasErrors)
                 {
                     _diagnostics.AddRange(actualDiagnostics);
                     return;
-                }
-
-                // We should only go through with emitting a synthesized static constructor if it would contain
-                // "meaningful" statements. If it only initializes fields to default values we will skip emitting it.
-                bool isEmptySynthesizedStaticConstructor(ImmutableArray<BoundInitializer> initializers)
-                {
-                    if (methodSymbol is SynthesizedStaticConstructor)
-                    {
-                        foreach (var initializer in initializers)
-                        {
-                            var value = (initializer as BoundFieldEqualsValue)?.Value;
-                            if (value is null)
-                            {
-                                // this isn't a BoundFieldEqualsValue, so this initializer is doing
-                                // something we don't understand. Better just emit it.
-                                return false;
-                            }
-
-                            // we are assigning 'default(SomeType)' to something.
-                            if (value is BoundDefaultExpression)
-                            {
-                                continue;
-                            }
-
-                            // we are assigning 'default' to something.
-                            if (value is BoundConversion { ConversionKind: ConversionKind.DefaultLiteral })
-                            {
-                                continue;
-                            }
-
-                            var constantValue = value.ConstantValue;
-                            if (constantValue is null)
-                            {
-                                // a non-constant value was used in an initializer.
-                                // we already ruled out 'default' expressions and literals,
-                                // so this must be some non-default, non-constant expression.
-                                return false;
-                            }
-
-                            var defaultValue = value.Type.GetDefaultValue();
-                            if (constantValue != defaultValue)
-                            {
-                                return false;
-                            }
-                        }
-
-                        return true;
-                    }
-
-                    return false;
                 }
 
                 // ############################
@@ -1256,7 +1206,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // Only do the cast if we haven't returned with some error diagnostics.
                                 // Otherwise, `lowered` might have been a BoundBadStatement.
-                                processedInitializers.LoweredInitializers = (BoundStatementList)lowered;
+                                var loweredList = (BoundStatementList)lowered;
+                                if (methodSymbol.IsImplicitStaticConstructor && loweredList.Statements.IsEmpty)
+                                {
+                                    // either there were no initializers or they were all optimized out.
+                                    return;
+                                }
                             }
 
                             // initializers for global code have already been included in the body

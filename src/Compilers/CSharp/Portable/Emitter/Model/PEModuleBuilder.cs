@@ -263,7 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         //       but adds synthesized instance constructors, Roslyn adds both
                                         var method = (MethodSymbol)member;
                                         if (method.IsDefaultValueTypeConstructor() ||
-                                            (method is SynthesizedStaticConstructor && GetMethodBody(method) is null) ||
+                                            // Synthesized static constructors that will not be emitted should not be included in the SymbolToLocationMap
+                                            (method.IsImplicitStaticConstructor && GetMethodBody(method) is null) ||
                                             method.IsPartialMethod() && (object)method.PartialImplementationPart == null)
                                         {
                                             break;

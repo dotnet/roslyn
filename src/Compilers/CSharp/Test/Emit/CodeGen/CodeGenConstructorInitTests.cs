@@ -704,6 +704,7 @@ class C
 {
     static S field1 = default;
     static S field2 = default(S);
+    static S field3 = new S();
 }";
             CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
         }
@@ -739,6 +740,233 @@ class C
   IL_0001:  stsfld     ""int C.x""
   IL_0006:  ret
 }");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_09()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = null;
+}";
+            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_10()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = default;
+    static S? s2 = default(S?);
+    static S? s3 = null;
+    static S? s4 = new S?();
+}";
+            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_11()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = default(S);
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  newobj     ""S?..ctor(S)""
+  IL_000e:  stsfld     ""S? C.s1""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_12()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static S? s1 = new S();
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  newobj     ""S?..ctor(S)""
+  IL_000e:  stsfld     ""S? C.s1""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_13()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static object s1 = default(S);
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""S""
+  IL_000e:  stsfld     ""object C.s1""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_14()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static object s1 = new S();
+}";
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""S""
+  IL_000e:  stsfld     ""object C.s1""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SkipSynthesizedStaticConstructor_15()
+        {
+            string source = @"
+#nullable enable
+
+struct S
+{
+    public int x;
+}
+
+class C
+{
+    static object s1 = default(S?);
+    static object s2 = (S?)null;
+    static object s3 = new S?();
+}";
+            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+        }
+
+        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void StaticNullInitializerHasNoEffectOnTypeIL()
+        {
+            var source1 = @"
+#nullable enable
+class C
+{
+    static string s1;
+}";
+
+            var source2 = @"
+#nullable enable
+class C
+{
+    static string s1 = null!;
+}";
+
+            var expectedIL = @"
+.class private auto ansi beforefieldinit C
+        extends [mscorlib]System.Object
+{
+        // Fields
+        .field private static string s1
+        .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+                01 00 01 00 00
+        )
+        // Methods
+        .method public hidebysig specialname rtspecialname
+                instance void .ctor () cil managed
+        {
+                // Method begins at RVA 0x207f
+                // Code size 7 (0x7)
+                .maxstack 8
+                IL_0000: ldarg.0
+                IL_0001: call instance void [mscorlib]System.Object::.ctor()
+                IL_0006: ret
+        } // end of method C::.ctor
+} // end of class C
+";
+
+            CompileAndVerify(source1).VerifyTypeIL("C", expectedIL);
+            CompileAndVerify(source2).VerifyTypeIL("C", expectedIL);
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
