@@ -309,7 +309,7 @@ __makeref( x )
 - Tuple literal
 - Tuple
 - Default literal
-- Implicit object creation
+- Implicit object creation (target-typed new)
 
 ## Types 
 
