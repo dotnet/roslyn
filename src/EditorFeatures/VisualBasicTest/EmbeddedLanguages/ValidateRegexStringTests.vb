@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
@@ -18,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)
         End Function
 
-        Private Function OptionOn() As IDictionary(Of OptionKey2, Object)
-            Dim values = New Dictionary(Of OptionKey2, Object)
+        Private Function OptionOn() As IOptionsCollection
+            Dim values = New OptionsCollection(LanguageNames.VisualBasic)
             values.Add(New OptionKey2(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), True)
             Return values
         End Function

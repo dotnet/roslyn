@@ -7,7 +7,7 @@ Option Strict On
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.PreferFrameworkType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
                     New PreferFrameworkTypeCodeFixProvider())
         End Function
 
-        Private ReadOnly Property NoFrameworkType As IDictionary(Of OptionKey2, Object)
+        Private ReadOnly Property NoFrameworkType As IOptionsCollection
             Get
                 Return OptionsSet(
                     SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Suggestion),
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeEverywhere As IDictionary(Of OptionKey2, Object)
+        Private ReadOnly Property FrameworkTypeEverywhere As IOptionsCollection
             Get
                 Return OptionsSet(
                     SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion),
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeInDeclaration As IDictionary(Of OptionKey2, Object)
+        Private ReadOnly Property FrameworkTypeInDeclaration As IOptionsCollection
             Get
                 Return OptionsSet(
                     SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion),
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeInMemberAccess As IDictionary(Of OptionKey2, Object)
+        Private ReadOnly Property FrameworkTypeInMemberAccess As IOptionsCollection
             Get
                 Return OptionsSet(
                     SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Suggestion),

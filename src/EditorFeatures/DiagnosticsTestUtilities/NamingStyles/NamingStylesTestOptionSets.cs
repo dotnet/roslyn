@@ -6,23 +6,14 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-#else
-using System.Collections.Generic;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 {
-#if !CODE_STYLE
-    using IOptionsCollection = IDictionary<OptionKey2, object>;
-#endif
-
     internal sealed class NamingStylesTestOptionSets
     {
         private readonly string _languageName;
@@ -133,22 +124,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         internal IOptionsCollection AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
             Options(_optionKey, AccessibilitiesArePascalCaseOption(accessibilities));
 
-#if CODE_STYLE
         private IOptionsCollection Options(OptionKey2 option, object value)
             => Options(new[] { (option, value) });
 
         private IOptionsCollection Options(params (OptionKey2 key, object value)[] options)
             => new OptionsCollection(_languageName, options);
-
-#else
-        private static IOptionsCollection Options(OptionKey2 option, object value)
-        {
-            return new Dictionary<OptionKey2, object>
-            {
-                { option, value }
-            };
-        }
-#endif
 
         private static NamingStylePreferences ClassNamesArePascalCaseOption()
         {

@@ -3,11 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-
-#If CODE_STYLE Then
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-#End If
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParametersAndValues
     Partial Public Class RemoveUnusedValueAssignmentTests

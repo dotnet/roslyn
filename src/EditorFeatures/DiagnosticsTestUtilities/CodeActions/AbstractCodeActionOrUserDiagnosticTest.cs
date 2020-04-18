@@ -23,10 +23,8 @@ using Xunit;
 #if CODE_STYLE
 using System.Diagnostics;
 using System.IO;
-using TestParametersOptions = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.IOptionsCollection;
 #else
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
-using TestParametersOptions = System.Collections.Generic.IDictionary<Microsoft.CodeAnalysis.Options.OptionKey2, object>;
 #endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public struct TestParameters
         {
-            internal readonly TestParametersOptions options;
+            internal readonly IOptionsCollection options;
             internal readonly bool runProviderOutOfProc;
             internal readonly object fixProviderData;
             internal readonly ParseOptions parseOptions;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal TestParameters(
                 ParseOptions parseOptions = null,
                 CompilationOptions compilationOptions = null,
-                TestParametersOptions options = null,
+                IOptionsCollection options = null,
                 object fixProviderData = null,
                 int index = 0,
                 CodeActionPriority? priority = null,
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public TestParameters WithParseOptions(ParseOptions parseOptions)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
 
-            internal TestParameters WithOptions(TestParametersOptions options)
+            internal TestParameters WithOptions(IOptionsCollection options)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title);
 
             public TestParameters WithFixProviderData(object fixProviderData)
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return;
         }
 
-        private void AddAnalyzerConfigDocumentWithOptions(TestWorkspace workspace, TestParametersOptions options)
+        private void AddAnalyzerConfigDocumentWithOptions(TestWorkspace workspace, IOptionsCollection options)
         {
             Debug.Assert(options != null);
             var analyzerConfigText = GenerateAnalyzerConfigText(options);
@@ -184,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Assert.True(applied);
             return;
 
-            string GenerateAnalyzerConfigText(TestParametersOptions options)
+            string GenerateAnalyzerConfigText(IOptionsCollection options)
             {
                 var textBuilder = new StringBuilder();
 
@@ -305,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index = 0,
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
-            TestParametersOptions options = null,
+            IOptionsCollection options = null,
             object fixProviderData = null,
             ParseOptions parseOptions = null,
             string title = null)
@@ -330,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions = null,
-            int index = 0, TestParametersOptions options = null,
+            int index = 0, IOptionsCollection options = null,
             object fixProviderData = null,
             CodeActionPriority? priority = null)
         {

@@ -2,17 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Options;
+#nullable enable
+
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     public abstract partial class AbstractCodeActionOrUserDiagnosticTest
     {
-        internal (OptionKey2, object) SingleOption<T>(Option2<T> option, T enabled)
+        internal (OptionKey2, object?) SingleOption<T>(Option2<T> option, T enabled)
             => (new OptionKey2(option), enabled);
 
-        internal (OptionKey2, object) SingleOption<T>(PerLanguageOption2<T> option, T value)
+        internal (OptionKey2, object?) SingleOption<T>(PerLanguageOption2<T> option, T value)
             => (new OptionKey2(option, this.GetLanguage()), value);
 
         internal (OptionKey2, object) SingleOption<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal IOptionsCollection OptionsSet(OptionKey2 option, object value)
             => OptionsSet((option, value));
 
-        internal static IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
-            => new OptionsDictionary(options);
+        internal IOptionsCollection OptionsSet(params (OptionKey2 key, object? value)[] options)
+            => new OptionsCollection(GetLanguage(), options: options);
     }
 }

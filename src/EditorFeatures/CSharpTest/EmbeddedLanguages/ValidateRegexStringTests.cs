@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.Options;
@@ -21,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRegexDiagnosticAnalyzer(), null);
 
-        private IDictionary<OptionKey2, object> OptionOn()
+        private IOptionsCollection OptionOn()
         {
-            var optionsSet = new Dictionary<OptionKey2, object>();
+            var optionsSet = new OptionsCollection(LanguageNames.CSharp);
             optionsSet.Add(new OptionKey2(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp), true);
             return optionsSet;
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -9,23 +11,19 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
-#if CODE_STYLE
-    internal interface IOptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object>>
+    internal interface IOptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>
     {
-        string GetEditorConfigText();
+        string? GetEditorConfigText();
+        void Add<T>(OptionKey2 optionKey, T value);
     }
-#endif
 
-    internal sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object>>
-#if CODE_STYLE
-        , IOptionsCollection
-#endif
+    internal sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>, IOptionsCollection
     {
-        private readonly Dictionary<OptionKey2, object> _options = new Dictionary<OptionKey2, object>();
+        private readonly Dictionary<OptionKey2, object?> _options = new Dictionary<OptionKey2, object?>();
         private readonly string _languageName;
         private readonly string _defaultExtension;
 
-        public OptionsCollection(string languageName, params (OptionKey2 key, object value)[] options)
+        public OptionsCollection(string languageName, params (OptionKey2 key, object? value)[] options)
         {
             _languageName = languageName;
             _defaultExtension = languageName == LanguageNames.CSharp ? "cs" : "vb";
@@ -57,16 +55,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public void Add<T>(OptionKey2 optionKey, T value)
             => _options.Add(optionKey, value);
 
-        public IEnumerator<KeyValuePair<OptionKey2, object>> GetEnumerator()
+        public IEnumerator<KeyValuePair<OptionKey2, object?>> GetEnumerator()
             => _options.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
-        public string GetEditorConfigText()
+        public string? GetEditorConfigText()
         {
             var (text, _) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultExtension, explicitEditorConfig: string.Empty, this);
-            return text.ToString();
+            return text?.ToString();
         }
     }
 }

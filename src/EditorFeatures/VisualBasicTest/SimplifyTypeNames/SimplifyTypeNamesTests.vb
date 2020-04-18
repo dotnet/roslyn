@@ -5,10 +5,10 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
 
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                     New SimplifyTypeNamesCodeFixProvider())
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeEverywhere() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicPredefinedTypeEverywhere() As IOptionsCollection
             Dim language = GetLanguage()
 
             Return OptionsSet(
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                 SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language))
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IOptionsCollection
             Dim language = GetLanguage()
 
             Return OptionsSet(
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                 SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent, language))
         End Function
 
-        Private Function PreferIntrinsicTypeInMemberAccess() As IDictionary(Of OptionKey2, Object)
+        Private Function PreferIntrinsicTypeInMemberAccess() As IOptionsCollection
             Dim language = GetLanguage()
 
             Return OptionsSet(

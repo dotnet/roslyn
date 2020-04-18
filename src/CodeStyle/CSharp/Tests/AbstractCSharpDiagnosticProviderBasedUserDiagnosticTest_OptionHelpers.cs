@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics
         internal IOptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
             => OptionsSet(SingleOption(option, value));
 
-        internal static IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
+        internal IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
             => new OptionsCollection(LanguageNames.CSharp, options);
     }
 }

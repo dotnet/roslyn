@@ -3,15 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -19,41 +18,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 {
     public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
-        private IDictionary<OptionKey2, object> PreferExpressionBodiedAccessorsWhenPossible
+        private IOptionsCollection PreferExpressionBodiedAccessorsWhenPossible
             => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
-        private IDictionary<OptionKey2, object> PreferExpressionBodiedAccessorsWhenOnSingleLine
+        private IOptionsCollection PreferExpressionBodiedAccessorsWhenOnSingleLine
             => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
 
-        private IDictionary<OptionKey2, object> DoNotPreferExpressionBodiedAccessors
+        private IOptionsCollection DoNotPreferExpressionBodiedAccessors
             => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey2, object> DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine
+        private IOptionsCollection DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine
             => OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                 SingleOption(CSharpFormattingOptions2.NewLinesForBracesInProperties, false));
 
-        private IDictionary<OptionKey2, object> DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
+        private IOptionsCollection DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
             => OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                 SingleOption(CSharpFormattingOptions2.NewLinesForBracesInAccessors, false));
 
-        private IDictionary<OptionKey2, object> PreferExpressionBodiesOnAccessorsAndMethods
+        private IOptionsCollection PreferExpressionBodiesOnAccessorsAndMethods
             => OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
-        private IDictionary<OptionKey2, object> UseCustomFieldName
+        private IOptionsCollection UseCustomFieldName
             => OptionsSet(
                 SingleOption(NamingStyleOptions.NamingPreferences, CreateCustomFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey2, object> UseUnderscorePrefixedFieldName
+        private IOptionsCollection UseUnderscorePrefixedFieldName
             => OptionsSet(
                 SingleOption(NamingStyleOptions.NamingPreferences, CreateUnderscorePrefixedFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IDictionary<OptionKey2, object> UseCustomStaticFieldName
+        private IOptionsCollection UseCustomStaticFieldName
             => OptionsSet(
                 SingleOption(NamingStyleOptions.NamingPreferences, CreateCustomStaticFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));

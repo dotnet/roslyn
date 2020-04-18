@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -5869,23 +5869,23 @@ class Program
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
             => await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
 
-        private IDictionary<OptionKey2, object> PreferIntrinsicTypeEverywhere => OptionsSet(
+        private IOptionsCollection PreferIntrinsicTypeEverywhere => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
 
-        private IDictionary<OptionKey2, object> PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
+        private IOptionsCollection PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Warning),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning, GetLanguage()));
 
-        private IDictionary<OptionKey2, object> PreferIntrinsicTypeInDeclaration => OptionsSet(
+        private IOptionsCollection PreferIntrinsicTypeInDeclaration => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent, GetLanguage()));
 
-        private IDictionary<OptionKey2, object> PreferIntrinsicTypeInMemberAccess => OptionsSet(
+        private IOptionsCollection PreferIntrinsicTypeInMemberAccess => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption2.Error),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent, GetLanguage()));
 
-        private IDictionary<OptionKey2, object> PreferImplicitTypeEverywhere => OptionsSet(
+        private IOptionsCollection PreferImplicitTypeEverywhere => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));

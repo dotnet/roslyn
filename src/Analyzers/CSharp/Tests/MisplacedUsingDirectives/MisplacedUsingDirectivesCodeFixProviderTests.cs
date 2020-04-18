@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
 
         protected const string DelegateDefinition = @"public delegate void TestDelegate();";
 
-        private static TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
+        private TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
             => new TestParameters(options: OptionsSet((new OptionKey2(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement), preferredPlacementOption)));
 
         private protected Task TestDiagnosticMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)

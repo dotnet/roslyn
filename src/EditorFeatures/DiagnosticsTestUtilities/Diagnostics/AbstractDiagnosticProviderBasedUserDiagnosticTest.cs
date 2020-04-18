@@ -24,12 +24,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-#if CODE_STYLE
-    using TestParametersOptions = IOptionsCollection;
-#else
-    using TestParametersOptions = IDictionary<CodeAnalysis.Options.OptionKey2, object>;
-#endif
-
     public abstract partial class AbstractDiagnosticProviderBasedUserDiagnosticTest : AbstractUserDiagnosticTest
     {
         private readonly ConcurrentDictionary<Workspace, (DiagnosticAnalyzer, CodeFixProvider)> _analyzerAndFixerMap =
@@ -178,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private protected async Task TestDiagnosticInfoAsync(
             string initialMarkup,
-            TestParametersOptions options,
+            IOptionsCollection options,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)
@@ -191,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string initialMarkup,
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
-            TestParametersOptions options,
+            IOptionsCollection options,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)

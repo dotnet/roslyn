@@ -10,13 +10,10 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Xunit;
-using Roslyn.Test.Utilities;
-
-#if CODE_STYLE
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-#endif
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
 {
@@ -26,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             => (new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForAssignmentCodeFixProvider());
 
-        private static readonly IOptionsCollection s_preferImplicitTypeAlways = OptionsSet
+        private IOptionsCollection PreferImplicitTypeAlways => OptionsSet
         (
             (CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement),
             (CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement),
@@ -865,7 +862,7 @@ class C
         // cast will be necessary, otherwise 'var' would get the type 'string'.
         var o = true ? ""a"" : (object)""b"";
     }
-}", options: s_preferImplicitTypeAlways);
+}", options: PreferImplicitTypeAlways);
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
@@ -896,7 +893,7 @@ class C
     {
         object o = true ? throw new System.Exception() : ""b"";
     }
-}", options: s_preferImplicitTypeAlways);
+}", options: PreferImplicitTypeAlways);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -926,7 +923,7 @@ class C
     {
         object o = true ? ""a"" : throw new System.Exception();
     }
-}", options: s_preferImplicitTypeAlways);
+}", options: PreferImplicitTypeAlways);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -956,7 +953,7 @@ class C
     {
         var s = true ? ""a"" : null;
     }
-}", options: s_preferImplicitTypeAlways);
+}", options: PreferImplicitTypeAlways);
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
@@ -987,7 +984,7 @@ class C
     {
         string s = true ? throw new System.Exception() : (string)null;
     }
-}", options: s_preferImplicitTypeAlways);
+}", options: PreferImplicitTypeAlways);
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
@@ -1018,7 +1015,7 @@ class C
     {
         string s = true ? ""a"" : throw new System.Exception();
     }
-}", options: s_preferImplicitTypeAlways);
+}", options: PreferImplicitTypeAlways);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -1048,7 +1045,7 @@ class C
     {
         var s = true ? null : (string)null;
     }
-}", options: s_preferImplicitTypeAlways);
+}", options: PreferImplicitTypeAlways);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]

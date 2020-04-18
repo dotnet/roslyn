@@ -8,10 +8,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
-#if !CODE_STYLE
-using static Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest;
-#endif
-
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
     public sealed class ParenthesesOptionsProvider
@@ -73,10 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => (new OptionKey2(option, _language), codeStyle);
 
         internal IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
-#if CODE_STYLE
             => new OptionsCollection(_language, options);
-#else
-            => new OptionsDictionary(options);
-#endif
     }
 }
