@@ -45,14 +45,14 @@
         "group": "build"
     },
     {
-        "label": "build directory skip analyzers",
+        "label": "build current project skip analyzers",
         "command": "dotnet",
-        "type": "shell",
+        "type": "process",
         "args": [
-          "msbuild",
-          "-p:UseRoslynAnalyzers=false",
-          "-p:GenerateFullPaths=true",
-          "${fileDirname}"
+          "pwsh",
+          "${workspaceRoot}/scripts/vscode-build.ps1",
+          "-filePath",
+          "${file}"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
