@@ -65,18 +65,21 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private static async Task<(SymbolAndProjectId symbolAndProjectId, ImmutableArray<SymbolAndProjectId> implementations, string message)?> FindSourceImplementationsAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
         {
-            var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(
-                symbolAndProjectId.Symbol, solution, cancellationToken).ConfigureAwait(false);
+            var builder = new HashSet<SymbolAndProjectId>(SymbolAndProjectIdComparer.SymbolEquivalenceInstance);
+
+            // Find the direct implementations first.
+            builder.AddRange(await FindSourceImplementationsWorkerAsync(
+                symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false));
 
             // If we're in a linked file, try to find all the symbols this links to, and find all the implementations of
             // each of those linked symbols. De-dupe the results so the user only gets unique results.
-            var builder = new HashSet<SymbolAndProjectId>(SymbolAndProjectIdComparer.SymbolEquivalenceInstance);
+            var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(
+                symbolAndProjectId.Symbol, solution, cancellationToken).ConfigureAwait(false);
+
             foreach (var linkedSymbol in linkedSymbols)
             {
-                var implementations = await FindImplementationsWorkerAsync(
-                    linkedSymbol, solution, cancellationToken).ConfigureAwait(false);
-
-                builder.AddRange(implementations.Where(s => s.Symbol.Locations.Any(l => l.IsInSource)));
+                builder.AddRange(await FindSourceImplementationsWorkerAsync(
+                    linkedSymbol, solution, cancellationToken).ConfigureAwait((bool)false));
             }
 
             var result = builder.ToImmutableArray();
@@ -86,7 +89,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 : (symbolAndProjectId, result, null);
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsWorkerAsync(
+        private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceImplementationsWorkerAsync(
+            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
+        {
+            var implementations = await FindSourceAndMetadataImplementationsAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
+            return implementations.WhereAsArray(s => s.Symbol.Locations.Any(l => l.IsInSource));
+        }
+
+        private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceAndMetadataImplementationsAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
         {
             if (symbolAndProjectId.Symbol.IsInterfaceType() || symbolAndProjectId.Symbol.IsImplementableMember())

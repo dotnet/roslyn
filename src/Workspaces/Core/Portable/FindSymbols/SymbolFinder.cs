@@ -236,8 +236,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// If <paramref name="symbol"/> is declared in a linked file, then this function returns all the symbols that
-        /// are defined by the same symbol's syntax in the other projects that the linked file is referenced from.
+        /// If <paramref name="symbol"/> is declared in a linked file, then this function returns all the other symbols
+        /// that are defined by the same symbol's syntax in the other projects that the linked file is referenced from.
         /// <para/>
         /// In order to be returned the other symbols must have the same <see cref="ISymbol.Name"/> and <see
         /// cref="ISymbol.Kind"/> as <paramref name="symbol"/>.  This matches general user intuition that these are all
@@ -252,7 +252,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
                 var originalDocument = solution.GetDocument(location.SyntaxTree);
-                linkedSymbols.Add(new SymbolAndProjectId(symbol, originalDocument.Project.Id));
 
                 // GetDocument will return null for locations in #load'ed trees. TODO:  Remove this check and add logic
                 // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
