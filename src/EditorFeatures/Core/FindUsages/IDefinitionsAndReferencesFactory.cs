@@ -61,25 +61,27 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // to compute the classified spans for the locations of the definition.  So it's totally 
             // fine to pass in CancellationToken.None and block on the result.
             return ToDefinitionItemAsync(
-                definition, project, includeHiddenLocations, includeClassifiedSpans: false,
+                definition, project, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
                 options: FindReferencesSearchOptions.Default, cancellationToken: CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
             this ISymbol definition,
             Project project,
+            bool isPrimary,
             bool includeHiddenLocations,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return ToDefinitionItemAsync(definition, project,
-                includeHiddenLocations, includeClassifiedSpans: true,
-                options, cancellationToken);
+            return ToDefinitionItemAsync(
+                definition, project, isPrimary, includeHiddenLocations,
+                includeClassifiedSpans: true, options, cancellationToken);
         }
 
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
             this ISymbol definition,
             Project project,
+            bool isPrimary,
             bool includeHiddenLocations,
             bool includeClassifiedSpans,
             FindReferencesSearchOptions options,
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             using var sourceLocationsDisposer = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
 
-            var properties = GetProperties(definition);
+            var properties = GetProperties(definition, isPrimary);
 
             var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
@@ -161,9 +163,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
-        private static ImmutableDictionary<string, string> GetProperties(ISymbol definition)
+        private static ImmutableDictionary<string, string> GetProperties(ISymbol definition, bool isPrimary)
         {
             var properties = ImmutableDictionary<string, string>.Empty;
+
+            if (isPrimary)
+            {
+                properties = properties.Add(DefinitionItem.Primary, "");
+            }
 
             var rqName = RQNameInternal.From(definition);
             if (rqName != null)

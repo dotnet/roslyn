@@ -24,15 +24,33 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly DefinitionItem DefinitionItem;
 
             public RoslynDefinitionBucket(
+                string name,
+                bool expandedByDefault,
                 StreamingFindUsagesPresenter presenter,
                 AbstractTableDataSourceFindUsagesContext context,
                 DefinitionItem definitionItem)
-                : base(name: definitionItem.DisplayParts.JoinText() + " " + definitionItem.GetHashCode(),
+                : base(name,
                        sourceTypeIdentifier: context.SourceTypeIdentifier,
-                       identifier: context.Identifier)
+                       identifier: context.Identifier,
+                       expandedByDefault: expandedByDefault)
             {
                 _presenter = presenter;
                 DefinitionItem = definitionItem;
+            }
+
+            public static RoslynDefinitionBucket Create(
+                StreamingFindUsagesPresenter presenter,
+                AbstractTableDataSourceFindUsagesContext context,
+                DefinitionItem definitionItem)
+            {
+                var isPrimary = definitionItem.Properties.ContainsKey(DefinitionItem.Primary);
+
+                // Sort the primary item above everything else.
+                var name = $"{(isPrimary ? 0 : 1)} {definitionItem.DisplayParts.JoinText()} {definitionItem.GetHashCode()}";
+
+                // Only expand the primary item.  Keep the rest collapsed to keep the display less cluttered.
+                return new RoslynDefinitionBucket(
+                    name, expandedByDefault: isPrimary, presenter, context, definitionItem);
             }
 
             public bool TryNavigateTo(bool isPreview)

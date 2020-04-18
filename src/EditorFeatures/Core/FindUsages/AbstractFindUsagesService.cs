@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             foreach (var implementation in tuple.Value.implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    project, includeHiddenLocations: false,
+                    project, isPrimary: true, includeHiddenLocations: false,
                     FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
