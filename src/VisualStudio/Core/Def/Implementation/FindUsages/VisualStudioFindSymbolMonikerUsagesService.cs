@@ -49,23 +49,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             if (_codeIndexProvider == null)
                 yield break;
 
+            // Only grab the first 500 results.  This keeps server load lower and is acceptable for //build demo purposes.
+            const int PageCount = 5;
+
+            // Let the find-refs window know we have outstanding work
+            await progress.AddItemsAsync(PageCount).ConfigureAwait(false);
+
             var convertedMonikers = ConvertMonikers(monikers);
-            var currentPage = 0;
-            while (true)
+
+            // Keep track if we're done or not.  This helps us simply loop and keep marking progress as done.
+            var done = false;
+
+            for (var currentPage = 0; currentPage < PageCount; currentPage++)
             {
-                var referenceItems = await FindReferencesByMonikerAsync(
-                    _codeIndexProvider, definition, convertedMonikers, progress, currentPage, cancellationToken).ConfigureAwait(false);
+                if (!done)
+                {
+                    var referenceItems = await FindReferencesByMonikerAsync(
+                        _codeIndexProvider, definition, convertedMonikers, progress, currentPage, cancellationToken).ConfigureAwait(false);
 
-                // If we got no items, we're done.
-                if (referenceItems.Length == 0)
-                    break;
+                    // If we got no items, we're done.
+                    if (referenceItems.Length == 0)
+                        done = true;
 
-                foreach (var item in referenceItems)
-                    yield return item;
+                    foreach (var item in referenceItems)
+                        yield return item;
+                }
 
-                // Otherwise, we got some items.  Return them to our caller and attempt to retrieve
-                // another page.
-                currentPage++;
+                // Let the window know one page of results is done.
+                await progress.ItemCompletedAsync().ConfigureAwait(false);
             }
         }
 
@@ -73,13 +84,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             ICodeIndexProvider codeIndexProvider, DefinitionItem definition, ImmutableArray<ISymbolMoniker> monikers,
             IStreamingProgressTracker progress, int pageIndex, CancellationToken cancellationToken)
         {
-            // Let the find-refs window know we have outstanding work
-            await using var _1 = await progress.AddSingleItemAsync().ConfigureAwait(false);
-
             var results = await FindReferencesByMonikerAsync(
                 codeIndexProvider, monikers, pageIndex, cancellationToken).ConfigureAwait(false);
 
-            using var _2 = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
+            using var _ = ArrayBuilder<ExternalReferenceItem>.GetInstance(out var referenceItems);
 
             foreach (var result in results)
                 referenceItems.Add(ConvertResult(definition, result));

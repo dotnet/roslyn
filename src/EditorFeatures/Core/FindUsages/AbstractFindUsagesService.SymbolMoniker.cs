@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             if (moniker == null)
                 return;
 
-            // Let the find-refs window know we have outstanding work
-            await using var _ = await context.ProgressTracker.AddSingleItemAsync().ConfigureAwait(false);
-
             var displayParts = GetDisplayParts(definition).AddRange(new[]
             {
                 new TaggedText(TextTags.Space, " "),
