@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
@@ -15,26 +16,29 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndProjectIdOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
-            if (symbolAndProject == null)
+            if (symbolAndProjectIdOpt == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var symbol = symbolAndProject.Value.symbol;
+            var solution = document.Project.Solution;
+            var symbolAndProjectId = symbolAndProjectIdOpt.Value;
+            var symbol = symbolAndProjectId.Symbol;
             var bases = FindBaseHelpers.FindBases(
-                symbol, symbolAndProject.Value.project, cancellationToken);
+                symbolAndProjectId.Symbol,
+                solution.GetRequiredProject(symbolAndProjectId.ProjectId),
+                cancellationToken);
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
             var project = document.Project;
-            var solution = project.Solution;
             var projectId = project.Id;
 
             var found = false;
@@ -45,11 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             foreach (var baseSymbol in bases)
             {
                 var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-                   SymbolAndProjectId.Create(baseSymbol, projectId), solution, cancellationToken).ConfigureAwait(false);
-                if (sourceDefinition.Symbol != null)
+                   baseSymbol, solution, cancellationToken).ConfigureAwait(false);
+                if (sourceDefinition != null)
                 {
-                    var definitionItem = await sourceDefinition.Symbol.ToClassifiedDefinitionItemAsync(
-                        solution.GetProject(sourceDefinition.ProjectId), includeHiddenLocations: false,
+                    var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
+                        project, includeHiddenLocations: false,
                         FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);

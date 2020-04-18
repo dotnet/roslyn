@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
                 var originalDocument = solution.GetDocument(location.SyntaxTree);
+                linkedSymbols.Add(new SymbolAndProjectId(symbol, originalDocument.Project.Id));
 
                 // GetDocument will return null for locations in #load'ed trees. TODO:  Remove this check and add logic
                 // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.

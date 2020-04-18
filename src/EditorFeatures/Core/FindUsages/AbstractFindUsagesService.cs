@@ -29,17 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var tuple = await FindUsagesHelpers.FindImplementationsAsync(
+            var tupleOpt = await FindUsagesHelpers.FindSourceImplementationsAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (tuple == null)
+            if (tupleOpt == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var message = tuple.Value.message;
-
+            var (symbolAndProjectId, implementations, message) = tupleOpt.Value;
             if (message != null)
             {
                 await context.ReportMessageAsync(message).ConfigureAwait(false);
@@ -48,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_implementations,
-                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol))).ConfigureAwait(false);
+                FindUsagesHelpers.GetDisplayName(symbolAndProjectId.Symbol))).ConfigureAwait(false);
 
-            var project = tuple.Value.project;
-            foreach (var implementation in tuple.Value.implementations)
+            var solution = document.Project.Solution;
+            foreach (var implementation in implementations)
             {
-                var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    project, includeHiddenLocations: false,
+                var definitionItem = await implementation.Symbol.ToClassifiedDefinitionItemAsync(
+                    solution.GetProject(implementation.ProjectId), includeHiddenLocations: false,
                     FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
@@ -128,8 +127,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             if (symbolAndProject == null)
                 return;
 
+            var solution = document.Project.Solution;
             await FindSymbolReferencesAsync(
-                _threadingContext, context, symbolAndProject.Value.symbol, symbolAndProject.Value.project, cancellationToken).ConfigureAwait(false);
+                _threadingContext, context,
+                symbolAndProject.Value.Symbol,
+                solution.GetRequiredProject(symbolAndProject.Value.ProjectId),
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
