@@ -5,40 +5,26 @@
   "tasks": [
     {
         "label": "build",
-        "command": "dotnet",
+        "command": "./build.sh",
+        "type": "shell",
         "args": [
-          "msbuild",
-          "-p:GenerateFullPaths=true",
-          "Compilers.sln"
         ],
         "windows": {
-          "args": [
-            "msbuild",
-            "-p:GenerateFullPaths=true",
-            "Roslyn.sln"
-          ]
+          "command": "./build.cmd",
         },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
     {
         "label": "build skip analyzers",
-        "command": "dotnet",
+        "command": "./build.sh",
+        "type": "shell",
         "args": [
-          "msbuild",
-          "-p:UseRoslynAnalyzers=false",
-          "-p:GenerateFullPaths=true",
-          "Compilers.sln"
+          "--skipAnalyzers"
         ],
         "windows": {
-          "args": [
-            "msbuild",
-            "-p:UseRoslynAnalyzers=false",
-            "-p:GenerateFullPaths=true",
-            "Roslyn.sln"
-          ]
+          "command": "./build.cmd",
         },
-        "type": "shell",
         "problemMatcher": "$msCompile",
         "group": "build"
     },
