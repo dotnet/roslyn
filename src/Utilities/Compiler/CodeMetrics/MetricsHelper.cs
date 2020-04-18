@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         internal static int NormalizeAndRoundMaintainabilityIndex(double maintIndex)
         {
             maintIndex = Math.Max(0.0, maintIndex);
-            return RoundMetricValue((maintIndex / 171.0) * 100.0);
+            return RoundMetricValue(maintIndex / 171.0 * 100.0);
         }
 
         internal static void AddCoupledNamedTypes(ImmutableHashSet<INamedTypeSymbol>.Builder builder, WellKnownTypeProvider wellKnownTypeProvider,

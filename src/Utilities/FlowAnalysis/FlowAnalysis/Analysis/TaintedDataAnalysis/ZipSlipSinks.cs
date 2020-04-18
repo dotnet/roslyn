@@ -26,7 +26,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ("ExtractToFile", new[] { "destinationFileName" } ),
                 });
             builder.AddSinkInfo(
-                WellKnownTypeNames.SystemIOFileFullName,
+                WellKnownTypeNames.SystemIOFile,
                 SinkKind.ZipSlip,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,
