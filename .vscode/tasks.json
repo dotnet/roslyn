@@ -5,20 +5,40 @@
   "tasks": [
     {
         "label": "build",
-        "command": "./build.cmd",
-        "type": "shell",
+        "command": "dotnet",
         "args": [
+          "msbuild",
+          "-p:GenerateFullPaths=true",
+          "Compilers.sln"
         ],
+        "windows": {
+          "args": [
+            "msbuild",
+            "-p:GenerateFullPaths=true",
+            "Roslyn.sln"
+          ]
+        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
     {
         "label": "build skip analyzers",
-        "command": "./build.cmd",
-        "type": "shell",
+        "command": "dotnet",
         "args": [
-          "-skipAnalyzers"
+          "msbuild",
+          "-p:UseRoslynAnalyzers=false",
+          "-p:GenerateFullPaths=true",
+          "Compilers.sln"
         ],
+        "windows": {
+          "args": [
+            "msbuild",
+            "-p:UseRoslynAnalyzers=false",
+            "-p:GenerateFullPaths=true",
+            "Roslyn.sln"
+          ]
+        },
+        "type": "shell",
         "problemMatcher": "$msCompile",
         "group": "build"
     },
@@ -44,6 +64,17 @@
           "-p:UseRoslynAnalyzers=false",
           "-p:GenerateFullPaths=true",
           "${fileDirname}"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "generate compiler code",
+        "command": "dotnet",
+        "type": "process",
+        "args": [
+          "pwsh",
+          "${workspaceRoot}/eng/generate-compiler-code.ps1"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
