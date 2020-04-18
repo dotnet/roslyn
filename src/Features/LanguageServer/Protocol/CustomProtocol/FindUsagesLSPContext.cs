@@ -124,13 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 }
             }
 
-            if (referencesToReport.IsEmpty())
-            {
-                return;
-            }
-
-            // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArray());
+            ReportIfNotEmpty(referencesToReport);
         }
 
         public async override Task OnReferenceFoundAsync(SourceReferenceItem reference)
@@ -159,13 +153,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 }
             }
 
-            if (referencesToReport.IsEmpty())
-            {
-                return;
-            }
-
-            // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArray());
+            ReportIfNotEmpty(referencesToReport);
         }
 
         private void AddToReferencesToReport_MustBeCalledUnderLock(ArrayBuilder<VSReferenceItem> referencesToReport, VSReferenceItem item)
@@ -299,6 +287,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 return null;
             }
+        }
+
+        private void ReportIfNotEmpty(ArrayBuilder<VSReferenceItem> referencesToReport)
+        {
+            if (referencesToReport.IsEmpty())
+            {
+                return;
+            }
+
+            // We can report outside of the lock here since _progress is thread-safe.
+            _progress.Report(referencesToReport.ToArray());
         }
     }
 }
