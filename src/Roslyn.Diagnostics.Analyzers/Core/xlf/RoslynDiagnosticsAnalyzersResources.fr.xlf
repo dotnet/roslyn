@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="CreateTestAccessorDescription">
+        <source>This is a refactoring which simplifies the process of creating test accessors using the TestAccessor pattern</source>
+        <target state="new">This is a refactoring which simplifies the process of creating test accessors using the TestAccessor pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateTestAccessorMessage">
+        <source>Create test accessor</source>
+        <target state="new">Create test accessor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CreateTestAccessorTitle">
+        <source>Create test accessor</source>
+        <target state="new">Create test accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields</source>
         <target state="translated">Les types par défaut doivent avoir des champs par défaut</target>
@@ -15,6 +30,21 @@
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsTitle">
         <source>Defaultable types should have defaultable fields</source>
         <target state="translated">Les types par défaut doivent avoir des champs par défaut</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorDescription">
+        <source>GetTestAccessor() is a helper method reserved for testing. Production code must not call this member.</source>
+        <target state="new">GetTestAccessor() is a helper method reserved for testing. Production code must not call this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorMessage">
+        <source>Do not call GetTestAccessor() from production code</source>
+        <target state="new">Do not call GetTestAccessor() from production code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCallGetTestAccessorTitle">
+        <source>Do not call GetTestAccessor()</source>
+        <target state="new">Do not call GetTestAccessor()</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
@@ -45,6 +75,21 @@
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
         <source>Exported parts should have [ImportingConstructor]</source>
         <target state="translated">Les parties exportées doivent avoir [ImportingConstructor]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingDescription">
+        <source>Expose member for testing</source>
+        <target state="new">Expose member for testing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingMessage">
+        <source>Expose member for testing</source>
+        <target state="new">Expose member for testing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposeMemberForTestingTitle">
+        <source>Expose member for testing</source>
+        <target state="new">Expose member for testing</target>
         <note />
       </trans-unit>
       <trans-unit id="FixNumberedComments">
@@ -98,13 +143,13 @@
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
-        <source>Use 'null' instead of 'default' for reference types.</source>
-        <target state="translated">Utilisez 'null' à la place de 'default' pour les types référence.</target>
+        <source>Use 'null' instead of 'default' for nullable types.</source>
+        <target state="needs-review-translation">Utilisez 'null' à la place de 'default' pour les types référence.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
-        <source>Use 'null' instead of 'default' for reference types</source>
-        <target state="translated">Utiliser 'null' à la place de 'default' pour les types référence</target>
+        <source>Use 'null' instead of 'default' for nullable types</source>
+        <target state="needs-review-translation">Utiliser 'null' à la place de 'default' pour les types référence</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralTitle">

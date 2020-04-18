@@ -26,7 +26,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "Exists", new[] { "path" } ),
                 });
             builder.AddSinkInfo(
-                WellKnownTypeNames.SystemIOFileFullName,
+                WellKnownTypeNames.SystemIOFile,
                 SinkKind.FilePathInjection,
                 isInterface: false,
                 isAnyStringParameterInConstructorASink: false,

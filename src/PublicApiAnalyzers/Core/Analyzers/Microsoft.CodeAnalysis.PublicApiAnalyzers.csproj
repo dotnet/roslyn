@@ -25,5 +25,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
   <Import Project="..\..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
 </Project>

@@ -10,6 +10,7 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.ReleaseTracking;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
@@ -194,9 +195,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     AnalyzeCustomTags(operationAnalysisContext, creationArguments);
                     var (isEnabledByDefault, defaultSeverity) = GetDefaultSeverityAndEnabledByDefault(operationAnalysisContext.Compilation, creationArguments);
 
-                    string? category;
                     if (!TryAnalyzeCategory(operationAnalysisContext, creationArguments, checkCategoryAndAllowedIds,
-                            diagnosticCategoryAndIdRangeTextOpt, categoryAndAllowedIdsMap, out category, out var allowedIdsInfoList))
+                            diagnosticCategoryAndIdRangeTextOpt, categoryAndAllowedIdsMap, out var category, out var allowedIdsInfoList))
                     {
                         allowedIdsInfoList = default;
                     }
