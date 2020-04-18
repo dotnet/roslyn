@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        private protected IOptionsCollection GetIndentionColumn(int column)
+        private protected OptionsCollection GetIndentionColumn(int column)
             => new OptionsCollection(GetLanguage())
                {
                    { FormattingOptions2.PreferredWrappingColumn, column }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 
         private protected Task TestAllWrappingCasesAsync(
             string input,
-            IOptionsCollection options,
+            OptionsCollection options,
             params string[] outputs)
         {
             var parameters = new TestParameters(options: options);

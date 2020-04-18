@@ -18,41 +18,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 {
     public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest
     {
-        private IOptionsCollection PreferExpressionBodiedAccessorsWhenPossible
+        private OptionsCollection PreferExpressionBodiedAccessorsWhenPossible
             => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
-        private IOptionsCollection PreferExpressionBodiedAccessorsWhenOnSingleLine
+        private OptionsCollection PreferExpressionBodiedAccessorsWhenOnSingleLine
             => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement));
 
-        private IOptionsCollection DoNotPreferExpressionBodiedAccessors
+        private OptionsCollection DoNotPreferExpressionBodiedAccessors
             => OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IOptionsCollection DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine
+        private OptionsCollection DoNotPreferExpressionBodiedAccessorsAndPropertyOpenBraceOnSameLine
             => OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                 SingleOption(CSharpFormattingOptions2.NewLinesForBracesInProperties, false));
 
-        private IOptionsCollection DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
+        private OptionsCollection DoNotPreferExpressionBodiedAccessorsAndAccessorOpenBraceOnSameLine
             => OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                 SingleOption(CSharpFormattingOptions2.NewLinesForBracesInAccessors, false));
 
-        private IOptionsCollection PreferExpressionBodiesOnAccessorsAndMethods
+        private OptionsCollection PreferExpressionBodiesOnAccessorsAndMethods
             => OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
-        private IOptionsCollection UseCustomFieldName
+        private OptionsCollection UseCustomFieldName
             => OptionsSet(
                 SingleOption(NamingStyleOptions.NamingPreferences, CreateCustomFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IOptionsCollection UseUnderscorePrefixedFieldName
+        private OptionsCollection UseUnderscorePrefixedFieldName
             => OptionsSet(
                 SingleOption(NamingStyleOptions.NamingPreferences, CreateUnderscorePrefixedFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IOptionsCollection UseCustomStaticFieldName
+        private OptionsCollection UseCustomStaticFieldName
             => OptionsSet(
                 SingleOption(NamingStyleOptions.NamingPreferences, CreateCustomStaticFieldNamingStylePreference()),
                 SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement));

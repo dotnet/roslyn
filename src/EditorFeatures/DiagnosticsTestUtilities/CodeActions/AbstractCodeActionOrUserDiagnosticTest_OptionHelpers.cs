@@ -32,28 +32,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal static (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle, string language)
             => (new OptionKey2(option, language), codeStyle);
 
-        internal IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
+        internal OptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
-        internal IOptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+        internal OptionsCollection Option<T>(Option2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 
-        internal IOptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
+        internal OptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T enabled, NotificationOption2 notification)
             => OptionsSet(SingleOption(option, enabled, notification));
 
-        internal IOptionsCollection Option<T>(Option2<T> option, T value)
+        internal OptionsCollection Option<T>(Option2<T> option, T value)
             => OptionsSet(SingleOption(option, value));
 
-        internal IOptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
+        internal OptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
             => OptionsSet(SingleOption(option, value));
 
-        internal IOptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
+        internal OptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => OptionsSet(SingleOption(option, codeStyle));
 
-        internal IOptionsCollection OptionsSet(OptionKey2 option, object value)
+        internal OptionsCollection OptionsSet(OptionKey2 option, object value)
             => OptionsSet((option, value));
 
-        internal IOptionsCollection OptionsSet(params (OptionKey2 key, object? value)[] options)
+        internal OptionsCollection OptionsSet(params (OptionKey2 key, object? value)[] options)
             => new OptionsCollection(GetLanguage(), options: options);
     }
 }

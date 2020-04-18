@@ -11,13 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
-    internal interface IOptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>
-    {
-        string? GetEditorConfigText();
-        void Add<T>(OptionKey2 optionKey, T value);
-    }
-
-    internal sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>, IOptionsCollection
+    internal sealed class OptionsCollection : IReadOnlyCollection<KeyValuePair<OptionKey2, object?>>
     {
         private readonly Dictionary<OptionKey2, object?> _options = new Dictionary<OptionKey2, object?>();
         private readonly string _languageName;

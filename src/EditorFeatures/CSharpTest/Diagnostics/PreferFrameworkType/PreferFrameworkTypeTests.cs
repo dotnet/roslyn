@@ -22,19 +22,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PreferFrame
         private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
         private readonly CodeStyleOption2<bool> offWithInfo = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
 
-        private IOptionsCollection NoFrameworkType => OptionsSet(
+        private OptionsCollection NoFrameworkType => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Suggestion),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, onWithInfo, GetLanguage()));
 
-        private IOptionsCollection FrameworkTypeEverywhere => OptionsSet(
+        private OptionsCollection FrameworkTypeEverywhere => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Suggestion),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, offWithInfo, GetLanguage()));
 
-        private IOptionsCollection FrameworkTypeInDeclaration => OptionsSet(
+        private OptionsCollection FrameworkTypeInDeclaration => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Suggestion),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, onWithInfo, GetLanguage()));
 
-        private IOptionsCollection FrameworkTypeInMemberAccess => OptionsSet(
+        private OptionsCollection FrameworkTypeInMemberAccess => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Suggestion),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, offWithInfo, GetLanguage()));
 

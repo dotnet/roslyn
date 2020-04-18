@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)
         End Function
 
-        Private Function OptionOn() As IOptionsCollection
+        Private Function OptionOn() As OptionsCollection
             Dim values = New OptionsCollection(LanguageNames.VisualBasic)
             values.Add(New OptionKey2(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), True)
             Return values

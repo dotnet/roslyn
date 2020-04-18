@@ -32,32 +32,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         private static readonly CodeStyleOption2<bool> offWithError = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
 
         // specify all options explicitly to override defaults.
-        internal IOptionsCollection ImplicitTypeEverywhere() => OptionsSet(
+        internal OptionsCollection ImplicitTypeEverywhere() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
-        private IOptionsCollection ImplicitTypeWhereApparent() => OptionsSet(
+        private OptionsCollection ImplicitTypeWhereApparent() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IOptionsCollection ImplicitTypeWhereApparentAndForIntrinsics() => OptionsSet(
+        private OptionsCollection ImplicitTypeWhereApparentAndForIntrinsics() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
-        internal IOptionsCollection ImplicitTypeButKeepIntrinsics() => OptionsSet(
+        internal OptionsCollection ImplicitTypeButKeepIntrinsics() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo));
 
-        private IOptionsCollection ImplicitTypeEnforcements() => OptionsSet(
+        private OptionsCollection ImplicitTypeEnforcements() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithWarning),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
-        private IOptionsCollection ImplicitTypeSilentEnforcement() => OptionsSet(
+        private OptionsCollection ImplicitTypeSilentEnforcement() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));

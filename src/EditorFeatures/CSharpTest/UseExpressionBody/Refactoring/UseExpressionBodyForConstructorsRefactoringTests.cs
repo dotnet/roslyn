@@ -19,16 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExpressionBodyCodeRefactoringProvider();
 
-        private IOptionsCollection UseExpressionBody =>
+        private OptionsCollection UseExpressionBody =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
 
-        private IOptionsCollection UseExpressionBodyDisabledDiagnostic =>
+        private OptionsCollection UseExpressionBodyDisabledDiagnostic =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
 
-        private IOptionsCollection UseBlockBody =>
+        private OptionsCollection UseBlockBody =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
-        private IOptionsCollection UseBlockBodyDisabledDiagnostic =>
+        private OptionsCollection UseBlockBodyDisabledDiagnostic =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

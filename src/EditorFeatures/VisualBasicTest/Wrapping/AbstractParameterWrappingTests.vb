@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return FlattenActions(actions)
         End Function
 
-        Private Protected Function GetIndentionColumn(column As Integer) As IOptionsCollection
+        Private Protected Function GetIndentionColumn(column As Integer) As OptionsCollection
             Return New OptionsCollection(GetLanguage()) From {
                    {FormattingOptions2.PreferredWrappingColumn, column}
                }
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
 
         Private Protected Function TestAllWrappingCasesAsync(
             input As String,
-            options As IOptionsCollection,
+            options As OptionsCollection,
             ParamArray outputs As String()) As Task
 
             Dim parameters = New TestParameters(options:=options)

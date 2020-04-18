@@ -1843,7 +1843,7 @@ class C : IGoo
 }");
         }
 
-        private IOptionsCollection PreferExpressionBodiedMethods =>
+        private OptionsCollection PreferExpressionBodiedMethods =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }
 }

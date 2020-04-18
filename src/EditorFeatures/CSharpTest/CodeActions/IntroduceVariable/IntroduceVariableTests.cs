@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IOptionsCollection ImplicitTypingEverywhere() =>
+        private OptionsCollection ImplicitTypingEverywhere() =>
             OptionsSet(
                 SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
                 SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),

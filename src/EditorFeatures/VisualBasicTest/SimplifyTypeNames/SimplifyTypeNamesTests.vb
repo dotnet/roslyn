@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                     New SimplifyTypeNamesCodeFixProvider())
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeEverywhere() As IOptionsCollection
+        Private Function PreferIntrinsicPredefinedTypeEverywhere() As OptionsCollection
             Dim language = GetLanguage()
 
             Return OptionsSet(
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                 SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language))
         End Function
 
-        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As IOptionsCollection
+        Private Function PreferIntrinsicPredefinedTypeInDeclaration() As OptionsCollection
             Dim language = GetLanguage()
 
             Return OptionsSet(
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
                 SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent, language))
         End Function
 
-        Private Function PreferIntrinsicTypeInMemberAccess() As IOptionsCollection
+        Private Function PreferIntrinsicTypeInMemberAccess() As OptionsCollection
             Dim language = GetLanguage()
 
             Return OptionsSet(

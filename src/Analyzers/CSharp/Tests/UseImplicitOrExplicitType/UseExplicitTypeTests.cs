@@ -31,27 +31,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         private readonly CodeStyleOption2<bool> offWithError = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
 
         // specify all options explicitly to override defaults.
-        private IOptionsCollection ExplicitTypeEverywhere() => OptionsSet(
+        private OptionsCollection ExplicitTypeEverywhere() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IOptionsCollection ExplicitTypeExceptWhereApparent() => OptionsSet(
+        private OptionsCollection ExplicitTypeExceptWhereApparent() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IOptionsCollection ExplicitTypeForBuiltInTypesOnly() => OptionsSet(
+        private OptionsCollection ExplicitTypeForBuiltInTypesOnly() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IOptionsCollection ExplicitTypeEnforcements() => OptionsSet(
+        private OptionsCollection ExplicitTypeEnforcements() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithWarning),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
-        private IOptionsCollection ExplicitTypeSilentEnforcement() => OptionsSet(
+        private OptionsCollection ExplicitTypeSilentEnforcement() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));

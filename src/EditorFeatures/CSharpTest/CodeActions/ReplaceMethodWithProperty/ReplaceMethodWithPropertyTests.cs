@@ -2368,19 +2368,19 @@ class C
                 options: AllCodeStyleOff);
         }
 
-        private IOptionsCollection AllCodeStyleOff =>
+        private OptionsCollection AllCodeStyleOff =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IOptionsCollection PreferExpressionBodiedAccessors =>
+        private OptionsCollection PreferExpressionBodiedAccessors =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IOptionsCollection PreferExpressionBodiedProperties =>
+        private OptionsCollection PreferExpressionBodiedProperties =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
 
-        private IOptionsCollection PreferExpressionBodiedAccessorsAndProperties =>
+        private OptionsCollection PreferExpressionBodiedAccessorsAndProperties =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
                        SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 
         public OptionKey2 OptionKey => _optionKey;
 
-        internal IOptionsCollection MergeStyles(IOptionsCollection first, IOptionsCollection second, string languageName)
+        internal OptionsCollection MergeStyles(OptionsCollection first, OptionsCollection second, string languageName)
         {
             var firstPreferences = (NamingStylePreferences)first.First().Value;
             var secondPreferences = (NamingStylePreferences)second.First().Value;
@@ -37,70 +37,70 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)));
         }
 
-        internal IOptionsCollection ClassNamesArePascalCase =>
+        internal OptionsCollection ClassNamesArePascalCase =>
             Options(_optionKey, ClassNamesArePascalCaseOption());
 
-        internal IOptionsCollection FieldNamesAreCamelCase =>
+        internal OptionsCollection FieldNamesAreCamelCase =>
             Options(_optionKey, FieldNamesAreCamelCaseOption());
 
-        internal IOptionsCollection FieldNamesAreCamelCaseWithUnderscorePrefix =>
+        internal OptionsCollection FieldNamesAreCamelCaseWithUnderscorePrefix =>
             Options(_optionKey, FieldNamesAreCamelCaseWithUnderscorePrefixOption());
 
-        internal IOptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefix =>
+        internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefix =>
             Options(_optionKey, FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption());
 
-        internal IOptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix =>
+        internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix =>
             Options(_optionKey, FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption());
 
-        internal IOptionsCollection MethodNamesArePascalCase =>
+        internal OptionsCollection MethodNamesArePascalCase =>
             Options(_optionKey, MethodNamesArePascalCaseOption());
 
-        internal IOptionsCollection MethodNamesAreCamelCase =>
+        internal OptionsCollection MethodNamesAreCamelCase =>
             Options(_optionKey, MethodNamesAreCamelCaseOption());
 
-        internal IOptionsCollection ParameterNamesAreCamelCase =>
+        internal OptionsCollection ParameterNamesAreCamelCase =>
             Options(_optionKey, ParameterNamesAreCamelCaseOption());
 
-        internal IOptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefix =>
+        internal OptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefix =>
             Options(_optionKey, ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
 
-        internal IOptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix =>
+        internal OptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix =>
             Options(_optionKey, ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption());
 
-        internal IOptionsCollection LocalNamesAreCamelCase =>
+        internal OptionsCollection LocalNamesAreCamelCase =>
             Options(_optionKey, LocalNamesAreCamelCaseOption());
 
-        internal IOptionsCollection LocalFunctionNamesAreCamelCase =>
+        internal OptionsCollection LocalFunctionNamesAreCamelCase =>
             Options(_optionKey, LocalFunctionNamesAreCamelCaseOption());
 
-        internal IOptionsCollection PropertyNamesArePascalCase =>
+        internal OptionsCollection PropertyNamesArePascalCase =>
             Options(_optionKey, PropertyNamesArePascalCaseOption());
 
-        internal IOptionsCollection InterfaceNamesStartWithI =>
+        internal OptionsCollection InterfaceNamesStartWithI =>
             Options(_optionKey, InterfaceNamesStartWithIOption());
 
-        internal IOptionsCollection TypeParameterNamesStartWithT =>
+        internal OptionsCollection TypeParameterNamesStartWithT =>
             Options(_optionKey, TypeParameterNamesStartWithTOption());
 
-        internal IOptionsCollection ConstantsAreUpperCase =>
+        internal OptionsCollection ConstantsAreUpperCase =>
             Options(_optionKey, ConstantsAreUpperCaseOption());
 
-        internal IOptionsCollection LocalsAreCamelCaseConstantsAreUpperCase =>
+        internal OptionsCollection LocalsAreCamelCaseConstantsAreUpperCase =>
             Options(_optionKey, LocalsAreCamelCaseConstantsAreUpperCaseOption());
 
-        internal IOptionsCollection AsyncFunctionNamesEndWithAsync =>
+        internal OptionsCollection AsyncFunctionNamesEndWithAsync =>
             Options(_optionKey, AsyncFunctionNamesEndWithAsyncOption());
 
-        internal IOptionsCollection MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
+        internal OptionsCollection MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
             Options(_optionKey, MethodNamesArePascalCaseOption(accessibilities));
 
-        internal IOptionsCollection SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds) =>
+        internal OptionsCollection SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds) =>
             Options(_optionKey, SymbolKindsArePascalCaseOption(symbolKinds));
 
-        internal IOptionsCollection SymbolKindsArePascalCaseEmpty() =>
+        internal OptionsCollection SymbolKindsArePascalCaseEmpty() =>
             Options(_optionKey, SymbolKindsArePascalCaseOption(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind>.Empty));
 
-        internal IOptionsCollection SymbolKindsArePascalCase(object symbolOrTypeKind) =>
+        internal OptionsCollection SymbolKindsArePascalCase(object symbolOrTypeKind) =>
             SymbolKindsArePascalCase(ImmutableArray.Create(ToSymbolKindOrTypeKind(symbolOrTypeKind)));
 
         internal static SymbolSpecification.SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)
@@ -121,13 +121,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             }
         }
 
-        internal IOptionsCollection AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
+        internal OptionsCollection AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
             Options(_optionKey, AccessibilitiesArePascalCaseOption(accessibilities));
 
-        private IOptionsCollection Options(OptionKey2 option, object value)
+        private OptionsCollection Options(OptionKey2 option, object value)
             => Options(new[] { (option, value) });
 
-        private IOptionsCollection Options(params (OptionKey2 key, object value)[] options)
+        private OptionsCollection Options(params (OptionKey2 key, object value)[] options)
             => new OptionsCollection(_languageName, options);
 
         private static NamingStylePreferences ClassNamesArePascalCaseOption()

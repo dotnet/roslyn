@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpWrappingCodeRefactoringProvider();
 
-        private IOptionsCollection EndOfLine => Option(
+        private OptionsCollection EndOfLine => Option(
             CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.EndOfLine);
 
-        private IOptionsCollection BeginningOfLine => Option(
+        private OptionsCollection BeginningOfLine => Option(
             CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.BeginningOfLine);
 

@@ -19,13 +19,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
         End Function
 
-        Private Function VBOptionOnCSharpOptionOff() As IOptionsCollection
+        Private Function VBOptionOnCSharpOptionOff() As OptionsCollection
             Return OptionsSet(
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False),
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True))
         End Function
 
-        Private Function VBOptionOffCSharpOptionOn() As IOptionsCollection
+        Private Function VBOptionOffCSharpOptionOn() As OptionsCollection
             Return OptionsSet(
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True),
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False))

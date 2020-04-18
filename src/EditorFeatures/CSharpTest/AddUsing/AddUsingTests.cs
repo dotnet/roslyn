@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddImportCodeFixProvider());
 
-        private protected IOptionsCollection SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
+        private protected OptionsCollection SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
 
         protected async Task TestAsync(
             string initialMarkup,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             int index = 0,
             CodeActionPriority? priority = null,
-            IOptionsCollection options = null)
+            OptionsCollection options = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
             await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string expectedMarkup,
             int index,
             CodeActionPriority? priority,
-            IOptionsCollection options,
+            OptionsCollection options,
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(

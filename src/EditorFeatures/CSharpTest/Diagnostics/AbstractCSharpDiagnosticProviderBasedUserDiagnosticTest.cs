@@ -140,11 +140,11 @@ namespace System.Collections.Generic
     }
 }";
 
-        internal IOptionsCollection RequireArithmeticBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireArithmeticBinaryParenthesesForClarity;
-        internal IOptionsCollection RequireRelationalBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireRelationalBinaryParenthesesForClarity;
-        internal IOptionsCollection RequireOtherBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireOtherBinaryParenthesesForClarity;
-        internal IOptionsCollection IgnoreAllParentheses => ParenthesesOptionsProvider.IgnoreAllParentheses;
-        internal IOptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
-        internal IOptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
+        internal OptionsCollection RequireArithmeticBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireArithmeticBinaryParenthesesForClarity;
+        internal OptionsCollection RequireRelationalBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireRelationalBinaryParenthesesForClarity;
+        internal OptionsCollection RequireOtherBinaryParenthesesForClarity => ParenthesesOptionsProvider.RequireOtherBinaryParenthesesForClarity;
+        internal OptionsCollection IgnoreAllParentheses => ParenthesesOptionsProvider.IgnoreAllParentheses;
+        internal OptionsCollection RemoveAllUnnecessaryParentheses => ParenthesesOptionsProvider.RemoveAllUnnecessaryParentheses;
+        internal OptionsCollection RequireAllParenthesesForClarity => ParenthesesOptionsProvider.RequireAllParenthesesForClarity;
     }
 }

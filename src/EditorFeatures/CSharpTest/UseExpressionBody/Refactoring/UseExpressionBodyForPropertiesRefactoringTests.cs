@@ -21,42 +21,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExpressionBodyCodeRefactoringProvider();
 
-        private IOptionsCollection UseExpressionBodyForAccessors_BlockBodyForProperties =>
+        private OptionsCollection UseExpressionBodyForAccessors_BlockBodyForProperties =>
             OptionsSet(
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IOptionsCollection UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic =>
+        private OptionsCollection UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic =>
             OptionsSet(
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None)),
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None)));
 
-        private IOptionsCollection UseExpressionBodyForAccessors_ExpressionBodyForProperties =>
+        private OptionsCollection UseExpressionBodyForAccessors_ExpressionBodyForProperties =>
             OptionsSet(
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement),
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
-        private IOptionsCollection UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic =>
+        private OptionsCollection UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic =>
             OptionsSet(
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None)),
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None)));
 
-        private IOptionsCollection UseBlockBodyForAccessors_ExpressionBodyForProperties =>
+        private OptionsCollection UseBlockBodyForAccessors_ExpressionBodyForProperties =>
             OptionsSet(
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
 
-        private IOptionsCollection UseBlockBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic =>
+        private OptionsCollection UseBlockBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic =>
             OptionsSet(
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None)),
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None)));
 
-        private IOptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties =>
+        private OptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties =>
             OptionsSet(
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
 
-        private IOptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic =>
+        private OptionsCollection UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic =>
             OptionsSet(
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None)),
                 this.SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None)));

@@ -16,11 +16,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
             Return (New VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), New VisualBasicRemoveUnusedValuesCodeFixProvider())
         End Function
 
-        Private Protected MustOverride ReadOnly Property PreferNone As IOptionsCollection
-        Private Protected MustOverride ReadOnly Property PreferDiscard As IOptionsCollection
-        Private Protected MustOverride ReadOnly Property PreferUnusedLocal As IOptionsCollection
+        Private Protected MustOverride ReadOnly Property PreferNone As OptionsCollection
+        Private Protected MustOverride ReadOnly Property PreferDiscard As OptionsCollection
+        Private Protected MustOverride ReadOnly Property PreferUnusedLocal As OptionsCollection
 
-        Private Protected Overloads Function TestMissingInRegularAndScriptAsync(initialMarkup As String, options As IOptionsCollection) As Task
+        Private Protected Overloads Function TestMissingInRegularAndScriptAsync(initialMarkup As String, options As OptionsCollection) As Task
             Return TestMissingInRegularAndScriptAsync(initialMarkup, New TestParameters(options:=options))
         End Function
     End Class

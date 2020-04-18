@@ -37,31 +37,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
             Return (New OptionKey2(optionParam, language), codeStyle)
         End Function
 
-        Friend Function [Option](Of T)(optionParam As Option2(Of CodeStyleOption2(Of T)), enabled As T, notification As NotificationOption2) As IOptionsCollection
+        Friend Function [Option](Of T)(optionParam As Option2(Of CodeStyleOption2(Of T)), enabled As T, notification As NotificationOption2) As OptionsCollection
             Return OptionsSet(SingleOption(optionParam, enabled, notification))
         End Function
 
-        Friend Function [Option](Of T)(optionParam As Option2(Of CodeStyleOption2(Of T)), codeStyle As CodeStyleOption2(Of T)) As IOptionsCollection
+        Friend Function [Option](Of T)(optionParam As Option2(Of CodeStyleOption2(Of T)), codeStyle As CodeStyleOption2(Of T)) As OptionsCollection
             Return OptionsSet(SingleOption(optionParam, codeStyle))
         End Function
 
-        Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of CodeStyleOption2(Of T)), enabled As T, notification As NotificationOption2) As IOptionsCollection
+        Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of CodeStyleOption2(Of T)), enabled As T, notification As NotificationOption2) As OptionsCollection
             Return OptionsSet(SingleOption(optionParam, enabled, notification))
         End Function
 
-        Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of CodeStyleOption2(Of T)), codeStyle As CodeStyleOption2(Of T)) As IOptionsCollection
+        Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of CodeStyleOption2(Of T)), codeStyle As CodeStyleOption2(Of T)) As OptionsCollection
             Return OptionsSet(SingleOption(optionParam, codeStyle))
         End Function
 
-        Friend Function [Option](Of T)(optionParam As Option2(Of T), value As T) As IOptionsCollection
+        Friend Function [Option](Of T)(optionParam As Option2(Of T), value As T) As OptionsCollection
             Return OptionsSet(SingleOption(optionParam, value))
         End Function
 
-        Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of T), value As T) As IOptionsCollection
+        Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of T), value As T) As OptionsCollection
             Return OptionsSet(SingleOption(optionParam, value))
         End Function
 
-        Friend Shared Function OptionsSet(ParamArray options As (OptionKey2, Object)()) As IOptionsCollection
+        Friend Shared Function OptionsSet(ParamArray options As (OptionKey2, Object)()) As OptionsCollection
             Return New OptionsCollection(LanguageNames.VisualBasic, options)
         End Function
     End Class

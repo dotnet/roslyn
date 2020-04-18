@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRegexDiagnosticAnalyzer(), null);
 
-        private IOptionsCollection OptionOn()
+        private OptionsCollection OptionOn()
         {
             var optionsSet = new OptionsCollection(LanguageNames.CSharp);
             optionsSet.Add(new OptionKey2(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp), true);

@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpValidateFormatStringDiagnosticAnalyzer(), null);
 
-        private IOptionsCollection CSharpOptionOffVBOptionOn() => OptionsSet(
+        private OptionsCollection CSharpOptionOffVBOptionOn() => OptionsSet(
                 (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), false),
                 (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), true));
 
-        private IOptionsCollection CSharpOptionOnVBOptionOff() => OptionsSet(
+        private OptionsCollection CSharpOptionOnVBOptionOff() => OptionsSet(
                 (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), true),
                 (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), false));
 

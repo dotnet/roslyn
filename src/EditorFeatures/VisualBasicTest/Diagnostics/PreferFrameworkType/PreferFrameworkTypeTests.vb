@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
                     New PreferFrameworkTypeCodeFixProvider())
         End Function
 
-        Private ReadOnly Property NoFrameworkType As IOptionsCollection
+        Private ReadOnly Property NoFrameworkType As OptionsCollection
             Get
                 Return OptionsSet(
                     SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Suggestion),
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeEverywhere As IOptionsCollection
+        Private ReadOnly Property FrameworkTypeEverywhere As OptionsCollection
             Get
                 Return OptionsSet(
                     SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion),
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeInDeclaration As IOptionsCollection
+        Private ReadOnly Property FrameworkTypeInDeclaration As OptionsCollection
             Get
                 Return OptionsSet(
                     SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion),
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
             End Get
         End Property
 
-        Private ReadOnly Property FrameworkTypeInMemberAccess As IOptionsCollection
+        Private ReadOnly Property FrameworkTypeInMemberAccess As OptionsCollection
             Get
                 Return OptionsSet(
                     SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Suggestion),

@@ -5869,23 +5869,23 @@ class Program
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
             => await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
 
-        private IOptionsCollection PreferIntrinsicTypeEverywhere => OptionsSet(
+        private OptionsCollection PreferIntrinsicTypeEverywhere => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
 
-        private IOptionsCollection PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
+        private OptionsCollection PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Warning),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning, GetLanguage()));
 
-        private IOptionsCollection PreferIntrinsicTypeInDeclaration => OptionsSet(
+        private OptionsCollection PreferIntrinsicTypeInDeclaration => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent, GetLanguage()));
 
-        private IOptionsCollection PreferIntrinsicTypeInMemberAccess => OptionsSet(
+        private OptionsCollection PreferIntrinsicTypeInMemberAccess => OptionsSet(
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption2.Error),
             SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent, GetLanguage()));
 
-        private IOptionsCollection PreferImplicitTypeEverywhere => OptionsSet(
+        private OptionsCollection PreferImplicitTypeEverywhere => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));

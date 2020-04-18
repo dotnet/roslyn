@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 
         private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
-        private IOptionsCollection ImplicitTypeEverywhere => OptionsSet(
+        private OptionsCollection ImplicitTypeEverywhere => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
