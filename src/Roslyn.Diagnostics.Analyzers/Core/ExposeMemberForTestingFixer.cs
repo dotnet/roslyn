@@ -40,8 +40,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var reportedNode = syntaxRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
                 var testAccessorTypeDeclaration = GetTypeDeclarationForNode(reportedNode);
                 var testAccessorType = (ITypeSymbol)semanticModel.GetDeclaredSymbol(testAccessorTypeDeclaration, context.CancellationToken);
-                var containingType = testAccessorType.ContainingSymbol as ITypeSymbol;
-                if (containingType is null)
+                if (!(testAccessorType.ContainingSymbol is ITypeSymbol containingType))
                 {
                     continue;
                 }

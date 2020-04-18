@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             return ComputeAsync(symbol, context);
 
-            async static Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, CodeMetricsAnalysisContext context)
+            static async Task<CodeAnalysisMetricData> ComputeAsync(ISymbol symbol, CodeMetricsAnalysisContext context)
             {
                 return symbol.Kind switch
                 {

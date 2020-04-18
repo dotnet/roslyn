@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     Debug.Assert(child.Symbol.Kind == SymbolKind.Namespace);
                     Debug.Assert(child.Children.Length > 0);
                     Debug.Assert(child.Children.All(grandChild => grandChild.Symbol.Kind == SymbolKind.NamedType));
-                    maintainabilityIndexTotal += (child.MaintainabilityIndex * child.Children.Length);
+                    maintainabilityIndexTotal += child.MaintainabilityIndex * child.Children.Length;
                     grandChildCount += child.Children.Length;
                 }
 
