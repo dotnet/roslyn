@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Gets the final compilation if it is available.
             /// </summary>
-            public bool TryGetCompilation([NotNullWhen(true)]out Compilation? compilation)
+            public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
                 var state = ReadState();
                 if (state.FinalCompilation != null && state.FinalCompilation.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)

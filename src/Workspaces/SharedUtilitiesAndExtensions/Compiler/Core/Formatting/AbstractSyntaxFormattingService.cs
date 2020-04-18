@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public abstract IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
 
-        protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans = null);
+        protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null);
 
         protected abstract AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
 
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private IFormattingResult FormatIndividually(
             SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, IList<TextSpan> spansToFormat, CancellationToken cancellationToken)
         {
-            List<AbstractFormattingResult> results = null;
+            List<AbstractFormattingResult>? results = null;
             foreach (var pair in node.ConvertToTokenPairs(spansToFormat))
             {
                 if (node.IsInvalidTokenRange(pair.Item1, pair.Item2))
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             if (rules == null)
             {
-                throw new ArgumentException("rules");
+                throw new ArgumentNullException(nameof(rules));
             }
         }
     }

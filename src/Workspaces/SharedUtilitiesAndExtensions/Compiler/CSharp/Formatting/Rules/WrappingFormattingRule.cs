@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node.IsLambdaBodyBlock())
             {
                 // include lambda itself.
-                firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
+                firstTokenOfNode = node.Parent!.GetFirstToken(includeZeroWidth: true);
             }
 
             // suppress wrapping on whole construct that owns braces and also brace pair itself if it is on same line
@@ -160,14 +163,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             var span = TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-
-            for (var i = 0; i < list.Count; i++)
-            {
-                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End && list[i].Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
+            list.RemoveOrTransformAll(
+                (operation, span) =>
                 {
-                    list[i] = null;
-                }
-            }
+                    if (operation.TextSpan.Start >= span.Start && operation.TextSpan.End <= span.End && operation.Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
+                        return null;
+
+                    return operation;
+                },
+                span);
         }
     }
 }

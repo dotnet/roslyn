@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -85,22 +84,16 @@ class Goo
             const string code = @"
 class C
 {
-    $$public string this[int index]
+    $${|#0:public string this[int index]{|textspan:
     {
         get { }
-    }
-
+    }|#0}
+|}
     int Value => 0;
 }";
 
             await VerifyBlockSpansAsync(code,
-                new BlockSpan(
-                    isCollapsible: true,
-                    textSpan: TextSpan.FromBounds(47, 80),
-                    hintSpan: TextSpan.FromBounds(18, 78),
-                    type: BlockTypes.Nonstructural,
-                    bannerText: CSharpStructureHelpers.Ellipsis,
-                    autoCollapse: true));
+                Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

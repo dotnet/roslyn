@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingOptions.AllowDisjointSpanMerging);
             var options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language);
 
-            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges();
+            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges(cancellationToken);
 
             // If there are no changes then, do less work.
             if (textChanges.Count == 0)
