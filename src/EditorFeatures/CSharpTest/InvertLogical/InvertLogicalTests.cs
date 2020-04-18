@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertLogical)]
         public async Task InvertIsNotTypePattern1_CSharp8()
         {
-            // Note: this is not legal (since it's a not pattern being used in C#8.
+            // Note: this is not legal (since it's a 'not' pattern being used in C# 8).
             // This test just makes sure we don't crash in cases like that.
             await TestInRegularAndScriptAsync(
 @"class C
