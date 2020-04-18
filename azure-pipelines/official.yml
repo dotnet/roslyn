@@ -10,6 +10,13 @@ trigger:
     - '*.md'
     - .vscode/
 
+parameters:
+- name: SignType
+  displayName: Sign type
+  type: string
+  default: Test
+  values: [ 'Test', 'Real' ]
+
 variables:
   TreatWarningsAsErrors: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -17,8 +24,10 @@ variables:
   BuildPlatform: Any CPU
   push_to_ci: true
   NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+  SignType: ${{ parameters.SignType }}
 
 jobs:
 - template: build.yml
   parameters:
     windowsPool: VSEng-MicroBuildVS2019
+    SignType: ${{ parameters.SignType }}
