@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindLinkedSymbolsAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var linkedSymbols = new HashSet<SymbolAndProjectId>(SymbolAndProjectIdComparer.SymbolInstance);
+            var linkedSymbols = new HashSet<SymbolAndProjectId>();
 
             foreach (var location in symbol.DeclaringSyntaxReferences)
             {
