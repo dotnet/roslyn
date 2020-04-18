@@ -122,16 +122,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             cancellationToken.ThrowIfCancellationRequested();
 
             // Find the symbol we want to search and the solution we want to search in.
-            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndProjectIdOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectIdAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProject == null)
+            if (symbolAndProjectIdOpt == null)
                 return;
 
             var solution = document.Project.Solution;
+            var symbolAndProjectId = symbolAndProjectIdOpt.Value;
+
             await FindSymbolReferencesAsync(
                 _threadingContext, context,
-                symbolAndProject.Value.Symbol,
-                solution.GetRequiredProject(symbolAndProject.Value.ProjectId),
+                symbolAndProjectId.Symbol,
+                solution.GetRequiredProject(symbolAndProjectId.ProjectId),
                 cancellationToken).ConfigureAwait(false);
         }
 

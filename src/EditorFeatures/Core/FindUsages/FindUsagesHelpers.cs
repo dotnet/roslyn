@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
-        public static async Task<SymbolAndProjectId?> GetRelevantSymbolAndProjectAtPositionAsync(
+        public static async Task<SymbolAndProjectId?> GetRelevantSymbolAndProjectIdAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
         public static async Task<(SymbolAndProjectId symboAndProjectId, ImmutableArray<SymbolAndProjectId> implementations, string message)?> FindSourceImplementationsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var symbolAndProject = await GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndProjectIdOpt = await GetRelevantSymbolAndProjectIdAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProject == null)
+            if (symbolAndProjectIdOpt == null)
                 return null;
 
             return await FindSourceImplementationsAsync(
-                symbolAndProject.Value, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                symbolAndProjectIdOpt.Value, document.Project.Solution, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<(SymbolAndProjectId symbolAndProjectId, ImmutableArray<SymbolAndProjectId> implementations, string message)?> FindSourceImplementationsAsync(

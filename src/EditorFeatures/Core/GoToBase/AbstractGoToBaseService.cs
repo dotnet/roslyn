@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var symbolAndProjectIdOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndProjectIdOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectIdAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
             if (symbolAndProjectIdOpt == null)
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             var solution = document.Project.Solution;
             var symbolAndProjectId = symbolAndProjectIdOpt.Value;
-            var symbol = symbolAndProjectId.Symbol;
+
             var bases = FindBaseHelpers.FindBases(
                 symbolAndProjectId.Symbol,
                 solution.GetRequiredProject(symbolAndProjectId.ProjectId),
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
-                FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
+                FindUsagesHelpers.GetDisplayName(symbolAndProjectId.Symbol))).ConfigureAwait(false);
 
             var project = document.Project;
             var projectId = project.Id;
