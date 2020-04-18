@@ -1,6 +1,9 @@
+parameters:
+- name: SignType
+
 steps:
 - task: MicroBuildSigningPlugin@2
   inputs:
-    signType: $(SignType)
+    signType: ${{ parameters.SignType }}
     zipSources: false
   displayName: Install MicroBuild Signing Plugin
