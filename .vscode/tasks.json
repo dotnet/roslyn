@@ -24,6 +24,9 @@
         ],
         "windows": {
           "command": "./build.cmd",
+          "args": [
+            "-skipAnalyzers"
+          ],
         },
         "problemMatcher": "$msCompile",
         "group": "build"
