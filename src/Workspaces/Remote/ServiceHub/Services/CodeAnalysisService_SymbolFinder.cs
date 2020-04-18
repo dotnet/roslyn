@@ -239,17 +239,17 @@ namespace Microsoft.CodeAnalysis.Remote
             public Task OnFindInDocumentCompletedAsync(Document document)
                 => _endPoint.InvokeAsync(nameof(SymbolFinder.FindReferencesServerCallback.OnFindInDocumentCompletedAsync), new object[] { document.Id }, _cancellationToken);
 
-            public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+            public Task OnDefinitionFoundAsync(ISymbol definition)
                 => _endPoint.InvokeAsync(
                     nameof(SymbolFinder.FindReferencesServerCallback.OnDefinitionFoundAsync),
-                    new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, definition.Symbol, _cancellationToken) }, _cancellationToken);
+                    new object[] { SerializableSymbolAndProjectId.Dehydrate(_solution, definition, _cancellationToken) }, _cancellationToken);
 
-            public Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation reference)
+            public Task OnReferenceFoundAsync(ISymbol definition, ReferenceLocation reference)
                 => _endPoint.InvokeAsync(
                     nameof(SymbolFinder.FindReferencesServerCallback.OnReferenceFoundAsync),
                     new object[]
                     {
-                        SerializableSymbolAndProjectId.Dehydrate(_solution, definition.Symbol, _cancellationToken),
+                        SerializableSymbolAndProjectId.Dehydrate(_solution, definition, _cancellationToken),
                         SerializableReferenceLocation.Dehydrate(reference, _cancellationToken),
                     },
                     _cancellationToken);
