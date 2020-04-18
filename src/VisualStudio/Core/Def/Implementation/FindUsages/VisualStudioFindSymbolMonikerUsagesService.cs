@@ -43,8 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
         }
 
         public override async IAsyncEnumerable<ExternalReferenceItem> FindReferencesByMoniker(
-            DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers,
-            IStreamingProgressTracker progress, [EnumeratorCancellation] CancellationToken cancellationToken)
+            DefinitionItem definition, ImmutableArray<SymbolMoniker> monikers, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (_codeIndexProvider == null)
                 yield break;
@@ -52,37 +51,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindUsages
             // Only grab the first 500 results.  This keeps server load lower and is acceptable for //build demo purposes.
             const int PageCount = 5;
 
-            // Let the find-refs window know we have outstanding work
-            await progress.AddItemsAsync(PageCount).ConfigureAwait(false);
-
             var convertedMonikers = ConvertMonikers(monikers);
-
-            // Keep track if we're done or not.  This helps us simply loop and keep marking progress as done.
-            var done = false;
-
             for (var currentPage = 0; currentPage < PageCount; currentPage++)
             {
-                if (!done)
-                {
-                    var referenceItems = await FindReferencesByMonikerAsync(
-                        _codeIndexProvider, definition, convertedMonikers, progress, currentPage, cancellationToken).ConfigureAwait(false);
+                var referenceItems = await FindReferencesByMonikerAsync(
+                    _codeIndexProvider, definition, convertedMonikers, currentPage, cancellationToken).ConfigureAwait(false);
 
-                    // If we got no items, we're done.
-                    if (referenceItems.Length == 0)
-                        done = true;
+                // If we got no items, we're done.
+                if (referenceItems.Length == 0)
+                    break;
 
-                    foreach (var item in referenceItems)
-                        yield return item;
-                }
-
-                // Let the window know one page of results is done.
-                await progress.ItemCompletedAsync().ConfigureAwait(false);
+                foreach (var item in referenceItems)
+                    yield return item;
             }
         }
 
         private async Task<ImmutableArray<ExternalReferenceItem>> FindReferencesByMonikerAsync(
-            ICodeIndexProvider codeIndexProvider, DefinitionItem definition, ImmutableArray<ISymbolMoniker> monikers,
-            IStreamingProgressTracker progress, int pageIndex, CancellationToken cancellationToken)
+            ICodeIndexProvider codeIndexProvider, DefinitionItem definition,
+            ImmutableArray<ISymbolMoniker> monikers, int pageIndex, CancellationToken cancellationToken)
         {
             var results = await FindReferencesByMonikerAsync(
                 codeIndexProvider, monikers, pageIndex, cancellationToken).ConfigureAwait(false);
