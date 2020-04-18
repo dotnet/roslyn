@@ -28,16 +28,16 @@ namespace Analyzer.Utilities
     ///     (b) "dotnet_code_quality.Naming.api_surface = public"
     ///  See <see cref="SymbolVisibilityGroup"/> for allowed symbol visibility value combinations.
     /// </summary>
-    internal sealed class CategorizedAnalyzerConfigOptions : AbstractCategorizedAnalyzerConfigOptions
+    internal sealed class CompilationCategorizedAnalyzerConfigOptions : AbstractCategorizedAnalyzerConfigOptions
     {
-        public static readonly CategorizedAnalyzerConfigOptions Empty = new CategorizedAnalyzerConfigOptions(
+        public static readonly CompilationCategorizedAnalyzerConfigOptions Empty = new CompilationCategorizedAnalyzerConfigOptions(
             ImmutableDictionary<string, string>.Empty,
             ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty);
 
         private readonly ImmutableDictionary<string, string> _generalOptions;
         private readonly ImmutableDictionary<string, ImmutableDictionary<string, string>> _specificOptions;
 
-        private CategorizedAnalyzerConfigOptions(
+        private CompilationCategorizedAnalyzerConfigOptions(
             ImmutableDictionary<string, string> generalOptions,
             ImmutableDictionary<string, ImmutableDictionary<string, string>> specificOptions)
         {
@@ -54,7 +54,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        public static CategorizedAnalyzerConfigOptions Create(IDictionary<string, string> options)
+        public static CompilationCategorizedAnalyzerConfigOptions Create(IDictionary<string, string> options)
         {
             options = options ?? throw new ArgumentNullException(nameof(options));
 
@@ -110,7 +110,7 @@ namespace Analyzer.Utilities
                     .ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) :
                 ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty;
 
-            return new CategorizedAnalyzerConfigOptions(generalOptions, specificOptions);
+            return new CompilationCategorizedAnalyzerConfigOptions(generalOptions, specificOptions);
         }
 
         protected override bool TryGetOptionValue(string optionKeyPrefix, string? optionKeySuffix, string optionName, [NotNullWhen(returnValue: true)] out string? valueString)

@@ -172,7 +172,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return false;
         }
 
-        static internal int GetStringLengthIgnoringQuote(string text, bool hasPrefix)
+        internal static int GetStringLengthIgnoringQuote(string text, bool hasPrefix)
         {
             if (hasPrefix)
             {

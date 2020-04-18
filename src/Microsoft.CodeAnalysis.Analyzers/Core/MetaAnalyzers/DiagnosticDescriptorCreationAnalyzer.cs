@@ -195,9 +195,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     AnalyzeCustomTags(operationAnalysisContext, creationArguments);
                     var (isEnabledByDefault, defaultSeverity) = GetDefaultSeverityAndEnabledByDefault(operationAnalysisContext.Compilation, creationArguments);
 
-                    string? category;
                     if (!TryAnalyzeCategory(operationAnalysisContext, creationArguments, checkCategoryAndAllowedIds,
-                            diagnosticCategoryAndIdRangeTextOpt, categoryAndAllowedIdsMap, out category, out var allowedIdsInfoList))
+                            diagnosticCategoryAndIdRangeTextOpt, categoryAndAllowedIdsMap, out var category, out var allowedIdsInfoList))
                     {
                         allowedIdsInfoList = default;
                     }

@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public sealed class AnalysisEntity : CacheBasedEquatable<AnalysisEntity>
     {
         private readonly ImmutableArray<int> _ignoringLocationHashCodeParts;
-        private readonly int _ignoringLocationHashCode;
 
         private AnalysisEntity(
             ISymbol? symbolOpt,
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IsThisOrMeInstance = isThisOrMeInstance;
 
             _ignoringLocationHashCodeParts = ComputeIgnoringLocationHashCodeParts();
-            _ignoringLocationHashCode = HashUtilities.Combine(_ignoringLocationHashCodeParts);
+            EqualsIgnoringInstanceLocationId = HashUtilities.Combine(_ignoringLocationHashCodeParts);
         }
 
         private AnalysisEntity(ISymbol? symbolOpt, ImmutableArray<AbstractIndex> indices, PointsToAbstractValue location, ITypeSymbol type, AnalysisEntity? parentOpt)
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             if (other == null ||
-                _ignoringLocationHashCode != other._ignoringLocationHashCode)
+                EqualsIgnoringInstanceLocationId != other.EqualsIgnoringInstanceLocationId)
             {
                 return false;
             }
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return _ignoringLocationHashCodeParts.SequenceEqual(other._ignoringLocationHashCodeParts);
         }
 
-        public int EqualsIgnoringInstanceLocationId => _ignoringLocationHashCode;
+        public int EqualsIgnoringInstanceLocationId { get; private set; }
 
         protected override void ComputeHashCodeParts(Action<int> addPart)
         {
