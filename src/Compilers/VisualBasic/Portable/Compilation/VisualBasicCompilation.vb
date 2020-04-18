@@ -667,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' TODO Consider comparing the metadata references if they have been bound already.
             ' https://github.com/dotnet/roslyn/issues/43397
-            Dim reuseReferenceManager = ReferenceEquals(ScriptCompilationInfo?.PreviousScriptCompilation, info?.PreviousScriptCompilation)
+            Dim reuseReferenceManager = ScriptCompilationInfo?.PreviousScriptCompilation Is info?.PreviousScriptCompilation
 
             Return New VisualBasicCompilation(
                 Me.AssemblyName,

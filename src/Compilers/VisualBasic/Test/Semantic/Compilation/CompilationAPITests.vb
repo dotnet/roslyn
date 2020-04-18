@@ -2050,15 +2050,6 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ReferenceManagerReuse_WithPreviousSubmission()
-            Dim s1 = VisualBasicCompilation.CreateScriptCompilation("s1")
-            Dim s2 = VisualBasicCompilation.CreateScriptCompilation("s2")
-
-            Dim s3 = s2.WithScriptCompilationInfo(s2.ScriptCompilationInfo.WithPreviousScriptCompilation(s1))
-            Assert.True(s2.ReferenceManagerEquals(s3))
-        End Sub
-
-        <Fact>
         Public Sub ReferenceManagerReuse_WithXmlFileResolver()
             Dim c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseDll)
 
