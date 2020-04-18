@@ -7,11 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -27,21 +29,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
     {
         private const int MaxResultsChunkSize = 32;
 
-        private readonly Dictionary<DefinitionItem, int> _definitionToId =
-            new Dictionary<DefinitionItem, int>();
-
-        private readonly List<VSReferenceItem> _resultsChunk =
-            new List<VSReferenceItem>();
-
         private readonly IProgress<object[]> _progress;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
-        // Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
-        // We need this sempahore to ensure that we aren't making concurrent
-        // modifications to data such as _id, _definitionToId, and _resultsChunk.
+        /// <summary>
+        /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
+        /// We need this sempahore to ensure that we aren't making concurrent
+        /// modifications to data such as _id, _definitionToId, and _resultsChunk.
+        /// </summary>
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+
+        private readonly Dictionary<DefinitionItem, int> _definitionToId =
+            new Dictionary<DefinitionItem, int>();
+
+        private readonly List<VSReferenceItem> _resultsChunk =
+            new List<VSReferenceItem>();
 
         // Unique identifier given to each definition and reference.
         private int _id = 0;
@@ -65,12 +69,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
         public async override Task OnCompletedAsync()
         {
-            var referencesToReport = ArrayBuilder<VSReferenceItem>.GetInstance();
+            using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
                 if (_resultsChunk.IsEmpty())
                 {
-                    referencesToReport.Free();
                     return;
                 }
 
@@ -79,13 +82,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
 
             // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArrayAndFree());
+            _progress.Report(referencesToReport.ToArray());
         }
 
         public async override Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
-            var referencesToReport = ArrayBuilder<VSReferenceItem>.GetInstance();
-
+            using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
                 if (_definitionToId.ContainsKey(definition))
@@ -102,13 +104,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
                 var classifiedText = definition.GetClassifiedText();
 
-                var pooledBuilder = PooledStringBuilder.GetInstance();
+                using var pd = PooledStringBuilder.GetInstance(out var pooledBuilder);
                 foreach (var text in classifiedText.Runs)
                 {
-                    pooledBuilder.Builder.Append(text.Text);
+                    pooledBuilder.Append(text.Text);
                 }
 
-                var definitionText = pooledBuilder.ToStringAndFree();
+                var definitionText = pooledBuilder.ToString();
 
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
@@ -118,24 +120,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 if (definitionItem != null)
                 {
-                    AddToReferencesToReport(referencesToReport, definitionItem);
+                    AddToReferencesToReport_MustBeCalledUnderLock(referencesToReport, definitionItem);
                 }
             }
 
             if (referencesToReport.IsEmpty())
             {
-                referencesToReport.Free();
                 return;
             }
 
             // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArrayAndFree());
+            _progress.Report(referencesToReport.ToArray());
         }
 
         public async override Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
-            var referencesToReport = ArrayBuilder<VSReferenceItem>.GetInstance();
-
+            using var _ = ArrayBuilder<VSReferenceItem>.GetInstance(out var referencesToReport);
             using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
             {
                 // Each reference should be associated with a definition. If this somehow isn't the
@@ -155,22 +155,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 if (referenceItem != null)
                 {
-                    AddToReferencesToReport(referencesToReport, referenceItem);
+                    AddToReferencesToReport_MustBeCalledUnderLock(referencesToReport, referenceItem);
                 }
             }
 
             if (referencesToReport.IsEmpty())
             {
-                referencesToReport.Free();
                 return;
             }
 
             // We can report outside of the lock here since _progress is thread-safe.
-            _progress.Report(referencesToReport.ToArrayAndFree());
+            _progress.Report(referencesToReport.ToArray());
         }
 
-        private void AddToReferencesToReport(ArrayBuilder<VSReferenceItem> referencesToReport, VSReferenceItem item)
+        private void AddToReferencesToReport_MustBeCalledUnderLock(ArrayBuilder<VSReferenceItem> referencesToReport, VSReferenceItem item)
         {
+            Debug.Assert(_semaphore.CurrentCount == 0);
+
             _resultsChunk.Add(item);
             if (_resultsChunk.Count < MaxResultsChunkSize)
             {
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var referenceContainingType) ? referenceContainingType : null,
                 DefinitionId = definitionId,
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
-                DisplayPath = location?.Uri.LocalPath,
+                DisplayPath = location.Uri.LocalPath,
                 DocumentName = documentSpan == default ? null : documentSpan.Document.Name,
                 Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : new ReferenceKind[] { },
@@ -236,31 +237,43 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 IMetadataAsSourceFileService metadataAsSourceFileService,
                 CancellationToken cancellationToken)
             {
-                // If we have no source span, our location may be in metadata.
-                if (documentSpan == default)
+                if (documentSpan != default)
                 {
-                    var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                    // We do have a source span, so compute location normally.
+                    return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+                }
 
-                    if (symbol == null || symbol.Locations == null || symbol.Locations.IsEmpty || !symbol.Locations.First().IsInMetadata)
-                    {
-                        // We couldn't find the location in metadata and it's not in any of our known documents.
-                        return null;
-                    }
+                // If we have no source span, our location may be in metadata.
+                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (symbol == null || symbol.Locations == null || symbol.Locations.IsEmpty || !symbol.Locations.First().IsInMetadata)
+                {
+                    // We couldn't find the location in metadata and it's not in any of our known documents.
+                    return null;
+                }
 
-                    var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(
-                        document.Project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+                var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(
+                    document.Project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
 
-                    var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
+                var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
 
+                if (string.IsNullOrEmpty(declarationFile.FilePath))
+                {
+                    return null;
+                }
+
+                try
+                {
                     return new LSP.Location
                     {
-                        Uri = new Uri(declarationFile.FilePath),
+                        Uri = ProtocolConversions.GetUriFromFilePath(declarationFile.FilePath),
                         Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                     };
                 }
-
-                // We do have a source span, so compute location normally.
-                return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+                catch (UriFormatException e) when (FatalError.ReportWithoutCrash(e))
+                {
+                    // We might reach this point if the file path is formatted incorrectly.
+                    return null;
+                }
             }
 
             static async Task<object?> ComputeTextAsync(

@@ -1950,6 +1950,14 @@ If the "H" format specifier is used without other custom format specifiers, it's
   <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
     <value>Create and assign remaining as properties</value>
   </data>
+  <data name="Example" xml:space="preserve">
+    <value>Example:</value>
+    <comment>Singular form when we want to show an example, but only have one to show.</comment>
+  </data>
+  <data name="Examples" xml:space="preserve">
+    <value>Examples:</value>
+    <comment>Plural form when we have multiple examples to show.</comment>
+  </data>
   <data name="Alternation_conditions_cannot_be_comments" xml:space="preserve">
     <value>Alternation conditions cannot be comments</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a|(?#b)</comment>
