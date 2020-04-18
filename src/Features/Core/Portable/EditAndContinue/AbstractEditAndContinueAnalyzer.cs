@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             int statementPart,
             SyntaxNode oldBody,
             SyntaxNode newBody,
-            [NotNullWhen(true)]out SyntaxNode? newStatement);
+            [NotNullWhen(true)] out SyntaxNode? newStatement);
 
         protected abstract bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span);
 
@@ -639,10 +639,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            [Out]ActiveStatement[] newActiveStatements,
-            [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<UpdatedMemberInfo> updatedMethods,
-            [Out]List<RudeEditDiagnostic> diagnostics)
+            [Out] ActiveStatement[] newActiveStatements,
+            [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            [Out] List<UpdatedMemberInfo> updatedMethods,
+            [Out] List<RudeEditDiagnostic> diagnostics)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
@@ -676,9 +676,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            [In, Out]ActiveStatement[] newActiveStatements,
-            [In, Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [In, Out]ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans)
+            [In, Out] ActiveStatement[] newActiveStatements,
+            [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            [In, Out] ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
@@ -789,8 +789,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode newRoot,
             DocumentId documentId,
             IActiveStatementTrackingService? trackingService,
-            [In, Out]ActiveStatement[] newActiveStatements,
-            [In, Out]ImmutableArray<LinePositionSpan>[]? newExceptionRegions)
+            [In, Out] ActiveStatement[] newActiveStatements,
+            [In, Out] ImmutableArray<LinePositionSpan>[]? newExceptionRegions)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(newExceptionRegions == null || oldActiveStatements.Length == newExceptionRegions.Length);
@@ -950,11 +950,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             IActiveStatementTrackingService? trackingService,
             ImmutableArray<ActiveStatement> oldActiveStatements,
-            [Out]ActiveStatement[] newActiveStatements,
-            [Out]ImmutableArray<LinePositionSpan>[] newExceptionRegions,
-            [Out]List<UpdatedMemberInfo> updatedMembers,
-            [Out]ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans,
-            [Out]List<RudeEditDiagnostic> diagnostics)
+            [Out] ActiveStatement[] newActiveStatements,
+            [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            [Out] List<UpdatedMemberInfo> updatedMembers,
+            [Out] ArrayBuilder<(ActiveStatementId, ActiveStatementTextSpan)> updatedTrackingSpans,
+            [Out] List<RudeEditDiagnostic> diagnostics)
         {
             Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
             Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
@@ -1331,8 +1331,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldLambdaBody,
             SyntaxNode newLambdaBody,
             ActiveNode[] activeNodes,
-            [Out]Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
-            [Out]List<RudeEditDiagnostic> diagnostics)
+            [Out] Dictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdas,
+            [Out] List<RudeEditDiagnostic> diagnostics)
         {
             ActiveNode[]? activeNodesInLambda;
             if (activeOrMatchedLambdas.TryGetValue(oldLambdaBody, out var info))
@@ -1680,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Finds the inner-most ancestor of the specified node that has a matching node in the new tree.
         /// </summary>
-        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode? oldNode, [NotNullWhen(true)]out SyntaxNode? newAncestor)
+        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode? oldNode, [NotNullWhen(true)] out SyntaxNode? newAncestor)
         {
             while (oldNode != null)
             {
@@ -1984,9 +1984,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SourceText newSource,
             Match<SyntaxNode> topMatch,
             Dictionary<SyntaxNode, EditKind> editMap,
-            [Out]List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-            [Out]List<LineChange> lineEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] List<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
+            [Out] List<LineChange> lineEdits,
+            [Out] List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             foreach (var (oldNode, newNode) in topMatch.Matches)
@@ -2102,19 +2102,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static int CompareLineChanges(LineChange x, LineChange y)
-        {
-            return x.OldLine.CompareTo(y.OldLine);
-        }
+            => x.OldLine.CompareTo(y.OldLine);
 
         #endregion
 
         #region Semantic Analysis
 
-        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol>
+        private sealed class AssemblyEqualityComparer : IEqualityComparer<IAssemblySymbol?>
         {
-            public static readonly IEqualityComparer<IAssemblySymbol> Instance = new AssemblyEqualityComparer();
+            public static readonly IEqualityComparer<IAssemblySymbol?> Instance = new AssemblyEqualityComparer();
 
-            public bool Equals(IAssemblySymbol x, IAssemblySymbol y)
+            public bool Equals(IAssemblySymbol? x, IAssemblySymbol? y)
             {
                 // Types defined in old source assembly need to be treated as equivalent to types in the new source assembly,
                 // provided that they only differ in their containing assemblies.
@@ -2125,13 +2123,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // a single PE symbol. Thus comparing assemblies by identity partitions them so that each partition
                 // contains assemblies that originated from the same Gen0 assembly.
 
-                return x.Identity.Equals(y.Identity);
+                return Equals(x?.Identity, y?.Identity);
             }
 
-            public int GetHashCode(IAssemblySymbol obj)
-            {
-                return obj.Identity.GetHashCode();
-            }
+            public int GetHashCode(IAssemblySymbol? obj)
+                => obj?.Identity.GetHashCode() ?? 0;
         }
 
         protected static readonly SymbolEquivalenceComparer s_assemblyEqualityComparer = new SymbolEquivalenceComparer(
@@ -2205,8 +2201,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             List<UpdatedMemberInfo> updatedMembers,
             SemanticModel oldModel,
             SemanticModel newModel,
-            [Out]List<SemanticEdit> semanticEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] List<SemanticEdit> semanticEdits,
+            [Out] List<RudeEditDiagnostic> diagnostics,
             out Diagnostic? firstDeclarationError,
             CancellationToken cancellationToken)
         {
@@ -2731,7 +2727,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName);
+            lazyLayoutAttribute ??= model.Compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
             if (lazyLayoutAttribute == null)
             {
                 return false;
@@ -2857,7 +2853,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ref Func<SyntaxNode, SyntaxNode?>? syntaxMap,
             ref Dictionary<INamedTypeSymbol, ConstructorEdit>? instanceConstructorEdits,
             ref Dictionary<INamedTypeSymbol, ConstructorEdit>? staticConstructorEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             if (IsPartial(newType))
@@ -2916,8 +2912,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel oldModel,
             HashSet<ISymbol> newSymbolsWithEdit,
             bool isStatic,
-            [Out]List<SemanticEdit> semanticEdits,
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] List<SemanticEdit> semanticEdits,
+            [Out] List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             foreach (var (newType, update) in updatedTypes)
@@ -3401,6 +3397,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static void BuildIndex<TKey>(Dictionary<TKey, int> index, ImmutableArray<TKey> array)
+            where TKey : notnull
         {
             for (var i = 0; i < array.Length; i++)
             {
@@ -3409,14 +3406,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         protected SyntaxNode GetSymbolSyntax(ISymbol local, CancellationToken cancellationToken)
-        {
-            return local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-        }
+            => local.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
 
         private TextSpan GetThisParameterDiagnosticSpan(ISymbol member)
-        {
-            return member.Locations.First().SourceSpan;
-        }
+            => member.Locations.First().SourceSpan;
 
         private TextSpan GetVariableDiagnosticSpan(ISymbol local)
         {
@@ -3471,10 +3464,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newMember,
             SyntaxNode newMemberBody,
             BidirectionalMap<SyntaxNode> map,
-            [Out]ArrayBuilder<int> reverseCapturesMap,                  // {new capture index -> old capture index}
-            [Out]ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
-            [Out]ArrayBuilder<SyntaxNode?> oldCapturesToClosureScopes,  // {old capture index -> old closure scope}
-            [Out]List<RudeEditDiagnostic> diagnostics,
+            [Out] ArrayBuilder<int> reverseCapturesMap,                  // {new capture index -> old capture index}
+            [Out] ArrayBuilder<SyntaxNode?> newCapturesToClosureScopes,  // {new capture index -> new closure scope}
+            [Out] ArrayBuilder<SyntaxNode?> oldCapturesToClosureScopes,  // {old capture index -> old closure scope}
+            [Out] List<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {
@@ -3875,9 +3868,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Helpers 
 
         private static SyntaxNode? TryGetNode(SyntaxNode root, int position)
-        {
-            return root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
-        }
+            => root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
 
         private static bool TryGetTextSpan(TextLineCollection lines, LinePositionSpan lineSpan, out TextSpan span)
         {
@@ -3905,9 +3896,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer;
 
             public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
-            {
-                _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
-            }
+                => _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
 
             internal void AnalyzeSyntax(
                 EditScript<SyntaxNode> script,

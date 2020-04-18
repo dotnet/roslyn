@@ -42,9 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessi
         }
 
         protected bool IsValidToken(SyntaxToken token)
-        {
-            return token.Parent != null && !_syntaxFactsService.IsSkippedTokensTrivia(token.Parent);
-        }
+            => token.Parent != null && !_syntaxFactsService.IsSkippedTokensTrivia(token.Parent);
 
         public virtual void AfterStart(IBraceCompletionSession session, CancellationToken cancellationToken)
         {
@@ -55,9 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessi
         }
 
         public virtual bool AllowOverType(IBraceCompletionSession session, CancellationToken cancellationToken)
-        {
-            return CheckCurrentPosition(session, cancellationToken) && CheckClosingTokenKind(session, cancellationToken);
-        }
+            => CheckCurrentPosition(session, cancellationToken) && CheckClosingTokenKind(session, cancellationToken);
 
         protected bool CheckClosingTokenKind(IBraceCompletionSession session, CancellationToken cancellationToken)
         {

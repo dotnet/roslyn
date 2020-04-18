@@ -238,6 +238,9 @@
                 case ErrorCode.WRN_MemberNotNull:
                 case ErrorCode.WRN_MemberNotNullWhen:
                 case ErrorCode.WRN_MemberNotNullBadMember:
+                case ErrorCode.WRN_ParameterDisallowsNull:
+                case ErrorCode.WRN_GeneratorFailedDuringInitialization:
+                case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                     return true;
                 default:
                     return false;

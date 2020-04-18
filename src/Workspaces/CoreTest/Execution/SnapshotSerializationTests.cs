@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await VerifySynchronizationObjectInServiceAsync(snapshotService, solutionSyncObject).ConfigureAwait(false);
 
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
 
             var projectsSyncObject = await snapshot.GetRemotableDataAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet);
 
             var projectSyncObject = await snapshot.GetRemotableDataAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await VerifySynchronizationObjectInServiceAsync(snapshotService, syncObject).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
             await VerifySynchronizationObjectInServiceAsync(snapshotService, syncObject).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task Missing_Metadata_Serailization_Test()
+        public async Task Missing_Metadata_Serialization_Test()
         {
             var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
@@ -363,12 +363,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task Missing_Analyzer_Serailization_Test()
+        public async Task Missing_Analyzer_Serialization_Test()
         {
             var workspace = new AdhocWorkspace();
             var serializer = workspace.Services.GetService<ISerializerService>();
 
-            var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+            var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
 
             // make sure this doesn't throw
             var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task Missing_Analyzer_Serailization_Desktop_Test()
+        public async Task Missing_Analyzer_Serialization_Desktop_Test()
         {
             var hostServices = MefHostServices.Create(
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var workspace = new AdhocWorkspace(hostServices);
             var serializer = workspace.Services.GetService<ISerializerService>();
 
-            var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+            var reference = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
 
             // make sure this doesn't throw
             var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task RoundTrip_Analyzer_Serailization_Test()
+        public async Task RoundTrip_Analyzer_Serialization_Test()
         {
             using var tempRoot = new TempRoot();
             var workspace = new AdhocWorkspace();
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task RoundTrip_Analyzer_Serailization_Desktop_Test()
+        public async Task RoundTrip_Analyzer_Serialization_Desktop_Test()
         {
             using var tempRoot = new TempRoot();
             var hostServices = MefHostServices.Create(
@@ -437,7 +437,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         }
 
         [Fact]
-        public async Task ShadowCopied_Analyzer_Serailization_Desktop_Test()
+        public async Task ShadowCopied_Analyzer_Serialization_Desktop_Test()
         {
             var hostServices = MefHostServices.Create(
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
@@ -456,7 +456,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         }
 
         [Fact]
-        public void WorkspaceAnalyzer_Serailization_Desktop_Test()
+        public void WorkspaceAnalyzer_Serialization_Desktop_Test()
         {
             var hostServices = MefHostServices.Create(
                 MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
@@ -465,20 +465,15 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             using var workspace = new AdhocWorkspace(hostServices);
             var reference = CreateShadowCopiedAnalyzerReference(tempRoot);
 
-            var assetBuilder = new CustomAssetBuilder(workspace);
-            var asset = assetBuilder.Build(reference, CancellationToken.None);
+            var serializer = workspace.Services.GetService<ISerializerService>();
+
+            var asset = WorkspaceAnalyzerReferenceAsset.Create(reference, serializer, CancellationToken.None);
 
             // verify checksum from custom asset builder uses different checksum than regular one
-            var service = workspace.Services.GetService<IReferenceSerializationService>();
             var expectedChecksum = Checksum.Create(
                 WellKnownSynchronizationKind.AnalyzerReference,
-                service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None));
+                serializer.CreateChecksum(reference, CancellationToken.None));
             Assert.Equal(expectedChecksum, asset.Checksum);
-
-            // verify usePathFromAssembly return different checksum for same reference
-            var fromFilePath = service.CreateChecksum(reference, usePathFromAssembly: false, CancellationToken.None);
-            var fromAssembly = service.CreateChecksum(reference, usePathFromAssembly: true, CancellationToken.None);
-            Assert.NotEqual(fromFilePath, fromAssembly);
         }
 
         [Fact]
@@ -490,7 +485,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
             var metadata = new MissingMetadataReference();
-            var analyzer = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
+            var analyzer = new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing_reference"), new MissingAnalyzerLoader());
 
             project = project.AddMetadataReference(metadata);
             project = project.AddAnalyzerReference(analyzer);
@@ -522,7 +517,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
 
             var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
-            var analyzer = serializer.CreateChecksum(new AnalyzerFileReference("missing", new MissingAnalyzerLoader()), CancellationToken.None);
+            var analyzer = serializer.CreateChecksum(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing"), new MissingAnalyzerLoader()), CancellationToken.None);
 
             Assert.NotEqual(source, metadata);
             Assert.NotEqual(source, analyzer);
@@ -681,7 +676,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var checksum = snapshot.SolutionChecksum;
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
-            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes);
             await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Options, WellKnownSynchronizationKind.OptionSet);
 
             var recoveredSolution = await GetSolutionAsync(snapshotService, snapshot);
@@ -733,9 +728,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
             protected override Assembly LoadFromPathImpl(string fullPath)
-            {
-                throw new FileNotFoundException(fullPath);
-            }
+                => throw new FileNotFoundException(fullPath);
         }
 
         private class MissingMetadataReference : PortableExecutableReference
@@ -746,19 +739,13 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             }
 
             protected override DocumentationProvider CreateDocumentationProvider()
-            {
-                return null;
-            }
+                => null;
 
             protected override Metadata GetMetadataImpl()
-            {
-                throw new FileNotFoundException("can't find");
-            }
+                => throw new FileNotFoundException("can't find");
 
             protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return this;
-            }
+                => this;
         }
 
         private class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
@@ -766,18 +753,14 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             private readonly ImmutableDictionary<string, string> _map;
 
             public MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string> map)
-            {
-                _map = map;
-            }
+                => _map = map;
 
             public void AddDependencyLocation(string fullPath)
             {
             }
 
             public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(_map[fullPath]);
-            }
+                => Assembly.LoadFrom(_map[fullPath]);
         }
 
         private class NotSerializableEncoding : Encoding

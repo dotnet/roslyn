@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new SemanticModelService();
-        }
+            => new SemanticModelService();
     }
 }

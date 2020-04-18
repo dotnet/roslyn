@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Remote;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 

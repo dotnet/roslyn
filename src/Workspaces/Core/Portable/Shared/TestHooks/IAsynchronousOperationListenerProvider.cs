@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// Get Waiters for listeners for test
         /// </summary>
         public IAsynchronousOperationWaiter GetWaiter(string featureName)
-        {
-            return (IAsynchronousOperationWaiter)GetListener(featureName);
-        }
+            => (IAsynchronousOperationWaiter)GetListener(featureName);
 
         /// <summary>
         /// Wait for all of the <see cref="IAsynchronousOperationWaiter"/> instances to finish their
@@ -181,9 +179,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// Get all saved DiagnosticAsyncToken to investigate tests failure easier
         /// </summary>
         public List<AsynchronousOperationListener.DiagnosticAsyncToken> GetTokens()
-        {
-            return _singletonListeners.Values.Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
-        }
+            => _singletonListeners.Values.Where(l => l.TrackActiveTokens).SelectMany(l => l.ActiveDiagnosticTokens).ToList();
 
         private static bool IsEnabled
         {

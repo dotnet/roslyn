@@ -150,8 +150,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public static LogMessage CreateCorrelationLogMessage(int correlationId)
-        {
-            return KeyValueLogMessage.Create(LogType.UserAction, m => m[CorrelationId] = correlationId);
-        }
+            => KeyValueLogMessage.Create(LogType.UserAction, m => m[CorrelationId] = correlationId);
     }
 }

@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private readonly FlowGraphAnalysisData _analysisData;
 
             private DataFlowAnalyzer(ControlFlowGraph cfg, ISymbol owningSymbol)
-            {
-                _analysisData = FlowGraphAnalysisData.Create(cfg, owningSymbol, AnalyzeLocalFunctionOrLambdaInvocation);
-            }
+                => _analysisData = FlowGraphAnalysisData.Create(cfg, owningSymbol, AnalyzeLocalFunctionOrLambdaInvocation);
 
             private DataFlowAnalyzer(
                 ControlFlowGraph cfg,
@@ -88,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public override BasicBlockAnalysisData AnalyzeBlock(BasicBlock basicBlock, CancellationToken cancellationToken)
             {
                 BeforeBlockAnalysis();
-                Walker.AnalyzeOperationsAndUpdateData(basicBlock.Operations, _analysisData, cancellationToken);
+                Walker.AnalyzeOperationsAndUpdateData(_analysisData.OwningSymbol, basicBlock.Operations, _analysisData, cancellationToken);
                 AfterBlockAnalysis();
                 return _analysisData.CurrentBlockAnalysisData;
 
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 // Analyze the branch value
                 var operations = SpecializedCollections.SingletonEnumerable(basicBlock.BranchValue);
-                Walker.AnalyzeOperationsAndUpdateData(operations, _analysisData, cancellationToken);
+                Walker.AnalyzeOperationsAndUpdateData(_analysisData.OwningSymbol, operations, _analysisData, cancellationToken);
                 ProcessOutOfScopeLocals();
                 return _analysisData.CurrentBlockAnalysisData;
 

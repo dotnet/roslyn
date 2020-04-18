@@ -382,9 +382,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         private void HandleNonSuppressionStateEntry(bool added)
-        {
-            UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
-        }
+            => UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
 
         private void UpdateQueryStatus()
         {

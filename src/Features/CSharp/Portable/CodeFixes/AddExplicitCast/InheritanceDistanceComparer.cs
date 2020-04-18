@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
     /// 
     /// 'Derived1' is less specific than 'Derived2' compared to 'Base'
     /// </summary>
-    internal sealed class InheritanceDistanceComparer : IComparer<ITypeSymbol>
+    internal sealed class InheritanceDistanceComparer : IComparer<ITypeSymbol?>
     {
         private readonly ITypeSymbol _baseType;
         private readonly SemanticModel _semanticModel;
@@ -41,8 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             _baseType = baseType;
         }
 
-        public int Compare(ITypeSymbol x, ITypeSymbol y)
+        public int Compare(ITypeSymbol? x, ITypeSymbol? y)
         {
+            if (x is null)
+                return y is null ? 0 : -1;
+            else if (y is null)
+                return 1;
+
             var xDist = GetInheritanceDistance(x);
             var yDist = GetInheritanceDistance(y);
             return xDist.CompareTo(yDist);

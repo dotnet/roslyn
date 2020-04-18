@@ -14,49 +14,31 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal static class Extensions
     {
         public static bool Succeeded(this OperationStatus status)
-        {
-            return status.Flag.Succeeded();
-        }
+            => status.Flag.Succeeded();
 
         public static bool FailedWithNoBestEffortSuggestion(this OperationStatus status)
-        {
-            return status.Flag.Failed() && !status.Flag.HasBestEffort();
-        }
+            => status.Flag.Failed() && !status.Flag.HasBestEffort();
 
         public static bool Failed(this OperationStatus status)
-        {
-            return status.Flag.Failed();
-        }
+            => status.Flag.Failed();
 
         public static bool Succeeded(this OperationStatusFlag flag)
-        {
-            return (flag & OperationStatusFlag.Succeeded) != 0;
-        }
+            => (flag & OperationStatusFlag.Succeeded) != 0;
 
         public static bool Failed(this OperationStatusFlag flag)
-        {
-            return !flag.Succeeded();
-        }
+            => !flag.Succeeded();
 
         public static bool HasBestEffort(this OperationStatusFlag flag)
-        {
-            return (flag & OperationStatusFlag.BestEffort) != 0;
-        }
+            => (flag & OperationStatusFlag.BestEffort) != 0;
 
         public static bool HasSuggestion(this OperationStatusFlag flag)
-        {
-            return (flag & OperationStatusFlag.Suggestion) != 0;
-        }
+            => (flag & OperationStatusFlag.Suggestion) != 0;
 
         public static bool HasMask(this OperationStatusFlag flag, OperationStatusFlag mask)
-        {
-            return (flag & mask) != 0x0;
-        }
+            => (flag & mask) != 0x0;
 
         public static OperationStatusFlag RemoveFlag(this OperationStatusFlag baseFlag, OperationStatusFlag flagToRemove)
-        {
-            return baseFlag & ~flagToRemove;
-        }
+            => baseFlag & ~flagToRemove;
 
         public static ITypeSymbol? GetLambdaOrAnonymousMethodReturnType(this SemanticModel binding, SyntaxNode node)
         {
@@ -76,17 +58,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         }
 
         public static Task<SemanticDocument> WithSyntaxRootAsync(this SemanticDocument semanticDocument, SyntaxNode root, CancellationToken cancellationToken)
-        {
-            return SemanticDocument.CreateAsync(semanticDocument.Document.WithSyntaxRoot(root), cancellationToken);
-        }
+            => SemanticDocument.CreateAsync(semanticDocument.Document.WithSyntaxRoot(root), cancellationToken);
 
         /// <summary>
         /// get tokens with given annotation in current document
         /// </summary>
         public static SyntaxToken GetTokenWithAnnotation(this SemanticDocument document, SyntaxAnnotation annotation)
-        {
-            return document.Root.GetAnnotatedNodesAndTokens(annotation).Single().AsToken();
-        }
+            => document.Root.GetAnnotatedNodesAndTokens(annotation).Single().AsToken();
 
         /// <summary>
         /// resolve the given symbol against compilation this snapshot has

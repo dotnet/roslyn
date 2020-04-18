@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Notification
         private readonly EventMap _eventMap = new EventMap();
 
         public GlobalOperationNotificationService(IAsynchronousOperationListener listener)
-        {
-            _eventQueue = new TaskQueue(listener, TaskScheduler.Default);
-        }
+            => _eventQueue = new TaskQueue(listener, TaskScheduler.Default);
 
         public override GlobalOperationRegistration Start(string operation)
         {

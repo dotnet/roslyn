@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
     {
         protected override bool CanFind(IPropertySymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IPropertySymbol> symbolAndProjectId,
@@ -85,9 +83,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static bool IsForEachProperty(IPropertySymbol symbol)
-        {
-            return symbol.Name == WellKnownMemberNames.CurrentPropertyName;
-        }
+            => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
         protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,

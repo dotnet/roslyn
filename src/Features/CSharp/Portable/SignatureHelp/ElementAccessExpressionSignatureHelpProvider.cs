@@ -32,19 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-        {
-            return IsTriggerCharacterInternal(ch);
-        }
+            => IsTriggerCharacterInternal(ch);
 
         private static bool IsTriggerCharacterInternal(char ch)
-        {
-            return ch == '[' || ch == ',';
-        }
+            => ch == '[' || ch == ',';
 
         public override bool IsRetriggerCharacter(char ch)
-        {
-            return ch == ']';
-        }
+            => ch == ']';
 
         private static bool TryGetElementAccessExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out ExpressionSyntax identifier, out SyntaxToken openBrace)
         {
@@ -392,8 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ElementBindingExpressionSyntax elementBindingExpression))
                 {
                     // Find the first conditional access expression that starts left of our open bracket
-                    var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax>(
-                        c => c.SpanStart < elementBindingExpression.SpanStart);
+                    var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax, ElementBindingExpressionSyntax>(
+                        (c, elementBindingExpression) => c.SpanStart < elementBindingExpression.SpanStart, elementBindingExpression);
 
                     identifier = conditionalAccess.Expression;
                     openBrace = elementBindingExpression.ArgumentList.OpenBracketToken;

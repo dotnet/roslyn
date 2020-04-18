@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // formal parameter type.
 
             TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
-            formalParameterType.CheckAllConstraints((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics);
+            formalParameterType.CheckAllConstraints(new ConstraintsHelper.CheckConstraintsArgs((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics));
 
             return true;
         }

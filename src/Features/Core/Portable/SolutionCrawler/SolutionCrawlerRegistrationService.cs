@@ -48,9 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public void Register(Workspace workspace)
-        {
-            EnsureRegistration(workspace, initializeLazily: true);
-        }
+            => EnsureRegistration(workspace, initializeLazily: true);
 
         /// <summary>
         /// make sure solution cralwer is registered for the given workspace.
@@ -268,9 +266,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         private static bool IsDefaultProvider(IncrementalAnalyzerProviderMetadata providerMetadata)
-        {
-            return providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Count == 0;
-        }
+            => providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Count == 0;
 
         private class Registration
         {
@@ -288,9 +284,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public Solution CurrentSolution => Workspace.CurrentSolution;
 
             public TService GetService<TService>() where TService : IWorkspaceService
-            {
-                return Workspace.Services.GetService<TService>();
-            }
+                => Workspace.Services.GetService<TService>();
         }
     }
 }

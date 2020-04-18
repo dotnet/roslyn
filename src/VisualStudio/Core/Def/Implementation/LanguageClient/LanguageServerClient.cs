@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public LanguageServerClient(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
-            [ImportMany]IEnumerable<Lazy<IOptionPersister>> lazyOptions)
+            [ImportMany] IEnumerable<Lazy<IOptionPersister>> lazyOptions)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
@@ -154,16 +154,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// Signals the extension that the language server has been successfully initialized.
         /// </summary>
         public Task OnServerInitializedAsync()
-        {
-            return Task.CompletedTask;
-        }
+            => Task.CompletedTask;
 
         /// <summary>
         /// Signals the extension that the language server failed to initialize.
         /// </summary>
         public Task OnServerInitializeFailedAsync(Exception e)
-        {
-            return Task.CompletedTask;
-        }
+            => Task.CompletedTask;
     }
 }

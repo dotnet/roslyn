@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -34,9 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         }
 
         protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle)
-        {
-            return s_instance;
-        }
+            => s_instance;
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<AbstractFormattingRule> formattingRules,
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class FormattingRule : AbstractFormattingRule
         {
-            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.
                 Debug.Assert(node.SyntaxTree != null);
@@ -167,9 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
-            {
-                return node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
-            }
+                => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
             private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {

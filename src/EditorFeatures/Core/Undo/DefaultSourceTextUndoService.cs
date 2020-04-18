@@ -20,18 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
         }
 
         public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
-        {
-            return null;
-        }
+            => null;
 
         public bool BeginUndoTransaction(ITextSnapshot snapshot)
-        {
-            return false;
-        }
+            => false;
 
         public bool EndUndoTransaction(ISourceTextUndoTransaction transaction)
-        {
-            return false;
-        }
+            => false;
     }
 }

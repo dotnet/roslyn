@@ -85,9 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
 
             private Task OnConventionFileChangedAsync(object sender, ConventionsFileChangeEventArgs arg)
-            {
-                return ConventionFileChanged?.Invoke(this, arg) ?? Task.CompletedTask;
-            }
+                => ConventionFileChanged?.Invoke(this, arg) ?? Task.CompletedTask;
 
             public event ConventionsFileChangedAsyncEventHandler? ConventionFileChanged;
 

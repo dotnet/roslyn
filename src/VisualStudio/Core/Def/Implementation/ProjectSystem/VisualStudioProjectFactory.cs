@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectFactory(
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
-            [ImportMany]IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+            [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
@@ -37,9 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language)
-        {
-            return CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
-        }
+            => CreateAndAddToWorkspace(projectSystemName, language, new VisualStudioProjectCreationInfo());
 
         public VisualStudioProject CreateAndAddToWorkspace(string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo)
         {
@@ -102,7 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             SolutionId.CreateNewId(solutionFilePath),
                             VersionStamp.Create(),
                             solutionFilePath,
-                            projects: new[] { projectInfo }));
+                            projects: new[] { projectInfo },
+                            analyzerReferences: w.CurrentSolution.AnalyzerReferences));
                 }
                 else
                 {

@@ -743,9 +743,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         }
 
         private Solution CreateSolution()
-        {
-            return new AdhocWorkspace().CurrentSolution;
-        }
+            => new AdhocWorkspace().CurrentSolution;
 
         #endregion
     }

@@ -3,86 +3,40 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    using TypeInfo = System.Reflection.TypeInfo;
-
     internal partial class CodeFixService
     {
         private class ProjectCodeFixProvider
+            : AbstractProjectExtensionProvider<CodeFixProvider, ExportCodeFixProviderAttribute>
         {
-            private readonly AnalyzerReference _reference;
-            private ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> _fixersPerLanguage;
-
             public ProjectCodeFixProvider(AnalyzerReference reference)
+                : base(reference)
             {
-                _reference = reference;
-                _fixersPerLanguage = ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>.Empty;
             }
 
-            public ImmutableArray<CodeFixProvider> GetFixers(string language)
+            protected override bool SupportsLanguage(ExportCodeFixProviderAttribute exportAttribute, string language)
             {
-                return ImmutableInterlocked.GetOrAdd(ref _fixersPerLanguage, language, CreateFixers);
+                return exportAttribute.Languages == null
+                    || exportAttribute.Languages.Length == 0
+                    || exportAttribute.Languages.Contains(language);
             }
 
-            private ImmutableArray<CodeFixProvider> CreateFixers(string language)
+            protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeFixProvider> extensions)
             {
                 // check whether the analyzer reference knows how to return fixers directly.
-                if (_reference is ICodeFixProviderFactory codeFixProviderFactory)
+                if (reference is ICodeFixProviderFactory codeFixProviderFactory)
                 {
-                    return codeFixProviderFactory.GetFixers();
+                    extensions = codeFixProviderFactory.GetFixers();
+                    return true;
                 }
 
-                // otherwise, see whether we can pick it up from reference itself
-                if (!(_reference is AnalyzerFileReference analyzerFileReference))
-                {
-                    return ImmutableArray<CodeFixProvider>.Empty;
-                }
-
-                using var builderDisposer = ArrayBuilder<CodeFixProvider>.GetInstance(out var builder);
-
-                try
-                {
-                    var analyzerAssembly = analyzerFileReference.GetAssembly();
-                    var typeInfos = analyzerAssembly.DefinedTypes;
-
-                    foreach (var typeInfo in typeInfos)
-                    {
-                        if (typeInfo.IsSubclassOf(typeof(CodeFixProvider)))
-                        {
-                            try
-                            {
-                                var attribute = typeInfo.GetCustomAttribute<ExportCodeFixProviderAttribute>();
-                                if (attribute != null)
-                                {
-                                    if (attribute.Languages == null ||
-                                        attribute.Languages.Length == 0 ||
-                                        attribute.Languages.Contains(language))
-                                    {
-                                        builder.Add((CodeFixProvider)Activator.CreateInstance(typeInfo.AsType()));
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                    // REVIEW: is the below message right?
-                    // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
-                }
-
-                return builder.ToImmutable();
+                extensions = default;
+                return false;
             }
         }
     }

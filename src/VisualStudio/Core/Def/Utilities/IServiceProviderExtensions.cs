@@ -22,8 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
         /// Returns the specified service type from the service.
         /// </summary>
         public static TServiceType GetService<TServiceType>(this IServiceProvider sp) where TServiceType : class
-        {
-            return sp.GetService<TServiceType, TServiceType>();
-        }
+            => sp.GetService<TServiceType, TServiceType>();
     }
 }

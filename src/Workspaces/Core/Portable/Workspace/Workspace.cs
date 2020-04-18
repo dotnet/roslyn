@@ -87,27 +87,25 @@ namespace Microsoft.CodeAnalysis
 
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
+
             var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService,
                 serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty,
                 changedOptionKeys: ImmutableHashSet<OptionKey>.Empty);
-            _latestSolution = CreateSolution(info, emptyOptions);
+
+            _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
 
             _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create(this));
         }
 
         internal void LogTestMessage(string message)
-        {
-            _testMessageLogger?.Invoke(message);
-        }
+            => _testMessageLogger?.Invoke(message);
 
         /// <summary>
         /// Sets an internal logger that will receive some messages.
         /// </summary>
         /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
         internal void SetTestLogger(Action<string>? writeLineMessageLogger)
-        {
-            _testMessageLogger = writeLineMessageLogger;
-        }
+            => _testMessageLogger = writeLineMessageLogger;
 
         /// <summary>
         /// Services provider by the host for implementing workspace features.
@@ -138,22 +136,20 @@ namespace Microsoft.CodeAnalysis
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
             var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetProjectLanguages());
-            return CreateSolution(solutionInfo, options);
+            return CreateSolution(solutionInfo, options, solutionInfo.AnalyzerReferences);
         }
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace, and with the given options.
         /// </summary>
-        private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options)
-            => new Solution(this, solutionInfo.Attributes, options);
+        private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
+            => new Solution(this, solutionInfo.Attributes, options, analyzerReferences);
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
         /// </summary>
         protected internal Solution CreateSolution(SolutionId id)
-        {
-            return CreateSolution(SolutionInfo.Create(id, VersionStamp.Create()));
-        }
+            => CreateSolution(SolutionInfo.Create(id, VersionStamp.Create()));
 
         /// <summary>
         /// The current solution.
@@ -285,18 +281,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task ScheduleTask(Action action, string? taskName = "Workspace.Task")
-        {
-            return _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
-        }
+            => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", action, CancellationToken.None);
 
         /// <summary>
         /// Execute a function as a background task, as part of a sequential queue of tasks.
         /// </summary>
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         protected internal Task<T> ScheduleTask<T>(Func<T> func, string? taskName = "Workspace.Task")
-        {
-            return _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
-        }
+            => _taskQueue.ScheduleTask(taskName ?? "Workspace.Task", func, CancellationToken.None);
 
         /// <summary>
         /// Override this method to act immediately when the text of a document has changed, as opposed
@@ -349,9 +341,7 @@ namespace Microsoft.CodeAnalysis
         /// Call the base method at the end of your method.
         /// </summary>
         protected virtual void ClearProjectData(ProjectId projectId)
-        {
-            this.ClearOpenDocuments(projectId);
-        }
+            => this.ClearOpenDocuments(projectId);
 
         /// <summary>
         /// This method is called to clear an individual document is removed.
@@ -360,17 +350,13 @@ namespace Microsoft.CodeAnalysis
         /// Call the base method at the end of your method.
         /// </summary>
         protected internal virtual void ClearDocumentData(DocumentId documentId)
-        {
-            this.ClearOpenDocument(documentId);
-        }
+            => this.ClearOpenDocument(documentId);
 
         /// <summary>
         /// Disposes this workspace. The workspace can longer be used after it is disposed.
         /// </summary>
         public void Dispose()
-        {
-            this.Dispose(finalize: false);
-        }
+            => this.Dispose(finalize: false);
 
         /// <summary>
         /// Call this method when the workspace is disposed.
@@ -457,9 +443,7 @@ namespace Microsoft.CodeAnalysis
         /// Call this method to respond to a project being added/opened in the host environment.
         /// </summary>
         protected internal void OnProjectAdded(ProjectInfo projectInfo)
-        {
-            this.OnProjectAdded(projectInfo, silent: false);
-        }
+            => this.OnProjectAdded(projectInfo, silent: false);
 
         private void OnProjectAdded(ProjectInfo projectInfo, bool silent)
         {
@@ -655,6 +639,30 @@ namespace Microsoft.CodeAnalysis
                 CheckProjectHasAnalyzerReference(projectId, analyzerReference);
                 return oldSolution.RemoveAnalyzerReference(projectId, analyzerReference);
             }, WorkspaceChangeKind.ProjectChanged, projectId);
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer reference is added to a project in the host environment.
+        /// </summary>
+        internal void OnSolutionAnalyzerReferenceAdded(AnalyzerReference analyzerReference)
+        {
+            SetCurrentSolution(oldSolution =>
+            {
+                CheckSolutionDoesNotHaveAnalyzerReference(oldSolution, analyzerReference);
+                return oldSolution.AddAnalyzerReference(analyzerReference);
+            }, WorkspaceChangeKind.SolutionChanged);
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer reference is removed from a project in the host environment.
+        /// </summary>
+        internal void OnSolutionAnalyzerReferenceRemoved(AnalyzerReference analyzerReference)
+        {
+            SetCurrentSolution(oldSolution =>
+            {
+                CheckSolutionHasAnalyzerReference(oldSolution, analyzerReference);
+                return oldSolution.RemoveAnalyzerReference(analyzerReference);
+            }, WorkspaceChangeKind.SolutionChanged);
         }
 
         /// <summary>
@@ -1143,18 +1151,14 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges(Solution)"/> method.
         /// </summary>
         public virtual bool CanApplyChange(ApplyChangesKind feature)
-        {
-            return false;
-        }
+            => false;
 
         /// <summary>
         /// Returns <see langword="true"/> if a reference to referencedProject can be added to
         /// referencingProject.  <see langword="false"/> otherwise.
         /// </summary>
         internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
-        {
-            return false;
-        }
+            => false;
 
         /// <summary>
         /// Apply changes made to a solution back to the workspace.
@@ -1167,9 +1171,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
-        {
-            return TryApplyChanges(newSolution, new ProgressTracker());
-        }
+            => TryApplyChanges(newSolution, new ProgressTracker());
 
         internal virtual bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
         {
@@ -1230,6 +1232,19 @@ namespace Microsoft.CodeAnalysis
                 if (this.CurrentSolution.Options != newSolution.Options)
                 {
                     SetOptions(newSolution.Options);
+                }
+
+                if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))
+                {
+                    foreach (var analyzerReference in solutionChanges.GetRemovedAnalyzerReferences())
+                    {
+                        ApplySolutionAnalyzerReferenceRemoved(analyzerReference);
+                    }
+
+                    foreach (var analyzerReference in solutionChanges.GetAddedAnalyzerReferences())
+                    {
+                        ApplySolutionAnalyzerReferenceAdded(analyzerReference);
+                    }
                 }
 
                 return true;
@@ -1588,9 +1603,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
-        {
-            return CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
-        }
+            => CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
 
         internal DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
         {
@@ -1711,6 +1724,28 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveAnalyzerReference));
             this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add an analyzer reference to the solution.
+        ///
+        /// Override this method to implement the capability of adding analyzer references.
+        /// </summary>
+        internal void ApplySolutionAnalyzerReferenceAdded(AnalyzerReference analyzerReference)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.AddSolutionAnalyzerReference));
+            this.OnSolutionAnalyzerReferenceAdded(analyzerReference);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove an analyzer reference from the solution.
+        ///
+        /// Override this method to implement the capability of removing analyzer references.
+        /// </summary>
+        internal void ApplySolutionAnalyzerReferenceRemoved(AnalyzerReference analyzerReference)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveSolutionAnalyzerReference));
+            this.OnSolutionAnalyzerReferenceRemoved(analyzerReference);
         }
 
         /// <summary>
@@ -1942,6 +1977,28 @@ namespace Microsoft.CodeAnalysis
         protected void CheckProjectDoesNotHaveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             if (this.CurrentSolution.GetProject(projectId)!.AnalyzerReferences.Contains(analyzerReference))
+            {
+                throw new ArgumentException(string.Format(WorkspacesResources._0_is_already_present, analyzerReference));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if a project already has a specific analyzer reference.
+        /// </summary>
+        internal void CheckSolutionHasAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
+        {
+            if (!solution.AnalyzerReferences.Contains(analyzerReference))
+            {
+                throw new ArgumentException(string.Format(WorkspacesResources._0_is_not_present, analyzerReference));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if a project already has a specific analyzer reference.
+        /// </summary>
+        internal void CheckSolutionDoesNotHaveAnalyzerReference(Solution solution, AnalyzerReference analyzerReference)
+        {
+            if (solution.AnalyzerReferences.Contains(analyzerReference))
             {
                 throw new ArgumentException(string.Format(WorkspacesResources._0_is_already_present, analyzerReference));
             }

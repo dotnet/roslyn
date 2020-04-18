@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -62,6 +61,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 GenerateTypeOptionsResult generateTypeOptionsResult,
                 CancellationToken cancellationToken)
             {
+                // the document comes from the same snapshot as the project
+                Contract.ThrowIfFalse(document.Project.Solution == generateTypeOptionsResult.Project.Solution);
+
                 _service = service;
                 _semanticDocument = document;
                 _state = state;
@@ -222,9 +224,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             private string AddGlobalDotToTheNamespace(string namespaceToBeGenerated)
-            {
-                return "Global." + namespaceToBeGenerated;
-            }
+                => "Global." + namespaceToBeGenerated;
 
             // Returns the length of the meaningful rootNamespace substring part of namespaceToGenerateInto
             private int CheckIfRootNamespacePresentInNamespace(string namespaceToGenerateInto, string rootNamespace)

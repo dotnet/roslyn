@@ -71,14 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         }
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         protected override ParseOptions GetScriptOptions()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new NotSupportedException();
 
         private class TestCodeRefactoringProvider : CodeRefactorings.CodeRefactoringProvider
         {

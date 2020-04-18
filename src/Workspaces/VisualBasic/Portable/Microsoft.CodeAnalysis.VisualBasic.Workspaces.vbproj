@@ -39,6 +39,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="VBWorkspaceResources.resx" GenerateSource="true" NAmespace="Microsoft.CodeAnalysis.VisualBasic" />

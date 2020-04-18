@@ -148,19 +148,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         protected SymbolDisplayPart PlainText(string text)
-        {
-            return Part(SymbolDisplayPartKind.Text, text);
-        }
+            => Part(SymbolDisplayPartKind.Text, text);
 
         private SymbolDisplayPart Part(SymbolDisplayPartKind kind, string text)
-        {
-            return Part(kind, null, text);
-        }
+            => Part(kind, null, text);
 
         private SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
-        {
-            return new SymbolDisplayPart(kind, symbol, text);
-        }
+            => new SymbolDisplayPart(kind, symbol, text);
 
         protected IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {
@@ -171,13 +165,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         protected SymbolDisplayPart Punctuation(string text)
-        {
-            return Part(SymbolDisplayPartKind.Punctuation, text);
-        }
+            => Part(SymbolDisplayPartKind.Punctuation, text);
 
         protected SymbolDisplayPart Keyword(string text)
-        {
-            return Part(SymbolDisplayPartKind.Keyword, text);
-        }
+            => Part(SymbolDisplayPartKind.Keyword, text);
     }
 }

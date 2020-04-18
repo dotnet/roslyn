@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -104,24 +103,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 return false;
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (ForceSingleSpace(previousToken, currentToken))
                 {
                     return null;
                 }
 
-                return base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
+                return base.GetAdjustNewLinesOperation(previousToken, currentToken, in nextOperation);
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
                 if (ForceSingleSpace(previousToken, currentToken))
                 {
                     return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
 
-                return base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
+                return base.GetAdjustSpacesOperation(previousToken, currentToken, in nextOperation);
             }
         }
 
@@ -151,9 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         }
 
         private bool SupportsReadOnlyProperties(Compilation compilation)
-        {
-            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
-        }
+            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
 
         private AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
         {

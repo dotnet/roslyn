@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
@@ -16,9 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private abstract class IndentationData
         {
             public IndentationData(TextSpan textSpan)
-            {
-                this.TextSpan = textSpan;
-            }
+                => this.TextSpan = textSpan;
 
             public TextSpan TextSpan { get; }
             public abstract int Indentation { get; }

@@ -178,9 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
-        {
-            return TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
-        }
+            => TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
 
         private bool TryNotifyForSpecificSymbol(
             ISymbol symbol, Project project, CancellationToken cancellationToken)

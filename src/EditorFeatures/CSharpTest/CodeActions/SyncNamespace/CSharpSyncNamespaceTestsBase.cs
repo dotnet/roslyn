@@ -59,9 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
         }
 
         protected string CreateFolderPath(params string[] folders)
-        {
-            return string.Join(PathUtilities.DirectorySeparatorStr, folders);
-        }
+            => string.Join(PathUtilities.DirectorySeparatorStr, folders);
 
         protected async Task TestMoveFileToMatchNamespace(string initialMarkup, List<string[]> expectedFolders = null)
         {

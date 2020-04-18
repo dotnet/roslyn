@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -65,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Set default telemetry session
         /// </summary>
         public static void SetTelemetrySession(TelemetrySession session)
-        {
-            s_telemetrySession = session;
-        }
+            => s_telemetrySession = session;
 
         /// <summary>
         /// Default telemetry session
@@ -87,9 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly RoslynServices _roslynServices;
 
             public TestAccessor(RoslynServices roslynServices)
-            {
-                _roslynServices = roslynServices;
-            }
+                => _roslynServices = roslynServices;
 
             /// <summary>
             /// Injects replacement behavior for the <see cref="HostServices"/> property.

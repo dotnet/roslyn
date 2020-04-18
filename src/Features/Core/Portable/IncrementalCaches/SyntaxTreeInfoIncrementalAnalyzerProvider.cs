@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            return new IncrementalAnalyzer();
-        }
+            => new IncrementalAnalyzer();
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {

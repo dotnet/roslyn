@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -24,19 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: false);
 
             private TypeSyntaxGeneratorVisitor(bool nameOnly)
-            {
-                _nameOnly = nameOnly;
-            }
+                => _nameOnly = nameOnly;
 
             public static TypeSyntaxGeneratorVisitor Create(bool nameOnly = false)
-            {
-                return nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
-            }
+                => nameOnly ? NameOnlyInstance : NotNameOnlyInstance;
 
             public override TypeSyntax DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             private TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
                 where TTypeSyntax : TypeSyntax
@@ -48,9 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitAlias(IAliasSymbol symbol)
-            {
-                return AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
-            }
+                => AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
 
             private void ThrowIfNameOnly()
             {
@@ -70,7 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     underlyingType = innerArray.ElementType;
 
-#if !CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
                     if (underlyingType.NullableAnnotation == NullableAnnotation.Annotated)
                     {
                         // If the inner array we just moved to is also nullable, then
@@ -89,7 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         break;
                     }
-#endif
                 }
 
                 var elementTypeSyntax = underlyingType.GenerateTypeSyntax();
@@ -106,12 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 TypeSyntax arrayTypeSyntax = SyntaxFactory.ArrayType(elementTypeSyntax, ranks.ToSyntaxList());
 
-#if !CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
                 if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     arrayTypeSyntax = SyntaxFactory.NullableType(arrayTypeSyntax);
                 }
-#endif
 
                 return AddInformationTo(arrayTypeSyntax, symbol);
             }
@@ -172,9 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             private static IdentifierNameSyntax CreateGlobalIdentifier()
-            {
-                return SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
-            }
+                => SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
 
             private TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
             {
@@ -187,6 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return CreateTupleTypeSyntax(symbol);
                 }
+
+#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
+                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
+                if (symbol.IsNativeIntegerType)
+                {
+                    return SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
+                }
+#endif
 
                 if (symbol.IsNullable())
                 {
@@ -259,12 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
-#if !CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
                 if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
                 {
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
                 }
-#endif
 
                 return typeSyntax;
             }
@@ -313,9 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                return AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
-            }
+                => AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
         }
     }
 }

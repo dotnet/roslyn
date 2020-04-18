@@ -59,9 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         private SyntaxNode GetNamespaceNode()
-        {
-            return LookupNode().Ancestors().Where(CodeModelService.IsNamespace).FirstOrDefault();
-        }
+            => LookupNode().Ancestors().Where(CodeModelService.IsNamespace).FirstOrDefault();
 
         public override object Parent
         {

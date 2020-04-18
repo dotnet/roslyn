@@ -15,16 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     internal partial class CSharpCodeModelService
     {
         protected override AbstractNodeNameGenerator CreateNodeNameGenerator()
-        {
-            return new NodeNameGenerator();
-        }
+            => new NodeNameGenerator();
 
         private class NodeNameGenerator : AbstractNodeNameGenerator
         {
             protected override bool IsNameableNode(SyntaxNode node)
-            {
-                return CSharpCodeModelService.IsNameableNode(node);
-            }
+                => CSharpCodeModelService.IsNameableNode(node);
 
             private static void AppendName(StringBuilder builder, NameSyntax name)
             {

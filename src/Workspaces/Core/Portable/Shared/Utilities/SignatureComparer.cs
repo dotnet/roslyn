@@ -16,9 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
 
         private SignatureComparer(SymbolEquivalenceComparer symbolEquivalenceComparer)
-        {
-            _symbolEquivalenceComparer = symbolEquivalenceComparer;
-        }
+            => _symbolEquivalenceComparer = symbolEquivalenceComparer;
 
         private IEqualityComparer<IParameterSymbol> ParameterEquivalenceComparer => _symbolEquivalenceComparer.ParameterEquivalenceComparer;
 
@@ -56,9 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private bool HaveSameSignature(IEventSymbol event1, IEventSymbol event2, bool caseSensitive)
-        {
-            return IdentifiersMatch(event1.Name, event2.Name, caseSensitive);
-        }
+            => IdentifiersMatch(event1.Name, event2.Name, caseSensitive);
 
         public bool HaveSameSignature(IPropertySymbol property1, IPropertySymbol property2, bool caseSensitive)
         {
@@ -255,13 +251,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         private bool HaveSameReturnType(IPropertySymbol property1, IPropertySymbol property2)
-        {
-            return this.SignatureTypeEquivalenceComparer.Equals(property1.Type, property2.Type);
-        }
+            => this.SignatureTypeEquivalenceComparer.Equals(property1.Type, property2.Type);
 
         private bool HaveSameReturnType(IEventSymbol ev1, IEventSymbol ev2)
-        {
-            return this.SignatureTypeEquivalenceComparer.Equals(ev1.Type, ev2.Type);
-        }
+            => this.SignatureTypeEquivalenceComparer.Equals(ev1.Type, ev2.Type);
     }
 }

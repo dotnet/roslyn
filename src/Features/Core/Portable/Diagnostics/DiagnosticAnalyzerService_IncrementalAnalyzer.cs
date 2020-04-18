@@ -39,12 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, HostAnalyzers, AnalyzerInfoCache, _hostDiagnosticUpdateSource);
+            return new DiagnosticIncrementalAnalyzer(this, LogAggregator.GetNextId(), workspace, AnalyzerInfoCache);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
-        {
-            Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
-        }
+            => Reanalyze(e.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.NewActiveContextDocumentId), highPriority: true);
     }
 }

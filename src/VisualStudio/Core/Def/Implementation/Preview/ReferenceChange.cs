@@ -119,8 +119,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         internal sealed override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-        {
-            pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphReference;
-        }
+            => pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphReference;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -16,19 +18,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
 
             public Iterator(List<SyntaxToken> tokensIncludingZeroWidth)
-            {
-                _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
-            }
+                => _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
 
             public IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>> GetEnumerator()
-            {
-                return new Enumerator(_tokensIncludingZeroWidth);
-            }
+                => new Enumerator(_tokensIncludingZeroWidth);
 
             System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
+                => GetEnumerator();
 
             private struct Enumerator : IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>>
             {

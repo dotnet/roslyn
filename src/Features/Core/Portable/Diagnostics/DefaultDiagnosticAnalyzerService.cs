@@ -23,15 +23,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: null)]
     internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
-        private readonly HostDiagnosticAnalyzers _hostAnalyzers;
+        private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public DefaultDiagnosticAnalyzerService(
-            IDiagnosticAnalyzerService analyzerService,
             IDiagnosticUpdateSourceRegistrationService registrationService)
         {
-            _hostAnalyzers = analyzerService.HostAnalyzers;
+            _analyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             registrationService.Register(this);
         }
 
@@ -58,9 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
-        {
-            DiagnosticsUpdated?.Invoke(this, state);
-        }
+            => DiagnosticsUpdated?.Invoke(this, state);
 
         private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
         {
@@ -157,16 +154,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
                 }
 
-                var analyzers = GetAnalyzers(_service._hostAnalyzers, document.Project);
+                var project = document.Project;
+                var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
-                    document.Project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                    project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
                 var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 foreach (var analyzer in analyzers)
                 {
                     builder.AddRange(await AnalyzerHelper.ComputeDiagnosticsAsync(analyzer,
-                        document, kind, compilationWithAnalyzers, getSkippedAnalyzersInfo: null, span: null, cancellationToken).ConfigureAwait(false));
+                        document, kind, _service._analyzerInfoCache, compilationWithAnalyzers, span: null, cancellationToken).ConfigureAwait(false));
                 }
 
                 return builder.ToImmutableAndFree();
@@ -206,9 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return DocumentResetAsync(document, cancellationToken);
-            }
+                => DocumentResetAsync(document, cancellationToken);
 
             private void RaiseEmptyDiagnosticUpdated(AnalysisKind kind, DocumentId documentId)
             {
@@ -217,33 +213,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
-            {
-                return Task.CompletedTask;
-            }
+                => Task.CompletedTask;
 
             private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate
             {
                 private readonly string _workspaceKind;
 
                 public DefaultUpdateArgsId(string workspaceKind, AnalysisKind kind, DocumentId documentId) : base((int)kind, documentId)
-                {
-                    _workspaceKind = workspaceKind;
-                }
+                    => _workspaceKind = workspaceKind;
 
                 public override string BuildTool => PredefinedBuildTools.Live;
 
@@ -258,9 +244,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 public override int GetHashCode()
-                {
-                    return Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
-                }
+                    => Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
             }
         }
     }

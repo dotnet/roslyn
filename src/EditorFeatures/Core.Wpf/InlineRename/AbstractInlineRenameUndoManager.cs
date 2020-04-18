@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         protected bool updatePending = false;
 
         public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService)
-        {
-            this.InlineRenameService = inlineRenameService;
-        }
+            => this.InlineRenameService = inlineRenameService;
 
         public void Disconnect()
         {
@@ -147,8 +145,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected string GetUndoTransactionDescription(string replacementText)
-        {
-            return replacementText == string.Empty ? "Delete Text" : replacementText;
-        }
+            => replacementText == string.Empty ? "Delete Text" : replacementText;
     }
 }

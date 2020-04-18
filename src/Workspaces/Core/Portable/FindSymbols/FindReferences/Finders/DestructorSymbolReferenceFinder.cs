@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class DestructorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-        {
-            return symbol.MethodKind == MethodKind.Destructor;
-        }
+            => symbol.MethodKind == MethodKind.Destructor;
 
         protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IMethodSymbol> symbol,

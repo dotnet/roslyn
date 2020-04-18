@@ -285,7 +285,7 @@ namespace AnalyzerRunner
 
         private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzersFromFile(string path)
         {
-            var analyzerReference = new AnalyzerFileReference(path, AssemblyLoader.Instance);
+            var analyzerReference = new AnalyzerFileReference(Path.GetFullPath(path), AssemblyLoader.Instance);
             var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
             var basicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
             return ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty

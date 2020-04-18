@@ -35,9 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         protected SyntaxNode GetContainingTypeNode()
-        {
-            return LookupNode().Ancestors().Where(CodeModelService.IsType).FirstOrDefault();
-        }
+            => LookupNode().Ancestors().Where(CodeModelService.IsType).FirstOrDefault();
 
         public override object Parent
         {
@@ -155,9 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         internal virtual ImmutableArray<SyntaxNode> GetParameters()
-        {
-            throw Exceptions.ThrowEFail();
-        }
+            => throw Exceptions.ThrowEFail();
 
         public EnvDTE.CodeElements Parameters
         {

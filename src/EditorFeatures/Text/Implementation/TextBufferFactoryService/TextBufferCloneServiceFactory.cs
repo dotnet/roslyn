@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
 
         [Export(typeof(ITextBufferCloneService)), Shared]
         private class TextBufferCloneService : ITextBufferCloneService

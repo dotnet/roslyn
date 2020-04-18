@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -165,9 +164,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             private bool IsOnStartLine(int position)
-            {
-                return _text.Lines.IndexOf(position) == _startLineNumber;
-            }
+                => _text.Lines.IndexOf(position) == _startLineNumber;
         }
     }
 }

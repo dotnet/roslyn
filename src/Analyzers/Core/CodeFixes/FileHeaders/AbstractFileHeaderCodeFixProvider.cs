@@ -15,10 +15,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.Formatting;
+#endif
 
 namespace Microsoft.CodeAnalysis.FileHeaders
 {
@@ -49,9 +52,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         }
 
         private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            return document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
-        }
+            => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
 
         private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
         {
@@ -242,9 +243,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             private readonly AbstractFileHeaderCodeFixProvider _codeFixProvider;
 
             public FixAll(AbstractFileHeaderCodeFixProvider codeFixProvider)
-            {
-                _codeFixProvider = codeFixProvider;
-            }
+                => _codeFixProvider = codeFixProvider;
 
             protected override string CodeActionTitle => CodeFixesResources.Add_file_banner;
 

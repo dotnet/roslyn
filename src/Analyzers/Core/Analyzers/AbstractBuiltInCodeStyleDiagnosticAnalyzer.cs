@@ -200,14 +200,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageOption> options)
-        {
-            IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
-        }
+            => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, ImmutableHashSet<ILanguageSpecificOption> options, string language)
-        {
-            IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options, language);
-        }
+            => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options, language);
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 

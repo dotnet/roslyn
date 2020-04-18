@@ -304,14 +304,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             public override int IsExpandable => 0;
 
             internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-            {
-                pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphInformation;
-            }
+                => pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphInformation;
 
             public override int OnRequestSource(object pIUnknownTextView)
-            {
-                return VSConstants.S_OK;
-            }
+                => VSConstants.S_OK;
 
             public override void UpdatePreview()
             {

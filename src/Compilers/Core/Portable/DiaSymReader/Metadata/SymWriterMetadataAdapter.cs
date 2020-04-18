@@ -32,11 +32,11 @@ namespace Microsoft.DiaSymReader
 
         public override int GetTypeDefProps(
             int typeDef,
-            [Out]char* qualifiedName,
+            [Out] char* qualifiedName,
             int qualifiedNameBufferLength,
-            [Out]int* qualifiedNameLength,
-            [Out]TypeAttributes* attributes,
-            [Out]int* baseType)
+            [Out] int* qualifiedNameLength,
+            [Out] TypeAttributes* attributes,
+            [Out] int* baseType)
         {
             Debug.Assert(baseType == null);
 
@@ -65,10 +65,10 @@ namespace Microsoft.DiaSymReader
 
         public override int GetTypeRefProps(
             int typeRef,
-            [Out]int* resolutionScope, // ModuleRef or AssemblyRef
-            [Out]char* qualifiedName,
+            [Out] int* resolutionScope, // ModuleRef or AssemblyRef
+            [Out] char* qualifiedName,
             int qualifiedNameBufferLength,
-            [Out]int* qualifiedNameLength)
+            [Out] int* qualifiedNameLength)
             => throw new NotImplementedException();
 
         public override int GetNestedClassProps(int nestedClass, out int enclosingClass)

@@ -15,29 +15,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         private readonly ProjectExternalErrorReporter _externalErrorReporter;
 
         int IVsReportExternalErrors.AddNewErrors(IVsEnumExternalErrors pErrors)
-        {
-            return _externalErrorReporter.AddNewErrors(pErrors);
-        }
+            => _externalErrorReporter.AddNewErrors(pErrors);
 
         int IVsReportExternalErrors.ClearAllErrors()
-        {
-            return _externalErrorReporter.ClearAllErrors();
-        }
+            => _externalErrorReporter.ClearAllErrors();
 
         int IVsLanguageServiceBuildErrorReporter.ClearErrors()
-        {
-            return _externalErrorReporter.ClearErrors();
-        }
+            => _externalErrorReporter.ClearErrors();
 
         int IVsLanguageServiceBuildErrorReporter2.ClearErrors()
-        {
-            return _externalErrorReporter.ClearErrors();
-        }
+            => _externalErrorReporter.ClearErrors();
 
         int IVsReportExternalErrors.GetErrors(out IVsEnumExternalErrors pErrors)
-        {
-            return _externalErrorReporter.GetErrors(out pErrors);
-        }
+            => _externalErrorReporter.GetErrors(out pErrors);
 
         int IVsLanguageServiceBuildErrorReporter.ReportError(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
         {
@@ -53,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         int IVsLanguageServiceBuildErrorReporter2.ReportError(
             string bstrErrorMessage,
             string bstrErrorId,
-            [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority,
+            [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
             int iLine,
             int iColumn,
             string bstrFileName)
@@ -70,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         void IVsLanguageServiceBuildErrorReporter2.ReportError2(
             string bstrErrorMessage,
             string bstrErrorId,
-            [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority,
+            [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
             int iStartLine,
             int iStartColumn,
             int iEndLine,

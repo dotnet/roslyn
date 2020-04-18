@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -26,7 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         private readonly ImmutableList<AbstractFormattingRule> _rules;
 
-#if !CODE_STYLE
+#if CODE_STYLE
+        public static readonly CSharpSyntaxFormattingService Instance = new CSharpSyntaxFormattingService();
+
+#else
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 #endif
@@ -49,18 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
-        {
-            return _rules;
-        }
+            => _rules;
 
-        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans = null)
-        {
-            return new AggregatedFormattingResult(node, results, formattingSpans);
-        }
+        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
+            => new AggregatedFormattingResult(node, results, formattingSpans);
 
         protected override AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
-        {
-            return new CSharpFormatEngine(node, options, formattingRules, token1, token2).Format(cancellationToken);
-        }
+            => new CSharpFormatEngine(node, options, formattingRules, token1, token2).Format(cancellationToken);
     }
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -36,24 +35,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
         /// <summary>
-        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically resolves them where possible.
+        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically
+        /// resolves them where possible.
         /// </summary>
         /// <param name="renameLocationSet">The locations to perform the renaming at.</param>
-        /// <param name="originalText">The original name of the identifier.</param>
         /// <param name="replacementText">The new name of the identifier</param>
-        /// <param name="optionSet">The option for rename</param>
-        /// <param name="hasConflict">Called after renaming references.  Can be used by callers to
-        /// indicate if the new symbols that the reference binds to should be considered to be ok or
-        /// are in conflict.  'true' means they are conflicts.  'false' means they are not conflicts.
-        /// 'null' means that the default conflict check should be used.</param>
+        /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
+        /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
+        /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
+        /// behavior.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
         public static Task<ConflictResolution> ResolveConflictsAsync(
             RenameLocations renameLocationSet,
-            string originalText,
             string replacementText,
-            OptionSet optionSet,
-            Func<IEnumerable<ISymbol>, bool?> hasConflict,
+            ImmutableHashSet<ISymbol> nonConflictSymbols,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -66,26 +62,21 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 throw new ArgumentException(string.Format(WorkspacesResources.Symbol_0_is_not_from_source, renameLocationSet.Symbol.Name));
             }
 
-            var session = new Session(renameLocationSet, renameSymbolDeclarationLocation, originalText, replacementText, optionSet, hasConflict, cancellationToken);
+            var session = new Session(
+                renameLocationSet, renameSymbolDeclarationLocation,
+                replacementText, nonConflictSymbols, cancellationToken);
             return session.ResolveConflictsAsync();
         }
 
         /// <summary>
         /// Used to find the symbols associated with the Invocation Expression surrounding the Token
         /// </summary>
-        private static IEnumerable<ISymbol> SymbolsForEnclosingInvocationExpressionWorker(SyntaxNode invocationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static ImmutableArray<ISymbol> SymbolsForEnclosingInvocationExpressionWorker(SyntaxNode invocationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-            IEnumerable<ISymbol> symbols = null;
-            if (symbolInfo.Symbol == null)
-            {
-                return null;
-            }
-            else
-            {
-                symbols = SpecializedCollections.SingletonEnumerable(symbolInfo.Symbol);
-                return symbols;
-            }
+            return symbolInfo.Symbol == null
+                ? default
+                : ImmutableArray.Create(symbolInfo.Symbol);
         }
 
         private static SyntaxNode GetExpansionTargetForLocationPerLanguage(SyntaxToken tokenOrNode, Document document)
@@ -95,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return complexifiedTarget;
         }
 
-        private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document, IEnumerable<ISymbol> newReferencedSymbols)
+        private static bool LocalVariableConflictPerLanguage(SyntaxToken tokenOrNode, Document document, ImmutableArray<ISymbol> newReferencedSymbols)
         {
             var renameRewriterService = document.GetLanguageService<IRenameRewriterLanguageService>();
             var isConflict = renameRewriterService.LocalVariableConflict(tokenOrNode, newReferencedSymbols);
@@ -173,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// the same name as another member of a type: binding doesn't change (at least from the
         /// perspective of find all references), but we still need to track it.
         /// </summary>
-        internal static async Task AddDeclarationConflictsAsync(
+        private static async Task AddDeclarationConflictsAsync(
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
             IEnumerable<SymbolAndProjectId> referencedSymbols,
@@ -265,24 +256,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 // See https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=378642
 
                 throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal static void AddConflictingParametersOfProperties(
-            IEnumerable<ISymbol> properties, string newPropertyName, ArrayBuilder<Location> conflicts)
-        {
-            // check if the new property name conflicts with any parameter of the properties.
-            // Note: referencedSymbols come from the original solution, so there is no need to reverse map the locations of the parameters
-            foreach (var symbol in properties)
-            {
-                var prop = (IPropertySymbol)symbol;
-
-                var conflictingParameter = prop.Parameters.FirstOrDefault(param => string.Compare(param.Name, newPropertyName, StringComparison.OrdinalIgnoreCase) == 0);
-
-                if (conflictingParameter != null)
-                {
-                    conflicts.AddRange(conflictingParameter.Locations);
-                }
             }
         }
 
@@ -472,8 +445,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         private static bool IsIdentifierSeparator(char element)
-        {
-            return s_metadataNameSeparators.IndexOf(element) != -1;
-        }
+            => s_metadataNameSeparators.IndexOf(element) != -1;
     }
 }

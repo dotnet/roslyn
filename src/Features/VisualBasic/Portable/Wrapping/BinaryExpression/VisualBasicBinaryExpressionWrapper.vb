@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Precedence
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 

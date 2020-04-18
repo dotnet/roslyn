@@ -343,9 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
-        {
-            return methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
-        }
+            => methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
 
         private static string? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
             => identifier.Parent!.Kind() switch

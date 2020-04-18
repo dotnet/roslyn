@@ -158,19 +158,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public event Action SpansChanged;
 
             private void RaiseSpansChanged()
-            {
-                this.SpansChanged?.Invoke();
-            }
+                => this.SpansChanged?.Invoke();
 
             internal IEnumerable<RenameTrackingSpan> GetRenameTrackingSpans()
-            {
-                return _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Concat(_conflictResolutionRenameTrackingSpans);
-            }
+                => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Concat(_conflictResolutionRenameTrackingSpans);
 
             internal IEnumerable<SnapshotSpan> GetEditableSpansForSnapshot(ITextSnapshot snapshot)
-            {
-                return _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan.GetSpan(snapshot));
-            }
+                => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan.GetSpan(snapshot));
 
             internal void SetReferenceSpans(IEnumerable<TextSpan> spans)
             {
