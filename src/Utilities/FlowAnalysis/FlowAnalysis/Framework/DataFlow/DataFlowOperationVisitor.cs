@@ -1971,7 +1971,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Bail out if configured not to execute interprocedural analysis.
             var skipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None ||
                 DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true ||
-                invokedMethod.IsConfiguredToSkipAnalysis(DataFlowAnalysisContext.AnalyzerOptions, s_dummyDataflowAnalysisDescriptor, WellKnownTypeProvider.Compilation, CancellationToken.None);
+                invokedMethod.IsConfiguredToSkipAnalysis(OwningSymbol, DataFlowAnalysisContext.AnalyzerOptions, s_dummyDataflowAnalysisDescriptor, WellKnownTypeProvider.Compilation, CancellationToken.None);
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
             if (skipInterproceduralAnalysis ||
@@ -3678,7 +3678,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return builder.ToImmutableAndFree();
         }
 
-        private protected bool IsDisposable([NotNullWhen(returnValue: true)]ITypeSymbol? type)
+        private protected bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)
             => type != null && type.IsDisposable(IDisposableNamedType, IAsyncDisposableNamedType);
 
         private protected DisposeMethodKind GetDisposeMethodKind(IMethodSymbol method)

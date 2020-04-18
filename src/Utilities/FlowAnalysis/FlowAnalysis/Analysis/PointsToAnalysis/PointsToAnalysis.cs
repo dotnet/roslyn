@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         protected override PointsToAnalysisResult ToResult(PointsToAnalysisContext analysisContext, DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue> dataFlowAnalysisResult)
         {
-            var operationVisitor = ((PointsToDataFlowOperationVisitor)OperationVisitor);
+            var operationVisitor = (PointsToDataFlowOperationVisitor)OperationVisitor;
             return new PointsToAnalysisResult(
                 dataFlowAnalysisResult,
                 operationVisitor.GetEscapedLocationsThroughOperationsMap(),
