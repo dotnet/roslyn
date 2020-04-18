@@ -316,7 +316,7 @@ Display this help message.");
 
                 cancellation.ThrowIfCancellationRequested();
                 var compilation = await project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);
-                var metricData = await CodeAnalysisMetricData.ComputeAsync(compilation.Assembly, new CodeMetricsAnalysisContext(compilation, CancellationToken.None)).ConfigureAwait(false);
+                var metricData = await CodeAnalysisMetricData.ComputeAsync(compilation!.Assembly, new CodeMetricsAnalysisContext(compilation, CancellationToken.None)).ConfigureAwait(false);
                 builder.Add((projectFile, metricData));
             }
 
@@ -349,8 +349,8 @@ Display this help message.");
 
                     cancellation.ThrowIfCancellationRequested();
                     var compilation = await project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);
-                    var metricData = await CodeAnalysisMetricData.ComputeAsync(compilation.Assembly, new CodeMetricsAnalysisContext(compilation, CancellationToken.None)).ConfigureAwait(false);
-                    builder.Add((project.FilePath, metricData));
+                    var metricData = await CodeAnalysisMetricData.ComputeAsync(compilation!.Assembly, new CodeMetricsAnalysisContext(compilation, CancellationToken.None)).ConfigureAwait(false);
+                    builder.Add((project.FilePath!, metricData));
                 }
             }
         }

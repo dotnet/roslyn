@@ -256,10 +256,10 @@
     <value>Fix numbered comments</value>
   </data>
   <data name="PreferNullLiteralDescription" xml:space="preserve">
-    <value>Use 'null' instead of 'default' for reference types.</value>
+    <value>Use 'null' instead of 'default' for nullable types.</value>
   </data>
   <data name="PreferNullLiteralMessage" xml:space="preserve">
-    <value>Use 'null' instead of 'default' for reference types</value>
+    <value>Use 'null' instead of 'default' for nullable types</value>
   </data>
   <data name="PreferNullLiteralTitle" xml:space="preserve">
     <value>Prefer null literal</value>
@@ -278,5 +278,32 @@
   </data>
   <data name="DefaultableTypeShouldHaveDefaultableFieldsTitle" xml:space="preserve">
     <value>Defaultable types should have defaultable fields</value>
+  </data>
+  <data name="DoNotCallGetTestAccessorDescription" xml:space="preserve">
+    <value>GetTestAccessor() is a helper method reserved for testing. Production code must not call this member.</value>
+  </data>
+  <data name="DoNotCallGetTestAccessorMessage" xml:space="preserve">
+    <value>Do not call GetTestAccessor() from production code</value>
+  </data>
+  <data name="DoNotCallGetTestAccessorTitle" xml:space="preserve">
+    <value>Do not call GetTestAccessor()</value>
+  </data>
+  <data name="CreateTestAccessorDescription" xml:space="preserve">
+    <value>This is a refactoring which simplifies the process of creating test accessors using the TestAccessor pattern</value>
+  </data>
+  <data name="CreateTestAccessorMessage" xml:space="preserve">
+    <value>Create test accessor</value>
+  </data>
+  <data name="CreateTestAccessorTitle" xml:space="preserve">
+    <value>Create test accessor</value>
+  </data>
+  <data name="ExposeMemberForTestingDescription" xml:space="preserve">
+    <value>Expose member for testing</value>
+  </data>
+  <data name="ExposeMemberForTestingMessage" xml:space="preserve">
+    <value>Expose member for testing</value>
+  </data>
+  <data name="ExposeMemberForTestingTitle" xml:space="preserve">
+    <value>Expose member for testing</value>
   </data>
 </root>
