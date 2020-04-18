@@ -42,17 +42,23 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             TextWriter outputWriter = outputFile ?? Console.Out;
 
             using TextWriter logFile = log != null ? new StreamWriter(log) : TextWriter.Null;
+            ILsifJsonWriter lsifWriter = outputFormat switch
+            {
+                LsifFormat.Json => new JsonModeLsifJsonWriter(outputWriter),
+                LsifFormat.Line => new LineModeLsifJsonWriter(outputWriter),
+                _ => throw new NotImplementedException()
+            };
 
             try
             {
                 // Exactly one of "solution" or "compilerInvocation" should be specified
                 if (solution != null && compilerInvocation == null)
                 {
-                    await GenerateFromSolutionAsync(solution, outputWriter, outputFormat, logFile);
+                    await GenerateFromSolutionAsync(solution, lsifWriter, logFile);
                 }
                 else if (compilerInvocation != null && solution == null)
                 {
-                    await GenerateFromCompilerInvocationAsync(compilerInvocation, outputWriter, outputFormat, logFile);
+                    await GenerateFromCompilerInvocationAsync(compilerInvocation, lsifWriter, logFile);
                 }
                 else
                 {
@@ -68,10 +74,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 throw;
             }
 
+            (lsifWriter as IDisposable)?.Dispose();
             await logFile.WriteLineAsync("Generation complete.");
         }
 
-        private static async Task GenerateFromSolutionAsync(FileInfo solutionFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
+        private static async Task GenerateFromSolutionAsync(FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
         {
             // Make sure we pick the highest version
             var msbuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
@@ -86,13 +93,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             MSBuildLocator.RegisterInstance(msbuildInstance);
 
-            await GenerateFromSolutionWithMSBuildLocatedAsync(solutionFile, outputWriter, outputFormat, logFile);
+            await GenerateFromSolutionWithMSBuildLocatedAsync(solutionFile, lsifWriter, logFile);
         }
 
         // This method can't be loaded until we've registered MSBuild with MSBuildLocator, as otherwise
         // we load ILogger prematurely which breaks MSBuildLocator.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static async Task GenerateFromSolutionWithMSBuildLocatedAsync(FileInfo solutionFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
+        private static async Task GenerateFromSolutionWithMSBuildLocatedAsync(FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
         {
             await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
 
@@ -102,7 +109,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var solution = await msbuildWorkspace.OpenSolutionAsync(solutionFile.FullName);
 
             await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
-            var lsifWriter = new TextLsifJsonWriter(outputWriter, outputFormat);
             var lsifGenerator = new Generator(lsifWriter);
 
             Stopwatch totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();
@@ -131,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Total time spent in the generation phase for all projects, including compilation fetch time: {totalTimeInGenerationAndCompilationFetchStopwatch.Elapsed.ToDisplayString()}");
         }
 
-        private static async Task GenerateFromCompilerInvocationAsync(FileInfo compilerInvocationFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
+        private static async Task GenerateFromCompilerInvocationAsync(FileInfo compilerInvocationFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
         {
             await logFile.WriteLineAsync($"Processing compiler invocation from {compilerInvocationFile.FullName}...");
 
@@ -140,7 +146,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Load of the project completed in {compilerInvocationLoadStopwatch.Elapsed.ToDisplayString()}.");
 
             var generationStopwatch = Stopwatch.StartNew();
-            using var lsifWriter = new TextLsifJsonWriter(outputWriter, outputFormat);
             var lsifGenerator = new Generator(lsifWriter);
 
             lsifGenerator.GenerateForCompilation(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices);
