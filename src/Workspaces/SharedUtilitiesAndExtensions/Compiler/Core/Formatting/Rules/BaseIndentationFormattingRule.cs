@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             _vbHelperFormattingRule = vbHelperFormattingRule;
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             // for the common node itself, return absolute indentation
             if (_commonNode == node)
@@ -48,21 +47,21 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             }
 
             // Add everything to the list.
-            AddNextIndentBlockOperations(list, node, options, in nextOperation);
+            AddNextIndentBlockOperations(list, node, in nextOperation);
 
             // Filter out everything that encompasses our span.
             AdjustIndentBlockOperation(list);
         }
 
-        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        private void AddNextIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             if (_vbHelperFormattingRule == null)
             {
-                base.AddIndentBlockOperations(list, node, options, in nextOperation);
+                base.AddIndentBlockOperations(list, node, in nextOperation);
                 return;
             }
 
-            _vbHelperFormattingRule.AddIndentBlockOperations(list, node, options, in nextOperation);
+            _vbHelperFormattingRule.AddIndentBlockOperations(list, node, in nextOperation);
         }
 
         private void AdjustIndentBlockOperation(List<IndentBlockOperation> list)
