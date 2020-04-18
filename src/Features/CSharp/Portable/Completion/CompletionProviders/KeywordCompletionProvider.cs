@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 new SealedKeywordRecommender(),
                 new SelectKeywordRecommender(),
                 new SetKeywordRecommender(),
+                new InitKeywordRecommender(),
                 new ShortKeywordRecommender(),
                 new SizeOfKeywordRecommender(),
                 new StackAllocKeywordRecommender(),
