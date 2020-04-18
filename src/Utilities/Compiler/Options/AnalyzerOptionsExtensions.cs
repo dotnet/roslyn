@@ -377,15 +377,6 @@ namespace Analyzer.Utilities
         public static SymbolNamesWithValueOption<Unit> GetInheritanceExcludedSymbolNamesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
-            ISymbol symbol,
-            Compilation compilation,
-            string defaultForcedValue,
-            CancellationToken cancellationToken)
-        => options.GetInheritanceExcludedSymbolNamesOption(rule, symbol.Locations[0].SourceTree, compilation, defaultForcedValue, cancellationToken);
-
-        public static SymbolNamesWithValueOption<Unit> GetInheritanceExcludedSymbolNamesOption(
-            this AnalyzerOptions options,
-            DiagnosticDescriptor rule,
             SyntaxTree tree,
             Compilation compilation,
             string defaultForcedValue,
@@ -395,9 +386,10 @@ namespace Analyzer.Utilities
         public static SymbolNamesWithValueOption<Unit> GetAdditionalUseResultsMethodsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
+            SyntaxTree tree,
             Compilation compilation,
             CancellationToken cancellationToken)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalUseResultsMethods, rule, compilation, cancellationToken, namePrefixOpt: "M:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalUseResultsMethods, rule, tree, compilation, cancellationToken, namePrefixOpt: "M:");
 
         private static SymbolNamesWithValueOption<TValue> GetSymbolNamesWithValueOption<TValue>(
             this AnalyzerOptions options,
