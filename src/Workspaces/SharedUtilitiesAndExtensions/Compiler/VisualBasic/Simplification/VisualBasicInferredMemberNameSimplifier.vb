@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Function
 
         Friend Function CanSimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax) As Boolean
-            If RemovalCausesAmbiguity(DirectCast(node.Parent, ObjectMemberInitializerSyntax).Initializers, node) Then
+            If node.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression) OrElse RemovalCausesAmbiguity(DirectCast(node.Parent, ObjectMemberInitializerSyntax).Initializers, node) Then
                 Return False
             End If
 
