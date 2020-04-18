@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             foreach (var baseSymbol in bases)
             {
                 var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-                   baseSymbol, solution, cancellationToken).ConfigureAwait(false);
-                if (sourceDefinition != null)
+                   SymbolAndProjectId.Create(baseSymbol, projectId), solution, cancellationToken).ConfigureAwait(false);
+                if (sourceDefinition.Symbol != null)
                 {
-                    var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
-                        project, includeHiddenLocations: false,
+                    var definitionItem = await sourceDefinition.Symbol.ToClassifiedDefinitionItemAsync(
+                        solution.GetProject(sourceDefinition.ProjectId), includeHiddenLocations: false,
                         FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
