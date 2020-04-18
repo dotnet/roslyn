@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
@@ -131,23 +132,19 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 return implementationsAndOverrides.ToImmutableArray();
             }
-            else if ((symbolAndProjectId.Symbol as INamedTypeSymbol)?.TypeKind == TypeKind.Class)
+            else if (symbolAndProjectId.Symbol is INamedTypeSymbol { TypeKind: TypeKind.Class } namedType)
             {
                 var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
-                    symbolAndProjectId.WithSymbol((INamedTypeSymbol)symbolAndProjectId.Symbol),
+                    symbolAndProjectId.WithSymbol(namedType),
                     solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                var implementations = derivedClasses.SelectAsArray(s => (SymbolAndProjectId)s).Concat(symbolAndProjectId);
-
-                return implementations;
+                return derivedClasses.SelectAsArray(s => (SymbolAndProjectId)s).Concat(symbolAndProjectId);
             }
             else if (symbolAndProjectId.Symbol.IsOverridable())
             {
                 var overrides = await SymbolFinder.FindOverridesAsync(
                     symbolAndProjectId, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var implementations = overrides.Concat(symbolAndProjectId);
-
-                return implementations;
+                return overrides.Concat(symbolAndProjectId);
             }
             else
             {
