@@ -33,7 +33,7 @@
     },
     {
         "label": "build csc skip analyzers",
-        "command": "dotnet",
+        "command": "./.dotnet/dotnet",
         "type": "shell",
         "args": [
           "msbuild",
@@ -46,8 +46,8 @@
     },
     {
         "label": "build current project skip analyzers",
-        "command": "dotnet",
-        "type": "process",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
         "args": [
           "pwsh",
           "${workspaceRoot}/scripts/vscode-build.ps1",
@@ -59,8 +59,8 @@
     },
     {
         "label": "generate compiler code",
-        "command": "dotnet",
-        "type": "process",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
         "args": [
           "pwsh",
           "${workspaceRoot}/eng/generate-compiler-code.ps1"
@@ -70,8 +70,8 @@
     },
     {
         "label": "run tests in current file (netcoreapp3.1)",
-        "command": "dotnet",
-        "type": "process",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
         "args": [
           "pwsh",
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
@@ -87,8 +87,8 @@
     },
     {
         "label": "run tests in current project (netcoreapp3.1)",
-        "command": "dotnet",
-        "type": "process",
+        "command": "./.dotnet/dotnet",
+        "type": "shell",
         "args": [
           "pwsh",
           "${workspaceRoot}/scripts/vscode-run-tests.ps1",
