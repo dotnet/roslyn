@@ -28,9 +28,9 @@
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.0.0-beta2.20169.3</RoslynDiagnosticsNugetPackageVersion>
-    <CodeStyleLayerCodeAnalysisVersion>3.3.1</CodeStyleLayerCodeAnalysisVersion>
+    <CodeStyleLayerCodeAnalysisVersion>3.6.0-2.final</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20210.2</MicrosoftCodeAnalysisTestingVersion>
-    <CodeStyleAnalyzerVersion>3.6.0-2.20157.5</CodeStyleAnalyzerVersion>
+    <CodeStyleAnalyzerVersion>3.7.0-1.20210.7</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.4.248</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerPackagesVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerPackagesVersion>
@@ -51,7 +51,7 @@
     <ICSharpCodeDecompilerVersion>5.0.2.5153</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildVersion>15.3.409</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.3.409</MicrosoftBuildFrameworkVersion>
-    <MicrosoftBuildLocatorVersion>1.2.2</MicrosoftBuildLocatorVersion>
+    <MicrosoftBuildLocatorVersion>1.2.6</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.3.409</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.3.409</MicrosoftBuildTasksCoreVersion>
     <!--
@@ -214,7 +214,7 @@
     <xunitVersion>2.4.1-pre.build.4059</xunitVersion>
     <xunitanalyzersVersion>0.10.0</xunitanalyzersVersion>
     <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
-    <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
+    <XunitCombinatorialVersion>1.3.2</XunitCombinatorialVersion>
     <xunitextensibilitycoreVersion>$(xunitVersion)</xunitextensibilitycoreVersion>
     <xunitrunnerconsoleVersion>2.4.1-pre.build.4059</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
@@ -245,75 +245,6 @@
     <MicrosoftVisualStudioStaticReviewsEmbeddableVersion>0.1.102-alpha</MicrosoftVisualStudioStaticReviewsEmbeddableVersion>
     <MicrosoftBclAsyncInterfacesVersion>1.1.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
-  <!--
-    The following packages are considered implementation details and will not be included
-    in the list of dependencies of Roslyn packages. They won't flow as package references
-    to the projects that reference Roslyn packages.
-  -->
-  <ItemGroup>
-    <PrivateVisualStudioPackage Include="EnvDTE" />
-    <PrivateVisualStudioPackage Include="EnvDTE80" />
-    <PrivateVisualStudioPackage Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.MSXML" />
-    <PrivateVisualStudioPackage Include="Microsoft.ServiceHub.Client" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.ComponentModelHost" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.CodingConventions" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.CoreUtility" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Debugger.UI.Interfaces" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Designer.Interfaces" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Editor" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.GraphModel" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.ImageCatalog" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Imaging" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.CallHierarchy" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.Intellisense" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.StandardClassification" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LanguageServer.Client" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LiveShare.WebEditors" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.OLE.Interop" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.CodeSchema" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Common" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Progression.Interfaces" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.RemoteControl" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.15.0" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Design" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Framework" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.11.0" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Shell.Interop.15.7.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Telemetry" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Data" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.Logic" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.UI" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Text.UI.Wpf" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.10.0" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.0" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.TextManager.Interop.16.0.DesignTime" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Utilities" />
-    <PrivateVisualStudioPackage Include="Microsoft.VSSDK.BuildTools" />
-    <PrivateVisualStudioPackage Include="Newtonsoft.Json" />
-    <PrivateVisualStudioPackage Include="NuGet.VisualStudio" />
-    <PrivateVisualStudioPackage Include="StreamJsonRpc" />
-    <PrivateVisualStudioPackage Include="VSLangProj" />
-    <PrivateVisualStudioPackage Include="VSLangProj2" />
-    <PrivateVisualStudioPackage Include="VSLangProj80" />
-    <PrivateVisualStudioPackage Include="VSLangProj140" />
-    <PrivateVisualStudioPackage Include="VsWebsite.Interop" />
-  </ItemGroup>
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
