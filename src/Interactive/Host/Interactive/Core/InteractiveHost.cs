@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// <remarks>
     /// Handles spawning of the host process and communication between the local callers and the remote session.
     /// </remarks>
-    internal sealed partial class InteractiveHost : MarshalByRefObject
+    internal sealed partial class InteractiveHost
     {
         internal const bool DefaultIs64Bit = true;
 
@@ -108,9 +108,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private static string GenerateUniqueChannelLocalName()
             => typeof(InteractiveHost).FullName + Guid.NewGuid();
-
-        public override object? InitializeLifetimeService()
-            => null;
 
         private RemoteService? TryStartProcess(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
         {
