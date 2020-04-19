@@ -4,10 +4,12 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
@@ -18,6 +20,18 @@ namespace Microsoft.Cci
     /// </summary>
     internal class RootModuleType : INamespaceTypeDefinition
     {
+        private IReadOnlyList<IMethodDefinition> _methods = SpecializedCollections.EmptyReadOnlyList<IMethodDefinition>();
+
+        public void SetStaticConstructorBody(ImmutableArray<byte> il)
+        {
+            Debug.Assert(!_methods.Any());
+
+            _methods = SpecializedCollections.SingletonReadOnlyList(
+                new RootModuleStaticConstructor(containingTypeDefinition: this, il));
+        }
+
+        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context) => _methods;
+
         public TypeDefinitionHandle TypeDef
         {
             get { return default(TypeDefinitionHandle); }
@@ -136,11 +150,6 @@ namespace Microsoft.Cci
         public LayoutKind Layout
         {
             get { return LayoutKind.Auto; }
-        }
-
-        public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<IMethodDefinition>();
         }
 
         public IEnumerable<INestedTypeDefinition> GetNestedTypes(EmitContext context)

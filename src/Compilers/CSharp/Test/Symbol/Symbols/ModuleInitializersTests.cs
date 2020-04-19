@@ -41,43 +41,68 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         public void ModuleTypeStaticConstructorIsNotEmittedWhenNoMethodIsMarkedWithModuleInitializerAttribute()
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 class C
 {
-    internal static void M() { }
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
 
-            verifier.VerifyMemberInIL("<Module>..cctor", expected: false);
+            CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, metadataImportOptions: MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                    Assert.Null(rootModuleType.GetMember(".cctor"));
+                },
+                expectedOutput: @"
+Program.Main");
         }
 
         [Fact]
         public void ModuleTypeStaticConstructorCallsMethodMarkedWithModuleInitializerAttribute()
         {
             string source = @"
+using System;
 using System.Runtime.CompilerServices;
 
 class C
 {
     [ModuleInitializer]
-    internal static void M() { }
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
 }
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: s_parseOptions);
 
-            verifier.VerifyIL("<Module>..cctor", @"
-{
-  // Code size        6 (0x6)
-  .maxstack  0
-  IL_0000:  call       ""void C.M()""
-  IL_0005:  ret
-}");
+            var x = CompileAndVerify(
+                source,
+                parseOptions: s_parseOptions,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, metadataImportOptions: MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                    Assert.NotNull(rootModuleType.GetMember(".cctor"));
+                },
+                expectedOutput: @"
+C.M
+Program.Main");
         }
     }
 }
