@@ -273,23 +273,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task SynchronizeGlobalAssetsAsync(PinnedSolutionInfo solutionInfo, Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async () =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
-                {
-                    var assetProvider = SolutionService.CreateAssetProvider(solutionInfo, AssetStorage);
-                    var assets = await assetProvider.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var (checksum, value) in assets)
-                    {
-                        AssetStorage.TryAddGlobalAsset(checksum, value);
-                    }
-                }
-            }, cancellationToken);
-        }
-
         public Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>

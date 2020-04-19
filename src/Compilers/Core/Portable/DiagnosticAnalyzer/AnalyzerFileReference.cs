@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             assemblyLoader.AddDependencyLocation(fullPath);
         }
 
+        public IAnalyzerAssemblyLoader AssemblyLoader => _assemblyLoader;
+
         public override bool Equals(object? obj)
             => Equals(obj as AnalyzerFileReference);
 

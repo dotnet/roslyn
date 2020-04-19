@@ -152,11 +152,9 @@ namespace Microsoft.CodeAnalysis
                         return ValueUsageInfo.Read;
                 }
             }
-            else if (operation.Parent is IReturnOperation)
+            else if (operation.Parent is IReturnOperation returnOperation)
             {
-                var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation)
-                    ?? (containingSymbol as IMethodSymbol);
-                return (containingMethod?.RefKind) switch
+                return returnOperation.GetRefKind(containingSymbol) switch
                 {
                     RefKind.RefReadOnly => ValueUsageInfo.ReadableReference,
                     RefKind.Ref => ValueUsageInfo.ReadableWritableReference,
@@ -208,9 +206,15 @@ namespace Microsoft.CodeAnalysis
             return ValueUsageInfo.Read;
         }
 
+        public static RefKind GetRefKind(this IReturnOperation operation, ISymbol containingSymbol)
+        {
+            var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
+            return containingMethod?.RefKind ?? RefKind.None;
+        }
+
         public static IMethodSymbol TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation operation)
         {
-            operation = operation.Parent;
+            operation = operation?.Parent;
             while (operation != null)
             {
                 switch (operation.Kind)

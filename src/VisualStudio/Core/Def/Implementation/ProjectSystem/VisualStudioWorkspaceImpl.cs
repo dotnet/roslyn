@@ -291,19 +291,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
-        internal AbstractProject? GetHostProject(ProjectId projectId)
-        {
-            var project = CurrentSolution.GetProject(projectId);
-
-            if (project == null)
-            {
-                return null;
-            }
-
-            return new StubProject(ProjectTracker, project, GetHierarchy(projectId), project.OutputFilePath);
-        }
-
         // TODO: consider whether this should be going to the project system directly to get this path. This is only called on interactions from the
         // Solution Explorer in the SolutionExplorerShim, where if we just could more directly get to the rule set file it'd simplify this.
         internal override string? TryGetRuleSetPathForProject(ProjectId projectId)
@@ -319,21 +306,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return null;
                 }
             }
-        }
-
-        [Obsolete("This is a compatibility shim for Live Unit Testing; please do not use it.")]
-        private sealed class StubProject : AbstractProject
-        {
-            private readonly string? _outputPath;
-
-            public StubProject(VisualStudioProjectTracker projectTracker, CodeAnalysis.Project project, IVsHierarchy? hierarchy, string? outputPath)
-                : base(projectTracker, null, project.Name + "_Stub", null, hierarchy, project.Language, Guid.Empty, null, null, null, null)
-            {
-                _outputPath = outputPath;
-            }
-
-            protected override string? GetOutputFilePath()
-                => _outputPath;
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
@@ -469,6 +441,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAnalyzerConfigDocument:
                 case ApplyChangesKind.RemoveAnalyzerConfigDocument:
                 case ApplyChangesKind.ChangeAnalyzerConfigDocument:
+                case ApplyChangesKind.AddSolutionAnalyzerReference:
+                case ApplyChangesKind.RemoveSolutionAnalyzerReference:
                     return true;
 
                 default:
