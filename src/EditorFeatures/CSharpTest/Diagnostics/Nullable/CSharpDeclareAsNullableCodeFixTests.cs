@@ -950,5 +950,24 @@ class Program
     int this[string x] { get { throw null!; } set { throw null!; } }
 }", parameters: s_nullableFeature);
         }
+
+        [Fact]
+        public async Task FixPropertyDeclaration_Unassigned()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+class C
+{
+    string [|S|] { get; }
+}",
+@"#nullable enable
+
+class C
+{
+    string? S { get; }
+}",
+                parameters: s_nullableFeature);
+        }
     }
 }
