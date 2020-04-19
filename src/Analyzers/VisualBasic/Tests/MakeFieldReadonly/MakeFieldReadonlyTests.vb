@@ -969,7 +969,7 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-        <WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        <WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")>
         Public Async Function ShouldNotWarnForDataMemberFieldsInDataContractClasses() As Task
             Dim initialMarkup =
                 <Workspace>
