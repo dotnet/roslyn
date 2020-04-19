@@ -4,16 +4,19 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast.CSharpRemoveUnnecessaryCastDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast.CSharpRemoveUnnecessaryCastCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpRemoveUnnecessaryCastDiagnosticAnalyzer,
+        CSharpRemoveUnnecessaryCastCodeFixProvider>;
+
     public class RemoveUnnecessaryCastTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -6731,6 +6734,224 @@ public class sign
         short i16 = -1;
 
         object v9 = 0xDEADBEEFU | (uint)i16;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable1()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v1 = (((long?)i32_hi) << 32) | (long?)i32_lo;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable2()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v2 = (ulong?)i32_hi | (ulong?)u64;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable3()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v3 = (ulong?)i32_hi | (ulong?)i32_lo;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable4()
+        {
+            var source = @"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v4 = (ulong?)(uint?)(ushort?)i08 | (ulong?)i32_lo;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable5()
+        {
+
+            await VerifyCS.VerifyCodeFixAsync(@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v5 = (int?)i08 | [|(int?)|]i32_lo;
+    }
+}",
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v5 = (int?)i08 | i32_lo;
+    }
+}");
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable6()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v6 = (((ulong?)i32_hi) << 32) | (uint?)i32_lo;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable7()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v7 = 0x0000BEEFU | (uint?)i16;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable8()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v8 = 0xFFFFBEEFU | (uint?)i16;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCaseNullable9()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int? i32_hi = 1;
+        int? i32_lo = 1;
+        ulong? u64 = 1;
+        sbyte? i08 = 1;
+        short? i16 = -1;
+
+        object v9 = 0xDEADBEEFU | (uint?)i16;
     }
 }";
 
