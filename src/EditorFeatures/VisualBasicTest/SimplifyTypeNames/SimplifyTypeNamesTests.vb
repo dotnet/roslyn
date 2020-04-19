@@ -24,25 +24,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
         Private Function PreferIntrinsicPredefinedTypeEverywhere() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError, language))
+            Return New OptionsCollection(language) From {
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error},
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithError}
+                }
         End Function
 
         Private Function PreferIntrinsicPredefinedTypeInDeclaration() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent, language))
+            Return New OptionsCollection(language) From {
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Error},
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithSilent}
+                }
         End Function
 
         Private Function PreferIntrinsicTypeInMemberAccess() As OptionsCollection
             Dim language = GetLanguage()
 
-            Return OptionsSet(
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption2.Error),
-                SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent, language))
+            Return New OptionsCollection(language) From {
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, True, NotificationOption2.Error},
+                {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.offWithSilent}
+                }
         End Function
 
         Private ReadOnly onWithError As New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Error)

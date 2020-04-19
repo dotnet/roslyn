@@ -24,10 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 
         private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
-        private OptionsCollection ImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
+        private OptionsCollection ImplicitTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+            };
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]

@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
@@ -21,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
 
         Private Function OptionOn() As OptionsCollection
             Dim values = New OptionsCollection(LanguageNames.VisualBasic)
-            values.Add(New OptionKey2(RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic), True)
+            values.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, True)
             Return values
         End Function
 

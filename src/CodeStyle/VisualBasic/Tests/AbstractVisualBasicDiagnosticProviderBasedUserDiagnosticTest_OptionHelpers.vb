@@ -2,8 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
@@ -38,29 +38,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         End Function
 
         Friend Function [Option](Of T)(optionParam As Option2(Of CodeStyleOption2(Of T)), enabled As T, notification As NotificationOption2) As OptionsCollection
-            Return OptionsSet(SingleOption(optionParam, enabled, notification))
+            Return New OptionsCollection(GetLanguage()) From {{optionParam, enabled, notification}}
         End Function
 
         Friend Function [Option](Of T)(optionParam As Option2(Of CodeStyleOption2(Of T)), codeStyle As CodeStyleOption2(Of T)) As OptionsCollection
-            Return OptionsSet(SingleOption(optionParam, codeStyle))
+            Return New OptionsCollection(GetLanguage()) From {{optionParam, codeStyle}}
         End Function
 
         Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of CodeStyleOption2(Of T)), enabled As T, notification As NotificationOption2) As OptionsCollection
-            Return OptionsSet(SingleOption(optionParam, enabled, notification))
+            Return New OptionsCollection(GetLanguage()) From {{optionParam, enabled, notification}}
         End Function
 
         Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of CodeStyleOption2(Of T)), codeStyle As CodeStyleOption2(Of T)) As OptionsCollection
-            Return OptionsSet(SingleOption(optionParam, codeStyle))
+            Return New OptionsCollection(GetLanguage()) From {{optionParam, codeStyle}}
         End Function
 
         Friend Function [Option](Of T)(optionParam As Option2(Of T), value As T) As OptionsCollection
-            Return OptionsSet(SingleOption(optionParam, value))
+            Return New OptionsCollection(GetLanguage()) From {{optionParam, value}}
         End Function
 
         Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of T), value As T) As OptionsCollection
-            Return OptionsSet(SingleOption(optionParam, value))
+            Return New OptionsCollection(GetLanguage()) From {{optionParam, value}}
         End Function
 
+        <Obsolete("Use a strongly-typed overload instead.")>
         Friend Shared Function OptionsSet(ParamArray options As (OptionKey2, Object)()) As OptionsCollection
             Return New OptionsCollection(LanguageNames.VisualBasic, options)
         End Function

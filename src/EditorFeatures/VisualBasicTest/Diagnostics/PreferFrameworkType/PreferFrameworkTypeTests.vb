@@ -25,33 +25,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
 
         Private ReadOnly Property NoFrameworkType As OptionsCollection
             Get
-                Return OptionsSet(
-                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Suggestion),
-                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage()))
+                Return New OptionsCollection(GetLanguage()) From {
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, True, NotificationOption2.Suggestion},
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo}
+                    }
             End Get
         End Property
 
         Private ReadOnly Property FrameworkTypeEverywhere As OptionsCollection
             Get
-                Return OptionsSet(
-                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion),
-                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithInfo, GetLanguage()))
+                Return New OptionsCollection(GetLanguage()) From {
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion},
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.offWithInfo}
+                    }
             End Get
         End Property
 
         Private ReadOnly Property FrameworkTypeInDeclaration As OptionsCollection
             Get
-                Return OptionsSet(
-                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion),
-                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo, GetLanguage()))
+                Return New OptionsCollection(GetLanguage()) From {
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Suggestion},
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, Me.onWithInfo}
+                    }
             End Get
         End Property
 
         Private ReadOnly Property FrameworkTypeInMemberAccess As OptionsCollection
             Get
-                Return OptionsSet(
-                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Suggestion),
-                    SingleOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.onWithInfo, GetLanguage()))
+                Return New OptionsCollection(GetLanguage()) From {
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, False, NotificationOption2.Suggestion},
+                    {CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, Me.onWithInfo}
+                    }
             End Get
         End Property
 

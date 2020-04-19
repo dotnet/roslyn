@@ -29,11 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private OptionsCollection ImplicitTypingEverywhere() =>
-            OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
+        private OptionsCollection ImplicitTypingEverywhere()
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestEmptySpan1()

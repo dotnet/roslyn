@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.EncapsulateField
@@ -23,9 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             => new EncapsulateFieldRefactoringProvider();
 
         private OptionsCollection AllOptionsOff =>
-            OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
 
         internal Task TestAllOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
@@ -34,10 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             int index = 0, OptionsCollection options = null)
         {
             options = options ?? new OptionsCollection(GetLanguage());
-            foreach (var (key, value) in AllOptionsOff)
-            {
-                options.Add(key, value);
-            }
+            options.AddRange(AllOptionsOff);
 
             return TestAsync(initialMarkup, expectedMarkup,
                 parseOptions, compilationOptions, index, options);
@@ -209,9 +207,11 @@ class goo
 }
 ";
             await TestInRegularAndScriptAsync(text, expected,
-                options: OptionsSet(
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent),
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent)));
+                options: new OptionsCollection(GetLanguage())
+                {
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
+                });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]

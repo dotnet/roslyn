@@ -31,74 +31,74 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         {
             var firstPreferences = (NamingStylePreferences)first.First().Value;
             var secondPreferences = (NamingStylePreferences)second.First().Value;
-            return Options(_optionKey, new NamingStylePreferences(
+            return new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, new NamingStylePreferences(
                 firstPreferences.SymbolSpecifications.AddRange(secondPreferences.SymbolSpecifications),
                 firstPreferences.NamingStyles.AddRange(secondPreferences.NamingStyles),
-                firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)));
+                firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)) } };
         }
 
         internal OptionsCollection ClassNamesArePascalCase =>
-            Options(_optionKey, ClassNamesArePascalCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ClassNamesArePascalCaseOption() } };
 
         internal OptionsCollection FieldNamesAreCamelCase =>
-            Options(_optionKey, FieldNamesAreCamelCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseOption() } };
 
         internal OptionsCollection FieldNamesAreCamelCaseWithUnderscorePrefix =>
-            Options(_optionKey, FieldNamesAreCamelCaseWithUnderscorePrefixOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithUnderscorePrefixOption() } };
 
         internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefix =>
-            Options(_optionKey, FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption() } };
 
         internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix =>
-            Options(_optionKey, FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption() } };
 
         internal OptionsCollection MethodNamesArePascalCase =>
-            Options(_optionKey, MethodNamesArePascalCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesArePascalCaseOption() } };
 
         internal OptionsCollection MethodNamesAreCamelCase =>
-            Options(_optionKey, MethodNamesAreCamelCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesAreCamelCaseOption() } };
 
         internal OptionsCollection ParameterNamesAreCamelCase =>
-            Options(_optionKey, ParameterNamesAreCamelCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseOption() } };
 
         internal OptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefix =>
-            Options(_optionKey, ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseWithPUnderscorePrefixOption() } };
 
         internal OptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix =>
-            Options(_optionKey, ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption() } };
 
         internal OptionsCollection LocalNamesAreCamelCase =>
-            Options(_optionKey, LocalNamesAreCamelCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalNamesAreCamelCaseOption() } };
 
         internal OptionsCollection LocalFunctionNamesAreCamelCase =>
-            Options(_optionKey, LocalFunctionNamesAreCamelCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalFunctionNamesAreCamelCaseOption() } };
 
         internal OptionsCollection PropertyNamesArePascalCase =>
-            Options(_optionKey, PropertyNamesArePascalCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, PropertyNamesArePascalCaseOption() } };
 
         internal OptionsCollection InterfaceNamesStartWithI =>
-            Options(_optionKey, InterfaceNamesStartWithIOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, InterfaceNamesStartWithIOption() } };
 
         internal OptionsCollection TypeParameterNamesStartWithT =>
-            Options(_optionKey, TypeParameterNamesStartWithTOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, TypeParameterNamesStartWithTOption() } };
 
         internal OptionsCollection ConstantsAreUpperCase =>
-            Options(_optionKey, ConstantsAreUpperCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ConstantsAreUpperCaseOption() } };
 
         internal OptionsCollection LocalsAreCamelCaseConstantsAreUpperCase =>
-            Options(_optionKey, LocalsAreCamelCaseConstantsAreUpperCaseOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalsAreCamelCaseConstantsAreUpperCaseOption() } };
 
         internal OptionsCollection AsyncFunctionNamesEndWithAsync =>
-            Options(_optionKey, AsyncFunctionNamesEndWithAsyncOption());
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, AsyncFunctionNamesEndWithAsyncOption() } };
 
         internal OptionsCollection MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
-            Options(_optionKey, MethodNamesArePascalCaseOption(accessibilities));
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesArePascalCaseOption(accessibilities) } };
 
         internal OptionsCollection SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds) =>
-            Options(_optionKey, SymbolKindsArePascalCaseOption(symbolKinds));
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, SymbolKindsArePascalCaseOption(symbolKinds) } };
 
         internal OptionsCollection SymbolKindsArePascalCaseEmpty() =>
-            Options(_optionKey, SymbolKindsArePascalCaseOption(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind>.Empty));
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, SymbolKindsArePascalCaseOption(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind>.Empty) } };
 
         internal OptionsCollection SymbolKindsArePascalCase(object symbolOrTypeKind) =>
             SymbolKindsArePascalCase(ImmutableArray.Create(ToSymbolKindOrTypeKind(symbolOrTypeKind)));
@@ -122,13 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         }
 
         internal OptionsCollection AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
-            Options(_optionKey, AccessibilitiesArePascalCaseOption(accessibilities));
-
-        private OptionsCollection Options(OptionKey2 option, object value)
-            => Options(new[] { (option, value) });
-
-        private OptionsCollection Options(params (OptionKey2 key, object value)[] options)
-            => new OptionsCollection(_languageName, options);
+            new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, AccessibilitiesArePascalCaseOption(accessibilities) } };
 
         private static NamingStylePreferences ClassNamesArePascalCaseOption()
         {

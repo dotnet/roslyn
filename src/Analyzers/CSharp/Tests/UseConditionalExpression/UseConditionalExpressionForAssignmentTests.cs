@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             => (new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForAssignmentCodeFixProvider());
 
-        private OptionsCollection PreferImplicitTypeAlways => OptionsSet
-        (
-            (CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement),
-            (CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement),
-            (CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement)
-        );
+        private OptionsCollection PreferImplicitTypeAlways => new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions2.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions2.TrueWithSilentEnforcement },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions2.TrueWithSilentEnforcement },
+        };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleAssignment()

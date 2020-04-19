@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
         End Function
 
+#Disable Warning BC40000 ' Type or member is obsolete
         Private Function VBOptionOnCSharpOptionOff() As OptionsCollection
             Return OptionsSet(
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False),
@@ -30,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True),
                 (New OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False))
         End Function
+#Enable Warning BC40000 ' Type or member is obsolete
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function ParamsObjectArray() As Task

@@ -1844,6 +1844,6 @@ class C : IGoo
         }
 
         private OptionsCollection PreferExpressionBodiedMethods =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+            new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
     }
 }

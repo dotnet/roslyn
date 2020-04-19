@@ -32,35 +32,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         private static readonly CodeStyleOption2<bool> offWithError = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
 
         // specify all options explicitly to override defaults.
-        internal OptionsCollection ImplicitTypeEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
+        internal OptionsCollection ImplicitTypeEverywhere() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
-        private OptionsCollection ImplicitTypeWhereApparent() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
+        private OptionsCollection ImplicitTypeWhereApparent() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
 
-        private OptionsCollection ImplicitTypeWhereApparentAndForIntrinsics() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
+        private OptionsCollection ImplicitTypeWhereApparentAndForIntrinsics() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
-        internal OptionsCollection ImplicitTypeButKeepIntrinsics() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo));
+        internal OptionsCollection ImplicitTypeButKeepIntrinsics() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+            };
 
-        private OptionsCollection ImplicitTypeEnforcements() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithWarning),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
+        private OptionsCollection ImplicitTypeEnforcements() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithWarning },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
-        private OptionsCollection ImplicitTypeSilentEnforcement() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
+        private OptionsCollection ImplicitTypeSilentEnforcement() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+            };
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
         public async Task NotOnFieldDeclaration()

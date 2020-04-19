@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpValidateFormatStringDiagnosticAnalyzer(), null);
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private OptionsCollection CSharpOptionOffVBOptionOn() => OptionsSet(
                 (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), false),
                 (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), true));
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         private OptionsCollection CSharpOptionOnVBOptionOff() => OptionsSet(
                 (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), true),
                 (new OptionKey2(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), false));
+#pragma warning restore CS0618 // Type or member is obsolete
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task OnePlaceholder()
