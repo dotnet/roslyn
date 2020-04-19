@@ -17,12 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         private readonly Dictionary<OptionKey2, object?> _options = new Dictionary<OptionKey2, object?>();
         private readonly string _languageName;
-        private readonly string _defaultExtension;
 
         public OptionsCollection(string languageName)
         {
             _languageName = languageName;
-            _defaultExtension = languageName == LanguageNames.CSharp ? "cs" : "vb";
         }
 
         [Obsolete("Use a strongly-typed overload instead.")]
@@ -34,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Add(key, value);
             }
         }
+
+        public string DefaultExtension => _languageName == LanguageNames.CSharp ? "cs" : "vb";
 
         public int Count => _options.Count;
 
@@ -69,11 +69,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
-
-        public string? GetEditorConfigText()
-        {
-            var (text, _) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultExtension, explicitEditorConfig: string.Empty, this);
-            return text?.ToString();
-        }
     }
 }
