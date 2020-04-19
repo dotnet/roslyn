@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public override bool IsRemoteHost64Bit => RemoteHostOptions.IsServiceHubProcess64Bit(Workspace);
 
         public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
-            => _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
+            => _connectionManager.CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).AsNullable();
 
         protected override void OnStarted()
             => RegisterGlobalOperationNotifications();

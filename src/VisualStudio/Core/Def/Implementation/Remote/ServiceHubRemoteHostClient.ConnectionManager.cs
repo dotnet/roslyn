@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             public HostGroup HostGroup => _hostGroup;
 
-            public Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+            public Task<Connection> CreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
                 // pool is not enabled by option
                 if (!_enableConnectionPool)
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // but, at some point, if we want to support RemoteHost being restarted at any random point, 
                     // we need to revisit this to support such case by creating new temporary connections.
                     // for now, I dropped it since it felt over-designing when there is no usage case for that yet.
-                    return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
+                    return CreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
                 }
 
                 // when callbackTarget is given, we can't share/pool connection since callbackTarget attaches a state to connection.
@@ -82,13 +82,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // if he wants to reuse same connection
                 if (callbackTarget != null)
                 {
-                    return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
+                    return CreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
                 }
 
-                return TryGetConnectionFromPoolAsync(serviceName, cancellationToken);
+                return GetConnectionFromPoolAsync(serviceName, cancellationToken);
             }
 
-            private async Task<Connection?> TryGetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
+            private async Task<Connection> GetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
             {
                 var queue = _pools.GetOrAdd(serviceName, _ => new ConcurrentQueue<JsonRpcConnection>());
                 if (queue.TryDequeue(out var connection))
@@ -96,17 +96,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new PooledConnection(this, serviceName, connection);
                 }
 
-                var newConnection = await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-                if (newConnection == null)
-                {
-                    // we might not get new connection if we are either shutdown explicitly or due to OOP terminated
-                    return null;
-                }
-
+                var newConnection = await CreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
                 return new PooledConnection(this, serviceName, (JsonRpcConnection)newConnection);
             }
 
-            private async Task<Connection?> TryCreateNewConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
+            private async Task<Connection> CreateNewConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
