@@ -967,5 +967,24 @@ End Class",
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(29373, "https://github.com/dotnet/roslyn/issues/29373")>
+        Public Async Function ShouldNotWarnForDataMemberFieldsInDataContractClasses() As Task
+            Dim initialMarkup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document>
+                            &lt;System.Runtime.Serialization.DataContract&gt;
+Class Test
+    &lt;System.Runtime.Serialization.DataMember&gt;
+    Private [|id|] As String
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>.ToString()
+
+            Await TestMissingAsync(initialMarkup)
+        End Function
     End Class
 End Namespace

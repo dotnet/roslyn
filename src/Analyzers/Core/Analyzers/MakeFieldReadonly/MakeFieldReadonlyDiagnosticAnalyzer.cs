@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -102,19 +103,29 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     }
                 }
 
-                static bool IsCandidateField(IFieldSymbol symbol) =>
+                static bool IsCandidateField(IFieldSymbol symbol, Compilation compilation) =>
                         symbol.DeclaredAccessibility == Accessibility.Private &&
                         !symbol.IsReadOnly &&
                         !symbol.IsConst &&
                         !symbol.IsImplicitlyDeclared &&
                         symbol.Locations.Length == 1 &&
                         symbol.Type.IsMutableValueType() == false &&
-                        !symbol.IsFixedSizeBuffer;
+                        !symbol.IsFixedSizeBuffer &&
+                        !IsDataContractSerializable(symbol, compilation);
+
+                static bool IsDataContractSerializable(IFieldSymbol symbol, Compilation compilation)
+                {
+                    var dataMemberAttribute = compilation.DataMemberAttribute();
+                    var dataContractAttribute = compilation.DataContractAttribute();
+
+                    return symbol.GetAttributes().Any(x => x.AttributeClass == dataMemberAttribute)
+                        && symbol.ContainingType.GetAttributes().Any(x => x.AttributeClass == dataContractAttribute);
+                }
 
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)
                 {
-                    Debug.Assert(IsCandidateField(field));
+                    Debug.Assert(IsCandidateField(field, compilationStartContext.Compilation));
                     Debug.Assert(fieldStateMap.ContainsKey(field));
 
                     fieldStateMap[field] = (isCandidate: true, written: true);
@@ -123,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // Method to get or initialize the field state.
                 (bool isCandidate, bool written) TryGetOrInitializeFieldState(IFieldSymbol fieldSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
-                    if (!IsCandidateField(fieldSymbol))
+                    if (!IsCandidateField(fieldSymbol, compilationStartContext.Compilation))
                     {
                         return default;
                     }
@@ -133,14 +144,14 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         return result;
                     }
 
-                    result = ComputeInitialFieldState(fieldSymbol, options, cancellationToken);
+                    result = ComputeInitialFieldState(fieldSymbol, options, compilationStartContext.Compilation, cancellationToken);
                     return fieldStateMap.GetOrAdd(fieldSymbol, result);
                 }
 
                 // Method to compute the initial field state.
-                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
+                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, Compilation compilation, CancellationToken cancellationToken)
                 {
-                    Debug.Assert(IsCandidateField(field));
+                    Debug.Assert(IsCandidateField(field, compilation));
 
                     var option = GetCodeStyleOption(field, options, cancellationToken);
                     if (option == null || !option.Value)

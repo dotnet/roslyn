@@ -1660,5 +1660,25 @@ public class Repro
     }
 }");
         }
+
+        [WorkItem(40644, "https://github.com/dotnet/roslyn/issues/40644")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task ShouldNotWarnForDataMemberFieldsInDataContractClasses()
+        {
+            await TestMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true"">
+        <Document>
+[System.Runtime.Serialization.DataContractAttribute]
+public class MyClass
+{
+	[System.Runtime.Serialization.DataMember]
+	private bool [|isReadOnly|];
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
     }
 }
