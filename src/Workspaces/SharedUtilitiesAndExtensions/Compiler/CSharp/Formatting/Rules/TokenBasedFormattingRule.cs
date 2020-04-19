@@ -509,6 +509,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // Relational unary prefix operators within patterns
+            // < *
+            // <= *
+            // > *
+            // >= *
+            if (previousToken.IsKind(SyntaxKind.LessThanToken, SyntaxKind.LessThanEqualsToken, SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanEqualsToken)
+                && previousToken.Parent.IsKind(SyntaxKindEx.RelationalPattern))
+            {
+            }
+
             // pointer case
             if ((currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax) ||
                 (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax))

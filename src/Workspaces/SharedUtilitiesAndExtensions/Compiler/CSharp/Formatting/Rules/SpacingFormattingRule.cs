@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing between parenthesis and expression
-            if ((previousParentKind == SyntaxKind.ParenthesizedExpression && previousKind == SyntaxKind.OpenParenToken) ||
-                (currentParentKind == SyntaxKind.ParenthesizedExpression && currentKind == SyntaxKind.CloseParenToken))
+            if ((previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKindEx.ParenthesizedPattern) && previousKind == SyntaxKind.OpenParenToken) ||
+                (currentToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKindEx.ParenthesizedPattern) && currentKind == SyntaxKind.CloseParenToken))
             {
                 return AdjustSpacesOperationZeroOrOne(_options.SpaceWithinExpressionParentheses);
             }
@@ -287,7 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.Parent is BinaryExpressionSyntax ||
                 previousToken.Parent is BinaryExpressionSyntax ||
                 currentToken.Parent is AssignmentExpressionSyntax ||
-                previousToken.Parent is AssignmentExpressionSyntax)
+                previousToken.Parent is AssignmentExpressionSyntax ||
+                currentToken.Parent.IsKind(SyntaxKindEx.AndPattern, SyntaxKindEx.OrPattern, SyntaxKindEx.RelationalPattern) ||
+                previousToken.Parent.IsKind(SyntaxKindEx.AndPattern, SyntaxKindEx.OrPattern, SyntaxKindEx.RelationalPattern))
             {
                 switch (_options.SpacingAroundBinaryOperator)
                 {
@@ -296,8 +298,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     case BinaryOperatorSpacingOptions.Remove:
                         if (currentKind == SyntaxKind.IsKeyword ||
                             currentKind == SyntaxKind.AsKeyword ||
+                            currentKind == SyntaxKindEx.AndKeyword ||
+                            currentKind == SyntaxKindEx.OrKeyword ||
                             previousKind == SyntaxKind.IsKeyword ||
-                            previousKind == SyntaxKind.AsKeyword)
+                            previousKind == SyntaxKind.AsKeyword ||
+                            previousKind == SyntaxKindEx.AndKeyword ||
+                            previousKind == SyntaxKindEx.OrKeyword)
                         {
                             // User want spaces removed but at least one is required for the "as" & "is" keyword
                             return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -308,6 +314,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         }
                     case BinaryOperatorSpacingOptions.Ignore:
                         return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
+                    default:
+                        System.Diagnostics.Debug.Assert(false, "Invalid BinaryOperatorSpacingOptions");
+                        break;
+                }
+            }
+
+            // For spacing after the 'not' pattern operator
+            if (previousToken.Parent.IsKind(SyntaxKindEx.NotPattern))
+            {
+                switch (_options.SpacingAroundBinaryOperator)
+                {
+                    case BinaryOperatorSpacingOptions.Single:
+                    case BinaryOperatorSpacingOptions.Remove:
+                        return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+
+                    case BinaryOperatorSpacingOptions.Ignore:
+                        return CreateAdjustSpacesOperation(1, AdjustSpacesOption.PreserveSpaces);
+
                     default:
                         System.Diagnostics.Debug.Assert(false, "Invalid BinaryOperatorSpacingOptions");
                         break;
