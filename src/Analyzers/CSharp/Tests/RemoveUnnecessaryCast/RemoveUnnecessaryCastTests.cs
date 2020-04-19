@@ -6331,5 +6331,410 @@ class Program
 
             await VerifyCS.VerifyCodeFixAsync(source, source);
         }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrAssignment1()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        result |= (long)random.Next();
+        return result;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrBinary1()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        var v = result | (long)random.Next();
+        return result;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrBinary2()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        var v = (long)random.Next() | result;
+        return result;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithAndAssignment1()
+        {
+
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        result &= [|(long)|]random.Next();
+        return result;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        result &= random.Next();
+        return result;
+    }
+}");
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithAndBinary1()
+        {
+
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        var x = result & [|(long)|]random.Next();
+        return result;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        var x = result & random.Next();
+        return result;
+    }
+}");
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithAndBinary2()
+        {
+
+            await VerifyCS.VerifyCodeFixAsync(@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        var x = [|(long)|]random.Next() & result;
+        return result;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    private long Repro()
+    {
+        var random = new Random();
+        long result = random.Next();
+        result <<= 32;
+        var x = random.Next() & result;
+        return result;
+    }
+}");
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase1()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v1 = (((long)i32_hi) << 32) | (long)i32_lo;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase2()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v2 = (ulong)i32_hi | (ulong)u64;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase3()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v3 = (ulong)i32_hi | (ulong)i32_lo;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase4()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v4 = (ulong)[|(uint)|](ushort)i08 | (ulong)i32_lo;
+    }
+}",
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v4 = (ulong)(ushort)i08 | (ulong)i32_lo;
+    }
+}");
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase5()
+        {
+
+            await VerifyCS.VerifyCodeFixAsync(@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v5 = (int)i08 | [|(int)|]i32_lo;
+    }
+}",
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v5 = (int)i08 | i32_lo;
+    }
+}");
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase6()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v6 = (((ulong)i32_hi) << 32) | (uint) i32_lo;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase7()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v7 = 0x0000BEEFU | (uint)i16;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase8()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v8 = 0xFFFFBEEFU | (uint)i16;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [WorkItem(40414, "https://github.com/dotnet/roslyn/issues/40414")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task TestSignExtensionWithOrCompilerCase9()
+        {
+            var source =
+@"
+public class sign
+{
+    public static void Main()
+    {
+        int i32_hi = 1;
+        int i32_lo = 1;
+        ulong u64 = 1;
+        sbyte i08 = 1;
+        short i16 = -1;
+
+        object v9 = 0xDEADBEEFU | (uint)i16;
+    }
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
     }
 }
