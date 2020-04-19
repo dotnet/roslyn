@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
@@ -49,9 +48,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics
 
         internal OptionsCollection Option<T>(PerLanguageOption2<T> option, T value)
             => new OptionsCollection(GetLanguage()) { { option, value } };
-
-        [Obsolete("Use a strongly-typed overload instead.")]
-        internal OptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
-            => new OptionsCollection(LanguageNames.CSharp, options);
     }
 }

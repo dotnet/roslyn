@@ -50,13 +50,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         internal OptionsCollection Option<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
             => new OptionsCollection(GetLanguage()) { { option, codeStyle } };
-
-        [Obsolete("Use a strongly-typed overload instead.")]
-        internal OptionsCollection OptionsSet(OptionKey2 option, object value)
-            => OptionsSet((option, value));
-
-        [Obsolete("Use a strongly-typed overload instead.")]
-        internal OptionsCollection OptionsSet(params (OptionKey2 key, object? value)[] options)
-            => new OptionsCollection(GetLanguage(), options: options);
     }
 }

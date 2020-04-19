@@ -23,16 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             _languageName = languageName;
         }
 
-        [Obsolete("Use a strongly-typed overload instead.")]
-        public OptionsCollection(string languageName, params (OptionKey2 key, object? value)[] options)
-            : this(languageName)
-        {
-            foreach (var (key, value) in options)
-            {
-                Add(key, value);
-            }
-        }
-
         public string DefaultExtension => _languageName == LanguageNames.CSharp ? "cs" : "vb";
 
         public int Count => _options.Count;
@@ -51,10 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         public void Add<T>(PerLanguageOption2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
             => _options.Add(new OptionKey2(option, _languageName), new CodeStyleOption2<T>(value, notification));
-
-        [Obsolete("Use a strongly-typed overload instead.")]
-        public void Add<T>(OptionKey2 optionKey, T value)
-            => _options.Add(optionKey, value);
 
         public void AddRange(OptionsCollection options)
         {

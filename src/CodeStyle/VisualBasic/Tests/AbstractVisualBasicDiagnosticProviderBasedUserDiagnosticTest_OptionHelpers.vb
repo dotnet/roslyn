@@ -60,10 +60,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         Friend Function [Option](Of T)(optionParam As PerLanguageOption2(Of T), value As T) As OptionsCollection
             Return New OptionsCollection(GetLanguage()) From {{optionParam, value}}
         End Function
-
-        <Obsolete("Use a strongly-typed overload instead.")>
-        Friend Shared Function OptionsSet(ParamArray options As (OptionKey2, Object)()) As OptionsCollection
-            Return New OptionsCollection(LanguageNames.VisualBasic, options)
-        End Function
     End Class
 End Namespace
