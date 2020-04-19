@@ -19,6 +19,7 @@
                                Name="IntegrationTestServicePackage"
                                Class="Microsoft.VisualStudio.IntegrationTest.Setup.IntegrationTestServicePackage"
                                AllowsBackgroundLoad="true"/>
+    <PkgDefCodeBase Include="$(TargetPath)"/>
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>

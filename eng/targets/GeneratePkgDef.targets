@@ -13,21 +13,41 @@
          Corresponds to Microsoft.VisualStudio.Shell.PackageRegistrationAttribute.
          Project specifies this entry explicitly.
          
+         Metadata:
+         - ItemSpec: package guid
+         - Name: package name
+         - Class: namespace qualified type name of package implementation class
+         - AllowsBackgroundLoad: bool
+         
       2) PkgDefInstalledProduct
          Emits $RootKey$\InstalledProducts entry.
          Project specifies this entry explicitly.
          
+         Metadata:
+         - ItemSpec: package guid
+         - Name
+         - DisplayName (resource id)
+         - ProductDetauls (resource id)
+
       3) PkgDefBindingRedirect
          Emits $RootKey$\RuntimeConfiguration\dependentAssembly\bindingRedirection entry.
          
          Project may specify <PkgDefEntry>BindingRedirect</PkgDefEntry> on any item that contributes to ReferencePath item group.
          (e.g. ProjectReference), or on NuGetPackageToIncludeInVsix items. These items will be automatically included in PkgDefEntry items.
          
+         Metadata:
+         - ItemSpec: full path to the binary
+         - FusionName: optional assembly name (read from the binary if not specified)
+
       4) PkgDefCodeBase
          Emits $RootKey$\RuntimeConfiguration\dependentAssembly\codeBase entry.
          
          Project may specify <PkgDefEntry>CodeBase</PkgDefEntry> on any item that contributes to ReferencePath item group.
          (e.g. ProjectReference), or on NuGetPackageToIncludeInVsix items. These items will be automatically included in PkgDefEntry items.
+         
+         Metadata:
+         - ItemSpec: full path to the binary
+         - FusionName: optional assembly name (read from the binary if not specified)
          
       5) PkgDefFileContent
          Merges the content of the file whose path is specified in the identity of the item to the generated pkgdef file.
