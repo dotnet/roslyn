@@ -44,12 +44,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _classificationFormatMap,
                 _classificationTypeMap);
 
+            ChangeSignatureLogger.LogChangeSignatureDialogLaunched();
+
             var dialog = new ChangeSignatureDialog(viewModel);
             var result = dialog.ShowModal();
 
             if (result.HasValue && result.Value)
             {
-                return new ChangeSignatureOptionsResult(new SignatureChange(parameters, viewModel.GetParameterConfiguration()), previewChanges: viewModel.PreviewChanges);
+                ChangeSignatureLogger.LogChangeSignatureDialogCommitted();
+
+                var signatureChange = new SignatureChange(parameters, viewModel.GetParameterConfiguration());
+                signatureChange.LogTelemetry();
+
+                return new ChangeSignatureOptionsResult(signatureChange, previewChanges: viewModel.PreviewChanges);
             }
 
             return null;

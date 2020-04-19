@@ -6,7 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
@@ -55,5 +58,66 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal SignatureChange WithoutAddedParameters()
             => new SignatureChange(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
+
+        internal void LogTelemetry()
+        {
+            var originalListOfParameters = OriginalConfiguration.ToListOfParameters();
+            var updatedListOfParameters = UpdatedConfiguration.ToListOfParameters();
+
+            ChangeSignatureLogger.LogTransformationInformation(
+                numOriginalParameters: originalListOfParameters.Length,
+                numParametersAdded: updatedListOfParameters.Count(p => p is AddedParameter),
+                numParametersRemoved: originalListOfParameters.Count(p => !updatedListOfParameters.Contains(p)),
+                anyParametersReordered: AnyParametersReordered(originalListOfParameters, updatedListOfParameters));
+
+            foreach (var addedParameter in updatedListOfParameters.OfType<AddedParameter>())
+            {
+                if (addedParameter.IsRequired)
+                {
+                    ChangeSignatureLogger.LogAddedParameterRequired();
+                }
+
+                if (addedParameter.TypeBinds)
+                {
+                    ChangeSignatureLogger.LogAddedParameterTypeBinds();
+                }
+
+                if (addedParameter.IsCallsiteTodo)
+                {
+                    ChangeSignatureLogger.LogAddedParameter_ValueTODO();
+                }
+                else if (addedParameter.IsCallsiteOmitted)
+                {
+                    ChangeSignatureLogger.LogAddedParameter_ValueOmitted();
+                }
+                else
+                {
+                    if (addedParameter.UseNamedArguments)
+                    {
+                        ChangeSignatureLogger.LogAddedParameter_ValueExplicitNamed();
+                    }
+                    else
+                    {
+                        ChangeSignatureLogger.LogAddedParameter_ValueExplicit();
+                    }
+                }
+            }
+        }
+
+        private bool AnyParametersReordered(ImmutableArray<Parameter> originalListOfParameters, ImmutableArray<Parameter> updatedListOfParameters)
+        {
+            var originalListWithoutRemovedOrAdded = originalListOfParameters.Where(p => updatedListOfParameters.Contains(p)).ToImmutableArray();
+            var updatedListWithoutRemovedOrAdded = updatedListOfParameters.Where(p => originalListOfParameters.Contains(p)).ToImmutableArray();
+
+            for (int i = 0; i < originalListWithoutRemovedOrAdded.Length; i++)
+            {
+                if (originalListWithoutRemovedOrAdded[i] != updatedListWithoutRemovedOrAdded[i])
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

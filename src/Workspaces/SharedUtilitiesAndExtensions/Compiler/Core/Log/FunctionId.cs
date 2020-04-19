@@ -477,5 +477,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LanguageServer_OnLoadedFailed = 383,
 
         CodeFixes_AddExplicitCast = 384,
+
+        ChangeSignature_Data = 385,
     }
 }
