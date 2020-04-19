@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override string ParameterName => _addedParameter.Name;
 
-            public override bool IsRemoved 
+            public override bool IsRemoved
             {
                 get => false;
                 set => throw new InvalidOperationException();
