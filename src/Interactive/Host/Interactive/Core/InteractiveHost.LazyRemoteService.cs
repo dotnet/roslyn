@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Globalization;
 using System.Threading;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // If the value has been calculated already, dispose the service.
                 if (InitializedService.TryGetValue(out var initializedService))
                 {
-                    initializedService.ServiceOpt?.Dispose();
+                    initializedService.Service?.Dispose();
                 }
             }
 
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private Task<RemoteService> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
+            private Task<RemoteService?> TryStartProcessAsync(string hostPath, CultureInfo culture, CancellationToken cancellationToken)
             {
                 return Task.Run(() => Host.TryStartProcess(hostPath, culture, cancellationToken));
             }
