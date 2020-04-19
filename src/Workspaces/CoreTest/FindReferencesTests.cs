@@ -323,7 +323,12 @@ namespace N2
 
             var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, solution)).ToList();
             Assert.Equal(2, references.Count);
-            Assert.True(references.Any(r => r.DefinitionAndProjectId.ProjectId == desktopProject.Id));
+
+            var projectIds = new HashSet<ProjectId>();
+            foreach (var r in references)
+                projectIds.Add(solution.GetExactProjectId(r.Definition));
+
+            Assert.True(projectIds.Contains(desktopProject.Id));
         }
 
         [Fact, WorkItem(35786, "https://github.com/dotnet/roslyn/issues/35786")]
