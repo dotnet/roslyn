@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 return;
             }
 
-            var (symbolAndProjectId, implementations, message) = tupleOpt.Value;
+            var (solution, symbolAndProjectId, implementations, message) = tupleOpt.Value;
             if (message != null)
             {
                 await context.ReportMessageAsync(message).ConfigureAwait(false);
@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 string.Format(EditorFeaturesResources._0_implementations,
                 FindUsagesHelpers.GetDisplayName(symbolAndProjectId.Symbol))).ConfigureAwait(false);
 
-            var solution = document.Project.Solution;
             foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.Symbol.ToClassifiedDefinitionItemAsync(
@@ -122,18 +121,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             cancellationToken.ThrowIfCancellationRequested();
 
             // Find the symbol we want to search and the solution we want to search in.
-            var symbolAndProjectIdOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectIdAtPositionAsync(
+            var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProjectIdOpt == null)
+            if (symbolAndProjectOpt == null)
                 return;
 
-            var solution = document.Project.Solution;
-            var symbolAndProjectId = symbolAndProjectIdOpt.Value;
+            var (symbol, project) = symbolAndProjectOpt.Value;
 
             await FindSymbolReferencesAsync(
                 _threadingContext, context,
-                symbolAndProjectId.Symbol,
-                solution.GetRequiredProject(symbolAndProjectId.ProjectId),
+                symbol, project,
                 cancellationToken).ConfigureAwait(false);
         }
 

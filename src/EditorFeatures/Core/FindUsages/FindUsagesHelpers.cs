@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
-        public static async Task<SymbolAndProjectId?> GetRelevantSymbolAndProjectIdAtPositionAsync(
+        public static async Task<(ISymbol symbol, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -49,21 +49,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             if (mapping == null)
                 return null;
 
-            return new SymbolAndProjectId(mapping.Symbol, mapping.Project.Id);
+            return (mapping.Symbol, mapping.Project);
         }
 
-        public static async Task<(SymbolAndProjectId symboAndProjectId, ImmutableArray<SymbolAndProjectId> implementations, string message)?> FindSourceImplementationsAsync(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<(Solution solution, SymbolAndProjectId symboAndProjectId, ImmutableArray<SymbolAndProjectId> implementations, string message)?> FindSourceImplementationsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var symbolAndProjectIdOpt = await GetRelevantSymbolAndProjectIdAtPositionAsync(
+            var symbolAndProjectOpt = await GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProjectIdOpt == null)
+            if (symbolAndProjectOpt == null)
                 return null;
 
+            var (symbol, project) = symbolAndProjectOpt.Value;
+            var symbolAndProjectId = new SymbolAndProjectId(symbol, project.Id);
             return await FindSourceImplementationsAsync(
-                symbolAndProjectIdOpt.Value, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                symbolAndProjectId, project.Solution, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<(SymbolAndProjectId symbolAndProjectId, ImmutableArray<SymbolAndProjectId> implementations, string message)?> FindSourceImplementationsAsync(
+        private static async Task<(Solution solution, SymbolAndProjectId symbolAndProjectId, ImmutableArray<SymbolAndProjectId> implementations, string message)?> FindSourceImplementationsAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
         {
             var builder = new HashSet<SymbolAndProjectId>(SymbolAndProjectIdComparer.SymbolEquivalenceInstance);
@@ -86,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var result = builder.ToImmutableArray();
 
             return result.Length == 0
-                ? (symbolAndProjectId, result, EditorFeaturesResources.The_symbol_has_no_implementations)
-                : (symbolAndProjectId, result, null);
+                ? (solution, symbolAndProjectId, result, EditorFeaturesResources.The_symbol_has_no_implementations)
+                : (solution, symbolAndProjectId, result, null);
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceImplementationsWorkerAsync(
