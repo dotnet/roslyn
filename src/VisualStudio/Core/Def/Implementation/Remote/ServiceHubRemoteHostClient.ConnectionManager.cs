@@ -24,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly HostGroup _hostGroup;
 
             private readonly ReaderWriterLockSlim _shutdownLock;
-            private readonly ReferenceCountedDisposable<RemotableDataProvider> _remotableDataProvider;
 
             private readonly int _maxPoolConnections;
 
@@ -41,14 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 HubClient hubClient,
                 HostGroup hostGroup,
                 bool enableConnectionPool,
-                int maxPoolConnection,
-                ReferenceCountedDisposable<RemotableDataProvider> remotableDataProvider)
+                int maxPoolConnection)
             {
                 _workspace = workspace;
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
 
-                _remotableDataProvider = remotableDataProvider;
                 _maxPoolConnections = maxPoolConnection;
 
                 // initial value 4 is chosen to stop concurrent dictionary creating too many locks.
@@ -111,25 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private async Task<Connection?> TryCreateNewConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
             {
-                var dataProvider = _remotableDataProvider.TryAddReference();
-                if (dataProvider == null)
-                {
-                    // TODO: If we used multiplex stream we wouldn't get to this state and we could always assume to have a connection
-                    // unless the service process stops working, in which case we should report an error and ask user to restart VS
-                    // (https://github.com/dotnet/roslyn/issues/40146)
-                    //
-                    // dataRpc is disposed. this can happen if someone killed remote host process while there is
-                    // no other one holding the data connection.
-                    // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null
-                    // on such error situation.
-                    return null;
-                }
-
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
                 var serviceStream = await RequestServiceAsync(_workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
-                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream, dataProvider);
+                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream);
             }
 
             private void Free(string serviceName, JsonRpcConnection connection)
@@ -163,9 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 using (_shutdownLock.DisposableWrite())
                 {
                     _isDisposed = true;
-
-                    // let ref count this one is holding go
-                    _remotableDataProvider.Dispose();
 
                     // let all connections in the pool to go away
                     foreach (var (_, queue) in _pools)
