@@ -479,5 +479,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CodeFixes_AddExplicitCast = 384,
 
         ToolsOptions_GenerateEditorconfig = 385,
+
+        ChangeSignature_Data = 386,
     }
 }

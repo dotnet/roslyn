@@ -271,6 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
+            ChangeSignatureLogger.ReportTelemetry();
             SyntacticLspLogger.ReportTelemetry();
         }
 
