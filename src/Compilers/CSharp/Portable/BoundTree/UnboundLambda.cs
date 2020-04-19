@@ -35,18 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal readonly struct InferredLambdaReturnType
     {
-        internal readonly bool HasReturnValue;
+        internal readonly int NumExpressions;
+        internal readonly bool HadExpressionlessReturn;
         internal readonly RefKind RefKind;
         internal readonly TypeWithAnnotations TypeWithAnnotations;
         internal readonly ImmutableArray<DiagnosticInfo> UseSiteDiagnostics;
 
         internal InferredLambdaReturnType(
-            bool hasReturnValue,
+            int numExpressions,
+            bool hadExpressionlessReturn,
             RefKind refKind,
             TypeWithAnnotations typeWithAnnotations,
             ImmutableArray<DiagnosticInfo> useSiteDiagnostics)
         {
-            HasReturnValue = hasReturnValue;
+            NumExpressions = numExpressions;
+            HadExpressionlessReturn = hadExpressionlessReturn;
             RefKind = refKind;
             TypeWithAnnotations = typeWithAnnotations;
             UseSiteDiagnostics = useSiteDiagnostics;
@@ -160,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node, CSharpCompilation compilation, ConversionsBase conversions, TypeSymbol delegateType, bool isAsync)
         {
             var types = ArrayBuilder<(BoundExpression, TypeWithAnnotations)>.GetInstance();
-            bool hasReturnValue = false;
+            bool hasReturnWithoutArgument = false;
             RefKind refKind = RefKind.None;
             foreach (var (returnStatement, type) in returnTypes)
             {
@@ -170,17 +173,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKind = rk;
                 }
 
-                if ((object)type.Type != NoReturnExpression)
+                if ((object)type.Type == NoReturnExpression)
                 {
-                    hasReturnValue = true;
+                    hasReturnWithoutArgument = true;
+                }
+                else
+                {
                     types.Add((returnStatement.ExpressionOpt, type));
                 }
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var bestType = CalculateReturnType(compilation, conversions, delegateType, types, isAsync, node, ref useSiteDiagnostics);
+            int numExpressions = types.Count;
             types.Free();
-            return new InferredLambdaReturnType(hasReturnValue, refKind, bestType, useSiteDiagnostics.AsImmutableOrEmpty());
+            return new InferredLambdaReturnType(numExpressions, hasReturnWithoutArgument, refKind, bestType, useSiteDiagnostics.AsImmutableOrEmpty());
         }
 
         private static TypeWithAnnotations CalculateReturnType(
@@ -460,10 +467,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
         public abstract RefKind RefKind(int index);
-
-        protected abstract BoundExpression GetReusableLambdaExpressionBody(BoundBlock body);
-        protected abstract BoundBlock CreateBlockFromExpression(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BoundExpression expression, DiagnosticBag diagnostics);
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics);
+
+        /// <summary>
+        /// Return the bound expression if the lambda is has an expression body and can be reused easily.
+        /// This is an optimization only. Implementations can return null to skip reuse.
+        /// </summary>
+        protected abstract BoundExpression GetLambdaExpressionBody(BoundBlock body);
+
+        /// <summary>
+        /// Produce a bound block for the expression returned from GetLambdaExpressionBody.
+        /// </summary>
+        protected abstract BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, DiagnosticBag diagnostics);
 
         public virtual void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType)
         {
@@ -550,17 +565,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var compilation = Binder.Compilation;
             var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
 
-            // When binding for real (not for return inference), there is still
-            // a good chance that we could reuse a body of a lambda previous bound for
-            // return type inference.
-            if (_returnInferenceCache.TryGetValue(cacheKey, out BoundLambda returnInferenceLambda) &&
-                GetReusableLambdaExpressionBody(returnInferenceLambda.Body) is BoundExpression expression &&
+            // When binding for real (not for return inference), there is still a good chance
+            // we could reuse a body of a lambda previous bound for return type inference.
+            // For simplicity, reuse is limited to expression-bodied lambdas. In those cases,
+            // we reuse the bound expression and apply any conversion to the return value
+            // since the inferred return type was not used when binding for return inference.
+            if (refKind == CodeAnalysis.RefKind.None &&
+                _returnInferenceCache.TryGetValue(cacheKey, out BoundLambda returnInferenceLambda) &&
+                GetLambdaExpressionBody(returnInferenceLambda.Body) is BoundExpression expression &&
                 (lambdaSymbol = returnInferenceLambda.Symbol).RefKind == refKind &&
                 (object)LambdaSymbol.InferenceFailureReturnType != lambdaSymbol.ReturnType &&
                 lambdaSymbol.ReturnTypeWithAnnotations.Equals(returnType, TypeCompareKind.ConsiderEverything))
             {
                 lambdaBodyBinder = returnInferenceLambda.Binder;
-                block = CreateBlockFromExpression(lambdaSymbol, lambdaBodyBinder, expression, diagnostics);
+                block = CreateBlockFromLambdaExpressionBody(lambdaBodyBinder, expression, diagnostics);
                 diagnostics.AddRange(returnInferenceLambda.Diagnostics);
             }
             else
@@ -933,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out refKind);
                     if (!returnType.HasType || returnType.Type.ContainsTypeParameter())
                     {
-                        var t = !inferredReturnType.HasReturnValue
+                        var t = (inferredReturnType.HadExpressionlessReturn || inferredReturnType.NumExpressions == 0)
                             ? this.Binder.Compilation.GetSpecialType(SpecialType.System_Void)
                             : this.Binder.CreateErrorType();
                         returnType = TypeWithAnnotations.Create(t);
@@ -949,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.ToReadOnlyAndFree(),
                     lambdaBodyBinder,
                     delegateType,
-                    new InferredLambdaReturnType(inferredReturnType.HasReturnValue, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty))
+                    new InferredLambdaReturnType(inferredReturnType.NumExpressions, inferredReturnType.HadExpressionlessReturn, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty))
                 { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
             }
         }
@@ -1222,12 +1240,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new PlainUnboundLambdaState(unboundLambda: null, Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, includeCache);
         }
 
-        protected override BoundExpression GetReusableLambdaExpressionBody(BoundBlock body)
+        protected override BoundExpression GetLambdaExpressionBody(BoundBlock body)
         {
             if (IsExpressionLambda)
             {
                 var statements = body.Statements;
                 if (statements.Length == 1 &&
+                    // To simplify Binder.CreateBlockFromExpression (used below), we only reuse by-value return values.
                     statements[0] is BoundReturnStatement { RefKind: Microsoft.CodeAnalysis.RefKind.None, ExpressionOpt: BoundExpression expr })
                 {
                     return expr;
@@ -1236,9 +1255,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override BoundBlock CreateBlockFromExpression(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BoundExpression expression, DiagnosticBag diagnostics)
+        protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, DiagnosticBag diagnostics)
         {
-            return lambdaBodyBinder.BindLambdaExpressionAsBlockContinued((ExpressionSyntax)this.Body, expression, diagnostics);
+            return lambdaBodyBinder.CreateBlockFromExpression((ExpressionSyntax)this.Body, expression, diagnostics);
         }
 
         protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)

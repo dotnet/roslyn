@@ -307,6 +307,8 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        // Test should complete in several seconds if UnboundLambda.ReallyBind
+        // uses results from _returnInferenceCache.
         [ConditionalFactAttribute(typeof(IsRelease))]
         [WorkItem(1083969, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1083969")]
         public void NestedLambdas_02()

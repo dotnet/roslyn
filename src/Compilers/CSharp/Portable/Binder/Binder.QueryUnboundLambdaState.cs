@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new QueryUnboundLambdaState(Binder, _rangeVariableMap, _parameters, _bodyFactory, includeCache);
             }
 
-            protected override BoundExpression GetReusableLambdaExpressionBody(BoundBlock body)
+            protected override BoundExpression GetLambdaExpressionBody(BoundBlock body)
             {
                 return null;
             }
 
-            protected override BoundBlock CreateBlockFromExpression(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BoundExpression expression, DiagnosticBag diagnostics)
+            protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, DiagnosticBag diagnostics)
             {
                 throw ExceptionUtilities.Unreachable;
             }
