@@ -32,7 +32,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var data = new object();
 
             var storage = new AssetStorage();
-            _ = new SimpleAssetSource(storage, new Dictionary<Checksum, object>() { { checksum, data } });
+            storage.Initialize(new SimpleAssetSource(new Dictionary<Checksum, object>() { { checksum, data } }));
 
             var provider = new AssetProvider(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
             var stored = await provider.GetAssetAsync<object>(checksum, CancellationToken.None);
@@ -60,7 +60,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            var source = new SimpleAssetSource(storage, map);
+            storage.Initialize(new SimpleAssetSource(map));
 
             var service = new AssetProvider(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
             await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
@@ -86,7 +86,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            var source = new SimpleAssetSource(storage, map);
+            storage.Initialize(new SimpleAssetSource(map));
 
             var service = new AssetProvider(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
             await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
@@ -109,7 +109,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            var source = new SimpleAssetSource(storage, map);
+            storage.Initialize(new SimpleAssetSource(map));
 
             var service = new AssetProvider(sessionId, storage, new RemoteWorkspace().Services.GetService<ISerializerService>());
             await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
 
         public bool IsExperimentEnabled(string experimentName)
         {
-            var assetSource = AssetStorage.Default.AssetSource;
+            var assetSource = AssetStorage.Default.GetAssetSource();
             return assetSource?.IsExperimentEnabledAsync(experimentName, CancellationToken.None).Result ?? false;
         }
     }
