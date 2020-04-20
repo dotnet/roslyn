@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Rename
     public static partial class Renamer
     {
         /// <summary>
-        /// Action that will rename a type to match the current document name.
+        /// Action that will rename a type to match the current document name. Works by finding a type matching the origanl name of the document (case insensitive) 
+        /// and updating that type. https://github.com/dotnet/roslyn/issues/43461 tracks adding more complicated heuristics to matching type and file name. 
         /// </summary>
         internal sealed class RenameSymbolDocumentAction : RenameDocumentAction
         {
