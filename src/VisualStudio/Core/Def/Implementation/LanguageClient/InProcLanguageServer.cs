@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities.Internal;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -41,24 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly JsonRpc _jsonRpc;
         private readonly LanguageServerProtocol _protocol;
         private readonly CodeAnalysis.Workspace _workspace;
-
-        // The VS LSP client supports streaming using IProgress<T> on various requests.
-        // However, this is not yet supported through Live Share, so deserialization fails on the IProgress<T> property.
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043376 tracks Live Share support for this (committed for 16.6).
-        // Additionally, the VS LSP client will be changing the type of 'tagSupport' from bool to an object in future LSP package versions.
-        // Since updating our package versions is extraordinarily difficult, add this workaround so we aren't broken when they change the type.
-        // https://github.com/dotnet/roslyn/issues/40829 tracks updating our package versions to remove this workaround.
-        internal static readonly JsonSerializer JsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
-        {
-            Error = (sender, args) =>
-            {
-                if (object.Equals(args.ErrorContext.Member, "partialResultToken")
-                    || (object.Equals(args.ErrorContext.Member, "tagSupport") && args.ErrorContext.OriginalObject.GetType() == typeof(PublishDiagnosticsSetting)))
-                {
-                    args.ErrorContext.Handled = true;
-                }
-            }
-        });
 
         private VSClientCapabilities _clientCapabilities;
 
@@ -89,10 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // InitializeParams only references ClientCapabilities, but the VS LSP client
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
-            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>(JsonSerializer);
+            _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
             var serverCapabilities = await _protocol.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName,
-                _workspace.CurrentSolution, input.ToObject<InitializeParams>(JsonSerializer), _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
-
+                _workspace.CurrentSolution, input.ToObject<InitializeParams>(), _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
             // As soon as LSP supports classifications in hover, we can remove this and always advertise hover support.
             // For now, just support for the razor lsp client.
             // Tracking - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138/
@@ -124,117 +104,75 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
 
-        [JsonRpcMethod(Methods.TextDocumentDefinitionName)]
-        public Task<LSP.Location[]> GetTextDocumentDefinitionAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Methods.TextDocumentDefinitionName,
+        [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
+        public Task<LSP.Location[]> GetTextDocumentDefinitionAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Methods.TextDocumentDefinitionName,
                 _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentRenameName)]
-        public Task<WorkspaceEdit> GetTextDocumentRenameAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var renameParams = input.ToObject<RenameParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName,
+        [JsonRpcMethod(Methods.TextDocumentRenameName, UseSingleObjectParameterDeserialization = true)]
+        public Task<WorkspaceEdit> GetTextDocumentRenameAsync(RenameParams renameParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(Methods.TextDocumentRenameName,
                 _workspace.CurrentSolution, renameParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentReferencesName)]
-        public Task<VSReferenceItem[]> GetTextDocumentReferencesAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var referencesParams = input.ToObject<ReferenceParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<ReferenceParams, VSReferenceItem[]>(Methods.TextDocumentReferencesName,
+        [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSReferenceItem[]> GetTextDocumentReferencesAsync(ReferenceParams referencesParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<ReferenceParams, VSReferenceItem[]>(Methods.TextDocumentReferencesName,
                 _workspace.CurrentSolution, referencesParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentCompletionName)]
-        public Task<CompletionItem[]> GetTextDocumentCompletionAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var completionParams = input.ToObject<CompletionParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<CompletionParams, CompletionItem[]>(Methods.TextDocumentCompletionName,
+        [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
+        public Task<CompletionItem[]> GetTextDocumentCompletionAsync(CompletionParams completionParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<CompletionParams, CompletionItem[]>(Methods.TextDocumentCompletionName,
                 _workspace.CurrentSolution, completionParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentCompletionResolveName)]
-        public Task<CompletionItem> ResolveCompletionItemAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var completionItem = input.ToObject<CompletionItem>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName,
+        [JsonRpcMethod(Methods.TextDocumentCompletionResolveName, UseSingleObjectParameterDeserialization = true)]
+        public Task<CompletionItem> ResolveCompletionItemAsync(CompletionItem completionItem, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<CompletionItem, CompletionItem>(Methods.TextDocumentCompletionResolveName,
                 _workspace.CurrentSolution, completionItem, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName)]
-        public Task<DocumentHighlight[]> GetTextDocumentDocumentHighlightsAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, DocumentHighlight[]>(Methods.TextDocumentDocumentHighlightName,
+        [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName, UseSingleObjectParameterDeserialization = true)]
+        public Task<DocumentHighlight[]> GetTextDocumentDocumentHighlightsAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<TextDocumentPositionParams, DocumentHighlight[]>(Methods.TextDocumentDocumentHighlightName,
                 _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentHoverName)]
-        public Task<Hover?> GetTextDocumentDocumentHoverAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
-            return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, Hover?>(Methods.TextDocumentHoverName,
+        [JsonRpcMethod(Methods.TextDocumentHoverName, UseSingleObjectParameterDeserialization = true)]
+        public Task<Hover?> GetTextDocumentDocumentHoverAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<TextDocumentPositionParams, Hover?>(Methods.TextDocumentHoverName,
                 _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName)]
-        public Task<object[]> GetTextDocumentDocumentSymbolsAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var documentSymbolParams = input.ToObject<DocumentSymbolParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<DocumentSymbolParams, object[]>(Methods.TextDocumentDocumentSymbolName,
+        [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object[]> GetTextDocumentDocumentSymbolsAsync(DocumentSymbolParams documentSymbolParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<DocumentSymbolParams, object[]>(Methods.TextDocumentDocumentSymbolName,
                 _workspace.CurrentSolution, documentSymbolParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentFormattingName)]
-        public Task<TextEdit[]> GetTextDocumentFormattingAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var documentFormattingParams = input.ToObject<DocumentFormattingParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<DocumentFormattingParams, TextEdit[]>(Methods.TextDocumentFormattingName,
+        [JsonRpcMethod(Methods.TextDocumentFormattingName, UseSingleObjectParameterDeserialization = true)]
+        public Task<TextEdit[]> GetTextDocumentFormattingAsync(DocumentFormattingParams documentFormattingParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<DocumentFormattingParams, TextEdit[]>(Methods.TextDocumentFormattingName,
                 _workspace.CurrentSolution, documentFormattingParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName)]
-        public Task<TextEdit[]> GetTextDocumentFormattingOnTypeAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var documentOnTypeFormattingParams = input.ToObject<DocumentOnTypeFormattingParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(Methods.TextDocumentOnTypeFormattingName,
+        [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName, UseSingleObjectParameterDeserialization = true)]
+        public Task<TextEdit[]> GetTextDocumentFormattingOnTypeAsync(DocumentOnTypeFormattingParams documentOnTypeFormattingParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(Methods.TextDocumentOnTypeFormattingName,
                 _workspace.CurrentSolution, documentOnTypeFormattingParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentImplementationName)]
-        public Task<LSP.Location[]> GetTextDocumentImplementationsAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>();
-            return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Methods.TextDocumentImplementationName,
+        [JsonRpcMethod(Methods.TextDocumentImplementationName, UseSingleObjectParameterDeserialization = true)]
+        public Task<LSP.Location[]> GetTextDocumentImplementationsAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Methods.TextDocumentImplementationName,
                 _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentRangeFormattingName)]
-        public Task<TextEdit[]> GetTextDocumentRangeFormattingAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var documentRangeFormattingParams = input.ToObject<DocumentRangeFormattingParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<DocumentRangeFormattingParams, TextEdit[]>(Methods.TextDocumentRangeFormattingName,
+        [JsonRpcMethod(Methods.TextDocumentRangeFormattingName, UseSingleObjectParameterDeserialization = true)]
+        public Task<TextEdit[]> GetTextDocumentRangeFormattingAsync(DocumentRangeFormattingParams documentRangeFormattingParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<DocumentRangeFormattingParams, TextEdit[]>(Methods.TextDocumentRangeFormattingName,
                 _workspace.CurrentSolution, documentRangeFormattingParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.TextDocumentSignatureHelpName)]
-        public Task<SignatureHelp> GetTextDocumentSignatureHelpAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var textDocumentPositionParams = input.ToObject<TextDocumentPositionParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<TextDocumentPositionParams, SignatureHelp>(Methods.TextDocumentSignatureHelpName,
+        [JsonRpcMethod(Methods.TextDocumentSignatureHelpName, UseSingleObjectParameterDeserialization = true)]
+        public Task<SignatureHelp> GetTextDocumentSignatureHelpAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<TextDocumentPositionParams, SignatureHelp>(Methods.TextDocumentSignatureHelpName,
                 _workspace.CurrentSolution, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
-        [JsonRpcMethod(Methods.WorkspaceSymbolName)]
-        public Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(JToken input, CancellationToken cancellationToken)
-        {
-            var workspaceSymbolParams = input.ToObject<WorkspaceSymbolParams>(JsonSerializer);
-            return _protocol.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]>(Methods.WorkspaceSymbolName,
+        [JsonRpcMethod(Methods.WorkspaceSymbolName, UseSingleObjectParameterDeserialization = true)]
+        public Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(WorkspaceSymbolParams workspaceSymbolParams, CancellationToken cancellationToken)
+            => _protocol.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]>(Methods.WorkspaceSymbolName,
                 _workspace.CurrentSolution, workspaceSymbolParams, _clientCapabilities, _clientName, cancellationToken);
-        }
 
 #pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
