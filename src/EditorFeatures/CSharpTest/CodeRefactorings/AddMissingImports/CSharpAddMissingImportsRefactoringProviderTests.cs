@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -52,9 +53,12 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             string initialMarkup, string expectedMarkup,
             bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
         {
-            var options = OptionsSet(
-                SingleOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
-                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups));
+            var options =
+                new OptionsCollection(GetLanguage())
+                {
+                    { GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst },
+                    { GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups },
+                };
             return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
         }
 

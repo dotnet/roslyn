@@ -286,6 +286,9 @@ function BuildSolution {
 }
 
 InitializeDotNetCli $restore
+if [[ "$restore" == true ]]; then
+  dotnet tool restore
+fi
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then
