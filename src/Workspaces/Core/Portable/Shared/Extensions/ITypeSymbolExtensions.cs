@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // OriginalSymbolMatch allows types to be matched across different assemblies
             // if they are considered to be the same type, which provides a more accurate
             // implementations list for interfaces.
-            var typeSymbolProject = solution.GetProject(solution.GetExactProjectId(typeSymbol));
-            var interfaceMemberProject = solution.GetProject(solution.GetExactProjectId(interfaceMember));
+            var typeSymbolProject = solution.GetOriginatingProject(typeSymbol);
+            var interfaceMemberProject = solution.GetOriginatingProject(interfaceMember);
 
             var typeSymbolCompilation = await GetCompilationOrNullAsync(typeSymbolProject, cancellationToken).ConfigureAwait(false);
             var interfaceMemberCompilation = await GetCompilationOrNullAsync(interfaceMemberProject, cancellationToken).ConfigureAwait(false);

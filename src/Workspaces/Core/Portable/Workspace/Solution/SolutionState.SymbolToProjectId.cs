@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionState
     {
-        /// <inheritdoc cref="Solution.GetExactProjectId"/>
-        public ProjectId? GetExactProjectId(ISymbol? symbol)
+        /// <inheritdoc cref="Solution.GetOriginatingProjectId"/>
+        public ProjectId? GetOriginatingProjectId(ISymbol? symbol)
         {
             LazyInitialization.EnsureInitialized(ref _assemblyOrModuleSymbolToProjectId, s_createTable);
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                     // A namespace that spans a compilation.  These don't belong to an assembly/module directly.
                     // However, as we're looking for the project this corresponds to, we can look for the
                     // source-module component (the first in the constituent namespaces) and then search using that.
-                    return GetExactProjectId(ns.ConstituentNamespaces[0]);
+                    return GetOriginatingProjectId(ns.ConstituentNamespaces[0]);
                 }
             }
             else if (symbol.IsKind(SymbolKind.Assembly) ||

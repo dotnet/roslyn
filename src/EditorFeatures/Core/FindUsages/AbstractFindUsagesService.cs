@@ -51,9 +51,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             foreach (var implementation in implementations)
             {
-                var project = solution.GetProject(solution.GetExactProjectId(implementation));
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    project, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+                    solution.GetOriginatingProject(implementation), includeHiddenLocations: false,
+                    FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }

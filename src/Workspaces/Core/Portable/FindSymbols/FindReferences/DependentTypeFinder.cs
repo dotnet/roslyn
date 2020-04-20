@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Do a quick lookup first to avoid the allocation.  If it fails, go through the
             // slower allocating path.
-            var key = (type.GetSymbolKey(), solution.GetExactProjectId(type), projects);
+            var key = (type.GetSymbolKey(), solution.GetOriginatingProjectId(type), projects);
             if (!dictionary.TryGetValue(key, out var lazy))
             {
                 lazy = dictionary.GetOrAdd(key,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // doesn't need to incur the cost of deserializing the symbol keys that
             // we're create right below this.
             var result = await findAsync(cancellationToken).ConfigureAwait(false);
-            return result.SelectAsArray(t => (t.GetSymbolKey(), solution.GetExactProjectId(t)));
+            return result.SelectAsArray(t => (t.GetSymbolKey(), solution.GetOriginatingProjectId(t)));
         }
 
         /// <summary>

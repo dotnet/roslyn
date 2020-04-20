@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var symbolKey = symbol.GetSymbolKey(cancellationToken);
-            var projectId = solution.GetExactProjectId(symbol);
+            var projectId = solution.GetOriginatingProjectId(symbol);
             Contract.ThrowIfNull(projectId, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
 
             return new SerializableSymbolAndProjectId
