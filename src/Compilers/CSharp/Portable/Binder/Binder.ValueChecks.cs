@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             MethodSymbol containingMethod = (MethodSymbol)containing;
                             MethodKind desiredMethodKind = fieldIsStatic ? MethodKind.StaticConstructor : MethodKind.Constructor;
                             canModifyReadonly = (containingMethod.MethodKind == desiredMethodKind) ||
-                                IsAllowedInitOnlyAssignment(fieldSymbol, fieldAccess.ReceiverOpt, restrictToThis: true);
+                                isAssignedFromInitOnlySetterOnThis(fieldAccess.ReceiverOpt);
                         }
                         else if (containing.Kind == SymbolKind.Field)
                         {
@@ -746,65 +746,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for other fields defer to the receiver.
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
-        }
 
-        bool IsAllowedInitOnlyAssignment(Symbol accessedMember, BoundExpression receiver, bool restrictToThis)
-        {
-            // ok: new C() { InitOnlyProperty = ... }
-            if (receiver is BoundObjectOrCollectionValuePlaceholder)
+            bool isAssignedFromInitOnlySetterOnThis(BoundExpression receiver)
             {
-                return true;
-            }
-
-            // bad: other.InitOnlyProperty = ...
-            if (!(receiver is BoundThisReference) && !(receiver is BoundBaseReference) && !(receiver is BoundObjectOrCollectionValuePlaceholder))
-            {
-                return false;
-            }
-
-            var containingMember = ContainingMemberOrLambda;
-            if (!(containingMember is MethodSymbol method))
-            {
-                return false;
-            }
-
-            if (!isDerivedType(method.ContainingType, accessedMember.ContainingType.OriginalDefinition, restrictToThis))
-            {
-                return false;
-            }
-
-            if (method.IsConstructor() || isInitOnlySetter(method))
-            {
-                // ok: setting on `this` or `base` from a constructor or init-only setter
-                return true;
-            }
-
-            return false;
-
-            static bool isDerivedType(TypeSymbol type, TypeSymbol container, bool restrictToThis)
-            {
-                Debug.Assert(container.IsDefinition);
-                while (type is object)
+                // bad: other.readonlyField = ...
+                // bad: base.readonlyField = ...
+                if (!(receiver is BoundThisReference))
                 {
-                    if (type.OriginalDefinition.Equals(container, TypeCompareKind.ConsiderEverything))
-                    {
-                        return true;
-                    }
-                    else if (restrictToThis)
-                    {
-                        return false;
-                    }
-
-                    type = type.BaseTypeNoUseSiteDiagnostics;
+                    return false;
                 }
 
-                return false;
-            }
+                var containingMember = ContainingMemberOrLambda;
+                if (!(containingMember is MethodSymbol method))
+                {
+                    return false;
+                }
 
-            static bool isInitOnlySetter(MethodSymbol method)
-            {
-                return method.MethodKind == MethodKind.PropertySet &&
-                    method.IsInitOnly;
+                return method.MethodKind == MethodKind.PropertySet && method.IsInitOnly;
             }
         }
 
@@ -1041,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     if (setMethod.IsInitOnly &&
-                        !IsAllowedInitOnlyAssignment(setMethod, receiver, restrictToThis: false))
+                        !isAllowedInitOnlySet(receiver))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
                         return false;
@@ -1135,6 +1093,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+
+            bool isAllowedInitOnlySet(BoundExpression receiver)
+            {
+                // ok: new C() { InitOnlyProperty = ... }
+                if (receiver is BoundObjectOrCollectionValuePlaceholder)
+                {
+                    return true;
+                }
+
+                // bad: other.InitOnlyProperty = ...
+                if (!(receiver is BoundThisReference || receiver is BoundBaseReference))
+                {
+                    return false;
+                }
+
+                var containingMember = ContainingMemberOrLambda;
+                if (!(containingMember is MethodSymbol method))
+                {
+                    return false;
+                }
+
+                bool isInitOnlySetter = method.MethodKind == MethodKind.PropertySet && method.IsInitOnly;
+                if (method.IsConstructor() || isInitOnlySetter)
+                {
+                    // ok: setting on `this` or `base` from a constructor or init-only setter
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, DiagnosticBag diagnostics,

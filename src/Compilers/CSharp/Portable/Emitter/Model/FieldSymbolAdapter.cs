@@ -186,9 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsReadOnly ||
-                    (this.IsConst && !this.IsMetadataConstant) ||
-                    (this.AssociatedSymbol is PropertySymbol property && property.SetMethod?.IsInitOnly == true);
+                return this.IsReadOnly || (this.IsConst && !this.IsMetadataConstant);
             }
         }
 

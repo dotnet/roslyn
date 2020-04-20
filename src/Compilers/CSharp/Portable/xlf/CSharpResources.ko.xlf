@@ -193,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
-        <source>Accessors '{0}' and '{1}' don't match by init-only</source>
-        <target state="new">Accessors '{0}' and '{1}' don't match by init-only</target>
+        <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
+        <target state="new">Accessors '{0}' and '{1}' should both be init-only or neither</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -937,6 +937,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">이동 가능한 고정 버퍼 인덱싱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInitOnlySetters">
+        <source>init-only setters</source>
+        <target state="new">init-only setters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
@@ -6183,7 +6188,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))</source>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
         <target state="needs-review-translation">읽기 전용 필드에는 할당할 수 없습니다. 단, 필드가 정의된 클래스의 생성자 또는 변수 이니셜라이저에서는 예외입니다.</target>
         <note />
       </trans-unit>

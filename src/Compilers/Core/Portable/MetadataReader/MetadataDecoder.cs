@@ -1182,12 +1182,17 @@ tryAgain:
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
-        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info)
+        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info, bool isReturn)
         {
+            var allowedRequiredModifiers = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
+            if (isReturn)
+            {
+                allowedRequiredModifiers |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsInitOnly;
+            }
+
             info.CustomModifiers = DecodeModifiersOrThrow(
                 ref signatureReader,
-                AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute |
-                    AllowedRequiredModifierType.System_Runtime_CompilerServices_IsInitOnly,
+                allowedRequiredModifiers,
                 out SignatureTypeCode typeCode,
                 out AllowedRequiredModifierType inAttributeFound);
 
@@ -1875,13 +1880,13 @@ tryAgain:
             try
             {
                 // get the return type
-                DecodeParameterOrThrow(ref signatureReader, ref paramInfo[0]);
+                DecodeParameterOrThrow(ref signatureReader, ref paramInfo[0], isReturn: true);
 
                 // Get all of the parameters.
                 for (paramIndex = 1; paramIndex <= paramCount; paramIndex++)
                 {
                     // Figure out the type.
-                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex]);
+                    DecodeParameterOrThrow(ref signatureReader, ref paramInfo[paramIndex], isReturn: false);
                 }
 
                 if (signatureReader.RemainingBytes > 0)

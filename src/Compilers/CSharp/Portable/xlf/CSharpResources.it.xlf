@@ -193,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
-        <source>Accessors '{0}' and '{1}' don't match by init-only</source>
-        <target state="new">Accessors '{0}' and '{1}' don't match by init-only</target>
+        <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
+        <target state="new">Accessors '{0}' and '{1}' should both be init-only or neither</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -937,6 +937,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">indicizzazione di buffer fissi mobili</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInitOnlySetters">
+        <source>init-only setters</source>
+        <target state="new">init-only setters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
@@ -6183,7 +6188,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))</source>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
         <target state="needs-review-translation">Non è possibile effettuare un'assegnazione a un campo di sola lettura, tranne che in un costruttore della classe in cui è definito il campo o in un inizializzatore di variabile</target>
         <note />
       </trans-unit>

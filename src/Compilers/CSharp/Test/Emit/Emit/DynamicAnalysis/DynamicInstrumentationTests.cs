@@ -2746,7 +2746,7 @@ class C
     [ExcludeFromCodeCoverage]
     int P1 { get => 1; init {} }
 
-    int P2 { get => 1; set {} }
+    int P2 { get => 1; init {} }
 }
 ";
             var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsInitOnlyTypeDefinition,

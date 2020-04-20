@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool HasPointerType => _underlyingField.HasPointerType;
+        internal override bool HasPointerType => _underlyingField.HasPointerType;
 
         internal override bool IsMarshalledExplicitly
         {

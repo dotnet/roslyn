@@ -193,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
-        <source>Accessors '{0}' and '{1}' don't match by init-only</source>
-        <target state="new">Accessors '{0}' and '{1}' don't match by init-only</target>
+        <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
+        <target state="new">Accessors '{0}' and '{1}' should both be init-only or neither</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -937,6 +937,11 @@
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
         <target state="translated">Bewegliche Puffer fester Größe werden indiziert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInitOnlySetters">
+        <source>init-only setters</source>
+        <target state="new">init-only setters</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
@@ -6183,7 +6188,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))</source>
+        <source>A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))</source>
         <target state="needs-review-translation">Einem schreibgeschützten Feld kann nichts zugewiesen werden (außer in einem Konstruktor der Klasse, in der das Feld definiert ist, oder in einem Variableninitialisierer).</target>
         <note />
       </trans-unit>

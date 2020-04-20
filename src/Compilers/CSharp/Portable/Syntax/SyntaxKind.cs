@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// when adding a contextual keyword following functions must be adapted:
         /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
         /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
+        /// <see cref="SyntaxFacts.GetContextualKeywordKind(string)"/>
 
         // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         // additional preprocessor keywords

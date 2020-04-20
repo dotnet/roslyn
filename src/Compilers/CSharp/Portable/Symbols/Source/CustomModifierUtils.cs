@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool HasIsInitOnlyModifier(this ImmutableArray<CustomModifier> modifiers)
         {
-            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsInitOnlyType());
+            return modifiers.Any(modifier => !modifier.IsOptional && ((CSharpCustomModifier)modifier).ModifierSymbol.IsWellKnownTypeIsInitOnly());
         }
     }
 }

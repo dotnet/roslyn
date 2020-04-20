@@ -1256,7 +1256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (!_packedFlags.IsInitOnlyPopulated)
                 {
-                    bool isInitOnly = ReturnTypeWithAnnotations.CustomModifiers.HasIsInitOnlyModifier();
+                    bool isInitOnly = this.MethodKind == MethodKind.PropertySet &&
+                            ReturnTypeWithAnnotations.CustomModifiers.HasIsInitOnlyModifier();
                     _packedFlags.InitializeIsInitOnly(isInitOnly);
                 }
                 return _packedFlags.IsInitOnly;

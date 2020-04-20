@@ -224,11 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isInitOnly = syntax.Keyword.IsKind(SyntaxKind.InitKeyword);
             if (_isInitOnly)
             {
-                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRecords, diagnostics, syntax.Keyword.GetLocation());
+                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInitOnlySetters, diagnostics, syntax.Keyword.GetLocation());
             }
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, methodKind, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
 
             // Include some modifiers from the containing property, but not the accessibility modifiers.
             declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsInitOnly => _isInitOnly;
 
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
-            bool hasBody, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+            bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.

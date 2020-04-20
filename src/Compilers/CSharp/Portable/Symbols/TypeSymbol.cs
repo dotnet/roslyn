@@ -1794,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ErrorCode errorCode = interfaceMember.IsAccessor() ? ErrorCode.ERR_UnimplementedInterfaceAccessor : ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic;
                 diagnostics.Add(errorCode, interfaceLocation, implementingType, interfaceMember, closestMismatch);
             }
-            else if (!MethodsHaveSameInitOnly(interfaceMember, closestMismatch))
+            else if (HaveInitOnlyMismatch(interfaceMember, closestMismatch))
             {
                 diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, interfaceLocation, implementingType, interfaceMember, closestMismatch);
             }
@@ -1851,19 +1851,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool MethodsHaveSameInitOnly(Symbol one, Symbol other)
+        internal static bool HaveInitOnlyMismatch(Symbol one, Symbol other)
         {
             if (!(one is MethodSymbol oneMethod))
             {
-                return true;
+                return false;
             }
 
             if (!(other is MethodSymbol otherMethod))
             {
-                return true;
+                return false;
             }
 
-            return oneMethod.IsInitOnly == otherMethod.IsInitOnly;
+            return oneMethod.IsInitOnly != otherMethod.IsInitOnly;
         }
 
         /// <summary>
@@ -2028,7 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            else if (!MethodsHaveSameInitOnly(candidateMember, interfaceMember))
+            else if (HaveInitOnlyMismatch(candidateMember, interfaceMember))
             {
                 return false;
             }

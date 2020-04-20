@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool IsAcceptedIsInitOnlyModifierType(TypeSymbol type)
         {
-            return type.IsWellKnownTypeIsInitOnlyType();
+            return type.IsWellKnownTypeIsInitOnly();
         }
 
         internal override bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)

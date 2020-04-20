@@ -18,16 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         // Spec: https://github.com/jaredpar/csharplang/blob/init/proposals/init.md
 
-        // PROTOTYPE(records): test allowed from 'with' expression
-        // PROTOTYPE(records): public API, confirm behavior of IsReadOnly and IsInitOnly
+        // PROTOTYPE(init-only): test allowed from 'with' expression
+        // PROTOTYPE(init-only): public API, confirm behavior of IsReadOnly and IsInitOnly
 
-        // PROTOTYPE(records): open issues:
-        // PROTOTYPE(records): queue discussion on init methods (`init void Init()`) and collection initializers (`init void Add()`)
+        // PROTOTYPE(init-only): open issues:
+        // PROTOTYPE(init-only): queue discussion on init methods (`init void Init()`) and collection initializers (`init void Add()`)
 
-        // PROTOTYPE(records): test dynamic scenario
-        // PROTOTYPE(records): test whether reflection use property despite modreq?
-        // PROTOTYPE(records): test behavior of old compiler with modreq. For example VB
-        // PROTOTYPE(records): test with ambiguous IsInitOnly types
+        // PROTOTYPE(init-only): test dynamic scenario
+        // PROTOTYPE(init-only): test whether reflection use property despite modreq?
+        // PROTOTYPE(init-only): test behavior of old compiler with modreq. For example VB
+        // PROTOTYPE(init-only): test with ambiguous IsInitOnly types
 
         [Fact]
         public void TestCSharp8()
@@ -40,9 +40,9 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (4,35): error CS8652: The feature 'records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,35): error CS8652: The feature 'init-only setters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string Property { get; init; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("records").WithLocation(4, 35)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("init-only setters").WithLocation(4, 35)
                 );
         }
 
@@ -677,14 +677,13 @@ public class C
 
                 var backingField = (FieldSymbol)c.GetMembers("<Property>k__BackingField").Single();
                 var backingFieldAttributes = backingField.GetAttributes().Select(a => a.ToString());
+                Assert.True(backingField.IsReadOnly);
                 if (isSource)
                 {
-                    Assert.False(backingField.IsReadOnly);
                     AssertEx.Empty(backingFieldAttributes);
                 }
                 else
                 {
-                    Assert.True(backingField.IsReadOnly);
                     AssertEx.Equal(
                         new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
                             "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" },
@@ -1145,6 +1144,27 @@ public class DerivedWithoutInitGetterOnly : I // 3
         }
 
         [Fact]
+        public void ObjectCreationOnInterface()
+        {
+            string source = @"
+public interface I
+{
+    string Property { set; }
+    string InitProperty { init; }
+}
+public class C
+{
+    void M<T>() where T: I, new()
+    {
+        _ = new T() { Property = null, InitProperty = null };
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void HidingInitOnlySetterOnlyProperty()
         {
             string source = @"
@@ -1234,13 +1254,13 @@ public class DerivedWithInitAndGetter : I
 ";
             var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,25): error CS8805: Accessors 'DerivedWithInit.I.Property.set' and 'I.Property.set' don't match by init-only
+                // (8,25): error CS8805: Accessors 'DerivedWithInit.I.Property.set' and 'I.Property.set' should both be init-only or neither
                 //     string I.Property { init { } } // 1
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("DerivedWithInit.I.Property.set", "I.Property.set").WithLocation(8, 25),
                 // (12,25): error CS0550: 'DerivedWithInitAndGetter.I.Property.get' adds an accessor not found in interface member 'I.Property'
                 //     string I.Property { get; init; } // 2, 3
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("DerivedWithInitAndGetter.I.Property.get", "I.Property").WithLocation(12, 25),
-                // (12,30): error CS8805: Accessors 'DerivedWithInitAndGetter.I.Property.set' and 'I.Property.set' don't match by init-only
+                // (12,30): error CS8805: Accessors 'DerivedWithInitAndGetter.I.Property.set' and 'I.Property.set' should both be init-only or neither
                 //     string I.Property { get; init; } // 2, 3
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("DerivedWithInitAndGetter.I.Property.set", "I.Property.set").WithLocation(12, 30)
                 );
@@ -1269,7 +1289,7 @@ public class DerivedWithInitAndGetter : I
 ";
             var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.set' don't match by init-only
+                // (8,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.set' should both be init-only or neither
                 //     string I.Property { set { } } // 1
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("DerivedWithoutInit.I.Property.set", "I.Property.set").WithLocation(8, 25),
                 // (16,25): error CS0550: 'DerivedWithInitAndGetter.I.Property.get' adds an accessor not found in interface member 'I.Property'
@@ -1308,7 +1328,7 @@ public class DerivedGetterOnly : I // 2
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview,
                 references: new[] { emitAsImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() });
             comp.VerifyDiagnostics(
-                // (4,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.set' don't match by init-only
+                // (4,25): error CS8805: Accessors 'DerivedWithoutInit.I.Property.set' and 'I.Property.set' should both be init-only or neither
                 //     string I.Property { set { } } // 1
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("DerivedWithoutInit.I.Property.set", "I.Property.set").WithLocation(4, 25),
                 // (10,34): error CS0535: 'DerivedGetterOnly' does not implement interface member 'I.Property.set'
@@ -1464,10 +1484,10 @@ public class CWithImplementationWithoutInitOnly : I1, I2 // 7
                 // (31,12): warning CS0108: 'IWithInitWithImplementation.Property' hides inherited member 'I1.Property'. Use the new keyword if hiding was intended.
                 //     string Property { init { } } // 3
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("IWithInitWithImplementation.Property", "I1.Property").WithLocation(31, 12),
-                // (40,26): error CS8805: Accessors 'IWithInitWithExplicitImplementationOfI2.I2.Property.set' and 'I2.Property.set' don't match by init-only
+                // (40,26): error CS8805: Accessors 'IWithInitWithExplicitImplementationOfI2.I2.Property.set' and 'I2.Property.set' should both be init-only or neither
                 //     string I2.Property { init { } } // 4
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "init").WithArguments("IWithInitWithExplicitImplementationOfI2.I2.Property.set", "I2.Property.set").WithLocation(40, 26),
-                // (45,26): error CS8805: Accessors 'IWithoutInitWithExplicitImplementationOfI1.I1.Property.set' and 'I1.Property.set' don't match by init-only
+                // (45,26): error CS8805: Accessors 'IWithoutInitWithExplicitImplementationOfI1.I1.Property.set' and 'I1.Property.set' should both be init-only or neither
                 //     string I1.Property { set { } } // 5
                 Diagnostic(ErrorCode.ERR_ExplicitPropertyMismatchInitOnly, "set").WithArguments("IWithoutInitWithExplicitImplementationOfI1.I1.Property.set", "I1.Property.set").WithLocation(45, 26),
                 // (62,52): error CS8804: 'CWithImplementationWithInitOnly' does not implement interface member 'I2.Property.set'. 'CWithImplementationWithInitOnly.Property.set' cannot implement 'I2.Property.set' because it does not match by init-only.
@@ -1612,28 +1632,42 @@ public class Derived : C
 ";
             var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(11, 9),
-                // (12,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (12,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         _ = new C() { field = null }; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(12, 23),
-                // (25,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (25,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //             field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(25, 13),
-                // (30,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (30,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //             field = null; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(30, 13),
-                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (38,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(38, 9),
-                // (42,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (42,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 6
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(42, 9),
-                // (48,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (48,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //             field = null; // 7
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(48, 13)
                 );
+        }
+
+        [Fact]
+        public void StaticReadonlyFieldInitializedByAnother()
+        {
+            string source = @"
+public class C
+{
+    public static readonly int field;
+    public static readonly int field2 = (field = 42);
+}
+";
+            var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1687,22 +1721,22 @@ public class Caller
 
             var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (9,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (9,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         c.field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(9, 9),
-                // (16,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (16,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //             c.field = null; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(16, 13),
-                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         c.field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(24, 9),
-                // (31,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (31,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //             c.field = null; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(31, 13),
-                // (40,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (40,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //             field = // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(40, 13),
-                // (41,18): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (41,18): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //                 (c.field = null)  // 6 
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(41, 18)
                 );
@@ -1830,19 +1864,19 @@ public class Derived : C
                 references: new[] { emitAsImage ? libComp.EmitToImageReference() : libComp.ToMetadataReference() },
                 parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (6,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 1
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(6, 9),
-                // (7,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (7,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         _ = new C() { field = null }; // 2
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(7, 23),
-                // (12,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (12,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         field = null; // 3
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(12, 9),
-                // (13,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (13,23): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //         _ = new C() { field = null }; // 4
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(13, 23),
-                // (20,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only member of the class in which the field is defined or a variable initializer))
+                // (20,13): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
                 //             field = null; // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(20, 13)
                 );

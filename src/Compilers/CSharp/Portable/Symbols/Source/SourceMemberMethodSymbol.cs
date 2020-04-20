@@ -803,7 +803,7 @@ done:
             if (compilation.ShouldEmitNullableAttributes(this) &&
                 ShouldEmitNullableContextValue(out _))
             {
-                compilation.EnsureNullableContextAttributeExists(diagnostics, location);
+                compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 

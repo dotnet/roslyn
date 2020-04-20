@@ -1699,7 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsWellKnownTypeUnmanagedType(this TypeSymbol typeSymbol)
             => typeSymbol.IsWellKnownInteropServicesTopLevelType("UnmanagedType");
 
-        internal static bool IsWellKnownTypeIsInitOnlyType(this TypeSymbol typeSymbol)
+        internal static bool IsWellKnownTypeIsInitOnly(this TypeSymbol typeSymbol)
             => typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsInitOnly");
 
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)
@@ -1709,27 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var interopServicesNamespace = typeSymbol.ContainingNamespace;
-            if (interopServicesNamespace?.Name != "InteropServices")
-            {
-                return false;
-            }
-
-            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
-            if (runtimeNamespace?.Name != "Runtime")
-            {
-                return false;
-            }
-
-            var systemNamespace = runtimeNamespace.ContainingNamespace;
-            if (systemNamespace?.Name != "System")
-            {
-                return false;
-            }
-
-            var globalNamespace = systemNamespace.ContainingNamespace;
-
-            return globalNamespace != null && globalNamespace.IsGlobalNamespace;
+            return IsContainedInNamespace(typeSymbol, "System", "Runtime", "InteropServices");
         }
 
         private static bool IsWellKnownCompilerServicesTopLevelType(this TypeSymbol typeSymbol, string name)
@@ -1739,26 +1719,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var compilerServicesNamespace = typeSymbol.ContainingNamespace;
-            if (compilerServicesNamespace?.Name != "CompilerServices")
+            return IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
+        }
+
+        private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
+        {
+            var innerNamespace = typeSymbol.ContainingNamespace;
+            if (innerNamespace?.Name != innerNS)
             {
                 return false;
             }
 
-            var runtimeNamespace = compilerServicesNamespace.ContainingNamespace;
-            if (runtimeNamespace?.Name != "Runtime")
+            var midNamespace = innerNamespace.ContainingNamespace;
+            if (midNamespace?.Name != midNS)
             {
                 return false;
             }
 
-            var systemNamespace = runtimeNamespace.ContainingNamespace;
-            if (systemNamespace?.Name != "System")
+            var outerNamespace = midNamespace.ContainingNamespace;
+            if (outerNamespace?.Name != outerNS)
             {
                 return false;
             }
 
-            var globalNamespace = systemNamespace.ContainingNamespace;
-
+            var globalNamespace = outerNamespace.ContainingNamespace;
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
 

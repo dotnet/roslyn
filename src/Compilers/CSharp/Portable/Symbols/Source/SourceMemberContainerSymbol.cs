@@ -1395,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (ShouldEmitNullableContextValue(out _))
                 {
-                    compilation.EnsureNullableContextAttributeExists(diagnostics, location);
+                    compilation.EnsureNullableContextAttributeExists(diagnostics, location, modifyCompilation: true);
                 }
 
                 if (hasBaseTypeOrInterface(t => t.NeedsNullableAttribute()))

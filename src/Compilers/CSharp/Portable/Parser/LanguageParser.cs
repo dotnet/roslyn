@@ -3256,7 +3256,7 @@ parse_member_name:;
 
         private AccessorDeclarationSyntax ParseAccessorDeclaration(bool isEvent)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseAccessorDeclaration())
+            if (this.IsIncrementalAndFactoryContextMatches && SyntaxFacts.IsAccessorDeclaration(this.CurrentNodeKind))
             {
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
@@ -3382,21 +3382,6 @@ parse_member_name:;
             }
 
             return SyntaxKind.UnknownAccessorDeclaration;
-        }
-
-        private bool CanReuseAccessorDeclaration()
-        {
-            switch (this.CurrentNodeKind)
-            {
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.InitAccessorDeclaration:
-                    return true;
-            }
-
-            return false;
         }
 
         internal ParameterListSyntax ParseParenthesizedParameterList()
