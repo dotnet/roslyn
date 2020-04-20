@@ -182,6 +182,92 @@ namespace Test.Path.After.Test
        newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
         [Fact]
+        public Task CSharp_RenameDocument_RenameMultipleNamespaces2()
+       => TestRenameDocument(
+@"namespace Test.Path
+{
+    class C
+    {
+    }
+}
+
+namespace Test.Path
+{
+    class C2
+    {
+    }
+}
+
+namesapce Other.Namespace
+{
+    class C3
+    {
+    }
+}",
+@"namespace Test.Path.After.Test
+{
+    class C
+    {
+    }
+}
+
+namespace Test.Path.After.Test
+{
+    class C2
+    {
+    }
+}
+
+namesapce Other.Namespace
+{
+    class C3
+{
+}
+}",
+       documentPath: @"Test\Path\Document.cs",
+       documentName: @"Document.cs",
+       newDocumentPath: @"Test\Path\After\Test\Document.cs");
+
+        [Fact]
+        public Task CSharp_RenameDocument_RenameMultipleNamespaces_Nested()
+=> TestRenameDocument(
+@"namespace Test.Path
+{
+    class C
+    {
+    }
+}
+
+namespace Test
+{
+    namespace Path
+    {
+        class C2
+        {
+        }
+    }
+}",
+@"namespace Test.Path.After.Test
+{
+    class C
+    {
+    }
+}
+
+namespace Test
+{
+    namespace Path
+    {
+        class C2
+        {
+        }
+    }
+}",
+documentPath: @"Test\Path\Document.cs",
+documentName: @"Document.cs",
+newDocumentPath: @"Test\Path\After\Test\Document.cs");
+
+        [Fact]
         public Task CSharp_RenameDocument_RenameNamespace2()
         => TestRenameDocument(
 @"namespace Test.Path

@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             private readonly AnalysisResult _analysis;
 
-            private SyncNamespaceDocumentAction(AnalysisResult analysis, ImmutableArray<ErrorResource> errors)
-                : base(errors)
+            private SyncNamespaceDocumentAction(AnalysisResult analysis)
+                : base(ImmutableArray<ErrorResource>.Empty)
             {
                 _analysis = analysis;
             }
@@ -49,13 +49,11 @@ namespace Microsoft.CodeAnalysis.Rename
 
             public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CancellationToken _)
             {
-                using var _1 = ArrayBuilder<ErrorResource>.GetInstance(out var errors);
-
                 var analysisResult = Analyze(document, newFolders);
 
                 if (analysisResult.HasValue)
                 {
-                    return new SyncNamespaceDocumentAction(analysisResult.Value, errors.ToImmutable());
+                    return new SyncNamespaceDocumentAction(analysisResult.Value);
                 }
 
                 return null;
