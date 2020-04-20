@@ -16,12 +16,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAddRequiredParenthesesDiagnosticAnalyzer :
+    internal class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer :
         AbstractAddRequiredParenthesesDiagnosticAnalyzer<
             ExpressionSyntax, ExpressionSyntax, SyntaxKind>
     {
-        public CSharpAddRequiredParenthesesDiagnosticAnalyzer()
-            : base(CSharpPrecedenceService.Instance)
+        public CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
+            : base(CSharpExpressionPrecedenceService.Instance)
         {
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             }
         }
 
-        protected override ExpressionSyntax? TryGetParentExpression(ExpressionSyntax binaryLike)
+        protected override ExpressionSyntax? TryGetAppropriateParent(ExpressionSyntax binaryLike)
             => binaryLike.Parent is ConstantPatternSyntax
                 ? binaryLike.Parent.Parent as ExpressionSyntax
                 : binaryLike.Parent as ExpressionSyntax;
