@@ -277,7 +277,6 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyX509CertificatesX509Certificate2 = "System.Security.Cryptography.X509Certificates.X509Certificate2";
         public const string SystemSecurityCryptographyX509CertificatesX509Chain = "System.Security.Cryptography.X509Certificates.X509Chain";
         public const string SystemSecurityCryptographyX509CertificatesX509Store = "System.Security.Cryptography.X509Certificates.X509Store";
-        public const string SystemSecurityPermissionsSecurityPermissionAttribute = "System.Security.Permissions.SecurityPermissionAttribute";
         public const string SystemSerializableAttribute = "System.SerializableAttribute";
         public const string SystemSingle = "System.Single";
         public const string SystemSpan1 = "System.Span`1";
