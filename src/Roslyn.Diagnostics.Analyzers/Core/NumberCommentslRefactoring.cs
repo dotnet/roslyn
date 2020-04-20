@@ -44,7 +44,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
         }
 
-        private async Task<Document> FixCommentsAsync(Document document, LiteralExpressionSyntax stringLiteral, CancellationToken c)
+        private static async Task<Document> FixCommentsAsync(Document document, LiteralExpressionSyntax stringLiteral, CancellationToken c)
         {
             var newValueText = FixComments(stringLiteral.Token.ValueText, prefixOpt: null);
             var oldText = stringLiteral.Token.Text;
@@ -172,7 +172,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return false;
         }
 
-        static internal int GetStringLengthIgnoringQuote(string text, bool hasPrefix)
+        internal static int GetStringLengthIgnoringQuote(string text, bool hasPrefix)
         {
             if (hasPrefix)
             {

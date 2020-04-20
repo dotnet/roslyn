@@ -76,7 +76,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasConstantValue(this IOperation operation, long comparand)
         {
-            return operation.HasConstantValue(unchecked((ulong)(comparand)));
+            return operation.HasConstantValue(unchecked((ulong)comparand));
         }
 
         public static bool HasConstantValue(this IOperation operation, ulong comparand)
@@ -437,7 +437,7 @@ namespace Analyzer.Utilities.Extensions
                     // Attribute blocks have OperationKind.None, but ControlFlowGraph.Create does not
                     // have an overload for such operation roots.
                     // Gracefully return null for this case and fire an assert for any other OperationKind.
-                    Debug.Assert(operation.Kind == OperationKind.None, $"Unexpected root operation kind: {operation.Kind.ToString()}");
+                    Debug.Assert(operation.Kind == OperationKind.None, $"Unexpected root operation kind: {operation.Kind}");
                     return null;
             }
         }
@@ -600,7 +600,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
-        public static IOperation WalkDownParenthesis(this IOperation operation)
+        public static IOperation WalkDownParentheses(this IOperation operation)
         {
             while (operation is IParenthesizedOperation parenthesizedOperation)
             {
@@ -637,6 +637,60 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return thrownObject?.Type;
+        }
+
+        public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
+        {
+            var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
+            stack.Add(operation.Children.GetEnumerator());
+
+            while (stack.Any())
+            {
+                var enumerator = stack.Last();
+                stack.RemoveLast();
+                if (enumerator.MoveNext())
+                {
+                    var current = enumerator.Current;
+                    stack.Add(enumerator);
+
+                    if (current != null &&
+                        (descendIntoOperation == null || descendIntoOperation(current)))
+                    {
+                        if (!current.IsImplicit &&
+                            // This prevents non explicit operations like expression to be considered as ok
+                            (current.ConstantValue.HasValue || current.Type != null))
+                        {
+                            return true;
+                        }
+                        stack.Add(current.Children.GetEnumerator());
+                    }
+                }
+            }
+
+            stack.Free();
+            return false;
+        }
+
+        public static bool IsSetMethodInvocation(this IPropertyReferenceOperation operation)
+        {
+            if (operation.Property.SetMethod is null)
+            {
+                // This is either invalid code, or an assignment through a ref-returning getter
+                return false;
+            }
+
+            IOperation potentialLeftSide = operation;
+            while (potentialLeftSide.Parent is IParenthesizedOperation
+                || potentialLeftSide.Parent is ITupleOperation)
+            {
+                potentialLeftSide = potentialLeftSide.Parent;
+            }
+
+            return potentialLeftSide.Parent switch
+            {
+                IAssignmentOperation { Target: var target } when target == potentialLeftSide => true,
+                _ => false,
+            };
         }
     }
 }

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
@@ -28,27 +28,31 @@ namespace Analyzer.Utilities
     ///     (b) "dotnet_code_quality.Naming.api_surface = public"
     ///  See <see cref="SymbolVisibilityGroup"/> for allowed symbol visibility value combinations.
     /// </summary>
-    internal sealed class CategorizedAnalyzerConfigOptions
+    internal sealed class CategorizedAnalyzerConfigOptions : AbstractCategorizedAnalyzerConfigOptions
     {
-        private const string KeyPrefix = "dotnet_code_quality.";
-
         public static readonly CategorizedAnalyzerConfigOptions Empty = new CategorizedAnalyzerConfigOptions(
             ImmutableDictionary<string, string>.Empty,
             ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty);
 
-        private readonly ConcurrentDictionary<string, object?> _computedOptionValuesMap;
+        private readonly ImmutableDictionary<string, string> _generalOptions;
+        private readonly ImmutableDictionary<string, ImmutableDictionary<string, string>> _specificOptions;
 
         private CategorizedAnalyzerConfigOptions(
             ImmutableDictionary<string, string> generalOptions,
             ImmutableDictionary<string, ImmutableDictionary<string, string>> specificOptions)
         {
-            GeneralOptions = generalOptions;
-            SpecificOptions = specificOptions;
-            _computedOptionValuesMap = new ConcurrentDictionary<string, object?>();
+            _generalOptions = generalOptions;
+            _specificOptions = specificOptions;
         }
 
-        public ImmutableDictionary<string, string> GeneralOptions { get; }
-        public ImmutableDictionary<string, ImmutableDictionary<string, string>> SpecificOptions { get; }
+        public override bool IsEmpty
+        {
+            get
+            {
+                Debug.Assert(ReferenceEquals(this, Empty) || _generalOptions.Count > 0 || _specificOptions.Count > 0);
+                return ReferenceEquals(this, Empty);
+            }
+        }
 
         public static CategorizedAnalyzerConfigOptions Create(IDictionary<string, string> options)
         {
@@ -91,6 +95,11 @@ namespace Analyzer.Utilities
                 }
             }
 
+            if (generalOptionsBuilder.Count == 0 && specificOptionsBuilder.Count == 0)
+            {
+                return Empty;
+            }
+
             var generalOptions = generalOptionsBuilder.Count > 0 ?
                 generalOptionsBuilder.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase) :
                 ImmutableDictionary<string, string>.Empty;
@@ -104,67 +113,16 @@ namespace Analyzer.Utilities
             return new CategorizedAnalyzerConfigOptions(generalOptions, specificOptions);
         }
 
-        public delegate bool TryParseValue<T>(string value, out T parsedValue);
-
-        public T GetOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
+        protected override bool TryGetOptionValue(string optionKeyPrefix, string? optionKeySuffix, string optionName, [NotNullWhen(returnValue: true)] out string? valueString)
         {
-            if (ReferenceEquals(this, Empty))
+            if (optionKeySuffix != null)
             {
-                return defaultValue;
+                valueString = null;
+                return _specificOptions.TryGetValue(optionKeySuffix, out var specificRuleOptions) &&
+                    specificRuleOptions.TryGetValue(optionName, out valueString);
             }
 
-            return (T)_computedOptionValuesMap.GetOrAdd($"{rule.Id}.{optionName}", _ => ComputeOptionValue(optionName, rule, tryParseValue, defaultValue))!;
-        }
-
-        private T ComputeOptionValue<T>(string optionName, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, T defaultValue)
-        {
-            if (TryGetSpecificOptionValue(rule.Id, out var optionValue) ||
-                TryGetSpecificOptionValue(rule.Category, out optionValue) ||
-                TryGetAnySpecificOptionValue(rule.CustomTags, out optionValue) ||
-                TryGetGeneralOptionValue(out optionValue))
-            {
-                return optionValue;
-            }
-
-            return defaultValue;
-
-            // Local functions.
-            bool TryGetSpecificOptionValue(string specificOptionKey, out T specificOptionValue)
-            {
-                if (SpecificOptions.TryGetValue(specificOptionKey, out var specificRuleOptions) &&
-                    specificRuleOptions.TryGetValue(optionName, out var valueString))
-                {
-                    return tryParseValue(valueString, out specificOptionValue);
-                }
-
-                specificOptionValue = defaultValue;
-                return false;
-            }
-
-            bool TryGetAnySpecificOptionValue(IEnumerable<string> specificOptionKeys, out T specificOptionValue)
-            {
-                foreach (var specificOptionKey in specificOptionKeys)
-                {
-                    if (TryGetSpecificOptionValue(specificOptionKey, out specificOptionValue))
-                    {
-                        return true;
-                    }
-                }
-
-                specificOptionValue = defaultValue;
-                return false;
-            }
-
-            bool TryGetGeneralOptionValue(out T generalOptionValue)
-            {
-                if (GeneralOptions.TryGetValue(optionName, out var valueString))
-                {
-                    return tryParseValue(valueString, out generalOptionValue);
-                }
-
-                generalOptionValue = defaultValue;
-                return false;
-            }
+            return _generalOptions.TryGetValue(optionName, out valueString);
         }
     }
 }

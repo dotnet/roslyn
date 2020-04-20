@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             ControlFlowGraph? parentControlFlowGraphOpt,
             InterproceduralDisposeAnalysisData? interproceduralAnalysisDataOpt,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
-            SymbolNamesOption excludedSymbols)
+            SymbolNamesWithValueOption<Unit> excludedSymbols)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph,
                   owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: false,
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             bool disposeOwnershipTransferAtConstructor,
             bool disposeOwnershipTransferAtMethodCall,
             bool trackInstanceFields,
-            SymbolNamesOption excludedSymbols)
+            SymbolNamesWithValueOption<Unit> excludedSymbols)
         {
             return new DisposeAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph,
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         internal bool DisposeOwnershipTransferAtConstructor { get; }
         internal bool DisposeOwnershipTransferAtMethodCall { get; }
         internal bool TrackInstanceFields { get; }
-        internal SymbolNamesOption ExcludedSymbols { get; }
+        internal SymbolNamesWithValueOption<Unit> ExcludedSymbols { get; }
 
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {

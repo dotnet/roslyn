@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                 Debug.Assert(IsValidValueForPredicateAnalysis(nullState) || nullState == NullAbstractValue.Invalid);
 
-                if (!sourceAnalysisData.TryGetValue(analysisEntity, out PointsToAbstractValue existingValue))
+                if (!sourceAnalysisData.TryGetValue(analysisEntity, out var existingValue))
                 {
                     existingValue = defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
                 }
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 // Check if the key already has an existing "Null" or "NotNull" NullState that would make the condition always true or false.
                 // If so, set the predicateValueKind to always true/false, set the value in branch that can never be taken to NullAbstractValue.Invalid
                 // and turn off value inference in one of the branch.
-                if (sourceAnalysisData.TryGetValue(key, out PointsToAbstractValue existingPointsToValue))
+                if (sourceAnalysisData.TryGetValue(key, out var existingPointsToValue))
                 {
                     NullAbstractValue existingNullValue = existingPointsToValue.NullState;
                     if (IsValidValueForPredicateAnalysis(existingNullValue) &&

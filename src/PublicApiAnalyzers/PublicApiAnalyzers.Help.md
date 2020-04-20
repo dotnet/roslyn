@@ -7,7 +7,7 @@ The following files have to be added to any project referencing this package to 
 
 This can be done by:
 
-- In Visual Studio, right click project in Solution Explorer, and choose "Add -> New Items", then select "Text File" in "Add new item" dialog.
+- In Visual Studio, right-click the project in Solution Explorer, choose "Add -> New Item...", and then select "Text File" in the "Add New Item" dialog. Then right-click each file, select "Properties", and choose "C# analyzer additional file" for "Build Action" in the "Properties" window.
 - Or, create these two files at the location you desire, then add the following text to your project/target file (replace file path with its actual location):
 
 ```xml
@@ -15,6 +15,14 @@ This can be done by:
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+```
+
+## Nullable reference type support
+
+To enable support for [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references) add the following at the top of each `PublicAPI.*.txt` file:
+
+```xml
+#nullable enable
 ```
 
 ## Conditional API Differences
@@ -35,15 +43,11 @@ For example when using the [`#if` preprocessor directive](https://docs.microsoft
 
 To correctly model the API differences between target frameworks (or any other property), use multiple instances of the `PublicAPI.*.txt` files.
 
-For example, if you target both `net4.8` and `netcoreapp3.0` target frameworks, and APIs differ between each, then you would have the following:
+If you have multiple target frameworks and APIs differ between them, use the following in your project file:
 
 ```xml
-  <ItemGroup Condition="'$(TargetFramework)' == 'net4.8'">
-    <AdditionalFiles Include="net4.8/PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="net4.8/PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <AdditionalFiles Include="netcoreapp3.0/PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="netcoreapp3.0/PublicAPI.Unshipped.txt" />
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI/$(TargetFramework)/PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI/$(TargetFramework)/PublicAPI.Unshipped.txt" />
   </ItemGroup>
 ```

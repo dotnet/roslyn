@@ -19,32 +19,32 @@
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
         <source>Annotate all items in document '{0}' in the public API</source>
-        <target state="new">Annotate all items in document '{0}' in the public API</target>
+        <target state="translated">在公共 API 中对文档“{0}”中的所有项进行批注</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInProjectToThePublicApiTitle">
         <source>Annotate all items in project '{0}' in the public API</source>
-        <target state="new">Annotate all items in project '{0}' in the public API</target>
+        <target state="translated">在公共 API 中对项目“{0}”中的所有项进行批注</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInTheSolutionToThePublicApiTitle">
         <source>Annotate all items in the solution in the public API</source>
-        <target state="new">Annotate all items in the solution in the public API</target>
+        <target state="translated">在公共 API 中对解决方案中的所有项进行批注</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">应在 PublicAPI.txt 中使用为 Null 性注释声明所有公共类型和成员。这将关注代码评审和源代码管理历史记录中的 API 为 Null 性更改，并有助于防止中断性变更。</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="new">Symbol '{0}' is missing nullability annotations in the declared API.</target>
+        <target state="translated">符号“{0}”在声明的 API 中缺少为 Null 性注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
         <source>Annotate nullability of public types and members in the declared API</source>
-        <target state="new">Annotate nullability of public types and members in the declared API</target>
+        <target state="translated">在声明的 API 中对公共类型和成员的为 Null 性进行批注</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for project '{0}'</source>
-        <target state="new">Enable nullability annotations in the public API for project '{0}'</target>
+        <target state="translated">在项目“{0}”的公共 API 中启用为 Null 性注释</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for the solution</source>
-        <target state="new">Enable nullability annotations in the public API for the solution</target>
+        <target state="translated">在解决方案的公共 API 中启用为 Null 性注释</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
@@ -100,6 +100,21 @@
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
         <target state="translated">构造函数使不可继承的基类可以继承</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">所有公共成员都应使用可以为 null 或不可为 null 的引用类型，但不能使用未知引用类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <target state="translated">符号“{0}”使用了一些未知引用类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">公共成员不得使用未知类型</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
@@ -164,17 +179,17 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">应在 PublicAPI.txt 中使用为 Null 性注释声明所有公共类型和成员。这将关注代码评审和源代码管理历史记录中的 API 为 Null 性更改，并有助于防止中断性变更。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="new">PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</target>
+        <target state="translated">PublicAPI.txt 缺少 "#nullable enable"，因此不会记录 API 的为 Null 性注释。建议启用此跟踪。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
         <source>Annotate nullability of types and members in the declared API</source>
-        <target state="new">Annotate nullability of types and members in the declared API</target>
+        <target state="translated">在声明的 API 中对类型和成员的为 Null 性进行批注</target>
         <note />
       </trans-unit>
     </body>

@@ -53,8 +53,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
-        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="translated">Tato lokalita volání volá funkci s parametrem params. Výsledkem je přidělení pole i v případě, že se pro parametr params nepředá žádný parametr.</target>
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation</source>
+        <target state="translated">Tato lokalita volání volá funkci s parametrem params. Výsledkem je přidělení pole.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">

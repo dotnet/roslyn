@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, compilation, cancellationToken));
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                   analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
-            var performCopyAnalysis = analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: false, cancellationToken);
-            var nullCheckValidationMethods = analyzerOptions.GetNullCheckValidationMethodsOption(rule, compilation, cancellationToken);
+                   analyzerOptions, rule, topmostBlock.Syntax.SyntaxTree, compilation, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
+            var performCopyAnalysis = analyzerOptions.GetCopyAnalysisOption(rule, topmostBlock.Syntax.SyntaxTree, compilation, defaultValue: false, cancellationToken);
+            var nullCheckValidationMethods = analyzerOptions.GetNullCheckValidationMethodsOption(rule, topmostBlock.Syntax.SyntaxTree, compilation, cancellationToken);
             return GetOrComputeHazardousParameterUsages(topmostBlock, compilation, owningSymbol, analyzerOptions,
                 nullCheckValidationMethods, interproceduralAnalysisConfig, performCopyAnalysis, pessimisticAnalysis);
         }
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             Compilation compilation,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
-            SymbolNamesOption nullCheckValidationMethods,
+            SymbolNamesWithValueOption<Unit> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool performCopyAnalysis,
             bool pessimisticAnalysis = true)
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
-            SymbolNamesOption nullCheckValidationMethods,
+            SymbolNamesWithValueOption<Unit> nullCheckValidationMethods,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResult)

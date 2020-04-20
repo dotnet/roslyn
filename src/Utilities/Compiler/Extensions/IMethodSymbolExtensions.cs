@@ -7,9 +7,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections.Concurrent;
 
 #if HAS_IOPERATION
-using System.Collections.Concurrent;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
@@ -194,6 +194,16 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if the given method matches Dispose method convention and can be recognized by "using".
+        /// </summary>
+        public static bool HasDisposeSignatureByConvention(this IMethodSymbol method)
+        {
+            return method.HasDisposeMethodSignature()
+                && !method.IsStatic
+                && !method.IsPrivate();
+        }
+
+        /// <summary>
         /// Checks if the given method has the signature "void Dispose(bool)".
         /// </summary>
         public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
@@ -236,7 +246,7 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Checks if the given method has the signature "override Task DisposeCoreAsync(bool)".
         /// </summary>
-        private static bool HasOverriddenDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)]  INamedTypeSymbol? task)
+        private static bool HasOverriddenDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? task)
         {
             return method.Name == "DisposeCoreAsync" &&
                 method.MethodKind == MethodKind.Ordinary &&
@@ -272,7 +282,12 @@ namespace Analyzer.Utilities.Extensions
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
                     (Equals(method.ContainingType, iDisposable) &&
-                     method.HasDisposeMethodSignature()))
+                     method.HasDisposeMethodSignature())
+#if CODEANALYSIS_V3_OR_BETTER
+                    || (method.ContainingType.IsRefLikeType &&
+                     method.HasDisposeSignatureByConvention())
+#endif
+                )
                 {
                     return DisposeMethodKind.Dispose;
                 }
@@ -319,6 +334,19 @@ namespace Analyzer.Utilities.Extensions
                 method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
                 method.IsImplementationOfInterfaceMethod(null, iDeserializationCallback, "OnDeserialization");
         }
+
+        public static bool IsSerializationConstructor([NotNullWhen(returnValue: true)] this IMethodSymbol? method, INamedTypeSymbol? serializationInfoType, INamedTypeSymbol? streamingContextType)
+            => method.IsConstructor() &&
+                method.Parameters.Length == 2 &&
+                method.Parameters[0].Type.Equals(serializationInfoType) &&
+                method.Parameters[1].Type.Equals(streamingContextType);
+
+        public static bool IsGetObjectData([NotNullWhen(returnValue: true)] this IMethodSymbol? method, INamedTypeSymbol? serializationInfoType, INamedTypeSymbol? streamingContextType)
+            => method?.Name == "GetObjectData" &&
+                method.ReturnsVoid &&
+                method.Parameters.Length == 2 &&
+                method.Parameters[0].Type.Equals(serializationInfoType) &&
+                method.Parameters[1].Type.Equals(streamingContextType);
 
         /// <summary>
         /// Checks if the method is a property getter.
@@ -618,6 +646,17 @@ namespace Analyzer.Utilities.Extensions
                 method.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
                 method.Parameters.Length == 1 &&
                 !method.Parameters[0].Type.IsValueType;
+        }
+
+        public static bool IsXUnitTestMethod(this IMethodSymbol method, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol xunitFactAttribute)
+        {
+            foreach (var attribute in method.GetAttributes())
+            {
+                if (attribute.AttributeClass.IsXUnitTestAttribute(knownTestAttributes, xunitFactAttribute))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

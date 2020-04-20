@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         internal static readonly ComputationalComplexityMetrics Default = new ComputationalComplexityMetrics(0, 0, 0, 0, 0, ImmutableHashSet<OperationKind>.Empty,
             ImmutableHashSet<BinaryOperatorKind>.Empty, ImmutableHashSet<UnaryOperatorKind>.Empty, ImmutableHashSet<CaseKind>.Empty, ImmutableHashSet<ISymbol>.Empty, ImmutableHashSet<object>.Empty);
         private static readonly object s_nullConstantPlaceholder = new object();
-
-        private readonly long _operatorUsageCounts;
         private readonly long _symbolUsageCounts;
         private readonly long _constantUsageCounts;
         private readonly ImmutableHashSet<OperationKind> _distinctOperatorKinds;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         {
             ExecutableLines = executableLinesOfCode;
             EffectiveLinesOfCode = effectiveLinesOfMaintainableCode;
-            _operatorUsageCounts = operatorUsageCounts;
+            TotalOperators = operatorUsageCounts;
             _symbolUsageCounts = symbolUsageCounts;
             _constantUsageCounts = constantUsageCounts;
             _distinctOperatorKinds = distinctOperatorKinds;
@@ -367,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             return new ComputationalComplexityMetrics(
                 executableLinesOfCode: ExecutableLines + other.ExecutableLines,
                 effectiveLinesOfMaintainableCode: EffectiveLinesOfCode + other.EffectiveLinesOfCode,
-                operatorUsageCounts: _operatorUsageCounts + other._operatorUsageCounts,
+                operatorUsageCounts: TotalOperators + other.TotalOperators,
                 symbolUsageCounts: _symbolUsageCounts + other._symbolUsageCounts,
                 constantUsageCounts: _constantUsageCounts + other._constantUsageCounts,
                 distinctOperatorKinds: _distinctOperatorKinds.Union(other._distinctOperatorKinds),
@@ -414,9 +412,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         /// <summary>The total number of operator usages found.</summary>
         public long TotalOperators           //N1
-        {
-            get { return _operatorUsageCounts; }
-        }
+        { get; }
 
         /// <summary>The total number of operand usages found.</summary>
         public long TotalOperands            //N2
@@ -442,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         public double Volume                //V
         {
             // V = N * Log2(n)
-            get { return (Length * Math.Max(0.0, Math.Log(Vocabulary, 2))); }
+            get { return Length * Math.Max(0.0, Math.Log(Vocabulary, 2)); }
         }
 
         /// <summary>
