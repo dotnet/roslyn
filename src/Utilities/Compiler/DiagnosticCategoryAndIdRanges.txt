@@ -9,7 +9,7 @@
 #   1. Choose the rule ID immediately following the range end.
 #   2. Update the range end to the chosen rule ID.
 #
-Design: CA2210, CA1000-CA1069
+Design: CA2210, CA1000-CA1070
 Globalization: CA2101, CA1300-CA1309
 Mobility: CA1600-CA1601
 Performance: HA, CA1800-CA1833
