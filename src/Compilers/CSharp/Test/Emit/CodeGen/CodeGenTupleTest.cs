@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26755,6 +26756,263 @@ public class Class
 
             var comp2 = CreateCompilation(source1, references: new[] { comp1.EmitToImageReference() }, options: TestOptions.DebugDll);
             CompileAndVerify(comp2);
+        }
+
+        [Fact]
+        [WorkItem(27322, "https://github.com/dotnet/roslyn/issues/27322")]
+        public void ExpressionTreeWithTuple()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+class C
+{
+    static void Main()
+    {
+        var tupleA = (1, 3);
+        var tupleB = (1, ""123"".Length);
+
+        Expression<Func<int>> ok1 = () => tupleA.Item1;
+        Expression<Func<int>> ok2 = () => tupleA.GetHashCode();
+        Expression<Func<Tuple<int, int>>> ok3 = () => tupleA.ToTuple();
+        Expression<Func<bool>> ok4 = () => Equals(tupleA, tupleB);
+        Expression<Func<int>> ok5 = () => Comparer<(int, int)>.Default.Compare(tupleA, tupleB);
+        ok1.Compile()();
+        ok2.Compile()();
+        ok3.Compile()();
+        ok4.Compile()();
+        ok5.Compile()();
+
+        Expression<Func<bool>> issue1 = () => tupleA.Equals(tupleB);
+        Expression<Func<int>> issue2 = () => tupleA.CompareTo(tupleB);
+        Console.WriteLine(""Done."");
+    }
+}";
+            var comp = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"Done.");
+            verifier.VerifyIL("C.Main", @"
+    {
+      // Code size      799 (0x31f)
+      .maxstack  7
+      .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                    System.Linq.Expressions.Expression<System.Func<int>> V_1, //ok1
+                    System.Linq.Expressions.Expression<System.Func<int>> V_2, //ok2
+                    System.Linq.Expressions.Expression<System.Func<System.Tuple<int, int>>> V_3, //ok3
+                    System.Linq.Expressions.Expression<System.Func<bool>> V_4) //ok4
+      IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+      IL_0005:  stloc.0
+      IL_0006:  ldloc.0
+      IL_0007:  ldc.i4.1
+      IL_0008:  ldc.i4.3
+      IL_0009:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+      IL_000e:  stfld      ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_0013:  ldloc.0
+      IL_0014:  ldc.i4.1
+      IL_0015:  ldstr      ""123""
+      IL_001a:  call       ""int string.Length.get""
+      IL_001f:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+      IL_0024:  stfld      ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_0029:  ldloc.0
+      IL_002a:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_002f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0034:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_0039:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_003e:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0043:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0048:  ldtoken    ""int System.ValueTuple<int, int>.Item1""
+      IL_004d:  ldtoken    ""System.ValueTuple<int, int>""
+      IL_0052:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle, System.RuntimeTypeHandle)""
+      IL_0057:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_005c:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_0061:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_0066:  stloc.1
+      IL_0067:  ldloc.0
+      IL_0068:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_006d:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0072:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_0077:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_007c:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0081:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0086:  ldtoken    ""int object.GetHashCode()""
+      IL_008b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+      IL_0090:  castclass  ""System.Reflection.MethodInfo""
+      IL_0095:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
+      IL_009a:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_009f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_00a4:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_00a9:  stloc.2
+      IL_00aa:  ldnull
+      IL_00ab:  ldtoken    ""System.Tuple<int, int> System.TupleExtensions.ToTuple<int, int>(System.ValueTuple<int, int>)""
+      IL_00b0:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+      IL_00b5:  castclass  ""System.Reflection.MethodInfo""
+      IL_00ba:  ldc.i4.1
+      IL_00bb:  newarr     ""System.Linq.Expressions.Expression""
+      IL_00c0:  dup
+      IL_00c1:  ldc.i4.0
+      IL_00c2:  ldloc.0
+      IL_00c3:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_00c8:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_00cd:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_00d2:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_00d7:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_00dc:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_00e1:  stelem.ref
+      IL_00e2:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_00e7:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_00ec:  call       ""System.Linq.Expressions.Expression<System.Func<System.Tuple<int, int>>> System.Linq.Expressions.Expression.Lambda<System.Func<System.Tuple<int, int>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_00f1:  stloc.3
+      IL_00f2:  ldnull
+      IL_00f3:  ldtoken    ""bool object.Equals(object, object)""
+      IL_00f8:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+      IL_00fd:  castclass  ""System.Reflection.MethodInfo""
+      IL_0102:  ldc.i4.2
+      IL_0103:  newarr     ""System.Linq.Expressions.Expression""
+      IL_0108:  dup
+      IL_0109:  ldc.i4.0
+      IL_010a:  ldloc.0
+      IL_010b:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_0110:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0115:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_011a:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_011f:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0124:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0129:  ldtoken    ""object""
+      IL_012e:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0133:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+      IL_0138:  stelem.ref
+      IL_0139:  dup
+      IL_013a:  ldc.i4.1
+      IL_013b:  ldloc.0
+      IL_013c:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_0141:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0146:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_014b:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_0150:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0155:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_015a:  ldtoken    ""object""
+      IL_015f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0164:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+      IL_0169:  stelem.ref
+      IL_016a:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_016f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_0174:  call       ""System.Linq.Expressions.Expression<System.Func<bool>> System.Linq.Expressions.Expression.Lambda<System.Func<bool>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_0179:  stloc.s    V_4
+      IL_017b:  ldnull
+      IL_017c:  ldtoken    ""System.Collections.Generic.Comparer<System.ValueTuple<int, int>> System.Collections.Generic.Comparer<System.ValueTuple<int, int>>.Default.get""
+      IL_0181:  ldtoken    ""System.Collections.Generic.Comparer<System.ValueTuple<int, int>>""
+      IL_0186:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+      IL_018b:  castclass  ""System.Reflection.MethodInfo""
+      IL_0190:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Property(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+      IL_0195:  ldtoken    ""int System.Collections.Generic.Comparer<System.ValueTuple<int, int>>.Compare(System.ValueTuple<int, int>, System.ValueTuple<int, int>)""
+      IL_019a:  ldtoken    ""System.Collections.Generic.Comparer<System.ValueTuple<int, int>>""
+      IL_019f:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+      IL_01a4:  castclass  ""System.Reflection.MethodInfo""
+      IL_01a9:  ldc.i4.2
+      IL_01aa:  newarr     ""System.Linq.Expressions.Expression""
+      IL_01af:  dup
+      IL_01b0:  ldc.i4.0
+      IL_01b1:  ldloc.0
+      IL_01b2:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_01b7:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_01bc:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_01c1:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_01c6:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_01cb:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_01d0:  stelem.ref
+      IL_01d1:  dup
+      IL_01d2:  ldc.i4.1
+      IL_01d3:  ldloc.0
+      IL_01d4:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_01d9:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_01de:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_01e3:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_01e8:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_01ed:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_01f2:  stelem.ref
+      IL_01f3:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_01f8:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_01fd:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_0202:  ldloc.1
+      IL_0203:  callvirt   ""System.Func<int> System.Linq.Expressions.Expression<System.Func<int>>.Compile()""
+      IL_0208:  callvirt   ""int System.Func<int>.Invoke()""
+      IL_020d:  pop
+      IL_020e:  ldloc.2
+      IL_020f:  callvirt   ""System.Func<int> System.Linq.Expressions.Expression<System.Func<int>>.Compile()""
+      IL_0214:  callvirt   ""int System.Func<int>.Invoke()""
+      IL_0219:  pop
+      IL_021a:  ldloc.3
+      IL_021b:  callvirt   ""System.Func<System.Tuple<int, int>> System.Linq.Expressions.Expression<System.Func<System.Tuple<int, int>>>.Compile()""
+      IL_0220:  callvirt   ""System.Tuple<int, int> System.Func<System.Tuple<int, int>>.Invoke()""
+      IL_0225:  pop
+      IL_0226:  ldloc.s    V_4
+      IL_0228:  callvirt   ""System.Func<bool> System.Linq.Expressions.Expression<System.Func<bool>>.Compile()""
+      IL_022d:  callvirt   ""bool System.Func<bool>.Invoke()""
+      IL_0232:  pop
+      IL_0233:  callvirt   ""System.Func<int> System.Linq.Expressions.Expression<System.Func<int>>.Compile()""
+      IL_0238:  callvirt   ""int System.Func<int>.Invoke()""
+      IL_023d:  pop
+      IL_023e:  ldloc.0
+      IL_023f:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_0244:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0249:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_024e:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_0253:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0258:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_025d:  ldtoken    ""bool System.ValueTuple<int, int>.Equals(System.ValueTuple<int, int>)""
+      IL_0262:  ldtoken    ""System.ValueTuple<int, int>""
+      IL_0267:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+      IL_026c:  castclass  ""System.Reflection.MethodInfo""
+      IL_0271:  ldc.i4.1
+      IL_0272:  newarr     ""System.Linq.Expressions.Expression""
+      IL_0277:  dup
+      IL_0278:  ldc.i4.0
+      IL_0279:  ldloc.0
+      IL_027a:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_027f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_0284:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_0289:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_028e:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_0293:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0298:  stelem.ref
+      IL_0299:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_029e:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_02a3:  call       ""System.Linq.Expressions.Expression<System.Func<bool>> System.Linq.Expressions.Expression.Lambda<System.Func<bool>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_02a8:  pop
+      IL_02a9:  ldloc.0
+      IL_02aa:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_02af:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_02b4:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_02b9:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleA""
+      IL_02be:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_02c3:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_02c8:  ldtoken    ""int System.ValueTuple<int, int>.CompareTo(System.ValueTuple<int, int>)""
+      IL_02cd:  ldtoken    ""System.ValueTuple<int, int>""
+      IL_02d2:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+      IL_02d7:  castclass  ""System.Reflection.MethodInfo""
+      IL_02dc:  ldc.i4.1
+      IL_02dd:  newarr     ""System.Linq.Expressions.Expression""
+      IL_02e2:  dup
+      IL_02e3:  ldc.i4.0
+      IL_02e4:  ldloc.0
+      IL_02e5:  ldtoken    ""C.<>c__DisplayClass0_0""
+      IL_02ea:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+      IL_02ef:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+      IL_02f4:  ldtoken    ""System.ValueTuple<int, int> C.<>c__DisplayClass0_0.tupleB""
+      IL_02f9:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+      IL_02fe:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+      IL_0303:  stelem.ref
+      IL_0304:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+      IL_0309:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+      IL_030e:  call       ""System.Linq.Expressions.Expression<System.Func<int>> System.Linq.Expressions.Expression.Lambda<System.Func<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+      IL_0313:  pop
+      IL_0314:  ldstr      ""Done.""
+      IL_0319:  call       ""void System.Console.WriteLine(string)""
+      IL_031e:  ret
+    }
+");
         }
     }
 }
