@@ -325,7 +325,7 @@ namespace N2
 
             var projectIds = new HashSet<ProjectId>();
             foreach (var r in references)
-                projectIds.Add(solution.GetExactProjectId(r.Definition));
+                projectIds.Add(solution.GetOriginatingProjectId(r.Definition));
 
             Assert.True(projectIds.Contains(desktopProject.Id));
         }

@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    solution.GetOriginatingProject(implementation), includeHiddenLocations: false,
-                    FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+                    solution, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
@@ -122,16 +121,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             cancellationToken.ThrowIfCancellationRequested();
 
             // Find the symbol we want to search and the solution we want to search in.
-            var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndSolutionOpt = await FindUsagesHelpers.GetRelevantSymbolAndSolutionAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProjectOpt == null)
+            if (symbolAndSolutionOpt == null)
                 return;
 
-            var (symbol, project) = symbolAndProjectOpt.Value;
+            var (symbol, solution) = symbolAndSolutionOpt.Value;
 
             await FindSymbolReferencesAsync(
                 _threadingContext, context,
-                symbol, project,
+                symbol, solution,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -141,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
             IThreadingContext threadingContext, IFindUsagesContext context,
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var monikerUsagesService = project.Solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
+            var monikerUsagesService = solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
 
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
@@ -154,20 +153,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
+            var progress = new FindReferencesProgressAdapter(threadingContext, solution, context, options);
             var normalFindReferencesTask = SymbolFinder.FindReferencesAsync(
-                symbol,
-                project.Solution,
-                new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options),
-                documents: null,
-                options,
-                cancellationToken);
+                symbol, solution, progress, documents: null, options, cancellationToken);
 
             // Kick off work to search the online code index system in parallel
             var codeIndexReferencesTask = FindSymbolMonikerReferencesAsync(
-                monikerUsagesService,
-                symbol,
-                context,
-                cancellationToken);
+                monikerUsagesService, symbol, context, cancellationToken);
 
             await Task.WhenAll(normalFindReferencesTask, codeIndexReferencesTask).ConfigureAwait(false);
         }

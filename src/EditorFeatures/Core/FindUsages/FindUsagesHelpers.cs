@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
-        public static async Task<(ISymbol symbol, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
+        public static async Task<(ISymbol symbol, Solution solution)?> GetRelevantSymbolAndSolutionAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -49,19 +49,19 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             if (mapping == null)
                 return null;
 
-            return (mapping.Symbol, mapping.Project);
+            return (mapping.Symbol, mapping.Project.Solution);
         }
 
         public static async Task<(Solution solution, ISymbol symbol, ImmutableArray<ISymbol> implementations, string message)?> FindSourceImplementationsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var symbolAndProjectOpt = await GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndSolutionOpt = await GetRelevantSymbolAndSolutionAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProjectOpt == null)
+            if (symbolAndSolutionOpt == null)
                 return null;
 
-            var (symbol, project) = symbolAndProjectOpt.Value;
+            var (symbol, solution) = symbolAndSolutionOpt.Value;
             return await FindSourceImplementationsAsync(
-                project.Solution, symbol, cancellationToken).ConfigureAwait(false);
+                solution, symbol, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<(Solution solution, ISymbol symbol, ImmutableArray<ISymbol> implementations, string message)?> FindSourceImplementationsAsync(

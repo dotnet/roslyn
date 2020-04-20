@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             => FindBaseTypes(type).AddRange(type.AllInterfaces).CastArray<ISymbol>();
 
         public static ImmutableArray<ISymbol> FindOverriddenAndImplementedMembers(
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
             var results = ArrayBuilder<ISymbol>.GetInstance();
 
             // This is called for all: class, struct or interface member.
