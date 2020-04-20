@@ -1043,18 +1043,18 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
 
                 compilation.VerifyDiagnostics(
-                    // (2,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (2,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return (1 is int x1);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(2, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "1 is int x1").WithArguments("bool", "int").WithLocation(2, 9),
                     // (3,1): warning CS0162: Unreachable code detected
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.WRN_UnreachableCode, "H").WithLocation(3, 1),
                     // (6,18): error CS0128: A local variable or function named 'x2' is already defined in this scope
                     // return (2 is int x2);
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(6, 18),
-                    // (8,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (8,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return (3 is int x3);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(8, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "3 is int x3").WithArguments("bool", "int").WithLocation(8, 9),
                     // (9,8): error CS0128: A local variable or function named 'x3' is already defined in this scope
                     // object x3;
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x3").WithArguments("x3").WithLocation(9, 8),
@@ -1175,18 +1175,18 @@ class H
                 var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
 
                 compilation.VerifyDiagnostics(
-                    // (2,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (2,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return (1 is var x1);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(2, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "1 is var x1").WithArguments("bool", "int").WithLocation(2, 9),
                     // (3,1): warning CS0162: Unreachable code detected
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.WRN_UnreachableCode, "H").WithLocation(3, 1),
                     // (6,18): error CS0128: A local variable or function named 'x2' is already defined in this scope
                     // return (2 is var x2);
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(6, 18),
-                    // (8,1): error CS0127: Since '<simple-program-entry-point>' returns void, a return keyword must not be followed by an object expression
+                    // (8,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                     // return (3 is var x3);
-                    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("<simple-program-entry-point>").WithLocation(8, 1),
+                    Diagnostic(ErrorCode.ERR_NoImplicitConv, "3 is var x3").WithArguments("bool", "int").WithLocation(8, 9),
                     // (9,8): error CS0128: A local variable or function named 'x3' is already defined in this scope
                     // object x3;
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x3").WithArguments("x3").WithLocation(9, 8),

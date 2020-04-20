@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
             /// </summary>
             IsIterator = 1 << 7,
+
+            /// <summary>
+            /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// </summary>
+            HasReturnWithExpression = 1 << 8,
         }
 
         internal SingleTypeDeclaration(
@@ -140,6 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.HasAwaitExpressions) != 0;
+            }
+        }
+
+        public bool HasReturnWithExpression
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.HasReturnWithExpression) != 0;
             }
         }
 

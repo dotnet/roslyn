@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"System.Console.WriteLine(""Hi!"");";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            Assert.Equal("System.Void", SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp).ReturnType.ToTestDisplayString());
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "Hi!");
         }
 
@@ -47,7 +49,9 @@ Console.Write(""async main"");
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            Assert.Equal("System.Threading.Tasks.Task", SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp).ReturnType.ToTestDisplayString());
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
             CompileAndVerify(comp, expectedOutput: "hello async main");
         }
 
@@ -6233,5 +6237,405 @@ class C1
                 );
         }
 
+        [Fact]
+        public void MissingTypes_03()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+return 10;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.MakeTypeMissing(SpecialType.System_Int32);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32[missing]", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
+                // (3,8): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // return 10;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "10").WithArguments("System.Int32").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void MissingTypes_04()
+        {
+            var text = @"
+await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
+return 11;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.MakeTypeMissing(SpecialType.System_Int32);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32[missing]>", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (2,1): warning CS0028: '<simple-program-entry-point>' has the wrong signature to be an entry point
+                // await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, @"await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
+return 11;
+").WithArguments("<simple-program-entry-point>").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);").WithArguments("System.Int32").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);").WithArguments("System.Int32").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await System.Threading.Tasks.Task.Factory.StartNew(() => 5L);").WithArguments("System.Int32").WithLocation(2, 1),
+                // (3,8): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // return 11;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "11").WithArguments("System.Int32").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void MissingTypes_05()
+        {
+            var text = @"
+await System.Threading.Tasks.Task.Factory.StartNew(() => ""5"");
+return 11;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task_T);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32>[missing]", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Threading.Tasks.Task`1' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Threading.Tasks.Task`1").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (2,1): warning CS0028: '<simple-program-entry-point>' has the wrong signature to be an entry point
+                // await System.Threading.Tasks.Task.Factory.StartNew(() => "5");
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, @"await System.Threading.Tasks.Task.Factory.StartNew(() => ""5"");
+return 11;
+").WithArguments("<simple-program-entry-point>").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void MissingTypes_06()
+        {
+            var text = @"
+await System.Threading.Tasks.Task.Factory.StartNew(() => ""5"");
+return 11;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.MakeTypeMissing(SpecialType.System_Int32);
+            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_Task_T);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32[missing]>[missing]", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Threading.Tasks.Task`1' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Threading.Tasks.Task`1").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (2,1): warning CS0028: '<simple-program-entry-point>' has the wrong signature to be an entry point
+                // await System.Threading.Tasks.Task.Factory.StartNew(() => "5");
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, @"await System.Threading.Tasks.Task.Factory.StartNew(() => ""5"");
+return 11;
+").WithArguments("<simple-program-entry-point>").WithLocation(2, 1),
+                // (3,8): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                // return 11;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "11").WithArguments("System.Int32").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void Return_01()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+return;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void Return_02()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+return 10;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "Hi!", expectedReturnCode: 10);
+        }
+
+        [Fact]
+        public void Return_03()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(""hello "");
+await Task.Factory.StartNew(() => 5);
+Console.Write(""async main"");
+return;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "hello async main");
+        }
+
+        [Fact]
+        public void Return_04()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(""hello "");
+await Task.Factory.StartNew(() => 5);
+Console.Write(""async main"");
+return 11;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "hello async main", expectedReturnCode: 11);
+        }
+
+        [Fact]
+        public void Return_05()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+return ""error"";
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            comp.VerifyDiagnostics(
+                // (3,8): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                // return "error";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""error""").WithArguments("string", "int").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void Return_06()
+        {
+            var text = @"
+System.Func<int, int> d = n =>
+    {
+        System.Console.WriteLine(""Hi!"");
+        return n;
+    };
+d(0);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void Return_07()
+        {
+            var text = @"
+System.Func<int, int> d = delegate(int n)
+    {
+        System.Console.WriteLine(""Hi!"");
+        return n;
+    };
+d(0);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void Return_08()
+        {
+            var text = @"
+System.Func<int, int> d = (n) =>
+    {
+        System.Console.WriteLine(""Hi!"");
+        return n;
+    };
+d(0);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void Return_09()
+        {
+            var text = @"
+int local(int n)
+{
+    System.Console.WriteLine(""Hi!"");
+    return n;
+}
+
+local(0);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.True(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "Hi!");
+        }
+
+        [Fact]
+        public void Return_10()
+        {
+            var text = @"
+bool b = true;
+if (b)
+    return 0;
+else
+    return;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            comp.VerifyDiagnostics(
+                // (6,5): error CS0126: An object of a type convertible to 'int' is required
+                //     return;
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int").WithLocation(6, 5)
+                );
+        }
+
+        [Fact]
+        public void Return_11()
+        {
+            var text = @"
+bool b = true;
+if (b)
+    return;
+else
+    return 0;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0126: An object of a type convertible to 'int' is required
+                //     return;
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int").WithLocation(4, 5)
+                );
+        }
+
+        [Fact]
+        public void Return_12()
+        {
+            var text = @"
+System.Console.WriteLine(1);
+return;
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Void", entryPoint.ReturnType.ToTestDisplayString());
+            CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics(
+                // (4,1): warning CS0162: Unreachable code detected
+                // System.Console.WriteLine(2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(4, 1)
+                );
+        }
+
+        [Fact]
+        public void Return_13()
+        {
+            var text = @"
+System.Console.WriteLine(1);
+return 13;
+System.Console.WriteLine(2);
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
+            CompileAndVerify(comp, expectedOutput: "1", expectedReturnCode: 13).VerifyDiagnostics(
+                // (4,1): warning CS0162: Unreachable code detected
+                // System.Console.WriteLine(2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(4, 1)
+                );
+        }
+
+        [Fact]
+        public void Return_14()
+        {
+            var text = @"
+System.Console.WriteLine(""Hi!"");
+return default;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Int32", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "Hi!", expectedReturnCode: 0);
+        }
+
+        [Fact]
+        public void Return_15()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(""hello "");
+await Task.Factory.StartNew(() => 5);
+Console.Write(""async main"");
+return default;
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            var entryPoint = SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(comp);
+            Assert.Equal("System.Threading.Tasks.Task<System.Int32>", entryPoint.ReturnType.ToTestDisplayString());
+            Assert.False(entryPoint.ReturnsVoid);
+            CompileAndVerify(comp, expectedOutput: "hello async main", expectedReturnCode: 0);
+        }
     }
 }
