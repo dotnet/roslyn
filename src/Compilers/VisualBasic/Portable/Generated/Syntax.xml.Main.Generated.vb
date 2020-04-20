@@ -41950,7 +41950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41964,7 +41964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.

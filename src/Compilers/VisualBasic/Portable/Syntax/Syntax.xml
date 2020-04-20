@@ -2240,7 +2240,7 @@ Unify Enum declarations with other block type declarations.
       -  ObjectCreationInitializerNode
       **********************-->
     <node-structure name="ObjectCreationInitializerSyntax" parent="VisualBasicSyntaxNode" abstract="true">
-      <description>An abstract node class that represents a "With" or "From" clause used to initializer an new object.</description>
+      <description>An abstract node class that represents a "With" or "From" clause used to initialize a new object.</description>
     </node-structure>
 
     <node-structure name="ObjectMemberInitializerSyntax" parent="ObjectCreationInitializerSyntax">
