@@ -172,6 +172,11 @@
         <target state="translated">L'aggiunta di progetti non è supportata.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="new">Symbol's project could not be found in the provided solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
         <target state="new">The project already contains the specified reference.</target>

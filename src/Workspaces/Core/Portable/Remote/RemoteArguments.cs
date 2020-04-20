@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var symbolKey = symbol.GetSymbolKey(cancellationToken);
             var projectId = solution.GetExactProjectId(symbol);
-            if (projectId == null)
-                throw new ArgumentException("Symbol's project could not be found in the Solution provided");
+            Contract.ThrowIfNull(projectId, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
 
             return new SerializableSymbolAndProjectId
             {
