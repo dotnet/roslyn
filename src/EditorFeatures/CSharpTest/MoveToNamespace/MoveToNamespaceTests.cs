@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override string GetLanguage() => LanguageNames.CSharp;
+        protected internal override string GetLanguage() => LanguageNames.CSharp;
 
         public static IEnumerable<object[]> SupportedKeywords => new[]
         {
