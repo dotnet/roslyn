@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         {
             { BinaryOperatorKind.NotEquals, SyntaxKind.ExclamationEqualsToken },
             { BinaryOperatorKind.LessThan, SyntaxKind.LessThanToken },
-            { BinaryOperatorKind.GreaterThan,  SyntaxKind.GreaterThanToken },
-            { BinaryOperatorKind.LessThanOrEqual,  SyntaxKind.LessThanEqualsToken },
-            { BinaryOperatorKind.GreaterThanOrEqual,  SyntaxKind.GreaterThanEqualsToken },
+            { BinaryOperatorKind.GreaterThan, SyntaxKind.GreaterThanToken },
+            { BinaryOperatorKind.LessThanOrEqual, SyntaxKind.LessThanEqualsToken },
+            { BinaryOperatorKind.GreaterThanOrEqual, SyntaxKind.GreaterThanEqualsToken },
         };
 
         public override SyntaxNode CreateSwitchExpressionStatement(SyntaxNode target, ImmutableArray<AnalyzedSwitchSection> sections)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 var label = section.Labels[i];
                 Debug.Assert(label.Guards.Length == 0, "We shouldn't have guards when we're combining multiple cases into a single arm");
                 var nextPattern = AsPatternSyntax(label.Pattern);
-                pattern = BinaryPattern(SyntaxKind.OrPattern, pattern, nextPattern);
+                pattern = BinaryPattern(SyntaxKind.OrPattern, pattern.Parenthesize(), nextPattern.Parenthesize());
             }
 
             return SwitchExpressionArm(pattern, whenClause, AsExpressionSyntax(section.Body));
@@ -98,15 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern)
             => pattern switch
             {
-                AnalyzedPattern.And p => BinaryPattern(SyntaxKind.AndPattern, AsPatternSyntax(p.LeftPattern), AsPatternSyntax(p.RightPattern)),
+                AnalyzedPattern.And p => BinaryPattern(SyntaxKind.AndPattern, AsPatternSyntax(p.LeftPattern).Parenthesize(), AsPatternSyntax(p.RightPattern).Parenthesize()),
                 AnalyzedPattern.Constant p => ConstantPattern(p.ExpressionSyntax),
                 AnalyzedPattern.Source p => p.PatternSyntax,
                 AnalyzedPattern.Type p => DeclarationPattern((TypeSyntax)p.IsExpressionSyntax.Right, DiscardDesignation()),
                 AnalyzedPattern.Relational p => RelationalPattern(Token(s_operatorMap[p.OperatorKind]), p.Value),
                 AnalyzedPattern.Range p => BinaryPattern(
                     SyntaxKind.AndPattern,
-                    RelationalPattern(Token(SyntaxKind.GreaterThanEqualsToken), p.LowerBound),
-                    RelationalPattern(Token(SyntaxKind.LessThanEqualsToken), p.HigherBound)),
+                    RelationalPattern(Token(SyntaxKind.GreaterThanEqualsToken), p.LowerBound).Parenthesize(),
+                    RelationalPattern(Token(SyntaxKind.LessThanEqualsToken), p.HigherBound).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
 

@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             else
             {
                 aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
-                var bindableParent = syntaxFacts.GetBindableParent(token);
-                var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+                var bindableParent = syntaxFacts.TryGetBindableParent(token);
+                var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
                 type = typeInfo.Type;
                 convertedType = typeInfo.ConvertedType;
                 declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);

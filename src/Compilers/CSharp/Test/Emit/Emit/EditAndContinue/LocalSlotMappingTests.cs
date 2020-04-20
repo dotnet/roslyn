@@ -4242,7 +4242,7 @@ class C
      -IL_001a:  stfld      ""int C.<G>d__0.<>1__state""
       IL_001f:  ldloc.0
       IL_0020:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
-      IL_0025:  ldloca.s   V_0
+     ~IL_0025:  ldloca.s   V_0
       IL_0027:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<C.<G>d__0>(ref C.<G>d__0)""
       IL_002c:  ldloc.0
       IL_002d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> C.<G>d__0.<>t__builder""
