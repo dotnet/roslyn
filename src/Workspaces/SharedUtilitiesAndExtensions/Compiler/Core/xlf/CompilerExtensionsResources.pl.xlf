@@ -157,6 +157,11 @@
         <target state="new">Public or Protected Field</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
+      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
+        <source>Segment size must be power of 2 greater than 1</source>
+        <target state="new">Segment size must be power of 2 greater than 1</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>
         <target state="new">Specified sequence has duplicate items</target>
