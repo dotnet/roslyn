@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                     var definitionItem = await sourceDefinition.Symbol.ToClassifiedDefinitionItemAsync(
                         project.Solution.GetProject(sourceDefinition.ProjectId),
                         isPrimary: true, includeHiddenLocations: false,
-                        FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                        FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
                     found = true;
                 }
