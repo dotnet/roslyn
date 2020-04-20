@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 public TrackedGeneratorDriver GeneratorDriver { get; }
 
                 /// <summary>
-                /// Weak table to the assembly and module symbols that this compilation tracker has created.  This can
+                /// Weak table of the assembly and module symbols that this compilation tracker has created.  This can
                 /// be used to determine which project an assembly symbol came from after the fact.  This is needed as
                 /// the compilation an assembly came from can GC'ed and further requests to get that compilation (or any
                 /// of it's assemblies) may produce new assembly symbols.
