@@ -47,11 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                    baseSymbol, solution, cancellationToken).ConfigureAwait(false);
                 if (sourceDefinition != null)
                 {
-                    var sourceDefProjectId = solution.GetExactProjectId(sourceDefinition);
                     var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
-                        solution.GetProject(sourceDefProjectId), includeHiddenLocations: false,
-                        FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                        solution.GetOriginatingProject(sourceDefinition), includeHiddenLocations: false,
+                        FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
                     found = true;
                 }

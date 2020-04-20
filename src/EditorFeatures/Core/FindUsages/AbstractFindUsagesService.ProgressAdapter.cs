@@ -101,9 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 {
                     if (!_definitionToItem.TryGetValue(definition, out var definitionItem))
                     {
-                        var projectId = _solution.GetExactProjectId(definition);
                         definitionItem = await definition.ToClassifiedDefinitionItemAsync(
-                            _solution.GetProject(projectId), includeHiddenLocations: false,
+                            _solution.GetOriginatingProject(definition), includeHiddenLocations: false,
                             _options, _context.CancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[definition] = definitionItem;

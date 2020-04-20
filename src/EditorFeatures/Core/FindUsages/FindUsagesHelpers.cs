@@ -61,17 +61,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var (symbol, project) = symbolAndProjectOpt.Value;
             return await FindSourceImplementationsAsync(
-                symbol, project.Solution, cancellationToken).ConfigureAwait(false);
+                project.Solution, symbol, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<(Solution solution, ISymbol symbol, ImmutableArray<ISymbol> implementations, string message)?> FindSourceImplementationsAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var builder = new HashSet<ISymbol>(SymbolEquivalenceComparer.Instance);
-
-            // Find the direct implementations first.
-            builder.AddRange(await FindSourceImplementationsWorkerAsync(
-                symbol, solution, cancellationToken).ConfigureAwait(false));
 
             // If we're in a linked file, try to find all the symbols this links to, and find all the implementations of
             // each of those linked symbols. De-dupe the results so the user only gets unique results.
@@ -81,25 +77,24 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             foreach (var linkedSymbol in linkedSymbols)
             {
                 builder.AddRange(await FindSourceImplementationsWorkerAsync(
-                    linkedSymbol, solution, cancellationToken).ConfigureAwait((bool)false));
+                    solution, linkedSymbol, cancellationToken).ConfigureAwait((bool)false));
             }
 
             var result = builder.ToImmutableArray();
+            var message = result.IsEmpty ? EditorFeaturesResources.The_symbol_has_no_implementations : null;
 
-            return result.Length == 0
-                ? (solution, symbol, result, EditorFeaturesResources.The_symbol_has_no_implementations)
-                : (solution, symbol, result, null);
+            return (solution, symbol, result, message);
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceImplementationsWorkerAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var implementations = await FindSourceAndMetadataImplementationsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
             return implementations.WhereAsArray(s => s.Locations.Any(l => l.IsInSource));
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceAndMetadataImplementationsAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             if (symbol.IsInterfaceType() || symbol.IsImplementableMember())
             {
