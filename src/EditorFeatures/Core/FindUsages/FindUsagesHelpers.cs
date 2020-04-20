@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             var result = builder.ToImmutableArray();
-            var message = result.Length == 0 ? EditorFeaturesResources.The_symbol_has_no_implementations : null;
+            var message = result.IsEmpty ? EditorFeaturesResources.The_symbol_has_no_implementations : null;
 
             return (solution, symbolAndProjectId, result, message);
         }
