@@ -236,11 +236,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// If <paramref name="symbol"/> is declared in a linked file, then this function returns all the symbols that
+        /// If <paramref name="symbolAndProjectId"/> is declared in a linked file, then this function returns all the symbols that
         /// are defined by the same symbol's syntax in the all projects that the linked file is referenced from.
         /// <para/>
         /// In order to be returned the other symbols must have the same <see cref="ISymbol.Name"/> and <see
-        /// cref="ISymbol.Kind"/> as <paramref name="symbol"/>.  This matches general user intuition that these are all
+        /// cref="ISymbol.Kind"/> as <paramref name="symbolAndProjectId"/>.  This matches general user intuition that these are all
         /// the 'same' symbol, and should be examined, regardless of the project context and <see cref="ISymbol"/> they
         /// originally started with.
         /// </summary>
@@ -271,8 +271,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var semanticModel = await linkedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var linkedSymbol = semanticModel.GetDeclaredSymbol(linkedNode, cancellationToken);
 
-                    if (linkedSymbol?.Kind == symbol.Kind &&
-                        linkedSymbol?.Name == symbol.Name)
+                    if (linkedSymbol != null &&
+                        linkedSymbol.Kind == symbol.Kind &&
+                        linkedSymbol.Name == symbol.Name)
                     {
                         linkedSymbols.Add(SymbolAndProjectId.Create(linkedSymbol, linkedDocument.Project.Id));
                     }
