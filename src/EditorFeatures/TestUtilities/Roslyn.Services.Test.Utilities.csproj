@@ -62,9 +62,6 @@
     <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcConnection.cs">
       <Link>Remote\JsonRpcConnection.cs</Link>
     </Compile>
-    <Compile Include="..\..\VisualStudio\Core\Def\Implementation\Remote\RemotableDataProvider.cs">
-      <Link>Remote\RemotableDataProvider.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />

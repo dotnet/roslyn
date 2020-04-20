@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private DateTime _lastGCRun;
         private DateTime _lastActivityTime;
 
-        private volatile AssetSource? _assetSource;
+        private volatile IAssetSource? _assetSource;
 
         // constructor for testing
         public AssetStorage()
@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public AssetSource? AssetSource => _assetSource;
+        public IAssetSource? AssetSource => _assetSource;
 
-        public void SetAssetSource(AssetSource assetSource)
+        public void SetAssetSource(IAssetSource assetSource)
             => _assetSource = assetSource;
 
         public bool TryAddAsset(Checksum checksum, object value)

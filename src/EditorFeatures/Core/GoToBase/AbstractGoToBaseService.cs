@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
@@ -15,26 +16,25 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
-            if (symbolAndProject == null)
+            if (symbolAndProjectOpt == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var symbol = symbolAndProject.Value.symbol;
+            var (symbol, project) = symbolAndProjectOpt.Value;
+            var solution = project.Solution;
+
             var bases = FindBaseHelpers.FindBases(
-                symbol, symbolAndProject.Value.project, cancellationToken);
+                symbol, project, cancellationToken);
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
-
-            var project = document.Project;
-            var solution = project.Solution;
 
             var found = false;
 
@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                    baseSymbol, solution, cancellationToken).ConfigureAwait(false);
                 if (sourceDefinition != null)
                 {
-                    var projectId = solution.GetExactProjectId(sourceDefinition);
+                    var sourceDefProjectId = solution.GetExactProjectId(sourceDefinition);
                     var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
-                        solution.GetProject(projectId), includeHiddenLocations: false,
+                        solution.GetProject(sourceDefProjectId), includeHiddenLocations: false,
                         FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
                         .ConfigureAwait(false);
                     await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
