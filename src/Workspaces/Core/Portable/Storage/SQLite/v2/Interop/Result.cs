@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.SQLite.Interop
+namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
     // From https://sqlite.org/c3ref/c_abort.html
     // Uncomment what you need.  Leave the rest commented out to make it clear
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     internal enum Result
     {
         OK = 0,                /* Successful result */
-        ERROR = 1,             /* SQL error or missing database */
+        // ERROR = 1,          /* SQL error or missing database */
         // INTERNAL = 2,       /* Internal logic error in SQLite */
         // PERM = 3,           /* Access permission denied */
         // ABORT = 4,          /* Callback routine requested an abort */
