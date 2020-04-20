@@ -821,5 +821,20 @@ Class C
 End Class"
             Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", TestMode.Position)
         End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestInferringInEnumHasFlags(mode As TestMode) As Task
+            Dim text =
+"Imports System.IO
+
+Module Program
+    Sub Main(args As String())
+        Dim f As FileInfo
+        f.Attributes.HasFlag([|flag|])
+    End Sub
+End Module"
+
+            Await TestAsync(text, "Global.System.IO.FileAttributes", mode)
+        End Function
     End Class
 End Namespace
