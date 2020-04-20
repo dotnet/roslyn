@@ -133,6 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.Add(_factory.Throw(thrownExpression));
                 }
 
+                if (GenerateSequencePoints)
+                    result.Add(_factory.HiddenSequencePoint());
                 result.Add(_factory.Label(afterSwitchExpression));
                 if (produceDetailedSequencePoints)
                     result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForEnclosingStatement));

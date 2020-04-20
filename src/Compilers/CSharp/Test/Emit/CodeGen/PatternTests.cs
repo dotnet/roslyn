@@ -3375,6 +3375,7 @@ public class Program
       IL_0022:  newobj     ""Program..ctor()""
       IL_0027:  stloc.2
       IL_0028:  br.s       IL_002a
+      // sequence point: <hidden>
       IL_002a:  ldc.i4.1
       IL_002b:  brtrue.s   IL_002e
       // sequence point: var y = (i s ...   }).Chain()

@@ -8945,7 +8945,7 @@ class Program
      -IL_01a7:  ldc.i4.s   10
       IL_01a9:  stloc.s    V_8
       IL_01ab:  br.s       IL_01ad
-      IL_01ad:  ldc.i4.1
+     ~IL_01ad:  ldc.i4.1
       IL_01ae:  brtrue.s   IL_01b1
      -IL_01b0:  nop
      ~IL_01b1:  ldloc.s    V_8
@@ -9022,6 +9022,7 @@ class Program
             <entry offset=""0x19a"" startLine=""42"" startColumn=""28"" endLine=""42"" endColumn=""29"" document=""1"" />
             <entry offset=""0x1a1"" startLine=""45"" startColumn=""56"" endLine=""45"" endColumn=""57"" document=""1"" />
             <entry offset=""0x1a7"" startLine=""47"" startColumn=""18"" endLine=""47"" endColumn=""20"" document=""1"" />
+            <entry offset=""0x1ad"" hidden=""true"" document=""1"" />
             <entry offset=""0x1b0"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
             <entry offset=""0x1b1"" hidden=""true"" document=""1"" />
             <entry offset=""0x1b4"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
@@ -9475,6 +9476,7 @@ public class C
       IL_0104:  ldc.i4.s   10
       IL_0106:  stloc.s    V_9
       IL_0108:  br.s       IL_010a
+      // sequence point: <hidden>
       IL_010a:  ldc.i4.1
       IL_010b:  brtrue.s   IL_010e
       // sequence point: switch  ...         }
@@ -9523,6 +9525,7 @@ public class C
       IL_016f:  ldc.i4.s   20
       IL_0171:  stloc.s    V_9
       IL_0173:  br.s       IL_0175
+      // sequence point: <hidden>
       IL_0175:  ldc.i4.1
       IL_0176:  brtrue.s   IL_0179
       // sequence point: F() switch ...             
@@ -9543,6 +9546,7 @@ public class C
       IL_0194:  ldc.i4.0
       IL_0195:  stloc.3
       IL_0196:  br.s       IL_0198
+      // sequence point: <hidden>
       IL_0198:  ldc.i4.1
       IL_0199:  brtrue.s   IL_019c
       // sequence point: return F() s ...         };
@@ -9575,6 +9579,7 @@ public class C
       IL_01c8:  ldc.i4.0
       IL_01c9:  stloc.1
       IL_01ca:  br.s       IL_01cc
+      // sequence point: <hidden>
       IL_01cc:  ldc.i4.1
       IL_01cd:  brtrue.s   IL_01d0
       // sequence point: return F() s ...         };
@@ -9650,6 +9655,7 @@ public class C
             <entry offset=""0xea"" hidden=""true"" document=""1"" />
             <entry offset=""0xee"" startLine=""11"" startColumn=""59"" endLine=""11"" endColumn=""73"" document=""1"" />
             <entry offset=""0x104"" startLine=""12"" startColumn=""27"" endLine=""12"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x10a"" hidden=""true"" document=""1"" />
             <entry offset=""0x10d"" startLine=""7"" startColumn=""20"" endLine=""21"" endColumn=""10"" document=""1"" />
             <entry offset=""0x10e"" startLine=""9"" startColumn=""18"" endLine=""13"" endColumn=""19"" document=""1"" />
             <entry offset=""0x116"" hidden=""true"" document=""1"" />
@@ -9659,10 +9665,12 @@ public class C
             <entry offset=""0x155"" hidden=""true"" document=""1"" />
             <entry offset=""0x159"" startLine=""16"" startColumn=""40"" endLine=""16"" endColumn=""50"" document=""1"" />
             <entry offset=""0x16f"" startLine=""17"" startColumn=""27"" endLine=""17"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x175"" hidden=""true"" document=""1"" />
             <entry offset=""0x178"" startLine=""9"" startColumn=""18"" endLine=""13"" endColumn=""19"" document=""1"" />
             <entry offset=""0x179"" startLine=""14"" startColumn=""18"" endLine=""18"" endColumn=""19"" document=""1"" />
             <entry offset=""0x180"" startLine=""19"" startColumn=""31"" endLine=""19"" endColumn=""41"" document=""1"" />
             <entry offset=""0x194"" startLine=""20"" startColumn=""18"" endLine=""20"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x198"" hidden=""true"" document=""1"" />
             <entry offset=""0x19b"" startLine=""7"" startColumn=""9"" endLine=""26"" endColumn=""11"" document=""1"" />
             <entry offset=""0x19c"" hidden=""true"" document=""1"" />
             <entry offset=""0x1a6"" startLine=""22"" startColumn=""9"" endLine=""26"" endColumn=""10"" document=""1"" />
@@ -9671,6 +9679,7 @@ public class C
             <entry offset=""0x1b2"" hidden=""true"" document=""1"" />
             <entry offset=""0x1b4"" startLine=""24"" startColumn=""33"" endLine=""24"" endColumn=""43"" document=""1"" />
             <entry offset=""0x1c8"" startLine=""25"" startColumn=""18"" endLine=""25"" endColumn=""19"" document=""1"" />
+            <entry offset=""0x1cc"" hidden=""true"" document=""1"" />
             <entry offset=""0x1cf"" startLine=""7"" startColumn=""9"" endLine=""26"" endColumn=""11"" document=""1"" />
             <entry offset=""0x1d0"" hidden=""true"" document=""1"" />
             <entry offset=""0x1d5"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
@@ -9809,6 +9818,7 @@ public class C
       IL_00a1:  ldc.i4.0
       IL_00a2:  stloc.1
       IL_00a3:  br.s       IL_00a5
+      // sequence point: <hidden>
       IL_00a5:  ldc.i4.1
       IL_00a6:  brtrue.s   IL_00a9
       // sequence point: F() switch ...     }
@@ -9859,6 +9869,7 @@ public class C
             <entry offset=""0x87"" startLine=""7"" startColumn=""14"" endLine=""7"" endColumn=""15"" document=""1"" />
             <entry offset=""0x8d"" startLine=""8"" startColumn=""46"" endLine=""8"" endColumn=""60"" document=""1"" />
             <entry offset=""0xa1"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""15"" document=""1"" />
+            <entry offset=""0xa5"" hidden=""true"" document=""1"" />
             <entry offset=""0xa8"" startLine=""5"" startColumn=""23"" endLine=""10"" endColumn=""6"" document=""1"" />
             <entry offset=""0xa9"" hidden=""true"" document=""1"" />
           </sequencePoints>
@@ -9930,6 +9941,7 @@ public class C
       IL_001a:  newobj     ""System.Action..ctor(object, System.IntPtr)""
       IL_001f:  stloc.1
       IL_0020:  br.s       IL_0022
+      // sequence point: <hidden>
       IL_0022:  ldc.i4.1
       IL_0023:  brtrue.s   IL_0026
       // sequence point: x switch { _ => () => { _ = x; } }
@@ -9996,6 +10008,7 @@ public class C
             <entry offset=""0x10"" startLine=""6"" startColumn=""34"" endLine=""6"" endColumn=""66"" document=""1"" />
             <entry offset=""0x11"" hidden=""true"" document=""1"" />
             <entry offset=""0x13"" startLine=""6"" startColumn=""48"" endLine=""6"" endColumn=""64"" document=""1"" />
+            <entry offset=""0x22"" hidden=""true"" document=""1"" />
             <entry offset=""0x25"" startLine=""6"" startColumn=""32"" endLine=""6"" endColumn=""66"" document=""1"" />
             <entry offset=""0x26"" hidden=""true"" document=""1"" />
           </sequencePoints>
@@ -10049,6 +10062,7 @@ public class C
             <entry offset=""0x15"" startLine=""7"" startColumn=""27"" endLine=""7"" endColumn=""53"" document=""1"" />
             <entry offset=""0x16"" hidden=""true"" document=""1"" />
             <entry offset=""0x18"" startLine=""7"" startColumn=""41"" endLine=""7"" endColumn=""51"" document=""1"" />
+            <entry offset=""0x2c"" hidden=""true"" document=""1"" />
             <entry offset=""0x2f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""54"" document=""1"" />
             <entry offset=""0x30"" hidden=""true"" document=""1"" />
             <entry offset=""0x37"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""8"" document=""1"" />
@@ -10064,23 +10078,71 @@ public class C
       </methods>
     </symbols>
 ");
+        }
 
-            c.VerifyPdb("C+<>c__DisplayClass2_0.<.ctor>b__0", @"
-    <symbols>
-      <files>
-        <file id=""1"" name="""" language=""C#"" />
-      </files>
-      <methods>
-        <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.ctor&gt;b__0"">
-          <customDebugInfo>
-            <forward declaringType=""C"" methodName=""G"" parameterNames=""x"" />
-          </customDebugInfo>
-          <sequencePoints>
-            <entry offset=""0x0"" startLine=""7"" startColumn=""49"" endLine=""7"" endColumn=""50"" document=""1"" />
-          </sequencePoints>
-        </method>
-      </methods>
-    </symbols>
+        [WorkItem(43468, "https://github.com/dotnet/roslyn/issues/43468")]
+        [Fact]
+        public void HiddenSequencePointAtSwitchExpressionFinalMergePoint()
+        {
+            var source =
+@"class C
+{
+    static int M(int x)
+    {
+        var y = x switch
+        {
+            1 => 2,
+            _ => 3,
+        };
+        return y;
+    }
+}
+";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(c);
+            verifier.VerifyIL("C.M", sequencePoints: "C.M", source: source, expectedIL: @"
+    {
+      // Code size       31 (0x1f)
+      .maxstack  2
+      .locals init (int V_0, //y
+                    int V_1,
+                    int V_2)
+      // sequence point: {
+      IL_0000:  nop
+      // sequence point: var y = x sw ...         };
+      IL_0001:  ldc.i4.1
+      IL_0002:  brtrue.s   IL_0005
+      // sequence point: switch ...         }
+      IL_0004:  nop
+      // sequence point: <hidden>
+      IL_0005:  ldarg.0
+      IL_0006:  ldc.i4.1
+      IL_0007:  beq.s      IL_000b
+      IL_0009:  br.s       IL_000f
+      // sequence point: 2
+      IL_000b:  ldc.i4.2
+      IL_000c:  stloc.1
+      IL_000d:  br.s       IL_0013
+      // sequence point: 3
+      IL_000f:  ldc.i4.3
+      IL_0010:  stloc.1
+      IL_0011:  br.s       IL_0013
+      // sequence point: <hidden>
+      IL_0013:  ldc.i4.1
+      IL_0014:  brtrue.s   IL_0017
+      // sequence point: var y = x sw ...         };
+      IL_0016:  nop
+      // sequence point: <hidden>
+      IL_0017:  ldloc.1
+      IL_0018:  stloc.0
+      // sequence point: return y;
+      IL_0019:  ldloc.0
+      IL_001a:  stloc.2
+      IL_001b:  br.s       IL_001d
+      // sequence point: }
+      IL_001d:  ldloc.2
+      IL_001e:  ret
+    }
 ");
         }
 
@@ -11465,9 +11527,11 @@ class C
             <entry offset=""0x15"" hidden=""true"" document=""1"" />
             <entry offset=""0x1b"" startLine=""1"" startColumn=""78"" endLine=""1"" endColumn=""79"" document=""1"" />
             <entry offset=""0x1f"" startLine=""1"" startColumn=""86"" endLine=""1"" endColumn=""87"" document=""1"" />
+            <entry offset=""0x23"" hidden=""true"" document=""1"" />
             <entry offset=""0x26"" startLine=""1"" startColumn=""45"" endLine=""1"" endColumn=""99"" document=""1"" />
             <entry offset=""0x27"" startLine=""1"" startColumn=""62"" endLine=""1"" endColumn=""89"" document=""1"" />
             <entry offset=""0x2b"" startLine=""1"" startColumn=""96"" endLine=""1"" endColumn=""97"" document=""1"" />
+            <entry offset=""0x2f"" hidden=""true"" document=""1"" />
             <entry offset=""0x32"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
             <entry offset=""0x33"" hidden=""true"" document=""1"" />
           </sequencePoints>
