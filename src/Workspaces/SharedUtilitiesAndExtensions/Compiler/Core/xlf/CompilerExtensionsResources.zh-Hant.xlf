@@ -17,9 +17,64 @@
         <target state="translated">已經有相同索引鍵但不同值的項目。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_RankMultiDimNotSupported">
+        <source>Only single dimensional arrays are supported for the requested action.</source>
+        <target state="new">Only single dimensional arrays are supported for the requested action.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arg_WrongType">
+        <source>The value '{0}' is not of type '{1}' and cannot be used in this generic collection.</source>
+        <target state="new">The value '{0}' is not of type '{1}' and cannot be used in this generic collection.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
         <source>Object is not a array with the same number of elements as the array to compare it to.</source>
         <target state="new">Object is not a array with the same number of elements as the array to compare it to.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_BiggerThanCollection">
+        <source>Must be less than or equal to the size of the collection.</source>
+        <target state="new">Must be less than or equal to the size of the collection.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_Count">
+        <source>Count must be positive and count must refer to a location within the string/array/collection.</source>
+        <target state="new">Count must be positive and count must refer to a location within the string/array/collection.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_EndIndexStartIndex">
+        <source>endIndex cannot be greater than startIndex.</source>
+        <target state="new">endIndex cannot be greater than startIndex.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_Index">
+        <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
+        <target state="new">Index was out of range. Must be non-negative and less than the size of the collection.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_ListInsert">
+        <source>Index must be within the bounds of the List.</source>
+        <target state="new">Index must be within the bounds of the List.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_NeedNonNegNum">
+        <source>Non-negative number required.</source>
+        <target state="new">Non-negative number required.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_SmallCapacity">
+        <source>capacity was less than the current size.</source>
+        <target state="new">capacity was less than the current size.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_InvalidArrayType">
+        <source>Target array type is not compatible with the type of items in the collection.</source>
+        <target state="new">Target array type is not compatible with the type of items in the collection.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_InvalidOffLen">
+        <source>Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.</source>
+        <target state="new">Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.</target>
         <note />
       </trans-unit>
       <trans-unit id="Begins_with_I">
@@ -66,6 +121,16 @@
         <source>Interface</source>
         <target state="new">Interface</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="InvalidOperation_EnumFailedVersion">
+        <source>Collection was modified after the enumerator was instantiated.</source>
+        <target state="new">Collection was modified after the enumerator was instantiated.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperation_EnumOpCantHappen">
+        <source>Enumeration has either not started or has already finished.</source>
+        <target state="new">Enumeration has either not started or has already finished.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Language_keywords_vs_BCL_types_preferences">
         <source>Language keywords vs BCL types preferences</source>

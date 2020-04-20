@@ -279,4 +279,43 @@
   <data name="NotSupported_FixedSizeCollection" xml:space="preserve">
     <value>Collection was of a fixed size.</value>
   </data>
+  <data name="ArgumentOutOfRange_Index" xml:space="preserve">
+    <value>Index was out of range. Must be non-negative and less than the size of the collection.</value>
+  </data>
+  <data name="ArgumentOutOfRange_NeedNonNegNum" xml:space="preserve">
+    <value>Non-negative number required.</value>
+  </data>
+  <data name="ArgumentOutOfRange_SmallCapacity" xml:space="preserve">
+    <value>capacity was less than the current size.</value>
+  </data>
+  <data name="Argument_InvalidOffLen" xml:space="preserve">
+    <value>Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.</value>
+  </data>
+  <data name="Arg_RankMultiDimNotSupported" xml:space="preserve">
+    <value>Only single dimensional arrays are supported for the requested action.</value>
+  </data>
+  <data name="Arg_WrongType" xml:space="preserve">
+    <value>The value '{0}' is not of type '{1}' and cannot be used in this generic collection.</value>
+  </data>
+  <data name="ArgumentOutOfRange_Count" xml:space="preserve">
+    <value>Count must be positive and count must refer to a location within the string/array/collection.</value>
+  </data>
+  <data name="Argument_InvalidArrayType" xml:space="preserve">
+    <value>Target array type is not compatible with the type of items in the collection.</value>
+  </data>
+  <data name="InvalidOperation_EnumFailedVersion" xml:space="preserve">
+    <value>Collection was modified after the enumerator was instantiated.</value>
+  </data>
+  <data name="ArgumentOutOfRange_BiggerThanCollection" xml:space="preserve">
+    <value>Must be less than or equal to the size of the collection.</value>
+  </data>
+  <data name="ArgumentOutOfRange_ListInsert" xml:space="preserve">
+    <value>Index must be within the bounds of the List.</value>
+  </data>
+  <data name="InvalidOperation_EnumOpCantHappen" xml:space="preserve">
+    <value>Enumeration has either not started or has already finished.</value>
+  </data>
+  <data name="ArgumentOutOfRange_EndIndexStartIndex" xml:space="preserve">
+    <value>endIndex cannot be greater than startIndex.</value>
+  </data>
 </root>

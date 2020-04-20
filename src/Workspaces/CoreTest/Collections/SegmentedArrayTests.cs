@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 yield return new object[] { 1 };
                 yield return new object[] { 10 };
                 yield return new object[] { 100 };
-                yield return new object[] { SegmentedArray<IntPtr>.TestAccessor.SegmentSize / 2 };
-                yield return new object[] { SegmentedArray<IntPtr>.TestAccessor.SegmentSize };
-                yield return new object[] { SegmentedArray<IntPtr>.TestAccessor.SegmentSize * 2 };
+                yield return new object[] { SegmentedArray<IntPtr>.SegmentSize / 2 };
+                yield return new object[] { SegmentedArray<IntPtr>.SegmentSize };
+                yield return new object[] { SegmentedArray<IntPtr>.SegmentSize * 2 };
                 yield return new object[] { 100000 };
             }
         }
@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var data = default(SegmentedArray<IntPtr>);
             Assert.Null(data.GetTestAccessor().Items);
 
+            Assert.True(data.IsDefault);
             Assert.True(data.IsFixedSize);
             Assert.False(data.IsReadOnly);
             Assert.False(data.IsSynchronized);
@@ -109,8 +110,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             for (var i = 0; i < items.Length - 1; i++)
             {
-                Assert.Equal(SegmentedArray<IntPtr>.TestAccessor.SegmentSize, items[i].Length);
-                Assert.True(items[i].Length <= SegmentedArray<IntPtr>.TestAccessor.SegmentSize);
+                Assert.Equal(SegmentedArray<IntPtr>.SegmentSize, items[i].Length);
+                Assert.True(items[i].Length <= SegmentedArray<IntPtr>.SegmentSize);
             }
         }
 
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var data = new SegmentedArray<IntPtr>(length);
 
+            Assert.False(data.IsDefault);
             Assert.True(data.IsFixedSize);
             Assert.False(data.IsReadOnly);
             Assert.False(data.IsSynchronized);
