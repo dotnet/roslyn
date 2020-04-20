@@ -19,6 +19,7 @@
                                Name="CompilerPackage"
                                Class="Roslyn.Compilers.Extension.CompilerPackage"
                                AllowsBackgroundLoad="true"/>
+    <PkgDefBindingRedirect Include="$(TargetPath)" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup>
