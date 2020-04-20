@@ -250,7 +250,7 @@ End Class]]></Text>.NormalizedValue()
                 New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
-<C("two", x:=1, newIntegerParameter:=12345)>
+<C("two", 12345, 1)>
 Class C
     Inherits Attribute
 

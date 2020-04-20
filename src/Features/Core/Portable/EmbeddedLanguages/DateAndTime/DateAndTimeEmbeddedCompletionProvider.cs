@@ -79,11 +79,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
                 return;
 
+            // Note: it's acceptable if this fails to convert.  We just won't show the example in that case.
+            var virtualChars = _language.Info.VirtualCharService.TryConvertToVirtualChars(stringToken);
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<DateAndTimeItem>.GetInstance(out var items);
 
-            var embeddedContext = new EmbeddedCompletionContext(text, context, items);
+            var embeddedContext = new EmbeddedCompletionContext(text, context, virtualChars, items);
+
             ProvideStandardFormats(embeddedContext);
             ProvideCustomFormats(embeddedContext);
             if (items.Count == 0)

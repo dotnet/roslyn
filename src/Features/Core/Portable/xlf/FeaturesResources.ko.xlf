@@ -155,6 +155,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Capture number cannot be zero</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
+        <source>TODO</source>
+        <target state="new">TODO</target>
+        <note>"TODO" is an indication that there is work still to be done.</note>
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterOmitValue">
+        <source>&lt;omit&gt;</source>
+        <target state="new">&lt;omit&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
         <target state="translated">네임스페이스를 '{0}'(으)로 변경</target>
@@ -304,6 +314,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">'{0}' 파일을 읽는 동안 오류가 발생했습니다. {1}</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Example">
+        <source>Example:</source>
+        <target state="new">Example:</target>
+        <note>Singular form when we want to show an example, but only have one to show.</note>
+      </trans-unit>
+      <trans-unit id="Examples">
+        <source>Examples:</source>
+        <target state="new">Examples:</target>
+        <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>

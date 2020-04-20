@@ -4,19 +4,45 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal class QueryExpressionFormattingRule : BaseFormattingRule
+    internal sealed class QueryExpressionFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Query Expressions Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+        private readonly CachedOptions _options;
+
+        public QueryExpressionFormattingRule()
+            : this(new CachedOptions(null))
+        {
+        }
+
+        private QueryExpressionFormattingRule(CachedOptions options)
+        {
+            _options = options;
+        }
+
+        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        {
+            var cachedOptions = new CachedOptions(options);
+
+            if (cachedOptions == _options)
+            {
+                return this;
+            }
+
+            return new QueryExpressionFormattingRule(cachedOptions);
+        }
+
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -56,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddIndentBlockOperation(list, baseToken, startToken, endToken);
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -84,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextAnchorIndentationOperationAction nextOperation)
+        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
         {
             nextOperation.Invoke();
             switch (node)
@@ -109,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (previousToken.IsNestedQueryExpression())
             {
@@ -133,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.SelectKeyword:
                     if (currentToken.GetAncestor<QueryExpressionSyntax>() != null)
                     {
-                        if (options.GetOption(CSharpFormattingOptions2.NewLineForClausesInQuery))
+                        if (_options.NewLineForClausesInQuery)
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -147,6 +173,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return nextOperation.Invoke();
+        }
+
+        private readonly struct CachedOptions : IEquatable<CachedOptions>
+        {
+            public readonly bool NewLineForClausesInQuery;
+
+            public CachedOptions(AnalyzerConfigOptions? options)
+            {
+                NewLineForClausesInQuery = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLineForClausesInQuery);
+            }
+
+            public static bool operator ==(CachedOptions left, CachedOptions right)
+                => left.Equals(right);
+
+            public static bool operator !=(CachedOptions left, CachedOptions right)
+                => !(left == right);
+
+            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
+            {
+                if (options is null)
+                    return option.DefaultValue;
+
+                return options.GetOption(option);
+            }
+
+            public override bool Equals(object? obj)
+                => obj is CachedOptions options && Equals(options);
+
+            public bool Equals(CachedOptions other)
+            {
+                return NewLineForClausesInQuery == other.NewLineForClausesInQuery;
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = 0;
+                hashCode = (hashCode << 1) + (NewLineForClausesInQuery ? 1 : 0);
+                return hashCode;
+            }
         }
     }
 }
