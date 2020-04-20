@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
@@ -10,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -28,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
              bool systemSpecialCase,
              int index = 0)
         {
-            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new Dictionary<OptionKey2, object>
+            return TestInRegularAndScriptAsync(initialMarkup, expected, index: index, options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { new OptionKey2(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+                    { GenerationOptions.PlaceSystemNamespaceFirst, systemSpecialCase }
                 });
         }
 
