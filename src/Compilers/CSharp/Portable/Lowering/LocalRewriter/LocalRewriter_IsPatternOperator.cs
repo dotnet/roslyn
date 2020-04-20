@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override ArrayBuilder<BoundStatement> BuilderForSection(SyntaxNode section) => _statements;
 
-            protected override bool GenerateSequencePoints => false;
+            protected override bool GenerateInstrumentation => false;
 
             public new void Free()
             {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             }
 
-            protected override bool GenerateSequencePoints => false;
+            protected override bool GenerateInstrumentation => false;
 
             public new void Free()
             {

@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                    if (GenerateSequencePoints && !whenClause.WhenExpression.WasCompilerGenerated)
+                    if (GenerateInstrumentation && !whenClause.WhenExpression.WasCompilerGenerated)
                     {
                         conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
                     }
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
                     BoundStatement jump = _factory.Goto(GetDagNodeLabel(whenFalse));
-                    sectionBuilder.Add(GenerateSequencePoints ? _factory.HiddenSequencePoint(jump) : jump);
+                    sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jump) : jump);
                 }
                 else
                 {
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
                             // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
                             // synchronize on changes.
-                            if (GenerateSequencePoints)
+                            if (GenerateInstrumentation)
                                 _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
 
                             if (nextNode != evaluationNode.Next)

@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             private SwitchExpressionLocalRewriter(BoundConvertedSwitchExpression node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax))
             {
-                GenerateSequencePoints = !node.WasCompilerGenerated && localRewriter.Instrument;
+                GenerateInstrumentation = !node.WasCompilerGenerated && localRewriter.Instrument;
             }
 
-            protected override bool GenerateSequencePoints { get; }
+            protected override bool GenerateInstrumentation { get; }
 
             public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundConvertedSwitchExpression node)
             {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // When compiling for Debug (not Release), we produce the most detailed sequence points.
                 var produceDetailedSequencePoints =
-                    GenerateSequencePoints && _localRewriter._compilation.Options.OptimizationLevel != OptimizationLevel.Release;
+                    GenerateInstrumentation && _localRewriter._compilation.Options.OptimizationLevel != OptimizationLevel.Release;
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sectionBuilder.AddRange(switchSections[arm.Syntax]);
                     sectionBuilder.Add(_factory.Label(arm.Label));
                     var loweredValue = _localRewriter.VisitExpression(arm.Value);
-                    if (GenerateSequencePoints)
+                    if (GenerateInstrumentation)
                         loweredValue = this._localRewriter._instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
 
                     sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), loweredValue));

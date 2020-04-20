@@ -29,17 +29,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _localRewriter = localRewriter;
                 _factory = localRewriter._factory;
-                _tempAllocator = new DagTempAllocator(_factory, node, GenerateSequencePoints);
+                _tempAllocator = new DagTempAllocator(_factory, node, GenerateInstrumentation);
             }
 
             /// <summary>
-            /// True if this is a rewriter for a switch statement. This affects 
-            /// - sequence points
-            ///   When clause gets a sequence point in a switch statement, but not in a switch expression.
+            /// True if we should produce instrumentation and sequence points, which we do for a switch statement and a switch expression.
+            /// This affects 
+            /// - whether or not we invoke the instrumentation APIs
+            /// - production of sequence points
             /// - synthesized local variable kind
             ///   The temp variables must be long lived in a switch statement since their lifetime spans across sequence points.
             /// </summary>
-            protected abstract bool GenerateSequencePoints { get; }
+            protected abstract bool GenerateInstrumentation { get; }
 
             public void Free()
             {

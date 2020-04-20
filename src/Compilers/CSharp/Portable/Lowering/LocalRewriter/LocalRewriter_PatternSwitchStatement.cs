@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
-            protected override bool GenerateSequencePoints => true;
+            protected override bool GenerateInstrumentation => true;
 
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
                 // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
                 // the decision dag do not appear to jump back up to the enclosing construct.
-                if (GenerateSequencePoints)
+                if (GenerateInstrumentation)
                 {
                     // Since there may have been no code to evaluate the input, add a no-op for any previous sequence point to bind to.
                     if (result.Count == 0)
