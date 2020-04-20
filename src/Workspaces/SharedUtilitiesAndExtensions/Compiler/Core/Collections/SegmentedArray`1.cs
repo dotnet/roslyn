@@ -5,38 +5,25 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal readonly struct SegmentedArray<T> : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IList<T>, IReadOnlyList<T>
     {
-        private readonly int _segmentSize;
-        private readonly int _segmentShift;
-        private readonly int _offsetMask;
+        private static readonly int s_segmentSize = SegmentedArrayHelper.CalculateSegmentSize(Unsafe.SizeOf<T>());
+        private static readonly int s_segmentShift = SegmentedArrayHelper.CalculateSegmentShift(s_segmentSize);
+        private static readonly int s_offsetMask = SegmentedArrayHelper.CalculateOffsetMask(s_segmentSize);
 
         private readonly int _length;
         private readonly T[][] _items;
 
-        public SegmentedArray(int segmentSize, int length)
+        public SegmentedArray(int length)
         {
-            if (segmentSize <= 1 || (segmentSize & (segmentSize - 1)) != 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(segmentSize), CompilerExtensionsResources.Segment_size_must_be_power_of_2_greater_than_1);
-            }
-
             if (length < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(length));
-            }
-
-            _segmentSize = segmentSize;
-            _offsetMask = segmentSize - 1;
-            _segmentShift = 0;
-
-            while (0 != (segmentSize >>= 1))
-            {
-                _segmentShift++;
             }
 
             if (length == 0)
@@ -46,22 +33,19 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
             else
             {
-                _items = new T[(length + _segmentSize - 1) >> _segmentShift][];
+                _items = new T[(length + s_segmentSize - 1) >> s_segmentShift][];
                 for (var i = 0; i < _items.Length - 1; i++)
                 {
-                    _items[i] = new T[_segmentSize];
+                    _items[i] = new T[s_segmentSize];
                 }
 
-                _items[^1] = new T[length & _offsetMask];
+                _items[^1] = new T[length & s_offsetMask];
                 _length = length;
             }
         }
 
-        private SegmentedArray(int segmentSize, int segmentShift, int offsetMask, int length, T[][] items)
+        private SegmentedArray(int length, T[][] items)
         {
-            _segmentSize = segmentSize;
-            _segmentShift = segmentShift;
-            _offsetMask = offsetMask;
             _length = length;
             _items = items;
         }
@@ -80,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             get
             {
-                return ref _items[index >> _segmentShift][index & _offsetMask];
+                return ref _items[index >> s_segmentShift][index & s_offsetMask];
             }
         }
 
@@ -112,14 +96,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 items[i] = (T[])items[i].Clone();
             }
 
-            return new SegmentedArray<T>(_segmentSize, _segmentShift, _offsetMask, _length, items);
+            return new SegmentedArray<T>(_length, items);
         }
 
         public void CopyTo(Array array, int index)
         {
             for (var i = 0; i < _items.Length; i++)
             {
-                _items[i].CopyTo(array, index + (i * _segmentSize));
+                _items[i].CopyTo(array, index + (i * s_segmentSize));
             }
         }
 
@@ -128,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             for (var i = 0; i < _items.Length; i++)
             {
                 ICollection<T> collection = _items[i];
-                collection.CopyTo(array, arrayIndex + (i * _segmentSize));
+                collection.CopyTo(array, arrayIndex + (i * s_segmentSize));
             }
         }
 
@@ -194,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var index = list.IndexOf(value);
                 if (index >= 0)
                 {
-                    return index + i * _segmentSize;
+                    return index + i * s_segmentSize;
                 }
             }
 
@@ -209,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var index = list.IndexOf(value);
                 if (index >= 0)
                 {
-                    return index + i * _segmentSize;
+                    return index + i * s_segmentSize;
                 }
             }
 
