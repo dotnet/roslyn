@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given a list of keywords and an set of keywords kinds to search, return the first keyword
+        ''' Given a list of keywords and a set of keywords kinds to search, return the first keyword
         ''' in the list, if any, that matches one of the keyword kinds.
         ''' </summary>
         Public Shared Function FindFirstKeyword(syntax As SyntaxTokenList,

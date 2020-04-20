@@ -927,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
     ''' Special binder for binding ObjectInitializers. 
     ''' This binder stores a reference to the receiver of the initialization, because fields in an object initializer can be 
-    ''' referenced with an omitted left expression in an member access expression (e.g. .Fieldname = .OtherFieldname).
+    ''' referenced with an omitted left expression in a member access expression (e.g. .Fieldname = .OtherFieldname).
     ''' </summary>
     Friend Class ObjectInitializerBinder
         Inherits Binder

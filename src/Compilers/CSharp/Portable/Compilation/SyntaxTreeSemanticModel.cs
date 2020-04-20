@@ -1370,7 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an member declaration syntax, get the corresponding symbol.
+        /// Given a member declaration syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a member.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -1497,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         /// <summary>
-        /// Given an syntax node that declares a property or member accessor, get the corresponding symbol.
+        /// Given a syntax node that declares a property or member accessor, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares an accessor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -1745,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an variable declarator syntax, get the corresponding symbol.
+        /// Given a variable declarator syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -2006,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an parameter declaration syntax node, get the corresponding symbol.
+        /// Given a parameter declaration syntax node, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a parameter.</param>
         /// <param name="cancellationToken">The cancellation token.</param>

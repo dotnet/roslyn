@@ -8801,7 +8801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     ''' <summary>
     ''' An abstract node class that represents a "With" or "From" clause used to
-    ''' initializer an new object.
+    ''' initialize a new object.
     ''' </summary>
     Friend MustInherit Class ObjectCreationInitializerSyntax
         Inherits VisualBasicSyntaxNode
