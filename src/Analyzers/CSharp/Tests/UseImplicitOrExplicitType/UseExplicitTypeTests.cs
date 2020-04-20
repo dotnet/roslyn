@@ -9,13 +9,10 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType
 {
@@ -34,30 +31,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         private readonly CodeStyleOption2<bool> offWithError = new CodeStyleOption2<bool>(false, NotificationOption2.Error);
 
         // specify all options explicitly to override defaults.
-        private IOptionsCollection ExplicitTypeEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
+        private OptionsCollection ExplicitTypeEverywhere() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
 
-        private IOptionsCollection ExplicitTypeExceptWhereApparent() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
+        private OptionsCollection ExplicitTypeExceptWhereApparent() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
 
-        private IOptionsCollection ExplicitTypeForBuiltInTypesOnly() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
+        private OptionsCollection ExplicitTypeForBuiltInTypesOnly() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
 
-        private IOptionsCollection ExplicitTypeEnforcements() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithWarning),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
+        private OptionsCollection ExplicitTypeEnforcements() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithWarning },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo },
+            };
 
-        private IOptionsCollection ExplicitTypeSilentEnforcement() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));
+        private OptionsCollection ExplicitTypeSilentEnforcement() =>
+            new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, offWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent },
+            };
 
         #region Error Cases
 
