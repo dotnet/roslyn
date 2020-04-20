@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// Weak table of the assembly and module symbols that this compilation tracker has created.  This can
                 /// be used to determine which project an assembly symbol came from after the fact.  This is needed as
-                /// the compilation an assembly came from can GC'ed and further requests to get that compilation (or any
-                /// of it's assemblies) may produce new assembly symbols.
+                /// the compilation an assembly came from can be GC'ed and further requests to get that compilation (or
+                /// any of it's assemblies) may produce new assembly symbols.
                 /// </summary>
                 /// <remarks>
                 /// Ideally this would just be <c>ConditionalWeakSet&lt;ISymbol&gt;</c>.  Effectively we just want to
