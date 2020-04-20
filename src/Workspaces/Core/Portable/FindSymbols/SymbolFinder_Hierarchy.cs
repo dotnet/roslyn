@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(solution));
 
             if (solution.GetExactProjectId(type) == null)
-                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(type));
 
             return await DependentTypeFinder.FindTransitivelyDerivedClassesAsync(
                 type, solution, projects, cancellationToken).ConfigureAwait(false);
