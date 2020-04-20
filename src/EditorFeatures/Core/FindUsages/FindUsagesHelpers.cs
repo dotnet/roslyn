@@ -62,45 +62,40 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var (symbol, project) = symbolAndProjectOpt.Value;
             var symbolAndProjectId = new SymbolAndProjectId(symbol, project.Id);
             return await FindSourceImplementationsAsync(
-                symbolAndProjectId, project.Solution, cancellationToken).ConfigureAwait(false);
+                project.Solution, symbolAndProjectId, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<(Solution solution, SymbolAndProjectId symbolAndProjectId, ImmutableArray<SymbolAndProjectId> implementations, string message)?> FindSourceImplementationsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
+            Solution solution, SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
             var builder = new HashSet<SymbolAndProjectId>(SymbolAndProjectIdComparer.SymbolEquivalenceInstance);
-
-            // Find the direct implementations first.
-            builder.AddRange(await FindSourceImplementationsWorkerAsync(
-                symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false));
 
             // If we're in a linked file, try to find all the symbols this links to, and find all the implementations of
             // each of those linked symbols. De-dupe the results so the user only gets unique results.
             var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(
-                symbolAndProjectId.Symbol, solution, cancellationToken).ConfigureAwait(false);
+                solution, symbolAndProjectId, cancellationToken).ConfigureAwait(false);
 
             foreach (var linkedSymbol in linkedSymbols)
             {
                 builder.AddRange(await FindSourceImplementationsWorkerAsync(
-                    linkedSymbol, solution, cancellationToken).ConfigureAwait((bool)false));
+                    solution, linkedSymbol, cancellationToken).ConfigureAwait((bool)false));
             }
 
             var result = builder.ToImmutableArray();
+            var message = result.Length == 0 ? EditorFeaturesResources.The_symbol_has_no_implementations : null;
 
-            return result.Length == 0
-                ? (solution, symbolAndProjectId, result, EditorFeaturesResources.The_symbol_has_no_implementations)
-                : (solution, symbolAndProjectId, result, null);
+            return (solution, symbolAndProjectId, result, message);
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceImplementationsWorkerAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
+            Solution solution, SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
-            var implementations = await FindSourceAndMetadataImplementationsAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
+            var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbolAndProjectId, cancellationToken).ConfigureAwait(false);
             return implementations.WhereAsArray(s => s.Symbol.Locations.Any(l => l.IsInSource));
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceAndMetadataImplementationsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
+            Solution solution, SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken)
         {
             if (symbolAndProjectId.Symbol.IsInterfaceType() || symbolAndProjectId.Symbol.IsImplementableMember())
             {

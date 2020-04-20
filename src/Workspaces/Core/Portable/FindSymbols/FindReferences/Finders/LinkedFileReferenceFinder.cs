@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SymbolFinder.FindLinkedSymbolsAsync(symbolAndProjectId.Symbol, solution, cancellationToken);
+            return SymbolFinder.FindLinkedSymbolsAsync(solution, symbolAndProjectId, cancellationToken);
         }
 
         public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
