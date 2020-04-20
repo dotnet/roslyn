@@ -47,6 +47,61 @@
         <target state="new">Do not call GetTestAccessor()</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueAvoidNullableWrapperDescription">
+        <source>Avoid nullable wrapper</source>
+        <target state="new">Avoid nullable wrapper</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueAvoidNullableWrapperMessage">
+        <source>Do not wrap non-copyable type '{0}' in '{1}' operation</source>
+        <target state="new">Do not wrap non-copyable type '{0}' in '{1}' operation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueDescription">
+        <source>Do not copy value</source>
+        <target state="new">Do not copy value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueMessage">
+        <source>Do not copy value</source>
+        <target state="new">Do not copy value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoBoxingDescription">
+        <source>Do not box non-copyable value types.</source>
+        <target state="new">Do not box non-copyable value types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoBoxingMessage">
+        <source>Do not box non-copyable type '{0}'</source>
+        <target state="new">Do not box non-copyable type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoUnboxingDescription">
+        <source>Do not unbox non-copyable value types.</source>
+        <target state="new">Do not unbox non-copyable value types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoUnboxingMessage">
+        <source>Do not unbox non-copyable type '{0}'</source>
+        <target state="new">Do not unbox non-copyable type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueTitle">
+        <source>Do not copy value</source>
+        <target state="new">Do not copy value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueUnsupportedUseDescription">
+        <source>Unsupported use of non-copyable type</source>
+        <target state="new">Unsupported use of non-copyable type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueUnsupportedUseMessage">
+        <source>Unsupported use of non-copyable type '{0}' in '{1}' operation</source>
+        <target state="new">Unsupported use of non-copyable type '{0}' in '{1}' operation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
         <source>Explicitly define the importing constructor</source>
         <target state="translated">İçeri aktarma oluşturucusunu açıkça tanımlayın</target>
