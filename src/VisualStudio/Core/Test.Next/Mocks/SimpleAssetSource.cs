@@ -15,17 +15,20 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
     /// <summary>
     /// provide asset from given map at the creation
     /// </summary>
-    internal sealed class SimpleAssetSource : AssetSource
+    internal sealed class SimpleAssetSource : IAssetSource
     {
         private readonly IReadOnlyDictionary<Checksum, object> _map;
+        private readonly AssetStorage _assetStorage;
 
-        public SimpleAssetSource(AssetStorage assetStorage, IReadOnlyDictionary<Checksum, object> map) :
-            base(assetStorage)
+        public SimpleAssetSource(AssetStorage assetStorage, IReadOnlyDictionary<Checksum, object> map)
         {
             _map = map;
+
+            _assetStorage = assetStorage;
+            _assetStorage.SetAssetSource(this);
         }
 
-        public override Task<IList<(Checksum, object)>> RequestAssetsAsync(
+        public Task<IList<(Checksum, object)>> GetAssetsAsync(
             int serviceId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             var list = new List<(Checksum, object)>();
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
             return Task.FromResult<IList<(Checksum, object)>>(list);
         }
 
-        public override Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
             => SpecializedTasks.False;
     }
 }
