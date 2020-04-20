@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -26,6 +27,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(solution.GetExactProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);

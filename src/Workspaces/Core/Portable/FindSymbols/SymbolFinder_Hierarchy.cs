@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindOverridesAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
+            if (solution.GetExactProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             return await FindOverridesArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -80,6 +83,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindImplementedInterfaceMembersAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
+            if (solution.GetExactProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             return await FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -175,6 +181,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
+            if (solution.GetExactProjectId(type) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             return await DependentTypeFinder.FindTransitivelyDerivedClassesAsync(
                 type, solution, projects, cancellationToken).ConfigureAwait(false);
         }
@@ -185,6 +194,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindImplementationsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
+            if (solution.GetExactProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             return await FindImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
@@ -249,6 +261,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken = default)
         {
+            if (solution.GetExactProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             return FindCallersAsync(symbol, solution, documents: null, cancellationToken: cancellationToken);
         }
 
@@ -258,6 +273,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
+            if (solution.GetExactProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             symbol = symbol.OriginalDefinition;
             var foundSymbol = await FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             symbol = foundSymbol ?? symbol;
@@ -299,6 +317,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
+            Contract.ThrowIfNull(solution.GetExactProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+
             if (symbol != null)
             {
                 if (symbol.Kind == SymbolKind.Event ||
