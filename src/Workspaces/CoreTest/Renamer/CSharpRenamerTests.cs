@@ -34,6 +34,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             newDocumentName: "NewDocumentName.cs");
 
         [Fact]
+        public Task CSharp_RenameDocument_RenameType_CaseInsensitive()
+        => TestRenameDocument(
+            @"class OriginalName {}",
+            @"class NewDocumentName {}",
+            documentName: "originalName.cs",
+            newDocumentName: "NewDocumentName.cs");
+
+        [Fact]
         public Task CSharp_RenameDocument_RenameInterface()
         => TestRenameDocument(
             @"interface IInterface {}",
