@@ -58,6 +58,19 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// </remarks>
         Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Using only the top level namespace declarations of a document, change all of them to the target namespace. Will only
+        /// use namespace containers considered valid by <see cref="CanChangeNamespaceAsync(Document, SyntaxNode, CancellationToken)"/>
+        /// </summary>
+        Task<Solution> ChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Given a set of folders from a <see cref="Document"/> build the namespace that would match
+        /// the folder structure. If a document is located in "Foo/Bar/Baz" then the namespace could be 
+        /// "Foo.Bar.Baz"
+        /// 
+        /// Returns null if the folders contain parts that are invalid identifiers for a namespace.
+        /// </summary>
         string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts);
 
         string EscapeIdentifier(string identifier);

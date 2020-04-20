@@ -27,9 +27,8 @@ namespace Microsoft.CodeAnalysis.Rename
             private readonly AnalysisResult _analysis;
 
             private RenameSymbolDocumentAction(
-                AnalysisResult analysis,
-                ImmutableArray<ErrorResource> errors)
-                : base(errors)
+                AnalysisResult analysis)
+                : base(ImmutableArray<ErrorResource>.Empty)
             {
                 _analysis = analysis;
             }
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Rename
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var solution = document.Project.Solution;
-                var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(document, _analysis.OriginalSymbolName!, cancellationToken).ConfigureAwait(false);
+                var matchingTypeDeclaration = await GetMatchingTypeDeclarationAsync(document, _analysis.OriginalSymbolName, cancellationToken).ConfigureAwait(false);
 
                 if (matchingTypeDeclaration is object)
                 {
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 if (analysis.HasValue)
                 {
-                    return new RenameSymbolDocumentAction(analysis.Value, ImmutableArray<ErrorResource>.Empty);
+                    return new RenameSymbolDocumentAction(analysis.Value);
                 }
 
                 return null;

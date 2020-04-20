@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.Rename
         /// Each action may individually encounter errors that prevent it from behaving correctly. Those are reported in <see cref="RenameDocumentAction.GetErrors(System.Globalization.CultureInfo?)"/>.
         /// 
         /// Current supported actions that may be returned: 
-        /// * <see cref="RenameSymbolDocumentAction"/> that will rename the type to match the document name
+        /// <list>
+        ///  <item>Rename symbol action that will rename the type to match the document name.</item>
+        /// </list>
+        /// 
         /// </summary>
         public static async Task<RenameDocumentActionSet> RenameDocumentNameAsync(
             Document document,
@@ -75,9 +78,12 @@ namespace Microsoft.CodeAnalysis.Rename
         /// Each action may individually encounter errors that prevent it from behaving correctly. Those are reported in <see cref="RenameDocumentAction.GetErrors(System.Globalization.CultureInfo?)"/>.
         /// 
         /// Current supported actions that may be returned: 
-        /// * <see cref="SyncNamespaceDocumentAction"/> that will sync the namespace(s) of the document to match the document folders
+        /// <list>
+        ///  <item>Sync namespace action that will sync the namespace(s) of the document to match the document folders. </item>
+        /// </list>
+        /// 
         /// </summary>
-        public static async Task<RenameDocumentActionSet> RenameDocumentFoldersAsync(
+        public static Task<RenameDocumentActionSet> RenameDocumentFoldersAsync(
             Document document,
             IReadOnlyList<string> newFolders,
             OptionSet optionSet,
@@ -97,17 +103,19 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (!newFolders.SequenceEqual(document.Folders))
             {
-                var action = await SyncNamespaceDocumentAction.TryCreateAsync(document, newFolders, cancellationToken).ConfigureAwait(false);
+                var action = SyncNamespaceDocumentAction.TryCreate(document, newFolders, cancellationToken);
 
                 actions.AddIfNotNull(action);
             }
 
-            return new RenameDocumentActionSet(
+            // Analysis is not currently async, but may need to be in the future as we do more work to determine the
+            // correct namespace. Keep the public API async even if it's not required for now
+            return Task.FromResult(new RenameDocumentActionSet(
                 actions.ToImmutable(),
                 document.Id,
                 document.Name,
                 newFolders,
-                optionSet);
+                optionSet));
         }
 
         internal static Task<Solution> RenameSymbolAsync(

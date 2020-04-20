@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
@@ -22,7 +21,11 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         /// <summary>
         /// Action that will sync the namespace of the document to match the folders property 
-        /// of that document
+        /// of that document, similar to if a user performed the "Sync Namespace" code refactoring.
+        /// 
+        /// For example, if a document is moved from "Foo/Bar/Baz" folder structure to "Foo/Bar/Baz/Bat" and contains
+        /// a namespace definition of Foo.Bar.Baz in the document, then it would update that definition to 
+        /// Foo.Bar.Baz.Bat and update the solution to reflect these changes. Uses <see cref="IChangeNamespaceService"/>
         /// </summary>
         internal sealed class SyncNamespaceDocumentAction : RenameDocumentAction
         {
@@ -41,28 +44,10 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 var solution = document.Project.Solution;
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                // Don't descend into anything other than top level declarations from the root.
-                // ChangeNamespaceService only controls top level declarations right now
-                var namespaceDeclarations = syntaxRoot.DescendantNodes(n => !syntaxFacts.IsDeclaration(n)).Where(n => syntaxFacts.IsNamespaceDeclaration(n));
-
-                foreach (var namespaceDeclaration in namespaceDeclarations)
-                {
-                    solution = await changeNamespaceService.ChangeNamespaceAsync(
-                        document,
-                        namespaceDeclaration,
-                        _analysis.TargetNamespace,
-                        cancellationToken).ConfigureAwait(false);
-
-                    document = solution.GetRequiredDocument(document.Id);
-                }
-
-                return solution;
+                return await changeNamespaceService.ChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);
             }
 
-            public static Task<SyncNamespaceDocumentAction?> TryCreateAsync(Document document, IReadOnlyList<string> newFolders, CancellationToken _)
+            public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CancellationToken _)
             {
                 using var _1 = ArrayBuilder<ErrorResource>.GetInstance(out var errors);
 
@@ -70,10 +55,10 @@ namespace Microsoft.CodeAnalysis.Rename
 
                 if (analysisResult.HasValue)
                 {
-                    return Task.FromResult<SyncNamespaceDocumentAction?>(new SyncNamespaceDocumentAction(analysisResult.Value, errors.ToImmutable()));
+                    return new SyncNamespaceDocumentAction(analysisResult.Value, errors.ToImmutable());
                 }
 
-                return Task.FromResult<SyncNamespaceDocumentAction?>(null);
+                return null;
             }
 
             private static AnalysisResult? Analyze(Document document, IReadOnlyCollection<string> newFolders)

@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.Rename
     public static partial class Renamer
     {
         /// <summary>
-        /// Information about rename document calls that allows them to be applied as individual actions.
+        /// Information about rename document calls that allows them to be applied as individual actions. Actions are individual units of work
+        /// that can change the contents of one or more document in the solution. Even if the <see cref="ApplicableActions"/> is empty, the 
+        /// document metadata will still be updated by calling <see cref="UpdateSolutionAsync(Solution, ImmutableArray{RenameDocumentAction}, CancellationToken)"/>
         /// <para />
         /// To apply all actions use <see cref="UpdateSolutionAsync(Solution, CancellationToken)"/>, or use a subset
         /// of the actions by calling <see cref="UpdateSolutionAsync(Solution, ImmutableArray{RenameDocumentAction}, CancellationToken)"/>. 
@@ -47,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             /// <summary>
-            /// All applicable actions computed for the action
+            /// All applicable actions computed for the action. Action set may be empty, which represents updates to document 
+            /// contents rather than metadata. Document metadata will still not be updated unless <see cref="UpdateSolutionAsync(Solution, ImmutableArray{RenameDocumentAction}, CancellationToken)" /> 
+            /// is called.
             /// </summary>
             public ImmutableArray<RenameDocumentAction> ApplicableActions { get; }
 
@@ -64,7 +68,11 @@ namespace Microsoft.CodeAnalysis.Rename
             /// </summary>
             /// <remarks>
             /// An empty action set is still allowed and will return a modified solution
-            /// that will update the document properties as appropriate.
+            /// that will update the document properties as appropriate. This means we 
+            /// can still support when <see cref="ApplicableActions"/> is empty. It's desirable
+            /// that consumers can call a rename API to produce a <see cref="RenameDocumentActionSet"/> and
+            /// immediately call <see cref="UpdateSolutionAsync(Solution, ImmutableArray{RenameDocumentAction}, CancellationToken)"/> without
+            /// having to inspect the returned <see cref="ApplicableActions"/>.
             /// </remarks>
             public async Task<Solution> UpdateSolutionAsync(Solution solution, ImmutableArray<RenameDocumentAction> actions, CancellationToken cancellationToken)
             {

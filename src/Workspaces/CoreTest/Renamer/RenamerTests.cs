@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
     [UseExportProvider]
     public abstract class RenamerTests : TestBase
     {
-        protected const string DefaultDocumentName = "DocumentName";
-        protected static readonly string DefaultDocumentPath = @$"Document\Path\{DefaultDocumentName}";
+        private const string DefaultDocumentName = "DocumentName";
+        private static readonly string DefaultDocumentPath = @$"Document\Path\{DefaultDocumentName}";
 
         protected abstract string LanguageName { get; }
 

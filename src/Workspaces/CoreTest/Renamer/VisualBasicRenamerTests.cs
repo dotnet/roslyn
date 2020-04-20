@@ -28,11 +28,12 @@ End Class",
         [Fact]
         public Task VisualBasic_RenameDocument_RenameType()
         => TestRenameDocument(
-$@"Class {DefaultDocumentName}
+@"Class OriginalName
 End Class",
 @"Class NewDocumentName
 End Class",
-            newDocumentName: "NewDocumentName");
+            documentName: "OriginalName.vb",
+            newDocumentName: "NewDocumentName.vb");
 
         [Fact]
         public Task VisualBasic_RenameDocument_RenameInterface()

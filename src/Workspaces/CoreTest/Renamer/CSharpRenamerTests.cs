@@ -22,14 +22,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
         public Task CSharp_RenameDocument_NoRenameType()
         => TestEmptyActionSet(
             @"class C {}",
+            documentName: "NotC.cs",
             newDocumentName: "C.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_RenameType()
         => TestRenameDocument(
-            $@"class {DefaultDocumentName} {{}}",
+            @"class OriginalName {}",
             @"class NewDocumentName {}",
-            newDocumentName: "NewDocumentName");
+            documentName: "OriginalName.cs",
+            newDocumentName: "NewDocumentName.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_RenameInterface()
@@ -145,6 +147,39 @@ namespace Test
         documentPath: @"Test\Path\Document.cs",
         documentName: @"Document.cs",
         newDocumentPath: @"Test\Path\After\Test\Document.cs");
+
+        [Fact]
+        public Task CSharp_RenameDocument_RenameMultipleNamespaces()
+       => TestRenameDocument(
+@"namespace Test.Path
+{
+    class C
+    {
+    }
+}
+
+namespace Test.Path
+{
+    class C2
+    {
+    }
+}",
+@"namespace Test.Path.After.Test
+{
+    class C
+    {
+    }
+}
+
+namespace Test.Path.After.Test
+{
+    class C2
+    {
+    }
+}",
+       documentPath: @"Test\Path\Document.cs",
+       documentName: @"Document.cs",
+       newDocumentPath: @"Test\Path\After\Test\Document.cs");
 
         [Fact]
         public Task CSharp_RenameDocument_RenameNamespace2()
