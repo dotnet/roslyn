@@ -16,9 +16,12 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer
+    internal class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer
         : AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<SyntaxKind, ParenthesizedExpressionSyntax>
     {
+        protected override SyntaxKind GetSyntaxKind()
+            => SyntaxKind.ParenthesizedExpression;
+
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
 
@@ -44,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             }
 
             var inner = parenthesizedExpression.Expression;
-            var innerKind = inner.Kind();
             var innerPrecedence = inner.GetOperatorPrecedence();
             var innerIsSimple = innerPrecedence == OperatorPrecedence.Primary ||
                                 innerPrecedence == OperatorPrecedence.None;
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
             }
 
             // We're parented by something binary-like. 
-            parentPrecedenceKind = CSharpPrecedenceService.Instance.GetPrecedenceKind(parentExpression);
+            parentPrecedenceKind = CSharpExpressionPrecedenceService.Instance.GetPrecedenceKind(parentExpression);
 
             // Precedence is clarified any time we have expression with different precedence
             // (and the inner expression is not a primary expression).  in other words, this

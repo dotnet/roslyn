@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // (not ...) or (not ...)
             //
             // you can safely convert to `not ... or not ...`
-            var patternPrecedence = GetPatternPrecedence(pattern);
+            var patternPrecedence = pattern.GetOperatorPrecedence();
             if (patternPrecedence == OperatorPrecedence.Primary || patternPrecedence == OperatorPrecedence.Unary)
                 return true;
 
@@ -723,8 +723,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             ParenthesizedPatternSyntax node, PatternSyntax parentPattern, SemanticModel semanticModel)
         {
             var pattern = node.Pattern;
-            var precedence = GetPatternPrecedence(pattern);
-            var parentPrecedence = GetPatternPrecedence(parentPattern);
+            var precedence = pattern.GetOperatorPrecedence();
+            var parentPrecedence = parentPattern.GetOperatorPrecedence();
             if (precedence == OperatorPrecedence.None || parentPrecedence == OperatorPrecedence.None)
             {
                 // Be conservative if the expression or its parent has no precedence.
@@ -735,8 +735,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return precedence < parentPrecedence;
         }
 
-        private static OperatorPrecedence GetPatternPrecedence(PatternSyntax pattern)
+#endif
+
+        public static OperatorPrecedence GetOperatorPrecedence(this PatternSyntax pattern)
         {
+#if CODE_STYLE
+            return OperatorPrecedence.None;
+#else
+
             switch (pattern)
             {
                 case ConstantPatternSyntax _:
@@ -753,18 +759,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 case BinaryPatternSyntax binaryPattern:
                     if (binaryPattern.IsKind(SyntaxKind.AndPattern))
-                        return OperatorPrecedence.LogicalAnd;
+                        return OperatorPrecedence.ConditionalAnd;
 
                     if (binaryPattern.IsKind(SyntaxKind.OrPattern))
-                        return OperatorPrecedence.LogicalOr;
+                        return OperatorPrecedence.ConditionalOr;
 
                     break;
             }
 
             Debug.Fail("Unhandled pattern type");
             return OperatorPrecedence.None;
-        }
 
 #endif
+        }
     }
 }
