@@ -21,12 +21,10 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" Condition="'$(DotNetBuildFromSource)' != 'true'" />
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Remove="Storage\Sqlite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.cs"/>
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.Core.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.Core.cs"/>
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.Desktop.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.Desktop.cs"/>

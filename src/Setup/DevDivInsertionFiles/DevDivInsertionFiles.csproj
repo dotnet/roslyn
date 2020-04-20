@@ -105,6 +105,7 @@
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.ServiceHub.'))"/>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('System.Composition.'))"/>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.Internal.VisualStudio.'))"/>
+      <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('SQLitePCLRaw.'))"/>
       <_Dependency Remove="EnvDTE"/>
       <_Dependency Remove="EnvDTE80"/>
       <_Dependency Remove="Microsoft.Bcl.AsyncInterfaces"/>

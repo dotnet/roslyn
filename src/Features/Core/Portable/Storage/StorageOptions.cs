@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         public const string OptionName = "FeatureManager/Storage";
 
-        public static readonly Option<StorageDatabase> Database = new Option<StorageDatabase>(
+        public static readonly Option2<StorageDatabase> Database = new Option2<StorageDatabase>(
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
 
-        public static readonly Option<bool> SQLiteInMemoryWriteCache = new Option<bool>(
+        public static readonly Option2<bool> SQLiteInMemoryWriteCache = new Option2<bool>(
             OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: false);
     }
 
