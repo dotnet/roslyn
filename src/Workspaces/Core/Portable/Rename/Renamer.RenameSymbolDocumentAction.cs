@@ -53,6 +53,10 @@ namespace Microsoft.CodeAnalysis.Rename
                 return solution;
             }
 
+            /// <summary>
+            /// Finds a matching type such that the display name of the type matches the name passed in, ignoring case. Case isn't used because
+            /// documents with name "Foo.cs" and "foo.cs" should still have the same type name
+            /// </summary>
             private static async Task<SyntaxNode?> GetMatchingTypeDeclarationAsync(Document document, string name, CancellationToken cancellationToken)
             {
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
