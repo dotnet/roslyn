@@ -5612,26 +5612,53 @@ class Program
         {
             const string source = @"
 using System.Threading.Tasks;
+using System;
 
 class IntCode
 {
-    public async Task Step(int i, Task t)
+    public static async Task Main()
     {
-        await t;
-        ReadMemory() = i switch
-        {
-            _ => throw null
-        };
+        await Step(0);
     }
 
-    private ref long ReadMemory() => throw null;
+    public static async Task CompletedTask()
+    {
+    }
+
+    public static async Task Step(int i)
+    {
+        Console.Write(field);
+        await CompletedTask();
+        ReadMemory() = i switch
+        {
+            _ => GetValue()
+        };
+        Console.Write(field);
+    }
+
+    public static long GetValue()
+    {
+        Console.Write(2);
+        return 3L;
+    }
+
+    private static long field;
+    private static ref long ReadMemory()
+    {
+        Console.Write(1);
+        return ref field;
+    }
 }
 ";
+            var diags = new[]
+            {
+                // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task CompletedTask()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "CompletedTask").WithLocation(12, 30)
+            };
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
-            comp.VerifyEmitDiagnostics();
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
-            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "0123").VerifyDiagnostics(diags);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "0123").VerifyDiagnostics(diags);
         }
 
         [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
