@@ -3792,6 +3792,141 @@ Block[B7] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_ViaExtensionMethod()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        /*<bind>*/foreach (var value in new Program())
+        {
+            System.Console.WriteLine(value);
+        }/*</bind>*/
+    }
+}
+
+static class Extensions
+{
+    public static IEnumerator<string> GetEnumerator(this Program p) => throw null;
+}
+";
+            var expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: var value
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: var value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer: 
+        null
+  Collection: 
+    IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program, IsInvalid) (Syntax: 'new Program()')
+      Arguments(0)
+      Initializer: 
+        null
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
+        Expression: 
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
+                ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
+  NextVariables(0)";
+            VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_ViaExtensionMethodWithConversion()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        /*<bind>*/foreach (var value in new Program())
+        {
+            System.Console.WriteLine(value);
+        }/*</bind>*/
+    }
+
+
+static class Extensions
+{
+    public static IEnumerator<string> GetEnumerator(this object p) => throw null;
+}
+";
+            var expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: var value
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: var value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer: 
+        null
+  Collection: 
+    IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program, IsInvalid) (Syntax: 'new Program()')
+      Arguments(0)
+      Initializer: 
+        null
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
+        Expression: 
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
+                ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
+  NextVariables(0)";
+            VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_ViaExtensionMethod_WithGetEnumeratorReturningWrongType()
+        {
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        /*<bind>*/foreach (var value in new Program())
+        {
+            System.Console.WriteLine(value);
+        }/*</bind>*/
+    }
+
+
+static class Extensions
+{
+    public static bool GetEnumerator(this Program p) => throw null;
+}
+";
+            var expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (va ... }')
+  Locals: Local_1: var value
+  LoopControlVariable: 
+    IVariableDeclaratorOperation (Symbol: var value) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer: 
+        null
+  Collection: 
+    IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program, IsInvalid) (Syntax: 'new Program()')
+      Arguments(0)
+      Initializer: 
+        null
+  Body: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... ine(value);')
+        Expression: 
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void) (Syntax: 'System.Cons ... Line(value)')
+            Children(2):
+                IOperation:  (OperationKind.None, Type: null) (Syntax: 'System.Console')
+                ILocalReferenceOperation: value (OperationKind.LocalReference, Type: var) (Syntax: 'value')
+  NextVariables(0)";
+            VerifyOperationTreeForTest<ForEachStatementSyntax>(source, expectedOperationTree);
+        }
+
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.AsyncStreams)]
         [WorkItem(30362, "https://github.com/dotnet/roslyn/issues/30362")]
         public void IForEachLoopStatement_SimpleAwaitForEachLoop()
