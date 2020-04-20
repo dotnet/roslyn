@@ -342,6 +342,38 @@ class Derived2 : Derived
         }
 
         [Fact]
+        public void EvaluationOrder()
+        {
+            string source = @"
+public class C
+{
+    public int Property
+    {
+        init { System.Console.Write(value + "" ""); }
+    }
+
+    public int Property2
+    {
+        init { System.Console.Write(value); }
+    }
+
+    C()
+    {
+        System.Console.Write(""Main "");
+    }
+
+    static void Main()
+    {
+        _ = new C() { Property = 42, Property2 = 43};
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Main 42 43");
+        }
+
+        [Fact]
         public void DisallowedOnStaticMembers()
         {
             string source = @"
@@ -1713,7 +1745,7 @@ public class Caller
     {
         _ = new C() {
             field = // 5
-                (c.field = null)  // 6 
+                (c.field = null)  // 6
         };
     }
 }
@@ -1737,7 +1769,7 @@ public class Caller
                 //             field = // 5
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(40, 13),
                 // (41,18): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the class in which the field is defined or a variable initializer))
-                //                 (c.field = null)  // 6 
+                //                 (c.field = null)  // 6
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "c.field").WithLocation(41, 18)
                 );
         }
@@ -1891,9 +1923,9 @@ class R
     private int _p;
 }
 
-class C : R 
+class C : R
 {
-    
+
     private int M
     {
         init
@@ -1905,8 +1937,8 @@ class C : R
 ");
 
             var blockStatement = (BlockSyntax)SyntaxFactory.ParseStatement(@"
-{ 
-   int z = 0; 
+{
+   int z = 0;
 
    _p = 123L;
 }
@@ -1977,6 +2009,63 @@ public class C
                 Assert.Equal("P1", node.ToString());
                 Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        public void ModReqOnAccessorParameter()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit C extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance void set_Property ( int32 modreq(System.Runtime.CompilerServices.IsInitOnly) 'value' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32 Property()
+    {
+        .set instance void C::set_Property(int32 modreq(System.Runtime.CompilerServices.IsInitOnly))
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsInitOnly extends System.Object
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+
+            string source = @"
+public class Derived : C
+{
+    public override int Property { set { throw null; } }
+}
+public class Derived2 : C
+{
+    public override int Property { init { throw null; } }
+}
+";
+
+            var reference = CreateMetadataReferenceFromIlSource(il);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,25): error CS0569: 'Derived.Property': cannot override 'C.Property' because it is not supported by the language
+                //     public override int Property { set { throw null; } }
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived.Property", "C.Property").WithLocation(4, 25),
+                // (8,25): error CS0569: 'Derived2.Property': cannot override 'C.Property' because it is not supported by the language
+                //     public override int Property { init { throw null; } }
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "Property").WithArguments("Derived2.Property", "C.Property").WithLocation(8, 25)
+                );
         }
 
         [Fact]
