@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _renamedSymbol = parameters.RenameSymbol;
                 _replacementTextValid = parameters.ReplacementTextValid;
                 _renameSpansTracker = parameters.RenameSpansTracker;
-                _isRenamingInStrings = parameters.OptionSet.GetOption(RenameOptions.RenameInStrings);
-                _isRenamingInComments = parameters.OptionSet.GetOption(RenameOptions.RenameInComments);
+                _isRenamingInStrings = parameters.OptionSet.RenameInStrings;
+                _isRenamingInComments = parameters.OptionSet.RenameInComments;
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans;
                 _renameAnnotations = parameters.RenameAnnotations;
 

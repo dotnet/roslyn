@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly ISymbol _symbol;
         private readonly Solution _solution;
         private readonly SearchResult _mergedResult;
-        internal OptionSet Options { get; }
+        internal RenameOptionSet Options { get; }
 
         // can be default
         private readonly ImmutableArray<SearchResult> _overloadsResult;
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Rename
             Solution solution,
             ImmutableArray<ISymbol> referencedSymbols,
             ImmutableArray<ReferenceLocation> implicitLocations,
-            OptionSet options)
+            RenameOptionSet options)
         {
             _symbol = symbol;
             _solution = solution;
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Rename
         private RenameLocations(
             ISymbol symbol,
             Solution solution,
-            OptionSet options,
+            RenameOptionSet options,
             SearchResult originalSymbolResult,
             ImmutableArray<SearchResult> overloadsResult,
             ImmutableArray<RenameLocation> stringsResult,
@@ -89,19 +88,14 @@ namespace Microsoft.CodeAnalysis.Rename
             using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var mergedReferencedSymbols);
             using var _2 = ArrayBuilder<ReferenceLocation>.GetInstance(out var mergedImplicitLocations);
 
-            if (options.GetOption(RenameOptions.RenameInStrings))
-            {
+            if (options.RenameInStrings)
                 mergedLocations.AddRange(stringsResult);
-            }
 
-            if (options.GetOption(RenameOptions.RenameInComments))
-            {
+            if (options.RenameInComments)
                 mergedLocations.AddRange(commentsResult);
-            }
 
-            var renameMethodGroupReferences =
-                options.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbol).Any();
-            var overloadsToMerge = options.GetOption(RenameOptions.RenameOverloads)
+            var renameMethodGroupReferences = options.RenameOverloads || !GetOverloadedSymbols(symbol).Any();
+            var overloadsToMerge = options.RenameOverloads
                 ? overloadsResult.NullToEmpty()
                 : ImmutableArray<SearchResult>.Empty;
             foreach (var result in overloadsToMerge.Concat(originalSymbolResult))
@@ -128,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// Find the locations that need to be renamed.
         /// </summary>
         internal static async Task<RenameLocations> FindAsync(
-            ISymbol symbol, Solution solution, OptionSet optionSet, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, RenameOptionSet optionSet, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
@@ -142,14 +136,13 @@ namespace Microsoft.CodeAnalysis.Rename
             }
         }
 
-        internal async Task<RenameLocations> FindWithUpdatedOptionsAsync(OptionSet optionSet, CancellationToken cancellationToken)
+        internal async Task<RenameLocations> FindWithUpdatedOptionsAsync(RenameOptionSet optionSet, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(Options, "FindWithUpdatedOptionsAsync can only be called on a result of FindAsync");
             using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
             {
                 var overloadsResult = !_overloadsResult.IsDefault
                     ? _overloadsResult
-                    : optionSet.GetOption(RenameOptions.RenameOverloads)
+                    : optionSet.RenameOverloads
                         ? await GetOverloadsAsync(_symbol, _solution, cancellationToken).ConfigureAwait(false)
                         : default;
 
@@ -157,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Rename
                     _symbol,
                     _solution,
                     _originalSymbolResult.Locations,
-                    optionSet.GetOption(RenameOptions.RenameInStrings) && _stringsResult.IsDefault,
-                    optionSet.GetOption(RenameOptions.RenameInComments) && _commentsResult.IsDefault,
+                    optionSet.RenameInStrings && _stringsResult.IsDefault,
+                    optionSet.RenameInComments && _commentsResult.IsDefault,
                     cancellationToken).ConfigureAwait(false);
 
                 return new RenameLocations(

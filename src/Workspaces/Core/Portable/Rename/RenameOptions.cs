@@ -19,4 +19,27 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public static Option<bool> PreviewChanges { get; } = new Option<bool>(nameof(RenameOptions), nameof(PreviewChanges), defaultValue: false);
     }
+
+    internal struct RenameOptionSet
+    {
+        public readonly bool RenameOverloads;
+        public readonly bool RenameInStrings;
+        public readonly bool RenameInComments;
+        public readonly bool RenameFile;
+
+        public RenameOptionSet(bool renameOverloads, bool renameInStrings, bool renameInComments, bool renameFile)
+        {
+            RenameOverloads = renameOverloads;
+            RenameInStrings = renameInStrings;
+            RenameInComments = renameInComments;
+            RenameFile = renameFile;
+        }
+
+        internal static RenameOptionSet From(OptionSet options)
+            => new RenameOptionSet(
+                options.GetOption(RenameOptions.RenameOverloads),
+                options.GetOption(RenameOptions.RenameInStrings),
+                options.GetOption(RenameOptions.RenameInComments),
+                options.GetOption(RenameOptions.RenameFile));
+    }
 }

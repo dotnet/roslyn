@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         // If this is the first call, then just start finding the initial set of rename
                         // locations.
                         _underlyingFindRenameLocationsTask = RenameLocations.FindAsync(
-                            this.RenameSymbol, _document.Project.Solution, optionSet, cancellationToken);
+                            this.RenameSymbol, _document.Project.Solution, RenameOptionSet.From(optionSet), cancellationToken);
                         renameTask = _underlyingFindRenameLocationsTask;
 
                         // null out the option set.  We don't need it anymore, and this will ensure
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var locationSet = await renameTask.ConfigureAwait(false);
                 if (optionSet != null)
                 {
-                    locationSet = await locationSet.FindWithUpdatedOptionsAsync(optionSet, cancellationToken).ConfigureAwait(false);
+                    locationSet = await locationSet.FindWithUpdatedOptionsAsync(RenameOptionSet.From(optionSet), cancellationToken).ConfigureAwait(false);
                 }
 
                 return new InlineRenameLocationSet(this, locationSet);
