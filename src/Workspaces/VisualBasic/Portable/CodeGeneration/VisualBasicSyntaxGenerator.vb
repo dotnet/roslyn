@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return SyntaxFactory.Trivia(structuredTrivia)
             End If
 
-            Return Nothing
+            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
         End Function
 
         Friend Overrides Function DocumentationCommentTrivia(nodes As IEnumerable(Of SyntaxNode), trailingTrivia As SyntaxTriviaList, lastWhitespaceTrivia As SyntaxTrivia, endOfLineString As String) As SyntaxNode
@@ -66,41 +66,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return node.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
                     WithTrailingTrivia(node.GetTrailingTrivia()).
                     WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString), lastWhitespaceTrivia)
-        End Function
-
-        Friend Overrides Function IsNamedArgument(syntaxNode As SyntaxNode) As Boolean
-            Dim argument = TryCast(syntaxNode, ArgumentSyntax)
-            If argument IsNot Nothing Then
-                Return argument.IsNamed
-            Else
-                Return False
-            End If
-        End Function
-
-        Friend Overrides Function IsWhitespaceTrivia(trivia As SyntaxTrivia) As Boolean
-            Return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-        End Function
-
-        Friend Overrides Function IsDocumentationCommentTriviaSyntax(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
-        End Function
-
-        Friend Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean
-            Dim xmlElement = TryCast(node, XmlElementSyntax)
-            If xmlElement IsNot Nothing Then
-                Return xmlElement.StartTag.Name.ToString() = DocumentationCommentXmlNames.ParameterElementName
-            End If
-
-            Return False
-        End Function
-
-        Friend Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxNode()
-            Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
-            If documentationCommentTrivia IsNot Nothing Then
-                Return documentationCommentTrivia.Content.ToArray()
-            End If
-
-            Return Nothing
         End Function
 
         Friend Overrides Function DocumentationCommentTriviaWithUpdatedContent(trivia As SyntaxTrivia, content As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -706,11 +671,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function ParseExpression(stringToParse As String) As SyntaxNode
             Return SyntaxFactory.ParseExpression(stringToParse)
         End Function
-
-        Friend Overrides Function CommaTokenWithElasticSpace() As SyntaxToken
-            Return SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
-        End Function
-
 #End Region
 
 #Region "Declarations"
@@ -3822,7 +3782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return False
         End Function
 
-        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, pattern As SyntaxNode) As SyntaxNode
+        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, isToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
@@ -3831,6 +3791,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function NotPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function OrPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function ParenthesizedPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function TypePattern(type As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 

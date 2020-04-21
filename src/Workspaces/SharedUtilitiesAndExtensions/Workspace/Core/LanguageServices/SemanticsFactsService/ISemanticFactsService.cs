@@ -104,7 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken);
 
-        ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
+#nullable enable
+        ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode? node, SyntaxToken token, CancellationToken cancellationToken);
+#nullable disable
 
         SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location,

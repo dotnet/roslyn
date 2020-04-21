@@ -236,6 +236,7 @@ class C
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("string");
             AddParameterDialog.FillNameField("c");
+            AddParameterDialog.SetCallSiteTodo();
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 

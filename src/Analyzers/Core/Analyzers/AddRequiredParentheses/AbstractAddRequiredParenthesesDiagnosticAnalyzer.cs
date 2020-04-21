@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
         protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
-        protected abstract TExpressionSyntax? TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
+        protected abstract TExpressionSyntax? TryGetAppropriateParent(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract bool IsBinaryLike(TExpressionSyntax node);
         protected abstract (TExpressionSyntax, SyntaxToken, TExpressionSyntax) GetPartsOfBinaryLike(TBinaryLikeExpressionSyntax binaryLike);
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
-            var parent = TryGetParentExpression(binaryLike);
+            var parent = TryGetAppropriateParent(binaryLike);
             if (parent == null || !IsBinaryLike(parent))
             {
                 return;

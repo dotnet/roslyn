@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return VSConstants.S_OK;
         }
 
-        public int OnAfterSnippetsKeyBindingChange([ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")]uint dwCmdGuid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")]uint dwCmdId, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")]int fBound)
+        public int OnAfterSnippetsKeyBindingChange([ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")] uint dwCmdGuid, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.DWORD")] uint dwCmdId, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")] int fBound)
             => VSConstants.S_OK;
 
         public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()

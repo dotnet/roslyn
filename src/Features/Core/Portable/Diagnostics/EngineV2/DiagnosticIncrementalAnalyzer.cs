@@ -40,34 +40,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
         internal IPersistentStorageService PersistentStorageService { get; }
-        internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
-        internal HostDiagnosticAnalyzers HostAnalyzers { get; }
 
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
             int correlationId,
             Workspace workspace,
-            HostDiagnosticAnalyzers hostAnalyzers,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
             Contract.ThrowIfNull(analyzerService);
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-            HostAnalyzers = hostAnalyzers;
             DiagnosticAnalyzerInfoCache = analyzerInfoCache;
-            HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(hostAnalyzers, PersistentStorageService, analyzerInfoCache);
+            _stateManager = new StateManager(PersistentStorageService, analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerService.Listener, analyzerInfoCache, HostDiagnosticUpdateSource);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerService.Listener, analyzerInfoCache);
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
