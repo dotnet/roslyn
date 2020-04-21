@@ -4397,11 +4397,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!arguments.IsDefault);
             bool shouldReturnNotNull = false;
 
-            (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
+            (ImmutableArray<BoundExpression> argumentsMostlyNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
 
             // Visit the arguments and collect results
             ImmutableArray<VisitArgumentResult> results;
-            (results, argumentsNoConversions, argsToParamsOpt, refKindsOpt) = VisitArgumentsEvaluate(node.Syntax, argumentsNoConversions, refKindsOpt, parametersOpt, argsToParamsOpt, expanded);
+            (results, argumentsMostlyNoConversions, argsToParamsOpt, refKindsOpt) = VisitArgumentsEvaluate(node.Syntax, argumentsMostlyNoConversions, refKindsOpt, parametersOpt, argsToParamsOpt, expanded);
 
             // Re-infer method type parameters
             if ((object)method != null && method.IsGenericMethod)
@@ -4409,7 +4409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (HasImplicitTypeArguments(node))
                 {
                     var binder = (node as BoundCall)?.BinderOpt ?? (node as BoundCollectionElementInitializer)?.BinderOpt ?? throw ExceptionUtilities.UnexpectedValue(node);
-                    method = InferMethodTypeArguments(binder, method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
+                    method = InferMethodTypeArguments(binder, method, GetArgumentsForMethodTypeInference(results, argumentsMostlyNoConversions), refKindsOpt, argsToParamsOpt, expanded);
                     parametersOpt = method.Parameters;
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
@@ -4434,11 +4434,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var argumentNoConversion = argumentsNoConversions[i];
-                    var argument = i < arguments.Length ? arguments[i] : argumentsNoConversions[i];
+                    var argumentMostlyNoConversion = argumentsMostlyNoConversions[i];
+                    var argument = i < arguments.Length ? arguments[i] : argumentMostlyNoConversion;
                     VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
-                        GetConversionIfApplicable(argument, argumentNoConversion),
-                        argumentNoConversion,
+                        GetConversionIfApplicable(argument, argumentMostlyNoConversion, avoidTypelessExpressions: true),
+                        argumentMostlyNoConversion,
                         conversions.IsDefault || i >= conversions.Length ? Conversion.Identity : conversions[i],
                         GetRefKind(refKindsOpt, i),
                         parameter,
@@ -4498,8 +4498,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // so just assume that the conversions have the same nullability as the underlying result
                     var argument = arguments[i];
                     var result = results[i];
-                    var argumentNoConversion = argumentsNoConversions[i];
-                    TrackAnalyzedNullabilityThroughConversionGroup(TypeWithState.Create(argument.Type, result.RValueType.State), argument as BoundConversion, argumentNoConversion);
+                    var argumentMostlyNoConversion = argumentsMostlyNoConversions[i];
+                    TrackAnalyzedNullabilityThroughConversionGroup(TypeWithState.Create(argument.Type, result.RValueType.State), argument as BoundConversion, argumentMostlyNoConversion);
                 }
             }
 
@@ -5111,7 +5111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (refKind == RefKind.None)
                     {
                         var before = argument;
-                        (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false);
+                        (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false, avoidTypelessExpressions: true);
                         if (argument != before)
                         {
                             SnapshotWalkerThroughConversionGroup(before, argument);
@@ -5395,7 +5395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// (Currently, the only visit method that passes `includeExplicitConversions: true`
         /// is VisitConversion. All other callers are handling implicit conversions only.)
         /// </summary>
-        private static (BoundExpression expression, Conversion conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions)
+        private static (BoundExpression expression, Conversion conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions, bool avoidTypelessExpressions = false)
         {
             ConversionGroup group = null;
             while (true)
@@ -5404,7 +5404,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     break;
                 }
+
                 var conversion = (BoundConversion)expr;
+
+                if (avoidTypelessExpressions &&
+                    conversion.ConversionKind == ConversionKind.ImplicitReference &&
+                    conversion.Operand is BoundLiteral { Type: null })
+                {
+                    break;
+                }
+
                 if (group != conversion.ConversionGroupOpt && group != null)
                 {
                     // E.g.: (C)(B)a
@@ -6044,13 +6053,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the conversion node for passing to <see cref="VisitConversion(BoundConversion, BoundExpression, Conversion, TypeWithAnnotations, TypeWithState, bool, bool, bool, AssignmentKind, ParameterSymbol, bool, bool, bool, Optional{LocalState}, bool, Location)"/>,
         /// if one should be passed.
         /// </summary>
-        private static BoundConversion GetConversionIfApplicable(BoundExpression conversionOpt, BoundExpression convertedNode)
+        private static BoundConversion GetConversionIfApplicable(BoundExpression conversionOpt, BoundExpression convertedNode, bool avoidTypelessExpressions = false)
         {
             Debug.Assert(conversionOpt is null
                          || convertedNode == conversionOpt // Note that convertedNode itself can be a BoundConversion, so we do this check explicitly
                                                            // because the below calls to RemoveConversion could potentially strip that conversion.
-                         || convertedNode == RemoveConversion(conversionOpt, includeExplicitConversions: false).expression
-                         || convertedNode == RemoveConversion(conversionOpt, includeExplicitConversions: true).expression);
+                         || convertedNode == RemoveConversion(conversionOpt, includeExplicitConversions: false, avoidTypelessExpressions).expression
+                         || convertedNode == RemoveConversion(conversionOpt, includeExplicitConversions: true, avoidTypelessExpressions).expression);
             return conversionOpt == convertedNode ? null : (BoundConversion)conversionOpt;
         }
 
