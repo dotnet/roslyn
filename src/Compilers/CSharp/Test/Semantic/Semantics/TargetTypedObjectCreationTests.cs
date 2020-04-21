@@ -4229,11 +4229,12 @@ public class D { }
             var source = @"
 class D
 {
-    public void M2(C c)
+    public void M()
     {
         new C(new());
         new C(default);
         new C(null);
+        C c = new(null);
     }
 }
 ";
@@ -4247,7 +4248,10 @@ class D
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 13),
                 // (8,13): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         new C(null);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
+                // (9,15): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         C c = new(null);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new(null)").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 15)
                 );
         }
 
