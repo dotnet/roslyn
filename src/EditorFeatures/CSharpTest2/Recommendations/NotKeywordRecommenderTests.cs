@@ -30,6 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNotKeywordAndOpenParen()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is not ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAndKeyword_IntExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +

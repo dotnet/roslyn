@@ -232,6 +232,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     case $$"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterTypeAndOpenParen()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is int ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterTypeAndCloseParen()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is int)$$"));
+        }
 #endif
     }
 }

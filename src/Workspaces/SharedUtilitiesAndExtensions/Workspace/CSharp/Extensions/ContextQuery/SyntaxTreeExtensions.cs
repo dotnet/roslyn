@@ -1256,22 +1256,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsAtStartOfPattern(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
         {
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
-            var node = leftToken.Parent;
 
             // If we're dealing with an expression surrounded by one or more sets of open parentheses, we need to
             // walk up the parens in order to see if we're actually at the start of a valid pattern or not.
             // After recursing, we should be left with at most a single open paren to analyze.
             if (leftToken.IsKind(SyntaxKind.OpenParenToken))
             {
-                if (node.IsParentKind(SyntaxKind.ParenthesizedExpression))
+                if (leftToken.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression))
                 {
-                    return IsAtStartOfPattern(syntaxTree, node.Parent.GetFirstToken(), node.Parent.SpanStart);
+                    return IsAtStartOfPattern(syntaxTree, leftToken.Parent.Parent.GetFirstToken(), leftToken.Parent.Parent.SpanStart);
                 }
 
 #if !CODE_STYLE
-                if (node.IsParentKind(SyntaxKind.ParenthesizedPattern))
+                if (leftToken.Parent.IsParentKind(SyntaxKind.ParenthesizedPattern))
                 {
-                    return IsAtStartOfPattern(syntaxTree, node.Parent.GetFirstToken(), node.Parent.SpanStart);
+                    return IsAtStartOfPattern(syntaxTree, leftToken.Parent.Parent.GetFirstToken(), leftToken.Parent.Parent.SpanStart);
                 }
 #endif
             }
@@ -1284,72 +1283,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // case ($
-            if (leftToken.IsKind(SyntaxKind.OpenParenToken) && node.IsParentKind(SyntaxKind.CaseSwitchLabel))
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken) && leftToken.Parent.IsParentKind(SyntaxKind.CaseSwitchLabel))
             {
                 return true;
             }
 
             // e switch { $$
             // e switch { ..., $$
-            if (leftToken.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CommaToken) && node.IsKind(SyntaxKind.SwitchExpression))
+            if (leftToken.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CommaToken) && leftToken.Parent.IsKind(SyntaxKind.SwitchExpression))
             {
                 return true;
             }
 
             // e is ($$
             // e is (..., $$
-            if (leftToken.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && node.IsKind(SyntaxKind.PositionalPatternClause))
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && leftToken.Parent.IsKind(SyntaxKind.PositionalPatternClause))
             {
                 return true;
             }
 
             // e is { P: $$
             // e is { ..., P: $$
-            if (leftToken.IsKind(SyntaxKind.ColonToken) && node.IsKind(SyntaxKind.NameColon) &&
-                node.IsParentKind(SyntaxKind.Subpattern))
+            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon) &&
+                leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;
             }
 
             // e is { P: ($$
-            if (leftToken.IsKind(SyntaxKind.OpenParenToken) && node.IsParentKind(SyntaxKind.ConstantPattern))
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken) && leftToken.Parent.IsParentKind(SyntaxKind.ConstantPattern))
             {
                 return true;
             }
 
 #if !CODE_STYLE
-            // if (e is { P: (1 or $$
-            if ((leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword)) &&
-                node is BinaryPatternSyntax)
+            // e is 1 and $$
+            // e is 1 or $$
+            if (leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword))
+            {
+                return leftToken.Parent is BinaryPatternSyntax;
+            }
+
+            // e is not $$
+            if (leftToken.IsKind(SyntaxKind.NotKeyword) && leftToken.Parent.IsKind(SyntaxKind.NotPattern))
             {
                 return true;
             }
 
-            if (node.IsParentKind(SyntaxKind.IsPatternExpression))
+            // e is ($$ 1 or 2)
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken) && leftToken.Parent.IsKind(SyntaxKind.ParenthesizedPattern))
             {
-                // e is 1 and $$
-                if (node.IsKind(SyntaxKind.AndPattern))
-                {
-                    return true;
-                }
-
-                // e is 1 or $$
-                if (node.IsKind(SyntaxKind.OrPattern))
-                {
-                    return true;
-                }
-
-                // e is not $$
-                if (node.IsKind(SyntaxKind.NotPattern))
-                {
-                    return true;
-                }
-
-                // e is ($$ 1 or 2)
-                if (node.IsKind(SyntaxKind.ParenthesizedPattern))
-                {
-                    return true;
-                }
+                return true;
             }
 #endif
 
@@ -1358,63 +1342,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsAtEndOfPattern(this SyntaxTree syntaxTree, SyntaxToken leftToken, int position)
         {
-#if !CODE_STYLE
+#if CODE_STYLE
+            return false;
+#endif
+
+            var originalLeftToken = leftToken;
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-            // This check should cover the majority of cases, e.g.:
-            // e is 1 $$
-            // e is >= 0 $$
-            // e is { P: (1 $$
-            if (leftToken.IsLastTokenOfNode<PatternSyntax>(out var patternSyntax, includeZeroWidth: false))
+            var patternSyntax = leftToken.GetAncestor<PatternSyntax>();
+            if (patternSyntax != null)
             {
-                // Patterns such as 'e is not $$', 'e is 1 or $$', and 'e is ($$' should be invalid here.
-                if (!(patternSyntax is UnaryPatternSyntax || patternSyntax is BinaryPatternSyntax || patternSyntax is RecursivePatternSyntax))
+                var lastTokenInPattern = patternSyntax.GetLastToken();
+
+                // This check should cover the majority of cases, e.g.:
+                // e is 1 $$
+                // e is >= 0 $$
+                // e is { P: (1 $$
+                // e is { P: (1) $$
+                if (leftToken == lastTokenInPattern)
                 {
-                    return true;
+                    // Patterns such as 'e is not $$', 'e is 1 or $$', and 'e is ($$' should be invalid here
+                    // as they are incomplete patterns.
+                    return !(leftToken.IsKind(SyntaxKind.OrKeyword) ||
+                        leftToken.IsKind(SyntaxKind.AndKeyword) ||
+                        leftToken.IsKind(SyntaxKind.NotKeyword) ||
+                        leftToken.IsKind(SyntaxKind.OpenParenToken));
+                }
+
+                // We want to make sure that IsAtEndOfPattern returns true even when the user is in the middle of typing a keyword
+                // after a pattern.
+                // For example, with the keyword 'and', we want to make sure that 'e is int an$$' is still recognized as valid.
+                if (lastTokenInPattern.Parent is SingleVariableDesignationSyntax variableDesignationSyntax &&
+                    originalLeftToken.Parent == variableDesignationSyntax)
+                {
+                    return patternSyntax is DeclarationPatternSyntax || patternSyntax is RecursivePatternSyntax;
                 }
             }
 
-            // e is C.P
+            // e is C.P $$
             // e is int $$
-            if (leftToken.IsLastTokenOfNode<BinaryExpressionSyntax>(out var binaryExpression, includeZeroWidth: false))
+            if (leftToken.IsLastTokenOfNode<TypeSyntax>(out var typeSyntax))
             {
-                if (binaryExpression.OperatorToken.IsKind(SyntaxKind.IsKeyword) && !binaryExpression.Right.Span.IsEmpty)
+                var binaryExpressionSyntax = typeSyntax.GetAncestor<BinaryExpressionSyntax>();
+                if (binaryExpressionSyntax != null && binaryExpressionSyntax.OperatorToken.IsKind(SyntaxKind.IsKeyword) &&
+                    binaryExpressionSyntax.Right.Contains(typeSyntax))
                 {
                     return true;
                 }
             }
 
+            // We need to include a special case for switch statement cases, as some are not currently parsed as patterns, e.g. case (1 $$
             var node = leftToken.Parent;
 
-            // e is int $$
-            // The parser can parse the above example as both a BinaryExpressionSyntax and DeclarationPatternSyntax,
-            // We already check for BinaryExpressionSyntax above, so now we just need to check for DeclarationPatternSyntax.
-            // Normally, checking for DeclarationPatternSyntax would be handled by the first check of the method,
-            // (i.e. leftToken.IsLastTokenOfNode<PatternSyntax>), but that check will fail if the keyword is already partially
-            // written, e.g. 'e is int o'. We thus need to include this special check.
-            if (patternSyntax != null && patternSyntax.IsKind(SyntaxKind.DeclarationPattern))
-            {
-                return true;
-            }
-
-            // e is { P: (1) $$
-            if (leftToken.IsKind(SyntaxKind.CloseParenToken) && node.IsParentKind(SyntaxKind.RecursivePattern))
-            {
-                return true;
-            }
-
             // Getting rid of the extra parentheses to deal with cases such as 'case (((1 $$'
-            while (node.IsParentKind(SyntaxKind.ParenthesizedExpression) || node.IsParentKind(SyntaxKind.ParenthesizedPattern))
+            while (node.IsParentKind(SyntaxKind.ParenthesizedExpression))
             {
                 node = node.Parent;
             }
 
             // case (1 $$
-            if (node.IsParentKind(SyntaxKind.CaseSwitchLabel))
+            if (node.IsParentKind(SyntaxKind.CaseSwitchLabel) && node.Parent.IsParentKind(SyntaxKind.SwitchSection))
             {
                 return true;
             }
-#endif
 
             return false;
         }
