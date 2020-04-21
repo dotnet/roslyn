@@ -1467,11 +1467,11 @@ This version used in: {2}</value>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
   </data>
-  <data name="cannot_be_null_or_empty" xml:space="preserve">
-    <value>cannot be null or empty</value>
+  <data name="_0_cannot_be_null_or_empty" xml:space="preserve">
+    <value>'{0}' cannot be null or empty</value>
   </data>
-  <data name="cannot_be_null_or_whitespace" xml:space="preserve">
-    <value>cannot be null or whitespace</value>
+  <data name="_0_cannot_be_null_or_whitespace" xml:space="preserve">
+    <value>'{0}' cannot be null or whitespace</value>
   </data>
   <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
     <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>

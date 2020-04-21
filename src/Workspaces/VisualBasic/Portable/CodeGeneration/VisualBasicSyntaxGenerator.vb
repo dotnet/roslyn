@@ -54,6 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function CreateInterpolatedStringEndToken() As SyntaxToken
             Return SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken)
+        End Function
 
         Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(nodes As IEnumerable(Of TElement), separators As IEnumerable(Of SyntaxToken)) As SeparatedSyntaxList(Of TElement)
             Return SyntaxFactory.SeparatedList(nodes, separators)

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -506,7 +507,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         generator.ThrowExpression(
                             CreateArgumentNullException(compilation, generator, parameter)));
 
-                    var newRoot = root.ReplaceNode(assignmentExpression.Value.Syntax, coalesce);
+                    var newRoot = root.ReplaceNode<SyntaxNode>(assignmentExpression.Value.Syntax, coalesce);
                     return document.WithSyntaxRoot(newRoot);
                 }
             }
@@ -539,24 +540,43 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static SyntaxNode CreateArgumentException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName)
         {
-            string text = methodName switch
+            var text = methodName switch
             {
-                nameof(string.IsNullOrEmpty) => new LocalizableResourceString(nameof(FeaturesResources.cannot_be_null_or_empty), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
-                nameof(string.IsNullOrWhiteSpace) => new LocalizableResourceString(nameof(FeaturesResources.cannot_be_null_or_whitespace), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
-                _ => "default"
+                nameof(string.IsNullOrEmpty) => new LocalizableResourceString(nameof(FeaturesResources._0_cannot_be_null_or_empty), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
+                nameof(string.IsNullOrWhiteSpace) => new LocalizableResourceString(nameof(FeaturesResources._0_cannot_be_null_or_whitespace), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
-            var content = new List<SyntaxNode>()
+
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var content);
+
+            var nameofExpression = generator.NameOfExpression(generator.IdentifierName(parameter.Name));
+
+            const string Placeholder = "{0}";
+            var placeholderIndex = text.IndexOf(Placeholder);
+            if (placeholderIndex < 0)
             {
-                generator.InterpolatedStringText(generator.InterpolatedStringTextToken($"'{{{generator.NameOfExpression(generator.IdentifierName(parameter.Name))}}}'")),
-                generator.InterpolatedStringText(generator.InterpolatedStringTextToken(text))
-            };
+                Debug.Fail("Should have found {0} in the resource string.");
+                content.Add(InterpolatedStringText(generator, text));
+            }
+            else
+            {
+                content.Add(InterpolatedStringText(generator, text[..placeholderIndex]));
+                content.Add(generator.Interpolation(nameofExpression));
+                content.Add(InterpolatedStringText(generator, text[(placeholderIndex + Placeholder.Length)..]));
+            }
+
             return generator.ObjectCreationExpression(
                 GetTypeNode(compilation, generator, typeof(ArgumentException)),
                 generator.InterpolatedStringExpression(
-                    generator.CreateInterpolatedStringStartToken(false).WithLeadingTrivia(content.First().GetLeadingTrivia()),
+                    generator.CreateInterpolatedStringStartToken(isVerbatim: false),
                     content,
-                    generator.CreateInterpolatedStringEndToken().WithTrailingTrivia(content.Last().GetTrailingTrivia())),
-                generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
+                    generator.CreateInterpolatedStringEndToken()),
+                nameofExpression);
+        }
+
+        private static SyntaxNode InterpolatedStringText(SyntaxGenerator generator, string text)
+        {
+            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(text));
         }
     }
 }

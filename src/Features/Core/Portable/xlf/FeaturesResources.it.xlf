@@ -1780,6 +1780,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Il flusso deve supportare operazioni di lettura e ricerca.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
+        <target state="new">Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Elimina {0}</target>
@@ -1998,6 +2003,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Ritorno a capo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_null_or_empty">
+        <source>'{0}' cannot be null or empty</source>
+        <target state="new">'{0}' cannot be null or empty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_null_or_whitespace">
+        <source>'{0}' cannot be null or whitespace</source>
+        <target state="new">'{0}' cannot be null or whitespace</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -2438,26 +2453,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="month_abbreviated_description">
         <source>The "MMM" custom format specifier represents the abbreviated name of the month. The localized abbreviated name of the month is retrieved from the DateTimeFormatInfo.AbbreviatedMonthNames property of the current or specified culture.</source>
         <target state="new">The "MMM" custom format specifier represents the abbreviated name of the month. The localized abbreviated name of the month is retrieved from the DateTimeFormatInfo.AbbreviatedMonthNames property of the current or specified culture.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_can_be_simplified">
-        <source>{0} can be simplified</source>
-        <target state="translated">{0} può essere semplificato</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cannot_be_null_or_empty">
-        <source>cannot be null or empty</source>
-        <target state="new">cannot be null or empty</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cannot_be_null_or_whitespace">
-        <source>cannot be null or whitespace</source>
-        <target state="new">cannot be null or whitespace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="discard">
-        <source>discard</source>
-        <target state="translated">variabile discard</target>
         <note />
       </trans-unit>
       <trans-unit id="month_day">
