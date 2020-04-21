@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>
+        /// <remarks>Do not call this method directly.  Instead, use <see cref="Renamer.FindRenameLocationsAsync"/></remarks>
         internal static async Task<RenameLocations> FindLocationsInCurrentProcessAsync(
             ISymbol symbol, Solution solution, RenameOptionSet optionSet, CancellationToken cancellationToken)
         {
