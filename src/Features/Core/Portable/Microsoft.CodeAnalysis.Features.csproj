@@ -95,6 +95,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" Key="$(VisualStudioKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35086" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.TestsProvider" Key="$(VisualStudioKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35086" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(CompletionTestsKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
+    <InternalsVisibleTo Include="IdeBenchmarks" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\CodeStyle\Core\Analyzers\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />
@@ -110,6 +111,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="compile" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
