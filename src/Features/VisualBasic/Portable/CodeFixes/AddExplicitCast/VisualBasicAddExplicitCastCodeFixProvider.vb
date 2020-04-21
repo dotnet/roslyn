@@ -66,22 +66,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         Dim argumentList = argument.GetAncestorOrThis(Of ArgumentListSyntax)
                         Dim invocationNode = argumentList.Parent
 
-                        mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(syntaxFacts, semanticModel, root,
-                            argument, argumentList, invocationNode, cancellationToken))
+                        mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(syntaxFacts, semanticModel,
+                            root, argument, argumentList, invocationNode, cancellationToken))
                     Else
                         ' spanNode is a right expression in assignment operation
                         Dim inferenceService = document.GetRequiredLanguageService(Of ITypeInferenceService)()
-                        Dim conversionType = inferenceService.InferType(semanticModel, spanNode, False, cancellationToken)
+                        Dim conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault:=False,
+                            cancellationToken)
                         mutablePotentialConversionTypes.Add((spanNode, conversionType))
                     End If
                 Case BC30518, BC30519
                     Dim invocationNode = spanNode.GetAncestors(Of ExpressionSyntax).FirstOrDefault(
                         Function(node) Not node.ChildNodes.OfType(Of ArgumentListSyntax).IsEmpty())
-                    Dim argumentList = invocationNode.ChildNodes.OfType(Of ArgumentListSyntax).FirstOrDefault()
 
-                    ' spanArgument is null because the span is on the invocation identifier name according to BC30519
-                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypesWithInvocationNode(syntaxFacts, semanticModel, root,
-                        invocationNode, cancellationToken))
+                    ' Collect available cast pairs without target argument
+                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypesWithInvocationNode(syntaxFacts,
+                        semanticModel, root, invocationNode, cancellationToken))
             End Select
 
             ' clear up duplicate types
@@ -119,15 +119,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
         Protected Overrides Function GenerateNewArgumentList(
                 oldArgumentList As SyntaxNode, newArguments As List(Of SyntaxNode)) As SyntaxNode
-            Return If(TryCast(oldArgumentList, ArgumentListSyntax)?.WithArguments(SyntaxFactory.SeparatedList(newArguments)),
-                oldArgumentList)
+            Return If(TryCast(oldArgumentList, ArgumentListSyntax)?.WithArguments(
+                SyntaxFactory.SeparatedList(newArguments)), oldArgumentList)
         End Function
 
-        Protected Overrides Function GetSpeculativeAttributeSymbolInfo(semanticModel As SemanticModel, position As Integer, attribute As AttributeSyntax) As SymbolInfo
+        Protected Overrides Function GetSpeculativeAttributeSymbolInfo(semanticModel As SemanticModel,
+                position As Integer, attribute As AttributeSyntax) As SymbolInfo
             Return semanticModel.GetSpeculativeSymbolInfo(position, attribute)
         End Function
 
-        Private Function GetTargetArgument(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel, parameters As ImmutableArray(Of IParameterSymbol), arguments As SeparatedSyntaxList(Of ArgumentSyntax)) As ArgumentSyntax
+        ''' <summary>
+        ''' Find the first argument that need to be cast
+        ''' </summary>
+        ''' <param name="parameters"> The parameters of method</param>
+        ''' <param name="arguments"> The arguments of invocation node</param>
+        ''' <returns>
+        ''' Return the first argument that need to be cast, could be null if such argument doesn't exist
+        ''' </returns>
+        Private Function GetTargetArgument(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel,
+                parameters As ImmutableArray(Of IParameterSymbol), arguments As SeparatedSyntaxList(Of ArgumentSyntax)) As ArgumentSyntax
             If parameters.Length = 0 Then
                 Return Nothing
             End If
@@ -168,6 +178,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Return Nothing
         End Function
 
+        ''' <summary>
+        ''' Collect available cast pairs without target argument.
+        ''' For each method, the first argument need to be cast is the target argument.
+        ''' Return format is (argument expression, potential conversion type).
+        ''' </summary>
+        ''' <param name="invocationNode">The invocation node that contains some arguments need to be cast</param>
+        ''' <returns>
+        ''' Return all the available cast pairs, format is (argument expression, potential conversion type)
+        ''' </returns>
         Private Function GetPotentialConversionTypesWithInvocationNode(syntaxFacts As ISyntaxFactsService,
                 semanticModel As SemanticModel, root As SyntaxNode, invocationNode As SyntaxNode,
                 cancellationToken As CancellationToken) As ImmutableArray(Of (ExpressionSyntax, ITypeSymbol))
@@ -179,7 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             Dim mutablePotentialConversionTypes = ArrayBuilder(Of (ExpressionSyntax, ITypeSymbol)).GetInstance()
 
             For Each candidateSymbol In candidateSymbols.OfType(Of IMethodSymbol)()
-
                 Dim targetArgument = GetTargetArgument(syntaxFacts, semanticModel, candidateSymbol.Parameters, argumentList.Arguments)
                 If targetArgument Is Nothing Then
                     Continue For

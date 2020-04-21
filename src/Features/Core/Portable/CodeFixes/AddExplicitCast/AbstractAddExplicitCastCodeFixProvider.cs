@@ -313,8 +313,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
         /// <summary>
         /// Collect all the available cast pairs, format is (target argument expression, potential conversion type)
         /// </summary>
-        /// <param name="targetArgument"> The argument that contains the span, could be null when the span is 
-        /// on invocation identifier name, i.e. BC30518, BC30519 in VB .NET</param>
+        /// <param name="targetArgument"> The argument that need to be cast</param>
         /// <param name="argumentList"> The argument list that contains the target argument to be cast </param>
         /// <param name="invocationNode"> The invocation node that is the parent of "argumentList"</param>
         /// <returns>
