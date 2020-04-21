@@ -5608,6 +5608,92 @@ class Program
             CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
 
+        [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
+        public void AssignRefAfterAwait()
+        {
+            const string source = @"
+using System.Threading.Tasks;
+using System;
+
+class IntCode
+{
+    public static async Task Main()
+    {
+        await Step(0);
+    }
+
+    public static async Task CompletedTask()
+    {
+    }
+
+    public static async Task Step(int i)
+    {
+        Console.Write(field);
+        await CompletedTask();
+        ReadMemory() = i switch
+        {
+            _ => GetValue()
+        };
+        Console.Write(field);
+    }
+
+    public static long GetValue()
+    {
+        Console.Write(2);
+        return 3L;
+    }
+
+    private static long field;
+    private static ref long ReadMemory()
+    {
+        Console.Write(1);
+        return ref field;
+    }
+}
+";
+            var diags = new[]
+            {
+                // (12,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task CompletedTask()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "CompletedTask").WithLocation(12, 30)
+            };
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "0123").VerifyDiagnostics(diags);
+        }
+
+        [Fact, WorkItem(40251, "https://github.com/dotnet/roslyn/issues/40251")]
+        public void AssignRefWithAwait()
+        {
+            const string source = @"
+using System.Threading.Tasks;
+
+class IntCode
+{
+    public async Task Step(Task<int> t)
+    {
+        ReadMemory() = await t;
+        ReadMemory() += await t;
+    }
+
+    private ref long ReadMemory() => throw null;
+}
+";
+            var expected = new[]
+            {
+                // (8,9): error CS8178: 'await' cannot be used in an expression containing a call to 'IntCode.ReadMemory()' because it returns by reference
+                //         ReadMemory() = await t;
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "ReadMemory()").WithArguments("IntCode.ReadMemory()").WithLocation(8, 9),
+                // (9,9): error CS8178: 'await' cannot be used in an expression containing a call to 'IntCode.ReadMemory()' because it returns by reference
+                //         ReadMemory() += await t;
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "ReadMemory()").WithArguments("IntCode.ReadMemory()").WithLocation(9, 9)
+            };
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyEmitDiagnostics(expected);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
         [Fact]
         [WorkItem(30521, "https://github.com/dotnet/roslyn/issues/30521")]
         public void ComplexSwitchExpressionInvolvingNullCoalescingAndAwait()
