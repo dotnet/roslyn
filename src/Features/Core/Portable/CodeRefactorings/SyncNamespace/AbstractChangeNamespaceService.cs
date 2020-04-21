@@ -479,12 +479,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             cancellationToken.ThrowIfCancellationRequested();
             var progress = new StreamingProgressCollector();
             await SymbolFinder.FindReferencesAsync(
-                symbol,
-                document.Project.Solution,
-                documents: null,
-                progress: progress,
-                options: FindReferencesSearchOptions.Default,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                symbol, document.Project.Solution, progress, documents: null,
+                FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
             return progress.GetReferencedSymbols();
         }
