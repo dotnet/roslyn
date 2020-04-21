@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -101,6 +102,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxNode newAssignmentTarget,
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts);
+
+        protected virtual SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFactsService syntaxFacts)
+        {
+            return null;
+        }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -503,7 +509,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                     else
                     {
-                        nodeReplacementMap.Add(node, newNameNode);
+                        var newParentNode = TryUpdateParentOfUpdatedNode(node.Parent, newNameNode, editor, syntaxFacts);
+                        if (newParentNode is object)
+                        {
+                            nodeReplacementMap.Add(node.Parent, newParentNode);
+                        }
+                        else
+                        {
+                            nodeReplacementMap.Add(node, newNameNode);
+                        }
                     }
                 }
 
