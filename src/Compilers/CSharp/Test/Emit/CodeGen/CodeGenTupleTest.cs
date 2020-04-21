@@ -26780,5 +26780,55 @@ namespace System
             var literal = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
             Assert.True(model.GetSymbolInfo(literal).IsEmpty);
         }
+
+        [Fact, WorkItem(1090920, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/1090920")]
+        public void NameofFixedBuffer()
+        {
+            var source = @"
+namespace System
+{
+    public class C
+    {
+        public static void Main()
+        {
+            ValueTuple<int> myStruct = default;
+            Console.Write(myStruct.ToString());
+            char[] o;
+            myStruct.DoSomething(out o);
+            Console.Write(Other.GetFromExternal());
+        }
+    }
+
+    public unsafe struct ValueTuple<T1>
+    {
+        public fixed char MessageType[50];
+
+        public override string ToString()
+        {
+            return nameof(MessageType);
+        }
+
+        public void DoSomething(out char[] x)
+        {
+            x = new char[] { };
+            Action a = () => { System.Console.Write($"" {nameof(x)} ""); };
+            a();
+        }
+    }
+
+    class Other
+    {
+        public static string GetFromExternal()
+        {
+            ValueTuple<int> myStruct = default;
+            return nameof(myStruct.MessageType);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput:
+                "MessageType x MessageType").VerifyDiagnostics();
+        }
     }
 }
