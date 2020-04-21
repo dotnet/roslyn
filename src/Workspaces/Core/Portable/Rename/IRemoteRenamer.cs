@@ -132,20 +132,23 @@ namespace Microsoft.CodeAnalysis.Rename
 
     internal partial class RenameLocations
     {
-        public static SerializableRenameLocations Dehydrate(Solution solution, RenameLocations locations, CancellationToken cancellationToken)
+        public SerializableRenameLocations Dehydrate(Solution solution, CancellationToken cancellationToken)
             => new SerializableRenameLocations
             {
-                Symbol = SerializableSymbolAndProjectId.Dehydrate(solution, locations.Symbol, cancellationToken),
-                Options = SerializableRenameOptionSet.Dehydrate(locations.Options),
-                OriginalSymbolResult = SerializableSearchResult.Dehydrate(solution, locations._originalSymbolResult, cancellationToken),
-                MergedResult = SerializableSearchResult.Dehydrate(solution, locations._mergedResult, cancellationToken),
-                OverloadsResult = locations._overloadsResult.IsDefault ? null : locations._overloadsResult.Select(r => SerializableSearchResult.Dehydrate(solution, r, cancellationToken)).ToArray(),
-                StringsResult = locations._stringsResult.IsDefault ? null : locations._stringsResult.Select(r => SerializableRenameLocation.Dehydrate(r)).ToArray(),
-                CommentsResult = locations._commentsResult.IsDefault ? null : locations._commentsResult.Select(r => SerializableRenameLocation.Dehydrate(r)).ToArray(),
+                Symbol = SerializableSymbolAndProjectId.Dehydrate(solution, Symbol, cancellationToken),
+                Options = SerializableRenameOptionSet.Dehydrate(Options),
+                OriginalSymbolResult = SerializableSearchResult.Dehydrate(solution, _originalSymbolResult, cancellationToken),
+                MergedResult = SerializableSearchResult.Dehydrate(solution, _mergedResult, cancellationToken),
+                OverloadsResult = _overloadsResult.IsDefault ? null : _overloadsResult.Select(r => SerializableSearchResult.Dehydrate(solution, r, cancellationToken)).ToArray(),
+                StringsResult = _stringsResult.IsDefault ? null : _stringsResult.Select(r => SerializableRenameLocation.Dehydrate(r)).ToArray(),
+                CommentsResult = _commentsResult.IsDefault ? null : _commentsResult.Select(r => SerializableRenameLocation.Dehydrate(r)).ToArray(),
             };
 
         internal static async Task<RenameLocations> RehydrateAsync(Solution solution, SerializableRenameLocations locations, CancellationToken cancellationToken)
         {
+            if (locations == null)
+                return null;
+
             var symbol = await locations.Symbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
                 return null;
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Rename
         }
     }
 
-    internal struct SerializableRenameLocations
+    internal class SerializableRenameLocations
     {
         public SerializableSymbolAndProjectId Symbol;
         public SerializableRenameOptionSet Options;
