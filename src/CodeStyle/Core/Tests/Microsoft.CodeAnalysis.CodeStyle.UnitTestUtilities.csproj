@@ -17,11 +17,11 @@
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpVerifierHelper.cs" Link="CSharpVerifierHelper.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2+Test.cs" Link="VisualBasicCodeFixVerifier`2+Test.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2.cs" Link="VisualBasicCodeFixVerifier`2.cs" />
-    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\OptionsCollection.cs" Link="OptionsCollection.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1+Test.cs" Link="VisualBasicCodeRefactoringVerifier`1+Test.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1.cs" Link="VisualBasicCodeRefactoringVerifier`1.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\Diagnostics\ParenthesesOptionsProvider.cs" Link="ParenthesesOptionsProvider.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\NamingStyles\NamingStylesTestOptionSets.cs" Link="NamingStyles\NamingStylesTestOptionSets.cs" />
+    <Compile Include="..\..\..\Workspaces\CoreTestUtilities\OptionsCollection.cs" Link="OptionsCollection.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
