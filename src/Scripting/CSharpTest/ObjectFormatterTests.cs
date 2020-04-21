@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         public void AnonymousType()
         {
             string anon = s_formatter.FormatObject(new { X = 1, Y = 2 });
+
+            // conditional statement for difference of old vs. new compilers
             if (anon.StartsWith("\\"))
             {
                 anon = anon.Substring(1);
