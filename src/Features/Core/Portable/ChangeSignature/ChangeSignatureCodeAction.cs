@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     internal class ChangeSignatureCodeAction : CodeActionWithOptions
     {
         private readonly AbstractChangeSignatureService _changeSignatureService;
-        private readonly ChangeSignatureAnalyzedSucceedContext _context;
+        private readonly ChangeSignatureAnalysisSucceededContext _context;
 
-        public ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalyzedSucceedContext context)
+        public ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context)
         {
             _changeSignatureService = changeSignatureService;
             _context = context;

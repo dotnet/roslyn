@@ -16,7 +16,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(SymbolKey, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>>;
+    // Must cache using SymbolKey+ProjectId.  That's because the same symbol key may be found among many projects, but
+    // the same operation on the same symbol key might produce different results depending on which project it was found
+    // in.  For example, each symbol's project may have a different set of downstream dependent projects.  As such,
+    // there may be a different set of related symbols found for each.
+    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(SymbolKey, ProjectId, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>>;
+
     using SymbolAndProjectIdSet = HashSet<SymbolAndProjectId<INamedTypeSymbol>>;
 
     /// <summary>
@@ -69,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Do a quick lookup first to avoid the allocation.  If it fails, go through the
             // slower allocating path.
-            var key = (type.Symbol.GetSymbolKey(), projects);
+            var key = (type.Symbol.GetSymbolKey(), type.ProjectId, projects);
             if (!dictionary.TryGetValue(key, out var lazy))
             {
                 lazy = dictionary.GetOrAdd(key,

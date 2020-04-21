@@ -27,13 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (node.IsKind(kind))
             {
-#if !CODE_STYLE
                 result = (TNode)node;
-#else
-                // The CodeStyle layer is referencing an older, unannotated version of Roslyn which doesn't know that IsKind guarantees the non-nullness
-                // of node. So we have to silence it here.
-                result = (TNode)node!;
-#endif
                 return true;
             }
 

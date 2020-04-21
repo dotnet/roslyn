@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExecuteInInteractiveCommandHandler(
-            [ImportMany]IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> executeInInteractiveHandlers)
+            [ImportMany] IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> executeInInteractiveHandlers)
         {
             _executeInInteractiveHandlers = executeInInteractiveHandlers;
         }
