@@ -24,28 +24,9 @@ namespace Microsoft.CodeAnalysis.Rename
     /// </summary>
     internal sealed partial class RenameLocations
     {
-        private class SearchResult
-        {
-            public readonly ImmutableHashSet<RenameLocation> Locations;
-            public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
-            public readonly ImmutableArray<ISymbol> ReferencedSymbols;
+        public readonly RenameOptionSet Options;
 
-            public SearchResult(
-                ImmutableHashSet<RenameLocation> locations,
-                ImmutableArray<ReferenceLocation> implicitLocations,
-                ImmutableArray<ISymbol> referencedSymbols)
-            {
-                this.Locations = locations;
-                this.ImplicitLocations = implicitLocations;
-                this.ReferencedSymbols = referencedSymbols;
-            }
-        }
-
-        // never null fields
-        private readonly ISymbol _symbol;
-        private readonly Solution _solution;
         private readonly SearchResult _mergedResult;
-        internal RenameOptionSet Options { get; }
 
         // can be default
         private readonly ImmutableArray<SearchResult> _overloadsResult;
@@ -63,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableArray<ReferenceLocation> implicitLocations,
             RenameOptionSet options)
         {
-            _symbol = symbol;
-            _solution = solution;
+            Symbol = symbol;
+            Solution = solution;
             _mergedResult = new SearchResult(locations, implicitLocations, referencedSymbols);
             Options = options;
         }
@@ -78,8 +59,8 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableArray<RenameLocation> stringsResult,
             ImmutableArray<RenameLocation> commentsResult)
         {
-            _symbol = symbol;
-            _solution = solution;
+            Symbol = symbol;
+            Solution = solution;
             Options = options;
             _originalSymbolResult = originalSymbolResult;
             _overloadsResult = overloadsResult;
@@ -115,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         public ISet<RenameLocation> Locations => _mergedResult.Locations;
-        public ISymbol Symbol => _symbol;
-        public Solution Solution => _solution;
+        public ISymbol Symbol { get; private set; }
+        public Solution Solution { get; private set; }
         public ImmutableArray<ISymbol> ReferencedSymbols => _mergedResult.ReferencedSymbols;
         public ImmutableArray<ReferenceLocation> ImplicitLocations => _mergedResult.ImplicitLocations;
 
@@ -146,19 +127,19 @@ namespace Microsoft.CodeAnalysis.Rename
                 var overloadsResult = !_overloadsResult.IsDefault
                     ? _overloadsResult
                     : optionSet.RenameOverloads
-                        ? await GetOverloadsAsync(_symbol, _solution, cancellationToken).ConfigureAwait(false)
+                        ? await GetOverloadsAsync(Symbol, Solution, cancellationToken).ConfigureAwait(false)
                         : default;
 
                 var stringsAndComments = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
-                    _symbol,
-                    _solution,
+                    Symbol,
+                    Solution,
                     _originalSymbolResult.Locations,
                     optionSet.RenameInStrings && _stringsResult.IsDefault,
                     optionSet.RenameInComments && _commentsResult.IsDefault,
                     cancellationToken).ConfigureAwait(false);
 
                 return new RenameLocations(
-                    _symbol, _solution, optionSet, _originalSymbolResult,
+                    Symbol, Solution, optionSet, _originalSymbolResult,
                     _overloadsResult.IsDefault ? overloadsResult : _overloadsResult,
                     _stringsResult.IsDefault ? stringsAndComments.Item1 : _stringsResult,
                     _commentsResult.IsDefault ? stringsAndComments.Item2 : _commentsResult);
