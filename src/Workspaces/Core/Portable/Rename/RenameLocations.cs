@@ -24,9 +24,8 @@ namespace Microsoft.CodeAnalysis.Rename
     /// </summary>
     internal sealed partial class RenameLocations
     {
-        public readonly ISymbol Symbol;
         public readonly Solution Solution;
-
+        public readonly ISymbol Symbol;
         public readonly RenameOptionSet Options;
 
         // possibly null
@@ -49,8 +48,8 @@ namespace Microsoft.CodeAnalysis.Rename
             ImmutableArray<RenameLocation> stringsResult,
             ImmutableArray<RenameLocation> commentsResult)
         {
-            Symbol = symbol;
             Solution = solution;
+            Symbol = symbol;
             Options = options;
             _originalSymbolResult = originalSymbolResult;
             _mergedResult = mergedResult;

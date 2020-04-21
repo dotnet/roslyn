@@ -6,7 +6,9 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Rename
             return RenameSymbolAsync(solution, symbol, newName, renameOptions, nonConflictSymbols: null, cancellationToken);
         }
 
-        internal static Task<RenameLocations> FindRenameLocationsAsync(
+        internal static async Task<RenameLocations> FindRenameLocationsAsync(
             Solution solution, ISymbol symbol, RenameOptionSet options, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
@@ -43,8 +45,34 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return RenameLocations.FindLocationsInCurrentProcessAsync(
-                symbol, solution, options, cancellationToken);
+            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            {
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
+                {
+                    var result = await client.TryRunRemoteAsync<SerializableRenameLocations>(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteRenamer.FindRenameLocationsAsync),
+                        solution,
+                        new object[]
+                        {
+                            SerializableSymbolAndProjectId.Dehydrate(solution, symbol, cancellationToken),
+                            SerializableRenameOptionSet.Dehydrate(options),
+                        },
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue)
+                    {
+                        return await RenameLocations.RehydrateAsync(
+                            solution, result.Value, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            // Couldn't effectively search in OOP. Perform the search in-proc.
+            return await RenameLocations.FindLocationsInCurrentProcessAsync(
+                symbol, solution, options, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<Solution> RenameAsync(
