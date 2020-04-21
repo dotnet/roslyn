@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Checks if 'symbol' is accessible from within type 'within', with
-        ''' an qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
+        ''' a qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
         ''' if it failed the "through type" check.
         ''' </summary>
         Public Shared Function CheckSymbolAccessibility(symbol As Symbol,

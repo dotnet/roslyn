@@ -4411,7 +4411,7 @@ ContinueCandidatesLoop:
             ' §11.8.1.3 Depth of Genericity
             ' A member M is determined to have greater depth of genericity than a member N if, for each pair 
             ' of matching parameters  Mj and Nj, Mj has greater or equal depth of genericity than Nj, and at 
-            ' least one Mj is has greater depth of genericity. Depth of genericity is defined as follows:
+            ' least one Mj has greater depth of genericity. Depth of genericity is defined as follows:
             '
             '    1. Anything other than a type parameter has greater depth of genericity than a type parameter;
             '    2. Recursively, a constructed type has greater depth of genericity than another constructed type 
