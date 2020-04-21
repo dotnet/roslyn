@@ -67,7 +67,9 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
                 if (declarationDeclarators.Count == fieldDeclarators.Count())
                 {
-                    editor.SetModifiers(fieldDeclarators.Key, editor.Generator.GetModifiers(fieldDeclarators.Key) | DeclarationModifiers.ReadOnly);
+                    var modifiers = editor.Generator.GetModifiers(fieldDeclarators.Key) - DeclarationModifiers.Volatile | DeclarationModifiers.ReadOnly;
+
+                    editor.SetModifiers(fieldDeclarators.Key, modifiers);
                 }
                 else
                 {
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                                                                         generator.TypeExpression(symbol.Type),
                                                                         Accessibility.Private,
                                                                         fieldDeclarators.Contains(declarator)
-                                                                            ? modifiers | DeclarationModifiers.ReadOnly
+                                                                            ? modifiers - DeclarationModifiers.Volatile | DeclarationModifiers.ReadOnly
                                                                             : modifiers,
                                                                         GetInitializerNode(declarator))
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
