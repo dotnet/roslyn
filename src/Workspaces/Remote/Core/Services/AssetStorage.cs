@@ -88,6 +88,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return _assetSource;
         }
 
+        [Obsolete("To be removed: https://github.com/dotnet/roslyn/issues/43477")]
+        public IAssetSource? TryGetAssetSource()
+            => _assetSource;
+
         public bool TryAddAsset(Checksum checksum, object value)
         {
             UpdateLastActivityTime();
