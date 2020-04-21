@@ -464,8 +464,8 @@ Class C
     End Event
 
     Sub M()
-        RaiseEvent MyEvent(True, y:="Two", newIntegerParameter:=12345)
-        RaiseEvent MyEvent2(True, y:="Two", newIntegerParameter:=12345)
+        RaiseEvent MyEvent(True, 12345, "Two")
+        RaiseEvent MyEvent2(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -492,7 +492,7 @@ Class C
     Event MyEvent(z As Boolean, newIntegerParameter As Integer, y As String)
 
     Sub M()
-        RaiseEvent MyEvent(True, y:="Two", newIntegerParameter:=12345)
+        RaiseEvent MyEvent(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
@@ -626,7 +626,7 @@ Class C
     End Event
 
     Sub M()
-        RaiseEvent MyEvent(True, y:="Two", newIntegerParameter:=12345)
+        RaiseEvent MyEvent(True, 12345, "Two")
     End Sub
 End Class
 ]]></Text>.NormalizedValue()
