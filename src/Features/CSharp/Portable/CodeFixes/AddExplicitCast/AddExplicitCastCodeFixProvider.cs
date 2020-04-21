@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
     internal sealed partial class AddExplicitCastCodeFixProvider
-        : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
+        : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax, ArgumentListSyntax, AttributeSyntax>
     {
         /// <summary>
         /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
@@ -69,14 +69,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             out ImmutableArray<(ExpressionSyntax, ITypeSymbol)> potentialConversionTypes)
         {
             potentialConversionTypes = ImmutableArray<(ExpressionSyntax, ITypeSymbol)>.Empty;
-
             using var _ = ArrayBuilder<(ExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
             if (diagnosticId == CS0266)
             {
                 var inferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
                 var conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault: false, cancellationToken);
                 if (conversionType is null)
                     return false;
+
                 mutablePotentialConversionTypes.Add((spanNode, conversionType));
             }
             else if (diagnosticId == CS1503)
@@ -86,22 +88,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
                     && argumentList.Parent is SyntaxNode invocationNode)
                 {
                     // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
-                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
-                    targetArgument, argumentList, invocationNode, cancellationToken));
+                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(syntaxFacts, semanticModel,
+                        root, targetArgument, argumentList, invocationNode, cancellationToken));
                 }
                 else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
                     && targetAttributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList
                     && attributeArgumentList.Parent is SyntaxNode attributeNode)
                 {
                     // attribute node
-                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
-                    targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
+                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(syntaxFacts, semanticModel,
+                        root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
                 }
             }
 
             // clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel,
-                document.GetRequiredLanguageService<ISyntaxFactsService>(),
+            potentialConversionTypes = FilterValidPotentialConversionTypes(syntaxFacts, semanticModel,
                 mutablePotentialConversionTypes);
             return !potentialConversionTypes.IsEmpty;
         }
@@ -132,34 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             return oldArgument;
         }
 
-        protected override ExpressionSyntax? GetArgumentExpression(SyntaxNode argument)
-        {
-            if (argument is ArgumentSyntax normalArgument)
-            {
-                return normalArgument.Expression;
-            }
-            else if (argument is AttributeArgumentSyntax attributeArgument)
-            {
-                return attributeArgument.Expression;
-            }
-            return null;
-        }
-
         protected override bool IsDeclarationExpression(ExpressionSyntax expression)
             => expression.Kind() == SyntaxKind.DeclarationExpression;
-
-        protected override string? TryGetName(SyntaxNode argument)
-        {
-            if (argument is ArgumentSyntax normalArgument)
-            {
-                return normalArgument.NameColon?.Name.Identifier.ValueText;
-            }
-            else if (argument is AttributeArgumentSyntax attributeArgument)
-            {
-                return attributeArgument.NameColon?.Name.Identifier.ValueText;
-            }
-            return null;
-        }
 
         protected override SyntaxNode GenerateNewArgumentList(
             SyntaxNode oldArgumentList, List<SyntaxNode> newArguments)
@@ -179,29 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
             ITypeSymbol type)
             => semanticModel.ClassifyConversion(expression, type).ToCommonConversion();
 
-        protected override bool IsInvocationExpressionWithNewArgumentsApplicable(
-            SemanticModel semanticModel, SyntaxNode root, SyntaxNode oldArgumentList,
-            List<SyntaxNode> newArguments, SyntaxNode targetNode)
-        {
-            var newRoot = root.ReplaceNode(oldArgumentList, GenerateNewArgumentList(oldArgumentList, newArguments));
-            if (targetNode is AttributeArgumentSyntax attributeArugment)
-            {
-                var attributeNode = newRoot.FindNode(attributeArugment.Span).GetAncestorsOrThis<AttributeSyntax>().FirstOrDefault();
-                var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(attributeNode.SpanStart, attributeNode);
-                return symbolInfo.Symbol != null;
-            }
-            else if (targetNode is ArgumentSyntax arugment)
-            {
-                var newArgumentListNode = newRoot.FindNode(arugment.Span).GetAncestorsOrThis<ArgumentListSyntax>().FirstOrDefault();
-                if (newArgumentListNode?.Parent is SyntaxNode newNode)
-                {
-                    var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(
-                        newNode.SpanStart, newNode, SpeculativeBindingOption.BindAsExpression);
-                    return symbolInfo.Symbol != null;
-                }
-            }
-
-            return false;
-        }
+        protected override SymbolInfo GetSpeculativeAttributeSymbolInfo(SemanticModel semanticModel, int position, AttributeSyntax attribute)
+            => semanticModel.GetSpeculativeSymbolInfo(position, attribute);
     }
 }

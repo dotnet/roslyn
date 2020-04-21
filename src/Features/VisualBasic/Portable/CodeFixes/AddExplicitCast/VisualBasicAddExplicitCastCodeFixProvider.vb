@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddExplicitCast), [Shared]>
     Friend NotInheritable Class VisualBasicAddExplicitCastCodeFixProvider
-        Inherits AbstractAddExplicitCastCodeFixProvider(Of ExpressionSyntax)
+        Inherits AbstractAddExplicitCastCodeFixProvider(Of ExpressionSyntax, ArgumentListSyntax, AttributeSyntax)
 
         Friend Const BC30512 As String = "BC30512" ' Option Strict On disallows implicit conversions from '{0}' to '{1}'.
         Friend Const BC42016 As String = "BC42016" ' Implicit conversions from '{0}' to '{1}'.
@@ -55,10 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 cancellationToken As CancellationToken,
                 ByRef potentialConversionTypes As ImmutableArray(Of (ExpressionSyntax, ITypeSymbol))) As Boolean
             potentialConversionTypes = ImmutableArray(Of (ExpressionSyntax, ITypeSymbol)).Empty
-
-            ' The error happens either on an assignement operation Or on an invocation expression.
-            ' If the error happens on assignment operation, "ConvertedType" Is different from the current "Type"
             Dim mutablePotentialConversionTypes = ArrayBuilder(Of (ExpressionSyntax, ITypeSymbol)).GetInstance()
+            Dim syntaxFacts = document.GetRequiredLanguageService(Of ISyntaxFactsService)
+
             Select Case diagnosticId
                 Case BC30512, BC42016
                     Dim argument = spanNode.GetAncestors(Of ArgumentSyntax).FirstOrDefault()
@@ -67,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                         Dim argumentList = argument.GetAncestorOrThis(Of ArgumentListSyntax)
                         Dim invocationNode = argumentList.Parent
 
-                        mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
+                        mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(syntaxFacts, semanticModel, root,
                             argument, argumentList, invocationNode, cancellationToken))
                     Else
                         ' spanNode is a right expression in assignment operation
@@ -81,13 +80,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                     Dim argumentList = invocationNode.ChildNodes.OfType(Of ArgumentListSyntax).FirstOrDefault()
 
                     ' spanArgument is null because the span is on the invocation identifier name according to BC30519
-                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypes(semanticModel, root,
-                        spanArgument:=Nothing, argumentList, invocationNode, cancellationToken))
+                    mutablePotentialConversionTypes.AddRange(GetPotentialConversionTypesWithInvocationNode(syntaxFacts, semanticModel, root,
+                        invocationNode, cancellationToken))
             End Select
 
             ' clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(semanticModel,
-                document.GetRequiredLanguageService(Of ISyntaxFactsService), mutablePotentialConversionTypes)
+            potentialConversionTypes = FilterValidPotentialConversionTypes(syntaxFacts, semanticModel,
+                mutablePotentialConversionTypes)
             Return Not potentialConversionTypes.IsEmpty
         End Function
 
@@ -113,19 +112,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
             End Select
         End Function
 
-        Protected Overrides Function GetArgumentExpression(argument As SyntaxNode) As ExpressionSyntax
-            Return TryCast(argument, ArgumentSyntax)?.GetExpression()
-        End Function
-
         Protected Overrides Function IsDeclarationExpression(expression As ExpressionSyntax) As Boolean
             ' VB does not have keyword "out", so VB doesn't support declaration declaration in an argument
             Return False
-        End Function
-
-        Protected Overrides Function TryGetName(argument As SyntaxNode) As String
-            Return If(TryCast(argument, ArgumentSyntax)?.IsNamed,
-                DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText,
-                Nothing)
         End Function
 
         Protected Overrides Function GenerateNewArgumentList(
@@ -134,22 +123,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddExplicitCast
                 oldArgumentList)
         End Function
 
-        Protected Overrides Function IsInvocationExpressionWithNewArgumentsApplicable(
-                semanticModel As SemanticModel, root As SyntaxNode, oldArgumentList As SyntaxNode,
-                newArguments As List(Of SyntaxNode), targetNode As SyntaxNode) As Boolean
-            Dim newRoot = root.ReplaceNode(oldArgumentList, GenerateNewArgumentList(oldArgumentList, newArguments))
-            Dim newArgumentListNode = newRoot.FindNode(targetNode.Span).GetAncestorOrThis(Of ArgumentListSyntax)
-            Dim symbolInfo As SymbolInfo
-            Select Case newArgumentListNode.Parent.Kind
-                Case SyntaxKind.Attribute
-                    Dim attribute = DirectCast(newArgumentListNode.Parent, AttributeSyntax)
-                    symbolInfo = semanticModel.GetSpeculativeSymbolInfo(attribute.SpanStart, attribute)
-                Case Else
-                    Dim expression = newArgumentListNode.Parent
-                    symbolInfo = semanticModel.GetSpeculativeSymbolInfo(
-                        expression.SpanStart, expression, SpeculativeBindingOption.BindAsExpression)
-            End Select
-            Return symbolInfo.Symbol IsNot Nothing
+        Protected Overrides Function GetSpeculativeAttributeSymbolInfo(semanticModel As SemanticModel, position As Integer, attribute As AttributeSyntax) As SymbolInfo
+            Return semanticModel.GetSpeculativeSymbolInfo(position, attribute)
+        End Function
+
+        Private Function GetTargetArgument(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel, parameters As ImmutableArray(Of IParameterSymbol), arguments As SeparatedSyntaxList(Of ArgumentSyntax)) As ArgumentSyntax
+            If parameters.Length = 0 Then
+                Return Nothing
+            End If
+
+            For i = 0 To arguments.Count - 1
+                ' Parameter index cannot out of its range, #arguments Is larger than #parameter only if 
+                ' the last parameter with keyword params
+                Dim parameterIndex = Math.Min(i, parameters.Length - 1)
+
+                ' If the argument has a name, get the corresponding parameter index
+                Dim argumentName = syntaxFacts.GetNameForArgument(arguments(i))
+                If argumentName IsNot String.Empty AndAlso Not FindCorrespondingParameterByName(argumentName, parameters,
+                        parameterIndex) Then
+                    Return Nothing
+                End If
+
+                Dim argumentExpression = arguments(i).GetExpression
+                If argumentExpression Is Nothing Then
+                    Continue For
+                End If
+
+                Dim parameterType = parameters(parameterIndex).Type
+
+                If parameters(parameterIndex).IsParams Then
+                    Dim paramsType = TryCast(parameterType, IArrayTypeSymbol)
+                    Dim conversion = semanticModel.ClassifyConversion(argumentExpression, paramsType.ElementType)
+                    If conversion.Exists AndAlso Not conversion.IsIdentity Then
+                        Return arguments(i)
+                    End If
+                End If
+
+                Dim converison = semanticModel.ClassifyConversion(argumentExpression, parameterType)
+                If converison.Exists AndAlso Not converison.IsIdentity Then
+                    Return arguments(i)
+                End If
+            Next
+
+            Return Nothing
+        End Function
+
+        Private Function GetPotentialConversionTypesWithInvocationNode(syntaxFacts As ISyntaxFactsService,
+                semanticModel As SemanticModel, root As SyntaxNode, invocationNode As SyntaxNode,
+                cancellationToken As CancellationToken) As ImmutableArray(Of (ExpressionSyntax, ITypeSymbol))
+            Dim argumentList = invocationNode.ChildNodes.OfType(Of ArgumentListSyntax).FirstOrDefault()
+
+            Dim symbolInfo = semanticModel.GetSymbolInfo(invocationNode, cancellationToken)
+            Dim candidateSymbols = symbolInfo.CandidateSymbols
+
+            Dim mutablePotentialConversionTypes = ArrayBuilder(Of (ExpressionSyntax, ITypeSymbol)).GetInstance()
+
+            For Each candidateSymbol In candidateSymbols.OfType(Of IMethodSymbol)()
+
+                Dim targetArgument = GetTargetArgument(syntaxFacts, semanticModel, candidateSymbol.Parameters, argumentList.Arguments)
+                If targetArgument Is Nothing Then
+                    Continue For
+                End If
+
+                Dim conversionType As ITypeSymbol = Nothing
+                If CanArgumentTypesBeConvertedToParameterTypes(syntaxFacts, semanticModel, root, argumentList,
+                        candidateSymbol.Parameters, targetArgument, cancellationToken, conversionType) Then
+                    mutablePotentialConversionTypes.Add((targetArgument.GetExpression(), conversionType))
+                End If
+            Next
+
+            ' Sort the potential conversion types by inheritance distance, so that
+            ' operations are in order And user can choose least specific types(more accurate)
+            mutablePotentialConversionTypes.Sort(New InheritanceDistanceComparer(Of ExpressionSyntax)(semanticModel))
+
+            Return mutablePotentialConversionTypes.ToImmutable()
         End Function
     End Class
 End Namespace
