@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
         }
 
-        private const string InterpolatedVerbatimText = "$@\"";
-
         internal override SyntaxTrivia ElasticCarriageReturnLineFeed => SyntaxFactory.ElasticCarriageReturnLineFeed;
         internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
 
@@ -60,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
         {
+            const string InterpolatedVerbatimText = "$@\"";
+
             return isVerbatim
                 ? SyntaxFactory.Token(default, SyntaxKind.InterpolatedVerbatimStringStartToken, InterpolatedVerbatimText, InterpolatedVerbatimText, default)
                 : SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
