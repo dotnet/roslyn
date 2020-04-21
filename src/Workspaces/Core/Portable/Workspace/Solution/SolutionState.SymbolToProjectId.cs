@@ -74,6 +74,19 @@ namespace Microsoft.CodeAnalysis
 
                 return projectId;
             }
+            else if (symbol.IsKind(SymbolKind.DynamicType))
+            {
+                foreach (var (projectId, tracker) in _projectIdToTrackerMap)
+                {
+                    // VB doesn't have DynamicTypes (and throws if you ask for them), so just check C# projects.
+                    if (tracker.TryGetCompilation(out var compilation) &&
+                        compilation.Language == LanguageNames.CSharp &&
+                        compilation.DynamicType.Equals(symbol))
+                    {
+                        return projectId;
+                    }
+                }
+            }
 
             return null;
         }
