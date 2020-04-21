@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -23,38 +24,79 @@ namespace Microsoft.CodeAnalysis
                 var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
                 var kind = symbol.Kind;
                 var localName = symbol.Name;
-                var ordinal = 0;
-                foreach (var possibleSymbol in EnumerateSymbols(compilation, containingSymbol, kind, localName, visitor.CancellationToken))
-                {
-                    if (possibleSymbol.symbol.Equals(symbol))
-                    {
-                        ordinal = possibleSymbol.ordinal;
-                        break;
-                    }
-                }
+
+                // Use two mechanisms to try to find the symbol across compilations. First, we use a whitespace
+                // insensitive system where we keep track of the list of all locals in the container and we just store
+                // our index in it.
+                //
+                // The above works for cases where the symbol has a real declaration and can be found by walking the
+                // declarations of the container.  However, not all symbols can be found that way.  For example, error
+                // locals in VB can't be found using GetDeclaredSymbol.  For those, we store the actual local span and
+                // use GetSymbolInfo to find it.
+                var ordinal = GetOrdinal();
+                var span = symbol.Locations[0].SourceSpan;
 
                 visitor.WriteString(localName);
                 visitor.WriteSymbolKey(containingSymbol);
                 visitor.WriteInteger(ordinal);
+                visitor.WriteInteger(span.Start);
+                visitor.WriteInteger(span.Length);
                 visitor.WriteInteger((int)kind);
+
+                return;
+
+                int GetOrdinal()
+                {
+                    foreach (var possibleSymbol in EnumerateSymbols(compilation, containingSymbol, kind, localName, visitor.CancellationToken))
+                    {
+                        if (possibleSymbol.symbol.Equals(symbol))
+                            return possibleSymbol.ordinal;
+                    }
+
+                    return int.MaxValue;
+                }
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
+                var cancellationToken = reader.CancellationToken;
+
                 var localName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var ordinal = reader.ReadInteger();
+                var spanStart = reader.ReadInteger();
+                var spanLength = reader.ReadInteger();
                 var kind = (SymbolKind)reader.ReadInteger();
 
                 var containingSymbol = containingSymbolResolution.Symbol;
                 if (containingSymbol != null)
                 {
-                    foreach (var symbol in EnumerateSymbols(
-                        reader.Compilation, containingSymbol, kind, localName, reader.CancellationToken))
+                    if (ordinal != int.MaxValue)
                     {
-                        if (symbol.ordinal == ordinal)
+                        foreach (var symbol in EnumerateSymbols(reader.Compilation, containingSymbol, kind, localName, cancellationToken))
                         {
-                            return new SymbolKeyResolution(symbol.symbol);
+                            if (symbol.ordinal == ordinal)
+                                return new SymbolKeyResolution(symbol.symbol);
+                        }
+                    }
+                    else
+                    {
+                        var span = new TextSpan(spanStart, spanLength);
+                        foreach (var containerRef in containingSymbol.DeclaringSyntaxReferences)
+                        {
+                            var containerNode = containerRef.GetSyntax(cancellationToken);
+                            if (containerNode.Parent.Span.Contains(span))
+                            {
+                                var syntaxTree = containerRef.SyntaxTree;
+                                var node = syntaxTree.GetRoot(cancellationToken).FindNode(span, getInnermostNodeForTie: true);
+                                var semanticModel = reader.Compilation.GetSemanticModel(syntaxTree);
+                                var info = semanticModel.GetSymbolInfo(node, cancellationToken);
+                                if (info.Symbol != null)
+                                    return new SymbolKeyResolution(info.Symbol);
+
+                                if (info.CandidateSymbols.Length > 0)
+                                    return new SymbolKeyResolution(info.CandidateSymbols, info.CandidateReason);
+                            }
                         }
                     }
                 }
