@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch.CSharpConvertIfToSwitchCodeRefactoringProvider>;
 
@@ -444,10 +445,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
-        public async Task TestIsExpression()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        [CombinatorialData]
+        public async Task TestIsExpression(
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            var source =
 @"class C
 {
     void M(object o)
@@ -455,7 +458,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         $$if (o is int || o is string || o is C)
             return;
     }
-}",
+}";
+            var fixedSource = languageVersion switch
+            {
+                LanguageVersion.CSharp8 =>
 @"class C
 {
     void M(object o)
@@ -468,7 +474,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 return;
         }
     }
-}");
+}",
+                LanguageVersionExtensions.CSharp9 =>
+@"class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case int:
+            case string:
+            case C:
+                return;
+        }
+    }
+}",
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = languageVersion,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]

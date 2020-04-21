@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
             var features =
                 (version >= LanguageVersion.CSharp7 ? Feature.SourcePattern | Feature.IsTypePattern | Feature.CaseGuard : 0) |
                 (version >= LanguageVersion.CSharp8 ? Feature.SwitchExpression : 0) |
-                (version.IsCSharp9OrAbove() ? Feature.RangePattern | Feature.RelationalPattern | Feature.OrPattern | Feature.AndPattern : 0);
+                (version.IsCSharp9OrAbove() ? Feature.RangePattern | Feature.RelationalPattern | Feature.OrPattern | Feature.AndPattern | Feature.TypePattern : 0);
             return new CSharpAnalyzer(syntaxFacts, features);
         }
     }

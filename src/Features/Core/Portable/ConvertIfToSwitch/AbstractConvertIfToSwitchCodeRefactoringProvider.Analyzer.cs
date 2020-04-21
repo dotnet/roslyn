@@ -59,16 +59,17 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// </remarks>
             private SyntaxNode _switchTargetExpression = null!;
             private readonly ISyntaxFacts _syntaxFacts;
-            private readonly Feature _features;
 
             protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
             {
                 _syntaxFacts = syntaxFacts;
-                _features = features;
+                Features = features;
             }
 
+            public Feature Features { get; }
+
             public bool Supports(Feature feature)
-                => (_features & feature) != 0;
+                => (Features & feature) != 0;
 
             public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
@@ -460,6 +461,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             // C# 9.0 features
             OrPattern = 1 << 6,
             AndPattern = 1 << 7,
+            TypePattern = 1 << 8,
         }
     }
 }
