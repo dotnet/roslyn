@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -232,6 +233,51 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// If <paramref name="symbol"/> is declared in a linked file, then this function returns all the other symbols
+        /// that are defined by the same symbol's syntax in the other projects that the linked file is referenced from.
+        /// <para/>
+        /// In order to be returned the other symbols must have the same <see cref="ISymbol.Name"/> and <see
+        /// cref="ISymbol.Kind"/> as <paramref name="symbol"/>.  This matches general user intuition that these are all
+        /// the 'same' symbol, and should be examined, regardless of the project context and <see cref="ISymbol"/> they
+        /// originally started with.
+        /// </summary>
+        internal static async Task<ImmutableArray<SymbolAndProjectId>> FindLinkedSymbolsAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        {
+            var linkedSymbols = new HashSet<SymbolAndProjectId>();
+
+            foreach (var location in symbol.DeclaringSyntaxReferences)
+            {
+                var originalDocument = solution.GetDocument(location.SyntaxTree);
+
+                // GetDocument will return null for locations in #load'ed trees. TODO:  Remove this check and add logic
+                // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
+                // TODO: the assert is also commented out because generated syntax trees won't have a document until
+                // https://github.com/dotnet/roslyn/issues/42823 is fixed
+                if (originalDocument == null)
+                    continue;
+
+                foreach (var linkedDocumentId in originalDocument.GetLinkedDocumentIds())
+                {
+                    var linkedDocument = solution.GetDocument(linkedDocumentId);
+                    var linkedSyntaxRoot = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var linkedNode = linkedSyntaxRoot.FindNode(location.Span, getInnermostNodeForTie: true);
+
+                    var semanticModel = await linkedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var linkedSymbol = semanticModel.GetDeclaredSymbol(linkedNode, cancellationToken);
+
+                    if (linkedSymbol?.Kind == symbol.Kind &&
+                        linkedSymbol?.Name == symbol.Name)
+                    {
+                        linkedSymbols.Add(SymbolAndProjectId.Create(linkedSymbol, linkedDocument.Project.Id));
+                    }
+                }
+            }
+
+            return linkedSymbols.ToImmutableArray();
         }
     }
 }

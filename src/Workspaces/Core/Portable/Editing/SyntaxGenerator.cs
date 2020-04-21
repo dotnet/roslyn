@@ -2168,21 +2168,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         internal abstract SyntaxNode ParseExpression(string stringToParse);
 
-        internal abstract SyntaxToken CommaTokenWithElasticSpace();
-
         internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 
         internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
-
-        internal abstract bool IsNamedArgument(SyntaxNode syntaxNode);
-
-        internal abstract bool IsWhitespaceTrivia(SyntaxTrivia trivia);
-
-        internal abstract bool IsDocumentationCommentTriviaSyntax(SyntaxNode node);
-
-        internal abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
-
-        internal abstract SyntaxNode[] GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
         internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
 
@@ -2191,9 +2179,15 @@ namespace Microsoft.CodeAnalysis.Editing
         #region Patterns
 
         internal abstract bool SupportsPatterns(ParseOptions options);
-        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
+        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isToken, SyntaxNode pattern);
+
+        internal abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
         internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
         internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
+        internal abstract SyntaxNode NotPattern(SyntaxNode pattern);
+        internal abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
+        internal abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
+        internal abstract SyntaxNode TypePattern(SyntaxNode type);
 
         #endregion
     }
