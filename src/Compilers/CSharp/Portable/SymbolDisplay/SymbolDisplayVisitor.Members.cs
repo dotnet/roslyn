@@ -362,10 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         containingType = symbol.ContainingType;
 
-                        var hostType = ((CSharpCompilation)semanticModelOpt.Compilation).GetHostObjectTypeSymbol();
-                        var x = SymbolEqualityComparer.Default.Equals(containingType, hostType);
-
-                        if ((object)containingType != null && !x)
+                        if ((object)containingType != null)
                         {
                             includeType = IncludeNamedType(symbol.ContainingType);
                         }

@@ -2532,13 +2532,26 @@ namespace N1 {
 
         public class ScriptGlobals
         {
-            public void Print(object obj) { }
+            public void Method(int p) { }
+            public delegate void MyDelegate(int x);
+            public int Field;
+            public int Property => 1;
+            public event Action Event;
+
+            public class NestedType
+            {
+                public void Method(int p) { }
+                public delegate void MyDelegate(int x);
+                public int Field;
+                public int Property => 1;
+                public event Action Event;
+            }
         }
 
         [Fact]
         public void TestMinimalNamespace__()
         {
-            var text = @"Print()";
+            var text = @"1";
             var tree = SyntaxFactory.ParseSyntaxTree(text, TestOptions.Script);
             var hostReference = MetadataReference.CreateFromFile(typeof(ScriptGlobals).Assembly.Location);
 
@@ -2551,11 +2564,69 @@ namespace N1 {
 
             var model = comp.GetSemanticModel(tree);
             var hostTypeSymbol = comp.GetHostObjectTypeSymbol();
-            var printSymbol = hostTypeSymbol.GetMember("Print");
 
-            var displayParts = printSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat);
+            var methodSymbol = hostTypeSymbol.GetMember("Method");
+            var delegateSymbol = hostTypeSymbol.GetMember("MyDelegate");
+            var fieldSymbol = hostTypeSymbol.GetMember("Field");
+            var propertySymbol = hostTypeSymbol.GetMember("Property");
+            var eventSymbol = hostTypeSymbol.GetMember("Event");
 
-            //Verify(description, expectedText, expectedKinds);
+            // ...
+            /*var nestedTypeSymbol = (ITypeSymbol)hostTypeSymbol.GetMember("NestedType");
+            var nestedMethodSymbol = nestedTypeSymbol.GetMember("Method");
+            var nestedDelegateSymbol = nestedTypeSymbol.GetMember("MyDelegate");
+            var nestedFieldSymbol = nestedTypeSymbol.GetMember("Field");
+            var nestedPropertySymbol = nestedTypeSymbol.GetMember("Property");
+            var nestedEventSymbol = nestedTypeSymbol.GetMember("Event");
+            // ...*/
+
+            Verify(methodSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "void Method(int p)",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(delegateSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "delegate void MyDelegate(int x)",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(fieldSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "int Field",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(propertySymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "int Property {get;}",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(eventSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "Action Event",
+                SymbolDisplayPartKind.Keyword);
+
+            /*Verify(nestedTypeSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "class NestedType",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(nestedMethodSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "void NestedType.Method(int p)",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(nestedDelegateSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "delegate void NestedType.MyDelegate(int x)",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(nestedFieldSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "int NestedType.Field",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(nestedPropertySymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "int NestedType.Property {get;} ",
+                SymbolDisplayPartKind.Keyword);
+
+            Verify(nestedEventSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "Action NestedType.Event",
+                SymbolDisplayPartKind.Keyword);*/
+
+            // Verify(methodSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+            // "",
+            //    expectedKinds);
         }
 
         private static readonly SymbolDisplayFormat s_memberSignatureDisplayFormat =
