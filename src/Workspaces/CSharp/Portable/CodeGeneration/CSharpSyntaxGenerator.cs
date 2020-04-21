@@ -56,6 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);
 
+        internal override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
+        {
+            const string InterpolatedVerbatimText = "$@\"";
+
+            return isVerbatim
+                ? SyntaxFactory.Token(default, SyntaxKind.InterpolatedVerbatimStringStartToken, InterpolatedVerbatimText, InterpolatedVerbatimText, default)
+                : SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
+        }
+
+        internal override SyntaxToken CreateInterpolatedStringEndToken()
+            => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);
+
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(IEnumerable<TElement> nodes, IEnumerable<SyntaxToken> separators)
             => SyntaxFactory.SeparatedList(nodes, separators);
 
