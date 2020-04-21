@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         }
 
                     case IIsTypeOperation op
-                        when Supports(Feature.TypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
+                        when Supports(Feature.IsTypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
                         return new AnalyzedPattern.Type(node);
 
                     case IIsPatternOperation op
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             RangePattern = 1 << 1,
             // C# 7.0 features
             SourcePattern = 1 << 2,
-            TypePattern = 1 << 3,
+            IsTypePattern = 1 << 3,
             CaseGuard = 1 << 4,
             // C# 8.0 features
             SwitchExpression = 1 << 5,
