@@ -100,6 +100,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public bool ContainsAssemblyOrModule(ISymbol assemblyOrModule)
+            {
+                Debug.Assert(assemblyOrModule.Kind == SymbolKind.Assembly || assemblyOrModule.Kind == SymbolKind.NetModule);
+                var state = this.ReadState();
+                var assemblyAndModuleSet = state.AssemblyAndModuleSet;
+                return assemblyAndModuleSet != null && assemblyAndModuleSet.TryGetValue(assemblyOrModule, out _);
+            }
+
             /// <summary>
             /// Creates a new instance of the compilation info, retaining any already built
             /// compilation state as the now 'old' state
@@ -188,7 +196,8 @@ namespace Microsoft.CodeAnalysis
                         new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
-                        hasSuccessfullyLoaded: false));
+                        hasSuccessfullyLoaded: false,
+                        State.GetAssemblyAndModuleSet(inProgressCompilation)));
             }
 
             /// <summary>
@@ -710,7 +719,8 @@ namespace Microsoft.CodeAnalysis
                             State.CreateValueSource(compilationWithoutGeneratedFiles, solution.Services),
                             compilationWithoutGeneratedFiles,
                             generatorDriver,
-                            hasSuccessfullyLoaded),
+                            hasSuccessfullyLoaded,
+                            State.GetAssemblyAndModuleSet(compilation)),
                         solution.Services);
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded);
