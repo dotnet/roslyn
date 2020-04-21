@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var solution = context.Document.Project.Solution;
-            var fieldLocations = await Renamer.GetRenameLocationsAsync(
+            var fieldLocations = await Renamer.FindRenameLocationsAsync(
                 solution, fieldSymbol, RenameOptionSet.From(solution.Options), cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with

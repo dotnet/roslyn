@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Rename
             return RenameSymbolAsync(solution, symbol, newName, renameOptions, nonConflictSymbols: null, cancellationToken);
         }
 
-        internal static Task<RenameLocations> GetRenameLocationsAsync(
+        internal static Task<RenameLocations> FindRenameLocationsAsync(
             Solution solution, ISymbol symbol, RenameOptionSet options, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return RenameLocations.FindAsync(
+            return RenameLocations.FindLocationsInCurrentProcessAsync(
                 symbol, solution, options, cancellationToken);
         }
 
@@ -58,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var conflictResolution = await ConflictResolver.ResolveConflictsAsync(
-                locations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            var conflictResolution = await locations.ResolveConflictsAsync(
+                newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
 
             return conflictResolution.NewSolution;
         }
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var renameLocations = await GetRenameLocationsAsync(solution, symbol, options, cancellationToken).ConfigureAwait(false);
+            var renameLocations = await FindRenameLocationsAsync(solution, symbol, options, cancellationToken).ConfigureAwait(false);
             return await RenameAsync(renameLocations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
     }

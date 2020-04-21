@@ -6,11 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <summary>
         /// Find the locations that need to be renamed.
         /// </summary>
-        internal static async Task<RenameLocations> FindAsync(
+        internal static async Task<RenameLocations> FindLocationsInCurrentProcessAsync(
             ISymbol symbol, Solution solution, RenameOptionSet optionSet, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbol);
@@ -214,6 +216,25 @@ namespace Microsoft.CodeAnalysis.Rename
             var referencedSymbols = referenceSymbols.Select(r => r.Definition).Where(r => !r.Equals(symbol)).ToImmutableArray();
 
             return new SearchResult(locations.ToImmutable(), implicitLocations, referencedSymbols);
+        }
+
+        /// <summary>
+        /// Performs the renaming of the symbol in the solution, identifies renaming conflicts and automatically
+        /// resolves them where possible.
+        /// </summary>
+        /// <param name="replacementText">The new name of the identifier</param>
+        /// <param name="nonConflictSymbols">Used after renaming references. References that now bind to any of these
+        /// symbols are not considered to be in conflict. Useful for features that want to rename existing references to
+        /// point at some existing symbol. Normally this would be a conflict, but this can be used to override that
+        /// behavior.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A conflict resolution containing the new solution.</returns>
+        public Task<ConflictResolution> ResolveConflictsAsync(
+            string replacementText,
+            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            CancellationToken cancellationToken)
+        {
+            return ConflictResolver.ResolveConflictsInCurrentProcessAsync(this, replacementText, nonConflictSymbols, cancellationToken);
         }
 
         public RenameLocations Filter(Func<Location, bool> filter)
