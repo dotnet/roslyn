@@ -146,8 +146,12 @@ namespace Microsoft.CodeAnalysis
         /// features this is an acceptable abstraction.  However, for some cases (Find-References in particular) it is
         /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
         /// </remarks>
-        internal ProjectId? GetExactProjectId(ISymbol symbol)
-            => _state.GetExactProjectId(symbol);
+        internal ProjectId? GetOriginatingProjectId(ISymbol symbol)
+            => _state.GetOriginatingProjectId(symbol);
+
+        /// <inheritdoc cref="GetOriginatingProjectId"/>
+        internal Project? GetOriginatingProject(ISymbol symbol)
+            => GetProject(GetOriginatingProjectId(symbol));
 
         /// <summary>
         /// True if the solution contains the document in one of its projects

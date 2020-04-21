@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -27,21 +29,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken = default)
         {
-            return FindReferencesAsync(new SymbolAndProjectId(symbol, projectId: null), solution, cancellationToken);
+            if (solution.GetOriginatingProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
+            return FindReferencesAsync(symbol, solution, FindReferencesSearchOptions.Default, cancellationToken);
         }
 
-        internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
-            => FindReferencesAsync(symbolAndProjectId, solution, FindReferencesSearchOptions.Default, cancellationToken);
-
         internal static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             Solution solution,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+
             var progressCollector = new StreamingProgressCollector();
             await FindReferencesAsync(
-                symbolAndProjectId, solution, progressCollector,
+                symbol, solution, progressCollector,
                 documents: null, options, cancellationToken).ConfigureAwait(false);
             return progressCollector.GetReferencedSymbols();
         }
@@ -59,6 +63,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
+            if (solution.GetOriginatingProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             return FindReferencesAsync(symbol, solution, progress: null, documents: documents, cancellationToken: cancellationToken);
         }
 
@@ -78,6 +85,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken = default)
         {
+            if (solution.GetOriginatingProjectId(symbol) == null)
+                throw new ArgumentException(WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution, nameof(symbol));
+
             return FindReferencesAsync(
                 symbol, solution, progress, documents,
                 FindReferencesSearchOptions.Default, cancellationToken);
@@ -91,12 +101,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(solution.GetOriginatingProjectId(symbol), WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+
             progress ??= NoOpFindReferencesProgress.Instance;
             var streamingProgress = new StreamingProgressCollector(
                 new StreamingFindReferencesProgressAdapter(progress));
             await FindReferencesAsync(
-                SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, streamingProgress, documents,
+                symbol, solution, streamingProgress, documents,
                 options, cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();
         }

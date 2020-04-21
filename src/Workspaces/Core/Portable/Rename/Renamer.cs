@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
@@ -17,36 +16,27 @@ namespace Microsoft.CodeAnalysis.Rename
         public static Task<Solution> RenameSymbolAsync(
             Solution solution, ISymbol symbol, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
         {
-            return RenameSymbolAsync(
-                solution,
-                SymbolAndProjectId.Create(symbol, projectId: null),
-                newName, optionSet, cancellationToken);
-        }
-
-        internal static Task<Solution> RenameSymbolAsync(
-            Solution solution, SymbolAndProjectId symbolAndProjectId, string newName, OptionSet optionSet, CancellationToken cancellationToken = default)
-        {
-            return RenameSymbolAsync(solution, symbolAndProjectId, newName, optionSet, nonConflictSymbols: null, cancellationToken);
+            return RenameSymbolAsync(solution, symbol, newName, optionSet, nonConflictSymbols: null, cancellationToken);
         }
 
         internal static Task<RenameLocations> GetRenameLocationsAsync(
-            Solution solution, SymbolAndProjectId symbolAndProjectId, OptionSet options, CancellationToken cancellationToken)
+            Solution solution, ISymbol symbol, OptionSet options, CancellationToken cancellationToken)
         {
             if (solution == null)
             {
                 throw new ArgumentNullException(nameof(solution));
             }
 
-            if (symbolAndProjectId.Symbol == null)
+            if (symbol == null)
             {
-                throw new ArgumentNullException(nameof(symbolAndProjectId));
+                throw new ArgumentNullException(nameof(symbol));
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             options ??= solution.Options;
             return RenameLocations.FindAsync(
-                symbolAndProjectId, solution, options, cancellationToken);
+                symbol, solution, options, cancellationToken);
         }
 
         internal static async Task<Solution> RenameAsync(
@@ -68,22 +58,22 @@ namespace Microsoft.CodeAnalysis.Rename
 
         internal static async Task<Solution> RenameSymbolAsync(
             Solution solution,
-            SymbolAndProjectId symbolAndProjectId,
+            ISymbol symbol,
             string newName,
             OptionSet options,
-            ImmutableHashSet<ISymbol> nonConflictSymbols = null,
-            CancellationToken cancellationToken = default)
+            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            CancellationToken cancellationToken)
         {
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            if (symbolAndProjectId.Symbol == null)
-                throw new ArgumentNullException(nameof(symbolAndProjectId));
+            if (symbol == null)
+                throw new ArgumentNullException(nameof(symbol));
 
             cancellationToken.ThrowIfCancellationRequested();
 
             options ??= solution.Workspace.Options;
-            var renameLocations = await GetRenameLocationsAsync(solution, symbolAndProjectId, options, cancellationToken).ConfigureAwait(false);
+            var renameLocations = await GetRenameLocationsAsync(solution, symbol, options, cancellationToken).ConfigureAwait(false);
             return await RenameAsync(renameLocations, newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
         }
     }
