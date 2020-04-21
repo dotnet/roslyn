@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         internal static int CalculateOffsetMask(int segmentSize)
         {
-            Debug.Assert(segmentSize <= 1 || (segmentSize & (segmentSize - 1)) != 0);
+            Debug.Assert(segmentSize <= 1 || (segmentSize & (segmentSize - 1)) == 0);
             return segmentSize - 1;
         }
     }
