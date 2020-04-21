@@ -127,6 +127,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterQualifiedName2()
+        {
+            await VerifyKeywordAsync(
+@"
+namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        void M()
+        {
+            var e = new object();
+            if (e is N.C.P $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtBeginningOfSwitchExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -178,6 +195,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"switch (e)
 {
     case (((1 $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtBeginningOfSwitchStatement_AfterMultipleOpenParens_MemberAccessExpression()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        void M()
+        {
+            var e = new object();
+            switch (e)
+            {
+                case (((N.C.P $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtBeginningOfSwitchStatement_AfterMultipleOpenParens_MemberAccessExpression2()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        void M()
+        {
+            var e = new object();
+            switch (e)
+            {
+                case (((N.C $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

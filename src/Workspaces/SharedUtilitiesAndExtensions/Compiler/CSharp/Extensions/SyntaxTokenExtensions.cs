@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsLastTokenOfNode<T>(this SyntaxToken token, [NotNullWhen(true)] out T node) where T : SyntaxNode
         {
             node = token.GetAncestor<T>();
-            return node != null && token == node.GetLastToken();
+            return node != null && token == node.GetLastToken(includeZeroWidth: true);
         }
 
         public static bool IsKindOrHasMatchingText(this SyntaxToken token, SyntaxKind kind)
