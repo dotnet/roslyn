@@ -4,33 +4,26 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Xunit;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
 #if !CODE_STYLE
+using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 #endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
-    public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
-        where TAnalyzer : DiagnosticAnalyzer, new()
-        where TCodeFix : CodeFixProvider, new()
+    public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
+        where TCodeRefactoring : CodeRefactoringProvider, new()
     {
-        public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
+        public class Test : CSharpCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
         {
             public Test()
             {
-                MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
-
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
@@ -78,28 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public string? EditorConfig { get; set; }
 
-            public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
-
-            public override async Task RunAsync(CancellationToken cancellationToken = default)
-            {
-                if (DiagnosticSelector is object)
-                {
-                    Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
-                }
-
-                await base.RunAsync(cancellationToken);
-            }
-
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
                 => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
 #endif
-
-            protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
-            {
-                return DiagnosticSelector?.Invoke(fixableDiagnostics)
-                    ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
-            }
         }
     }
 }
