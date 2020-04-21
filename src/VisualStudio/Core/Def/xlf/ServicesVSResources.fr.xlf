@@ -114,12 +114,12 @@
       </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
         <source>Editor Color Scheme</source>
-        <target state="new">Editor Color Scheme</target>
+        <target state="translated">Modèle de couleurs de l'éditeur</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
         <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
-        <target state="new">Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</target>
+        <target state="translated">Les options relatives au modèle de couleurs de l'éditeur sont disponibles uniquement quand vous utilisez un thème de couleur fourni en bundle avec Visual Studio. Vous pouvez configurer le thème de couleur à partir de la page d'options Environnement &gt; Général.</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="new">Prefer simplified boolean expressions</target>
+        <target state="translated">Préférer les expressions booléennes simplifiées</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -444,7 +444,7 @@
       </trans-unit>
       <trans-unit id="Razor_CSharp_Language_Server_Client">
         <source>Razor C# Language Server Client</source>
-        <target state="new">Razor C# Language Server Client</target>
+        <target state="translated">Client Razor du serveur de langage C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
-        <target state="new">Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</target>
+        <target state="translated">Certaines couleurs du modèle de couleurs sont substituées à la suite des changements apportés dans la page d'options Environnement &gt; Polices et couleurs. Choisissez Utiliser les valeurs par défaut dans la page Polices et couleurs pour restaurer toutes les personnalisations.</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
-        <target state="new">Value:</target>
+        <target state="translated">Valeur :</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
@@ -604,12 +604,12 @@
       </trans-unit>
       <trans-unit id="Visual_Studio_2017">
         <source>Visual Studio 2017</source>
-        <target state="new">Visual Studio 2017</target>
+        <target state="translated">Visual Studio 2017</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2019">
         <source>Visual Studio 2019</source>
-        <target state="new">Visual Studio 2019</target>
+        <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">

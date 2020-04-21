@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
+        <target state="translated">Açık tür dönüştürme ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_usings">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">Normal dizeye dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
+        <target state="translated">Düz metin dizesine dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
-        <target state="new">Convert type to '{0}'</target>
+        <target state="translated">Türü '{0}' olarak dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">

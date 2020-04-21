@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Could_not_find_by_name_0">
         <source>Could not find by name: '{0}'</source>
-        <target state="translated">No se pudo encontrar por el nombre: "{0}"</target>
+        <target state="translated">No se pudo encontrar por el nombre "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="translated">Se encontraron "{0}" ensamblados para "{1}":</target>
+        <target state="translated">Se encontraron "{0}" ensamblados para "{1}":</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_exact_match_0">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
         <source>'{0}' items in cache</source>
-        <target state="translated">"{0}" elementos en caché</target>
+        <target state="translated">"{0}" elementos en caché</target>
         <note />
       </trans-unit>
     </body>

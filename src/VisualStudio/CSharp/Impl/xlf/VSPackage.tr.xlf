@@ -80,7 +80,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Kapatılan dosyalara ilişkin tanılamaları göster;
+        <target state="translated">Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 
 İmlecin altında ilgili bileşenleri vurgula; 
 Geçersiz normal ifadeleri bildir;
@@ -88,7 +88,7 @@ Tam çözüm analizini etkinleştir;
 Dış işlemde düzenleyici özellik analizi gerçekleştir;
 Kaynak koda dönüştürülen kaynaklar için gezintiyi etkinleştir;
 Using yönergeleri;
-using deyimlerini sıralarken sistem yönergelerini ilk sıraya yerleştir;
+using yönergelerini sıralarken sistem yönergelerini ilk sıraya yerleştir;
 using yönerge gruplarını ayır;
 Başvuru bütünleştirilmiş kodlarında türler için using öner;
 NuGet paketlerinde türler için using öner;
@@ -125,7 +125,8 @@ oluşturma özelliklerini tercih et;
 otomatik özellikleri tercih et;
 normal ifade;
 normal ifade;
-Gelişmiş renkleri kullan;</target>
+Gelişmiş renkleri kullan;
+Düzenleyici Renk Düzeni;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

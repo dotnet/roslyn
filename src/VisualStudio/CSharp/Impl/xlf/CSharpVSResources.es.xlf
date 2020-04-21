@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="new">Automatically show completion list in argument lists (experimental)</target>
+        <target state="translated">Mostrar automáticamente la lista de finalización en las listas de argumentos (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">Mostrar comentarios en Información rápida</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">

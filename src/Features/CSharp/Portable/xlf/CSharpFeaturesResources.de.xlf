@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
+        <target state="translated">Explizite Umwandlung hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_usings">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
-        <target state="new">Convert to regular string</target>
+        <target state="translated">In reguläre Zeichenfolge konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch_expression">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Convert_to_verbatim_string">
         <source>Convert to verbatim string</source>
-        <target state="new">Convert to verbatim string</target>
+        <target state="translated">In ausführliche Zeichenfolge konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
-        <target state="new">Convert type to '{0}'</target>
+        <target state="translated">Typ in "{0}" konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">

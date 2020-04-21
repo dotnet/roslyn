@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
-        <target state="new">Add 'this.'</target>
+        <target state="translated">"this." hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
-        <target state="new">Pass in captured variables as arguments</target>
+        <target state="translated">Erfasste Variablen als Argumente übergeben</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
-        <target state="new">Remove Unnecessary Usings</target>
+        <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
-        <target state="new">Remove unreachable code</target>
+        <target state="translated">Nicht erreichbaren Code entfernen</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
         <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
-        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
+        <target state="translated">Warnung: Das Hinzufügen von Parametern zur Deklaration einer lokalen Funktion kann zu ungültigem Code führen.</target>
         <note />
       </trans-unit>
     </body>

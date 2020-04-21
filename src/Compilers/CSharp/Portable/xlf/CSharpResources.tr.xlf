@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
-        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <target state="translated">'{0}' yerel işlevi, Conditional özniteliğini kullanabilmek için 'static' olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
@@ -179,17 +179,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
-        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <target state="translated">İfade ağacı, sondan dizin ('^') ifadesi içeremez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">İfade ağacı, desen System.Index veya System.Range dizin oluşturucu erişimi içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
         <source>An expression tree may not contain a range ('..') expression.</source>
-        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <target state="translated">İfade ağacı, aralık ('..') ifadesi içeremez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -344,7 +344,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
-        <target state="new">Output directory could not be determined</target>
+        <target state="translated">Çıkış dizini belirlenemedi</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">'-' stdin bağımsız değişkeni belirtildi ancak giriş, standart giriş akışından yeniden yönlendirilmedi.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -691,7 +691,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# Derleyici Seçenekleri
 
                        - ÇIKIŞ DOSYALARI -
@@ -701,42 +701,42 @@
                               biçim: -t:exe)
 -target:winexe                Windows yürütülebilir dosyası oluştur (Kısa biçim:
                               -t:winexe)
--target:library               Kitaplık derle (Kısa biçim: -t:library)
+-target:library               Kitaplık oluştur (Kısa biçim: -t:library)
 -target:module                Başka bir bütünleştirilmiş koda eklenebilecek bir
                               modül oluştur (Kısa biçim: -t:module)
 -target:appcontainerexe       Appcontainer yürütülebilir dosyası oluştur (Kısa biçim:
                               -t:appcontainerexe)
--target:winmdobj              WinMDExp tarafından kullanılan bir Windows Çalışma Zamanı
+-target:winmdobj              WinMDExp tarafından tüketilen bir Windows Çalışma Zamanı
                               ara dosyası oluştur (Kısa biçim: -t:winmdobj)
 -doc:&lt;dosya&gt;                   Oluşturulacak XML Belge dosyası
 -refout:&lt;dosya&gt;                Oluşturulacak başvuru bütünleştirilmiş kodu çıkışı
--platform:&lt;dize&gt;            Bu kodun çalıştırılabileceği platformları sınırlandır: x86,
+-platform:&lt;dize&gt;            Bu kodun çalıştırılabileceği platformları sınırla: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred veya
                               anycpu. Varsayılan: anycpu.
 
                        - GİRİŞ DOSYALARI -
 -recurse:&lt;joker karakter&gt;           Geçerli dizindeki ve alt dizinlerdeki
-                              tüm dosyaları Joker karakter belirtimlerine göre
+                              tüm dosyaları joker karakter belirtimlerine göre
                               ekle
--reference:&lt;diğer ad&gt;=&lt;dosya&gt;     Verilen diğer adı kullanan belirtilen bütünleştirilmiş kod dosyasındaki
+-reference:&lt;diğer ad&gt;=&lt;dosya&gt;     Verilen diğer adı kullanarak belirtilen bütünleştirilmiş kod dosyasındaki
                                meta verilere başvur (Kısa biçim: -r)
 -reference:&lt;dosya listesi&gt;        Belirtilen bütünleştirilmiş kod dosyalarındaki meta verilere
                               başvur (Kısa biçim: -r)
 -addmodule:&lt;dosya listesi&gt;        Belirtilen modülleri bu bütünleştirilmiş koda bağla
--link:&lt;dosya listesi&gt;             Belirtilen birlikte çalışma bütünleştirilmiş kod dosyalarındaki
+-link:&lt;dosya listesi&gt;             Belirtilen birlikte çalışma bütünleştirilmiş kodu dosyalarındaki
                               meta verileri ekle (Kısa biçim: -l)
 -analyzer:&lt;dosya listesi&gt;         Çözümleyicileri bu bütünleştirilmiş koddan çalıştır
                               (Kısa biçim: -a)
 -additionalfile:&lt;dosya listesi&gt;   Kod oluşturmayı doğrudan etkilemeyen ancak hata
-                              ve uyarılar oluşturmak için çözümleyicilerin
+                              veya uyarılar oluşturmak için çözümleyicilerin
                               kullanabileceği ek dosyalar.
 -embed                        Tüm kaynak dosyalarını PDB'ye ekle.
 -embed:&lt;dosya listesi&gt;            Belirli dosyaları PDB'ye ekle.
 
                         - KAYNAKLAR -
--win32res:&lt;dosya&gt;              Bir Win32 kaynak dosyası (.res) belirt
+-win32res:&lt;dosya&gt;              Win32 kaynak dosyası (.res) belirt
 -win32icon:&lt;dosya&gt;             Çıkış için bu simgeyi kullan
--win32manifest:&lt;dosya&gt;         Bir Win32 bildirim dosyası (.xml) belirt
+-win32manifest:&lt;dosya&gt;         Win32 bildirim dosyası (.xml) belirt
 -nowin32manifest              Varsayılan Win32 bildirimini dahil etme
 -resource:&lt;kaynak bilgileri&gt;           Belirtilen kaynağı ekle (Kısa biçim: -res)
 -linkresource:&lt;kaynak bilgileri&gt;       Belirtilen kaynağı bu bütünleştirilmiş koda bağla
@@ -751,7 +751,7 @@
                               'embedded' ise hedef .dll veya .exe dosyasına
                               eklenmiş platformlar arası bir biçimdir)
 -optimize[+|-]                İyileştirmeleri etkinleştir (Kısa biçim: -o)
--deterministic                Belirlenimci bir bütünleştirilmiş kod oluştur
+-deterministic                Belirlenimci bütünleştirilmiş kod oluştur
                               (modül sürümü GUID'si ve zaman damgası dahil)
 -refonly                      Ana çıkış yerine bir başvuru bütünleştirilmiş kodu oluştur
 -instrument:TestCoverage      Kapsam bilgilerini toplamak üzere
@@ -761,10 +761,12 @@
                         - HATALAR VE UYARILAR -
 -warnaserror[+|-]             Tüm uyarıları hata olarak bildir
 -warnaserror[+|-]:&lt;uyarı listesi&gt; Belirli uyarıları hata olarak bildir
+                              (null atanabilirlik uyarıları için "nullable" kullanın)
 -warn:&lt;n&gt;                     Uyarı düzeyini ayarla (0-4) (Kısa biçim: -w)
 -nowarn:&lt;uyarı listesi&gt;           Belirli uyarı iletilerini devre dışı bırak
+                              (null atanabilirlik uyarıları için "nullable" kullanın)
 -ruleset:&lt;dosya&gt;               Belirli tanılamaları devre dışı bırakan bir
-                              kural kümesi dosyası belirt.
+                              kural kümesi dosyası belirtin.
 -errorlog:&lt;dosya&gt;[,version=&lt;sarif_sürümü&gt;]
                               Tüm derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
                               bir dosya belirt.
@@ -780,22 +782,22 @@
                               biçim: -d)
 -langversion:?                Dil sürümü için izin verilen değerleri görüntüle
 -langversion:&lt;dize&gt;         Dil sürümünü belirt. Örneğin: `latest` (ikincil sürümleri de içeren en son sürüm),
-                              `default` (`latest` ile aynı)
+                              `default` (`latest` ile aynı),
                               `latestmajor` (ikincil sürümler hariç en son sürüm),
-                              `preview` (desteklenmeyen önizleme sürümündeki
+                              `preview` (desteklenmeyen önizlemedeki
                               özellikleri içeren en son sürüm)
                               ya da `6` veya `7.1` gibi belirli sürümler
--nullable[+|-]                Null değer atanabilir bağlam seçeneğini enable|disable olarak belirt.
+-nullable[+|-]                Null atanabilir bağlam seçeneğini enable|disable (etkin|devre dışı) olarak belirt.
 -nullable:{enable|disable|warnings|annotations}
-                              Null değer atanabilir bağlam seçeneğini enable|disable|warnings|annotations olarak belirt.
+                              Null atanabilir bağlam seçeneğini enable|disable|warnings|annotations (etkin|devre dışı|uyarılar|ek açıklamalar) olarak belirt.
 
                        - GÜVENLİK -
 -delaysign[+|-]               Bütünleştirilmiş kodu, tanımlayıcı ad anahtarının yalnızca genel 
                               kısmıyla geç imzala
 -publicsign[+|-]              Bütünleştirilmiş kodu, tanımlayıcı ad anahtarının yalnızca genel
                               kısmıyla genel olarak imzala
--keyfile:&lt;dosya&gt;               Bir tanımlayıcı ad anahtarı dosyası belirt
--keycontainer:&lt;dize&gt;        Bir tanımlayıcı ad anahtarı kapsayıcısı belirt
+-keyfile:&lt;dosya&gt;               Tanımlayıcı ad anahtarı dosyası belirt
+-keycontainer:&lt;dize&gt;        Tanımlayıcı ad anahtarı kapsayıcısı belirt
 -highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştir
 
                         - ÇEŞİTLİ -
@@ -803,8 +805,8 @@
 -help                         Bu kullanım iletisini görüntüle (Kısa biçim: -?)
 -nologo                       Derleyici telif hakkı iletisini görüntüleme
 -noconfig                     CSC.RSP dosyasını otomatik olarak dahil etme
--parallel[+|-]                Eşzamanlı derleme.
--version                      Derleyici sürüm numarasını görüntüle ve çıkış yap.
+-parallel[+|-]                Eş zamanlı derleme.
+-version                      Derleyici sürüm numarasını görüntüleyip çıkış yap.
 
                         - GELİŞMİŞ -
 -baseaddress:&lt;adres&gt;        Oluşturulacak kitaplığın taban adresi
@@ -819,10 +821,10 @@
                               biçim: -m)
 -fullpaths                    Derleyici, tam yollar oluşturur
 -filealign:&lt;n&gt;                Çıkış dosyasının bölümleri için kullanılan
-                              hizalamayı belirtin
+                              hizalamayı belirt
 -pathmap:&lt;A1&gt;=&lt;D1&gt;,&lt;A2&gt;=&lt;D2&gt;,...
-                              Derleyici tarafından gösterilen kaynak yolu adları için bir eşleme
-                              belirtin.
+                              Derleyici tarafından çıkışta gösterilen kaynak yolu adları için bir eşleme
+                              belirt.
 -pdb:&lt;dosya&gt;                   Hata ayıklama bilgileri dosyasının adını belirt (varsayılan:
                               çıkış dosyasının adı ve .pdb uzantısı)
 -errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
@@ -830,7 +832,7 @@
 -preferreduilang              Tercih edilen çıkış dilinin adını belirt.
 -nosdkpath                    Standart kitaplık bütünleştirilmiş kodlarında varsayılan SDK yolunu aramayı devre dışı bırak.
 -nostdlib[+|-]                Standart kitaplığa (mscorlib.dll) başvuru yapma
--subsystemversion:&lt;dize&gt;    Bu bütünleştirilmiş kodu alt sistem sürümünü belirt
+-subsystemversion:&lt;dize&gt;    Bu bütünleştirilmiş kodun alt sistem sürümünü belirt
 -lib:&lt;dosya listesi&gt;              İçinde başvuruların aranacağı ek dizinleri
                               belirt
 -errorreport:&lt;dize&gt;         İç derleyici hatalarının nasıl işleneceğini belirt:
@@ -891,7 +893,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
         <source>extern local functions</source>
-        <target state="new">extern local functions</target>
+        <target state="translated">extern yerel işlevleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -906,7 +908,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
         <source>local function attributes</source>
-        <target state="new">local function attributes</target>
+        <target state="translated">yerel işlev öznitelikleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -916,7 +918,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
-        <target state="new">MemberNotNull attribute</target>
+        <target state="translated">MemberNotNull özniteliği</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1441,12 +1443,12 @@
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
         <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">'{0}' metodunda, uygulanan veya geçersiz kılınan üyeyle eşleşecek `[DoesNotReturn]` ek açıklaması eksik.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch_Title">
         <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">Metotta, uygulanan veya geçersiz kılınan üyeyle eşleşecek `[DoesNotReturn]` ek açıklaması eksik.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1461,22 +1463,22 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">'{0}' oluşturucusu kaynak oluşturamadı. Oluşturucu çıkışa katkıda bulunmayacağından, bunun sonucunda derleme hataları oluşabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
-        <target state="new">Generator failed to generate source.</target>
+        <target state="translated">Oluşturucu kaynak oluşturamadı.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">'{0}' oluşturucusu başlatılamadı. Oluşturucu çıkışa katkıda bulunmayacağından, bunun sonucunda derleme hataları oluşabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
-        <target state="new">Generator failed to initialize.</target>
+        <target state="translated">Oluşturucu başlatılamadı.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1521,32 +1523,32 @@
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
         <source>Member '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">'{0}' üyesi çıkış yaparken null olmayan bir değere sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
         <source>Member '{0}' cannot be used in this attribute.</source>
-        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <target state="translated">'{0}' üyesi bu öznitelikte kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember_Title">
         <source>Member cannot be used in this attribute.</source>
-        <target state="new">Member cannot be used in this attribute.</target>
+        <target state="translated">Üye bu öznitelikte kullanılamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
         <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
+        <target state="translated">'{0}' üyesi '{1}' ile çıkış yaparken null olmayan değere sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
         <source>Member must have a non-null value when exiting in some condition.</source>
-        <target state="new">Member must have a non-null value when exiting in some condition.</target>
+        <target state="translated">Üye bir koşulda çıkış yaparken null olmayan bir değere sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
         <source>Member must have a non-null value when exiting.</source>
-        <target state="new">Member must have a non-null value when exiting.</target>
+        <target state="translated">Üye çıkış yaparken null olmayan bir değere sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -1861,32 +1863,32 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="needs-review-translation">'{0}' parametresi '{1}' ile çıkarken null değer alamaz.</target>
+        <target state="translated">'{0}' parametresi '{1}' ile çıkış yaparken null olmayan bir değere sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting in some condition.</source>
-        <target state="needs-review-translation">Parametre bir koşulda çıkarken null değer alamaz.</target>
+        <target state="translated">Parametre bir koşulda çıkış yaparken null olmayan bir değere sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">'{0}' parametresi çıkış yaparken null olmayan bir değere sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
-        <target state="new">Parameter must have a non-null value when exiting.</target>
+        <target state="translated">Parametre çıkış yaparken null olmayan bir değere sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="translated">[DoesNotReturn] olarak işaretlenen bir yöntem, döndürmemelidir.</target>
+        <target state="translated">[DoesNotReturn] olarak işaretlenen bir metot, değer döndürmemelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="translated">[DoesNotReturn] olarak işaretlenen bir yöntem, döndürmemelidir.</target>
+        <target state="translated">[DoesNotReturn] olarak işaretlenen bir metot, değer döndürmemelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -1921,62 +1923,62 @@
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">'{0}' parametre türündeki başvuru türlerinin null atanabilirliği uygulanan '{1}' üyesiyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Parametre türündeki başvuru türlerinin null atanabilirliği uygulanan üyeyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</target>
+        <target state="translated">'{0}' parametresinin '{1}' türündeki başvuru türlerinin null atanabilirliği örtük olarak uygulanan '{2}' üyesiyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Parametre türündeki başvuru türlerinin null atanabilirliği örtük olarak uygulanan üyeyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">'{0}' parametresinin null atanabilirliği geçersiz kılınmış üyeyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title">
         <source>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Parametre türünün null atanabilirliği geçersiz kılınmış üyeyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation">
         <source>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</target>
+        <target state="translated">Dönüş türündeki başvuru türlerinin null atanabilirliği uygulanan '{0}' üyesiyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Dönüş türündeki başvuru türlerinin null atanabilirliği uygulanan üyeyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">'{0}' dönüş türündeki başvuru türlerinin null atanabilirliği örtük olarak uygulanan '{1}' üyesiyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Dönüş türündeki başvuru türlerinin null atanabilirliği örtük olarak uygulanan üyeyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Dönüş türünün null atanabilirliği geçersiz kılınan üyeyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Dönüş türünün null atanabilirliği geçersiz kılınan üyeyle eşleşmiyor (muhtemelen null atanabilirlik öznitelikleri nedeniyle).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -4265,7 +4267,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
-        <target state="needs-review-translation">DllImport özniteliği genel veya genel bir türde barındırılan bir yönteme uygulanamaz.</target>
+        <target state="translated">DllImport özniteliği, genel olan ya da genel metot veya türde barındırılan bir metoda uygulanamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -6139,7 +6141,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">Salt okunur bir alana atama yapılamaz (alanın tanımlandığı veya değişken başlatıcısı olduğu sınıfın oluşturucusunda olması dışında)</target>
+        <target state="translated">Salt okunur bir alana atama yapılamaz (alanın tanımlandığı veya değişken başlatıcısı olduğu sınıfın oluşturucusunda bulunması dışında)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -9767,7 +9769,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
         <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
-        <target state="needs-review-translation">'{0}' yerel bir işlev olduğundan her zaman gövdesi olmalıdır.</target>
+        <target state="translated">'{0}' yerel işlevi 'static extern' olarak işaretlenmediğinden bir gövde bildirmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

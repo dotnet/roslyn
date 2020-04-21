@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Could_not_find_by_name_0">
         <source>Could not find by name: '{0}'</source>
-        <target state="translated">无法按名称查找: "{0}"</target>
+        <target state="translated">无法按名称“{0}”查找 </target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="translated">找到 "{1}" 的 "{0}" 个程序集:</target>
+        <target state="translated">找到 “{1}”的“{0}”个程序集:</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_exact_match_0">
