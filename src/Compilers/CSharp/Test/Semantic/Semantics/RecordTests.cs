@@ -1327,7 +1327,7 @@ data class C(int X)
                 Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "c").WithArguments("C").WithLocation(9, 13)
             );
         }
- 
+
         [Fact]
         public void WithExprStaticWithMethod2()
         {

@@ -6068,7 +6068,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>There cannot be a primary constructor and a member constructor with the same parameter types.</value>
   </data>
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
-    <value>The receiver of a `with` expression must have a valid non-void type.</value>
+    <value>The receiver of a `with` expression must have a non-void type.</value>
   </data>
   <data name="ERR_NoSingleCloneMethod" xml:space="preserve">
     <value>The receiver type '{0}' does not have an accessible parameterless instance method named "Clone".</value>
