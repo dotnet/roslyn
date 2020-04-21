@@ -1607,10 +1607,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update((TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
         public override SyntaxNode? VisitBinaryPattern(BinaryPatternSyntax node)
-            => node.Update((PatternSyntax?)Visit(node.LeftPattern) ?? throw new ArgumentNullException("leftPattern"), VisitToken(node.PatternOperator), (PatternSyntax?)Visit(node.RightPattern) ?? throw new ArgumentNullException("rightPattern"));
+            => node.Update((PatternSyntax?)Visit(node.LeftPattern) ?? throw new ArgumentNullException("leftPattern"), VisitToken(node.OperatorToken), (PatternSyntax?)Visit(node.RightPattern) ?? throw new ArgumentNullException("rightPattern"));
 
         public override SyntaxNode? VisitUnaryPattern(UnaryPatternSyntax node)
-            => node.Update(VisitToken(node.PatternOperator), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
+            => node.Update(VisitToken(node.OperatorToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
         public override SyntaxNode? VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
             => node.Update(VisitToken(node.TextToken));
@@ -3488,7 +3488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new BinaryPatternSyntax instance.</summary>
-        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken operatorToken, PatternSyntax rightPattern)
         {
             switch (kind)
             {
@@ -3497,21 +3497,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(kind));
             }
             if (leftPattern == null) throw new ArgumentNullException(nameof(leftPattern));
-            switch (patternOperator.Kind())
+            switch (operatorToken.Kind())
             {
                 case SyntaxKind.OrKeyword:
                 case SyntaxKind.AndKeyword: break;
-                default: throw new ArgumentException(nameof(patternOperator));
+                default: throw new ArgumentException(nameof(operatorToken));
             }
             if (rightPattern == null) throw new ArgumentNullException(nameof(rightPattern));
-            return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern(kind, (Syntax.InternalSyntax.PatternSyntax)leftPattern.Green, (Syntax.InternalSyntax.SyntaxToken)patternOperator.Node!, (Syntax.InternalSyntax.PatternSyntax)rightPattern.Green).CreateRed();
+            return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern(kind, (Syntax.InternalSyntax.PatternSyntax)leftPattern.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)rightPattern.Green).CreateRed();
         }
 
         /// <summary>Creates a new BinaryPatternSyntax instance.</summary>
         public static BinaryPatternSyntax BinaryPattern(SyntaxKind kind, PatternSyntax leftPattern, PatternSyntax rightPattern)
-            => SyntaxFactory.BinaryPattern(kind, leftPattern, SyntaxFactory.Token(GetBinaryPatternPatternOperatorKind(kind)), rightPattern);
+            => SyntaxFactory.BinaryPattern(kind, leftPattern, SyntaxFactory.Token(GetBinaryPatternOperatorTokenKind(kind)), rightPattern);
 
-        private static SyntaxKind GetBinaryPatternPatternOperatorKind(SyntaxKind kind)
+        private static SyntaxKind GetBinaryPatternOperatorTokenKind(SyntaxKind kind)
             => kind switch
             {
                 SyntaxKind.OrPattern => SyntaxKind.OrKeyword,
@@ -3520,11 +3520,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
         /// <summary>Creates a new UnaryPatternSyntax instance.</summary>
-        public static UnaryPatternSyntax UnaryPattern(SyntaxToken patternOperator, PatternSyntax pattern)
+        public static UnaryPatternSyntax UnaryPattern(SyntaxToken operatorToken, PatternSyntax pattern)
         {
-            if (patternOperator.Kind() != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(patternOperator));
+            if (operatorToken.Kind() != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(operatorToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
-            return (UnaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.UnaryPattern((Syntax.InternalSyntax.SyntaxToken)patternOperator.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+            return (UnaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.UnaryPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
         /// <summary>Creates a new UnaryPatternSyntax instance.</summary>

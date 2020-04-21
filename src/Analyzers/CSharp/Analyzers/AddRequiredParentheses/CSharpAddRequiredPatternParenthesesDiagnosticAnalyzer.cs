@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
         protected override (PatternSyntax, SyntaxToken, PatternSyntax) GetPartsOfBinaryLike(BinaryPatternSyntax binaryPattern)
         {
             Debug.Assert(IsBinaryLike(binaryPattern));
-            return (binaryPattern.LeftPattern, binaryPattern.PatternOperator, binaryPattern.RightPattern);
+            return (binaryPattern.LeftPattern, binaryPattern.OperatorToken, binaryPattern.RightPattern);
         }
 
         protected override PatternSyntax? TryGetAppropriateParent(BinaryPatternSyntax binaryLike)

@@ -314,7 +314,7 @@
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
   <!-- Expressions -->
-  <AbstractNode Name="ExpressionSyntax" Base="CSharpSyntaxNode">
+  <AbstractNode Name="ExpressionSyntax" Base="ExpressionOrPatternSyntax">
     <TypeComment>
       <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
     </TypeComment>
@@ -1881,7 +1881,8 @@
     </Field>
     <Field Name="Condition" Type="ExpressionSyntax"/>
   </Node>
-  <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <AbstractNode Name="ExpressionOrPatternSyntax" Base="CSharpSyntaxNode" />
+  <AbstractNode Name="PatternSyntax" Base="ExpressionOrPatternSyntax" />
   <Node Name="DiscardPatternSyntax" Base="PatternSyntax">
     <Kind Name="DiscardPattern" />
     <Field Name="UnderscoreToken" Type="SyntaxToken">
@@ -1985,7 +1986,7 @@
     <Kind Name="OrPattern"/>
     <Kind Name="AndPattern"/>
     <Field Name="LeftPattern" Type="PatternSyntax" />
-    <Field Name="PatternOperator" Type="SyntaxToken">
+    <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="OrKeyword"/>
       <Kind Name="AndKeyword"/>
     </Field>
@@ -1993,7 +1994,7 @@
   </Node>
   <Node Name="UnaryPatternSyntax" Base="PatternSyntax">
     <Kind Name="NotPattern"/>
-    <Field Name="PatternOperator" Type="SyntaxToken">
+    <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="NotKeyword"/>
     </Field>
     <Field Name="Pattern" Type="PatternSyntax" />

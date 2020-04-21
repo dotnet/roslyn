@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBinaryPattern();
 
             Assert.NotNull(node.LeftPattern);
-            Assert.Equal(SyntaxKind.OrKeyword, node.PatternOperator.Kind);
+            Assert.Equal(SyntaxKind.OrKeyword, node.OperatorToken.Kind);
             Assert.NotNull(node.RightPattern);
 
             AttachAndCheckDiagnostics(node);
@@ -1720,7 +1720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateUnaryPattern();
 
-            Assert.Equal(SyntaxKind.NotKeyword, node.PatternOperator.Kind);
+            Assert.Equal(SyntaxKind.NotKeyword, node.OperatorToken.Kind);
             Assert.NotNull(node.Pattern);
 
             AttachAndCheckDiagnostics(node);
@@ -10958,9 +10958,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateBinaryPattern();
 
             Assert.NotNull(node.LeftPattern);
-            Assert.Equal(SyntaxKind.OrKeyword, node.PatternOperator.Kind());
+            Assert.Equal(SyntaxKind.OrKeyword, node.OperatorToken.Kind());
             Assert.NotNull(node.RightPattern);
-            var newNode = node.WithLeftPattern(node.LeftPattern).WithPatternOperator(node.PatternOperator).WithRightPattern(node.RightPattern);
+            var newNode = node.WithLeftPattern(node.LeftPattern).WithOperatorToken(node.OperatorToken).WithRightPattern(node.RightPattern);
             Assert.Equal(node, newNode);
         }
 
@@ -10969,9 +10969,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateUnaryPattern();
 
-            Assert.Equal(SyntaxKind.NotKeyword, node.PatternOperator.Kind());
+            Assert.Equal(SyntaxKind.NotKeyword, node.OperatorToken.Kind());
             Assert.NotNull(node.Pattern);
-            var newNode = node.WithPatternOperator(node.PatternOperator).WithPattern(node.Pattern);
+            var newNode = node.WithOperatorToken(node.OperatorToken).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);
         }
 
