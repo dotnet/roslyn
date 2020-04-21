@@ -4256,6 +4256,71 @@ class D
         }
 
         [Fact]
+        public void TargetTypedNewHasUseSiteError()
+        {
+            var missing = @"public class Missing { }";
+            var missingComp = CreateCompilation(missing, assemblyName: "missing");
+
+            var lib = @"
+public class C
+{
+    public static void M(Missing m) => throw null;
+}
+";
+            var libComp = CreateCompilation(lib, references: new[] { missingComp.EmitToImageReference() });
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+class D
+{
+    public void M2()
+    {
+        C.M(new());
+    }
+}
+";
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         C.M(new());
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ArgumentOfTargetTypedNewHasUseSiteError()
+        {
+            var missing = @"public class Missing { }";
+            var missingComp = CreateCompilation(missing, assemblyName: "missing");
+
+            var lib = @"
+public class C
+{
+    public C(Missing m) => throw null;
+}
+";
+            var libComp = CreateCompilation(lib, references: new[] { missingComp.EmitToImageReference() });
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+class D
+{
+    public void M(C c) { }
+    public void M2()
+    {
+        M(new(null));
+    }
+}
+";
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(new(null));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new(null)").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 11)
+                );
+        }
+
+        [Fact]
         public void UseSiteWarning()
         {
             var signedDll = TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
