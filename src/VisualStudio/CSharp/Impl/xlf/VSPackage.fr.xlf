@@ -80,7 +80,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Afficher les diagnostics pour les fichiers fermés ;
+        <target state="translated">Afficher les diagnostics pour les fichiers fermés ;
 Coloriser l'expression régulière ; 
 Surligner les composants liés sous le curseur ; 
 Signaler les expressions régulières non valides ;
@@ -125,7 +125,8 @@ préférer les propriétés de levée d'exceptions ;
 préférer les propriétés automatiques ;
 regex ;
 expression régulière ;
-Utiliser des couleurs améliorées ;</target>
+Utiliser des couleurs améliorées ;
+Modèle de couleurs de l'éditeur ;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">

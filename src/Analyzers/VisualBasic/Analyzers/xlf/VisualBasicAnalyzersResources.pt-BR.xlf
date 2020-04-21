@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="If_statement_can_be_simplified">
         <source>'If' statement can be simplified</source>
-        <target state="new">'If' statement can be simplified</target>
+        <target state="translated">A instrução 'If' pode ser simplificada</target>
         <note />
       </trans-unit>
       <trans-unit id="Imports_statement_is_unnecessary">
         <source>Imports statement is unnecessary.</source>
-        <target state="new">Imports statement is unnecessary.</target>
+        <target state="translated">A instrução Imports é desnecessária.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_IsNot_Nothing_check">
         <source>Use 'IsNot Nothing' check</source>
-        <target state="new">Use 'IsNot Nothing' check</target>
+        <target state="translated">Usar a verificação 'IsNot Nothing'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
-        <target state="new">Use 'Is Nothing' check</target>
+        <target state="translated">Usar a verificação 'Is Nothing'</target>
         <note />
       </trans-unit>
     </body>

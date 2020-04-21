@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <target state="translated">Базовые классы содержат недоступные нереализованные члены</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Conditional_expression_can_be_simplified">
         <source>Conditional expression can be simplified</source>
-        <target state="new">Conditional expression can be simplified</target>
+        <target state="translated">Условное выражение можно упростить</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -139,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Configure_severity_for_all_0_analyzers">
         <source>Configure severity for all '{0}' analyzers</source>
-        <target state="new">Configure severity for all '{0}' analyzers</target>
+        <target state="translated">Настройка серьезности для всех анализаторов ("{0}")</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
-        <target state="new">Configure severity for all analyzers</target>
+        <target state="translated">Настройка серьезности для всех анализаторов</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -199,12 +199,12 @@
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <target state="translated">Не изменяйте этот код. Разместите код очистки в методе "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="translated">Текущее содержимое исходного файла "{0}" не соответствует скомпилированному исходному коду. Все изменения, внесенные в этот файл во время отладки, не будут применены, пока содержимое файла не будет соответствовать скомпилированному исходному коду.</target>
+        <target state="translated">Текущее содержимое исходного файла "{0}" не соответствует созданному источнику. Все изменения, внесенные в этот файл во время отладки, не будут применены, пока содержимое файла не будет соответствовать созданному источнику.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -284,12 +284,12 @@
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
         <source>Implement abstract class</source>
-        <target state="new">Implement abstract class</target>
+        <target state="translated">Реализовать абстрактный класс</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
-        <target state="new">Implement all interfaces explicitly</target>
+        <target state="translated">Реализовать все интерфейсы явно</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_interfaces_implicitly">
@@ -299,12 +299,12 @@
       </trans-unit>
       <trans-unit id="Implement_all_members_explicitly">
         <source>Implement all members explicitly</source>
-        <target state="new">Implement all members explicitly</target>
+        <target state="translated">Реализовать все элементы явно</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
-        <target state="new">Implement explicitly</target>
+        <target state="translated">Реализовать явно</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_implicitly">
@@ -314,12 +314,12 @@
       </trans-unit>
       <trans-unit id="Implement_remaining_members_explicitly">
         <source>Implement remaining members explicitly</source>
-        <target state="new">Implement remaining members explicitly</target>
+        <target state="translated">Реализовать оставшиеся элементы явно</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
         <source>Implement through '{0}'</source>
-        <target state="new">Implement through '{0}'</target>
+        <target state="translated">Реализовать через "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
         <source>Resolve conflict markers</source>
-        <target state="new">Resolve conflict markers</target>
+        <target state="translated">Разрешение меток конфликтов</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -469,7 +469,7 @@
       </trans-unit>
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
+        <target state="translated">Упростить условное выражение</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">
@@ -499,12 +499,12 @@
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <target state="translated">TODO: освободить неуправляемые ресурсы (неуправляемые объекты) и переопределить метод завершения</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
         <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
+        <target state="translated">TODO: переопределить метод завершения, только если "{0}" содержит код для освобождения неуправляемых ресурсов</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
-        <target state="translated">Не удается прочитать исходный файл "{0}" или PDB, созданный для проекта, в котором они содержатся. Все изменения, внесенные в этот файл во время отладки, не будут применены, пока содержимое файла не будет соответствовать скомпилированному исходному коду.</target>
+        <target state="translated">Не удалось считать исходный файл "{0}" или PDB, созданный для содержащего проекта. Все изменения, внесенные в этот файл во время отладки, не будут применены, пока содержимое файла не будет соответствовать созданному источнику.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -599,7 +599,7 @@
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
-        <target state="new">Value:</target>
+        <target state="translated">Значение:</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -1605,12 +1605,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
         <source>TODO: dispose managed state (managed objects)</source>
-        <target state="needs-review-translation">TODO: освободить управляемое состояние (управляемые объекты).</target>
+        <target state="translated">TODO: освободить управляемое состояние (управляемые объекты)</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null</source>
-        <target state="needs-review-translation">TODO: задать большим полям значение NULL.</target>
+        <target state="translated">TODO: установить значение NULL для больших полей</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">

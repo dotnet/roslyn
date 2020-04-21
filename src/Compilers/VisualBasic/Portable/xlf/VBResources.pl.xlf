@@ -778,7 +778,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">określono argument stdin „-”, ale dane wejściowe nie zostały przekierowane ze standardowego strumienia wejściowego.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">

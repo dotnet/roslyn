@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
-        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <target state="translated">Die lokale Funktion "{0}" muss als "static" gekennzeichnet sein, um das Conditional-Attribut verwenden zu können.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
@@ -179,17 +179,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
-        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <target state="translated">Eine Ausdrucksbaumstruktur darf keinen vom Ende ausgehenden Indexausdruck ("^") enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">Eine Ausdrucksbaumstruktur darf keinen System.Index- oder System.Range-Musterindexerzugriff enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
         <source>An expression tree may not contain a range ('..') expression.</source>
-        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <target state="translated">Eine Ausdrucksbaumstruktur darf keinen Bereichsausdruck ("..") enthalten.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -344,7 +344,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
-        <target state="new">Output directory could not be determined</target>
+        <target state="translated">Das Ausgabeverzeichnis konnte nicht bestimmt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">Das stdin-Argument "-" ist angegeben, aber die Eingabe wurde nicht vom Standardeingabestream umgeleitet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -691,7 +691,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C#-Compileroptionen
 
                        – AUSGABEDATEIEN –
@@ -760,9 +760,11 @@
 
                        – FEHLER UND WARNUNGEN –
 -warnaserror[+|-]             Meldet alle Warnungen als Fehler.
--warnaserror[+|-]:&lt;Warnungsliste&gt; Meldet bestimmte Warnungen als Fehler.
+-warnaserror[+|-]:&lt;Warnungsliste&gt; Meldet bestimmte Warnungen als Fehler 
+                              (Verwendung von "nullable" für alle Warnungen zur NULL-Zulässigkeit).
 -warn:&lt;n&gt;                     Legt die Warnstufe fest (0–4) (Kurzform: -w).
--nowarn:&lt;Warnungsliste&gt;           Deaktiviert bestimmte Warnmeldungen.
+-nowarn:&lt;Warnungsliste&gt;           Deaktiviert bestimmte Warnmeldungen
+                              (Verwendung von "nullable" für alle Warnungen zur NULL-Zulässigkeit).
 -ruleset:&lt;Datei&gt;               Gibt eine Regelsatzdatei an, die bestimmte Diagnosevorgänge
                               deaktiviert.
 -errorlog:&lt;Datei&gt;[,version=&lt;sarif_version&gt;]
@@ -891,7 +893,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
         <source>extern local functions</source>
-        <target state="new">extern local functions</target>
+        <target state="translated">Externe lokale Funktionen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -906,7 +908,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
         <source>local function attributes</source>
-        <target state="new">local function attributes</target>
+        <target state="translated">Attribute lokaler Funktionen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -916,7 +918,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
-        <target state="new">MemberNotNull attribute</target>
+        <target state="translated">MemberNotNull-Attribut</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1441,12 +1443,12 @@
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
         <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">In der Methode "{0}" fehlt die Anmerkung "[DoesNotReturn]" für den Abgleich mit dem implementierten oder überschriebenen Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch_Title">
         <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">In der Methode fehlt die Anmerkung "[DoesNotReturn]" für den Abgleich mit dem implementierten oder überschriebenen Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1461,22 +1463,22 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">Fehler beim Generieren der Quelle durch den Generator "{0}". Er wird bei der Ausgabe nicht berücksichtigt, deshalb kann es zu Kompilierungsfehlern kommen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
-        <target state="new">Generator failed to generate source.</target>
+        <target state="translated">Fehler beim Generieren der Quelle durch den Generator.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">Fehler beim Initialisieren des Generators "{0}". Er wird bei der Ausgabe nicht berücksichtigt, deshalb kann es zu Kompilierungsfehlern kommen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
-        <target state="new">Generator failed to initialize.</target>
+        <target state="translated">Fehler beim Initialisieren des Generators.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1521,32 +1523,32 @@
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
         <source>Member '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">Der Member "{0}" muss beim Beenden einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
         <source>Member '{0}' cannot be used in this attribute.</source>
-        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <target state="translated">Der Member "{0}" kann in diesem Attribut nicht verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember_Title">
         <source>Member cannot be used in this attribute.</source>
-        <target state="new">Member cannot be used in this attribute.</target>
+        <target state="translated">Der Member kann in diesem Attribut nicht verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
         <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
+        <target state="translated">Der Member "{0}" muss beim Beenden mit "{1}" einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
         <source>Member must have a non-null value when exiting in some condition.</source>
-        <target state="new">Member must have a non-null value when exiting in some condition.</target>
+        <target state="translated">Der Member muss beim Beenden mit einer bestimmten Bedingung einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
         <source>Member must have a non-null value when exiting.</source>
-        <target state="new">Member must have a non-null value when exiting.</target>
+        <target state="translated">Der Member muss beim Beenden einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -1861,22 +1863,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="needs-review-translation">Der Parameter "{0}" darf beim Beenden mit "{1}" keinen NULL-Wert aufweisen.</target>
+        <target state="translated">Der Parameter "{0}" muss beim Beenden mit "{1}" einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting in some condition.</source>
-        <target state="needs-review-translation">Der Parameter darf keinen NULL-Wert aufweisen, wenn er in einer Bedingung beendet wird.</target>
+        <target state="translated">Der Parameter muss beim Beenden mit einer bestimmten Bedingung einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">Der Parameter "{0}" muss beim Beenden einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
-        <target state="new">Parameter must have a non-null value when exiting.</target>
+        <target state="translated">Der Parameter muss beim Beenden einen Wert ungleich NULL aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -1921,62 +1923,62 @@
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ des Parameters "{0}" entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem implementierten Member "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ des Parameters entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem implementierten Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ des Parameters "{0}" von "{1}" entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem implizit implementierten Member "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ des Parameters entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem implizit implementierten Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit des Typs des Parameters "{0}" entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem überschriebenen Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title">
         <source>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit des Typs des Parameters entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem überschriebenen Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation">
         <source>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Rückgabetyp entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem implementierten Member "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Rückgabetyp entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem implementierten Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Rückgabetyp "{0}" entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem implizit implementierten Member "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Rückgabetyp entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem implizit implementierten Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit des Rückgabetyps entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem überschriebenen Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Die NULL-Zulässigkeit des Rückgabetyps entspricht (möglicherweise aufgrund von Attributen für die NULL-Zulässigkeit) nicht dem überschriebenen Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -4265,7 +4267,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
-        <target state="needs-review-translation">Das DllImport-Attribut kann nicht auf eine generische oder in einem generischen Typ enthaltene Methode angewendet werden.</target>
+        <target state="translated">Das DllImport-Attribut kann nicht auf eine Methode angewendet werden, die generisch ist oder in einer generischen Methode oder einem generischen Typ enthalten ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -9767,7 +9769,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
         <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
-        <target state="needs-review-translation">'"{0}" ist eine lokale Funktion und muss daher immer Text enthalten.</target>
+        <target state="translated">Die lokale Funktion "{0}" muss einen Textkörper deklarieren, weil sie nicht als "static extern" gekennzeichnet ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

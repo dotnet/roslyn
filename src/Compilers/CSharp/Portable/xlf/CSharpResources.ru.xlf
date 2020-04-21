@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
-        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <target state="translated">Локальная функция "{0}" должна быть "static", чтобы использовать атрибут Conditional</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
@@ -179,17 +179,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
-        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <target state="translated">Дерево выражений не может содержать выражение индекса, отсчитываемого с конца ("^").</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">Дерево выражения не может содержать доступ к индексатору System.Index или System.Range шаблона.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
         <source>An expression tree may not contain a range ('..') expression.</source>
-        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <target state="translated">Дерево выражений не может содержать выражение диапазона ("..").</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -344,7 +344,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
-        <target state="new">Output directory could not be determined</target>
+        <target state="translated">Не удалось определить выходной каталог</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">Указан аргумент stdin "-", но входные данные не были перенаправлены из стандартного входного потока.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -691,7 +691,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Параметры компилятора Visual C#
 
                        - Выходные файлы -
@@ -749,7 +749,7 @@
                               Задать тип отладки (по умолчанию — "full",
                               "portable"  — кроссплатформенный формат,
                               "embedded" — кроссплатформенный формат, внедряемый в
-                              целевой DLL- или EXE-файл)
+                              целевой DLL- или EXE-файл
 -optimize[+|-]                Включить оптимизацию (краткая форма: -o)
 -deterministic                Создать детерминированную сборку
                               (включая GUID версии модуля и метку времени)
@@ -757,12 +757,14 @@
 -instrument:TestCoverage      Создать сборку, инструментированную для сбора
                               сведений об объеме протестированного кода
 -sourcelink:&lt;file&gt;            Данные о ссылке на исходные файлы для внедрения в PDB.
-
+ 
                        - Ошибки и предупреждения -
 -warnaserror[+|-]             Регистрировать все предупреждения как ошибки
 -warnaserror[+|-]:&lt;warn list&gt; Регистрировать указанные предупреждения как ошибки
+                              (используйте "nullable" для всех предупреждений о допустимости значений NULL)
 -warn:&lt;n&gt;                     Задать порог предупреждений (0–4) (краткая форма: -w)
 -nowarn:&lt;warn list&gt;           Отключить указанные предупреждения
+                              (используйте "nullable" для всех предупреждений о допустимости значений NULL)
 -ruleset:&lt;file&gt;               Указать файл набора правил, отключающий определенные
                               диагностические операции.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
@@ -783,7 +785,7 @@
                               "latest" (последняя версия, включая дополнительные номера версии),
                               "default" (то же что и "latest"),
                               "latestmajor" (последняя версия, исключая дополнительные номера версии),
-                              "preview" (последняя версия, включая функции в неподдерживаемой предварительной версии)
+                              "preview" (последняя версия, включая функции в неподдерживаемой предварительной версии),
                               либо конкретные версии, например "6" или "7.1"
 -nullable[+|-]                Указать параметр допускающего значение NULL контекста enable|disable.
 -nullable:{enable|disable|warnings|annotations}
@@ -891,7 +893,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
         <source>extern local functions</source>
-        <target state="new">extern local functions</target>
+        <target state="translated">Внешние локальные функции</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -906,7 +908,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
         <source>local function attributes</source>
-        <target state="new">local function attributes</target>
+        <target state="translated">Атрибуты локальной функции</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -916,7 +918,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
-        <target state="new">MemberNotNull attribute</target>
+        <target state="translated">Атрибут MemberNotNull</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1441,12 +1443,12 @@
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
         <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">В методе "{0}" отсутствует аннотация "[DoesNotReturn]" для сопоставления реализованного или переопределенного члена.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch_Title">
         <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">В методе отсутствует аннотация "[DoesNotReturn]" для сопоставления реализованного или переопределенного члена.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1461,22 +1463,22 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">Генератору "{0}" не удалось создать источник. Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
-        <target state="new">Generator failed to generate source.</target>
+        <target state="translated">Генератору не удалось создать источник.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">Не удалось инициализировать генератор "{0}". Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
-        <target state="new">Generator failed to initialize.</target>
+        <target state="translated">Не удалось инициализировать генератор.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1521,32 +1523,32 @@
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
         <source>Member '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">Элемент "{0}" должен иметь значение, отличное от NULL, при выходе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
         <source>Member '{0}' cannot be used in this attribute.</source>
-        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <target state="translated">Элемент "{0}" не может использоваться в этом атрибуте.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember_Title">
         <source>Member cannot be used in this attribute.</source>
-        <target state="new">Member cannot be used in this attribute.</target>
+        <target state="translated">Элемент не может использоваться в этом атрибуте.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
         <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
+        <target state="translated">Элемент "{0}" должен иметь значение, отличное от NULL, при выходе с "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
         <source>Member must have a non-null value when exiting in some condition.</source>
-        <target state="new">Member must have a non-null value when exiting in some condition.</target>
+        <target state="translated">Элемент должен иметь значение, отличное от NULL, при выходе в определенном состоянии.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
         <source>Member must have a non-null value when exiting.</source>
-        <target state="new">Member must have a non-null value when exiting.</target>
+        <target state="translated">Элемент должен иметь значение, отличное от NULL, при выходе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -1861,22 +1863,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="needs-review-translation">Параметр "{0}" не может иметь значение null при выходе с "{1}".</target>
+        <target state="translated">Параметр "{0}" должен иметь значение, отличное от NULL, при выходе с "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting in some condition.</source>
-        <target state="needs-review-translation">Параметр не может иметь значение null при выходе в определенном условии.</target>
+        <target state="translated">Параметр должен иметь значение, отличное от NULL, при выходе в определенном состоянии.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">Параметр "{0}" должен иметь значение, отличное от NULL, при выходе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
-        <target state="new">Parameter must have a non-null value when exiting.</target>
+        <target state="translated">Параметр должен иметь значение, отличное от NULL, при выходе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -1886,7 +1888,7 @@
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn_Title">
         <source>A method marked [DoesNotReturn] should not return.</source>
-        <target state="translated">Метод, помеченный [DoesNotReturn], не должен возвращать значение</target>
+        <target state="translated">Метод, помеченный [DoesNotReturn], не должен возвращать значение.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -1921,62 +1923,62 @@
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе параметра "{0}" не соответствует реализованному элементу "{1}" (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе параметра не соответствует реализованному элементу (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе параметра "{0}" объекта "{1}" не соответствует неявно реализованному элементу "{2}" (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе параметра не соответствует неявно реализованному элементу (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для типа параметра "{0}" не соответствует переопределенному элементу (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title">
         <source>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для типа параметра не соответствует переопределенному элементу (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation">
         <source>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе возвращаемого значения не соответствует реализованному элементу "{0}" (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе возвращаемого значения не соответствует реализованному элементу (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе возвращаемого значения "{0}" не соответствует неявно реализованному элементу "{1}" (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для ссылочных типов в типе возвращаемого значения не соответствует неявно реализованному элементу (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для типа возвращаемого значения не соответствует переопределенному элементу (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">Допустимость значений NULL для типа возвращаемого значения не соответствует переопределенному элементу (возможно, из-за атрибутов допустимости значений NULL).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -4265,7 +4267,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
-        <target state="needs-review-translation">Атрибут DllImport не может применяться для универсального метода или метода в универсальном типе.</target>
+        <target state="translated">Атрибут DllImport не может применяться для универсального метода или метода, содержащегося в универсальном методе или типе.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -9767,7 +9769,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
         <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
-        <target state="needs-review-translation">'"{0}" — это локальная функция, и поэтому всегда должна иметь тело.</target>
+        <target state="translated">Локальная функция "{0}" должна объявить тело, так как она не помечена как "static extern".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">

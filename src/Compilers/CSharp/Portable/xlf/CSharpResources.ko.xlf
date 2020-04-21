@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
-        <target state="new">Local function '{0}' must be 'static' in order to use the Conditional attribute</target>
+        <target state="translated">조건부 특성을 사용하려면 로컬 함수 '{0}'이(가) 'static'이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
@@ -179,17 +179,17 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
-        <target state="new">An expression tree may not contain a from-end index ('^') expression.</target>
+        <target state="translated">식 트리에는 내림차순 인덱스('^') 식을 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">식 트리에는 System.Index 또는 System.Range 패턴의 인덱서 액세스를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
         <source>An expression tree may not contain a range ('..') expression.</source>
-        <target state="new">An expression tree may not contain a range ('..') expression.</target>
+        <target state="translated">식 트리에는 범위('..') 식을 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
@@ -344,7 +344,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
-        <target state="new">Output directory could not be determined</target>
+        <target state="translated">출력 디렉터리를 확인할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">stdin 인수 '-'를 지정했지만 표준 입력 스트림에서 입력이 리디렉션되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -691,7 +691,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# 컴파일러 옵션
 
                        - 출력 파일 -
@@ -748,22 +748,24 @@
 -debug:{full|pdbonly|portable|embedded}
                               디버깅 형식을 지정합니다. 기본값은 'full'이고,
                               'portable'은 플랫폼 간 형식이며,
-                              'embedded'는 대상 .dll 또는 .exe에 포함된
+                              'embedded'는 대상 .dll 또는 .exe에 포함되는
                               플랫폼 간 형식입니다.
 -optimize[+|-]                최적화를 사용하도록 설정합니다. (약식: -o)
 -deterministic                결정적 어셈블리를 생성합니다(모듈
                               버전 GUID 및 타임스탬프 포함).
 -refonly                      주 출력 대신 참조 어셈블리를 생성합니다.
--instrument:TestCoverage      검사 정보를 수집하기 위해 계측한
+-instrument:TestCoverage      검사 정보를 수집하기 위해 계측되는
                               어셈블리를 생성합니다.
 -sourcelink:&lt;파일&gt;             PDB에 포함할 소스 링크 정보입니다.
 
                        - 오류 및 경고 -
 -warnaserror[+|-]             모든 경고를 오류로 보고합니다.
--warnaserror[+|-]:&lt;경고 목록&gt;   특정 경고를 오류로 보고합니다.
+-warnaserror[+|-]:&lt;경고 목록&gt;   특정 경고를 오류로 보고합니다
+                              (모든 Null 허용 여부 경고에는 "nullable" 사용).
 -warn:&lt;n&gt;                     경고 수준(0~4)을 설정합니다. (약식: -w)
--nowarn:&lt;경고 목록&gt;             특정 경고 메시지를 사용하지 않도록 설정합니다.
--ruleset:&lt;파일&gt;                특정 진단을 사용하지 않도록 하는 규칙 집합
+-nowarn:&lt;경고 목록&gt;             특정 경고 메시지를 사용하지 않도록 설정합니다
+                              (모든 Null 허용 여부 경고에는 "nullable" 사용).
+-ruleset:&lt;파일&gt;                특정 진단을 사용하지 않도록 설정하는 규칙 집합
                               파일을 지정합니다.
 -errorlog:&lt;파일&gt;[,version=&lt;sarif_version&gt;]
                               모든 컴파일러 및 분석기 진단을 기록할 파일을
@@ -790,17 +792,17 @@
                               nullable 컨텍스트 옵션 enable|disable|warnings|annotations를 지정합니다.
 
                        - 보안 -
--delaysign[+|-]               강력한 이름 키의 공개 부분만 사용하여
+-delaysign[+|-]               강력한 이름 키의 퍼블릭 부분만 사용하여
                               어셈블리 서명을 연기합니다.
--publicsign[+|-]              강력한 이름 키의 공개 부분만 사용하여
-                              어셈블리를 공개 서명합니다.
+-publicsign[+|-]              강력한 이름 키의 퍼블릭 부분만 사용하여
+                              어셈블리를 퍼블릭 서명합니다.
 -keyfile:&lt;파일&gt;                강력한 이름 키 파일을 지정합니다.
 -keycontainer:&lt;문자열&gt;          강력한 이름 키 컨테이너를 지정합니다.
 -highentropyva[+|-]           높은 엔트로피 ASLR을 사용하도록 설정합니다.
 
                        - 기타 -
-@&lt;파일&gt;                        추가 옵션에 대한 지시 파일을 읽습니다.
--help                         사용법 메시지를 표시합니다. (약식: -?)
+@&lt;파일&gt;                        추가 옵션을 위해 지시 파일을 읽습니다.
+-help                         이 사용법 메시지를 표시합니다. (약식: -?)
 -nologo                       컴파일러 저작권 메시지를 표시하지 않습니다.
 -noconfig                     CSC.RSP 파일을 자동으로 포함하지 않습니다.
 -parallel[+|-]                동시 빌드입니다.
@@ -831,12 +833,12 @@
 -nosdkpath                    기본 SDK 경로에서 표준 라이브러리 어셈블리를 검색하지 않도록 설정합니다.
 -nostdlib[+|-]                표준 라이브러리(mscorlib.dll)를 참조하지 않습니다.
 -subsystemversion:&lt;문자열&gt;      이 어셈블리의 하위 시스템 버전을 지정합니다.
--lib:&lt;파일 목록&gt;                참조를 위해 검색할 추가 디렉터리를
+-lib:&lt;파일 목록&gt;                참조를 검색할 추가 디렉터리를
                               지정합니다.
 -errorreport:&lt;문자열&gt;           내부 컴파일러 오류를 처리하는 방법을
                               prompt, send, queue 또는 none으로 지정합니다. 기본값은
                               queue입니다.
--appconfig:&lt;파일&gt;              어셈블리 바인딩 설정을 포함하는
+-appconfig:&lt;파일&gt;              어셈블리 바인딩 설정이 포함된
                               애플리케이션 구성 파일을 지정합니다.
 -moduleassemblyname:&lt;문자열&gt;    이 모듈이 속할 어셈블리의
                               이름입니다.
@@ -891,7 +893,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureExternLocalFunctions">
         <source>extern local functions</source>
-        <target state="new">extern local functions</target>
+        <target state="translated">extern 로컬 함수</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
@@ -906,7 +908,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureLocalFunctionAttributes">
         <source>local function attributes</source>
-        <target state="new">local function attributes</target>
+        <target state="translated">로컬 함수 특성</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaDiscardParameters">
@@ -916,7 +918,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMemberNotNull">
         <source>MemberNotNull attribute</source>
-        <target state="new">MemberNotNull attribute</target>
+        <target state="translated">MemberNotNull 특성</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
@@ -1441,12 +1443,12 @@
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch">
         <source>Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method '{0}' lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">구현된 멤버 또는 재정의된 멤버와 일치하는 '[DoesNotReturn]' 주석이 '{0}' 메서드에 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoesNotReturnMismatch_Title">
         <source>Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</source>
-        <target state="new">Method lacks `[DoesNotReturn]` annotation to match implemented or overridden member.</target>
+        <target state="translated">구현된 멤버 또는 재정의된 멤버와 일치하는 '[DoesNotReturn]' 주석이 메서드에 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1461,22 +1463,22 @@
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">생성기 '{0}'이(가) 소스를 생성하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
-        <target state="new">Generator failed to generate source.</target>
+        <target state="translated">생성기가 소스를 생성하지 못했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result.</target>
+        <target state="translated">생성기 '{0}'이(가) 초기화하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
-        <target state="new">Generator failed to initialize.</target>
+        <target state="translated">생성기가 초기화하지 못했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1521,32 +1523,32 @@
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull">
         <source>Member '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">종료할 때 '{0}' 멤버는 null이 아닌 값을 가져야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember">
         <source>Member '{0}' cannot be used in this attribute.</source>
-        <target state="new">Member '{0}' cannot be used in this attribute.</target>
+        <target state="translated">이 특성에서는 '{0}' 멤버를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullBadMember_Title">
         <source>Member cannot be used in this attribute.</source>
-        <target state="new">Member cannot be used in this attribute.</target>
+        <target state="translated">이 특성에서는 멤버를 사용할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen">
         <source>Member '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="new">Member '{0}' must have a non-null value when exiting with '{1}'.</target>
+        <target state="translated">'{1}'(으)로 종료할 때 '{0}' 멤버는 null이 아닌 값을 가져야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNullWhen_Title">
         <source>Member must have a non-null value when exiting in some condition.</source>
-        <target state="new">Member must have a non-null value when exiting in some condition.</target>
+        <target state="translated">일부 조건으로 종료할 때 멤버는 null이 아닌 값을 가져야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MemberNotNull_Title">
         <source>Member must have a non-null value when exiting.</source>
-        <target state="new">Member must have a non-null value when exiting.</target>
+        <target state="translated">종료할 때 멤버는 null이 아닌 값을 가져야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
@@ -1861,22 +1863,22 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting with '{1}'.</source>
-        <target state="needs-review-translation">'{1}'(으)로 종료할 때 '{0}' 매개 변수에 null 값을 사용할 수 없습니다.</target>
+        <target state="translated">'{1}'(으)로 종료할 때 '{0}' 매개 변수는 null이 아닌 값을 가져야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting in some condition.</source>
-        <target state="needs-review-translation">일부 조건으로 종료할 때 매개 변수에 null 값을 사용할 수 없습니다.</target>
+        <target state="translated">일부 조건으로 종료할 때 매개 변수는 null이 아닌 값을 가져야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull">
         <source>Parameter '{0}' must have a non-null value when exiting.</source>
-        <target state="new">Parameter '{0}' must have a non-null value when exiting.</target>
+        <target state="translated">종료할 때 '{0}' 매개 변수는 null이 아닌 값을 가져야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterDisallowsNull_Title">
         <source>Parameter must have a non-null value when exiting.</source>
-        <target state="new">Parameter must have a non-null value when exiting.</target>
+        <target state="translated">종료할 때 매개 변수는 null이 아닌 값을 가져야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ShouldNotReturn">
@@ -1921,62 +1923,62 @@
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' doesn't match implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">'{0}' 매개 변수 형식에서 참조 형식의 null 허용 여부가 구현된 멤버 '{1}'과(와) 일치하지 않습니다(null 허용 여부 특성 때문일 수 있음).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">매개 변수 형식에서 참조 형식의 null 허용 여부가 구현된 멤버와 일치하지 않음(null 허용 여부 특성 때문일 수 있음)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}' (possibly because of nullability attributes).</target>
+        <target state="translated">'{1}'의 '{0}' 매개 변수 형식에서 참조 형식의 null 허용 여부가 암시적으로 구현된 멤버 '{2}'과(와) 일치하지 않습니다(null 허용 여부 특성 때문일 수 있음).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">매개 변수 형식에서 참조 형식의 null 허용 여부가 암시적으로 구현된 멤버와 일치하지 않음(null 허용 여부 특성 때문일 수 있음)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride">
         <source>Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter '{0}' doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">'{0}' 매개 변수 형식의 null 허용 여부가 재정의된 멤버와 일치하지 않습니다(null 허용 여부 특성 때문일 수 있음).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride_Title">
         <source>Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">매개 변수 형식의 null 허용 여부가 재정의된 멤버와 일치하지 않음(null 허용 여부 특성 때문일 수 있음)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation">
         <source>Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member '{0}' (possibly because of nullability attributes).</target>
+        <target state="translated">반환 형식에서 참조 형식의 null 허용 여부가 구현된 멤버 '{0}'과(와) 일치하지 않습니다(null 허용 여부 특성 때문일 수 있음).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">반환 형식에서 참조 형식의 null 허용 여부가 구현된 멤버와 일치하지 않음(null 허용 여부 특성 때문일 수 있음)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}' (possibly because of nullability attributes).</target>
+        <target state="translated">'{0}'의 반환 형식에서 참조 형식의 null 허용 여부가 암시적으로 구현된 멤버 '{1}'과(와) 일치하지 않습니다(null 허용 여부 특성 때문일 수 있음).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in return type doesn't match implicitly implemented member (possibly because of nullability attributes).</target>
+        <target state="translated">반환 형식에서 참조 형식의 null 허용 여부가 암시적으로 구현된 멤버와 일치하지 않음(null 허용 여부 특성 때문일 수 있음)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">반환 형식의 null 허용 여부가 재정의된 멤버와 일치하지 않습니다(null 허용 여부 특성 때문일 수 있음).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride_Title">
         <source>Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of return type doesn't match overridden member (possibly because of nullability attributes).</target>
+        <target state="translated">반환 형식의 null 허용 여부가 재정의된 멤버와 일치하지 않음(null 허용 여부 특성 때문일 수 있음)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -4265,7 +4267,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
-        <target state="needs-review-translation">DllImport 특성은 제네릭이거나 제네릭 형식에 포함된 메서드에 적용할 수 없습니다.</target>
+        <target state="translated">DllImport 특성은 제네릭이거나 제네릭 메서드 또는 형식에 포함된 메서드에 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldCantBeRefAny">
@@ -6139,7 +6141,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
         <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
-        <target state="translated">읽기 전용 필드에는 할당할 수 없습니다. 단, 필드가 정의된 클래스의 생성자 또는 변수 이니셜라이저에서는 예외입니다.</target>
+        <target state="translated">읽기 전용 필드에는 값을 할당할 수 없습니다. 단, 필드가 정의된 클래스의 생성자 또는 변수 이니셜라이저에서는 예외입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -9767,7 +9769,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_LocalFunctionMissingBody">
         <source>Local function '{0}' must declare a body because it is not marked 'static extern'.</source>
-        <target state="needs-review-translation">'{0}'은(는) 로컬 함수이므로 항상 본문이 있어야 합니다.</target>
+        <target state="translated">로컬 함수 '{0}'은(는) 'static extern'으로 표시되어 있지 않으므로 본문을 선언해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
