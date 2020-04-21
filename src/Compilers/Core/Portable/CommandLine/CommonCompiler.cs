@@ -925,8 +925,14 @@ namespace Microsoft.CodeAnalysis
                         additionalFileAnalyzerOptions);
                 }
 
-                Diagnostics.AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                     additionalTextFiles, analyzerConfigProvider);
+
+                // Always filter out 'Hidden' analyzer diagnostics in build.
+                // Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                var filteredSeverities = Arguments.ErrorLogPath != null ?
+                    ImmutableHashSet.Create(ReportDiagnostic.Hidden) :
+                    ImmutableHashSet.Create(ReportDiagnostic.Hidden, ReportDiagnostic.Info);
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
@@ -935,6 +941,7 @@ namespace Microsoft.CodeAnalysis
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
                     Arguments.ReportAnalyzer,
+                    filteredSeverities,
                     out compilation,
                     analyzerCts.Token);
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;

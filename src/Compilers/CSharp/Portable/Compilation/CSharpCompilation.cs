@@ -3465,11 +3465,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
+        internal override AnalyzerDriver CreateAnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, ImmutableHashSet<ReportDiagnostic> filteredSeverities)
         {
             Func<SyntaxNode, SyntaxKind> getKind = node => node.Kind();
             Func<SyntaxTrivia, bool> isComment = trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
-            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, isComment);
+            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, filteredSeverities, isComment);
         }
 
         internal void SymbolDeclaredEvent(Symbol symbol)

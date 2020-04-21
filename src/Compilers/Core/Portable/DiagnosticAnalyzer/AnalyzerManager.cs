@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -185,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ImmutableArray<SymbolStartAnalyzerAction> getFilteredActionsByKind(ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions)
             {
-                ArrayBuilder<SymbolStartAnalyzerAction> filteredActionsBuilderOpt = null;
+                ArrayBuilder<SymbolStartAnalyzerAction>? filteredActionsBuilderOpt = null;
                 for (int i = 0; i < symbolStartActions.Length; i++)
                 {
                     var symbolStartAction = symbolStartActions[i];
@@ -286,8 +288,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             CompilationOptions options,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            ImmutableHashSet<ReportDiagnostic> filteredSeverities)
         {
+            Debug.Assert(!filteredSeverities.Contains(ReportDiagnostic.Suppress));
+            Debug.Assert(!filteredSeverities.Contains(ReportDiagnostic.Default));
+
             if (isCompilerAnalyzer(analyzer))
             {
                 // Compiler analyzer must always be executed for compiler errors, which cannot be suppressed or filtered.
@@ -321,10 +327,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
                 }
+                else
+                {
+                    severity = isSuppressed ? ReportDiagnostic.Suppress : DiagnosticDescriptor.MapSeverityToReport(diag.DefaultSeverity);
+                }
+
+                // Is this diagnostic suppressed due to its severity
+                if (filteredSeverities.Contains(severity))
+                {
+                    isSuppressed = true;
+                }
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag.Id, analyzerExecutor.Compilation))
+                    isEnabledWithAnalyzerConfigOptions(diag, filteredSeverities, analyzerExecutor.Compilation, analyzerExecutor.AnalyzerOptions))
                 {
                     isSuppressed = false;
                 }
@@ -348,14 +364,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return true;
 
-            static bool isEnabledWithAnalyzerConfigOptions(string diagnosticId, Compilation compilation)
+            static bool isEnabledWithAnalyzerConfigOptions(
+                DiagnosticDescriptor descriptor,
+                ImmutableHashSet<ReportDiagnostic> filteredSeverities,
+                Compilation? compilation,
+                AnalyzerOptions? analyzerOptions)
             {
                 if (compilation != null)
                 {
                     foreach (var tree in compilation.SyntaxTrees)
                     {
-                        if (tree.DiagnosticOptions.TryGetValue(diagnosticId, out var configuredValue) &&
-                            configuredValue != ReportDiagnostic.Suppress)
+                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
+                        if (tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredValue))
+                        {
+                            if (configuredValue != ReportDiagnostic.Suppress &&
+                                !filteredSeverities.Contains(configuredValue))
+                            {
+                                return true;
+                            }
+                        }
+                        else if (!filteredSeverities.IsEmpty &&
+                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, out var bulkConfiguredValue) &&
+                            !filteredSeverities.Contains(bulkConfiguredValue))
                         {
                             return true;
                         }
