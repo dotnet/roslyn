@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public class OrKeywordRecommenderTests : KeywordRecommenderTests
     {
-        private const string InitializeObjectE = @"object e = new object();
+        private const string InitializeObjectE = @"var e = new object();
 ";
 
 #if !CODE_STYLE
@@ -56,6 +56,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideSubpattern_ComplexConstant()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        int Prop { get; }
+
+        void M(C test)
+        {
+            if (test is { Prop: N.C.P $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideSubpattern_AfterOpenParen()
         {
             await VerifyKeywordAsync(
@@ -70,6 +87,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideSubpattern_AfterOpenParen_ComplexConstant()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        int Prop { get; }
+
+        void M(C test)
+        {
+            if (test is { Prop: (N.C.P $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideSubpattern_AfterMultipleOpenParens()
         {
             await VerifyKeywordAsync(
@@ -81,6 +115,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         var C2 = new C();
         if (C2 is { P: (((1 $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideSubpattern_AfterMultipleOpenParens_ComplexConstant()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        int Prop { get; }
+
+        void M(C test)
+        {
+            if (test is { Prop: (((N.C.P $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -132,6 +183,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideSubpattern_AfterParenPair_ComplexConstant()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        int Prop { get; }
+
+        void M(C test)
+        {
+            if (test is { Prop: (N.C.P + 1) $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideSubpattern_AfterMultipleParenPairs()
         {
             await VerifyKeywordAsync(
@@ -143,6 +211,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         var C2 = new C();
         if (C2 is { P: (((1))) $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideSubpattern_AfterMultipleParenPairs_ComplexConstant()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        int Prop { get; }
+
+        void M(C test)
+        {
+            if (test is { Prop: (((N.C.P))) $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -187,6 +272,24 @@ namespace N
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtBeginningOfSwitchExpression_Complex()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        void M()
+        {
+            var e = new object();
+            var result = e switch
+            {
+                N.C.P $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtBeginningOfSwitchStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -205,12 +308,48 @@ namespace N
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtBeginningOfSwitchExpression_AfterOpenParen_Complex()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        void M()
+        {
+            var e = new object();
+            var result = e switch
+            {
+                (N.C.P $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtBeginningOfSwitchExpression_AfterMultipleOpenParens()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
 @"var result = e switch
 {
     (((1 $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtBeginningOfSwitchExpression_AfterMultipleOpenParens_Complex()
+        {
+            await VerifyKeywordAsync(
+@"namespace N
+{
+    class C
+    {
+        const int P = 1;
+
+        void M()
+        {
+            var e = new object();
+            var result = e switch
+            {
+                (((N.C.P $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
