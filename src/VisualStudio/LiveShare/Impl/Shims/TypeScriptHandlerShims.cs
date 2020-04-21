@@ -24,21 +24,46 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionName)]
-    internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<CompletionParams, LanguageServer.Protocol.CompletionItem[], Solution>
+    internal class TypeScriptCompletionHandlerShim : CompletionHandler, ILspRequestHandler<object, LanguageServer.Protocol.CompletionItem[], Solution>
     {
+
+        /// <summary>
+        /// The VS LSP client supports streaming using IProgress on various requests.	
+        /// However, this works through liveshare on the LSP client, but not the LSP extension.
+        /// see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
+        /// </summary>
+        private static readonly JsonSerializer s_jsonSerializer = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            Error = (sender, args) =>
+            {
+                if (object.Equals(args.ErrorContext.Member, "partialResultToken"))
+                {
+                    args.ErrorContext.Handled = true;
+                }
+            }
+        });
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptCompletionHandlerShim()
         {
         }
 
-        public Task<LanguageServer.Protocol.CompletionItem[]> HandleAsync(CompletionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), null, cancellationToken);
+        public Task<LanguageServer.Protocol.CompletionItem[]> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        {
+            // The VS LSP client supports streaming using IProgress<T> on various requests.	
+            // However, this works through liveshare on the LSP client, but not the LSP extension.
+            // see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
+            var request = ((JObject)input).ToObject<CompletionParams>(s_jsonSerializer);
+            return base.HandleRequestAsync(requestContext.Context, request, requestContext.GetClientCapabilities(), null, cancellationToken);
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionResolveName)]

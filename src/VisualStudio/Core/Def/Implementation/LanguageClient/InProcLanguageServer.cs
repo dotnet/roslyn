@@ -120,9 +120,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _workspace.CurrentSolution, referencesParams, _clientCapabilities, _clientName, cancellationToken);
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
-        public Task<CompletionItem[]> GetTextDocumentCompletionAsync(CompletionParams completionParams, CancellationToken cancellationToken)
-            => _protocol.ExecuteRequestAsync<CompletionParams, CompletionItem[]>(Methods.TextDocumentCompletionName,
-                _workspace.CurrentSolution, completionParams, _clientCapabilities, _clientName, cancellationToken);
+        public async Task<SumType<CompletionList, CompletionItem[]>> GetTextDocumentCompletionAsync(CompletionParams completionParams, CancellationToken cancellationToken)
+            // Convert to sumtype before reporting to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107698
+            => await _protocol.ExecuteRequestAsync<CompletionParams, CompletionItem[]>(Methods.TextDocumentCompletionName,
+                _workspace.CurrentSolution, completionParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
 
         [JsonRpcMethod(Methods.TextDocumentCompletionResolveName, UseSingleObjectParameterDeserialization = true)]
         public Task<CompletionItem> ResolveCompletionItemAsync(CompletionItem completionItem, CancellationToken cancellationToken)
