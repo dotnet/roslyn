@@ -1467,16 +1467,6 @@ This version used in: {2}</value>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
   </data>
-  <data name="_0_cannot_be_null_or_empty" xml:space="preserve">
-    <value>'{0}' cannot be null or empty</value>
-  </data>
-  <data name="_0_cannot_be_null_or_whitespace" xml:space="preserve">
-    <value>'{0}' cannot be null or whitespace</value>
-  </data>
-  <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
-    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
-    <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
-  </data>
   <data name="Resolve_conflict_markers" xml:space="preserve">
     <value>Resolve conflict markers</value>
   </data>
@@ -2753,5 +2743,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Regex_inline_options_short" xml:space="preserve">
     <value>inline options</value>
+  </data>
+  <data name="_0_cannot_be_null_or_empty" xml:space="preserve">
+    <value>'{0}' cannot be null or empty</value>
+  </data>
+  <data name="_0_cannot_be_null_or_whitespace" xml:space="preserve">
+    <value>'{0}' cannot be null or whitespace</value>
   </data>
 </root>
