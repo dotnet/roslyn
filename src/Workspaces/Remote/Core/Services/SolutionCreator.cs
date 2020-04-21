@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,6 +17,10 @@ using System;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
+
+#if DEBUG
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+#endif
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<bool> IsIncrementalUpdateAsync(Checksum newSolutionChecksum)
         {
             var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
-            var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
+            var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Attributes, _cancellationToken).ConfigureAwait(false);
 
             // if either solution id or file path changed, then we consider it as new solution
             return _baseSolution.Id == newSolutionInfo.Id && _baseSolution.FilePath == newSolutionInfo.FilePath;
@@ -57,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 var oldSolutionChecksums = await solution.State.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
                 var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(newSolutionChecksum, _cancellationToken).ConfigureAwait(false);
 
-                if (oldSolutionChecksums.Info != newSolutionChecksums.Info)
+                if (oldSolutionChecksums.Attributes != newSolutionChecksums.Attributes)
                 {
-                    var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Info, _cancellationToken).ConfigureAwait(false);
+                    var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(newSolutionChecksums.Attributes, _cancellationToken).ConfigureAwait(false);
 
                     // if either id or file path has changed, then this is not update
                     Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
@@ -74,6 +77,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
                 {
                     solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
+                }
+
+                if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
+                {
+                    solution = solution.WithAnalyzerReferences(await _assetProvider.CreateCollectionAsync<AnalyzerReference>(
+                        newSolutionChecksums.AnalyzerReferences, _cancellationToken).ConfigureAwait(false));
                 }
 
                 // make sure created solution has same checksum as given one
@@ -288,6 +297,11 @@ namespace Microsoft.CodeAnalysis.Remote
             if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectAttributes.OutputRefFilePath)
             {
                 project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetProject(projectId)!;
+            }
+
+            if (project.State.ProjectInfo.Attributes.CompilationOutputFilePaths != newProjectAttributes.CompilationOutputFilePaths)
+            {
+                project = project.Solution.WithProjectCompilationOutputFilePaths(project.Id, newProjectAttributes.CompilationOutputFilePaths).GetProject(project.Id)!;
             }
 
             if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)

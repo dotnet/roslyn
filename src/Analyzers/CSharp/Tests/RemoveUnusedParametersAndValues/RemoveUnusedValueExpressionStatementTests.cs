@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
 {
     public partial class RemoveUnusedValueExpressionStatementTests : RemoveUnusedValuesTestsBase
     {
-        private protected override IOptionsCollection PreferNone =>
+        private protected override OptionsCollection PreferNone =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
 
-        private protected override IOptionsCollection PreferDiscard =>
+        private protected override OptionsCollection PreferDiscard =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent));
 
-        private protected override IOptionsCollection PreferUnusedLocal =>
+        private protected override OptionsCollection PreferUnusedLocal =>
             Option(CSharpCodeStyleOptions.UnusedValueExpressionStatement,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent));
 

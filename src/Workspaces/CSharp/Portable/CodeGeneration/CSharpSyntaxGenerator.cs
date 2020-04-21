@@ -56,6 +56,56 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);
 
+        internal override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
+        {
+            const string InterpolatedVerbatimText = "$@\"";
+
+            return isVerbatim
+                ? SyntaxFactory.Token(default, SyntaxKind.InterpolatedVerbatimStringStartToken, InterpolatedVerbatimText, InterpolatedVerbatimText, default)
+                : SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
+        }
+
+        internal override SyntaxToken CreateInterpolatedStringEndToken()
+            => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);
+
+        internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(IEnumerable<TElement> nodes, IEnumerable<SyntaxToken> separators)
+            => SyntaxFactory.SeparatedList(nodes, separators);
+
+        internal override SyntaxTrivia Trivia(SyntaxNode node)
+        {
+            if (node is StructuredTriviaSyntax structuredTriviaSyntax)
+            {
+                return SyntaxFactory.Trivia(structuredTriviaSyntax);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(node.Kind());
+        }
+
+        internal override SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString)
+        {
+            var docTrivia = SyntaxFactory.DocumentationCommentTrivia(
+                SyntaxKind.MultiLineDocumentationCommentTrivia,
+                SyntaxFactory.List(nodes),
+                SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
+
+            return docTrivia
+                .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/// "))
+                .WithTrailingTrivia(trailingTrivia)
+                .WithTrailingTrivia(
+                SyntaxFactory.EndOfLine(endOfLineString),
+                lastWhitespaceTrivia);
+        }
+
+        internal override SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content)
+        {
+            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
+            {
+                return SyntaxFactory.DocumentationCommentTrivia(documentationCommentTrivia.Kind(), SyntaxFactory.List(content), documentationCommentTrivia.EndOfComment);
+            }
+
+            return null;
+        }
+
         public static readonly SyntaxGenerator Instance = new CSharpSyntaxGenerator();
 
         #region Declarations
@@ -3482,6 +3532,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return new SyntaxTriviaList(syntaxWithoutComments);
         }
+
+        internal override SyntaxNode ParseExpression(string stringToParse)
+            => SyntaxFactory.ParseExpression(stringToParse);
+
         #endregion
 
         #region Patterns

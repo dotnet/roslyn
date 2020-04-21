@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {
-        private static readonly ObjectFormatter s_formatter = new TestCSharpObjectFormatter();
+        private static readonly TestCSharpObjectFormatter s_formatter = new TestCSharpObjectFormatter();
 
         [Fact]
         public void Objects()
@@ -65,6 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
             str = new TestCSharpObjectFormatter(maximumLineLength: 80).FormatObject(sort, SingleLineOptions);
             Assert.Equal(@"Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str);
+        }
+
+        [Fact]
+        public void ArrayMethodParameters()
+        {
+            var result = s_formatter.FormatMethodSignature(Signatures.Arrays);
+            Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(int[], int[,], int[,,])", result);
         }
 
         [Fact]

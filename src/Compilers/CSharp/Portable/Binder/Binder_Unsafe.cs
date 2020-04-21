@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -26,13 +25,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
-            return ReportUnsafeIfNotAllowed(node.Location, diagnostics, sizeOfTypeOpt);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt);
+            if (diagnosticInfo == null)
+            {
+                return false;
+            }
+
+            diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
+            return true;
         }
 
         /// <returns>True if a diagnostic was reported</returns>
-        internal bool ReportUnsafeIfNotAllowed(Location location, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
+        internal bool ReportUnsafeIfNotAllowed(Location location, DiagnosticBag diagnostics)
         {
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: null);
             if (diagnosticInfo == null)
             {
                 return false;

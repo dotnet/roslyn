@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxTrivia Whitespace(string text);
         internal abstract SyntaxTrivia SingleLineComment(string text);
 
+        internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
+        internal abstract SyntaxToken CreateInterpolatedStringEndToken();
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -1215,6 +1218,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list) where TElement : SyntaxNode;
 
+        internal abstract SeparatedSyntaxList<TElement> SeparatedList<TElement>(IEnumerable<TElement> nodes, IEnumerable<SyntaxToken> separators) where TElement : SyntaxNode;
+
         internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
         {
             // return tokens from newList, but use original tokens of kind matches
@@ -2160,6 +2165,17 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an tuple expression.
         /// </summary>
         public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+
+        /// <summary>
+        /// Parses an expression from string
+        /// </summary>
+        internal abstract SyntaxNode ParseExpression(string stringToParse);
+
+        internal abstract SyntaxTrivia Trivia(SyntaxNode node);
+
+        internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
+
+        internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
 
         #endregion
 

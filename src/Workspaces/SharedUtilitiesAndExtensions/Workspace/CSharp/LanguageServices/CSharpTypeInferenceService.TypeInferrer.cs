@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1103,12 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (symbol.IsReferenceType)
                     {
-#if CODE_STYLE
-                        // TODO: Remove the #if once WithNullableAnnotation is available.
-                        return symbol;
-#else
                         return symbol.WithNullableAnnotation(NullableAnnotation.Annotated);
-#endif
                     }
                     else // it's neither a value nor reference type, so is an unconstrained generic
                     {
@@ -1532,14 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private static ImmutableArray<NullableAnnotation> GetNullableAnnotations(ImmutableArray<ITypeSymbol> elementTypes)
-            {
-                return
-#if CODE_STYLE // TODO: Remove the #if once NullableAnnotation is available.
-                    default;
-#else
-                    elementTypes.SelectAsArray(e => e.NullableAnnotation);
-#endif
-            }
+                => elementTypes.SelectAsArray(e => e.NullableAnnotation);
 
             private IEnumerable<TypeInferenceInfo> InferTypeInLockStatement(LockStatementSyntax lockStatement, SyntaxToken? previousToken = null)
             {

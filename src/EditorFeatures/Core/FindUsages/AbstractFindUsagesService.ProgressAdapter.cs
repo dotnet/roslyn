@@ -94,30 +94,30 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private async Task<DefinitionItem> GetDefinitionItemAsync(SymbolAndProjectId definition)
+            private async Task<DefinitionItem> GetDefinitionItemAsync(ISymbol definition)
             {
-                using (await _gate.DisposableWaitAsync(_context.CancellationToken).ConfigureAwait(false))
+                var cancellationToken = _context.CancellationToken;
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (!_definitionToItem.TryGetValue(definition.Symbol, out var definitionItem))
+                    if (!_definitionToItem.TryGetValue(definition, out var definitionItem))
                     {
-                        definitionItem = await definition.Symbol.ToClassifiedDefinitionItemAsync(
-                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false,
-                            _options, _context.CancellationToken).ConfigureAwait(false);
+                        definitionItem = await definition.ToClassifiedDefinitionItemAsync(
+                            _solution, includeHiddenLocations: false, _options, _context.CancellationToken).ConfigureAwait(false);
 
-                        _definitionToItem[definition.Symbol] = definitionItem;
+                        _definitionToItem[definition] = definitionItem;
                     }
 
                     return definitionItem;
                 }
             }
 
-            public async Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+            public async Task OnDefinitionFoundAsync(ISymbol definition)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 await _context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
 
-            public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
+            public async Task OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
             {
                 var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(

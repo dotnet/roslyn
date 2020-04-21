@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 if (IsCandidateSymbol(memberSymbol))
                 {
                     // Get the value usage info.
-                    var valueUsageInfo = memberReference.GetValueUsageInfo();
+                    var valueUsageInfo = memberReference.GetValueUsageInfo(operationContext.ContainingSymbol);
 
                     if (valueUsageInfo == ValueUsageInfo.ReadWrite)
                     {

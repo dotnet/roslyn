@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                     solution, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
-                return declarations.SelectAsArray(t => t.Symbol);
+                return declarations;
             }
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
                     project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(t => t.Symbol);
+                return declarations;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
                     solution, pattern, filter, cancellationToken).ConfigureAwait(false);
-                return declarations.SelectAsArray(t => t.Symbol);
+                return declarations;
             }
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
                     project, pattern, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations.SelectAsArray(t => t.Symbol);
+                return declarations;
             }
         }
 
