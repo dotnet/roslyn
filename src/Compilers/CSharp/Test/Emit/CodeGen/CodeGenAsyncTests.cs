@@ -5673,6 +5673,7 @@ class IntCode
     public async Task Step(Task<int> t)
     {
         ReadMemory() = await t;
+        ReadMemory() += await t;
     }
 
     private ref long ReadMemory() => throw null;
@@ -5682,7 +5683,10 @@ class IntCode
             {
                 // (8,9): error CS8178: 'await' cannot be used in an expression containing a call to 'IntCode.ReadMemory()' because it returns by reference
                 //         ReadMemory() = await t;
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "ReadMemory()").WithArguments("IntCode.ReadMemory()").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "ReadMemory()").WithArguments("IntCode.ReadMemory()").WithLocation(8, 9),
+                // (9,9): error CS8178: 'await' cannot be used in an expression containing a call to 'IntCode.ReadMemory()' because it returns by reference
+                //         ReadMemory() += await t;
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "ReadMemory()").WithArguments("IntCode.ReadMemory()").WithLocation(9, 9)
             };
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyEmitDiagnostics(expected);
