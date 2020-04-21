@@ -572,6 +572,11 @@
         <target state="translated">Typ {2} musí být typ, který nemůže mít hodnotu null, ani nesmí v žádné úrovni vnoření obsahovat pole, které by ji povolovalo, aby se dal použít jako parametr {1} v obecném typu nebo metodě {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">Proměnnou using není možné v sekci switch použít přímo (zvažte použití složených závorek). </target>

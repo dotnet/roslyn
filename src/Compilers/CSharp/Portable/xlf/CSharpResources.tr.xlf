@@ -572,6 +572,11 @@
         <target state="translated">'{0}' genel türü veya yönteminde '{1}' parametresi olarak kullanılabilmesi için '{2}' türünün, herhangi bir iç içe geçme düzeyindeki tüm alanlarla birlikte null yapılamayan bir değer türü olması gerekir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">Bir using değişkeni, switch bölümü içinde doğrudan kullanılamaz (ayraç kullanmayı deneyin). </target>

@@ -52,12 +52,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Overrides Function IsAcceptedInAttributeModifierType(type As TypeSymbol) As Boolean
-            ' VB doesn't deal with ref-readonly parameters or return-types.
+            ' VB doesn't deal with ref-readonly parameters, function pointers, or ref-return-types.
             Return False
         End Function
 
         Friend Overrides Function IsAcceptedOutAttributeModifierType(type As TypeSymbol) As Boolean
-            ' VB doesn't deal with ref-readonly parameters, function pointers, or return-types.
+            ' VB doesn't deal with ref-readonly parameters, function pointers, or ref-return-types.
             Return False
         End Function
 

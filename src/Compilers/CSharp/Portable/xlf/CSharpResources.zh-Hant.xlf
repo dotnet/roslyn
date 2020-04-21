@@ -572,6 +572,11 @@
         <target state="translated">類型 '{2}' 及任何巢狀層級的所有欄位必須是不可為 null 的值類型，如此才能在泛型型別或方法 '{0}' 中將其用為參數 '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">不可直接在 switch 區段內使用 using 變數 (建議使用大括弧)。 </target>

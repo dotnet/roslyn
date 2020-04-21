@@ -572,6 +572,11 @@
         <target state="translated">Le type '{2}' doit être un type valeur non-nullable, ainsi que l'ensemble des champs à tous les niveaux d'imbrication, pour pouvoir être utilisé en tant que paramètre '{1}' dans le type ou la méthode générique '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">Impossible d'utiliser une variable using directement dans une section switch (utilisez des accolades). </target>

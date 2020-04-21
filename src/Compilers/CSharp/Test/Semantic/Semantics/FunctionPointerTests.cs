@@ -622,7 +622,7 @@ unsafe class C
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
 {
-    void M(delegate*<ref object, void> param1, delegate*<ref object, void> param2)
+    void M(delegate*<ref object, void> param1, delegate*<out object, void> param2)
     {
         delegate*<in object, void> ptr1 = param1;
         delegate*<object, void> ptr2 = param1;
@@ -630,7 +630,7 @@ unsafe class C
         delegate*<out object, void> ptr4 = param1;
         delegate*<in object, void> ptr5 = param2;
         delegate*<object, void> ptr6 = param2;
-        delegate*<ref string, void> ptr7 = param2;
+        delegate*<ref object, void> ptr7 = param2;
         delegate*<out string, void> ptr8 = param2;
     }
 }");
@@ -648,18 +648,18 @@ unsafe class C
                 // (9,44): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<out object,void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<out object, void> ptr4 = param1;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref object,void>", "delegate*<out object,void>").WithLocation(9, 44),
-                // (10,43): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<in object,void>'. An explicit conversion exists (are you missing a cast?)
+                // (10,43): error CS0266: Cannot implicitly convert type 'delegate*<out object,void>' to 'delegate*<in object,void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<in object, void> ptr5 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<ref object,void>", "delegate*<in object,void>").WithLocation(10, 43),
-                // (11,40): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<object,void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object,void>", "delegate*<in object,void>").WithLocation(10, 43),
+                // (11,40): error CS0266: Cannot implicitly convert type 'delegate*<out object,void>' to 'delegate*<object,void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<object, void> ptr6 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<ref object,void>", "delegate*<object,void>").WithLocation(11, 40),
-                // (12,44): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<ref string,void>'. An explicit conversion exists (are you missing a cast?)
-                //         delegate*<ref string, void> ptr7 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<ref object,void>", "delegate*<ref string,void>").WithLocation(12, 44),
-                // (13,44): error CS0266: Cannot implicitly convert type 'delegate*<ref object,void>' to 'delegate*<out string,void>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object,void>", "delegate*<object,void>").WithLocation(11, 40),
+                // (12,44): error CS0266: Cannot implicitly convert type 'delegate*<out object,void>' to 'delegate*<ref object,void>'. An explicit conversion exists (are you missing a cast?)
+                //         delegate*<ref object, void> ptr7 = param2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object,void>", "delegate*<ref object,void>").WithLocation(12, 44),
+                // (13,44): error CS0266: Cannot implicitly convert type 'delegate*<out object,void>' to 'delegate*<out string,void>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<out string, void> ptr8 = param2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<ref object,void>", "delegate*<out string,void>").WithLocation(13, 44)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param2").WithArguments("delegate*<out object,void>", "delegate*<out string,void>").WithLocation(13, 44)
             );
         }
 
@@ -1952,6 +1952,8 @@ unsafe class C
     static void M(delegate*<string, int, void> ptr1, delegate*<__arglist, void> ptr2)
     {
         ptr1(__arglist(string.Empty, 1), 1);
+        ptr1(null, __arglist(string.Empty, 1));
+        ptr1(null, 1, __arglist(string.Empty, 1));
         ptr2(__arglist(1, 2, 3, ptr1));
     }
 }");
@@ -1966,9 +1968,15 @@ unsafe class C
                 // (6,14): error CS1503: Argument 1: cannot convert from '__arglist' to 'string'
                 //         ptr1(__arglist(string.Empty, 1), 1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("1", "__arglist", "string").WithLocation(6, 14),
-                // (7,14): error CS1503: Argument 1: cannot convert from '__arglist' to '?'
+                // (7,20): error CS1503: Argument 2: cannot convert from '__arglist' to 'int'
+                //         ptr1(null, __arglist(string.Empty, 1));
+                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(string.Empty, 1)").WithArguments("2", "__arglist", "int").WithLocation(7, 20),
+                // (8,9): error CS8756: Function pointer 'delegate*<string,int,void>' does not take 3 arguments
+                //         ptr1(null, 1, __arglist(string.Empty, 1));
+                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "ptr1(null, 1, __arglist(string.Empty, 1))").WithArguments("delegate*<string,int,void>", "3").WithLocation(8, 9),
+                // (9,14): error CS1503: Argument 1: cannot convert from '__arglist' to '?'
                 //         ptr2(__arglist(1, 2, 3, ptr1));
-                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(1, 2, 3, ptr1)").WithArguments("1", "__arglist", "?").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(1, 2, 3, ptr1)").WithArguments("1", "__arglist", "?").WithLocation(9, 14)
             );
         }
     }

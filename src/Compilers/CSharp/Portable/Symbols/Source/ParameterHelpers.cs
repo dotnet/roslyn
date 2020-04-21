@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
                                         DiagnosticBag diagnostics) =>
                 {
+                    // Non-function pointer locations have other locations to encode in/ref readonly/outness. For function pointers,
+                    // these modreqs are the only locations that this can be encoded. If that changes, we should update this.
                     Debug.Assert(addRefReadOnlyModifier, "If addReadonlyRef isn't true, we must have found a different location to encode the readonlyness of a function pointer");
                     ImmutableArray<CustomModifier> customModifiers = refKind switch
                     {

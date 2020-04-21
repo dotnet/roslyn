@@ -278,6 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CallingConvention = callingConvention;
             ReturnTypeWithAnnotations = returnType;
             RefKind = getRefKind(retInfo, RefCustomModifiers, RefKind.RefReadOnly);
+            Debug.Assert(RefKind != RefKind.Out);
             _parameters = makeParametersFromMetadata(retAndParamTypes.AsSpan()[1..], this);
 
             static ImmutableArray<FunctionPointerParameterSymbol> makeParametersFromMetadata(ReadOnlySpan<ParamInfo<TypeSymbol>> parameterTypes, FunctionPointerMethodSymbol parent)
@@ -365,7 +366,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             DiagnosticInfo? info = null;
-            CalculateUseSiteDiagnostic(ref info);
+            if (CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments) ||
+                CallingConvention.IsCallingConvention(CallingConvention.FastCall))
+            {
+                info = new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            }
+            else
+            {
+                CalculateUseSiteDiagnostic(ref info);
+            }
             return info;
         }
 

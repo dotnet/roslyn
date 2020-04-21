@@ -572,6 +572,11 @@
         <target state="translated">Der Typ "{2}" muss, ebenso wie sämtliche Felder auf jeder Schachtelungsebene, ein Non-Nullable-Typ sein, wenn er als {1}-Parameter im generischen Typ oder in der generischen Methode "{0}" verwendet werden soll.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">Eine using-Variable kann nicht direkt in einem switch-Abschnitt verwendet werden (erwägen Sie die Verwendung von geschweiften Klammern).</target>

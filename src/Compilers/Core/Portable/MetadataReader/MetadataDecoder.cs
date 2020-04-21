@@ -1202,6 +1202,31 @@ tryAgain:
 
             if (typeCode == SignatureTypeCode.ByReference)
             {
+                if (allowOutAttribute && !info.CustomModifiers.IsDefaultOrEmpty)
+                {
+                    bool hasOut = false;
+                    bool hasIn = false;
+                    foreach (var modifier in info.CustomModifiers)
+                    {
+                        if (!modifier.IsOptional)
+                        {
+                            if (IsAcceptedInAttributeModifierType(modifier.Modifier))
+                            {
+                                hasIn = true;
+                            }
+                            else if (IsAcceptedOutAttributeModifierType(modifier.Modifier))
+                            {
+                                hasOut = true;
+                            }
+                        }
+
+                        if (hasIn && hasOut)
+                        {
+                            throw new UnsupportedSignatureContent();
+                        }
+                    }
+                }
+
                 info.IsByRef = true;
                 info.RefCustomModifiers = info.CustomModifiers;
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);

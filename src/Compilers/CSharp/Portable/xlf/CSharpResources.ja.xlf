@@ -572,6 +572,11 @@
         <target state="translated">型 '{2}' と、入れ子になっているあらゆるレベルのすべてのフィールドは、ジェネリック型またはメソッド '{0}' のパラメーター '{1}' として使用するために、Null 非許容の値型でなければなりません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">using 変数を switch セクションで直接使用することはできません (波かっこの使用をご検討ください)。</target>

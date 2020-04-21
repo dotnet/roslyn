@@ -572,6 +572,11 @@
         <target state="translated">O tipo '{2}' deve ser um tipo de valor não anulável, juntamente com todos os campos em qualquer nível de aninhamento, para ser usado como um parâmetro '{1}' no tipo genérico ou no método '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">Uma variável using não pode ser usada diretamente em uma seção de switch (considere o uso de chaves). </target>

@@ -572,6 +572,11 @@
         <target state="translated">"{2}" debe ser un tipo de valor que no acepta valores NULL, junto con todos los campos de cualquier nivel de anidamiento, para poder usarlo como parámetro "{1}" en el tipo o método genérico "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">Una variable using no se puede usar directamente en una sección switch (considere el uso de llaves). </target>

@@ -572,6 +572,11 @@
         <target state="translated">Typ „{2}” musi być nienullowalnym typem wartości (podobnie jak wszystkie pola na wszystkich poziomach zagnieżdżenia), aby można było używać go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCallingConvention">
+        <source>The calling convention of '{0}' is not supported by C#.</source>
+        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
         <source>A using variable cannot be used directly within a switch section (consider using braces). </source>
         <target state="translated">Nie można użyć zmiennej użycia bezpośrednio w sekcji instrukcji switch (rozważ użycie nawiasów klamrowych).</target>

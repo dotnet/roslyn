@@ -56,7 +56,8 @@ class C
         delegate*<ref readonly readonly string> p4,
         delegate*<this string> p5,
         delegate*<params string> p6,
-        delegate*<ref ref string> p7)
+        delegate*<ref ref string> p7,
+        delegate*<out string> p8)
     {}
 }
 ");
@@ -84,7 +85,10 @@ class C
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "params").WithArguments("params").WithLocation(10, 19),
                     // (11,23): error CS8754: A return type can only have one 'ref' modifier.
                     //         delegate*<ref ref string> p7)
-                    Diagnostic(ErrorCode.ERR_DupReturnTypeMod, "ref").WithArguments("ref").WithLocation(11, 23));
+                    Diagnostic(ErrorCode.ERR_DupReturnTypeMod, "ref").WithArguments("ref").WithLocation(11, 23),
+                    // (12,19): error CS8753: 'out' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+                    //         delegate*<out string> p8)
+                    Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "out").WithArguments("out").WithLocation(12, 19));
         }
 
         [Fact]

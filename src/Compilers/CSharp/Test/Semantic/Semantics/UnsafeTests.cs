@@ -4292,6 +4292,11 @@ unsafe class C
 }
 ";
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign &method group to an implicitly-typed variable
+                //         var i1 = &M;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "i1 = &M").WithArguments("&method group").WithLocation(6, 13)
+            );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
