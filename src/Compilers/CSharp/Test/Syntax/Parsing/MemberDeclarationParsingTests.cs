@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.InitOnly)]
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
         public void InitAccessor()
         {
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })

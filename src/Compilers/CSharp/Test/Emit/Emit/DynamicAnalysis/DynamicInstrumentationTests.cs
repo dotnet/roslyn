@@ -2733,7 +2733,7 @@ class C
             AssertInstrumented(verifier, "C.E2.remove");
         }
 
-        [CompilerTrait(CompilerFeature.InitOnly)]
+        [CompilerTrait(CompilerFeature.InitOnlySetters)]
         [Fact]
         public void ExcludeFromCodeCoverageAttribute_Accessors_Init()
         {

@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    [CompilerTrait(CompilerFeature.InitOnly)]
+    [CompilerTrait(CompilerFeature.InitOnlySetters)]
     public class InitOnlyMemberTests : CompilingTestBase
     {
-        // Spec: https://github.com/jaredpar/csharplang/blob/init/proposals/init.md
+        // Spec: https://github.com/dotnet/csharplang/blob/master/proposals/init.md
 
         // PROTOTYPE(init-only): test allowed from 'with' expression
         // PROTOTYPE(init-only): public API, confirm behavior of IsReadOnly and IsInitOnly
@@ -88,6 +88,122 @@ public class C
                 // (6,51): error CS1007: Property accessor already defined
                 //     public string Property3 { init => throw null; init => throw null; }
                 Diagnostic(ErrorCode.ERR_DuplicateAccessor, "init").WithLocation(6, 51)
+                );
+        }
+
+        [Fact]
+        public void TestWithAccessModifiers_Private()
+        {
+            string source = @"
+public class C
+{
+    public string Property { get { throw null; } private init { throw null; } }
+    void M()
+    {
+        _ = new C() { Property = null };
+        Property = null; // 1
+    }
+
+    C()
+    {
+        Property = null;
+    }
+}
+public class Other
+{
+    void M(C c)
+    {
+        _ = new C() { Property = null }; // 2, 3
+        c.Property = null; // 4
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                //         Property = null; // 1
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9),
+                // (20,17): error CS0122: 'C.C()' is inaccessible due to its protection level
+                //         _ = new C() { Property = null }; // 2, 3
+                Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("C.C()").WithLocation(20, 17),
+                // (20,23): error CS0272: The property or indexer 'C.Property' cannot be used in this context because the set accessor is inaccessible
+                //         _ = new C() { Property = null }; // 2, 3
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "Property").WithArguments("C.Property").WithLocation(20, 23),
+                // (21,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                //         c.Property = null; // 4
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(21, 9)
+                );
+        }
+
+        [Fact]
+        public void TestWithAccessModifiers_Protected()
+        {
+            string source = @"
+public class C
+{
+    public string Property { get { throw null; } protected init { throw null; } }
+    void M()
+    {
+        _ = new C() { Property = null };
+        Property = null; // 1
+    }
+
+    public C()
+    {
+        Property = null;
+    }
+}
+public class Derived : C
+{
+    void M(C c)
+    {
+        _ = new C() { Property = null }; // 2
+        c.Property = null; // 3, 4
+        Property = null; // 5
+    }
+
+    Derived()
+    {
+        _ = new C() { Property = null }; // 6
+        _ = new Derived() { Property = null };
+        Property = null;
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                //         Property = null; // 1
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(8, 9),
+                // (20,23): error CS1540: Cannot access protected member 'C.Property' via a qualifier of type 'C'; the qualifier must be of type 'Derived' (or derived from it)
+                //         _ = new C() { Property = null }; // 2
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "Property").WithArguments("C.Property", "C", "Derived").WithLocation(20, 23),
+                // (21,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                //         c.Property = null; // 3, 4
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(21, 9),
+                // (22,9): error CS8802: Init-only member 'C.Property' can only be assigned from a constructor, object initialization or 'with' expression of that type.
+                //         Property = null; // 5
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(22, 9),
+                // (27,23): error CS1540: Cannot access protected member 'C.Property' via a qualifier of type 'C'; the qualifier must be of type 'Derived' (or derived from it)
+                //         _ = new C() { Property = null }; // 6
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "Property").WithArguments("C.Property", "C", "Derived").WithLocation(27, 23)
+                );
+        }
+
+        [Fact]
+        public void TestWithAccessModifiers_Protected_WithoutGetter()
+        {
+            string source = @"
+public class C
+{
+    public string Property { protected init { throw null; } }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsInitOnlyTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0276: 'C.Property': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
+                //     public string Property { protected init { throw null; } }
+                Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "Property").WithArguments("C.Property").WithLocation(4, 19)
                 );
         }
 

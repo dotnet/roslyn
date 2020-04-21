@@ -35,6 +35,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         DefaultInterfaceImplementation,
         LambdaDiscardParameters,
         StatementAttributes,
-        InitOnly,
+        InitOnlySetters,
     }
 }
