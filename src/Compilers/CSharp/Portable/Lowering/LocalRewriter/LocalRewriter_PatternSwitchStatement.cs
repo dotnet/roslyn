@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
 
-            protected override bool GenerateInstrumentation => true;
+            protected override bool GenerateInstrumentation { get; }
 
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private SwitchStatementLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax))
             {
+                // Only add instrumentation (such as sequence points) if the node is not compiler-generated.
+                GenerateInstrumentation = localRewriter.Instrument && !node.WasCompilerGenerated;
             }
 
             private BoundStatement LowerSwitchStatement(BoundSwitchStatement node)
@@ -161,15 +163,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(_tempAllocator.AllTemps());
 
                 _factory.Syntax = node.Syntax;
-                result.Add(_factory.HiddenSequencePoint());
+                if (GenerateInstrumentation)
+                    result.Add(_factory.HiddenSequencePoint());
+
                 result.Add(_factory.Label(node.BreakLabel));
                 BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());
 
-                // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
-                {
+                if (GenerateInstrumentation)
                     translatedSwitch = _localRewriter._instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
-                }
 
                 return translatedSwitch;
             }
