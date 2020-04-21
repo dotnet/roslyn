@@ -37,35 +37,30 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
-    internal class SerializableSymbolAndProjectId : IEquatable<SerializableSymbolAndProjectId>
+    internal class SerializableSymbolAndProjectId
     {
         public string SymbolKeyData;
         public ProjectId ProjectId;
 
-        public override int GetHashCode()
-            => Hash.Combine(SymbolKeyData, ProjectId.GetHashCode());
-
-        public override bool Equals(object obj)
-            => Equals(obj as SerializableSymbolAndProjectId);
-
-        public bool Equals(SerializableSymbolAndProjectId other)
-            => other != null && SymbolKeyData.Equals(other.SymbolKeyData) && ProjectId.Equals(other.ProjectId);
-
         public static SerializableSymbolAndProjectId Dehydrate(
-            IAliasSymbol alias, Document document)
+            IAliasSymbol alias, Document document, CancellationToken cancellationToken)
         {
             return alias == null
                 ? null
-                : Dehydrate(new SymbolAndProjectId(alias, document.Project.Id));
+                : Dehydrate(document.Project.Solution, alias, cancellationToken);
         }
 
         public static SerializableSymbolAndProjectId Dehydrate(
-            SymbolAndProjectId symbolAndProjectId)
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
+            var symbolKey = symbol.GetSymbolKey(cancellationToken);
+            var projectId = solution.GetExactProjectId(symbol);
+            Contract.ThrowIfNull(projectId, WorkspacesResources.Symbols_project_could_not_be_found_in_the_provided_solution);
+
             return new SerializableSymbolAndProjectId
             {
-                SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
-                ProjectId = symbolAndProjectId.ProjectId
+                SymbolKeyData = symbolKey.ToString(),
+                ProjectId = projectId,
             };
         }
 
@@ -163,12 +158,12 @@ namespace Microsoft.CodeAnalysis.Remote
         public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
-            ReferenceLocation referenceLocation)
+            ReferenceLocation referenceLocation, CancellationToken cancellationToken)
         {
             return new SerializableReferenceLocation
             {
                 Document = referenceLocation.Document.Id,
-                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document),
+                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),

@@ -15,15 +15,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        internal sealed class FindReferencesServerCallback
+        internal sealed class FindReferencesServerCallback : IEqualityComparer<SerializableSymbolAndProjectId>
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
             private readonly CancellationToken _cancellationToken;
 
             private readonly object _gate = new object();
-            private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap =
-                new Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId>();
+
+            /// <summary>
+            /// Note: for purposes of Equality/Hashing, all that we use is the underlying SymbolKey.  That's because FAR
+            /// only cares if it is looking at the same symbol, it don't care if the symbol came from a different
+            /// project or not.
+            /// </summary>
+            private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap;
 
             public FindReferencesServerCallback(
                 Solution solution,
@@ -33,6 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _solution = solution;
                 _progress = progress;
                 _cancellationToken = cancellationToken;
+                _definitionMap = new Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId>(this);
             }
 
             public Task AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
@@ -85,6 +91,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 await _progress.OnReferenceFoundAsync(symbolAndProjectId, referenceLocation).ConfigureAwait(false);
             }
+
+            bool IEqualityComparer<SerializableSymbolAndProjectId>.Equals(SerializableSymbolAndProjectId x, SerializableSymbolAndProjectId y)
+                => y.SymbolKeyData.Equals(x.SymbolKeyData);
+
+            int IEqualityComparer<SerializableSymbolAndProjectId>.GetHashCode(SerializableSymbolAndProjectId obj)
+                => obj.SymbolKeyData.GetHashCode();
         }
     }
 }
