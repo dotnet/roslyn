@@ -144,12 +144,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var progress = new StreamingProgressCollector();
 
             await SymbolFinder.FindReferencesAsync(
-                symbol: method,
-                solution: invocationDocument.Project.Solution,
-                documents: null,
-                progress: progress,
-                options: FindReferencesSearchOptions.Default,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                method, invocationDocument.Project.Solution, progress: progress,
+                documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
             return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
                                     .OfType<IMethodSymbol>()
