@@ -24,6 +24,7 @@
     <None Include="BoundTree\BoundNodes.xsd" />
     <None Include="Generated\CSharp.Generated.g4" />
     <None Include="Syntax\Syntax.xml" />
+    <None Include="Syntax\Syntax.xsd" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
