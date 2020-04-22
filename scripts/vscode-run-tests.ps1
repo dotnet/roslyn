@@ -1,6 +1,6 @@
 param (
   [Parameter(Mandatory = $true)][string]$filePath,
-  [Parameter(Mandatory = $true)][string]$framework,
+  [Parameter(Mandatory = $false)][string]$framework,
   [Parameter(Mandatory = $false)][string]$filter
 )
 
@@ -16,12 +16,16 @@ if ($projectFileInfo) {
   $projectDir = Resolve-Path $projectFileInfo.Directory -Relative
 
   $filterArg = if ($filter) { " --filter $filter" } else { "" }
-  $logFileName = if ($filter) { $fileInfo.Name } else { $projectFileInfo.Name }
+  $logFilePrefix = if ($filter) { $fileInfo.Name } else { $projectFileInfo.Name }
+  $frameworkArg = if ($framework) { " --framework $framework" } else { "" }
 
   $resultsPath = Join-Path $PSScriptRoot ".." "artifacts/TestResults"
   $resultsPath = Resolve-Path (New-Item -ItemType Directory -Force -Path $resultsPath) -Relative
 
-  $invocation = "$dotnetPath test $projectDir$filterArg --framework $framework --logger `"html;LogFileName=$logfileName.html`" --results-directory $resultsPath"
+  # Remove old run logs with the same prefix
+  Remove-Item (Join-Path $resultsPath "$logFilePrefix*.html")
+
+  $invocation = "$dotnetPath test $projectDir" + $filterArg + $frameworkArg + " --logger `"html;LogFilePrefix=$logfilePrefix`" --results-directory $resultsPath"
   Write-Output "> $invocation"
   Invoke-Expression $invocation
 
