@@ -121,16 +121,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         int IList.Add(object value)
         {
-            IList list = Array.Empty<T>();
-            _ = list.Add(value);
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         void ICollection<T>.Add(T value)
         {
-            ICollection<T> list = Array.Empty<T>();
-            list.Add(value);
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         void IList.Clear()
@@ -143,9 +139,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         void ICollection<T>.Clear()
         {
-            ICollection<T> list = Array.Empty<T>();
-            list.Clear();
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         bool IList.Contains(object value)
@@ -202,44 +196,32 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         void IList.Insert(int index, object value)
         {
-            IList list = Array.Empty<T>();
-            list.Insert(0, value);
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         void IList<T>.Insert(int index, T value)
         {
-            IList<T> list = Array.Empty<T>();
-            list.Insert(0, value);
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         void IList.Remove(object value)
         {
-            IList list = Array.Empty<T>();
-            list.Remove(value);
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         bool ICollection<T>.Remove(T value)
         {
-            ICollection<T> collection = Array.Empty<T>();
-            _ = collection.Remove(value);
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         void IList.RemoveAt(int index)
         {
-            IList list = Array.Empty<T>();
-            list.RemoveAt(0);
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         void IList<T>.RemoveAt(int index)
         {
-            IList<T> list = Array.Empty<T>();
-            list.RemoveAt(0);
-            throw ExceptionUtilities.Unreachable;
+            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -253,20 +235,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (other is null)
                 return 1;
 
-            if (!(other is SegmentedArray<T> o))
+            if (!(other is SegmentedArray<T> o)
+                || Length != o.Length)
             {
-                // Delegate to T[] so the correct exception is thrown
-                IStructuralComparable comparable = Array.Empty<T>();
-                comparable.CompareTo(new object(), comparer);
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            if (Length != o.Length)
-            {
-                // Delegate to T[] so the correct exception is thrown
-                IStructuralComparable comparable = Array.Empty<T>();
-                comparable.CompareTo(new T[1], comparer);
-                throw ExceptionUtilities.Unreachable;
+                throw new ArgumentException(CompilerExtensionsResources.ArgumentException_OtherNotArrayOfCorrectLength, nameof(other));
             }
 
             for (var i = 0; i < Length; i++)
@@ -314,6 +286,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             return ret;
         }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
 
         public struct Enumerator : IEnumerator<T>
         {
@@ -364,6 +339,20 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 _nextItemIndex = 0;
                 _current = default;
             }
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SegmentedArray<T> _array;
+
+            public TestAccessor(SegmentedArray<T> array)
+            {
+                _array = array;
+            }
+
+            public static int SegmentSize => s_segmentSize;
+
+            public T[][] Items => _array._items;
         }
     }
 }
