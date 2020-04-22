@@ -223,13 +223,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             _cancellationToken).ConfigureAwait(false);
                     }
 
-                    foreach (var relatedLocation in conflictResolution.RelatedLocations)
+                    for (var i = 0; i < conflictResolution.RelatedLocations.Count; i++)
                     {
+                        var relatedLocation = conflictResolution.RelatedLocations[i];
                         if (relatedLocation.Type == RelatedLocationType.PossiblyResolvableConflict)
-                        {
-                            relatedLocation.Type = RelatedLocationType.UnresolvedConflict;
-                        }
+                            conflictResolution.RelatedLocations[i] = relatedLocation.WithType(RelatedLocationType.UnresolvedConflict);
                     }
+
 #if DEBUG
                     await DebugVerifyNoErrorsAsync(conflictResolution, _documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
 #endif

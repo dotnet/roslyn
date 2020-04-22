@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private readonly RenamedSpansTracker _renamedSpansTracker;
 
         // List of All the Locations that were renamed and conflict-complexified
-        private readonly List<RelatedLocation> _relatedLocations;
+        public readonly List<RelatedLocation> RelatedLocations;
 
         // This is Lazy Initialized when it is first used
         private ILookup<DocumentId, RelatedLocation> _relatedLocationsByDocumentId;
@@ -61,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             _renamedSpansTracker = renamedSpansTracker;
             ReplacementText = replacementText;
             ReplacementTextValid = replacementTextValid;
-            _relatedLocations = new List<RelatedLocation>();
+            RelatedLocations = new List<RelatedLocation>();
         }
 
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)
         {
-            _relatedLocations.RemoveAll(r => conflictLocationDocumentIds.Contains(r.DocumentId));
+            RelatedLocations.RemoveAll(r => conflictLocationDocumentIds.Contains(r.DocumentId));
             _renamedSpansTracker.ClearDocuments(conflictLocationDocumentIds);
         }
 
@@ -111,18 +110,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             NewSolution = NewSolution.WithDocumentName(document.Id, newName);
         }
 
-        /// <summary>
-        /// The list of all symbol locations that are referenced either by the original symbol or
-        /// the renamed symbol. This includes both resolved and unresolved conflicts.
-        /// </summary>
-        public IList<RelatedLocation> RelatedLocations
-        {
-            get
-            {
-                return new ReadOnlyCollection<RelatedLocation>(_relatedLocations);
-            }
-        }
-
         public RenamedSpansTracker RenamedSpansTracker => _renamedSpansTracker;
 
         public int GetAdjustedTokenStartingPosition(
@@ -141,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             if (_relatedLocationsByDocumentId == null)
             {
-                _relatedLocationsByDocumentId = _relatedLocations.ToLookup(r => r.DocumentId);
+                _relatedLocationsByDocumentId = RelatedLocations.ToLookup(r => r.DocumentId);
             }
 
             if (_relatedLocationsByDocumentId.Contains(documentId))
@@ -155,15 +142,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         internal void AddRelatedLocation(RelatedLocation location)
-            => _relatedLocations.Add(location);
+            => RelatedLocations.Add(location);
 
         internal void AddOrReplaceRelatedLocation(RelatedLocation location)
         {
-            var existingRelatedLocation = _relatedLocations.Where(rl => rl.ConflictCheckSpan == location.ConflictCheckSpan && rl.DocumentId == location.DocumentId).FirstOrDefault();
+            var existingRelatedLocation = RelatedLocations.Where(rl => rl.ConflictCheckSpan == location.ConflictCheckSpan && rl.DocumentId == location.DocumentId).FirstOrNull();
             if (existingRelatedLocation != null)
-            {
-                _relatedLocations.Remove(existingRelatedLocation);
-            }
+                RelatedLocations.Remove(existingRelatedLocation.Value);
 
             AddRelatedLocation(location);
         }
