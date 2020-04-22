@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
         [Fact]
         public Task CSharp_TestEmptyDocument()
-        => TestRenameDocument(
-            "",
-            "",
-            newDocumentName: "NewDocumentName");
+            => TestRenameDocument(
+                "",
+                "",
+                newDocumentName: "NewDocumentName");
 
         [Fact]
         public Task CSharp_RenameDocument_NoRenameType()

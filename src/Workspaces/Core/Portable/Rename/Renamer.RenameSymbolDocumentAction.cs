@@ -71,12 +71,9 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 var analysis = await AnalyzeAsync(document, newName, cancellationToken).ConfigureAwait(false);
 
-                if (analysis.HasValue)
-                {
-                    return new RenameSymbolDocumentAction(analysis.Value);
-                }
-
-                return null;
+                return analysis.HasValue
+                    ? new RenameSymbolDocumentAction(analysis.Value)
+                    : null;
             }
 
             private static async Task<AnalysisResult?> AnalyzeAsync(Document document, string newName, CancellationToken cancellationToken)
@@ -137,6 +134,5 @@ namespace Microsoft.CodeAnalysis.Rename
                 }
             }
         }
-
     }
 }
