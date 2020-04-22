@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Shared.Extensions
         //
         // This value should be removed when LanguageVersion.CSharp9 is available, and all callers should just
         // reference that constant instead.
-        public static LanguageVersion CSharp9 => LanguageVersion.Preview;
+        public const LanguageVersion CSharp9 = LanguageVersion.Preview;
 
         public static bool IsCSharp9OrAbove(this LanguageVersion languageVersion)
             => languageVersion >= CSharp9;
