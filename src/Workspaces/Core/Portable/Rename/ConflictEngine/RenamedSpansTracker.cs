@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +21,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     internal sealed class RenamedSpansTracker
     {
         private readonly Dictionary<DocumentId, List<(TextSpan oldSpan, TextSpan newSpan)>> _documentToModifiedSpansMap;
-        private readonly Dictionary<DocumentId, List<ComplexifiedSpan>> _documentToComplexifiedSpansMap;
+        private readonly Dictionary<DocumentId, List<MutableComplexifiedSpan>> _documentToComplexifiedSpansMap;
 
         public RenamedSpansTracker()
         {
-            _documentToComplexifiedSpansMap = new Dictionary<DocumentId, List<ComplexifiedSpan>>();
+            _documentToComplexifiedSpansMap = new Dictionary<DocumentId, List<MutableComplexifiedSpan>>();
             _documentToModifiedSpansMap = new Dictionary<DocumentId, List<(TextSpan oldSpan, TextSpan newSpan)>>();
         }
 
@@ -46,11 +47,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             if (!_documentToComplexifiedSpansMap.TryGetValue(documentId, out var spans))
             {
-                spans = new List<ComplexifiedSpan>();
+                spans = new List<MutableComplexifiedSpan>();
                 _documentToComplexifiedSpansMap[documentId] = spans;
             }
 
-            spans.Add(new ComplexifiedSpan() { OriginalSpan = oldSpan, NewSpan = newSpan, ModifiedSubSpans = modifiedSubSpans });
+            spans.Add(new MutableComplexifiedSpan() { OriginalSpan = oldSpan, NewSpan = newSpan, ModifiedSubSpans = modifiedSubSpans });
         }
 
         internal TextSpan GetAdjustedComplexifiedSpan(TextSpan originalComplexifiedSpan, DocumentId documentId)
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             var documentComplexifiedSpans = _documentToComplexifiedSpansMap.ContainsKey(documentId)
             ? _documentToComplexifiedSpansMap[documentId].Where(c => c.OriginalSpan.Start <= startingPosition) :
-            SpecializedCollections.EmptyEnumerable<ComplexifiedSpan>();
+            SpecializedCollections.EmptyEnumerable<MutableComplexifiedSpan>();
 
             var appliedTextSpans = new HashSet<TextSpan>();
             foreach (var c in documentComplexifiedSpans.Reverse())
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         ///     "a", "NS3.a"
         /// 
         /// </summary>
-        private class ComplexifiedSpan
+        private class MutableComplexifiedSpan
         {
             public TextSpan OriginalSpan;
             public TextSpan NewSpan;
@@ -279,6 +280,27 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             return SpecializedCollections.EmptyEnumerable<(TextSpan oldSpan, TextSpan newSpan)>();
+        }
+
+        public ImmutableDictionary<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>> GetDocumentToModifiedSpansMap()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)>>();
+
+            foreach (var (docId, spans) in _documentToModifiedSpansMap)
+                builder.Add(docId, spans.ToImmutableArray());
+
+            return builder.ToImmutable();
+        }
+
+        public ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> GetDocumentToComplexifiedSpansMap()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<ComplexifiedSpan>>();
+
+            foreach (var (docId, spans) in _documentToComplexifiedSpansMap)
+                builder.Add(docId, spans.SelectAsArray(
+                    s => new ComplexifiedSpan(s.OriginalSpan, s.NewSpan, s.ModifiedSubSpans.ToImmutableArray())));
+
+            return builder.ToImmutable();
         }
 
         internal TestAccessor GetTestAccessor()

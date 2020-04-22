@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Implements IDisposable
 
         Private ReadOnly _workspace As TestWorkspace
-        Private ReadOnly _resolution As MutableConflictResolution
+        Private ReadOnly _resolution As ConflictResolution
 
         ''' <summary>
         ''' The list of related locations that haven't been asserted about yet. Items are
@@ -35,15 +35,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Private _failedAssert As Boolean
 
-        Private Sub New(workspace As TestWorkspace, resolution As MutableConflictResolution, renameTo As String)
+        Private Sub New(workspace As TestWorkspace, resolution As ConflictResolution, renameTo As String)
             _workspace = workspace
             _resolution = resolution
 
-            If resolution IsNot Nothing Then
-                _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
-            Else
-                _unassertedRelatedLocations = New HashSet(Of RelatedLocation)()
-            End If
+            _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
 
             _renameTo = renameTo
         End Sub
@@ -104,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return engineResult
         End Function
 
-        Friend ReadOnly Property ConflictResolution As MutableConflictResolution
+        Friend ReadOnly Property ConflictResolution As ConflictResolution
             Get
                 Return _resolution
             End Get
@@ -179,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Private Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
             Try
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
-                Dim newLocation = ConflictResolution.GetTestAccessor().GetResolutionTextSpan(location.SourceSpan, documentId)
+                Dim newLocation = ConflictResolution.GetResolutionTextSpan(location.SourceSpan, documentId)
 
                 Dim newTree = ConflictResolution.NewSolution.GetDocument(documentId).GetSyntaxTreeAsync().Result
                 Dim newToken = newTree.GetRoot.FindToken(newLocation.Start, findInsideTrivia:=True)

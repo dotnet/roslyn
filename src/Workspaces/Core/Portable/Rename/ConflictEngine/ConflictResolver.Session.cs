@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     // get the renamed symbol in complexified new solution
                     var start = _documentOfRenameSymbolHasBeenRenamed
-                        ? conflictResolution.RenamedSpansTracker.GetAdjustedPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration)
+                        ? conflictResolution.GetAdjustedTokenStartingPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration)
                         : _renameSymbolDeclarationLocation.SourceSpan.Start;
 
                     var document = conflictResolution.NewSolution.GetDocument(_documentIdOfRenameSymbolDeclaration);

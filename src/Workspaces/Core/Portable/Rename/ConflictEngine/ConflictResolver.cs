@@ -34,7 +34,18 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
-        internal static Task<MutableConflictResolution> ResolveConflictsAsync(
+        internal static async Task<ConflictResolution> ResolveConflictsAsync(
+            RenameLocations renameLocationSet,
+            string replacementText,
+            ImmutableHashSet<ISymbol> nonConflictSymbols,
+            CancellationToken cancellationToken)
+        {
+            var resolution = await ResolveMutableConflictsAsync(
+                renameLocationSet, replacementText, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            return new ConflictResolution(resolution);
+        }
+
+        private static Task<MutableConflictResolution> ResolveMutableConflictsAsync(
             RenameLocations renameLocationSet,
             string replacementText,
             ImmutableHashSet<ISymbol> nonConflictSymbols,

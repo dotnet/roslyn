@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Roslyn.Utilities;
@@ -13,28 +14,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
         {
-            private readonly MutableConflictResolution _conflicts;
+            private readonly ConflictResolution _conflicts;
 
-            public InlineRenameReplacementInfo(MutableConflictResolution conflicts)
+            public InlineRenameReplacementInfo(ConflictResolution conflicts)
                 => _conflicts = conflicts;
 
-            public IEnumerable<DocumentId> DocumentIds
-            {
-                get
-                {
-                    return _conflicts.DocumentIds.Concat(_conflicts.RelatedLocations.Select(l => l.DocumentId)).Distinct();
-                }
-            }
+            public IEnumerable<DocumentId> DocumentIds => _conflicts.DocumentIds;
 
             public Solution NewSolution => _conflicts.NewSolution;
-
-            public IEnumerable<RelatedLocationType> Resolutions
-            {
-                get
-                {
-                    return _conflicts.RelatedLocations.Select(loc => loc.Type);
-                }
-            }
 
             public bool ReplacementTextValid => _conflicts.ReplacementTextValid;
 
@@ -48,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private IEnumerable<InlineRenameReplacement> GetNonComplexifiedReplacements(DocumentId documentId)
             {
-                var modifiedSpans = _conflicts.RenamedSpansTracker.GetModifiedSpanMap(documentId);
+                var modifiedSpans = _conflicts.GetModifiedSpanMap(documentId);
                 var locationsForDocument = _conflicts.GetRelatedLocationsForDocument(documentId);
 
                 // The RenamedSpansTracker doesn't currently track unresolved conflicts for
@@ -68,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private IEnumerable<InlineRenameReplacement> GetComplexifiedReplacements(DocumentId documentId)
             {
-                return _conflicts.RenamedSpansTracker.GetComplexifiedSpans(documentId)
+                return _conflicts.GetComplexifiedSpans(documentId)
                     .Select(s => new InlineRenameReplacement(InlineRenameReplacementKind.Complexified, s.oldSpan, s.newSpan));
             }
         }
