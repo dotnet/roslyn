@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsPossibleTupleContext ||
-                context.IsPatternContext)
+                context.IsAtStartOfPattern)
             {
                 return true;
             }
