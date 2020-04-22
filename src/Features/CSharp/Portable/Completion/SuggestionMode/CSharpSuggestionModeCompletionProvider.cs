@@ -211,23 +211,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 return false;
             }
 
-            // Statements containing 'not' cannot be valid variable declarations, e.g. 'e is not int $$' and 'e is not (1 and int $$)'
-            if (patternSyntax.GetAncestorsOrThis(a => a is UnaryPatternSyntax unaryPatternSyntax &&
-                                                      unaryPatternSyntax.PatternOperator.IsKind(SyntaxKind.NotKeyword)).Any())
+            var possibleInvalidVariable = patternSyntax.Parent;
+            while (possibleInvalidVariable is BinaryPatternSyntax ||
+                   possibleInvalidVariable is UnaryPatternSyntax ||
+                   possibleInvalidVariable is ParenthesizedPatternSyntax ||
+                   possibleInvalidVariable is ParenthesizedExpressionSyntax)
             {
-                return false;
-            }
-
-            // Patterns containing 'or' cannot contain valid variable declarations, e.g. 'e is 1 or int $$'
-            var possibleBinaryPattern = patternSyntax.Parent;
-            while (possibleBinaryPattern is BinaryPatternSyntax binaryPatternSyntax)
-            {
-                if (binaryPatternSyntax.PatternOperator.IsKind(SyntaxKind.OrKeyword))
+                // Patterns containing 'or' cannot contain valid variable declarations, e.g. 'e is 1 or int $$'
+                if (possibleInvalidVariable is BinaryPatternSyntax binaryPatternSyntax && binaryPatternSyntax.IsKind(SyntaxKind.OrPattern))
                 {
                     return false;
                 }
 
-                possibleBinaryPattern = binaryPatternSyntax.Parent;
+                // Patterns containing 'not' cannot be valid variable declarations, e.g. 'e is not int $$' and 'e is not (1 and int $$)'
+                if (possibleInvalidVariable is UnaryPatternSyntax unaryPatternSyntax && unaryPatternSyntax.IsKind(SyntaxKind.NotPattern))
+                {
+                    return false;
+                }
+
+                possibleInvalidVariable = possibleInvalidVariable.Parent;
             }
 
             // e is int o$$

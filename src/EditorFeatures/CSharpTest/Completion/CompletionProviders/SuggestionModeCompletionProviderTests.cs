@@ -1152,6 +1152,23 @@ class C
 
         [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInPropertyPattern()
+        {
+            var markup = @"
+class C
+{
+    int P { get; }
+
+    void M(C test)
+    {
+        if (test is { P: int o$$ })
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAndPattern()
         {
             var markup = @"
