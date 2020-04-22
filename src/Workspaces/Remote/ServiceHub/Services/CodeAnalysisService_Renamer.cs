@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (symbol == null)
                         return null;
 
-                    var result = await Renamer.FindRenameLocationsAsync(
-                        solution, symbol, options.Rehydrate(), cancellationToken).ConfigureAwait(false);
+                    var result = await RenameLocations.FindLocationsAsync(
+                        symbol, solution, options.Rehydrate(), cancellationToken).ConfigureAwait(false);
                     return result.Dehydrate(solution, cancellationToken);
                 }
             }, cancellationToken);

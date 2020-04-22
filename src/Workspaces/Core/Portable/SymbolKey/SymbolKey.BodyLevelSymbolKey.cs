@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {

@@ -35,11 +35,15 @@ namespace Microsoft.CodeAnalysis.Rename
             RenameFile = renameFile;
         }
 
-        internal static RenameOptionSet From(OptionSet options)
-            => new RenameOptionSet(
+        internal static RenameOptionSet From(Solution solution, OptionSet options)
+        {
+            options ??= solution.Options;
+
+            return new RenameOptionSet(
                 options.GetOption(RenameOptions.RenameOverloads),
                 options.GetOption(RenameOptions.RenameInStrings),
                 options.GetOption(RenameOptions.RenameInComments),
                 options.GetOption(RenameOptions.RenameFile));
+        }
     }
 }

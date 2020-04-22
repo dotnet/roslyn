@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             CancellationToken cancellationToken)
         {
             var initialLocations = await Renamer.FindRenameLocationsAsync(
-                solution, field, RenameOptionSet.From(solution.Options), cancellationToken).ConfigureAwait(false);
+                solution, field, optionSet: null, cancellationToken).ConfigureAwait(false);
 
             return await Renamer.RenameAsync(
                 initialLocations.Filter(filter), finalName,
