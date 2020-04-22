@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
@@ -192,24 +191,44 @@ namespace Roslyn.Test.Utilities
         {
             var workspace = TestWorkspace.CreateCSharp(markups, exportProvider: GetExportProvider());
             var solution = workspace.CurrentSolution;
-            locations = new Dictionary<string, IList<LSP.Location>>();
 
             foreach (var document in workspace.Documents)
             {
-                var text = solution.GetDocument(document.Id).GetTextSynchronously(CancellationToken.None);
-                foreach (var (name, spans) in document.AnnotatedSpans)
-                {
-                    locations
-                        .GetOrAdd(name, _ => new List<LSP.Location>())
-                        .AddRange(spans.Select(span => ProtocolConversions.TextSpanToLocation(span, text, new Uri(GetDocumentFilePathFromName(document.Name)))));
-                }
-
                 solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
             }
 
             workspace.ChangeSolution(solution);
 
+            locations = GetAnnotatedLocations(workspace, solution);
             return workspace;
+        }
+
+        protected Workspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
+        {
+            var workspace = TestWorkspace.Create(xmlContent, exportProvider: GetExportProvider());
+            locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
+            return workspace;
+        }
+
+        private Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
+        {
+            var locations = new Dictionary<string, IList<LSP.Location>>();
+            foreach (var testDocument in workspace.Documents)
+            {
+                var document = solution.GetDocument(testDocument.Id);
+                var text = document.GetTextSynchronously(CancellationToken.None);
+                foreach (var (name, spans) in testDocument.AnnotatedSpans)
+                {
+                    var locationsForName = locations.GetOrValue(name, new List<LSP.Location>());
+                    locationsForName.AddRange(spans.Select(span => ProtocolConversions.TextSpanToLocation(span, text, new Uri(document.FilePath))));
+
+                    // Linked files will return duplicate annotated Locations for each document that links to the same file.
+                    // Since the test output only cares about the actual file, make sure we de-dupe before returning.
+                    locations[name] = locationsForName.Distinct().ToList();
+                }
+            }
+
+            return locations;
         }
 
         // Private protected because LanguageServerProtocol is internal

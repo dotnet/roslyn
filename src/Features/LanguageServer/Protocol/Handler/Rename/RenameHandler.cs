@@ -5,36 +5,38 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspMethod(LSP.Methods.TextDocumentRenameName), Shared]
-    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit>
+    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
+        private static TextEditEqualityComparer s_textEditEqualityComparer = new TextEditEqualityComparer();
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RenameHandler()
         {
         }
 
-        public async Task<WorkspaceEdit> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit?> HandleRequestAsync(Solution solution, RenameParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            WorkspaceEdit workspaceEdit = null;
+            WorkspaceEdit? workspaceEdit = null;
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document != null)
             {
-                var renameService = document.Project.LanguageServices.GetService<IEditorInlineRenameService>();
+                var renameService = document.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
                 var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -49,35 +51,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var newSolution = renameReplacementInfo.NewSolution;
                 var solutionChanges = newSolution.GetChanges(solution);
 
-                // Merge changes in linked files.  Will result in linked file documents having the same changes in all linked documents.
-                // Once the changes are the same across linked files, we can take the distinct changes by file uri
                 var solutionWithLinkedFileChangesMerged = newSolution.WithMergedLinkedFileChangesAsync(solution, solutionChanges, cancellationToken: cancellationToken).Result;
-                solutionChanges = solutionWithLinkedFileChangesMerged.GetChanges(solution);
-                var changedDocuments = solutionChanges
-                    .GetProjectChanges()
-                    .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
-                    .GroupBy(docId => newSolution.GetRequiredDocument(docId).FilePath).Select(group => group.First());
+                var changedDocuments = solutionWithLinkedFileChangesMerged.GetChanges(solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true));
 
-                var documentEdits = new ArrayBuilder<TextDocumentEdit>();
-                foreach (var docId in changedDocuments)
+                // Linked files will create multiple documents with duplicate edits for the same actual file.
+                // So take only the unique edits per URI to avoid returning duplicate edits.
+                var textEdits = new Dictionary<Uri, List<TextEdit>>();
+                foreach (var changedDocument in changedDocuments)
                 {
-                    var oldDoc = solution.GetRequiredDocument(docId);
-                    var newDoc = newSolution.GetRequiredDocument(docId);
-
-                    var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
-                    var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var textDocumentEdit = new TextDocumentEdit
-                    {
-                        TextDocument = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() },
-                        Edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray()
-                    };
-                    documentEdits.Add(textDocumentEdit);
+                    var documentUri = newSolution.GetRequiredDocument(changedDocument).GetURI();
+                    var textChangesForUri = textEdits.GetOrValue(documentUri, new List<TextEdit>());
+                    textChangesForUri.AddRange(await GetTextChangesAsync(changedDocument, newSolution, solution, cancellationToken).ConfigureAwait(false));
+                    textEdits[documentUri] = textChangesForUri.Distinct(s_textEditEqualityComparer).ToList();
                 }
 
-                workspaceEdit = new WorkspaceEdit { DocumentChanges = documentEdits.ToArrayAndFree() };
+                var documentEdits = textEdits.Select(kvp => new TextDocumentEdit
+                {
+                    TextDocument = new VersionedTextDocumentIdentifier { Uri = kvp.Key },
+                    Edits = kvp.Value.ToArray()
+                }).ToArray();
+
+                workspaceEdit = new WorkspaceEdit { DocumentChanges = documentEdits };
             }
 
             return workspaceEdit;
+
+            static async Task<IEnumerable<TextEdit>> GetTextChangesAsync(DocumentId documentId, Solution newSolution, Solution oldSolution, CancellationToken cancellationToken)
+            {
+                var oldDoc = oldSolution.GetRequiredDocument(documentId);
+                var newDoc = newSolution.GetRequiredDocument(documentId);
+
+                var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
+                var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                return textChanges.Select(textChange => ProtocolConversions.TextChangeToTextEdit(textChange, oldText));
+            }
         }
     }
 }
