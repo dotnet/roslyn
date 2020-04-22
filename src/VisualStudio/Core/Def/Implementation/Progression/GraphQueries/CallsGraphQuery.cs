@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbolAndProjectId = graphBuilder.GetSymbolAndProjectId(node);
-                if (symbolAndProjectId.Symbol != null)
+                var symbol = graphBuilder.GetSymbol(node);
+                if (symbol != null)
                 {
-                    foreach (var newSymbol in await GetCalledMethodSymbolsAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false))
+                    foreach (var newSymbol in await GetCalledMethodSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
@@ -37,12 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return graphBuilder;
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId>> GetCalledMethodSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ISymbol>> GetCalledMethodSymbolsAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<SymbolAndProjectId>.GetInstance(out var symbols);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-            foreach (var reference in symbolAndProjectId.Symbol.DeclaringSyntaxReferences)
+            foreach (var reference in symbol.DeclaringSyntaxReferences)
             {
                 var semanticModel = await solution.GetDocument(reference.SyntaxTree).GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var syntaxNode in (await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false)).DescendantNodes())
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     if (newSymbol != null && newSymbol is IMethodSymbol &&
                         (newSymbol.CanBeReferencedByName || ((IMethodSymbol)newSymbol).MethodKind == MethodKind.Constructor))
                     {
-                        symbols.Add(symbolAndProjectId.WithSymbol(newSymbol));
+                        symbols.Add(newSymbol);
                     }
                 }
             }

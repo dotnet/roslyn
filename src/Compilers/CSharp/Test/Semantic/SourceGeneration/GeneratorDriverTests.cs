@@ -44,7 +44,7 @@ class C { }
         }
 
         [Fact]
-        public void Generator_Is_Intialized_Before_Running()
+        public void Generator_Is_Initialized_Before_Running()
         {
             var source = @"
 class C { }
@@ -372,7 +372,7 @@ class C { }
 
             driver = driver.RunFullGeneration(compilation, out var outputCompilation, out _);
 
-            // we should have the a single extra file for the additional texts
+            // we should have a single extra file for the additional texts
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
 
             // even if we run a full gen, or partial, nothing should change yet
@@ -574,7 +574,7 @@ class C { }
         }
 
         [Fact]
-        public void Error_During_Generation_With_Dependant_Source()
+        public void Error_During_Generation_With_Dependent_Source()
         {
             var source = @"
 #pragma warning disable CS0649

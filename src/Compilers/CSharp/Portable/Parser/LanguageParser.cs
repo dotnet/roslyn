@@ -4731,7 +4731,7 @@ tryAgain:
             {
                 // Error tolerance for IntelliSense. Consider the following case: [EditorBrowsable( partial class Goo {
                 // } Because we're parsing an attribute argument we'll end up consuming the "partial" identifier and
-                // we'll eventually end up in an pretty confused state.  Because of that it becomes very difficult to
+                // we'll eventually end up in a pretty confused state.  Because of that it becomes very difficult to
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
                 // as an identifier or as a contextual keyword.  If it's the latter then we bail out.  See
                 // Bug: vswhidbey/542125
@@ -6563,7 +6563,7 @@ done:;
             //      Task.
             //      await Task.Delay()
             //
-            // In this case we don't want to parse this as as a local declaration like:
+            // In this case we don't want to parse this as a local declaration like:
             //
             //      Task.await Task
             //
