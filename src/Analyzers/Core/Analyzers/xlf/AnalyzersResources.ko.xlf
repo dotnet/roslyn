@@ -52,6 +52,11 @@
         <target state="translated">식 트리를 변경하면 런타임에 동작이 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Conditional_expression_can_be_simplified">
+        <source>Conditional expression can be simplified</source>
+        <target state="new">Conditional expression can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
         <target state="translated">조건식으로 변환</target>
@@ -82,6 +87,11 @@
         <target state="translated">'GetHashCode' 구현이 간소화될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="new">Interpolation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_format_string">
         <source>Invalid format string</source>
         <target state="translated">잘못된 형식 문자열</target>
@@ -100,6 +110,11 @@
       <trans-unit id="Add_missing_cases">
         <source>Add missing cases</source>
         <target state="translated">누락된 사례 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_name_can_be_simplified">
+        <source>Member name can be simplified</source>
+        <target state="new">Member name can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -227,6 +242,16 @@
         <target state="translated">컬렉션 초기화 단순화</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_conditional_expression">
+        <source>Simplify conditional expression</source>
+        <target state="new">Simplify conditional expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="new">Simplify interpolation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_object_initialization">
         <source>Simplify object initialization</source>
         <target state="translated">개체 초기화 단순화</target>
@@ -275,6 +300,11 @@
       <trans-unit id="Use_explicitly_provided_tuple_name">
         <source>Use explicitly provided tuple name</source>
         <target state="translated">명시적으로 제공된 튜플 이름 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_inferred_member_name">
+        <source>Use inferred member name</source>
+        <target state="new">Use inferred member name</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_null_propagation">

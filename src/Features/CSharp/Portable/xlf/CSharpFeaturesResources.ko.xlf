@@ -72,6 +72,16 @@
         <target state="translated">'out' 매개 변수 할당(시작 시)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="new">Assign to '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="new">Compare to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">메서드로 변환</target>
@@ -620,11 +630,6 @@
       <trans-unit id="Hide_base_member">
         <source>Hide base member</source>
         <target state="translated">기본 멤버 숨기기</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Delegate_invocation_can_be_simplified">
-        <source>Delegate invocation can be simplified.</source>
-        <target state="translated">대리자 호출을 간단하게 만들 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Properties">

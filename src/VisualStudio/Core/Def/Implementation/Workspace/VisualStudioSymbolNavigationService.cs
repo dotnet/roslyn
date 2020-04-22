@@ -178,14 +178,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
-            => TryNotifyForSpecificSymbol(symbol, project, cancellationToken);
+            => TryNotifyForSpecificSymbol(symbol, project.Solution, cancellationToken);
 
         private bool TryNotifyForSpecificSymbol(
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
             if (!TryGetNavigationAPIRequiredArguments(

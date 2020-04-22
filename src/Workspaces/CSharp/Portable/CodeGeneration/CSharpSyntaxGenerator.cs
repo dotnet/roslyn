@@ -56,6 +56,56 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
             => SyntaxFactory.SeparatedList<TElement>(list);
 
+        internal override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
+        {
+            const string InterpolatedVerbatimText = "$@\"";
+
+            return isVerbatim
+                ? SyntaxFactory.Token(default, SyntaxKind.InterpolatedVerbatimStringStartToken, InterpolatedVerbatimText, InterpolatedVerbatimText, default)
+                : SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken);
+        }
+
+        internal override SyntaxToken CreateInterpolatedStringEndToken()
+            => SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken);
+
+        internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(IEnumerable<TElement> nodes, IEnumerable<SyntaxToken> separators)
+            => SyntaxFactory.SeparatedList(nodes, separators);
+
+        internal override SyntaxTrivia Trivia(SyntaxNode node)
+        {
+            if (node is StructuredTriviaSyntax structuredTriviaSyntax)
+            {
+                return SyntaxFactory.Trivia(structuredTriviaSyntax);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(node.Kind());
+        }
+
+        internal override SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString)
+        {
+            var docTrivia = SyntaxFactory.DocumentationCommentTrivia(
+                SyntaxKind.MultiLineDocumentationCommentTrivia,
+                SyntaxFactory.List(nodes),
+                SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
+
+            return docTrivia
+                .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/// "))
+                .WithTrailingTrivia(trailingTrivia)
+                .WithTrailingTrivia(
+                SyntaxFactory.EndOfLine(endOfLineString),
+                lastWhitespaceTrivia);
+        }
+
+        internal override SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content)
+        {
+            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
+            {
+                return SyntaxFactory.DocumentationCommentTrivia(documentationCommentTrivia.Kind(), SyntaxFactory.List(content), documentationCommentTrivia.EndOfComment);
+            }
+
+            return null;
+        }
+
         public static readonly SyntaxGenerator Instance = new CSharpSyntaxGenerator();
 
         #region Declarations
@@ -3057,30 +3107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode ElementAccessExpression(SyntaxNode expression, IEnumerable<SyntaxNode> arguments)
             => SyntaxFactory.ElementAccessExpression(ParenthesizeLeft((ExpressionSyntax)expression), SyntaxFactory.BracketedArgumentList(CreateArguments(arguments)));
 
-        internal override SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken)
-            => SyntaxFactory.InterpolatedStringExpression(startToken, SyntaxFactory.List(content.Cast<InterpolatedStringContentSyntax>()), endToken);
-
-        internal override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
-            => SyntaxFactory.InterpolatedStringText(textToken);
-
-        internal override SyntaxToken InterpolatedStringTextToken(string content)
-            => SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(),
-                SyntaxKind.InterpolatedStringTextToken,
-                content, "",
-                SyntaxFactory.TriviaList());
-
-        internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
-            => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
-
-        internal override SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
-            => SyntaxFactory.InterpolationAlignmentClause(SyntaxFactory.Token(SyntaxKind.CommaToken), (ExpressionSyntax)alignment);
-
-        internal override SyntaxNode InterpolationFormatClause(string format)
-            => SyntaxFactory.InterpolationFormatClause(
-                    SyntaxFactory.Token(SyntaxKind.ColonToken),
-                    SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
-
         internal override SyntaxToken NumericLiteralToken(string text, ulong value)
             => SyntaxFactory.Literal(text, value);
 
@@ -3506,6 +3532,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return new SyntaxTriviaList(syntaxWithoutComments);
         }
+
+        internal override SyntaxNode ParseExpression(string stringToParse)
+            => SyntaxFactory.ParseExpression(stringToParse);
+
         #endregion
 
         #region Patterns

@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Debug.Assert(expectedOptions.AnalyzerConfigOptionsProvider.GetType() == typeof(CompilerAnalyzerConfigOptionsProvider));
         }
 
-        protected override void OnAbstractMember(string AbstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName]string callerName = null)
+        protected override void OnAbstractMember(string AbstractMemberName, SyntaxNode node = null, ISymbol symbol = null, [CallerMemberName] string callerName = null)
         {
         }
 
-        protected override void OnOptions(AnalyzerOptions options, [CallerMemberName]string callerName = null)
+        protected override void OnOptions(AnalyzerOptions options, [CallerMemberName] string callerName = null)
         {
             if (AreEqual(options, _expectedOptions))
             {

@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
                                 Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
                             }
-                            // Case 2: receiver is a base reference, and the the child type is restricted
+                            // Case 2: receiver is a base reference, and the child type is restricted
                             else if (call.ReceiverOpt.Kind == BoundKind.BaseReference && this.ContainingType.IsRestrictedType())
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, this.ContainingType, call.Method.ContainingType);
@@ -958,6 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var boundWithErrors = unboundLambda.BindForErrorRecovery();
                                 diagnostics.AddRange(boundWithErrors.Diagnostics);
                                 break;
+                            case BoundUnconvertedObjectCreationExpression _:
                             case BoundTupleLiteral _:
                                 // Tuple literals can contain unbound lambdas or switch expressions.
                                 _ = BindToNaturalType(argument, diagnostics);
@@ -1412,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol getCorrespondingParameterType(int i)
             {
-                // See if all applicable applicable parameters have the same type
+                // See if all applicable parameters have the same type
                 TypeSymbol candidateType = null;
                 foreach (var parameterList in parameterListList)
                 {
@@ -1550,6 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            boundArgument = BindToNaturalType(boundArgument, diagnostics, reportNoTargetType: false);
             return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
         }
 

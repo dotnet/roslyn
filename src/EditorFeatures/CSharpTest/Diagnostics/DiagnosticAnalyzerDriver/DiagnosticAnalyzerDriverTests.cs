@@ -44,9 +44,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular);
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             AccessSupportedDiagnostics(analyzer);
-            await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new TextSpan(0, document.GetTextAsync().Result.Length));
+            await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, new TextSpan(0, document.GetTextAsync().Result.Length));
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxNodes);
@@ -70,8 +74,11 @@ class C
             var ideEngineAnalyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source))
             {
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(ideEngineAnalyzer));
+                ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineAnalyzer, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
                 foreach (var method in methodNames)
                 {
                     Assert.False(ideEngineAnalyzer.CallLog.Any(e => e.CallerName == method && e.MethodKind == MethodKind.DelegateInvoke && e.ReturnsVoid));
@@ -100,9 +107,15 @@ class C
         {
             var source = TestResource.AllInOneCSharpCode;
             using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular);
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
             await ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptionsAsync(async analyzer =>
-                await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new TextSpan(0, document.GetTextAsync().Result.Length)));
+            {
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+                var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+                return await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, new TextSpan(0, document.GetTextAsync().Result.Length));
+            });
         }
 
         [WorkItem(908621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908621")]
@@ -137,25 +150,26 @@ class C
         public async Task AnalyzerOptionsArePassedToAllAnalyzers()
         {
             using var workspace = TestWorkspace.CreateCSharp(TestResource.AllInOneCSharpCode, TestOptions.Regular);
-            var currentProject = workspace.CurrentSolution.Projects.Single();
 
-            var additionalDocId = DocumentId.CreateNewId(currentProject.Id);
-            var newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"));
-            currentProject = newSln.Projects.Single();
-            var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId)!;
-            var additionalStream = new AdditionalTextWithState(additionalDocument.State);
-            var options = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>(additionalStream));
+            var additionalDocId = DocumentId.CreateNewId(workspace.CurrentSolution.Projects.Single().Id);
+            var additionalText = new TestAdditionalText("add.config", SourceText.From("random text"));
+            var options = new AnalyzerOptions(ImmutableArray.Create<AdditionalText>(additionalText));
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
 
-            var sourceDocument = currentProject.Documents.Single();
-            await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, sourceDocument, new TextSpan(0, sourceDocument.GetTextAsync().Result.Length));
+            workspace.TryApplyChanges(workspace.CurrentSolution
+                .WithAnalyzerReferences(new[] { analyzerReference })
+                .AddAdditionalDocument(additionalDocId, "add.config", additionalText.GetText()));
+
+            var sourceDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(sourceDocument, new TextSpan(0, sourceDocument.GetTextAsync().Result.Length));
             analyzer.VerifyAnalyzerOptions();
         }
 
         private void AccessSupportedDiagnostics(DiagnosticAnalyzer analyzer)
         {
-            var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, analyzer);
-            diagnosticService.GetDiagnosticDescriptorsPerReference();
+            var diagnosticService = new HostDiagnosticAnalyzers(new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) });
+            diagnosticService.GetDiagnosticDescriptorsPerReference(new DiagnosticAnalyzerInfoCache());
         }
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
@@ -171,10 +185,14 @@ class C
         {
             var source = @"x";
 
+            using var workspace = TestWorkspace.CreateCSharp(source);
+
             var analyzer = new CompilationAnalyzerWithSyntaxTreeAnalyzer();
-            using var ideEngineWorkspace = TestWorkspace.CreateCSharp(source);
-            var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+            var ideEngineDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
 
             var diagnosticsFromAnalyzer = diagnostics.Where(d => d.Id == "SyntaxDiagnostic");
 
@@ -226,8 +244,11 @@ class C
             var analyzer = new CodeBlockAnalyzerFactory();
             using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source))
             {
+                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+                ideEngineWorkspace.TryApplyChanges(ideEngineWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
                 var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideEngineDocument, new TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length));
                 var diagnosticsFromAnalyzer = diagnostics.Where(d => d.Id == CodeBlockAnalyzerFactory.Descriptor.Id);
                 Assert.Equal(2, diagnosticsFromAnalyzer.Count());
             }
@@ -579,6 +600,11 @@ class C
             }
 
             using var workspace = TestWorkspace.CreateCSharp("class Class { }", TestOptions.Regular);
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
+            {
+                new AnalyzerImageReference(vsixAnalyzers.CastArray<DiagnosticAnalyzer>())
+            })));
+
             var project = workspace.CurrentSolution.Projects.Single();
 
             if (!nugetAnalyzers.IsEmpty)
@@ -588,10 +614,9 @@ class C
 
             var document = project.Documents.Single();
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-            var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(
-                workspaceAnalyzerOpt: vsixAnalyzers.SingleOrDefault(),
-                document,
-                root.FullSpan)).OrderBy(d => d.Id).ToImmutableArray();
+
+            var diagnostics = (await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, root.FullSpan))
+                .OrderBy(d => d.Id).ToImmutableArray();
 
             diagnostics.Verify(expectedDiagnostics.Select(d => d.diagnostic).ToArray());
 

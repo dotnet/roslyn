@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public static class WorkspaceExtensions
     {
-        public static void ApplyOptions(this Workspace workspace, IDictionary<OptionKey, object>? options)
+        public static void ApplyOptions(this Workspace workspace, IReadOnlyCollection<KeyValuePair<OptionKey, object>>? options)
             => workspace.ApplyOptions(options?.Select(kvp => (kvp.Key, kvp.Value)));
 
-        internal static void ApplyOptions(this Workspace workspace, IDictionary<OptionKey2, object>? options)
+        internal static void ApplyOptions(this Workspace workspace, IReadOnlyCollection<KeyValuePair<OptionKey2, object>>? options)
             => workspace.ApplyOptions(options?.Select(kvp => ((OptionKey)kvp.Key, kvp.Value)));
 
         private static void ApplyOptions(this Workspace workspace, IEnumerable<(OptionKey key, object value)>? options)

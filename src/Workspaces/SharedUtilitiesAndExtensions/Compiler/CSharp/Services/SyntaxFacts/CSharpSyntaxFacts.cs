@@ -149,7 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsNamedParameter(SyntaxNode node)
+        public bool IsNamedArgument(SyntaxNode node)
+            => node is ArgumentSyntax arg && arg.NameColon != null;
+
+        public bool IsNameOfNamedArgument(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
 
         public SyntaxToken? GetNameOfParameter(SyntaxNode node)
@@ -1473,16 +1476,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        public bool IsOnTypeHeader(SyntaxNode root, int position, out SyntaxNode typeDeclaration)
+        public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, out SyntaxNode typeDeclaration)
         {
             var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(root, position);
             typeDeclaration = node;
             if (node == null)
-            {
                 return false;
-            }
 
-            return IsOnHeader(root, position, node, node.Identifier);
+            var lastToken = (node as TypeDeclarationSyntax)?.TypeParameterList?.GetLastToken() ?? node.Identifier;
+            if (fullHeader)
+                lastToken = node.BaseList?.GetLastToken() ?? lastToken;
+
+            return IsOnHeader(root, position, node, lastToken);
         }
 
         public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, out SyntaxNode propertyDeclaration)
@@ -1698,6 +1703,20 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
             => node.GetAttributeLists();
+
+        public override bool IsParameterNameXmlElementSyntax(SyntaxNode node)
+            => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax xmlElement) &&
+            xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
+
+        public override SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
+        {
+            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
+            {
+                return documentationCommentTrivia.Content;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(trivia.Kind());
+        }
 
         public override bool CanHaveAccessibility(SyntaxNode declaration)
         {

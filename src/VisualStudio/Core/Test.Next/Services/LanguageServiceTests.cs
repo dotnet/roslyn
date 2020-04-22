@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Equal("Method", Assert.Single(results).Name);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43255"), Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task CSharpLanguageServiceTest_MultipleResults()
         {
             var code = @"class Test 

@@ -572,6 +572,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
                     !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
                     !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
+                    !object.Equals(oldProject.CompilationOutputFilePaths, newProject.CompilationOutputFilePaths) ||
                     oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);

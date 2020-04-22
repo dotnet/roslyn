@@ -78,6 +78,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return 0;
             }
 
+            if (_compiler.Arguments.DisplayLangVersions)
+            {
+                _compiler.PrintLangVersions(_console.Out);
+                return 0;
+            }
+
             if (sourceFiles.IsEmpty && _compiler.Arguments.DisplayLogo)
             {
                 _compiler.PrintLogo(_console.Out);
@@ -162,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 allowUnsafe: true,
                 checkOverflow: false,
                 warningLevel: 4,
-                parseOptions: null);
+                parseOptions: arguments.ParseOptions);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)

@@ -93,8 +93,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
         {
+            var currentSolution = _workspace.CurrentSolution;
             var infoCache = _diagnosticService.AnalyzerInfoCache;
-            var hostAnalyzers = _diagnosticService.HostAnalyzers;
+            var hostAnalyzers = currentSolution.State.Analyzers;
 
             if (hierarchy == null)
             {
@@ -102,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
 
             // Analyzers are only supported for C# and VB currently.
-            var projectsWithHierarchy = _workspace.CurrentSolution.Projects
+            var projectsWithHierarchy = currentSolution.Projects
                 .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
                 .Where(p => _workspace.GetHierarchy(p.Id) == hierarchy);
 

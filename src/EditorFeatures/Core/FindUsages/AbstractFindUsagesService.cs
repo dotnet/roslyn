@@ -29,17 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var tuple = await FindUsagesHelpers.FindImplementationsAsync(
+            var tupleOpt = await FindUsagesHelpers.FindSourceImplementationsAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (tuple == null)
+            if (tupleOpt == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var message = tuple.Value.message;
-
+            var (solution, symbol, implementations, message) = tupleOpt.Value;
             if (message != null)
             {
                 await context.ReportMessageAsync(message).ConfigureAwait(false);
@@ -48,14 +47,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_implementations,
-                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol))).ConfigureAwait(false);
+                FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
-            var project = tuple.Value.project;
-            foreach (var implementation in tuple.Value.implementations)
+            foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    project, includeHiddenLocations: false,
-                    FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    solution, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }
@@ -95,9 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // Currently, 3rd party definitions = XAML definitions, and XAML will provide
             // references via LSP instead of hooking into Roslyn.
             // This also means that we don't need to be on the UI thread.
-            var definitionTrackingContext = new DefinitionTrackingContext(context);
             await FindLiteralOrSymbolReferencesAsync(
-                document, position, definitionTrackingContext).ConfigureAwait(false);
+                document, position, context).ConfigureAwait(false);
         }
 
         private async Task FindLiteralOrSymbolReferencesAsync(
@@ -135,13 +132,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             cancellationToken.ThrowIfCancellationRequested();
 
             // Find the symbol we want to search and the solution we want to search in.
-            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+            var symbolAndSolutionOpt = await FindUsagesHelpers.GetRelevantSymbolAndSolutionAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolAndProject == null)
+            if (symbolAndSolutionOpt == null)
                 return;
 
+            var (symbol, solution) = symbolAndSolutionOpt.Value;
+
             await FindSymbolReferencesAsync(
-                _threadingContext, context, symbolAndProject.Value.symbol, symbolAndProject.Value.project, cancellationToken).ConfigureAwait(false);
+                _threadingContext, context,
+                symbol, solution,
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -150,9 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
             IThreadingContext threadingContext, IFindUsagesContext context,
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var monikerUsagesService = project.Solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
+            var monikerUsagesService = solution.Workspace.Services.GetRequiredService<IFindSymbolMonikerUsagesService>();
 
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
@@ -163,20 +164,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
             // FindReferencesContext instance we were given.
+            var progress = new FindReferencesProgressAdapter(threadingContext, solution, context, options);
             var normalFindReferencesTask = SymbolFinder.FindReferencesAsync(
-                SymbolAndProjectId.Create(symbol, project.Id),
-                project.Solution,
-                new FindReferencesProgressAdapter(threadingContext, project.Solution, context, options),
-                documents: null,
-                options,
-                cancellationToken);
+                symbol, solution, progress, documents: null, options, cancellationToken);
 
             // Kick off work to search the online code index system in parallel
             var codeIndexReferencesTask = FindSymbolMonikerReferencesAsync(
-                monikerUsagesService,
-                symbol,
-                context,
-                cancellationToken);
+                monikerUsagesService, symbol, context, cancellationToken);
 
             await Task.WhenAll(normalFindReferencesTask, codeIndexReferencesTask).ConfigureAwait(false);
         }
