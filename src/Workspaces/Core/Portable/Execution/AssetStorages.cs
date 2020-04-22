@@ -11,6 +11,10 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
+#if NETSTANDARD2_0
+using Roslyn.Utilities;
+#endif
+
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
