@@ -735,10 +735,10 @@ namespace Microsoft.CodeAnalysis
                         requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType;
                         isAllowed = true;
                     }
-                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsInitOnly) != 0 &&
-                        IsAcceptedIsInitOnlyModifierType(type))
+                    else if ((allowedRequiredModifierType & AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit) != 0 &&
+                        IsAcceptedIsExternalInitModifierType(type))
                     {
-                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsInitOnly;
+                        requiredModifiersFound |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
                         isAllowed = true;
                     }
 
@@ -1187,7 +1187,7 @@ tryAgain:
             var allowedRequiredModifiers = AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute;
             if (isReturn)
             {
-                allowedRequiredModifiers |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsInitOnly;
+                allowedRequiredModifiers |= AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit;
             }
 
             info.CustomModifiers = DecodeModifiersOrThrow(
@@ -2480,7 +2480,7 @@ tryAgain:
             System_Runtime_CompilerServices_Volatile = 1,
             System_Runtime_InteropServices_InAttribute = 1 << 1,
             System_Runtime_InteropServices_UnmanagedType = 1 << 2,
-            System_Runtime_CompilerServices_IsInitOnly = 1 << 3,
+            System_Runtime_CompilerServices_IsExternalInit = 1 << 3,
         }
     }
 }

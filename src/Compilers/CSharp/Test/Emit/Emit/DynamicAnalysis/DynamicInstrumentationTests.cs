@@ -2749,7 +2749,7 @@ class C
     int P2 { get => 1; init {} }
 }
 ";
-            var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsInitOnlyTypeDefinition,
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource + IsExternalInitTypeDefinition,
                 options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
 
             AssertNotInstrumented(verifier, "C.P1.get");

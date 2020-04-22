@@ -208,10 +208,10 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
-        protected const string IsInitOnlyTypeDefinition = @"
+        protected const string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    public sealed class IsInitOnly
+    public sealed class IsExternalInit
     {
     }
 }

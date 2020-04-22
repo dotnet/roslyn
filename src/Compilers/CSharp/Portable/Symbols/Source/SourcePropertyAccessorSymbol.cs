@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (IsInitOnly)
                 {
                     var isInitOnlyType = Binder.GetWellKnownType(this.DeclaringCompilation,
-                        WellKnownType.System_Runtime_CompilerServices_IsInitOnly, diagnostics, this.locations[0]);
+                        WellKnownType.System_Runtime_CompilerServices_IsExternalInit, diagnostics, this.locations[0]);
 
                     var modifiers = ImmutableArray.Create<CustomModifier>(
                         CSharpCustomModifier.CreateRequired(isInitOnlyType));

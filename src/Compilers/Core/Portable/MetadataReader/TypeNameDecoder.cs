@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis
             return _factory.IsAcceptedUnmanagedTypeModifierType(type);
         }
 
-        protected bool IsAcceptedIsInitOnlyModifierType(TypeSymbol type)
+        protected bool IsAcceptedIsExternalInitModifierType(TypeSymbol type)
         {
-            return _factory.IsAcceptedIsInitOnlyModifierType(type);
+            return _factory.IsAcceptedIsExternalInitModifierType(type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)

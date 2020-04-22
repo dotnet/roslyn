@@ -538,7 +538,7 @@ End Namespace
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsInitOnly
+                         WellKnownType.System_Runtime_CompilerServices_IsExternalInit
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -603,7 +603,7 @@ End Namespace
                          WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute,
                          WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException,
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsInitOnly
+                         WellKnownType.System_Runtime_CompilerServices_IsExternalInit
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
