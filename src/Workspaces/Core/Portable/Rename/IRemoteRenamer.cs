@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (Locations != null)
             {
-                using var _ = ArrayBuilder<RenameLocation>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<RenameLocation>.GetInstance(Locations.Length, out var builder);
                 foreach (var loc in Locations)
                     builder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (ImplicitLocations != null)
             {
-                using var _ = ArrayBuilder<ReferenceLocation>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<ReferenceLocation>.GetInstance(ImplicitLocations.Length, out var builder);
                 foreach (var loc in ImplicitLocations)
                     builder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (ReferencedSymbols != null)
             {
-                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(ReferencedSymbols.Length, out var builder);
                 foreach (var symbol in ReferencedSymbols)
                     builder.AddIfNotNull(await symbol.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (locations.OverloadsResult != null)
             {
-                using var _ = ArrayBuilder<SearchResult>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<SearchResult>.GetInstance(locations.OverloadsResult.Length, out var builder);
                 foreach (var res in locations.OverloadsResult)
                     builder.Add(await res.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (locations.StringsResult != null)
             {
-                using var _ = ArrayBuilder<RenameLocation>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<RenameLocation>.GetInstance(locations.StringsResult.Length, out var builder);
                 foreach (var res in locations.StringsResult)
                     builder.Add(await res.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             if (locations.CommentsResult != null)
             {
-                using var _ = ArrayBuilder<RenameLocation>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<RenameLocation>.GetInstance(locations.CommentsResult.Length, out var builder);
                 foreach (var res in locations.CommentsResult)
                     builder.Add(await res.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 

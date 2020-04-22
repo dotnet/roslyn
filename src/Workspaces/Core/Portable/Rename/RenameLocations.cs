@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public readonly ISymbol Symbol;
         public readonly RenameOptionSet Options;
 
-        // possibly null
-        private readonly SearchResult _originalSymbolResult;
+        private readonly SearchResult? _originalSymbolResult;
 
         private readonly SearchResult _mergedResult;
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Rename
             ISymbol symbol,
             Solution solution,
             RenameOptionSet options,
-            SearchResult originalSymbolResult,
+            SearchResult? originalSymbolResult,
             SearchResult mergedResult,
             ImmutableArray<SearchResult> overloadsResult,
             ImmutableArray<RenameLocation> stringsResult,
@@ -183,6 +184,7 @@ namespace Microsoft.CodeAnalysis.Rename
                         ? await GetOverloadsAsync(Symbol, Solution, cancellationToken).ConfigureAwait(false)
                         : default;
 
+                Contract.ThrowIfNull(_originalSymbolResult);
                 var stringsAndComments = await ReferenceProcessing.GetRenamableLocationsInStringsAndCommentsAsync(
                     Symbol,
                     Solution,
