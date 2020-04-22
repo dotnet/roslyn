@@ -1335,16 +1335,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isDisjunction)
             {
                 permitDesignations = false; // prevent designators under 'or'
-                var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
-                var right = BindPattern(node.RightPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var right = BindPattern(node.Right, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var convertedType = commonType(node, left.ConvertedType, right.ConvertedType, diagnostics) ?? inputType;
                 return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: convertedType, hasErrors);
             }
             else
             {
-                var left = BindPattern(node.LeftPattern, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
+                var left = BindPattern(node.Left, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics);
                 var leftOutputValEscape = GetValEscape(left.ConvertedType, inputValEscape);
-                var right = BindPattern(node.RightPattern, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
+                var right = BindPattern(node.Right, left.ConvertedType, leftOutputValEscape, permitDesignations, hasErrors, diagnostics);
                 return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, convertedType: right.ConvertedType, hasErrors);
             }
 

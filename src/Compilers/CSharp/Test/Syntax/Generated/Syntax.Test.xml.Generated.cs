@@ -1708,9 +1708,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateBinaryPattern();
 
-            Assert.NotNull(node.LeftPattern);
+            Assert.NotNull(node.Left);
             Assert.Equal(SyntaxKind.OrKeyword, node.OperatorToken.Kind);
-            Assert.NotNull(node.RightPattern);
+            Assert.NotNull(node.Right);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -10957,10 +10957,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateBinaryPattern();
 
-            Assert.NotNull(node.LeftPattern);
+            Assert.NotNull(node.Left);
             Assert.Equal(SyntaxKind.OrKeyword, node.OperatorToken.Kind());
-            Assert.NotNull(node.RightPattern);
-            var newNode = node.WithLeftPattern(node.LeftPattern).WithOperatorToken(node.OperatorToken).WithRightPattern(node.RightPattern);
+            Assert.NotNull(node.Right);
+            var newNode = node.WithLeft(node.Left).WithOperatorToken(node.OperatorToken).WithRight(node.Right);
             Assert.Equal(node, newNode);
         }
 

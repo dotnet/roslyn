@@ -672,6 +672,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public RefTypeSyntax WithType(TypeSyntax type) => Update(this.RefKeyword, this.ReadOnlyKeyword, type);
     }
 
+    public abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
+    {
+        internal ExpressionOrPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+    }
+
     /// <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class ExpressionSyntax : ExpressionOrPatternSyntax
     {
@@ -3990,14 +3998,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public WhenClauseSyntax WithCondition(ExpressionSyntax condition) => Update(this.WhenKeyword, condition);
     }
 
-    public abstract partial class ExpressionOrPatternSyntax : CSharpSyntaxNode
-    {
-        internal ExpressionOrPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
-          : base(green, parent, position)
-        {
-        }
-    }
-
     public abstract partial class PatternSyntax : ExpressionOrPatternSyntax
     {
         internal PatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4485,44 +4485,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class BinaryPatternSyntax : PatternSyntax
     {
-        private PatternSyntax? leftPattern;
-        private PatternSyntax? rightPattern;
+        private PatternSyntax? left;
+        private PatternSyntax? right;
 
         internal BinaryPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
 
-        public PatternSyntax LeftPattern => GetRedAtZero(ref this.leftPattern)!;
+        public PatternSyntax Left => GetRedAtZero(ref this.left)!;
 
         public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BinaryPatternSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
-        public PatternSyntax RightPattern => GetRed(ref this.rightPattern, 2)!;
+        public PatternSyntax Right => GetRed(ref this.right, 2)!;
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.leftPattern)!,
-                2 => GetRed(ref this.rightPattern, 2)!,
+                0 => GetRedAtZero(ref this.left)!,
+                2 => GetRed(ref this.right, 2)!,
                 _ => null,
             };
 
         internal override SyntaxNode? GetCachedSlot(int index)
             => index switch
             {
-                0 => this.leftPattern,
-                2 => this.rightPattern,
+                0 => this.left,
+                2 => this.right,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryPattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryPattern(this);
 
-        public BinaryPatternSyntax Update(PatternSyntax leftPattern, SyntaxToken operatorToken, PatternSyntax rightPattern)
+        public BinaryPatternSyntax Update(PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
         {
-            if (leftPattern != this.LeftPattern || operatorToken != this.OperatorToken || rightPattern != this.RightPattern)
+            if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
             {
-                var newNode = SyntaxFactory.BinaryPattern(this.Kind(), leftPattern, operatorToken, rightPattern);
+                var newNode = SyntaxFactory.BinaryPattern(this.Kind(), left, operatorToken, right);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -4530,9 +4530,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public BinaryPatternSyntax WithLeftPattern(PatternSyntax leftPattern) => Update(leftPattern, this.OperatorToken, this.RightPattern);
-        public BinaryPatternSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.LeftPattern, operatorToken, this.RightPattern);
-        public BinaryPatternSyntax WithRightPattern(PatternSyntax rightPattern) => Update(this.LeftPattern, this.OperatorToken, rightPattern);
+        public BinaryPatternSyntax WithLeft(PatternSyntax left) => Update(left, this.OperatorToken, this.Right);
+        public BinaryPatternSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.Left, operatorToken, this.Right);
+        public BinaryPatternSyntax WithRight(PatternSyntax right) => Update(this.Left, this.OperatorToken, right);
     }
 
     public sealed partial class UnaryPatternSyntax : PatternSyntax
