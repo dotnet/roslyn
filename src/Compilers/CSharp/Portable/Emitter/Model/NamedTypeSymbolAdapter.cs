@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         continue;
                     }
-                    else if (method is SynthesizedStaticConstructor { ShouldEmit: false })
+                    else if (method is SynthesizedStaticConstructor cctor && !cctor.ShouldEmit())
                     {
                         continue;
                     }

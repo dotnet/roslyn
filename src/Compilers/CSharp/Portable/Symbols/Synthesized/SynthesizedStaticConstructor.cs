@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -374,67 +373,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        private readonly object _syncRoot = new object();
-        private Binder.ProcessedFieldInitializers _processedInitializers;
-        private DiagnosticBag? _initializerDiagnostics;
-
-        internal Binder.ProcessedFieldInitializers GetProcessedInitializers(DiagnosticBag diagnostics)
+        private ThreeState _shouldEmit = ThreeState.Unknown;
+        internal bool ShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
         {
-            lock (_syncRoot)
+            if (_shouldEmit.HasValue())
             {
-                if (_initializerDiagnostics is null)
-                {
-                    BindInitializers();
-                }
-
-                Debug.Assert(_initializerDiagnostics is object);
-                diagnostics.AddRange(_initializerDiagnostics);
-
-                return _processedInitializers;
+                return _shouldEmit.Value();
             }
+
+            var shouldEmit = InitializeShouldEmit(boundInitializersOpt);
+            _shouldEmit = shouldEmit.ToThreeState();
+            return shouldEmit;
         }
 
-        private void BindInitializers()
+        private bool InitializeShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
         {
-            _initializerDiagnostics = DiagnosticBag.GetInstance();
-            var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
-            var scriptInitializer = containingType.IsScriptClass ? containingType.GetScriptInitializer() : null;
-            Binder.BindFieldInitializers(DeclaringCompilation, scriptInitializer, containingType.StaticInitializers, _initializerDiagnostics, ref _processedInitializers);
-        }
-
-
-        internal bool ShouldEmit
-        {
-            get
+            if (boundInitializersOpt.IsDefault)
             {
-                Binder.ProcessedFieldInitializers initializers;
-                lock (_syncRoot)
+                if (!(ContainingType is SourceMemberContainerTypeSymbol sourceType))
                 {
-                    if (_initializerDiagnostics is null)
-                    {
-                        BindInitializers();
-                    }
-
-                    initializers = _processedInitializers;
+                    return true;
                 }
 
-                foreach (var initializer in initializers.BoundInitializers)
-                {
-                    if (!(initializer is BoundFieldEqualsValue { Value: { } value }))
-                    {
-                        // this isn't a BoundFieldEqualsValue, so this initializer is doing
-                        // something we don't understand. Better just emit it.
-                        return true;
-                    }
-
-                    if (!value.IsDefaultValue())
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
+                var unusedDiagnostics = DiagnosticBag.GetInstance();
+                boundInitializersOpt = Binder.BindFieldInitializers(DeclaringCompilation, sourceType.GetScriptInitializer(), sourceType.StaticInitializers, unusedDiagnostics, out _);
+                unusedDiagnostics.Free();
             }
+
+            foreach (var initializer in boundInitializersOpt)
+            {
+                if (!(initializer is BoundFieldEqualsValue { Value: { } value }))
+                {
+                    // this isn't a BoundFieldEqualsValue, so this initializer is doing
+                    // something we don't understand. Better just emit it.
+                    return true;
+                }
+
+                if (!value.IsDefaultValue())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -441,14 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)sourceTypeSymbol != null)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                if (sourceTypeSymbol.GetSynthesizedStaticConstructor() is SynthesizedStaticConstructor staticConstructor)
-                {
-                    processedStaticInitializers = staticConstructor.GetProcessedInitializers(_diagnostics);
-                }
-                else
-                {
-                    Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.StaticInitializers, _diagnostics, ref processedStaticInitializers);
-                }
+                Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.StaticInitializers, _diagnostics, ref processedStaticInitializers);
 
                 _cancellationToken.ThrowIfCancellationRequested();
                 Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.InstanceInitializers, _diagnostics, ref processedInstanceInitializers);
@@ -1236,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        if (!(methodSymbol is SynthesizedStaticConstructor { ShouldEmit: false }))
+                        if (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers))
                         {
                             CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 

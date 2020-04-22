@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagsForInstanceInitializers.Free();
         }
 
-        private static ImmutableArray<BoundInitializer> BindFieldInitializers(
+        internal static ImmutableArray<BoundInitializer> BindFieldInitializers(
             CSharpCompilation compilation,
             SynthesizedInteractiveInitializerMethod? scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers,
