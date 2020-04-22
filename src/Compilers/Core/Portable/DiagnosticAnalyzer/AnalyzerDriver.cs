@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.
+        /// PERF: If all supported diagnostics for an analyzer are from this set, we completely skip executing the analyzer.
         /// </summary>
         private readonly ImmutableHashSet<ReportDiagnostic> _filteredSeverities;
 

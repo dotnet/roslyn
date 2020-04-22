@@ -928,8 +928,9 @@ namespace Microsoft.CodeAnalysis
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                     additionalTextFiles, analyzerConfigProvider);
 
-                // Always filter out 'Hidden' analyzer diagnostics in build.
-                // Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
                 var filteredSeverities = Arguments.ErrorLogPath != null ?
                     ImmutableHashSet.Create(ReportDiagnostic.Hidden) :
                     ImmutableHashSet.Create(ReportDiagnostic.Hidden, ReportDiagnostic.Info);
