@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Rename
         /// behavior.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A conflict resolution containing the new solution.</returns>
-        public Task<ConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol> nonConflictSymbols, CancellationToken cancellationToken)
+        public Task<MutableConflictResolution> ResolveConflictsAsync(string replacementText, ImmutableHashSet<ISymbol> nonConflictSymbols, CancellationToken cancellationToken)
             => ConflictResolver.ResolveConflictsAsync(this, replacementText, nonConflictSymbols, cancellationToken);
 
         public RenameLocations Filter(Func<Location, bool> filter)

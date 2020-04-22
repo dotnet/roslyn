@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         private const string s_metadataNameSeparators = " .,:<`>()\r\n";
 
-        internal static Task<ConflictResolution> ResolveConflictsAsync(
+        internal static Task<MutableConflictResolution> ResolveConflictsAsync(
             RenameLocations renameLocationSet,
             string replacementText,
             ImmutableHashSet<ISymbol> nonConflictSymbols,
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return true;
         }
 
-        private static bool IsRenameValid(ConflictResolution conflictResolution, ISymbol renamedSymbol)
+        private static bool IsRenameValid(MutableConflictResolution conflictResolution, ISymbol renamedSymbol)
         {
             // if we rename an identifier and it now binds to a symbol from metadata this should be treated as
             // an invalid rename.
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             SemanticModel semanticModel,
             Location originalDeclarationLocation,
             int newDeclarationLocationStartingPosition,
-            ConflictResolution conflictResolution,
+            MutableConflictResolution conflictResolution,
             CancellationToken cancellationToken)
         {
             {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             ISymbol renamedSymbol,
             ISymbol renameSymbol,
             IEnumerable<ISymbol> referencedSymbols,
-            ConflictResolution conflictResolution,
+            MutableConflictResolution conflictResolution,
             IDictionary<Location, Location> reverseMappedLocations,
             CancellationToken cancellationToken)
         {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        private static void AddConflictingSymbolLocations(IEnumerable<ISymbol> conflictingSymbols, ConflictResolution conflictResolution, IDictionary<Location, Location> reverseMappedLocations)
+        private static void AddConflictingSymbolLocations(IEnumerable<ISymbol> conflictingSymbols, MutableConflictResolution conflictResolution, IDictionary<Location, Location> reverseMappedLocations)
         {
             foreach (var newSymbol in conflictingSymbols)
             {

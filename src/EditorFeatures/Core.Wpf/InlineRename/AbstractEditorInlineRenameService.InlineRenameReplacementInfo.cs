@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
         {
-            private readonly ConflictResolution _conflicts;
+            private readonly MutableConflictResolution _conflicts;
 
-            public InlineRenameReplacementInfo(ConflictResolution conflicts)
+            public InlineRenameReplacementInfo(MutableConflictResolution conflicts)
                 => _conflicts = conflicts;
 
             public IEnumerable<DocumentId> DocumentIds

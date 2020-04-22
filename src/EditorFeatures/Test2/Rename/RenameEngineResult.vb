@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Implements IDisposable
 
         Private ReadOnly _workspace As TestWorkspace
-        Private ReadOnly _resolution As ConflictResolution
+        Private ReadOnly _resolution As MutableConflictResolution
 
         ''' <summary>
         ''' The list of related locations that haven't been asserted about yet. Items are
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         Private _failedAssert As Boolean
 
-        Private Sub New(workspace As TestWorkspace, resolution As ConflictResolution, renameTo As String)
+        Private Sub New(workspace As TestWorkspace, resolution As MutableConflictResolution, renameTo As String)
             _workspace = workspace
             _resolution = resolution
 
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return engineResult
         End Function
 
-        Friend ReadOnly Property ConflictResolution As ConflictResolution
+        Friend ReadOnly Property ConflictResolution As MutableConflictResolution
             Get
                 Return _resolution
             End Get

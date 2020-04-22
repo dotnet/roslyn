@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             // The method which performs rename, resolves the conflict locations and returns the result of the rename operation
-            public async Task<ConflictResolution> ResolveConflictsAsync()
+            public async Task<MutableConflictResolution> ResolveConflictsAsync()
             {
                 try
                 {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key));
                     var renamedSpansTracker = new RenamedSpansTracker();
-                    var conflictResolution = new ConflictResolution(baseSolution, renamedSpansTracker, _replacementText, _replacementTextValid);
+                    var conflictResolution = new MutableConflictResolution(baseSolution, renamedSpansTracker, _replacementText, _replacementTextValid);
 
                     var intermediateSolution = conflictResolution.OldSolution;
                     foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
 #if DEBUG
-            private async Task DebugVerifyNoErrorsAsync(ConflictResolution conflictResolution, IEnumerable<DocumentId> documents)
+            private async Task DebugVerifyNoErrorsAsync(MutableConflictResolution conflictResolution, IEnumerable<DocumentId> documents)
             {
                 var documentIdErrorStateLookup = new Dictionary<DocumentId, bool>();
 
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 HashSet<DocumentId> documentIdsForConflictResolution,
                 IEnumerable<DocumentId> allDocumentIdsInProject,
                 ProjectId projectId,
-                ConflictResolution conflictResolution)
+                MutableConflictResolution conflictResolution)
             {
                 try
                 {
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             private async Task<bool> CheckForConflictAsync(
-                ConflictResolution conflictResolution,
+                MutableConflictResolution conflictResolution,
                 ISymbol renamedSymbolInNewSolution,
                 RenameActionAnnotation conflictAnnotation,
                 ImmutableArray<ISymbol> newReferencedSymbols)
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 return newReferencedSymbols;
             }
 
-            private async Task<ISymbol> GetRenamedSymbolInCurrentSolutionAsync(ConflictResolution conflictResolution)
+            private async Task<ISymbol> GetRenamedSymbolInCurrentSolutionAsync(MutableConflictResolution conflictResolution)
             {
                 try
                 {

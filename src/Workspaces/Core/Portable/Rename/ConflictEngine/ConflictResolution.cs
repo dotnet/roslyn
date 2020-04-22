@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// The result of the conflict engine. Once this object is returned from the engine, it is
     /// immutable.
     /// </summary>
-    internal sealed class ConflictResolution
+    internal sealed class MutableConflictResolution
     {
         // Used to map spans from oldSolution to the newSolution
         private readonly RenamedSpansTracker _renamedSpansTracker;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         public Solution NewSolution { get; private set; }
 
-        public ConflictResolution(
+        public MutableConflictResolution(
             Solution oldSolution,
             RenamedSpansTracker renamedSpansTracker,
             string replacementText,
@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         internal readonly struct TestAccessor
         {
-            private readonly ConflictResolution _conflictResolution;
+            private readonly MutableConflictResolution _conflictResolution;
 
-            public TestAccessor(ConflictResolution conflictResolution)
+            public TestAccessor(MutableConflictResolution conflictResolution)
                 => _conflictResolution = conflictResolution;
 
             internal TextSpan GetResolutionTextSpan(
