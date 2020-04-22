@@ -214,8 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             var possibleInvalidVariable = patternSyntax.Parent;
             while (possibleInvalidVariable is BinaryPatternSyntax ||
                    possibleInvalidVariable is UnaryPatternSyntax ||
-                   possibleInvalidVariable is ParenthesizedPatternSyntax ||
-                   possibleInvalidVariable is ParenthesizedExpressionSyntax)
+                   possibleInvalidVariable is ParenthesizedPatternSyntax)
             {
                 // Patterns containing 'or' cannot contain valid variable declarations, e.g. 'e is 1 or int $$'
                 if (possibleInvalidVariable is BinaryPatternSyntax binaryPatternSyntax && binaryPatternSyntax.IsKind(SyntaxKind.OrPattern))
