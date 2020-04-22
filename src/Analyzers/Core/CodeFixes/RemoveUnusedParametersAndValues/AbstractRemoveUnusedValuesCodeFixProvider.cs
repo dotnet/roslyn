@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -101,6 +102,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxNode newAssignmentTarget,
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts);
+
+        /// <summary>
+        /// Rewrite the parent of a node which was rewritted by <see cref="TryUpdateNameForFlaggedNode"/>.
+        /// </summary>
+        /// <param name="parent">The original parent of the node rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
+        /// <param name="newNameNode">The rewritten node produced by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
+        /// <param name="editor">The syntax editor for the code fix.</param>
+        /// <param name="syntaxFacts">The syntax facts for the current language.</param>
+        /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
+        /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
+        protected virtual SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
+        {
+            return null;
+        }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -503,7 +518,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
                     else
                     {
-                        nodeReplacementMap.Add(node, newNameNode);
+                        var newParentNode = TryUpdateParentOfUpdatedNode(node.Parent, newNameNode, editor, syntaxFacts);
+                        if (newParentNode is object)
+                        {
+                            nodeReplacementMap.Add(node.Parent, newParentNode);
+                        }
+                        else
+                        {
+                            nodeReplacementMap.Add(node, newNameNode);
+                        }
                     }
                 }
 
