@@ -2089,7 +2089,8 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
         {
-            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault, DiagnosticSeverity defaultSeverity)
+            private readonly bool _throwOnAllNamedTypes;
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault, DiagnosticSeverity defaultSeverity, bool throwOnAllNamedTypes = false)
             {
                 Descriptor = new DiagnosticDescriptor(
                     "ID0001",
@@ -2098,6 +2099,7 @@ namespace Microsoft.CodeAnalysis
                     "Category1",
                     defaultSeverity,
                     isEnabledByDefault);
+                _throwOnAllNamedTypes = throwOnAllNamedTypes;
             }
 
             public DiagnosticDescriptor Descriptor { get; }
@@ -2105,8 +2107,15 @@ namespace Microsoft.CodeAnalysis
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterSymbolAction(
-                    context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
+                context.RegisterSymbolAction(context =>
+                    {
+                        if (_throwOnAllNamedTypes)
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0]));
+                    },
                     SymbolKind.NamedType);
             }
         }

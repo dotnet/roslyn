@@ -11633,6 +11633,20 @@ dotnet_analyzer_diagnostic.category-{category}.severity = error";
 [*.cs]
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+            if (defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog)
+            {
+                // Verify analyzer with Hidden severity OR Info severity + no /errorlog is not executed.
+                analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+                // Verify that bulk configuration 'none' entry does not enable this analyzer.
+                analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = none";
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+            }
         }
 
         [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
@@ -11685,6 +11699,20 @@ dotnet_analyzer_diagnostic.severity = error";
 [*.cs]
 dotnet_analyzer_diagnostic.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+            if (defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog)
+            {
+                // Verify analyzer with Hidden severity OR Info severity + no /errorlog is not executed.
+                analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: true);
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+                // Verify that bulk configuration 'none' entry does not enable this analyzer.
+                analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.severity = none";
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+            }
         }
 
         [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]

@@ -377,15 +377,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
                         if (tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredValue))
                         {
-                            if (configuredValue != ReportDiagnostic.Suppress &&
-                                !filteredSeverities.Contains(configuredValue))
+                            if (isEnablingSeverity(configuredValue, filteredSeverities))
                             {
                                 return true;
                             }
                         }
                         else if (!filteredSeverities.IsEmpty &&
                             analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, out var bulkConfiguredValue) &&
-                            !filteredSeverities.Contains(bulkConfiguredValue))
+                            isEnablingSeverity(bulkConfiguredValue, filteredSeverities))
                         {
                             return true;
                         }
@@ -393,6 +392,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return false;
+
+                static bool isEnablingSeverity(ReportDiagnostic severity, ImmutableHashSet<ReportDiagnostic> filteredSeverities)
+                    => severity != ReportDiagnostic.Suppress && !filteredSeverities.Contains(severity);
             }
         }
 
