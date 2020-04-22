@@ -1318,6 +1318,23 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestMissingInRecursiveOrPattern()
+        {
+            var markup = @"
+class C
+{
+    int P { get; }
+
+    void M(C test)
+    {
+        if (test is null or { P: 1 } o$$)
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
             => await VerifyWorkerAsync(markup, isBuilder: false);
 

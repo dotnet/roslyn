@@ -211,24 +211,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 return false;
             }
 
-            var possibleInvalidVariable = patternSyntax.Parent;
-            while (possibleInvalidVariable is BinaryPatternSyntax ||
-                   possibleInvalidVariable is UnaryPatternSyntax ||
-                   possibleInvalidVariable is ParenthesizedPatternSyntax)
+            for (var current = patternSyntax; current != null; current = current.Parent as PatternSyntax)
             {
                 // Patterns containing 'or' cannot contain valid variable declarations, e.g. 'e is 1 or int $$'
-                if (possibleInvalidVariable is BinaryPatternSyntax binaryPatternSyntax && binaryPatternSyntax.IsKind(SyntaxKind.OrPattern))
+                if (current.IsKind(SyntaxKind.OrPattern))
                 {
                     return false;
                 }
 
                 // Patterns containing 'not' cannot be valid variable declarations, e.g. 'e is not int $$' and 'e is not (1 and int $$)'
-                if (possibleInvalidVariable is UnaryPatternSyntax unaryPatternSyntax && unaryPatternSyntax.IsKind(SyntaxKind.NotPattern))
+                if (current.IsKind(SyntaxKind.NotPattern))
                 {
                     return false;
                 }
-
-                possibleInvalidVariable = possibleInvalidVariable.Parent;
             }
 
             // e is int o$$
