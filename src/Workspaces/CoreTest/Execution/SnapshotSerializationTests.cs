@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Execution;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -499,6 +500,45 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
             // this shouldn't throw
             var recovered = await GetSolutionAsync(snapshotService, snapshot).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task SnapshotWithIdenticalAnalyzerFiles()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+
+            using var temp = new TempRoot();
+            var dir = temp.CreateDirectory();
+
+            // create two analyzer assembly files whose content is identical but path is different:
+            var file1 = dir.CreateFile("analyzer1.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
+            var file2 = dir.CreateFile("analyzer2.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
+
+            var analyzer1 = new AnalyzerFileReference(file1.Path, DummyAssemblyLoader.Instance);
+            var analyzer2 = new AnalyzerFileReference(file2.Path, DummyAssemblyLoader.Instance);
+
+            project = project.AddAnalyzerReferences(new[] { analyzer1, analyzer2 });
+
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(project.Solution.Workspace.Services);
+            using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
+
+            var recovered = await GetSolutionAsync(snapshotService, snapshot).ConfigureAwait(false);
+            AssertEx.Equal(new[] { file1.Path, file1.Path }, recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
+        }
+
+        internal class DummyAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public static DummyAssemblyLoader Instance = new DummyAssemblyLoader();
+
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+                => Assembly.LoadFrom(fullPath);
         }
 
         [Fact]
