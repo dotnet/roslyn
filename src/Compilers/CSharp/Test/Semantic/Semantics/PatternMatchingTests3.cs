@@ -3275,7 +3275,13 @@ class C
         o = new Derived1();
         { if (o is (Derived1 or Base) and var i) M(i); } // Base
         { if (o is (Base or Derived1) and var i) M(i); } // Base
-        { if (o is (Derived1 or Derived2) and var i) M(i); } // System.Object
+
+        // Implicit reference conversions involving variance
+        o = new X();
+        { if (o is (IIn<Derived1> or IIn<Base>) and var i) M(i); } // IIn<Derived1>
+        { if (o is (IIn<Base> or IIn<Derived1>) and var i) M(i); } // IIn<Derived1>
+        { if (o is (IOut<Derived1> or IOut<Base>) and var i) M(i); } // IOut<Base>
+        { if (o is (IOut<Base> or IOut<Derived1>) and var i) M(i); } // IOut<Base>
 
         // Multiple layers of or patterns
         o = new Derived1();
@@ -3294,6 +3300,9 @@ class C
 class Base { }
 class Derived1 : Base { }
 class Derived2 : Base { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class X : IIn<Base>, IOut<Base> { }
 ";
             var expectedOutput =
 @"System.Collections.Generic.Dictionary`2[System.Object,System.Object]
@@ -3304,7 +3313,10 @@ System.Object
 System.Object
 Base
 Base
-System.Object
+IIn`1[Derived1]
+IIn`1[Derived1]
+IOut`1[Base]
+IOut`1[Base]
 Base
 Base
 Base
