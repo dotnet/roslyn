@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.VariableDeclarator:
                             {
                                 var variableDecl = (VariableDeclaratorSyntax)node.Parent;
-                                SourceMemberFieldSymbol fieldSymbol = GetDeclaredFieldSymbol(variableDecl);
+                                FieldSymbol fieldSymbol = GetDeclaredFieldSymbol(variableDecl);
 
                                 return InitializerSemanticModel.Create(
                                     this,
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 containingModel?.GetRemappedSymbols());
         }
 
-        private SourceMemberFieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
+        private FieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
         {
             var declaredSymbol = GetDeclaredSymbol(variableDecl);
 
@@ -1203,10 +1203,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (variableDecl.Parent.Parent.Kind())
                 {
                     case SyntaxKind.FieldDeclaration:
-                        return declaredSymbol.GetSymbol<SourceMemberFieldSymbol>();
+                        return declaredSymbol.GetSymbol<FieldSymbol>();
 
                     case SyntaxKind.EventFieldDeclaration:
-                        return (SourceMemberFieldSymbol)(declaredSymbol.GetSymbol<EventSymbol>()).AssociatedField;
+                        return (declaredSymbol.GetSymbol<EventSymbol>()).AssociatedField;
                 }
             }
 

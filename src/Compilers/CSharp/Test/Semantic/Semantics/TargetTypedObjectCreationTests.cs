@@ -4211,6 +4211,116 @@ class D
         }
 
         [Fact]
+        public void TestInConstructorOverloadWithUseSiteError()
+        {
+            var missing = @"public class Missing { }";
+            var missingComp = CreateCompilation(missing, assemblyName: "missing");
+
+            var lib = @"
+public class C
+{
+    public C(Missing m) => throw null;
+    public C(D d) => throw null;
+}
+public class D { }
+";
+            var libComp = CreateCompilation(lib, references: new[] { missingComp.EmitToImageReference() });
+
+            var source = @"
+class D
+{
+    public void M()
+    {
+        new C(new());
+        new C(default);
+        new C(null);
+        C c = new(null);
+    }
+}
+";
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         new C(new());
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 13),
+                // (7,13): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         new C(default);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 13),
+                // (8,13): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         new C(null);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
+                // (9,15): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         C c = new(null);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new(null)").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 15)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedNewHasUseSiteError()
+        {
+            var missing = @"public class Missing { }";
+            var missingComp = CreateCompilation(missing, assemblyName: "missing");
+
+            var lib = @"
+public class C
+{
+    public static void M(Missing m) => throw null;
+}
+";
+            var libComp = CreateCompilation(lib, references: new[] { missingComp.EmitToImageReference() });
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+class D
+{
+    public void M2()
+    {
+        C.M(new());
+    }
+}
+";
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         C.M(new());
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ArgumentOfTargetTypedNewHasUseSiteError()
+        {
+            var missing = @"public class Missing { }";
+            var missingComp = CreateCompilation(missing, assemblyName: "missing");
+
+            var lib = @"
+public class C
+{
+    public C(Missing m) => throw null;
+}
+";
+            var libComp = CreateCompilation(lib, references: new[] { missingComp.EmitToImageReference() });
+            libComp.VerifyDiagnostics();
+
+            var source = @"
+class D
+{
+    public void M(C c) { }
+    public void M2()
+    {
+        M(new(null));
+    }
+}
+";
+            var comp = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         M(new(null));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new(null)").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 11)
+                );
+        }
+
+        [Fact]
         public void UseSiteWarning()
         {
             var signedDll = TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
