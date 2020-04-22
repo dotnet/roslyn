@@ -19,6 +19,7 @@ namespace AnalyzerRunner
 
         public readonly bool RunConcurrent;
         public readonly bool ReportSuppressedDiagnostics;
+        public readonly bool FixAll;
         public readonly bool ApplyChanges;
         public readonly bool ShowStats;
         public readonly bool ShowCompilerDiagnostics;
@@ -42,6 +43,7 @@ namespace AnalyzerRunner
             ImmutableHashSet<string> refactoringNodes,
             bool runConcurrent,
             bool reportSuppressedDiagnostics,
+            bool fixAll,
             bool applyChanges,
             bool showStats,
             bool showCompilerDiagnostics,
@@ -62,6 +64,7 @@ namespace AnalyzerRunner
             RefactoringNodes = refactoringNodes;
             RunConcurrent = runConcurrent;
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            FixAll = fixAll;
             ApplyChanges = applyChanges;
             ShowStats = showStats;
             ShowCompilerDiagnostics = showCompilerDiagnostics;
@@ -85,6 +88,7 @@ namespace AnalyzerRunner
             var refactoringBuilder = ImmutableHashSet.CreateBuilder<string>();
             bool runConcurrent = false;
             bool reportSuppressedDiagnostics = false;
+            bool fixAll = false;
             bool applyChanges = false;
             bool showStats = false;
             bool showCompilerDiagnostics = false;
@@ -142,6 +146,9 @@ namespace AnalyzerRunner
                     case "/a":
                         builder.Add(ReadValue());
                         break;
+                    case "/fixall":
+                        fixAll = true;
+                        break;
                     case "/refactor":
                         refactoringBuilder.Add(ReadValue());
                         break;
@@ -196,6 +203,7 @@ namespace AnalyzerRunner
                 refactoringNodes: refactoringBuilder.ToImmutableHashSet(),
                 runConcurrent: runConcurrent,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
+                fixAll: fixAll,
                 applyChanges: applyChanges,
                 showStats: showStats,
                 showCompilerDiagnostics: showCompilerDiagnostics,
