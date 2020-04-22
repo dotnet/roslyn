@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         public abstract Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
         public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
-        public abstract string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts);
+
         public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
 
         /// <summary>
@@ -106,12 +106,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var applicableContainers = await GetValidContainersFromAllLinkedDocumentsAsync(document, container, cancellationToken).ConfigureAwait(false);
             return !applicableContainers.IsDefault;
-        }
-
-        public override string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts)
-        {
-            var parts = folders.SelectMany(folder => folder.Split(new[] { '.' })).SelectAsArray(syntaxFacts.EscapeIdentifier);
-            return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
         }
 
         public override async Task<Solution?> TryChangeTopLevelNamespacesAsync(

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -68,9 +69,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 // VB implementation is incomplete for sync namespace
                 if (document.Project.Language == LanguageNames.CSharp)
                 {
-                    var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var targetNamespace = changeNamespaceService.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
+                    var targetNamespace = WorkspacePathUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
 
                     if (targetNamespace is null)
                     {
