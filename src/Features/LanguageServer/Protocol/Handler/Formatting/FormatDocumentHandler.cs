@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -22,9 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<LSP.TextEdit[]> HandleRequestAsync(Solution solution, LSP.DocumentFormattingParams request, LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+            string? clientName, CancellationToken cancellationToken)
         {
-            return await GetTextEditsAsync(solution, request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+            return await GetTextEditsAsync(solution, request.TextDocument.Uri, clientName, cancellationToken).ConfigureAwait(false);
         }
     }
 }
