@@ -14,20 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
-    internal readonly struct ComplexifiedSpan
-    {
-        public readonly TextSpan OriginalSpan;
-        public readonly TextSpan NewSpan;
-        public readonly ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans;
-
-        public ComplexifiedSpan(TextSpan originalSpan, TextSpan newSpan, ImmutableArray<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
-        {
-            OriginalSpan = originalSpan;
-            NewSpan = newSpan;
-            ModifiedSubSpans = modifiedSubSpans;
-        }
-    }
-
     internal readonly struct ConflictResolution
     {
         public readonly Solution NewSolution;
