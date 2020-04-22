@@ -25,15 +25,30 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
         // List of All the Locations that were renamed and conflict-complexified
         private readonly List<RelatedLocation> _relatedLocations;
-        private readonly Solution _oldSolution;
-        private Solution _newSolution;
-
-        // This solution is updated after we finish processing each project.  It will only contain
-        // documents that were modified with text changes (not the ones that were only annotated)
-        private Solution _intermediateSolutionContainingOnlyModifiedDocuments;
 
         // This is Lazy Initialized when it is first used
         private ILookup<DocumentId, RelatedLocation> _relatedLocationsByDocumentId;
+
+        /// <summary>
+        /// The base workspace snapshot
+        /// </summary>
+        public readonly Solution OldSolution;
+
+        /// <summary>
+        /// Whether the text that was resolved with was even valid. This may be false if the
+        /// identifier was not valid in some language that was involved in the rename.
+        /// </summary>
+        public readonly bool ReplacementTextValid;
+
+        /// <summary>
+        /// The original text that is the rename replacement.
+        /// </summary>
+        public readonly string ReplacementText;
+
+        /// <summary>
+        /// The new workspace snapshot
+        /// </summary>
+        public Solution NewSolution { get; private set; }
 
         public ConflictResolution(
             Solution oldSolution,
@@ -41,9 +56,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             string replacementText,
             bool replacementTextValid)
         {
-            _oldSolution = oldSolution;
-            _newSolution = oldSolution;
-            _intermediateSolutionContainingOnlyModifiedDocuments = oldSolution;
+            OldSolution = oldSolution;
+            NewSolution = oldSolution;
             _renamedSpansTracker = renamedSpansTracker;
             ReplacementText = replacementText;
             ReplacementTextValid = replacementTextValid;
@@ -57,15 +71,19 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         }
 
         internal void UpdateCurrentSolution(Solution solution)
-            => _newSolution = solution;
+            => NewSolution = solution;
 
-        internal async Task RemoveAllRenameAnnotationsAsync(IEnumerable<DocumentId> documentWithRenameAnnotations, AnnotationTable<RenameAnnotation> annotationSet, CancellationToken cancellationToken)
+        internal async Task<Solution> RemoveAllRenameAnnotationsAsync(
+            Solution intermediateSolution,
+            IEnumerable<DocumentId> documentWithRenameAnnotations,
+            AnnotationTable<RenameAnnotation> annotationSet,
+            CancellationToken cancellationToken)
         {
             foreach (var documentId in documentWithRenameAnnotations)
             {
                 if (_renamedSpansTracker.IsDocumentChanged(documentId))
                 {
-                    var document = _newSolution.GetDocument(documentId);
+                    var document = NewSolution.GetDocument(documentId);
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     // For the computeReplacementToken and computeReplacementNode functions, use 
@@ -78,11 +96,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         trivia: SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
                         computeReplacementTrivia: null);
 
-                    _intermediateSolutionContainingOnlyModifiedDocuments = _intermediateSolutionContainingOnlyModifiedDocuments.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
+                    intermediateSolution = intermediateSolution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
                 }
             }
 
-            _newSolution = _intermediateSolutionContainingOnlyModifiedDocuments;
+            return intermediateSolution;
         }
 
         internal void RenameDocumentToMatchNewSymbol(Document document)
@@ -90,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var extension = Path.GetExtension(document.Name);
             var newName = Path.ChangeExtension(ReplacementText, extension);
 
-            _newSolution = _newSolution.WithDocumentName(document.Id, newName);
+            NewSolution = NewSolution.WithDocumentName(document.Id, newName);
         }
 
         /// <summary>
@@ -149,27 +167,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             AddRelatedLocation(location);
         }
-
-        /// <summary>
-        /// The new workspace snapshot
-        /// </summary>
-        public Solution NewSolution => _newSolution;
-
-        /// <summary>
-        /// The base workspace snapshot
-        /// </summary>
-        public Solution OldSolution => _oldSolution;
-
-        /// <summary>
-        /// Whether the text that was resolved with was even valid. This may be false if the
-        /// identifier was not valid in some language that was involved in the rename.
-        /// </summary>
-        public bool ReplacementTextValid { get; }
-
-        /// <summary>
-        /// The original text that is the rename replacement.
-        /// </summary>
-        public string ReplacementText { get; }
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);

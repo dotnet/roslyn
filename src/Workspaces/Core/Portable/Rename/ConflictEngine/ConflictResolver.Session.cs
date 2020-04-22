@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var renamedSpansTracker = new RenamedSpansTracker();
                     var conflictResolution = new ConflictResolution(baseSolution, renamedSpansTracker, _replacementText, _replacementTextValid);
 
+                    var intermediateSolution = conflictResolution.OldSolution;
                     foreach (var documentsByProject in documentsGroupedByTopologicallySortedProjectId)
                     {
                         var documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(documentsByProject);
@@ -199,7 +200,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                             // Step 3: Simplify the project
                             conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.NewSolution, documentsByProject, _replacementTextValid, _renameAnnotations, _cancellationToken).ConfigureAwait(false));
-                            await conflictResolution.RemoveAllRenameAnnotationsAsync(documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
+                            intermediateSolution = await conflictResolution.RemoveAllRenameAnnotationsAsync(
+                                intermediateSolution, documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
+                            conflictResolution.UpdateCurrentSolution(intermediateSolution);
                         }
                     }
 
