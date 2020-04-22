@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -270,10 +271,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new BidirectionalMap<string, AccessibilityModifiersRequired>(new[]
             {
-                KeyValuePairUtil.Create("never", AccessibilityModifiersRequired.Never),
-                KeyValuePairUtil.Create("always", AccessibilityModifiersRequired.Always),
-                KeyValuePairUtil.Create("for_non_interface_members", AccessibilityModifiersRequired.ForNonInterfaceMembers),
-                KeyValuePairUtil.Create("omit_if_default", AccessibilityModifiersRequired.OmitIfDefault),
+                KeyValuePair.Create("never", AccessibilityModifiersRequired.Never),
+                KeyValuePair.Create("always", AccessibilityModifiersRequired.Always),
+                KeyValuePair.Create("for_non_interface_members", AccessibilityModifiersRequired.ForNonInterfaceMembers),
+                KeyValuePair.Create("omit_if_default", AccessibilityModifiersRequired.OmitIfDefault),
             });
 
         private static CodeStyleOption2<AccessibilityModifiersRequired> ParseAccessibilityModifiersRequired(string optionString)
@@ -357,15 +358,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly BidirectionalMap<string, ParenthesesPreference> s_parenthesesPreferenceMap =
             new BidirectionalMap<string, ParenthesesPreference>(new[]
             {
-                KeyValuePairUtil.Create("always_for_clarity", ParenthesesPreference.AlwaysForClarity),
-                KeyValuePairUtil.Create("never_if_unnecessary", ParenthesesPreference.NeverIfUnnecessary),
+                KeyValuePair.Create("always_for_clarity", ParenthesesPreference.AlwaysForClarity),
+                KeyValuePair.Create("never_if_unnecessary", ParenthesesPreference.NeverIfUnnecessary),
             });
 
         private static readonly BidirectionalMap<string, UnusedParametersPreference> s_unusedParametersPreferenceMap =
             new BidirectionalMap<string, UnusedParametersPreference>(new[]
             {
-                KeyValuePairUtil.Create("non_public", UnusedParametersPreference.NonPublicMethods),
-                KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
+                KeyValuePair.Create("non_public", UnusedParametersPreference.NonPublicMethods),
+                KeyValuePair.Create("all", UnusedParametersPreference.AllMethods),
             });
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = CreateOption(

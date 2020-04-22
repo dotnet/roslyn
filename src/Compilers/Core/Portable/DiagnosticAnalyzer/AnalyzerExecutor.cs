@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            var tuples = nodeActionsByKind.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
+            var tuples = nodeActionsByKind.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
             var map = ImmutableDictionary.CreateRange(tuples);
             nodeActionsByKind.Free();
             return map;
@@ -1292,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            var tuples = operationActionsByKind.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
+            var tuples = operationActionsByKind.Select(kvp => KeyValuePair.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
             var map = ImmutableDictionary.CreateRange(tuples);
             operationActionsByKind.Free();
             return map;

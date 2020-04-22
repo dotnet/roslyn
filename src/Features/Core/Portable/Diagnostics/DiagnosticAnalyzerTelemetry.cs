@@ -9,10 +9,6 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-#if NETSTANDARD2_0
-using Roslyn.Utilities;
-#endif
-
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed class DiagnosticAnalyzerTelemetry

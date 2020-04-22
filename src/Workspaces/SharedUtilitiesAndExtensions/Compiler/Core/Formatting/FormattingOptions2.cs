@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using System.Collections.Generic;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
@@ -90,9 +91,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         private static readonly BidirectionalMap<string, string> s_parenthesesPreferenceMap =
             new BidirectionalMap<string, string>(new[]
             {
-                KeyValuePairUtil.Create("lf", "\n"),
-                KeyValuePairUtil.Create("cr", "\r"),
-                KeyValuePairUtil.Create("crlf", "\r\n"),
+                KeyValuePair.Create("lf", "\n"),
+                KeyValuePair.Create("cr", "\r"),
+                KeyValuePair.Create("crlf", "\r\n"),
             });
 
         private static Optional<string> ParseEditorConfigEndOfLine(string endOfLineValue)

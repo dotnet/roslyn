@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -578,7 +579,7 @@ class Class
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;
-                    var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
+                    var specificDiagnosticOptions = new[] { KeyValuePair.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
                     var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
                     workspace.ChangeSolution(updatedSolution);
@@ -823,7 +824,7 @@ class Class
                 {
                     var solution = workspace.CurrentSolution;
                     var compilationOptions = solution.Projects.Single().CompilationOptions;
-                    var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
+                    var specificDiagnosticOptions = new[] { KeyValuePair.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
                     var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
                     workspace.ChangeSolution(updatedSolution);

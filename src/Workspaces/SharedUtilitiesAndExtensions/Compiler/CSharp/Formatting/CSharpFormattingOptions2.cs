@@ -4,6 +4,7 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -31,44 +32,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static readonly BidirectionalMap<string, SpacingWithinParenthesesOption> s_spacingWithinParenthesisOptionsEditorConfigMap =
             new BidirectionalMap<string, SpacingWithinParenthesesOption>(new[]
             {
-                KeyValuePairUtil.Create("expressions", SpacingWithinParenthesesOption.Expressions),
-                KeyValuePairUtil.Create("type_casts", SpacingWithinParenthesesOption.TypeCasts),
-                KeyValuePairUtil.Create("control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
+                KeyValuePair.Create("expressions", SpacingWithinParenthesesOption.Expressions),
+                KeyValuePair.Create("type_casts", SpacingWithinParenthesesOption.TypeCasts),
+                KeyValuePair.Create("control_flow_statements", SpacingWithinParenthesesOption.ControlFlowStatements),
             });
         private static readonly BidirectionalMap<string, BinaryOperatorSpacingOptions> s_binaryOperatorSpacingOptionsEditorConfigMap =
             new BidirectionalMap<string, BinaryOperatorSpacingOptions>(new[]
             {
-                KeyValuePairUtil.Create("ignore", BinaryOperatorSpacingOptions.Ignore),
-                KeyValuePairUtil.Create("none", BinaryOperatorSpacingOptions.Remove),
-                KeyValuePairUtil.Create("before_and_after", BinaryOperatorSpacingOptions.Single),
+                KeyValuePair.Create("ignore", BinaryOperatorSpacingOptions.Ignore),
+                KeyValuePair.Create("none", BinaryOperatorSpacingOptions.Remove),
+                KeyValuePair.Create("before_and_after", BinaryOperatorSpacingOptions.Single),
             });
         private static readonly BidirectionalMap<string, LabelPositionOptions> s_labelPositionOptionsEditorConfigMap =
             new BidirectionalMap<string, LabelPositionOptions>(new[]
             {
-                KeyValuePairUtil.Create("flush_left", LabelPositionOptions.LeftMost),
-                KeyValuePairUtil.Create("no_change", LabelPositionOptions.NoIndent),
-                KeyValuePairUtil.Create("one_less_than_current", LabelPositionOptions.OneLess),
+                KeyValuePair.Create("flush_left", LabelPositionOptions.LeftMost),
+                KeyValuePair.Create("no_change", LabelPositionOptions.NoIndent),
+                KeyValuePair.Create("one_less_than_current", LabelPositionOptions.OneLess),
             });
         private static readonly BidirectionalMap<string, NewLineOption> s_legacyNewLineOptionsEditorConfigMap =
             new BidirectionalMap<string, NewLineOption>(new[]
             {
-                KeyValuePairUtil.Create("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
+                KeyValuePair.Create("object_collection_array_initalizers", NewLineOption.ObjectCollectionsArrayInitializers),
             });
         private static readonly BidirectionalMap<string, NewLineOption> s_newLineOptionsEditorConfigMap =
             new BidirectionalMap<string, NewLineOption>(new[]
             {
-                KeyValuePairUtil.Create("accessors", NewLineOption.Accessors),
-                KeyValuePairUtil.Create("types", NewLineOption.Types),
-                KeyValuePairUtil.Create("methods", NewLineOption.Methods),
-                KeyValuePairUtil.Create("properties", NewLineOption.Properties),
-                KeyValuePairUtil.Create("indexers", NewLineOption.Indexers),
-                KeyValuePairUtil.Create("events", NewLineOption.Events),
-                KeyValuePairUtil.Create("anonymous_methods", NewLineOption.AnonymousMethods),
-                KeyValuePairUtil.Create("control_blocks", NewLineOption.ControlBlocks),
-                KeyValuePairUtil.Create("anonymous_types", NewLineOption.AnonymousTypes),
-                KeyValuePairUtil.Create("object_collection_array_initializers", NewLineOption.ObjectCollectionsArrayInitializers),
-                KeyValuePairUtil.Create("lambdas", NewLineOption.Lambdas),
-                KeyValuePairUtil.Create("local_functions", NewLineOption.LocalFunction),
+                KeyValuePair.Create("accessors", NewLineOption.Accessors),
+                KeyValuePair.Create("types", NewLineOption.Types),
+                KeyValuePair.Create("methods", NewLineOption.Methods),
+                KeyValuePair.Create("properties", NewLineOption.Properties),
+                KeyValuePair.Create("indexers", NewLineOption.Indexers),
+                KeyValuePair.Create("events", NewLineOption.Events),
+                KeyValuePair.Create("anonymous_methods", NewLineOption.AnonymousMethods),
+                KeyValuePair.Create("control_blocks", NewLineOption.ControlBlocks),
+                KeyValuePair.Create("anonymous_types", NewLineOption.AnonymousTypes),
+                KeyValuePair.Create("object_collection_array_initializers", NewLineOption.ObjectCollectionsArrayInitializers),
+                KeyValuePair.Create("lambdas", NewLineOption.Lambdas),
+                KeyValuePair.Create("local_functions", NewLineOption.LocalFunction),
             });
         #endregion
 

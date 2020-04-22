@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 #nullable enable
 namespace Microsoft.CodeAnalysis

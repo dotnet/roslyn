@@ -5,6 +5,7 @@
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using Xunit;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new SourceFileResolver(
                     ImmutableArray.Create(""),
                     isABaseDirectory,
-                    ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", null)));
+                    ImmutableArray.Create(KeyValuePair.Create("key", (string)null)));
                 AssertEx.Fail("Didn't throw");
             }
             catch (ArgumentException argException)
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             new SourceFileResolver(
                 ImmutableArray.Create(""),
                 isABaseDirectory,
-                ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", "")));
+                ImmutableArray.Create(KeyValuePair.Create("key", "")));
         }
 
         [Fact]
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new SourceFileResolver(
                     ImmutableArray.Create(""),
                     "not_a_root directory",
-                    ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", "value")));
+                    ImmutableArray.Create(KeyValuePair.Create("key", "value")));
                 AssertEx.Fail("Didn't throw");
             }
             catch (ArgumentException argException)

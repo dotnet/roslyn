@@ -11,7 +11,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.AnalyzerConfig;
 using static Roslyn.Test.Utilities.TestHelpers;
-using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -1099,7 +1098,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
                 else
                 {
                     AssertEx.SetEqual(
-                        expected[i].Select(KeyValuePair.ToKeyValuePair),
+                        expected[i].Select(KeyValuePairUtil.ToKeyValuePair),
                         options[i].AnalyzerOptions);
                 }
             }

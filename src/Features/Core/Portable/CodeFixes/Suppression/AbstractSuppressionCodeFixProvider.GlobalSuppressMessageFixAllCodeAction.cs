@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 var builder = new List<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>();
                 foreach (var kvp in diagnosticsMapBuilder)
                 {
-                    builder.Add(KeyValuePairUtil.Create(kvp.Key, GetUniqueDiagnostics(kvp.Value)));
+                    builder.Add(KeyValuePair.Create(kvp.Key, GetUniqueDiagnostics(kvp.Value)));
                 }
 
                 return builder.OrderBy(kvp => kvp.Key.GetDocumentationCommentId() ?? string.Empty);

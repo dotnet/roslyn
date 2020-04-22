@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Emit
             for (int i = 0; i < lambdaDebugInfo.Length; i++)
             {
                 var lambdaInfo = lambdaDebugInfo[i];
-                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePairUtil.Create(lambdaInfo.LambdaId, lambdaInfo.ClosureOrdinal);
+                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(lambdaInfo.LambdaId, lambdaInfo.ClosureOrdinal);
             }
 
             for (int i = 0; i < closureDebugInfo.Length; i++)

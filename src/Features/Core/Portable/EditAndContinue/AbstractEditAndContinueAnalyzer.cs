@@ -1507,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (activeNode.NewTrackedNode != null)
                 {
                     lazyKnownMatches ??= new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
-                    lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
+                    lazyKnownMatches.Add(KeyValuePair.Create(activeNode.OldNode, activeNode.NewTrackedNode));
                 }
             }
         }
@@ -1532,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (StatementLabelEquals(oldNode, newNode))
                 {
-                    lazyKnownMatches.Add(KeyValuePairUtil.Create(oldNode, newNode));
+                    lazyKnownMatches.Add(KeyValuePair.Create(oldNode, newNode));
                 }
             }
 

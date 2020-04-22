@@ -14,7 +14,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Roslyn.Test.Utilities
 {
@@ -23,10 +22,10 @@ namespace Roslyn.Test.Utilities
         public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(
             IEqualityComparer<K> comparer,
             params (K, V)[] entries)
-            => ImmutableDictionary.CreateRange(comparer, entries.Select(KeyValuePair.ToKeyValuePair));
+            => ImmutableDictionary.CreateRange(comparer, entries.Select(KeyValuePairUtil.ToKeyValuePair));
 
         public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(params (K, V)[] entries)
-            => ImmutableDictionary.CreateRange(entries.Select(KeyValuePair.ToKeyValuePair));
+            => ImmutableDictionary.CreateRange(entries.Select(KeyValuePairUtil.ToKeyValuePair));
 
         public static IEnumerable<Type> GetAllTypesWithStaticFieldsImplementingType(Assembly assembly, Type type)
         {

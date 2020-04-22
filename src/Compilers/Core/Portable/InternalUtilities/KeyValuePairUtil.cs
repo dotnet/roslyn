@@ -6,21 +6,33 @@
 
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis
 {
     internal static class KeyValuePairUtil
     {
-        public static KeyValuePair<K, V> Create<K, V>(K key, V value)
-        {
-            return new KeyValuePair<K, V>(key, value);
-        }
-
-        public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> keyValuePair, out TKey key, out TValue value)
-        {
-            key = keyValuePair.Key;
-            value = keyValuePair.Value;
-        }
-
-        public static KeyValuePair<TKey, TValue> ToKeyValuePair<TKey, TValue>(this (TKey, TValue) tuple) => Create(tuple.Item1, tuple.Item2);
+        public static KeyValuePair<TKey, TValue> ToKeyValuePair<TKey, TValue>(this (TKey, TValue) tuple)
+            => KeyValuePair.Create(tuple.Item1, tuple.Item2);
     }
 }
+
+#if NETFRAMEWORK || NETSTANDARD2_0
+namespace System.Collections.Generic
+{
+    // In netcoreapp3.1 non-generic KeyValuePair type is defined in System.Collections.Generic
+    internal static class KeyValuePair
+    {
+        public static KeyValuePair<K, V> Create<K, V>(K key, V value)
+            => new KeyValuePair<K, V>(key, value);
+    }
+}
+
+// In netcoreapp3.1 Deconstruct is defined on KeyValuePair<K, V>
+internal static class KeyValuePairExtensions
+{
+    public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> keyValuePair, out TKey key, out TValue value)
+    {
+        key = keyValuePair.Key;
+        value = keyValuePair.Value;
+    }
+}
+#endif

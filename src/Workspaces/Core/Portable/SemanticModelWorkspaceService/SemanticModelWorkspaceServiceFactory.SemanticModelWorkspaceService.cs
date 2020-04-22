@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         var documentId = project.GetDocumentId(tree);
                         if (documentId != null)
                         {
-                            yield return KeyValuePairUtil.Create(documentId, tree);
+                            yield return KeyValuePair.Create(documentId, tree);
                         }
                     }
                 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -504,7 +505,7 @@ class Program
                 CompilationName,
                 new[] { tree },
                 References,
-                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new[] { KeyValuePairUtil.Create("CS0219", ReportDiagnostic.Suppress) }));
+                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new[] { KeyValuePair.Create("CS0219", ReportDiagnostic.Suppress) }));
         }
 
         protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)

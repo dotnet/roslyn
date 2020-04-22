@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         {
                             case FixAllScope.Project:
                                 var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
-                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(project, diagnostics));
+                                var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(project, diagnostics));
                                 return ImmutableDictionary.CreateRange(kvp);
 
                             case FixAllScope.Solution:

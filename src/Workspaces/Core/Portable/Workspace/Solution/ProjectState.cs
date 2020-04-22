@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
             // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
             _analyzerConfigDocumentStates = ImmutableSortedDictionary.CreateRange(DocumentIdComparer.Instance,
                 projectInfoFixed.AnalyzerConfigDocuments.Select(d =>
-                    KeyValuePairUtil.Create(d.Id, new AnalyzerConfigDocumentState(d, solutionServices))));
+                    KeyValuePair.Create(d.Id, new AnalyzerConfigDocumentState(d, solutionServices))));
             _lazyAnalyzerConfigSet = ComputeAnalyzerConfigSetValueSource(_analyzerConfigDocumentStates.Values);
 
             _documentIds = projectInfoFixed.Documents.Select(d => d.Id).ToImmutableList();
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 documentIds: _documentIds.AddRange(documents.Select(d => d.Id)),
-                documentStates: _documentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
+                documentStates: _documentStates.AddRange(documents.Select(d => KeyValuePair.Create(d.Id, d))));
         }
 
         public ProjectState AddAdditionalDocuments(ImmutableArray<TextDocumentState> documents)
@@ -620,14 +620,14 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
                 additionalDocumentIds: _additionalDocumentIds.AddRange(documents.Select(d => d.Id)),
-                additionalDocumentStates: _additionalDocumentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
+                additionalDocumentStates: _additionalDocumentStates.AddRange(documents.Select(d => KeyValuePair.Create(d.Id, d))));
         }
 
         public ProjectState AddAnalyzerConfigDocuments(ImmutableArray<AnalyzerConfigDocumentState> documents)
         {
             Debug.Assert(!documents.Any(d => this._analyzerConfigDocumentStates.ContainsKey(d.Id)));
 
-            var newAnalyzerConfigDocumentStates = _analyzerConfigDocumentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d)));
+            var newAnalyzerConfigDocumentStates = _analyzerConfigDocumentStates.AddRange(documents.Select(d => KeyValuePair.Create(d.Id, d)));
 
             return CreateNewStateForChangedAnalyzerConfigDocuments(newAnalyzerConfigDocumentStates);
         }

@@ -137,7 +137,7 @@ public class C : NotFound
 }";
             // TODO: Compilation create doesn't accept analyzers anymore.
             var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
-                new[] { KeyValuePairUtil.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Suppress) });
+                new[] { KeyValuePair.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Suppress) });
 
             CreateCompilationWithMscorlib45(source, options: options/*, analyzers: new IDiagnosticAnalyzerFactory[] { new ComplainAboutX() }*/).VerifyDiagnostics(
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
@@ -160,7 +160,7 @@ public class C : NotFound
 }";
             // TODO: Compilation create doesn't accept analyzers anymore.
             var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
-                new[] { KeyValuePairUtil.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Error) });
+                new[] { KeyValuePair.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Error) });
 
             CreateCompilationWithMscorlib45(source, options: options).VerifyDiagnostics(
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)

@@ -16,10 +16,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
-#if NETSTANDARD2_0
-using Roslyn.Utilities;
-#endif
-
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
