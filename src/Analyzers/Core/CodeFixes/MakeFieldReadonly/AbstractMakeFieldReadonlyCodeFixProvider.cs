@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         }
 
         private static DeclarationModifiers WithReadOnly(DeclarationModifiers modifiers)
-            => modifiers - DeclarationModifiers.Volatile | DeclarationModifiers.ReadOnly;
+            => (modifiers - DeclarationModifiers.Volatile) | DeclarationModifiers.ReadOnly;
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
