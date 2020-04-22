@@ -42,7 +42,12 @@ namespace Microsoft.CodeAnalysis.Rename
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
             {
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
-                return await changeNamespaceService.ChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);
+                var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);
+
+                // If the solution fails to update fail silently. The user will see no large
+                // negative impact from not doing this modification, and it's possible the document
+                // was too malformed to update any namespaces.
+                return solution ?? document.Project.Solution;
             }
 
             public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CancellationToken _)

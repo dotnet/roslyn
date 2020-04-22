@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
         public abstract string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts);
-        public abstract Task<Solution> ChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
+        public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
         }
 
-        public override async Task<Solution> ChangeTopLevelNamespacesAsync(
+        public override async Task<Solution?> TryChangeTopLevelNamespacesAsync(
             Document document,
             string targetNamespace,
             CancellationToken cancellationToken)
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             if (namespaceDeclaration is null)
             {
-                throw new InvalidOperationException("Unable to find valid top level namespaces to change");
+                return null;
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

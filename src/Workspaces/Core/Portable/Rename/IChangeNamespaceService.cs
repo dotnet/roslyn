@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// Using only the top level namespace declarations of a document, change all of them to the target namespace. Will only
         /// use namespace containers considered valid by <see cref="CanChangeNamespaceAsync(Document, SyntaxNode, CancellationToken)"/>
         /// </summary>
-        Task<Solution> ChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
+        Task<Solution> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a set of folders from a <see cref="Document"/> build the namespace that would match
