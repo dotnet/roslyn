@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         public void Add<T>(Option2<T> option, T value)
             => _options.Add(new OptionKey2(option), value);
 
+        public void Add<T>(Option2<CodeStyleOption2<T>> option, T value)
+            => Add(option, value, option.DefaultValue.Notification);
+
         public void Add<T>(Option2<CodeStyleOption2<T>> option, T value, NotificationOption2 notification)
             => _options.Add(new OptionKey2(option), new CodeStyleOption2<T>(value, notification));
 
