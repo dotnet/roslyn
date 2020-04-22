@@ -4,14 +4,13 @@
 
 #nullable enable
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using System;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -31,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             private readonly DocumentId _documentId;
             private readonly string _documentName;
-            private readonly IReadOnlyList<string> _documentFolders;
+            private readonly ImmutableArray<string> _documentFolders;
             private readonly OptionSet _optionSet;
 
             internal RenameDocumentActionSet(
                 ImmutableArray<RenameDocumentAction> actions,
                 DocumentId documentId,
                 string documentName,
-                IReadOnlyList<string> documentFolders,
+                ImmutableArray<string> documentFolders,
                 OptionSet optionSet)
             {
                 ApplicableActions = actions;

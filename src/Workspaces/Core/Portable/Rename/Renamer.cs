@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 actions.ToImmutable(),
                 document.Id,
                 newDocumentName,
-                document.Folders,
+                document.Folders.ToImmutableArray(),
                 optionSet);
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 actions.ToImmutable(),
                 document.Id,
                 document.Name,
-                newFolders,
+                newFolders.ToImmutableArray(),
                 optionSet));
         }
 
