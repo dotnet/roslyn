@@ -90,26 +90,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // create a serializable analyzer reference:
                 analyzeReferences = new[]
                 {
-                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, FromFileLoader.Instance),
-                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, FromFileLoader.Instance)
+                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
                 };
             }
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzeReferences));
-        }
-
-        private class FromFileLoader : IAnalyzerAssemblyLoader
-        {
-            public static FromFileLoader Instance = new FromFileLoader();
-
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
         }
 
         protected Document GetDocumentAndSelectSpan(TestWorkspace workspace, out TextSpan span)
