@@ -261,10 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         // NOTE: Dev11 does not add synthesized static constructors to this map,
                                         //       but adds synthesized instance constructors, Roslyn adds both
                                         var method = (MethodSymbol)member;
-                                        if (method.IsDefaultValueTypeConstructor() ||
-                                            // Synthesized static constructors that will not be emitted should not be included in the SymbolToLocationMap
-                                            (method is SynthesizedStaticConstructor cctor && !cctor.ShouldEmit()) ||
-                                            method.IsPartialMethod() && (object)method.PartialImplementationPart == null)
+                                        if (!method.ShouldEmit())
                                         {
                                             break;
                                         }

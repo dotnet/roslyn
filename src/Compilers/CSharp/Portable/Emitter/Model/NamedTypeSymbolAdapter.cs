@@ -702,26 +702,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (m.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)m;
-
-                    if (method.IsPartialDefinition())
+                    if (method.ShouldEmit())
                     {
-                        // Don't emit partial methods without an implementation part.
-                        if ((object)method.PartialImplementationPart == null)
-                        {
-                            continue;
-                        }
+                        yield return method;
                     }
-                    // Don't emit the default value type constructor - the runtime handles that
-                    else if (method.IsDefaultValueTypeConstructor())
-                    {
-                        continue;
-                    }
-                    else if (method is SynthesizedStaticConstructor cctor && !cctor.ShouldEmit())
-                    {
-                        continue;
-                    }
-
-                    yield return method;
                 }
             }
         }
