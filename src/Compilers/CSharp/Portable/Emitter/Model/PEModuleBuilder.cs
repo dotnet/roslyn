@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         var method = (MethodSymbol)member;
                                         if (method.IsDefaultValueTypeConstructor() ||
                                             // Synthesized static constructors that will not be emitted should not be included in the SymbolToLocationMap
-                                            (method.IsImplicitStaticConstructor && GetMethodBody(method) is null) ||
+                                            method is SynthesizedStaticConstructor { ShouldEmit: false } ||
                                             method.IsPartialMethod() && (object)method.PartialImplementationPart == null)
                                         {
                                             break;

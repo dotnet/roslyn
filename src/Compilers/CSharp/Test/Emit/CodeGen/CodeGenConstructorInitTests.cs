@@ -671,7 +671,15 @@ class C
     static (int, object) pair3 = default!;
     static (int, object) pair4 = default((int, object))!;
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
@@ -706,7 +714,15 @@ class C
     static S field2 = default(S);
     static S field3 = new S();
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
@@ -780,7 +796,15 @@ class C
     static S? s3 = null;
     static S? s4 = new S?();
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
         }
 
         [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
@@ -921,7 +945,15 @@ class C
     static object s2 = (S?)null;
     static object s3 = new S?();
 }";
-            CompileAndVerify(source).VerifyMemberInIL("C..cctor()", false);
+            // note: we could make the synthesized constructor smarter and realize that
+            // nothing needs to be emitted for these initializers.
+            // but it doesn't serve any realistic scenarios at this time.
+            CompileAndVerify(source).VerifyIL("C..cctor()", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
         }
 
         [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]

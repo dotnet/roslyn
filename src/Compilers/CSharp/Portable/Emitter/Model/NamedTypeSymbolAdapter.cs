@@ -668,10 +668,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var method in this.GetMethodsToEmit())
             {
                 Debug.Assert((object)method != null);
-                if (method.IsImplicitStaticConstructor && context.Module.GetMethodBody(method) is null)
-                {
-                    continue;
-                }
 
                 if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.ShouldInclude(context))
                 {
@@ -717,6 +713,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     // Don't emit the default value type constructor - the runtime handles that
                     else if (method.IsDefaultValueTypeConstructor())
+                    {
+                        continue;
+                    }
+                    else if (method is SynthesizedStaticConstructor { ShouldEmit: false })
                     {
                         continue;
                     }

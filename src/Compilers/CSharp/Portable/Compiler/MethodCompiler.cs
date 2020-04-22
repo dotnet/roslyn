@@ -441,7 +441,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)sourceTypeSymbol != null)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.StaticInitializers, _diagnostics, ref processedStaticInitializers);
+                if (sourceTypeSymbol.GetSynthesizedStaticConstructor() is SynthesizedStaticConstructor staticConstructor)
+                {
+                    processedStaticInitializers = staticConstructor.GetProcessedInitializers(_diagnostics);
+                }
+                else
+                {
+                    Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.StaticInitializers, _diagnostics, ref processedStaticInitializers);
+                }
 
                 _cancellationToken.ThrowIfCancellationRequested();
                 Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.InstanceInitializers, _diagnostics, ref processedInstanceInitializers);
@@ -1206,12 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 // Only do the cast if we haven't returned with some error diagnostics.
                                 // Otherwise, `lowered` might have been a BoundBadStatement.
-                                var loweredList = (BoundStatementList)lowered;
-                                if (methodSymbol.IsImplicitStaticConstructor && loweredList.Statements.IsEmpty)
-                                {
-                                    // either there were no initializers or they were all optimized out.
-                                    return;
-                                }
+                                processedInitializers.LoweredInitializers = (BoundStatementList)lowered;
                             }
 
                             // initializers for global code have already been included in the body
@@ -1234,28 +1236,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+                        if (!(methodSymbol is SynthesizedStaticConstructor { ShouldEmit: false }))
+                        {
+                            CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 
-                        var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+                            var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
 
-                        var emittedBody = GenerateMethodBody(
-                            _moduleBeingBuiltOpt,
-                            methodSymbol,
-                            methodOrdinal,
-                            boundBody,
-                            lambdaDebugInfoBuilder.ToImmutable(),
-                            closureDebugInfoBuilder.ToImmutable(),
-                            stateMachineTypeOpt,
-                            lazyVariableSlotAllocator,
-                            diagsForCurrentMethod,
-                            _debugDocumentProvider,
-                            importChain,
-                            _emittingPdb,
-                            _emitTestCoverageData,
-                            dynamicAnalysisSpans,
-                            entryPointOpt: null);
+                            var emittedBody = GenerateMethodBody(
+                                _moduleBeingBuiltOpt,
+                                methodSymbol,
+                                methodOrdinal,
+                                boundBody,
+                                lambdaDebugInfoBuilder.ToImmutable(),
+                                closureDebugInfoBuilder.ToImmutable(),
+                                stateMachineTypeOpt,
+                                lazyVariableSlotAllocator,
+                                diagsForCurrentMethod,
+                                _debugDocumentProvider,
+                                importChain,
+                                _emittingPdb,
+                                _emitTestCoverageData,
+                                dynamicAnalysisSpans,
+                                entryPointOpt: null);
 
-                        _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                        }
                     }
 
                     _diagnostics.AddRange(diagsForCurrentMethod);
