@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private SynthesizedAttributeData TrySynthesizeDebuggerDisplayAttribute()
             {
                 // Escape open '{' with '\' to avoid parsing it as an embedded expression.
-			
+
                 string displayString;
                 if (this.Properties.Length == 0)
                 {
