@@ -103,7 +103,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             SyntaxEditor editor,
             ISyntaxFactsService syntaxFacts);
 
-        protected virtual SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFactsService syntaxFacts)
+        /// <summary>
+        /// Rewrite the parent of a node which was rewritted by <see cref="TryUpdateNameForFlaggedNode"/>.
+        /// </summary>
+        /// <param name="parent">The original parent of the node rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
+        /// <param name="newNameNode">The rewritten node produced by <see cref="TryUpdateNameForFlaggedNode"/>.</param>
+        /// <param name="editor">The syntax editor for the code fix.</param>
+        /// <param name="syntaxFacts">The syntax facts for the current language.</param>
+        /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
+        /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
+        protected virtual SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
         {
             return null;
         }

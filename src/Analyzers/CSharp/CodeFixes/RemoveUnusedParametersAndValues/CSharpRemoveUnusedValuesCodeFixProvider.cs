@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             }
         }
 
-        protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFactsService syntaxFacts)
+        protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
         {
             if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
                 && parent.IsKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax declarationPattern)
