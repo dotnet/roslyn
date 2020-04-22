@@ -894,6 +894,11 @@
         <target state="translated">назначение объединения</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
         <target state="translated">ограничения универсального типа для делегата</target>
