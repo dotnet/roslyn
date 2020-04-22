@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // Unilaterally transition us to the finished state.  Once we're finished
                 // we cannot start or stop anymore.
                 _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
-                    _ => GlobalNotificationState.Finished, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                    _ => GlobalNotificationState.Finished, _shutdownCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.Default);
                 localTask = _globalNotificationsTask;
             }
 
