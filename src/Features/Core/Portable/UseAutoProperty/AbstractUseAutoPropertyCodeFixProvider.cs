@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var solution = context.Document.Project.Solution;
-            var fieldLocations = await Renamer.GetRenameLocationsAsync(
-                solution, fieldSymbol, solution.Options, cancellationToken).ConfigureAwait(false);
+            var fieldLocations = await Renamer.FindRenameLocationsAsync(
+                solution, fieldSymbol, optionSet: null, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
             var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);

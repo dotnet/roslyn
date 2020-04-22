@@ -10,6 +10,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Xunit.Sdk
 Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
+Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -47,9 +48,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _renameTo = renameTo
         End Sub
 
-        Public Shared Function Create(helper As ITestOutputHelper, workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
+        Public Shared Function Create(
+                helper As ITestOutputHelper,
+                workspaceXml As XElement,
+                renameTo As String,
+                host As TestHost,
+                Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
             workspace.SetTestLogger(AddressOf helper.WriteLine)
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, host = TestHost.OutOfProcess)))
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -75,10 +84,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     Next
                 End If
 
-                Dim locations = RenameLocations.FindAsync(symbol, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
-                Dim originalName = symbol.Name.Split("."c).Last()
+                Dim locations = Renamer.FindRenameLocationsAsync(
+                    workspace.CurrentSolution, symbol, optionSet, CancellationToken.None).Result
 
-                Dim result = ConflictResolver.ResolveConflictsAsync(locations, renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).Result
+                Dim result = locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).Result
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()

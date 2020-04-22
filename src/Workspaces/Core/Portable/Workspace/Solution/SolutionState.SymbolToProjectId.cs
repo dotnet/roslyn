@@ -74,6 +74,28 @@ namespace Microsoft.CodeAnalysis
 
                 return projectId;
             }
+            else if (symbol.IsKind(SymbolKind.DynamicType))
+            {
+                foreach (var (projectId, tracker) in _projectIdToTrackerMap)
+                {
+                    // VB doesn't have DynamicTypes (and throws if you ask for them), so just check C# projects.
+                    if (tracker.TryGetCompilation(out var compilation) &&
+                        compilation.Language == LanguageNames.CSharp &&
+                        compilation.DynamicType.Equals(symbol))
+                    {
+                        return projectId;
+                    }
+                }
+            }
+            else if (symbol.IsKind(SymbolKind.TypeParameter, out ITypeParameterSymbol? typeParameter) &&
+                     typeParameter.TypeParameterKind == TypeParameterKind.Cref)
+            {
+                // Cref type parameters don't belong to any containing symbol.  But we can map them to a doc/project
+                // using the declaring syntax of the type parameter itself.
+                var tree = typeParameter.Locations[0].SourceTree;
+                var doc = this.GetDocumentState(tree, projectId: null);
+                return doc?.Id.ProjectId;
+            }
 
             return null;
         }
