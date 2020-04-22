@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return !applicableContainers.IsDefault;
         }
 
-        public override string TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts)
+        public override string? TryBuildNamespaceFromFolders(IEnumerable<string> folders, ISyntaxFacts syntaxFacts)
         {
             var parts = folders.SelectMany(folder => folder.Split(new[] { '.' })).SelectAsArray(syntaxFacts.EscapeIdentifier);
             return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
