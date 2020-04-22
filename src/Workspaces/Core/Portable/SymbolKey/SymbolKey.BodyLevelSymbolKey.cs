@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -34,13 +34,11 @@ namespace Microsoft.CodeAnalysis
                 // locals in VB can't be found using GetDeclaredSymbol.  For those, we store the actual local span and
                 // use GetSymbolInfo to find it.
                 var ordinal = GetOrdinal();
-                var span = symbol.Locations[0].SourceSpan;
 
                 visitor.WriteString(localName);
                 visitor.WriteSymbolKey(containingSymbol);
                 visitor.WriteInteger(ordinal);
-                visitor.WriteInteger(span.Start);
-                visitor.WriteInteger(span.Length);
+                visitor.WriteLocation(symbol.Locations[0]);
                 visitor.WriteInteger((int)kind);
 
                 return;
@@ -64,8 +62,7 @@ namespace Microsoft.CodeAnalysis
                 var localName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
                 var ordinal = reader.ReadInteger();
-                var spanStart = reader.ReadInteger();
-                var spanLength = reader.ReadInteger();
+                var location = reader.ReadLocation();
                 var kind = (SymbolKind)reader.ReadInteger();
 
                 var containingSymbol = containingSymbolResolution.Symbol;
@@ -81,23 +78,9 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        var span = new TextSpan(spanStart, spanLength);
-                        foreach (var containerRef in containingSymbol.DeclaringSyntaxReferences)
-                        {
-                            var containerNode = containerRef.GetSyntax(cancellationToken);
-                            if (containerNode.Parent.Span.Contains(span))
-                            {
-                                var syntaxTree = containerRef.SyntaxTree;
-                                var node = syntaxTree.GetRoot(cancellationToken).FindNode(span, getInnermostNodeForTie: true);
-                                var semanticModel = reader.Compilation.GetSemanticModel(syntaxTree);
-                                var info = semanticModel.GetSymbolInfo(node, cancellationToken);
-                                if (info.Symbol != null)
-                                    return new SymbolKeyResolution(info.Symbol);
-
-                                if (info.CandidateSymbols.Length > 0)
-                                    return new SymbolKeyResolution(info.CandidateSymbols, info.CandidateReason);
-                            }
-                        }
+                        var resolution = reader.ResolveLocation(location);
+                        if (resolution != null)
+                            return resolution.Value;
                     }
                 }
 
