@@ -396,7 +396,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var unusedDiagnostics = DiagnosticBag.GetInstance();
-                boundInitializersOpt = Binder.BindFieldInitializers(DeclaringCompilation, sourceType.GetScriptInitializer(), sourceType.StaticInitializers, unusedDiagnostics, out _);
+                boundInitializersOpt = Binder.BindFieldInitializers(
+                    DeclaringCompilation,
+                    sourceType.IsScriptClass ? sourceType.GetScriptInitializer() : null,
+                    sourceType.StaticInitializers,
+                    unusedDiagnostics,
+                    out _);
                 unusedDiagnostics.Free();
             }
 
