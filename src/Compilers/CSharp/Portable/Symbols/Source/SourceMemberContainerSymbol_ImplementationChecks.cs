@@ -701,8 +701,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckOverrideMember(Symbol overridingMember, OverriddenOrHiddenMembersResult overriddenOrHiddenMembers,
-            DiagnosticBag diagnostics, out bool suppressAccessors)
+        private void CheckOverrideMember(
+            Symbol overridingMember,
+            OverriddenOrHiddenMembersResult overriddenOrHiddenMembers,
+            DiagnosticBag diagnostics,
+            out bool suppressAccessors)
         {
             Debug.Assert((object)overridingMember != null);
             Debug.Assert(overriddenOrHiddenMembers != null);
@@ -877,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
                             }
-                            else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
+                            else if (!IsValidOverrideReturnType(overridingProperty, overridingMemberType, overriddenMemberType, diagnostics))
                             {
                                 // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
                                 if (!isOrContainsErrorType(overridingMemberType.Type))
@@ -981,13 +984,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                             }
-                            else if (!overridingMethod.ReturnTypeWithAnnotations.Equals(overriddenMethod.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                            else if (!IsValidOverrideReturnType(overridingMethod, overridingMethod.ReturnTypeWithAnnotations, overriddenMethod.ReturnTypeWithAnnotations, diagnostics))
                             {
                                 // if the Return type is or contains an error type, the return type must be fixed before the override can be found, so suppress error
                                 if (!isOrContainsErrorType(overridingMethod.ReturnType))
                                 {
-                                    // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
-                                    diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                    // If the return type would be a valid covariant return, suggest using covariant return feature.
+                                    HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+                                    if (DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingMethod.ReturnTypeWithAnnotations.Type, overriddenMethod.ReturnTypeWithAnnotations.Type, ref discardedUseSiteDiagnostics))
+                                    {
+                                        var diagnosticInfo = MessageID.IDS_FeatureCovariantReturnsForOverrides.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation);
+                                        Debug.Assert(diagnosticInfo is { });
+                                        diagnostics.Add(diagnosticInfo, overridingMemberLocation);
+                                    }
+                                    else
+                                    {
+                                        // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
+                                        diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                    }
                                 }
                             }
                             else if (overriddenMethod.IsRuntimeFinalizer())
@@ -1055,6 +1069,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                  checkReturnType ? ReportBadReturn : null,
                                                  checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
+            }
+        }
+
+        /// <summary>
+        /// Return true if <paramref name="overridingReturnType"/> is valid for the return type of an override method when the overridden method's return type is <paramref name="overriddenReturnType"/>.
+        /// </summary>
+        private bool IsValidOverrideReturnType(Symbol overridingSymbol, TypeWithAnnotations overridingReturnType, TypeWithAnnotations overriddenReturnType, DiagnosticBag diagnostics)
+        {
+            if (DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion())
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var result = DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingReturnType.Type, overriddenReturnType.Type, ref useSiteDiagnostics);
+                if (useSiteDiagnostics != null)
+                {
+                    Location symbolLocation = overridingSymbol.Locations.FirstOrDefault();
+                    diagnostics.Add(symbolLocation, useSiteDiagnostics);
+                }
+
+                return result;
+            }
+            else
+            {
+                return overridingReturnType.Equals(overriddenReturnType, TypeCompareKind.AllIgnoreOptions);
             }
         }
 
