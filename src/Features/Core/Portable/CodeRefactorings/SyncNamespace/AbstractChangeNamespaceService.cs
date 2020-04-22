@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // Make sure given namespace name is valid, "" means global namespace.
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (targetNamespace == null
-                || (targetNamespace.Length > 0 && !targetNamespace.Split(s_dotSeparator).All<string>(syntaxFacts.IsValidIdentifier)))
+                || (targetNamespace.Length > 0 && !targetNamespace.Split(s_dotSeparator).All(syntaxFacts.IsValidIdentifier)))
             {
                 throw new ArgumentException(nameof(targetNamespace));
             }
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             // If we found a linked document which is part of a project with different project file,
             // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
-            if (linkedDocumentIds.Any<DocumentId>(id =>
+            if (linkedDocumentIds.Any(id =>
                     !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
             {
                 allDocumentIds = default;
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var fixedDocument = editor.GetChangedDocument();
             root = await fixedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var result = (fixedDocument, containers.SelectAsArray<SyntaxNode, SyntaxNode>(c => root.GetCurrentNode<SyntaxNode>(c)));
+            var result = (fixedDocument, containers.SelectAsArray<SyntaxNode, SyntaxNode>(c => root.GetCurrentNode(c)));
 
             return result;
         }

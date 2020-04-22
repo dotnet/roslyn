@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
     public abstract class RenamerTests : TestBase
     {
         private const string DefaultDocumentName = "DocumentName";
-        private static readonly string DefaultDocumentPath = @$"Document\Path\{DefaultDocumentName}";
+        private static readonly string s_defaultDocumentPath = @$"Document\Path\{DefaultDocumentName}";
 
         protected abstract string LanguageName { get; }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
         protected Task TestRenameDocument(string startText, string expectedText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null, string[] expectedErrors = null)
         {
             var defaultDocumentName = documentName ?? DefaultDocumentName;
-            var defaultDocumentPath = documentPath ?? DefaultDocumentPath;
+            var defaultDocumentPath = documentPath ?? s_defaultDocumentPath;
 
             var startDocuments = new[]
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
         protected async Task TestEmptyActionSet(string startText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null)
         {
             var defaultDocumentName = documentName ?? DefaultDocumentName;
-            var defaultDocumentPath = documentPath ?? DefaultDocumentPath;
+            var defaultDocumentPath = documentPath ?? s_defaultDocumentPath;
 
             var startDocuments = new[]
             {

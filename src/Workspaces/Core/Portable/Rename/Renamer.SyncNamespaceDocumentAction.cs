@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Rename
 
             internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
             {
-                var solution = document.Project.Solution;
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
                 return await changeNamespaceService.ChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);
             }
