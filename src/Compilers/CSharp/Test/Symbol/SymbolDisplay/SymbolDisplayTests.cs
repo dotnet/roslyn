@@ -2572,61 +2572,127 @@ namespace N1 {
             var eventSymbol = hostTypeSymbol.GetMember("Event");
 
             // ...
-            /*var nestedTypeSymbol = (ITypeSymbol)hostTypeSymbol.GetMember("NestedType");
+            //name type symbol 
+            var nestedTypeSymbol = (TypeSymbol)hostTypeSymbol.GetMember("NestedType");
             var nestedMethodSymbol = nestedTypeSymbol.GetMember("Method");
             var nestedDelegateSymbol = nestedTypeSymbol.GetMember("MyDelegate");
             var nestedFieldSymbol = nestedTypeSymbol.GetMember("Field");
             var nestedPropertySymbol = nestedTypeSymbol.GetMember("Property");
             var nestedEventSymbol = nestedTypeSymbol.GetMember("Event");
-            // ...*/
+            // ...
 
             Verify(methodSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
                 "void Method(int p)",
-                SymbolDisplayPartKind.Keyword);
+
+                 SymbolDisplayPartKind.Keyword,
+                 SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.MethodName,
+                 SymbolDisplayPartKind.Punctuation,
+                 SymbolDisplayPartKind.Keyword,
+                 SymbolDisplayPartKind.Space,
+                 SymbolDisplayPartKind.ParameterName,
+                 SymbolDisplayPartKind.Punctuation);
 
             Verify(delegateSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
-                "delegate void MyDelegate(int x)",
-                SymbolDisplayPartKind.Keyword);
+                "MyDelegate(int x)",
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
 
             Verify(fieldSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
                 "int Field",
-                SymbolDisplayPartKind.Keyword);
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
 
             Verify(propertySymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
-                "int Property {get;}",
-                SymbolDisplayPartKind.Keyword);
+                "int Property { get; }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
 
             Verify(eventSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
-                "Action Event",
-                SymbolDisplayPartKind.Keyword);
+                "event System.Action Event",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.EventName);
 
-            /*Verify(nestedTypeSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
-                "class NestedType",
-                SymbolDisplayPartKind.Keyword);
+            Verify(nestedTypeSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
+                "NestedType",
+                SymbolDisplayPartKind.ClassName);
 
             Verify(nestedMethodSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
                 "void NestedType.Method(int p)",
-                SymbolDisplayPartKind.Keyword);
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
 
             Verify(nestedDelegateSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
-                "delegate void NestedType.MyDelegate(int x)",
-                SymbolDisplayPartKind.Keyword);
+                "NestedType.MyDelegate(int x)",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
 
             Verify(nestedFieldSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
                 "int NestedType.Field",
-                SymbolDisplayPartKind.Keyword);
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.FieldName);
 
             Verify(nestedPropertySymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
-                "int NestedType.Property {get;} ",
-                SymbolDisplayPartKind.Keyword);
+                "int NestedType.Property { get; }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
 
             Verify(nestedEventSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
-                "Action NestedType.Event",
-                SymbolDisplayPartKind.Keyword);*/
-
-            // Verify(methodSymbol.ToMinimalDisplayParts(model, position: 0, s_memberSignatureDisplayFormat),
-            // "",
-            //    expectedKinds);
+                "event System.Action NestedType.Event",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.EventName);
         }
 
         private static readonly SymbolDisplayFormat s_memberSignatureDisplayFormat =
@@ -2638,6 +2704,8 @@ namespace N1 {
                         SymbolDisplayMemberOptions.IncludeType |
                         SymbolDisplayMemberOptions.IncludeParameters |
                         SymbolDisplayMemberOptions.IncludeContainingType,
+                    delegateStyle:
+                        SymbolDisplayDelegateStyle.NameAndSignature,
                     kindOptions:
                         SymbolDisplayKindOptions.IncludeMemberKeyword,
                     propertyStyle:
