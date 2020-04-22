@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             VerifyFileName(workspace.CurrentSolution.GetDocument(documentId), newIdentifierName)
         End Sub
 
-        Public Function CreateWorkspaceWithWaiter(element As XElement) As TestWorkspace
+        Public Function CreateWorkspaceWithWaiter(element As XElement, host As TestHost) As TestWorkspace
             Dim workspace = TestWorkspace.CreateWorkspace(
                 element,
                 exportProvider:=ExportProviderFactory.CreateExportProvider())

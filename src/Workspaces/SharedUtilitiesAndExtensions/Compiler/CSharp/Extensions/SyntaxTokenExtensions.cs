@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -18,10 +20,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsLastTokenOfNode<T>(this SyntaxToken token) where T : SyntaxNode
             => token.IsLastTokenOfNode<T>(out _);
 
-        public static bool IsLastTokenOfNode<T>(this SyntaxToken token, [NotNullWhen(true)] out T node) where T : SyntaxNode
+        public static bool IsLastTokenOfNode<T>(this SyntaxToken token, [NotNullWhen(true)] out T? node) where T : SyntaxNode
         {
-            node = token.GetAncestor<T>();
-            return node != null && token == node.GetLastToken(includeZeroWidth: true);
+            var ancestor = token.GetAncestor<T>();
+            if (ancestor == null || token != ancestor.GetLastToken(includeZeroWidth: true))
+            {
+                node = null;
+                return false;
+            }
+
+            node = ancestor;
+            return true;
         }
 
         public static bool IsKindOrHasMatchingText(this SyntaxToken token, SyntaxKind kind)

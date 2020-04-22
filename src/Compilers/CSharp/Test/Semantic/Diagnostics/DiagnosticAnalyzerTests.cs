@@ -3317,7 +3317,7 @@ class C
 
             Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
 
-            // Verify analyzer diagnostics and callbacks for non-configurable diagnostics even with with suppression on second file when not using GeneratedCodeAnalysisFlags.Analyze.
+            // Verify analyzer diagnostics and callbacks for non-configurable diagnostics even with suppression on second file when not using GeneratedCodeAnalysisFlags.Analyze.
             namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, configurable: false);
             compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
                 expected: new[] {

@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             _outputHelper = outputHelper
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(545576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545576")>
-        Public Sub QualifyBackingField()
+        Public Sub QualifyBackingField(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -33,16 +33,16 @@ Class X
 End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Y")
+                </Workspace>, host:=host, renameTo:="Y")
 
                 result.AssertLabeledSpansAre("stmt1", "Dim y = X._Y()", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(992721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992721")>
-        Public Sub ConflictingLocalWithFieldWithExtensionMethodInvolved()
+        Public Sub ConflictingLocalWithFieldWithExtensionMethodInvolved(host As TestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
@@ -59,7 +59,7 @@ Class Class1
 End Class
                     </Document>
                 </Project>
-            </Workspace>, renameTo:="list")
+            </Workspace>, host:=host, renameTo:="list")
 
                 result.AssertLabeledSpansAre("def", "list", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt1", "For Each i In Me.list.OfType(Of Integer)()", RelatedLocationType.ResolvedReferenceConflict)

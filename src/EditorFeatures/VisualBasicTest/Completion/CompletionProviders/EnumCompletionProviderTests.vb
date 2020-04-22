@@ -538,5 +538,20 @@ End Class
 ]]></Text>.Value
             Await VerifyItemExistsAsync(markup, "DayOfWeek.Monday")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInEnumHasFlag() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.IO
+
+Class C
+    Sub Main()
+        Dim f As FileInfo
+        f.Attributes.HasFlag($$
+    End Sub
+End Class
+]]></Text>.Value
+            Await VerifyItemExistsAsync(markup, "FileAttributes.Hidden")
+        End Function
     End Class
 End Namespace

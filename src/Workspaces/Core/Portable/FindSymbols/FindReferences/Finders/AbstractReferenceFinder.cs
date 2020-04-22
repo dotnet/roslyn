@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public const string ContainingTypeInfoPropertyName = "ContainingTypeInfo";
         public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
-        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects,
+        public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ISymbol symbol, Project project, IImmutableSet<Document> documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            ISymbol symbol, Document document, SemanticModel semanticModel, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         protected static bool TryGetNameWithoutAttributeSuffix(
             string name,
@@ -834,29 +834,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel,
+            ISymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             return symbol is TSymbol && CanFind((TSymbol)symbol)
                 ? FindReferencesInDocumentAsync((TSymbol)symbol, document, semanticModel, options, cancellationToken)
                 : SpecializedTasks.EmptyImmutableArray<FinderLocation>();
         }
 
-        public override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects,
+        public override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             if (options.Cascade &&
-                symbolAndProjectId.Symbol is TSymbol typedSymbol &&
+                symbol is TSymbol typedSymbol &&
                 CanFind(typedSymbol))
             {
                 return DetermineCascadedSymbolsAsync(
-                    symbolAndProjectId.WithSymbol(typedSymbol),
+                    typedSymbol,
                     solution, projects, options, cancellationToken);
             }
 
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
+            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
         protected virtual Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
@@ -866,11 +865,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, solution, projects, cancellationToken);
         }
 
-        protected virtual Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<TSymbol> symbolAndProject, Solution solution, IImmutableSet<Project> projects,
+        protected virtual Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            TSymbol symbol, Solution solution, IImmutableSet<Project> projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
+            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
         protected static Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(

@@ -1388,12 +1388,12 @@ var a = new C2();
             // Add a new invalid item
             comp = comp.AddReferences(ref1);
             Assert.Equal(1, comp.ExternalReferences.Length);
-            // Replace an non-existing item with another invalid item
+            // Replace a non-existing item with another invalid item
             Assert.Throws<ArgumentException>(() => comp = comp.ReplaceReference(MscorlibRef, ref1));
             Assert.Equal(1, comp.ExternalReferences.Length);
         }
 
-        // Replace an non-existing item with null
+        // Replace a non-existing item with null
         [Fact, WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")]
         public void NegReference4()
         {
@@ -1429,7 +1429,7 @@ var a = new C2();
 
 
             SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree("Using System;");
-            // Replace an non-existing item with another valid item and disorder the args
+            // Replace a non-existing item with another valid item and disorder the args
             Assert.Throws<ArgumentException>(
             delegate
             {
@@ -1483,7 +1483,7 @@ var a = new C2();
         }
 
         [WorkItem(538168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538168")]
-        // Replace an non-existing item with another valid item and disorder the args
+        // Replace a non-existing item with another valid item and disorder the args
         [Fact]
         public void NegTree2()
         {

@@ -48,6 +48,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.SeparatedList(Of TElement)(list)
         End Function
 
+        Friend Overrides Function CreateInterpolatedStringStartToken(isVerbatim As Boolean) As SyntaxToken
+            Return SyntaxFactory.Token(SyntaxKind.DollarSignDoubleQuoteToken)
+        End Function
+
+        Friend Overrides Function CreateInterpolatedStringEndToken() As SyntaxToken
+            Return SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken)
+        End Function
+
         Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(nodes As IEnumerable(Of TElement), separators As IEnumerable(Of SyntaxToken)) As SeparatedSyntaxList(Of TElement)
             Return SyntaxFactory.SeparatedList(nodes, separators)
         End Function
