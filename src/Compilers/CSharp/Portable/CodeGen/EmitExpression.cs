@@ -1704,6 +1704,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Call:
                     return ((BoundCall)receiver).Method.RefKind != RefKind.None;
 
+                case BoundKind.FunctionPointerInvocation:
+                    return ((BoundFunctionPointerInvocation)receiver).FunctionPointer.Signature.RefKind != RefKind.None;
+
                 case BoundKind.Dup:
                     return ((BoundDup)receiver).RefKind != RefKind.None;
 

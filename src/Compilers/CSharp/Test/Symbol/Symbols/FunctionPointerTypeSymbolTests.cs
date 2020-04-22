@@ -89,6 +89,21 @@ class C
                     // (12,19): error CS8753: 'out' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
                     //         delegate*<out string> p8)
                     Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "out").WithArguments("out").WithLocation(12, 19));
+
+            var mParams = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters;
+            Assert.Equal(8, mParams.Length);
+
+            verifyRefKind(RefKind.None, mParams[0]);
+            verifyRefKind(RefKind.Ref, mParams[1]);
+            verifyRefKind(RefKind.Ref, mParams[2]);
+            verifyRefKind(RefKind.RefReadOnly, mParams[3]);
+            verifyRefKind(RefKind.None, mParams[4]);
+            verifyRefKind(RefKind.None, mParams[5]);
+            verifyRefKind(RefKind.Ref, mParams[6]);
+            verifyRefKind(RefKind.None, mParams[7]);
+
+            static void verifyRefKind(RefKind expected, ParameterSymbol actual)
+                => Assert.Equal(expected, ((FunctionPointerTypeSymbol)actual.Type).Signature.RefKind);
         }
 
         [Fact]

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CSharp.UnitTests.FunctionPointerUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -63,7 +64,7 @@ class C
     public unsafe delegate* {conventionString}<string, int> M() => throw null;
 }}", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             void symbolValidator(ModuleSymbol module)
             {
@@ -86,7 +87,7 @@ class C
     public unsafe void M(delegate*<ref C, ref string, ref int[]> param1) => throw null;
 }", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -110,7 +111,7 @@ class C
     public unsafe void M(delegate*<out C, out string, ref int[]> param1) => throw null;
 }", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -137,7 +138,7 @@ public struct S
 {
 }", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -169,7 +170,7 @@ public class C
     public unsafe void M(delegate*<in string, in int, ref readonly bool> param) {}
 }", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -199,6 +200,7 @@ public class C
     .field public method int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute)& *() 'Field6'
     .field public method int32 modreq([mscorlib]System.Object)& *() 'Field7'
     .field public method int32& modreq([mscorlib]System.Object) *() 'Field8'
+    .field static public method method int32 modreq([mscorlib]System.Object) *() *() 'Field9'
 }
 ";
 
@@ -217,64 +219,33 @@ class D
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
 
             comp.VerifyDiagnostics(
-                // (6,26): error CS0570: 'delegate*<?>' is not supported by the language
+                // (6,28): error CS1955: Non-invocable member 'C.Field1' cannot be used like a method.
                 //         ref int i1 = ref c.Field1();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<?>").WithLocation(6, 26),
-                // (6,28): error CS0570: 'delegate*<?>' is not supported by the language
-                //         ref int i1 = ref c.Field1();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("delegate*<?>").WithLocation(6, 28),
-                // (7,26): error CS0570: 'delegate*<?>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field1").WithArguments("C.Field1").WithLocation(6, 28),
+                // (7,28): error CS1955: Non-invocable member 'C.Field2' cannot be used like a method.
                 //         ref int i2 = ref c.Field2();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<?>").WithLocation(7, 26),
-                // (7,28): error CS0570: 'delegate*<?>' is not supported by the language
-                //         ref int i2 = ref c.Field2();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("delegate*<?>").WithLocation(7, 28),
-                // (8,11): error CS0570: 'delegate*<?>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field2").WithArguments("C.Field2").WithLocation(7, 28),
+                // (8,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("delegate*<?>").WithLocation(8, 11),
-                // (8,22): error CS0570: 'delegate*<?>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
+                // (8,22): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("delegate*<?>").WithLocation(8, 22),
-                // (9,11): error CS0570: 'delegate*<?>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(8, 22),
+                // (9,11): error CS0570: 'C.Field2' is not supported by the language
                 //         c.Field2 = c.Field2;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("delegate*<?>").WithLocation(9, 11),
-                // (9,22): error CS0570: 'delegate*<?>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(9, 11),
+                // (9,22): error CS0570: 'C.Field2' is not supported by the language
                 //         c.Field2 = c.Field2;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("delegate*<?>").WithLocation(9, 22)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(9, 22)
             );
 
             var c = comp.GetTypeByMetadataName("C");
-            var field = c.GetField("Field1");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.Ref, IsUnsupportedType()));
 
-            field = c.GetField("Field2");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsUnsupportedType()));
-
-            field = c.GetField("Field3");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsUnsupportedType()));
-
-            field = c.GetField("Field4");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsUnsupportedType()));
-
-            field = c.GetField("Field5");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.RefReadOnly, IsUnsupportedType()));
-
-            field = c.GetField("Field6");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.Ref, IsUnsupportedType()));
-
-            field = c.GetField("Field7");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.Ref, IsUnsupportedType()));
-
-            field = c.GetField("Field8");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsUnsupportedType()));
+            for (int i = 1; i <= 9; i++)
+            {
+                var field = c.GetField($"Field{i}");
+                Assert.True(field.Type is UnsupportedMetadataTypeSymbol);
+            }
         }
 
         [Fact]
@@ -292,6 +263,7 @@ class D
     .field public method void *(int32 modreq([mscorlib]System.Runtime.InteropServices.OutAttribute)&) 'Field6'
     .field public method void *(int32& modreq([mscorlib]System.Object)) 'Field7'
     .field public method void *(int32 modreq([mscorlib]System.Object)&) 'Field8'
+    .field public method void *(method void *(int32 modreq([mscorlib]System.Object))) 'Field9'
 }
 ";
 
@@ -310,72 +282,30 @@ class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
             comp.VerifyDiagnostics(
-                // (7,9): error CS0570: 'delegate*<?,void>' is not supported by the language
+                // (7,11): error CS1955: Non-invocable member 'C.Field1' cannot be used like a method.
                 //         c.Field1(ref i);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(ref i)").WithArguments("delegate*<?,void>").WithLocation(7, 9),
-                // (7,11): error CS0570: 'delegate*<?,void>' is not supported by the language
-                //         c.Field1(ref i);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("delegate*<?,void>").WithLocation(7, 11),
-                // (8,9): error CS0570: 'delegate*<?,void>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field1").WithArguments("C.Field1").WithLocation(7, 11),
+                // (8,11): error CS1955: Non-invocable member 'C.Field1' cannot be used like a method.
                 //         c.Field1(in i);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(in i)").WithArguments("delegate*<?,void>").WithLocation(8, 9),
-                // (8,11): error CS0570: 'delegate*<?,void>' is not supported by the language
-                //         c.Field1(in i);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("delegate*<?,void>").WithLocation(8, 11),
-                // (9,9): error CS0570: 'delegate*<?,void>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field1").WithArguments("C.Field1").WithLocation(8, 11),
+                // (9,11): error CS1955: Non-invocable member 'C.Field1' cannot be used like a method.
                 //         c.Field1(out i);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1(out i)").WithArguments("delegate*<?,void>").WithLocation(9, 9),
-                // (9,11): error CS0570: 'delegate*<?,void>' is not supported by the language
-                //         c.Field1(out i);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("delegate*<?,void>").WithLocation(9, 11),
-                // (10,11): error CS0570: 'delegate*<?,void>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "Field1").WithArguments("C.Field1").WithLocation(9, 11),
+                // (10,11): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("delegate*<?,void>").WithLocation(10, 11),
-                // (10,22): error CS0570: 'delegate*<?,void>' is not supported by the language
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(10, 11),
+                // (10,22): error CS0570: 'C.Field1' is not supported by the language
                 //         c.Field1 = c.Field1;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("delegate*<?,void>").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(10, 22)
             );
 
             var c = comp.GetTypeByMetadataName("C");
-            var field = c.GetField("Field1");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsVoidType()),
-                (RefKind.None, IsUnsupportedType()));
 
-            field = c.GetField("Field2");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsVoidType()),
-                (RefKind.None, IsUnsupportedType()));
-
-            field = c.GetField("Field3");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsVoidType()),
-                (RefKind.In, IsUnsupportedType()));
-
-            field = c.GetField("Field4");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsVoidType()),
-                (RefKind.Out, IsUnsupportedType()));
-
-            field = c.GetField("Field5");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsVoidType()),
-                (RefKind.Ref, IsUnsupportedType()));
-
-            field = c.GetField("Field6");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsVoidType()),
-                (RefKind.Ref, IsUnsupportedType()));
-
-            field = c.GetField("Field7");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsVoidType()),
-                (RefKind.None, IsUnsupportedType()));
-
-            field = c.GetField("Field8");
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.Default,
-                (RefKind.None, IsVoidType()),
-                (RefKind.Ref, IsUnsupportedType()));
+            for (int i = 1; i <= 9; i++)
+            {
+                var field = c.GetField($"Field{i}");
+                Assert.True(field.Type is UnsupportedMetadataTypeSymbol);
+            }
         }
 
         [Fact]
@@ -459,8 +389,6 @@ unsafe class D
         C.Field6(in i);
     }
 }";
-
-            //CreateCompilationWithFunctionPointersAndIl(source, il).VerifyDiagnostics();
 
             var verifier = CompileAndVerifyFunctionPointersWithIl(source, il, expectedOutput: "12345678");
 
@@ -632,7 +560,7 @@ public class C
     public unsafe delegate* cdecl<ref delegate*<ref readonly string>, void> M(delegate*<in delegate* stdcall<delegate*<void>>, delegate*<int>> param) => throw null;
 }", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -729,7 +657,7 @@ public unsafe class C
                      
 }", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -755,7 +683,7 @@ public unsafe class C
     public delegate* stdcall<int> Prop2 { get => throw null; set => throw null; }
 }", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             verifier.VerifyIL("C.Prop1.get", expectedIL: @"
 {
@@ -807,7 +735,7 @@ public unsafe class C
     public readonly delegate*<C, C> _field;
 }", symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -855,7 +783,7 @@ class D : C
 
             var verifier = CompileAndVerifyFunctionPointersWithIl(source, ilStub: ilSource, symbolValidator: symbolValidator);
 
-            symbolValidator((ModuleSymbol)((Symbols.PublicModel.ModuleSymbol)verifier.Compilation.SourceModule).UnderlyingSymbol);
+            symbolValidator(GetSourceModule(verifier));
 
             static void symbolValidator(ModuleSymbol module)
             {
@@ -940,28 +868,28 @@ unsafe class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, ilSource);
             comp.VerifyDiagnostics(
-                // (6,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by C#.
+                // (6,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
                 //         c.Field(__arglist(1, 2));
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(6, 11),
-                // (7,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by C#.
+                // (7,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
                 //         c.Field(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(7, 11),
-                // (8,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by C#.
+                // (8,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
                 //         c.Field();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(8, 11),
-                // (9,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by C#.
+                // (9,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
                 //         c.Field = c.Field;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(9, 11),
-                // (9,21): error CS8795: The calling convention of 'delegate*<void>' is not supported by C#.
+                // (9,21): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
                 //         c.Field = c.Field;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate*<void>").WithLocation(9, 21),
-                // (10,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by C#.
+                // (10,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
                 //         c.Prop();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(10, 11),
-                // (11,11): error CS8795: The calling convention of 'delegate*<void>' is not supported by C#.
+                // (11,11): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
                 //         c.Prop = c.Prop;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(11, 11),
-                // (11,20): error CS8795: The calling convention of 'delegate*<void>' is not supported by C#.
+                // (11,20): error CS8795: The calling convention of 'delegate*<void>' is not supported the language.
                 //         c.Prop = c.Prop;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate*<void>").WithLocation(11, 20)
             );
@@ -976,10 +904,12 @@ unsafe class D
 
             var field = c.GetField("Field");
 
-            VerifyFunctionPointerSymbol(field.Type, CallingConvention.ExtraArguments,
+            var type = (FunctionPointerTypeSymbol)field.Type;
+            VerifyFunctionPointerSymbol(type, CallingConvention.ExtraArguments,
                 (RefKind.None, IsVoidType()));
 
-            Assert.True(field.Type.HasUseSiteError);
+            Assert.True(type.HasUseSiteError);
+            Assert.True(type.Signature.IsVararg);
         }
 
         [Fact]
@@ -5112,87 +5042,36 @@ unsafe class C
             );
         }
 
-        private static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
+        [Fact]
+        public void FunctionPointerReturnTypeConstrainedCallVirtIfNotRef()
         {
-            FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe class C
+{
+    void M1() {}
+    void M<T>(delegate*<ref T> ptr1, delegate*<T> ptr2) where T : C
+    {
+        ptr1().M1();
+        ptr2().M1();
+    }
+}");
 
-            FunctionPointerUtilities.CommonVerifyFunctionPointer(funcPtr);
-
-            var signature = funcPtr.Signature;
-            Assert.Equal(expectedConvention, signature.CallingConvention);
-
-            Assert.Equal(returnVerifier.RefKind, signature.RefKind);
-            switch (signature.RefKind)
-            {
-                case RefKind.RefReadOnly:
-                    Assert.True(CustomModifierUtils.HasInAttributeModifier(signature.RefCustomModifiers));
-                    Assert.False(CustomModifierUtils.HasOutAttributeModifier(signature.RefCustomModifiers));
-                    break;
-
-                case RefKind.None:
-                case RefKind.Ref:
-                    Assert.False(CustomModifierUtils.HasInAttributeModifier(signature.RefCustomModifiers));
-                    Assert.False(CustomModifierUtils.HasOutAttributeModifier(signature.RefCustomModifiers));
-                    break;
-
-                case RefKind.Out:
-                default:
-                    Assert.True(false, $"Cannot have a return ref kind of {signature.RefKind}");
-                    break;
-            }
-            returnVerifier.TypeVerifier(signature.ReturnType);
-
-            Assert.Equal(argumentVerifiers.Length, signature.ParameterCount);
-            for (int i = 0; i < argumentVerifiers.Length; i++)
-            {
-                var parameter = signature.Parameters[i];
-                Assert.Equal(argumentVerifiers[i].RefKind, parameter.RefKind);
-                argumentVerifiers[i].TypeVerifier(parameter.Type);
-                switch (parameter.RefKind)
-                {
-                    case RefKind.Out:
-                        Assert.True(CustomModifierUtils.HasOutAttributeModifier(parameter.RefCustomModifiers));
-                        Assert.False(CustomModifierUtils.HasInAttributeModifier(parameter.RefCustomModifiers));
-                        break;
-
-                    case RefKind.In:
-                        Assert.True(CustomModifierUtils.HasInAttributeModifier(parameter.RefCustomModifiers));
-                        Assert.False(CustomModifierUtils.HasOutAttributeModifier(parameter.RefCustomModifiers));
-                        break;
-
-                    case RefKind.Ref:
-                    case RefKind.None:
-                        Assert.False(CustomModifierUtils.HasInAttributeModifier(parameter.RefCustomModifiers));
-                        Assert.False(CustomModifierUtils.HasOutAttributeModifier(parameter.RefCustomModifiers));
-                        break;
-
-                    default:
-                        Assert.True(false, $"Cannot have a return ref kind of {parameter.RefKind}");
-                        break;
-                }
-            }
+            verifier.VerifyIL(@"C.M<T>(delegate*<T>, delegate*<T>)", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  calli      ""delegate*<T>""
+  IL_0006:  constrained. ""T""
+  IL_000c:  callvirt   ""void C.M1()""
+  IL_0011:  ldarg.2
+  IL_0012:  calli      ""delegate*<T>""
+  IL_0017:  box        ""T""
+  IL_001c:  callvirt   ""void C.M1()""
+  IL_0021:  ret
+}
+");
         }
-
-        private static Action<TypeSymbol> IsVoidType() => typeSymbol => Assert.True(typeSymbol.IsVoidType());
-
-        private static Action<TypeSymbol> IsSpecialType(SpecialType specialType)
-            => typeSymbol => Assert.Equal(specialType, typeSymbol.SpecialType);
-
-        private static Action<TypeSymbol> IsTypeName(string typeName)
-            => typeSymbol => Assert.Equal(typeName, typeSymbol.Name);
-
-        private static Action<TypeSymbol> IsArrayType(Action<TypeSymbol> arrayTypeVerifier)
-            => typeSymbol =>
-            {
-                Assert.True(typeSymbol.IsArray());
-                arrayTypeVerifier(((ArrayTypeSymbol)typeSymbol).ElementType);
-            };
-
-        private static Action<TypeSymbol> IsUnsupportedType()
-            => typeSymbol => Assert.True(typeSymbol is UnsupportedMetadataTypeSymbol);
-
-        private static Action<TypeSymbol> IsFunctionPointerTypeSymbol(CallingConvention callingConvention, (RefKind, Action<TypeSymbol>) returnVerifier, params (RefKind, Action<TypeSymbol>)[] argumentVerifiers)
-            => typeSymbol => VerifyFunctionPointerSymbol((FunctionPointerTypeSymbol)typeSymbol, callingConvention, returnVerifier, argumentVerifiers);
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
@@ -5356,6 +5235,11 @@ unsafe class C
             var contentId = peBuilder.Serialize(peBlob);
 
             peBlob.WriteContentTo(peStream);
+        }
+
+        private static ModuleSymbol GetSourceModule(CompilationVerifier verifier)
+        {
+            return ((CSharpCompilation)verifier.Compilation).SourceModule;
         }
     }
 }

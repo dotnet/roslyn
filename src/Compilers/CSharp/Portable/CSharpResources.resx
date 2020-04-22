@@ -6083,6 +6083,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type of a local declared in a fixed statement cannot be a function pointer type.</value>
   </data>
   <data name="ERR_UnsupportedCallingConvention" xml:space="preserve">
-    <value>The calling convention of '{0}' is not supported by C#.</value>
+    <value>The calling convention of '{0}' is not supported by the language.</value>
   </data>
 </root>

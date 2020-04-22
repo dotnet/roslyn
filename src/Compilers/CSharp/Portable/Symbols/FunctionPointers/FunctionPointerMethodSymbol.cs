@@ -366,15 +366,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             DiagnosticInfo? info = null;
+            CalculateUseSiteDiagnostic(ref info);
+
             if (CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments) ||
                 CallingConvention.IsCallingConvention(CallingConvention.FastCall))
             {
-                info = new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                MergeUseSiteDiagnostics(ref info, new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this));
             }
-            else
-            {
-                CalculateUseSiteDiagnostic(ref info);
-            }
+
             return info;
         }
 
@@ -385,7 +384,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || GetUnificationUseSiteDiagnosticRecursive(ref result, Parameters, owner, ref checkedTypes);
         }
 
-        public override bool IsVararg => false;
+        public override bool IsVararg
+        {
+            get
+            {
+                var isVararg = CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments);
+                Debug.Assert(!isVararg || HasUseSiteError);
+                return isVararg;
+            }
+        }
 
         public override Symbol? ContainingSymbol => null;
         // Function pointers cannot have type parameters

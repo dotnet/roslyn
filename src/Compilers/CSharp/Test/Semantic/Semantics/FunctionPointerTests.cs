@@ -6,11 +6,14 @@
 #nullable enable
 
 using System.Linq;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CSharp.UnitTests.FunctionPointerUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1978,6 +1981,17 @@ unsafe class C
                 //         ptr2(__arglist(1, 2, 3, ptr1));
                 Diagnostic(ErrorCode.ERR_BadArgType, "__arglist(1, 2, 3, ptr1)").WithArguments("1", "__arglist", "?").WithLocation(9, 14)
             );
+
+            var m = comp.GetTypeByMetadataName("C").GetMethod("M");
+
+            Assert.Equal(2, m.ParameterCount);
+
+            var type = (FunctionPointerTypeSymbol)m.Parameters[1].Type;
+            VerifyFunctionPointerSymbol(type, CallingConvention.Default,
+                (RefKind.None, IsVoidType()),
+                (RefKind.None, IsErrorType()));
+
+            Assert.False(type.Signature.IsVararg);
         }
     }
 }

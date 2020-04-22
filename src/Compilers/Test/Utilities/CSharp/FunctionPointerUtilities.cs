@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 #nullable enable
 
+using System;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Xunit;
 
@@ -121,5 +123,91 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Empty(symbol.NotNullIfParameterNotNull);
             }
         }
+
+        public static void VerifyFunctionPointerSymbol(TypeSymbol type, CallingConvention expectedConvention, (RefKind RefKind, Action<TypeSymbol> TypeVerifier) returnVerifier, params (RefKind RefKind, Action<TypeSymbol> TypeVerifier)[] argumentVerifiers)
+        {
+            FunctionPointerTypeSymbol funcPtr = (FunctionPointerTypeSymbol)type;
+
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(funcPtr);
+
+            var signature = funcPtr.Signature;
+            Assert.Equal(expectedConvention, signature.CallingConvention);
+
+            Assert.Equal(returnVerifier.RefKind, signature.RefKind);
+            switch (signature.RefKind)
+            {
+                case RefKind.RefReadOnly:
+                    Assert.True(CustomModifierUtils.HasInAttributeModifier(signature.RefCustomModifiers));
+                    Assert.False(CustomModifierUtils.HasOutAttributeModifier(signature.RefCustomModifiers));
+                    break;
+
+                case RefKind.None:
+                case RefKind.Ref:
+                    Assert.False(CustomModifierUtils.HasInAttributeModifier(signature.RefCustomModifiers));
+                    Assert.False(CustomModifierUtils.HasOutAttributeModifier(signature.RefCustomModifiers));
+                    break;
+
+                case RefKind.Out:
+                default:
+                    Assert.True(false, $"Cannot have a return ref kind of {signature.RefKind}");
+                    break;
+            }
+            returnVerifier.TypeVerifier(signature.ReturnType);
+
+            Assert.Equal(argumentVerifiers.Length, signature.ParameterCount);
+            for (int i = 0; i < argumentVerifiers.Length; i++)
+            {
+                var parameter = signature.Parameters[i];
+                Assert.Equal(argumentVerifiers[i].RefKind, parameter.RefKind);
+                argumentVerifiers[i].TypeVerifier(parameter.Type);
+                switch (parameter.RefKind)
+                {
+                    case RefKind.Out:
+                        Assert.True(CustomModifierUtils.HasOutAttributeModifier(parameter.RefCustomModifiers));
+                        Assert.False(CustomModifierUtils.HasInAttributeModifier(parameter.RefCustomModifiers));
+                        break;
+
+                    case RefKind.In:
+                        Assert.True(CustomModifierUtils.HasInAttributeModifier(parameter.RefCustomModifiers));
+                        Assert.False(CustomModifierUtils.HasOutAttributeModifier(parameter.RefCustomModifiers));
+                        break;
+
+                    case RefKind.Ref:
+                    case RefKind.None:
+                        Assert.False(CustomModifierUtils.HasInAttributeModifier(parameter.RefCustomModifiers));
+                        Assert.False(CustomModifierUtils.HasOutAttributeModifier(parameter.RefCustomModifiers));
+                        break;
+
+                    default:
+                        Assert.True(false, $"Cannot have a return ref kind of {parameter.RefKind}");
+                        break;
+                }
+            }
+        }
+
+        public static Action<TypeSymbol> IsVoidType() => typeSymbol => Assert.True(typeSymbol.IsVoidType());
+
+        public static Action<TypeSymbol> IsSpecialType(SpecialType specialType)
+            => typeSymbol => Assert.Equal(specialType, typeSymbol.SpecialType);
+
+        public static Action<TypeSymbol> IsTypeName(string typeName)
+            => typeSymbol => Assert.Equal(typeName, typeSymbol.Name);
+
+        public static Action<TypeSymbol> IsArrayType(Action<TypeSymbol> arrayTypeVerifier)
+            => typeSymbol =>
+            {
+                Assert.True(typeSymbol.IsArray());
+                arrayTypeVerifier(((ArrayTypeSymbol)typeSymbol).ElementType);
+            };
+
+        public static Action<TypeSymbol> IsUnsupportedType()
+            => typeSymbol => Assert.True(typeSymbol is UnsupportedMetadataTypeSymbol);
+
+        public static Action<TypeSymbol> IsFunctionPointerTypeSymbol(CallingConvention callingConvention, (RefKind, Action<TypeSymbol>) returnVerifier, params (RefKind, Action<TypeSymbol>)[] argumentVerifiers)
+            => typeSymbol => VerifyFunctionPointerSymbol((FunctionPointerTypeSymbol)typeSymbol, callingConvention, returnVerifier, argumentVerifiers);
+
+        public static Action<TypeSymbol> IsErrorType()
+            => typeSymbol => Assert.True(typeSymbol.IsErrorType());
+
     }
 }

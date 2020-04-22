@@ -573,8 +573,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCallingConvention">
-        <source>The calling convention of '{0}' is not supported by C#.</source>
-        <target state="new">The calling convention of '{0}' is not supported by C#.</target>
+        <source>The calling convention of '{0}' is not supported by the language.</source>
+        <target state="new">The calling convention of '{0}' is not supported by the language.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingVarInSwitchCase">
