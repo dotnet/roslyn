@@ -565,6 +565,29 @@ s");
         }
 
         [Fact]
+        public void StructRecord5()
+        {
+            var src = @"
+using System;
+data struct S(int X, int Y)
+{
+    public bool Equals(in S s)
+    {
+        Console.WriteLine(""s"");
+        return true;
+    }
+    public static void Main()
+    {
+        var s1 = new S(0, 1);
+        s1.Equals((object)s1);
+        s1.Equals(s1);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"s
+s");
+        }
+
+        [Fact]
         public void StructRecordDefaultCtor()
         {
             const string src = @"
