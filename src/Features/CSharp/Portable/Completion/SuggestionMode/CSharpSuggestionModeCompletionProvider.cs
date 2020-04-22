@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.member_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation);
                 }
+                else if (IsPotentialPatternVariableDeclaration(tree.FindTokenOnLeftOfPosition(position, cancellationToken)))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.pattern_variable, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_pattern_variable_declaration);
+                }
                 else if (token.IsPreProcessorExpressionContext())
                 {
                     return CreateEmptySuggestionModeItem();
@@ -197,6 +201,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             }
 
             return typeSymbol.GetDelegateType(compilation);
+        }
+
+        private bool IsPotentialPatternVariableDeclaration(SyntaxToken token)
+        {
+            var patternSyntax = token.GetAncestor<PatternSyntax>();
+            if (patternSyntax == null)
+            {
+                return false;
+            }
+
+            // Statements containing 'not' cannot be valid variable declarations, e.g. 'e is not int $$' and 'e is not (1 and int $$)'
+            if (patternSyntax.GetAncestorsOrThis(a => a is UnaryPatternSyntax unaryPatternSyntax &&
+                                                      unaryPatternSyntax.PatternOperator.IsKind(SyntaxKind.NotKeyword)).Any())
+            {
+                return false;
+            }
+
+            // Patterns containing 'or' cannot contain valid variable declarations, e.g. 'e is 1 or int $$'
+            var possibleBinaryPattern = patternSyntax.Parent;
+            while (possibleBinaryPattern is BinaryPatternSyntax binaryPatternSyntax)
+            {
+                if (binaryPatternSyntax.PatternOperator.IsKind(SyntaxKind.OrKeyword))
+                {
+                    return false;
+                }
+
+                possibleBinaryPattern = binaryPatternSyntax.Parent;
+            }
+
+            // e is int o$$
+            // e is { P: 1 } o$$
+            var lastTokenInPattern = patternSyntax.GetLastToken();
+            if (lastTokenInPattern.Parent is SingleVariableDesignationSyntax variableDesignationSyntax &&
+                token.Parent == variableDesignationSyntax)
+            {
+                return patternSyntax is DeclarationPatternSyntax || patternSyntax is RecursivePatternSyntax;
+            }
+
+            return false;
         }
     }
 }
