@@ -1279,13 +1279,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (m.Kind)
                 {
                     case SymbolKind.Field:
-                        yield return (FieldSymbol)m;
+                        var field = (FieldSymbol)m;
+                        yield return field.TupleUnderlyingField ?? field;
                         break;
                     case SymbolKind.Event:
                         FieldSymbol associatedField = ((EventSymbol)m).AssociatedField;
                         if ((object)associatedField != null)
                         {
-                            yield return associatedField;
+                            yield return associatedField.TupleUnderlyingField ?? associatedField;
                         }
                         break;
                 }
