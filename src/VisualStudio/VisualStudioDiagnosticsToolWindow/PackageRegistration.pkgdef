@@ -1,4 +1,5 @@
-﻿[$RootKey$\AutoLoadPackages\{f1536ef8-92ec-443c-9ed7-fdadf150da82}]
+﻿// ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)
+[$RootKey$\AutoLoadPackages\{f1536ef8-92ec-443c-9ed7-fdadf150da82}]
 "{49e24138-9ee3-49e0-8ede-6b39f49303bf}"=dword:00000002
 
 [$RootKey$\Menus]

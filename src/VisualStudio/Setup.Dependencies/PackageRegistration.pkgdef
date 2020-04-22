@@ -1,7 +1,0 @@
-﻿[$RootKey$\RuntimeConfiguration\dependentAssembly\bindingRedirection\{579ACE4E-FC58-4993-9F23-EE7079F03FE9}]
-"name"="System.ValueTuple"
-"publicKeyToken"="cc7b13ffcd2ddd51"
-"culture"="neutral"
-"oldVersion"="0.0.0.0-4.0.3.0"
-"newVersion"="4.0.3.0"
-"codeBase"="$PackageFolder$\System.ValueTuple.dll"

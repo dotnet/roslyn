@@ -16,13 +16,13 @@
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\Dependencies</ExtensionInstallationFolder>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <PkgDefBindingRedirect Include="System.ValueTuple.dll" FusionName="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51"/>
   </ItemGroup>
   <ItemGroup>
-    <!-- 
-    Roslyn dependencies that are installed by other VS components. 
-    This project deploys them to RoslynDev hive to enable F5 scenario, 
-    but the resulting VSIX not inserted into VS.
+    <!--
+      Roslyn dependencies that are installed by other VS components. 
+      This project deploys them to RoslynDev hive to enable F5 scenario, 
+      but the resulting VSIX not inserted into VS.
     -->
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" PkgDefEntry="BindingRedirect" />

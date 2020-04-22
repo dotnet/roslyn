@@ -18,15 +18,6 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Imports Task = System.Threading.Tasks.Task
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
-    ' VB option pages tree
-    '   Basic
-    '     General (from editor)
-    '     Scroll Bars (from editor)
-    '     Tabs (from editor)
-    '     Advanced
-    '     Code Style (category)
-    '       General
-    '       Naming
 
     <Guid(Guids.VisualBasicPackageIdString)>
     Friend NotInheritable Class VisualBasicPackage

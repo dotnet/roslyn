@@ -20,31 +20,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 
-// NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\CSharpPackageRegistration.pkgdef.
-// The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
-// its GUID. This name value is used to identify untrusted logical views and link them to their physical view attributes.
-// The net result is that using the attributes only causes designers to be loaded in the preview tab, even when they
-// shouldn't be.
-
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    // C# option pages tree:
-    //   CSharp
-    //     General (from editor)
-    //     Scroll Bars (from editor)
-    //     Tabs (from editor)
-    //     Advanced
-    //     Code Style (category)
-    //       General
-    //       Formatting (category)
-    //         General
-    //         Indentation
-    //         New Lines
-    //         Spacing
-    //         Wrapping
-    //       Naming
-    //     IntelliSense
-
     [Guid(Guids.CSharpPackageIdString)]
     internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {

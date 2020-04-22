@@ -1,10 +1,50 @@
-﻿[$RootKey$\AutomationProperties\TextEditor\Basic-Specific]
+﻿[$RootKey$\Languages\File Extensions\.bas]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.cls]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.ctl]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.dob]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.dsr]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.frm]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.pag]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.vb]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Services\{e34acdc0-baae-11d0-88bf-00a0c9110049}]
+@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Name"="Visual Basic Language Service"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\Services\{019971d6-4685-11d2-b48a-0000f87572eb}]
+@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Name"="Visual Basic Project System Shim"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\Services\{8df9750d-069b-4b81-973a-152e97420c5c}]
+@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Name"="Visual Basic TempPE Compiler Factory Service"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\AutomationProperties\TextEditor\Basic-Specific]
 @="#104"
 "Description"="#106"
 "Name"="Basic-Specific"
 "Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
 "ProfileSave"=dword:00000001
 "VSSettingsMigration"=dword:00000001
+
 [$RootKey$\AutomationProperties\TextEditor\Basic]
 @="#103"
 "Description"="#105"
@@ -13,57 +53,44 @@
 "ResourcePackage"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
 "ProfileSave"=dword:00000001
 "VSSettingsMigration"=dword:00000001
+
+// VB option pages tree
+//   Basic
+//     General (from editor)
+//     Scroll Bars (from editor)
+//     Tabs (from editor)
+//     Advanced
+//     Code Style (category)
+//       General
+//       Naming
+
 [$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\IntelliSense]
 @="#112"
 "Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
 "Page"="{04460a3b-1b5f-4402-bc6d-89a4f6f0a8d7}"
 "Keywords"="#312"
+
 [$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Code Style\General]
 @="#111"
 "Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
 "Page"="{10c168e1-3470-448a-a1ac-73d6bc070750}"
 "Keywords"="#10161"
+
 [$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Code Style\Naming]
 @="#110"
 "Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
 "Page"="{bca454e0-95e4-4877-b4cb-b1d642b7bafa}"
 "Keywords"="#10162"
+
 [$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Advanced]
 @="#102"
 "Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
 "Page"="{f1e1021e-a781-4862-9f4b-88746a288a67}"
 "Keywords"="#10160"
+
 [$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Code Style]
 @="#109"
 "Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-[$RootKey$\Languages\File Extensions\.bas]
-@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
-[$RootKey$\Languages\File Extensions\.cls]
-@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
-[$RootKey$\Languages\File Extensions\.ctl]
-@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
-[$RootKey$\Languages\File Extensions\.dob]
-@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
-[$RootKey$\Languages\File Extensions\.dsr]
-@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
-[$RootKey$\Languages\File Extensions\.frm]
-@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
-[$RootKey$\Languages\File Extensions\.pag]
-@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
-[$RootKey$\Languages\File Extensions\.vb]
-@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
-[$RootKey$\Services\{e34acdc0-baae-11d0-88bf-00a0c9110049}]
-@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-"Name"="Visual Basic Language Service"
-"IsAsyncQueryable"=dword:00000001
-[$RootKey$\Services\{019971d6-4685-11d2-b48a-0000f87572eb}]
-@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-"Name"="Visual Basic Project System Shim"
-"IsAsyncQueryable"=dword:00000001
-[$RootKey$\Services\{8df9750d-069b-4b81-973a-152e97420c5c}]
-@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
-"Name"="Visual Basic TempPE Compiler Factory Service"
-"IsAsyncQueryable"=dword:00000001
 
 [$RootKey$\Editors]
 

@@ -36,7 +36,7 @@
          (e.g. ProjectReference), or on NuGetPackageToIncludeInVsix items. These items will be automatically included in PkgDefEntry items.
          
          Metadata:
-         - ItemSpec: full path to the binary
+         - ItemSpec: full path to the binary if FusionName is not specified, otherwise it may be just a file name
          - FusionName: optional assembly name (read from the binary if not specified)
 
       4) PkgDefCodeBase

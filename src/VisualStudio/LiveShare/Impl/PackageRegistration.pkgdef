@@ -2,6 +2,7 @@
 "Path"="$PackageFolder$"
 "DllName"="Microsoft.VisualStudio.LanguageServices.LiveShareUI.dll"
 
+// ProvideLanguageService(StringConstants.CSharpLspLanguageServiceGuidString, StringConstants.CSharpLspLanguageName, ...)
 [$RootKey$\Languages\Language Services\C#_LSP]
 @="{b7b576c5-24ae-4fbb-965e-382125fd4889}"
 "Package"="{bb7e83f4-eaf6-456c-b140-f8c027a7ed8a}"
@@ -13,6 +14,7 @@
 "EnableAdvancedMembersOption"=dword:00000001
 "ShowSmartIndent"=dword:00000001
 
+// ProvideService(typeof(CSharpLspLanguageService))
 [$RootKey$\Services\{b7b576c5-24ae-4fbb-965e-382125fd4889}]
 @="{bb7e83f4-eaf6-456c-b140-f8c027a7ed8a}"
 "Name"="CSharpLspLanguageService"

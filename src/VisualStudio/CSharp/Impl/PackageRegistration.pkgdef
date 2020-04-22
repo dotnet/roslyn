@@ -1,4 +1,5 @@
-﻿[$RootKey$\ToolWindows\{ca8cc5c7-0231-406a-95cd-aa5ed6ac0190}]
+﻿// [ProvideInteractiveWindow("{ca8cc5c7-0231-406a-95cd-aa5ed6ac0190}", Orientation = ToolWindowOrientation.Bottom, Style = VsDockStyle.Tabbed, Window = CommonVsUtils.OutputWindowId)]
+[$RootKey$\ToolWindows\{ca8cc5c7-0231-406a-95cd-aa5ed6ac0190}]
 @="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"
 "Orientation"="Bottom"
 "Style"="Tabbed"
@@ -7,8 +8,28 @@
 [$RootKey$\Languages\File Extensions\.csx]
 @="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
 
+[$RootKey$\Languages\File Extensions\.cs]
+@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
+
 [$RootKey$\Menus]
 "{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"=", Menus.ctmenu, 17"
+
+[$RootKey$\Languages\Language Services\CSharp]
+@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
+"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"LangResID"=dword:00000065
+"RequestStockColors"=dword:00000001
+"ShowDropdownBarOption"=dword:00000001
+
+[$RootKey$\Services\{694dd9b6-b865-4c5b-ad85-86356e9c88dc}]
+@="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Name"="C# Language Service"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\Services\{dba64c84-56df-4e20-8aa6-02332a97f474}]
+@="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+"Name"="C# TempPE Compiler Service"
+"IsAsyncQueryable"=dword:00000001
 
 [$RootKey$\AutomationProperties\TextEditor\CSharp-Specific]
 @="#104"
@@ -26,6 +47,23 @@
 "ResourcePackage"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
 "ProfileSave"=dword:00000001
 "VSSettingsMigration"=dword:00000001
+
+// C# option pages tree:
+//   CSharp
+//     General (from editor)
+//     Scroll Bars (from editor)
+//     Tabs (from editor)
+//     Advanced
+//     Code Style (category)
+//       General
+//       Formatting (category)
+//         General
+//         Indentation
+//         New Lines
+//         Spacing
+//         Wrapping
+//       Naming
+//     IntelliSense
 
 [$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style\Formatting\Spacing]
 @="#112"
@@ -88,26 +126,6 @@
 [$RootKey$\Languages\Language Services\CSharp\EditorToolsOptions\Code Style]
 @="#114"
 "Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-
-[$RootKey$\Languages\File Extensions\.cs]
-@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
-
-[$RootKey$\Languages\Language Services\CSharp]
-@="{694dd9b6-b865-4c5b-ad85-86356e9c88dc}"
-"Package"="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-"LangResID"=dword:00000065
-"RequestStockColors"=dword:00000001
-"ShowDropdownBarOption"=dword:00000001
-
-[$RootKey$\Services\{694dd9b6-b865-4c5b-ad85-86356e9c88dc}]
-@="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-"Name"="C# Language Service"
-"IsAsyncQueryable"=dword:00000001
-
-[$RootKey$\Services\{dba64c84-56df-4e20-8aa6-02332a97f474}]
-@="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-"Name"="C# TempPE Compiler Service"
-"IsAsyncQueryable"=dword:00000001
 
 [$RootKey$\Editors]
 
