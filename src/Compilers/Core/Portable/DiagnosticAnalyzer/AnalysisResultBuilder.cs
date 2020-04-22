@@ -137,9 +137,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             lazyLocalDiagnostics = lazyLocalDiagnostics ?? new Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>();
 
-            foreach (var diagsByTree in diagnostics.GroupBy(d => d.Location.SourceTree!))
+            foreach (var diagsByTree in diagnostics.GroupBy(d => d.Location.SourceTree))
             {
                 var tree = diagsByTree.Key;
+                Debug.Assert(tree is object);
 
                 Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? allDiagnostics;
                 if (!lazyLocalDiagnostics.TryGetValue(tree, out allDiagnostics))
